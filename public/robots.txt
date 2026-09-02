@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+# Админка закрыта авторизацией, но в индексе ей делать нечего
+Disallow: /admin.html
+
+# Замените домен на свой после выкладки
+Sitemap: https://example.com/sitemap.xml

@@ -56,7 +56,7 @@ function renderGradeControls() {
   gradePill.textContent = selectedGrade ? String(selectedGrade) : 'Все';
   gradePill.title = selectedGrade ? gradeLabel(selectedGrade) : 'Все классы';
 
-  const chips = [['', 'Все классы', '#/'], ...GRADES.map(grade => [String(grade), gradeLabel(grade), `#/grade/${grade}`])];
+  const chips = [['', 'Все классы', '/'], ...GRADES.map(grade => [String(grade), gradeLabel(grade), `/grade/${grade}`])];
   gradeFilter.innerHTML = chips.map(([value, label, href]) => {
     const active = String(selectedGrade ?? '') === value;
     return `<a class="grade-chip${active ? ' active' : ''}" href="${href}"${active ? ' aria-current="page"' : ''}>${label}</a>`;
@@ -79,9 +79,8 @@ function applyGrade(grade) {
 gradeSelect.addEventListener('change', () => {
   const grade = gradeSelect.value ? Number(gradeSelect.value) : null;
   applyGrade(grade);
-  const path = location.hash.replace(/^#/, '').split('?')[0];
-  if (path.startsWith('/grade/')) {
-    location.hash = grade ? `#/grade/${grade}` : '#/';
+  if (location.pathname.startsWith('/grade/')) {
+    navigate(grade ? `/grade/${grade}` : '/');
     return;
   }
   route();
@@ -90,18 +89,18 @@ gradeSelect.addEventListener('change', () => {
 /* ── Боковое меню ─────────────────────────────────────────────────── */
 
 function renderSidebar() {
-  const home = '<a class="nav-link" href="#/" title="Главная"><span class="nav-icon">⌂</span><span class="label">Главная</span></a>';
+  const home = '<a class="nav-link" href="/" title="Главная"><span class="nav-icon">⌂</span><span class="label">Главная</span></a>';
   const groups = subjects.map((subject, index) => {
     const topics = topicsForGrade(allTopics.filter(topic => topic.subject_id === subject.id));
     const links = topics.length
       ? topics.map(topic => {
           const badge = selectedGrade || !topic.grade ? '' : `<span class="subnav-grade">${topic.grade}</span>`;
-          return `<a href="#/topic/${encodeURIComponent(topic.slug)}">${escapeHtml(topic.title)}${badge}</a>`;
+          return `<a href="/topic/${encodeURIComponent(topic.slug)}">${escapeHtml(topic.title)}${badge}</a>`;
         }).join('')
       : `<span class="subnav-empty">${selectedGrade ? `В ${selectedGrade} классе тем нет` : 'Тем пока нет'}</span>`;
     return `<section class="nav-group open" data-subject="${subject.id}">
       <button class="group-title" title="${escapeHtml(subject.title)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subject.icon)}</span><span class="label">${escapeHtml(subject.title)}</span><span class="chevron">⌃</span></button>
-      <div class="subnav"><a class="subnav-all" href="#/subject/${encodeURIComponent(subject.slug)}">Все темы раздела</a>${links}</div>
+      <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subject.slug)}">Все темы раздела</a>${links}</div>
     </section>`;
   }).join('');
   sidebarNav.innerHTML = home + groups;
@@ -109,8 +108,8 @@ function renderSidebar() {
 }
 
 function markActiveNav() {
-  const hash = location.hash || '#/';
-  sidebarNav.querySelectorAll('a').forEach(link => link.classList.toggle('active', link.getAttribute('href') === hash));
+  const current = location.pathname;
+  sidebarNav.querySelectorAll('a').forEach(link => link.classList.toggle('active', link.getAttribute('href') === current));
 }
 
 /* ── Карточка задачи с раскрывающимся решением ────────────────────── */
@@ -132,12 +131,12 @@ function revealBlock(kind, label, body) {
      <div class="reveal ${kind}" hidden><span class="reveal-label">${label === 'ответ' ? 'Ответ' : 'Решение'}</span>${body}</div>`;
 }
 
-function taskCard(task, { showTopicLink, showGrade }) {
+function taskCard(task, { showTopicLink, showGrade, linkTitle }) {
   const subject = subjectOf(task);
   const grade = showGrade ? (task.grade ?? task.topics?.grade) : null;
   const level = task.difficulty === 'Лёгкий' ? 'easy' : task.difficulty === 'Сложный' ? 'hard' : '';
   const topicLink = showTopicLink && task.topics?.slug
-    ? `<a class="task-topic" href="#/topic/${encodeURIComponent(task.topics.slug)}">${escapeHtml(task.topics.title)}</a>`
+    ? `<a class="task-topic" href="/topic/${encodeURIComponent(task.topics.slug)}">${escapeHtml(task.topics.title)}</a>`
     : '';
   const meta = [
     `<span class="tag ${tagClass(subject)}">${escapeHtml(subject?.title || 'Математика')}</span>`,
@@ -154,9 +153,12 @@ function taskCard(task, { showTopicLink, showGrade }) {
     ? revealBlock('solution', 'решение', solutionBody)
     : '<p class="solution-missing">Решение пока не добавлено.</p>';
 
+  const title = linkTitle
+    ? `<a class="task-title" href="${taskPath(task)}">${escapeHtml(task.title)}</a>`
+    : `<strong class="task-title">${escapeHtml(task.title)}</strong>`;
   return `<article class="task" data-task="${task.id}">
     <div class="task-meta">${meta}</div>
-    <strong class="task-title">${escapeHtml(task.title)}</strong>
+    ${title}
     <div class="math task-condition" data-condition></div>
     ${taskFigure(task.condition_image, task.title, 'Чертёж')}
     ${answer}
@@ -178,9 +180,9 @@ function fillTaskMath(container, tasks) {
 
 /* Метку класса показываем только там, где она что-то добавляет: внутри
    выбранного класса она одинакова у всех карточек и превращается в шум. */
-function renderTaskList(container, tasks, emptyText, { showTopicLink = true, showGrade = !selectedGrade } = {}) {
+function renderTaskList(container, tasks, emptyText, { showTopicLink = true, showGrade = !selectedGrade, linkTitle = true } = {}) {
   if (!tasks.length) { container.innerHTML = `<p class="empty-state">${escapeHtml(emptyText)}</p>`; return; }
-  container.innerHTML = tasks.map(task => taskCard(task, { showTopicLink, showGrade })).join('');
+  container.innerHTML = tasks.map(task => taskCard(task, { showTopicLink, showGrade, linkTitle })).join('');
   fillTaskMath(container, tasks);
 }
 
@@ -204,7 +206,7 @@ function topicCard(topic, index, showGrade) {
     showGrade && topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : '',
     `<span class="topic-count">${count ? `задач: ${count}` : 'пока пусто'}</span>`
   ].join('');
-  return `<a class="topic-card" href="#/topic/${encodeURIComponent(topic.slug)}"><div class="topic-icon ${topicClass(index)}">${escapeHtml(subject?.icon || 'x²')}</div><div><h3>${escapeHtml(topic.title)}</h3><p>${escapeHtml(topic.description || 'Задачи по теме')}</p><div class="topic-badges">${badges}</div></div></a>`;
+  return `<a class="topic-card" href="/topic/${encodeURIComponent(topic.slug)}"><div class="topic-icon ${topicClass(index)}">${escapeHtml(subject?.icon || 'x²')}</div><div><h3>${escapeHtml(topic.title)}</h3><p>${escapeHtml(topic.description || 'Задачи по теме')}</p><div class="topic-badges">${badges}</div></div></a>`;
 }
 
 function renderTopicCards(container, topics, showGrade = !selectedGrade) {
@@ -217,7 +219,7 @@ function renderTopicGroups(container, groups) {
   container.innerHTML = groups.map(({ subject, topics }) => `<section class="topic-group">
     <div class="topic-group-head">
       <h2><span class="topic-group-icon">${escapeHtml(subject.icon)}</span>${escapeHtml(subject.title)}</h2>
-      <a href="#/subject/${encodeURIComponent(subject.slug)}">Все темы →</a>
+      <a href="/subject/${encodeURIComponent(subject.slug)}">Все темы →</a>
     </div>
     ${topics.length
       ? `<div class="topic-grid">${topics.map((topic, index) => topicCard(topic, index, false)).join('')}</div>`
@@ -276,7 +278,7 @@ function resetListBlocks() {
   listTasks.innerHTML = '';
 }
 
-const gradeCrumb = () => (selectedGrade ? [gradeLabel(selectedGrade), `#/grade/${selectedGrade}`] : ['Все классы', '#/']);
+const gradeCrumb = () => (selectedGrade ? [gradeLabel(selectedGrade), `/grade/${selectedGrade}`] : ['Все классы', '/']);
 
 /* ── Страница класса ──────────────────────────────────────────────── */
 
@@ -287,7 +289,7 @@ function showGradePage(rawGrade) {
   resetListBlocks();
 
   if (!GRADES.includes(grade)) {
-    fillListHeader({ crumbs: [['Главная', '#/']], title: 'Такого класса нет', description: 'Классы идут с 1 по 12.' });
+    fillListHeader({ crumbs: [['Главная', '/']], title: 'Такого класса нет', description: 'Классы идут с 1 по 12.' });
     return;
   }
   const groups = subjects.map(subject => ({
@@ -296,11 +298,12 @@ function showGradePage(rawGrade) {
   }));
   const total = groups.reduce((sum, group) => sum + group.topics.length, 0);
   fillListHeader({
-    crumbs: [['Главная', '#/'], [gradeLabel(grade), null]],
+    crumbs: [['Главная', '/'], [gradeLabel(grade), null]],
     title: gradeLabel(grade),
     description: 'Разделы и темы, которые проходят в этом классе.',
     meta: `<span class="search-count">Тем: ${total}</span>`
   });
+  setMeta(`Задачи для ${grade} класса`, `Разделы, темы и задачи по математике за ${grade} класс с разбором решений.`);
   renderTopicGroups(listGroups, groups);
 }
 
@@ -311,16 +314,18 @@ function showSubject(slug) {
   resetListBlocks();
   const subject = subjects.find(item => item.slug === slug);
   if (!subject) {
-    fillListHeader({ crumbs: [['Главная', '#/']], title: 'Раздел не найден', description: 'Возможно, его удалили или ссылка устарела.' });
+    fillListHeader({ crumbs: [['Главная', '/']], title: 'Раздел не найден', description: 'Возможно, его удалили или ссылка устарела.' });
     return;
   }
   const topics = topicsForGrade(allTopics.filter(topic => topic.subject_id === subject.id));
   fillListHeader({
-    crumbs: [['Главная', '#/'], gradeCrumb(), [subject.title, null]],
+    crumbs: [['Главная', '/'], gradeCrumb(), [subject.title, null]],
     title: subject.title,
     description: selectedGrade ? `Темы раздела в ${selectedGrade} классе.` : 'Все темы раздела.',
     meta: `<span class="search-count">Тем: ${topics.length}</span>`
   });
+  setMeta(selectedGrade ? `${subject.title}, ${gradeLabel(selectedGrade)}` : subject.title,
+    `Темы раздела «${subject.title}»${selectedGrade ? ` за ${gradeLabel(selectedGrade)}` : ''} с задачами и решениями.`);
   if (topics.length) renderTopicCards(listTopics, topics);
   else listTasks.innerHTML = `<p class="empty-state">${selectedGrade ? `В ${selectedGrade} классе тем этого раздела нет.` : 'Тем в этом разделе пока нет.'}</p>`;
 }
@@ -332,13 +337,13 @@ async function showTopic(slug) {
   resetListBlocks();
   const topic = allTopics.find(item => item.slug === slug);
   if (!topic) {
-    fillListHeader({ crumbs: [['Главная', '#/']], title: 'Тема не найдена', description: 'Возможно, её удалили или ссылка устарела.' });
+    fillListHeader({ crumbs: [['Главная', '/']], title: 'Тема не найдена', description: 'Возможно, её удалили или ссылка устарела.' });
     return;
   }
   const subject = subjectById(topic.subject_id);
-  const crumbs = [['Главная', '#/']];
-  if (topic.grade) crumbs.push([gradeLabel(topic.grade), `#/grade/${topic.grade}`]);
-  if (subject) crumbs.push([subject.title, `#/subject/${encodeURIComponent(subject.slug)}`]);
+  const crumbs = [['Главная', '/']];
+  if (topic.grade) crumbs.push([gradeLabel(topic.grade), `/grade/${topic.grade}`]);
+  if (subject) crumbs.push([subject.title, `/subject/${encodeURIComponent(subject.slug)}`]);
   crumbs.push([topic.title, null]);
 
   fillListHeader({
@@ -347,6 +352,8 @@ async function showTopic(slug) {
     description: topic.description || '',
     meta: topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : ''
   });
+  setMeta(topic.grade ? `${topic.title}, ${gradeLabel(topic.grade)}` : topic.title,
+    topic.description || `Задачи по теме «${topic.title}» с условиями, ответами и разбором решений.`);
   listTasks.innerHTML = '<p class="empty-state">Загружаем задачи…</p>';
   // Внутри темы порядок задаёт админ полем «порядок»; при равных значениях — по дате.
   const { data, error } = await db.from('tasks').select(TASK_SELECT)
@@ -364,9 +371,11 @@ async function showAllTasks() {
   showView('list');
   resetListBlocks();
   fillListHeader({
-    crumbs: [['Главная', '#/'], gradeCrumb(), ['Все задачи', null]],
+    crumbs: [['Главная', '/'], gradeCrumb(), ['Все задачи', null]],
     title: selectedGrade ? `Все задачи — ${gradeLabel(selectedGrade)}` : 'Все задачи'
   });
+  setMeta(selectedGrade ? `Все задачи, ${gradeLabel(selectedGrade)}` : 'Все задачи',
+    'Полный список задач с разбором решений.');
   listTasks.innerHTML = '<p class="empty-state">Загружаем задачи…</p>';
   let query = db.from('tasks').select(TASK_SELECT).eq('is_published', true).order('created_at', { ascending: false }).limit(200);
   if (selectedGrade) query = query.eq('grade', selectedGrade);
@@ -389,7 +398,7 @@ async function showSearch(rawQuery, acrossGrades) {
   if (searchInput.value !== query) searchInput.value = query;
 
   const scoped = selectedGrade && !acrossGrades;
-  const crumbs = [['Главная', '#/'], ['Поиск', null]];
+  const crumbs = [['Главная', '/'], ['Поиск', null]];
 
   if (query.length < 2) {
     fillListHeader({ crumbs, title: 'Поиск', description: 'Введите хотя бы два символа.' });
@@ -401,6 +410,7 @@ async function showSearch(rawQuery, acrossGrades) {
   const foundTopics = allTopics.filter(topic => matchesText(topic) && (!scoped || topic.grade === selectedGrade));
 
   fillListHeader({ crumbs, title: `Поиск: «${query}»` });
+  setMeta(`Поиск: ${query}`, `Результаты поиска по задачам: ${query}.`);
   // Ищем во всех классах — значит, у каждого результата видно, к какому классу он относится.
   renderTopicCards(listTopics, foundTopics, !scoped);
   listTasks.innerHTML = '<p class="empty-state">Ищем…</p>';
@@ -421,7 +431,7 @@ async function showSearch(rawQuery, acrossGrades) {
   const where = scoped ? `в ${selectedGrade} классе` : 'во всех классах';
   // Из класса всегда есть выход: иначе человек решит, что задачи просто нет.
   const escape = scoped
-    ? `<a class="search-escape" href="#/search?q=${encodeURIComponent(query)}&all=1">Искать во всех классах →</a>`
+    ? `<a class="search-escape" href="/search?q=${encodeURIComponent(query)}&all=1">Искать во всех классах →</a>`
     : '';
   document.querySelector('#list-meta').innerHTML = `<span class="search-count">Найдено ${where} — ${counts}</span>${escape}`;
 
@@ -435,13 +445,10 @@ async function showSearch(rawQuery, acrossGrades) {
 const goSearch = () => {
   const query = searchInput.value.trim();
   if (query.length < 2) {
-    if (location.hash.startsWith('#/search')) { history.replaceState(null, '', '#/'); route(); }
+    if (location.pathname === '/search') navigate('/', { replace: true });
     return;
   }
-  const hash = `#/search?q=${encodeURIComponent(query)}${searchAcrossGrades ? '&all=1' : ''}`;
-  if (location.hash === hash) return;
-  history.replaceState(null, '', hash);
-  route();
+  navigate(`/search?q=${encodeURIComponent(query)}${searchAcrossGrades ? '&all=1' : ''}`, { replace: true });
 };
 
 let searchTimer;
@@ -456,13 +463,97 @@ searchInput.addEventListener('keydown', event => {
   goSearch();
 });
 
+/* ── Заголовок и описание страницы ────────────────────────────────── */
+
+/* Google исполняет JS и увидит эти значения. Превью ссылок в мессенджерах —
+   нет: они читают только исходную разметку, поэтому для них понадобится
+   подстановка метатегов на стороне сервера. */
+const SITE_NAME = 'MathTasks';
+const descriptionTag = document.querySelector('meta[name="description"]');
+const ogTitleTag = document.querySelector('meta[property="og:title"]');
+const ogDescriptionTag = document.querySelector('meta[property="og:description"]');
+
+function setMeta(title, description) {
+  const full = title ? `${title} — ${SITE_NAME}` : `${SITE_NAME} — сборник задач по математике`;
+  document.title = full;
+  if (descriptionTag && description) descriptionTag.setAttribute('content', description);
+  if (ogTitleTag) ogTitleTag.setAttribute('content', full);
+  if (ogDescriptionTag && description) ogDescriptionTag.setAttribute('content', description);
+}
+
+/* ── Страница отдельной задачи ────────────────────────────────────── */
+
+// Адрес вида /task/12-kvadratnoe-uravnenie: разбираем только число,
+// слаг нужен человеку и поисковику, отдельной колонки под него не заводим.
+const taskPath = task => `/task/${task.id}-${window.MathTasks.makeSlug(task.title)}`;
+
+async function showTask(rawId) {
+  showView('list');
+  resetListBlocks();
+  const id = Number.parseInt(rawId, 10);
+  const notFound = () => fillListHeader({
+    crumbs: [['Главная', '/']],
+    title: 'Задача не найдена',
+    description: 'Возможно, её удалили или ссылка устарела.'
+  });
+  if (!Number.isFinite(id)) { notFound(); setMeta('Задача не найдена'); return; }
+
+  listTasks.innerHTML = '<p class="empty-state">Загружаем задачу…</p>';
+  const { data, error } = await db.from('tasks').select(TASK_SELECT)
+    .eq('is_published', true).eq('id', id).limit(1);
+  const task = data?.[0];
+  if (error || !task) { notFound(); listTasks.innerHTML = ''; setMeta('Задача не найдена'); return; }
+
+  const topic = allTopics.find(item => item.id === task.topic_id);
+  const subject = topic ? subjectById(topic.subject_id) : null;
+  const crumbs = [['Главная', '/']];
+  const grade = task.grade ?? topic?.grade;
+  if (grade) crumbs.push([gradeLabel(grade), `/grade/${grade}`]);
+  if (subject) crumbs.push([subject.title, `/subject/${encodeURIComponent(subject.slug)}`]);
+  if (topic) crumbs.push([topic.title, `/topic/${encodeURIComponent(topic.slug)}`]);
+  crumbs.push([task.title, null]);
+
+  fillListHeader({
+    crumbs,
+    title: task.title,
+    description: '',
+    meta: grade ? `<span class="grade-badge">${gradeLabel(grade)}</span>` : ''
+  });
+  setMeta(
+    topic ? `${task.title} — ${topic.title}${grade ? `, ${gradeLabel(grade)}` : ''}` : task.title,
+    `${task.title}: условие, ответ и подробное решение.${topic ? ` Тема «${topic.title}».` : ''}`
+  );
+  renderTaskList(listTasks, [task], '', { showTopicLink: false, showGrade: false, linkTitle: false });
+  await renderTaskNeighbours(task);
+}
+
+// Разбор темы читают подряд, поэтому переход к соседней задаче важнее поиска.
+async function renderTaskNeighbours(task) {
+  document.querySelector('#task-nav')?.remove();
+  if (!task.topic_id) return;
+  const { data } = await db.from('tasks').select('id, title')
+    .eq('is_published', true).eq('topic_id', task.topic_id)
+    .order('position').order('created_at', { ascending: true });
+  const siblings = data || [];
+  const index = siblings.findIndex(item => item.id === task.id);
+  if (index === -1 || siblings.length < 2) return;
+  const link = (item, label, css) => (item
+    ? `<a class="task-nav-link ${css}" href="${taskPath(item)}"><span>${label}</span><strong>${escapeHtml(item.title)}</strong></a>`
+    : '');
+  const nav = document.createElement('nav');
+  nav.id = 'task-nav';
+  nav.className = 'task-nav';
+  nav.setAttribute('aria-label', 'Соседние задачи темы');
+  nav.innerHTML = link(siblings[index - 1], '← Предыдущая', 'prev') + link(siblings[index + 1], 'Следующая →', 'next');
+  if (nav.innerHTML) listTasks.after(nav);
+}
+
 /* ── Маршруты ─────────────────────────────────────────────────────── */
 
 async function route() {
   markActiveNav();
-  const raw = location.hash.replace(/^#/, '') || '/';
-  const [path, queryString = ''] = raw.split('?');
-  const params = new URLSearchParams(queryString);
+  const path = location.pathname || '/';
+  const params = new URLSearchParams(location.search);
 
   if (path === '/search') {
     await showSearch(params.get('q') || '', params.get('all') === '1');
@@ -481,13 +572,40 @@ async function route() {
   const topicMatch = path.match(/^\/topic\/(.+)$/);
   if (topicMatch) { await showTopic(decodeURIComponent(topicMatch[1])); return; }
 
+  const taskMatch = path.match(/^\/task\/(\d+)/);
+  if (taskMatch) { await showTask(taskMatch[1]); return; }
+
   if (path === '/tasks') { await showAllTasks(); return; }
-  if (path === '/about') { showView('about'); return; }
+  if (path === '/about') { showView('about'); setMeta('О сайте', 'Как устроен MathTasks: классы, разделы, темы и разбор решений.'); return; }
 
   showView('home');
+  setMeta('', 'Сборник задач по школьной математике: условия, ответы и разбор решений по классам и темам.');
   await loadHome();
 }
-window.addEventListener('hashchange', route);
+window.addEventListener('popstate', route);
+
+/* Переходы идут через History API: адрес /topic/<slug> должен быть настоящим,
+   иначе поисковик видит один и тот же документ на все темы сразу. */
+function navigate(path, { replace = false } = {}) {
+  if (location.pathname + location.search === path) return;
+  history[replace ? 'replaceState' : 'pushState'](null, '', path);
+  route();
+}
+
+/* Один перехватчик на документ вместо обработчика у каждой ссылки: списки
+   перерисовываются целиком. Модификаторы, средняя кнопка, внешние адреса и
+   отдельные страницы (admin.html) обязаны работать как обычные ссылки —
+   ломается это первым и незаметно. */
+document.addEventListener('click', event => {
+  if (event.defaultPrevented || event.button !== 0) return;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  const link = event.target.closest('a[href]');
+  if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+  if (link.origin !== location.origin) return;
+  if (/\.[a-z0-9]+$/i.test(link.pathname)) return;
+  event.preventDefault();
+  navigate(link.pathname + link.search);
+});
 
 /* ── Загрузка справочников и сессия ───────────────────────────────── */
 
@@ -536,6 +654,12 @@ document.querySelectorAll('[data-sign-out]').forEach(button => button.addEventLi
   accountDialog.close();
   await refreshSession();
 }));
+
+/* Ссылки вида #/topic/<slug> уже могли разойтись, поэтому переводим их
+   на настоящий адрес до первого разбора маршрута. */
+if (location.hash.startsWith('#/')) {
+  history.replaceState(null, '', location.hash.slice(1));
+}
 
 fillGradeSelect(gradeSelect, 'Все классы');
 renderGradeControls();

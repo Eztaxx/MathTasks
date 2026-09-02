@@ -255,3 +255,20 @@ body.dark .image-thumb{border-color:#2b3a58}
 .move-button:disabled{opacity:.3;cursor:default}
 body.dark .move-button{border-color:#2b3a58;color:#c4cce0}
 body.dark .move-button:hover:not(:disabled){background:#1a2740}
+
+/* ── Переходы между соседними задачами ───────────────────────────── */
+.task-nav{display:flex;gap:12px;flex-wrap:wrap;margin:-30px 0 50px}
+.task-nav-link{flex:1 1 220px;display:flex;flex-direction:column;gap:3px;padding:12px 15px;border:1px solid var(--line);border-radius:11px;text-decoration:none;color:inherit;transition:border-color .15s,background .15s}
+.task-nav-link:hover{border-color:#c3d2ea;background:#f7f9ff}
+.task-nav-link span{font-size:11px;color:#1764ff;font-weight:600}
+.task-nav-link strong{font-size:13.5px;font-weight:600;line-height:1.35}
+.task-nav-link.next{text-align:right}
+body.dark .task-nav-link{border-color:#2b3a58}
+body.dark .task-nav-link:hover{background:#1a2740;border-color:#3a4c72}
+body.dark .task-nav-link span{color:#5a92ff}
+
+/* Заголовок задачи в списках ведёт на её отдельную страницу. */
+a.task-title{text-decoration:none;color:inherit}
+a.task-title:hover{color:#1764ff;text-decoration:underline}
+body.dark a.task-title:hover{color:#5a92ff}
+@media(max-width:720px){.task-nav-link.next{text-align:left}}
