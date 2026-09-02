@@ -36,7 +36,12 @@ try {
 
 const TASK_SELECT = '*, topics(title, slug, subjects(title, icon))';
 const subjectOf = task => task.topics?.subjects;
-const tagClass = subject => (subject?.title === 'Геометрия' ? 'geometry' : 'algebra');
+const tagClass = subject => {
+  const title = (subject?.title || '').toLowerCase();
+  if (title.includes('геометр')) return 'geometry';
+  if (title.includes('статистик') || title.includes('вероятност')) return 'statistics';
+  return 'algebra';
+};
 const subjectById = id => subjects.find(item => item.id === id);
 const topicClass = index => ['lavender', 'green', 'orange', 'blue', 'pink', 'aqua', 'violet'][index % 7];
 const gradeLabel = grade => `${grade} класс`;
@@ -282,7 +287,7 @@ function showGradePage(rawGrade) {
   resetListBlocks();
 
   if (!GRADES.includes(grade)) {
-    fillListHeader({ crumbs: [['Главная', '#/']], title: 'Такого класса нет', description: 'Классы идут с 1 по 11.' });
+    fillListHeader({ crumbs: [['Главная', '#/']], title: 'Такого класса нет', description: 'Классы идут с 1 по 12.' });
     return;
   }
   const groups = subjects.map(subject => ({

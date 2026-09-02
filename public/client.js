@@ -12,8 +12,8 @@ window.MathTasks = window.MathTasks || {};
     return el.innerHTML;
   };
 
-  // Классы 1–11: общий справочник для фильтров на главной и форм в админке.
-  window.MathTasks.GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  // Классы 1–12: общий справочник для фильтров на главной и форм в админке (включая 12 класс по стандартам Skola2030).
+  window.MathTasks.GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   window.MathTasks.gradeLabel = grade => (grade ? `${grade} класс` : 'Без класса');
   window.MathTasks.fillGradeSelect = (select, emptyLabel) => {
     if (!select) return;

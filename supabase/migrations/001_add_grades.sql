@@ -2,9 +2,9 @@
 -- Тема относится к классу, в котором её проходят; у задачи класс свой,
 -- чтобы внутри темы можно было держать задания для разных параллелей.
 alter table public.topics add column if not exists grade smallint
-  constraint topics_grade_range check (grade is null or grade between 1 and 11);
+  constraint topics_grade_range check (grade is null or grade between 1 and 12);
 alter table public.tasks add column if not exists grade smallint
-  constraint tasks_grade_range check (grade is null or grade between 1 and 11);
+  constraint tasks_grade_range check (grade is null or grade between 1 and 12);
 
 create index if not exists topics_grade_idx on public.topics (grade);
 create index if not exists tasks_grade_idx on public.tasks (grade);

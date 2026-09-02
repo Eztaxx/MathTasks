@@ -15,14 +15,17 @@ create table public.subjects (
 );
 
 insert into public.subjects (title, slug, icon, position)
-values ('Алгебра', 'algebra', 'x²', 1), ('Геометрия', 'geometry', '△', 2);
+values
+  ('Алгебра', 'algebra', 'x²', 1),
+  ('Геометрия', 'geometry', '△', 2),
+  ('Статистика и вероятность', 'statistics', '📊', 3);
 
 create table public.topics (
   id bigint generated always as identity primary key,
   title text not null,
   slug text not null unique,
   subject_id bigint references public.subjects(id) on delete set null,
-  grade smallint check (grade is null or grade between 1 and 11),
+  grade smallint check (grade is null or grade between 1 and 12),
   position int not null default 0,
   description text,
   created_at timestamptz not null default now()
@@ -32,7 +35,7 @@ create table public.tasks (
   id bigint generated always as identity primary key,
   topic_id bigint references public.topics(id) on delete set null,
   title text not null,
-  grade smallint check (grade is null or grade between 1 and 11),
+  grade smallint check (grade is null or grade between 1 and 12),
   condition_latex text not null,
   answer_latex text,
   solution_latex text,
