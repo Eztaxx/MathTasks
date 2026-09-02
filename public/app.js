@@ -290,6 +290,7 @@ function showGradePage(rawGrade) {
 
   if (!GRADES.includes(grade)) {
     fillListHeader({ crumbs: [['Главная', '/']], title: 'Такого класса нет', description: 'Классы идут с 1 по 12.' });
+    setMeta('Такого класса нет');
     return;
   }
   const groups = subjects.map(subject => ({
@@ -315,6 +316,7 @@ function showSubject(slug) {
   const subject = subjects.find(item => item.slug === slug);
   if (!subject) {
     fillListHeader({ crumbs: [['Главная', '/']], title: 'Раздел не найден', description: 'Возможно, его удалили или ссылка устарела.' });
+    setMeta('Раздел не найден');
     return;
   }
   const topics = topicsForGrade(allTopics.filter(topic => topic.subject_id === subject.id));
@@ -338,6 +340,7 @@ async function showTopic(slug) {
   const topic = allTopics.find(item => item.slug === slug);
   if (!topic) {
     fillListHeader({ crumbs: [['Главная', '/']], title: 'Тема не найдена', description: 'Возможно, её удалили или ссылка устарела.' });
+    setMeta('Тема не найдена');
     return;
   }
   const subject = subjectById(topic.subject_id);
