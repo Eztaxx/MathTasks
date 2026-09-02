@@ -35,6 +35,15 @@ window.MathTasks = window.MathTasks || {};
     }
   };
 
+  /* Чертежи лежат в публичном бакете, а в базе — только путь.
+     Ссылку собираем здесь, чтобы бакет упоминался ровно в одном месте. */
+  window.MathTasks.IMAGE_BUCKET = 'task-images';
+  window.MathTasks.imageUrl = path => {
+    const db = window.MathTasks.db;
+    if (!path || !db) return null;
+    return db.storage.from(window.MathTasks.IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
+  };
+
   // Кто вошёл и админ ли он — один запрос для обеих страниц.
   window.MathTasks.loadViewer = async () => {
     const db = window.MathTasks.db;

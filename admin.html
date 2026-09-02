@@ -70,8 +70,28 @@
           <label>Порядок в теме <span>чем меньше, тем выше</span><input name="position" type="number" value="0" /></label>
           <label class="wide">Условие <span>обычный текст; формулы — между знаками $…$</span><textarea name="condition_latex" id="condition-input" required placeholder="Решите уравнение $2x^2 - 5x - 3 = 0$"></textarea></label>
           <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель</span><div id="condition-preview"></div></div>
+          <div class="wide image-field">
+            <span class="image-field-head">Чертёж к условию <span>png, jpg, webp — до 2 МБ</span></span>
+            <div class="image-field-row">
+              <input type="file" id="condition-image-input" accept="image/png,image/jpeg,image/webp" />
+              <button class="text-button danger" type="button" id="condition-image-clear" hidden>Убрать</button>
+            </div>
+            <img class="image-thumb" id="condition-image-thumb" alt="" hidden />
+            <span class="form-error" id="condition-image-error"></span>
+          </div>
+          <label class="wide">Ответ <span>необязательно; короткий ответ без разбора</span><textarea name="answer_latex" id="answer-input" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
+          <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель</span><div id="answer-preview"></div></div>
           <label class="wide">Решение <span>необязательно; формулы — между знаками $…$</span><textarea name="solution_latex" id="solution-input" placeholder="Дискриминант $D = 49$, значит $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
           <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель</span><div id="solution-preview"></div></div>
+          <div class="wide image-field">
+            <span class="image-field-head">Рисунок к решению <span>png, jpg, webp — до 2 МБ</span></span>
+            <div class="image-field-row">
+              <input type="file" id="solution-image-input" accept="image/png,image/jpeg,image/webp" />
+              <button class="text-button danger" type="button" id="solution-image-clear" hidden>Убрать</button>
+            </div>
+            <img class="image-thumb" id="solution-image-thumb" alt="" hidden />
+            <span class="form-error" id="solution-image-error"></span>
+          </div>
           <label class="checkbox"><input name="is_published" type="checkbox" checked /> Опубликовать сразу</label>
           <div class="wide form-actions"><button class="primary-button" type="submit" id="task-submit">Добавить задачу</button><button class="text-button" type="button" id="task-cancel" hidden>Отменить</button><span class="form-success" id="task-success"></span></div>
         </form>

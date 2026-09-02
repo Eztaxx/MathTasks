@@ -167,17 +167,108 @@
   /* ── Задачи ───────────────────────────────────────────────────────── */
 
   const conditionInput = document.querySelector('#condition-input');
+  const answerInput = document.querySelector('#answer-input');
   const solutionInput = document.querySelector('#solution-input');
   const conditionPreview = document.querySelector('#condition-preview');
+  const answerPreview = document.querySelector('#answer-preview');
   const solutionPreview = document.querySelector('#solution-preview');
 
   // Предпросмотр показывает ровно то, что увидит посетитель, — до сохранения.
   const updatePreviews = () => {
     renderMath(conditionPreview, conditionInput.value);
+    renderMath(answerPreview, answerInput.value);
     renderMath(solutionPreview, solutionInput.value);
   };
-  conditionInput.addEventListener('input', updatePreviews);
-  solutionInput.addEventListener('input', updatePreviews);
+  [conditionInput, answerInput, solutionInput].forEach(input => input.addEventListener('input', updatePreviews));
+
+  /* ── Чертежи ──────────────────────────────────────────────────────
+     Файл уходит в хранилище сразу при выборе, чтобы админ увидел его до
+     сохранения. Поэтому у каждого поля два состояния: saved — то, что
+     записано в задаче, current — то, что показано сейчас. Всё, что
+     оказалось лишним, удаляем из бакета: иначе он зарастёт сиротами. */
+  const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+  const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+  const EXTENSIONS = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' };
+  const storage = () => db.storage.from(window.MathTasks.IMAGE_BUCKET);
+  const images = {
+    condition: { saved: null, current: null },
+    solution: { saved: null, current: null }
+  };
+
+  const removeFile = async path => {
+    if (!path) return;
+    const { error } = await storage().remove([path]);
+    if (error) console.warn('Не удалось удалить файл из хранилища:', path, error.message);
+  };
+
+  function paintImage(kind) {
+    const thumb = document.querySelector(`#${kind}-image-thumb`);
+    const url = window.MathTasks.imageUrl(images[kind].current);
+    thumb.hidden = !url;
+    if (url) thumb.src = url;
+    document.querySelector(`#${kind}-image-clear`).hidden = !url;
+  }
+
+  function setImages(task) {
+    for (const kind of ['condition', 'solution']) {
+      const path = task?.[`${kind}_image`] || null;
+      images[kind] = { saved: path, current: path };
+      document.querySelector(`#${kind}-image-input`).value = '';
+      document.querySelector(`#${kind}-image-error`).textContent = '';
+      paintImage(kind);
+    }
+  }
+
+  // Загрузка, не доведённая до сохранения, откатывается — файл в бакете не нужен.
+  async function discardPendingImages() {
+    for (const kind of ['condition', 'solution']) {
+      const { saved, current } = images[kind];
+      if (current && current !== saved) await removeFile(current);
+      images[kind].current = saved;
+    }
+  }
+
+  for (const kind of ['condition', 'solution']) {
+    const input = document.querySelector(`#${kind}-image-input`);
+    const errorElement = document.querySelector(`#${kind}-image-error`);
+
+    input.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      errorElement.textContent = '';
+      if (!file) return;
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        errorElement.textContent = 'Нужен файл png, jpg или webp.';
+        input.value = '';
+        return;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        errorElement.textContent = `Файл ${(file.size / 1024 / 1024).toFixed(1)} МБ — больше допустимых 2 МБ.`;
+        input.value = '';
+        return;
+      }
+      // Имя строим сами: кириллица и пробелы из исходного имени в путь не идут.
+      const path = `${kind}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${EXTENSIONS[file.type]}`;
+      const { error } = await storage().upload(path, file, { contentType: file.type });
+      if (error) {
+        errorElement.textContent = 'Не удалось загрузить: ' + error.message;
+        input.value = '';
+        return;
+      }
+      const previous = images[kind].current;
+      images[kind].current = path;
+      if (previous && previous !== images[kind].saved) await removeFile(previous);
+      paintImage(kind);
+    });
+
+    document.querySelector(`#${kind}-image-clear`).addEventListener('click', async () => {
+      const { saved, current } = images[kind];
+      if (current && current !== saved) await removeFile(current);
+      images[kind].current = null;
+      input.value = '';
+      errorElement.textContent = '';
+      paintImage(kind);
+    });
+  }
 
   function setTaskMode(task) {
     editingTaskId = task?.id ?? null;
@@ -190,8 +281,10 @@
     taskForm.elements.difficulty.value = task?.difficulty || 'Средний';
     taskForm.elements.position.value = task?.position ?? 0;
     conditionInput.value = task?.condition_latex || '';
+    answerInput.value = task?.answer_latex || '';
     solutionInput.value = task?.solution_latex || '';
     taskForm.elements.is_published.checked = task ? task.is_published : true;
+    setImages(task);
     updatePreviews();
     if (task) taskForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -203,47 +296,108 @@
     if (topic?.grade) taskForm.elements.grade.value = String(topic.grade);
   });
 
+  /* Порядок задаётся внутри темы: соседи по списку — только задачи той же темы,
+     иначе стрелка перекинула бы задачу через границу раздела. */
+  const siblingsOf = topicId => tasks.filter(task => (task.topic_id ?? null) === (topicId ?? null));
+
+  // Новая задача без явно указанного номера встаёт в конец своей темы:
+  // набивать номера руками при добавлении двадцати задач невыносимо.
+  function nextPosition(topicId, rawValue) {
+    const typed = Number(rawValue) || 0;
+    if (editingTaskId || typed) return typed;
+    const siblings = siblingsOf(topicId);
+    return siblings.length ? Math.max(...siblings.map(task => task.position ?? 0)) + 1 : 1;
+  }
+
   function renderTaskList() {
     if (!tasks.length) { taskList.innerHTML = '<p class="admin-empty">Задач пока нет.</p>'; return; }
     taskList.innerHTML = tasks.map(task => {
       const topic = topics.find(item => item.id === task.topic_id);
       const parts = [topic?.title || 'Без темы', gradeText(task.grade), task.difficulty, `порядок: ${task.position ?? 0}`, task.is_published ? 'опубликована' : 'черновик'];
-      const solution = task.solution_latex ? '' : ' · без решения';
+      const extras = [task.solution_latex ? '' : ' · без решения', task.condition_image || task.solution_image ? ' · с чертежом' : ''].join('');
+      const siblings = siblingsOf(task.topic_id);
+      const index = siblings.findIndex(item => item.id === task.id);
+      const arrows = siblings.length > 1
+        ? `<span class="admin-move">
+            <button class="move-button" type="button" data-move="${task.id}" data-dir="up" ${index === 0 ? 'disabled' : ''} aria-label="Выше в теме">↑</button>
+            <button class="move-button" type="button" data-move="${task.id}" data-dir="down" ${index === siblings.length - 1 ? 'disabled' : ''} aria-label="Ниже в теме">↓</button>
+          </span>`
+        : '';
       return `<div class="admin-row">
-        <span class="admin-row-main"><strong>${escapeHtml(task.title)}</strong><small>${escapeHtml(parts.join(' · '))}${solution}</small></span>
+        ${arrows}
+        <span class="admin-row-main"><strong>${escapeHtml(task.title)}</strong><small>${escapeHtml(parts.join(' · '))}${extras}</small></span>
         <button class="text-button" type="button" data-edit-task="${task.id}">Изменить</button>
         <button class="text-button danger" type="button" data-delete-task="${task.id}">Удалить</button>
       </div>`;
     }).join('');
   }
 
+  /* После перестановки перенумеровываем всю тему подряд: если у соседей
+     позиции совпадали (а у старых задач это ноль), простой обмен значениями
+     ничего бы не изменил. */
+  async function moveTask(taskId, direction) {
+    const task = tasks.find(item => String(item.id) === String(taskId));
+    if (!task) return;
+    const siblings = [...siblingsOf(task.topic_id)];
+    const from = siblings.findIndex(item => item.id === task.id);
+    const to = direction === 'up' ? from - 1 : from + 1;
+    if (to < 0 || to >= siblings.length) return;
+    siblings.splice(to, 0, siblings.splice(from, 1)[0]);
+
+    const updates = siblings
+      .map((item, index) => ({ item, position: index + 1 }))
+      .filter(({ item, position }) => item.position !== position);
+    for (const { item, position } of updates) {
+      const { error } = await db.from('tasks').update({ position }).eq('id', item.id);
+      if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    }
+    taskSuccess.textContent = 'Порядок изменён.';
+    await loadTasks();
+  }
+
   taskForm.addEventListener('submit', async event => {
     event.preventDefault();
     taskSuccess.textContent = '';
     const form = new FormData(taskForm);
+    const topicId = form.get('topic_id') ? Number(form.get('topic_id')) : null;
     const payload = {
       title: form.get('title').trim(),
       condition_latex: conditionInput.value.trim(),
+      answer_latex: answerInput.value.trim() || null,
       solution_latex: solutionInput.value.trim() || null,
+      condition_image: images.condition.current,
+      solution_image: images.solution.current,
       difficulty: form.get('difficulty'),
-      position: Number(form.get('position')) || 0,
+      position: nextPosition(topicId, form.get('position')),
       grade: form.get('grade') ? Number(form.get('grade')) : null,
-      topic_id: form.get('topic_id') ? Number(form.get('topic_id')) : null,
+      topic_id: topicId,
       is_published: form.get('is_published') === 'on'
     };
     const { error } = editingTaskId
       ? await db.from('tasks').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', editingTaskId)
       : await db.from('tasks').insert(payload);
     if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    // Сохранились — прежние файлы больше не нужны.
+    for (const kind of ['condition', 'solution']) {
+      const { saved, current } = images[kind];
+      if (saved && saved !== current) await removeFile(saved);
+      images[kind].saved = current;
+    }
     taskSuccess.textContent = editingTaskId ? 'Задача сохранена.' : 'Задача добавлена.';
     taskForm.reset();
     setTaskMode(null);
     await loadTasks();
   });
 
-  document.querySelector('#task-cancel').addEventListener('click', () => { taskForm.reset(); setTaskMode(null); });
+  document.querySelector('#task-cancel').addEventListener('click', async () => {
+    await discardPendingImages();
+    taskForm.reset();
+    setTaskMode(null);
+  });
 
   taskList.addEventListener('click', async event => {
+    const move = event.target.closest('[data-move]');
+    if (move) { await moveTask(move.dataset.move, move.dataset.dir); return; }
     const editId = event.target.closest('[data-edit-task]')?.dataset.editTask;
     if (editId) { setTaskMode(tasks.find(task => String(task.id) === editId)); return; }
     const deleteId = event.target.closest('[data-delete-task]')?.dataset.deleteTask;
@@ -252,6 +406,9 @@
     if (!confirm(`Удалить задачу «${task.title}»? Это действие необратимо.`)) return;
     const { error } = await db.from('tasks').delete().eq('id', deleteId);
     if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    // Задачи нет — её чертежам в бакете делать нечего.
+    await removeFile(task.condition_image);
+    await removeFile(task.solution_image);
     if (String(editingTaskId) === deleteId) { taskForm.reset(); setTaskMode(null); }
     taskSuccess.textContent = 'Задача удалена.';
     await loadTasks();

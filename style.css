@@ -221,3 +221,37 @@ body.dark .search-escape{color:#5a92ff}
 @media(max-width:720px){.task-topic{margin-left:0}}
 .admin-warn{align-self:flex-start;margin-top:3px;font-size:11px;font-weight:600;padding:2px 7px;border-radius:5px;background:#fff3dd;color:#8a5a00}
 body.dark .admin-warn{background:#3a2c14;color:#ffcd7a}
+
+/* ── Ответ и решение: раскрываемые ступени ───────────────────────── */
+/* Парное правило обязательно: авторское display перебивает атрибут hidden. */
+.reveal[hidden]{display:none}
+.reveal{border-left:3px solid #1764ff;padding:4px 0 4px 13px;display:flex;flex-direction:column;gap:5px}
+.reveal.answer{border-left-color:#008951}
+.reveal-label{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.reveal .math{font-size:15px;line-height:1.85;padding:2px 0 6px;overflow-x:auto;overflow-y:hidden}
+body.dark .reveal{border-left-color:#5a92ff}
+body.dark .reveal.answer{border-left-color:#4ad699}
+
+/* ── Чертежи в задаче ────────────────────────────────────────────── */
+/* Школьный чертёж — иллюстрация к условию, а не баннер: ограничиваем ширину,
+   иначе SVG растягивается на весь контейнер. */
+.task-figure{display:block;width:auto;max-width:min(100%,420px);height:auto;margin:2px 0 4px;padding:6px;border:1px solid var(--line);border-radius:9px;background:#fff}
+body.dark .task-figure{border-color:#2b3a58}
+
+/* ── Загрузка чертежей в админке ─────────────────────────────────── */
+.image-field{display:flex;flex-direction:column;gap:7px;margin:-4px 0 4px}
+.image-field-head{font-size:12px;font-weight:600}
+.image-field-head span{font-weight:400;font-size:11px;color:var(--muted);margin-left:5px}
+.image-field-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.image-field input[type=file]{font:400 12px Manrope;color:var(--muted);max-width:100%}
+.image-thumb[hidden]{display:none}
+.image-thumb{display:block;max-width:240px;max-height:180px;border:1px solid var(--line);border-radius:9px;background:#fff}
+body.dark .image-thumb{border-color:#2b3a58}
+
+/* ── Стрелки порядка ─────────────────────────────────────────────── */
+.admin-move{flex:none;display:flex;flex-direction:column;gap:2px}
+.move-button{width:24px;height:19px;display:grid;place-items:center;border:1px solid var(--line);border-radius:6px;background:transparent;color:#455471;font-size:11px;line-height:1;cursor:pointer}
+.move-button:hover:not(:disabled){border-color:#c3d2ea;background:#f2f6fd}
+.move-button:disabled{opacity:.3;cursor:default}
+body.dark .move-button{border-color:#2b3a58;color:#c4cce0}
+body.dark .move-button:hover:not(:disabled){background:#1a2740}

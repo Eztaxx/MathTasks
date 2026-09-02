@@ -1,4 +1,4 @@
-const { db, escapeHtml, loadViewer, renderMath, GRADES, fillGradeSelect } = window.MathTasks;
+const { db, escapeHtml, loadViewer, renderMath, imageUrl, GRADES, fillGradeSelect } = window.MathTasks;
 
 const sidebarNav = document.querySelector('#sidebar-nav');
 const gradeSelect = document.querySelector('#grade-select');
@@ -110,6 +110,23 @@ function markActiveNav() {
 
 /* ── Карточка задачи с раскрывающимся решением ────────────────────── */
 
+function taskFigure(path, title, kind) {
+  const url = imageUrl(path);
+  if (!url) return '';
+  // Без alt чертёж для незрячего читателя означает потерянное условие.
+  const alt = `${kind} к задаче «${title}»`;
+  return `<img class="task-figure" src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" loading="lazy" />`;
+}
+
+/* Раскрываемая ступень: кнопка и панель идут парой, обработчик один на документ.
+   Панель обязана иметь [hidden]{display:none} в стилях — авторское display
+   в этом проекте уже дважды перебивало атрибут. */
+function revealBlock(kind, label, body) {
+  return `<button class="solution-toggle" type="button" data-reveal aria-expanded="false"
+       data-show-label="Показать ${label}" data-hide-label="Скрыть ${label}">Показать ${label}</button>
+     <div class="reveal ${kind}" hidden><span class="reveal-label">${label === 'ответ' ? 'Ответ' : 'Решение'}</span>${body}</div>`;
+}
+
 function taskCard(task, { showTopicLink, showGrade }) {
   const subject = subjectOf(task);
   const grade = showGrade ? (task.grade ?? task.topics?.grade) : null;
@@ -123,22 +140,35 @@ function taskCard(task, { showTopicLink, showGrade }) {
     `<span class="level ${level}">${escapeHtml(task.difficulty)}</span>`,
     topicLink
   ].join('');
-  const solution = task.solution_latex
-    ? `<button class="solution-toggle" type="button" aria-expanded="false">Показать решение</button>
-       <div class="solution" hidden><span class="solution-label">Решение</span><div class="math" data-solution></div></div>`
+
+  const answer = task.answer_latex
+    ? revealBlock('answer', 'ответ', '<div class="math" data-answer></div>')
+    : '';
+  const solutionBody = `<div class="math" data-solution></div>${taskFigure(task.solution_image, task.title, 'Рисунок к решению')}`;
+  const solution = task.solution_latex || task.solution_image
+    ? revealBlock('solution', 'решение', solutionBody)
     : '<p class="solution-missing">Решение пока не добавлено.</p>';
+
   return `<article class="task" data-task="${task.id}">
     <div class="task-meta">${meta}</div>
     <strong class="task-title">${escapeHtml(task.title)}</strong>
     <div class="math task-condition" data-condition></div>
+    ${taskFigure(task.condition_image, task.title, 'Чертёж')}
+    ${answer}
     ${solution}
   </article>`;
 }
 
+/* Формулы рендерим по спискам тех задач, у которых соответствующее поле есть:
+   у панелей нет собственной привязки к задаче, а порядок узлов совпадает. */
 function fillTaskMath(container, tasks) {
+  const byField = (selector, field) => {
+    const source = tasks.filter(task => task[field]);
+    container.querySelectorAll(selector).forEach((element, index) => renderMath(element, source[index][field]));
+  };
   container.querySelectorAll('[data-condition]').forEach((element, index) => renderMath(element, tasks[index].condition_latex));
-  const withSolution = tasks.filter(task => task.solution_latex);
-  container.querySelectorAll('[data-solution]').forEach((element, index) => renderMath(element, withSolution[index].solution_latex));
+  byField('[data-answer]', 'answer_latex');
+  byField('[data-solution]', 'solution_latex');
 }
 
 /* Метку класса показываем только там, где она что-то добавляет: внутри
@@ -151,13 +181,13 @@ function renderTaskList(container, tasks, emptyText, { showTopicLink = true, sho
 
 // Одно делегирование на документ — карточки перерисовываются при каждом переходе.
 document.addEventListener('click', event => {
-  const toggle = event.target.closest('.solution-toggle');
+  const toggle = event.target.closest('[data-reveal]');
   if (!toggle) return;
-  const solution = toggle.nextElementSibling;
-  const shown = !solution.hidden;
-  solution.hidden = shown;
+  const panel = toggle.nextElementSibling;
+  const shown = !panel.hidden;
+  panel.hidden = shown;
   toggle.setAttribute('aria-expanded', String(!shown));
-  toggle.textContent = shown ? 'Показать решение' : 'Скрыть решение';
+  toggle.textContent = shown ? toggle.dataset.showLabel : toggle.dataset.hideLabel;
 });
 
 /* ── Карточки тем ─────────────────────────────────────────────────── */

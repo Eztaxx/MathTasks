@@ -34,7 +34,10 @@ create table public.tasks (
   title text not null,
   grade smallint check (grade is null or grade between 1 and 11),
   condition_latex text not null,
+  answer_latex text,
   solution_latex text,
+  condition_image text,
+  solution_image text,
   difficulty text not null default 'Средний' check (difficulty in ('Лёгкий', 'Средний', 'Сложный')),
   position int not null default 0,
   is_published boolean not null default false,
@@ -63,6 +66,8 @@ create policy "Admins manage subjects" on public.subjects for all to authenticat
 create policy "Admins manage tasks" on public.tasks for all to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
 create policy "Admins manage topics" on public.topics for all to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
 create policy "Users can view own profile" on public.profiles for select to authenticated using ((select auth.uid()) = id);
+
+-- Хранилище чертежей настраивается отдельно: supabase/migrations/005_storage.sql
 
 -- После регистрации назначьте администратора, заменив email на свой.
 -- Роль хранится только здесь: в auth.users колонки роли нет, приложение читает profiles.
