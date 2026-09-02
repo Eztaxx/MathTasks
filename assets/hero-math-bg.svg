@@ -1,0 +1,5 @@
+<svg width="1600" height="420" viewBox="0 0 1600 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#B8C9FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".9"><path d="M56 197H278M167 70V270"/><path d="M78 100C119 227 208 280 253 96"/><path d="M167 70L159 82M167 70L175 82M276 197L266 187M276 197L266 207"/><path d="M1430 104L1342 239H1518L1430 104Z"/><path d="M1430 104V239M1414 239V222H1430"/></g>
+  <g fill="#AFC1FC" font-family="Arial, sans-serif" font-style="italic" opacity=".9"><text x="147" y="55" font-size="24">y</text><text x="286" y="205" font-size="24">x</text><text x="90" y="335" font-size="28">y = ax² + bx + c</text><text x="1424" y="92" font-size="24">A</text><text x="1320" y="258" font-size="24">B</text><text x="1522" y="258" font-size="24">C</text><text x="1440" y="170" font-size="22">h</text><text x="1373" y="318" font-size="29">S = ½ bh</text></g>
+  <g fill="#DCE5FF" opacity=".75"><circle cx="335" cy="80" r="3"/><circle cx="1272" cy="331" r="3"/><circle cx="317" cy="349" r="2"/></g>
+</svg>

@@ -1,0 +1,16 @@
+{
+  "name": "math-tasks",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vite": "^7.1.3",
+    "vitest": "^4.1.11"
+  }
+}

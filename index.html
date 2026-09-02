@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MathTasks — Сборник задач</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="sidebar-scrim" id="sidebar-scrim"></div>
+  <aside class="sidebar" id="sidebar">
+    <a href="#/" class="brand" title="MathTasks">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
+          <path class="logo-radical" d="M7 27.5h4.4l4.3 9.8L25.8 12.5h5.6"/>
+          <rect class="logo-square" x="32.5" y="8.9" width="7.6" height="7.6" rx="2.3"/>
+        </svg>
+      </span>
+      <span class="label">MathTasks</span>
+    </a>
+    <div class="grade-context">
+      <label class="grade-select-label" for="grade-select"><span>Класс</span><select id="grade-select"></select></label>
+      <button class="grade-pill" id="grade-pill" type="button" aria-label="Выбрать класс">Все</button>
+    </div>
+    <nav id="sidebar-nav">
+      <a class="nav-link" href="#/" title="Главная"><span class="nav-icon">⌂</span><span class="label">Главная</span></a>
+    </nav>
+    <a class="about" href="#/about" title="О сайте"><span class="nav-icon">ⓘ</span><span class="label">О сайте</span></a>
+  </aside>
+
+  <main id="home">
+    <header class="topbar">
+      <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="Свернуть меню"><span aria-hidden="true">☰</span></button>
+      <label class="search"><span>⌕</span><input id="search-input" type="search" aria-label="Поиск задач" placeholder="Поиск задач по теме или ключевому слову..." /></label>
+      <button class="account-button" id="account-button">Войти</button>
+    </header>
+
+    <div id="view-home">
+      <section class="hero">
+        <div class="hero-copy"><h1>Сборник задач<br>по математике</h1><p>Выбирайте тему, решайте задачи и прокачивайте свои знания</p>
+          <div class="benefits">
+            <div><strong class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22.5zM20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5a2.5 2.5 0 0 1 2.5 2.5z"/></svg></strong>Понятные решения</div>
+            <div><strong class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20V7"/></svg></strong>Разные уровни<br>сложности</div>
+            <div><strong class="benefit-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12 2.3 2.4 4.8-5"/></svg></strong>Для школы<br>и саморазвития</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grades">
+        <h2>Классы</h2>
+        <div class="grade-filter" id="grade-filter" role="group" aria-label="Фильтр по классу"></div>
+      </section>
+
+      <section class="topics"><h2 id="topics-heading">Популярные темы</h2><div class="topic-grid" id="topics"></div></section>
+      <section class="tasks"><div class="section-heading"><h2 id="tasks-heading">Новые задачи</h2><a href="#/tasks">Смотреть все →</a></div><div class="task-list" id="tasks"></div></section>
+    </div>
+
+    <div id="view-list" hidden>
+      <nav class="breadcrumb" id="list-breadcrumb" aria-label="Хлебные крошки"></nav>
+      <header class="list-header">
+        <h1 id="list-title"></h1>
+        <p id="list-description"></p>
+        <div class="list-meta" id="list-meta"></div>
+      </header>
+      <div id="list-groups" hidden></div>
+      <div class="topic-grid" id="list-topics" hidden></div>
+      <div class="task-list" id="list-tasks"></div>
+    </div>
+
+    <div id="view-about" hidden>
+      <nav class="breadcrumb" aria-label="Хлебные крошки"><a href="#/">Главная</a><span class="crumb-sep">/</span><span>О сайте</span></nav>
+      <header class="list-header"><h1>О сайте</h1></header>
+      <div class="about-page">
+        <p>MathTasks — сборник задач по школьной математике с разбором решений. Материал разложен по классам с 1 по 11, внутри класса — по разделам и темам.</p>
+        <h2>Как пользоваться</h2>
+        <p>Выберите свой класс в меню слева — сайт покажет только те разделы и темы, которые проходят в этой параллели. Внутри темы задачи идут в том порядке, в каком их удобно разбирать: от простого к сложному.</p>
+        <p>У каждой задачи есть условие и решение. Решение свёрнуто — сначала попробуйте сами, кнопка «Показать решение» никуда не денется.</p>
+        <h2>Поиск</h2>
+        <p>Поиск в шапке ищет по названиям и условиям задач в выбранном классе. Если нужного не нашлось, под заголовком появится ссылка «Искать во всех классах».</p>
+      </div>
+    </div>
+  </main>
+
+  <dialog class="auth-dialog" id="auth-dialog">
+    <button class="dialog-close" type="button" aria-label="Закрыть">×</button>
+    <form id="login-form">
+      <h2>Вход для администратора</h2><p>Войдите с email и паролем администратора.</p>
+      <label>Email<input id="login-email" type="email" required autocomplete="email" /></label>
+      <label>Пароль<input id="login-password" type="password" required autocomplete="current-password" /></label>
+      <p class="form-error" id="login-error" aria-live="polite"></p><button class="primary-button" type="submit">Войти</button>
+    </form>
+  </dialog>
+
+  <dialog class="auth-dialog account-dialog" id="account-dialog">
+    <button class="dialog-close" id="account-dialog-close" type="button" aria-label="Закрыть">×</button>
+    <h2>Аккаунт</h2>
+    <p id="account-status"></p>
+    <div class="account-details"><span>Аккаунт</span><strong id="account-email"></strong></div>
+    <a id="open-admin-panel" class="primary-button" href="admin.html" hidden>Открыть админ-панель</a>
+    <button data-sign-out class="text-button" type="button">Выйти из аккаунта</button>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="lib.js"></script>
+  <script src="client.js"></script>
+  <script src="ui.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

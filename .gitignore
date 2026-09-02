@@ -1,0 +1,12 @@
+# Ключи проекта: config.js создаётся из config.example.js на каждой машине
+config.js
+
+node_modules/
+dist/
+
+# Стихийная резервная копия, оставшаяся от ранних правок
+package.json.backup
+
+# Временные стенды для проверок в браузере
+__stand*.html
+__stand*.js

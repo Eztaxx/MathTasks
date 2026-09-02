@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Админ-панель — MathTasks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="admin-page">
+  <header class="admin-topbar">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path class="logo-radical" d="M7 27.5h4.4l4.3 9.8L25.8 12.5h5.6"/><rect class="logo-square" x="32.5" y="8.9" width="7.6" height="7.6" rx="2.3"/></svg></span><span class="label">MathTasks</span></a>
+    <span class="admin-badge">Админ-панель</span>
+    <a class="text-button" href="index.html">← На сайт</a>
+    <button data-sign-out class="text-button" type="button">Выйти</button>
+  </header>
+
+  <main class="admin-main">
+    <p class="admin-gate" id="admin-gate">Проверяем доступ…</p>
+
+    <div id="admin-content" hidden>
+      <div class="admin-heading">
+        <div>
+          <h2>Управление контентом</h2>
+          <p>Новая задача появится у посетителей только после публикации. Вы вошли как <strong id="admin-email"></strong>.</p>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h3 id="subject-form-title">Добавить раздел</h3>
+        <p class="admin-hint">Разделы — верхний уровень меню: Алгебра, Геометрия, Тригонометрия и любые другие.</p>
+        <form class="topic-form" id="subject-form">
+          <label>Название<input name="title" required placeholder="Например: Тригонометрия" /></label>
+          <label>Значок <span>символ для меню</span><input name="icon" maxlength="3" placeholder="sin" /></label>
+          <label>Порядок <span>чем меньше, тем выше</span><input name="position" type="number" value="0" /></label>
+          <button class="primary-button" type="submit" id="subject-submit">Добавить раздел</button>
+          <button class="text-button" type="button" id="subject-cancel" hidden>Отменить</button>
+          <span class="form-success" id="subject-success"></span>
+        </form>
+        <div class="admin-list" id="subject-list"></div>
+      </div>
+
+      <div class="admin-section">
+        <h3 id="topic-form-title">Добавить тему</h3>
+        <p class="admin-hint">Тема — подкатегория внутри раздела. Именно темы видны в боковом меню сайта.</p>
+        <form class="topic-form" id="topic-form">
+          <label>Название<input name="title" required placeholder="Например: Квадратные уравнения" /></label>
+          <label>Раздел<select name="subject_id" id="subject-select"></select></label>
+          <label>Класс<select name="grade" id="topic-grade"></select></label>
+          <label>Порядок <span>чем меньше, тем выше</span><input name="position" type="number" value="0" /></label>
+          <label>Краткое описание <span>необязательно</span><input name="description" placeholder="Что изучается в этой теме" /></label>
+          <button class="primary-button" type="submit" id="topic-submit">Добавить тему</button>
+          <button class="text-button" type="button" id="topic-cancel" hidden>Отменить</button>
+          <span class="form-success" id="topic-success"></span>
+        </form>
+        <div class="admin-list" id="topic-list"></div>
+      </div>
+
+      <div class="admin-section">
+        <h3 id="task-form-title">Добавить задание</h3>
+        <form class="task-form" id="task-form">
+          <label>Название<input name="title" required placeholder="Например: Квадратное уравнение" /></label>
+          <label>Тема<select name="topic_id" id="topic-select"><option value="">Без темы</option></select></label>
+          <label>Класс<select name="grade" id="task-grade"></select></label>
+          <label>Сложность<select name="difficulty"><option>Лёгкий</option><option selected>Средний</option><option>Сложный</option></select></label>
+          <label>Порядок в теме <span>чем меньше, тем выше</span><input name="position" type="number" value="0" /></label>
+          <label class="wide">Условие <span>обычный текст; формулы — между знаками $…$</span><textarea name="condition_latex" id="condition-input" required placeholder="Решите уравнение $2x^2 - 5x - 3 = 0$"></textarea></label>
+          <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель</span><div id="condition-preview"></div></div>
+          <label class="wide">Решение <span>необязательно; формулы — между знаками $…$</span><textarea name="solution_latex" id="solution-input" placeholder="Дискриминант $D = 49$, значит $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
+          <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель</span><div id="solution-preview"></div></div>
+          <label class="checkbox"><input name="is_published" type="checkbox" checked /> Опубликовать сразу</label>
+          <div class="wide form-actions"><button class="primary-button" type="submit" id="task-submit">Добавить задачу</button><button class="text-button" type="button" id="task-cancel" hidden>Отменить</button><span class="form-success" id="task-success"></span></div>
+        </form>
+        <div class="admin-list" id="task-list"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="lib.js"></script>
+  <script src="client.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
