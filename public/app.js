@@ -13,6 +13,8 @@ const searchInput = document.querySelector('#search-input');
 const listTopics = document.querySelector('#list-topics');
 const listGroups = document.querySelector('#list-groups');
 const listTasks = document.querySelector('#list-tasks');
+const listAnchors = document.querySelector('#list-anchors');
+const listActions = document.querySelector('#list-actions');
 const topicsHeading = document.querySelector('#topics-heading');
 const tasksHeading = document.querySelector('#tasks-heading');
 const accountButton = document.querySelector('#account-button');
@@ -83,7 +85,7 @@ gradeSelect.addEventListener('change', () => {
     navigate(grade ? `/grade/${grade}` : '/');
     return;
   }
-  route();
+  route({ force: true });
 });
 
 /* ── Боковое меню ─────────────────────────────────────────────────── */
@@ -156,7 +158,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle }) {
   const title = linkTitle
     ? `<a class="task-title" href="${taskPath(task)}">${escapeHtml(task.title)}</a>`
     : `<strong class="task-title">${escapeHtml(task.title)}</strong>`;
-  return `<article class="task" data-task="${task.id}">
+  return `<article class="task" id="task-${task.id}" data-task="${task.id}">
     <div class="task-meta">${meta}</div>
     ${title}
     <div class="math task-condition" data-condition></div>
@@ -276,6 +278,11 @@ function resetListBlocks() {
   renderTopicCards(listTopics, []);
   renderTopicGroups(listGroups, []);
   listTasks.innerHTML = '';
+  listAnchors.hidden = true;
+  listAnchors.innerHTML = '';
+  listActions.hidden = true;
+  listActions.innerHTML = '';
+  document.querySelector('#task-nav')?.remove();
 }
 
 const gradeCrumb = () => (selectedGrade ? [gradeLabel(selectedGrade), `/grade/${selectedGrade}`] : ['Все классы', '/']);
@@ -332,6 +339,45 @@ function showSubject(slug) {
   else listTasks.innerHTML = `<p class="empty-state">${selectedGrade ? `В ${selectedGrade} классе тем этого раздела нет.` : 'Тем в этом разделе пока нет.'}</p>`;
 }
 
+/* ── Якоря и печать внутри темы ───────────────────────────────────── */
+
+/* Разбор темы читают подряд и возвращаются к нужному номеру, поэтому список
+   номеров сверху экономит прокрутку. При двух задачах он бесполезен. */
+function renderTopicAnchors(tasks) {
+  const enough = tasks.length >= 3;
+  listAnchors.hidden = !enough;
+  if (!enough) { listAnchors.innerHTML = ''; return; }
+  listAnchors.innerHTML = '<span class="topic-anchors-label">К задаче:</span>' + tasks
+    .map((task, index) => `<a class="topic-anchor" href="#task-${task.id}" title="${escapeHtml(task.title)}">${index + 1}</a>`)
+    .join('');
+}
+
+/* Печать: раскрытие решений в печатной версии задаётся классом на body,
+   а не открыванием каждой панели — иначе после печати состояние страницы
+   осталось бы перевёрнутым. */
+function printTasks(withSolutions) {
+  document.body.classList.add('printing');
+  document.body.classList.toggle('print-solutions', withSolutions);
+  window.print();
+}
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('printing', 'print-solutions');
+});
+
+function renderPrintActions(tasks) {
+  const enough = tasks.length > 0;
+  listActions.hidden = !enough;
+  if (!enough) { listActions.innerHTML = ''; return; }
+  listActions.innerHTML = `<span class="list-actions-label">Печать:</span>
+    <button class="ghost-button" type="button" data-print="full">С решениями</button>
+    <button class="ghost-button" type="button" data-print="blank">Без решений</button>`;
+}
+
+listActions.addEventListener('click', event => {
+  const button = event.target.closest('[data-print]');
+  if (button) printTasks(button.dataset.print === 'full');
+});
+
 /* ── Страница темы ────────────────────────────────────────────────── */
 
 async function showTopic(slug) {
@@ -365,7 +411,10 @@ async function showTopic(slug) {
   if (error) { listTasks.innerHTML = '<p class="empty-state">Не удалось загрузить задачи.</p>'; return; }
   // Название темы в карточке здесь лишнее — мы уже внутри неё.
   // Внутри одной темы задачи могут быть для разных параллелей — класс показываем всегда.
-  renderTaskList(listTasks, data || [], 'В этой теме задач пока нет.', { showTopicLink: false, showGrade: true });
+  const tasks = data || [];
+  renderTaskList(listTasks, tasks, 'В этой теме задач пока нет.', { showTopicLink: false, showGrade: true });
+  renderTopicAnchors(tasks);
+  renderPrintActions(tasks);
 }
 
 /* ── Все задачи ───────────────────────────────────────────────────── */
@@ -553,8 +602,16 @@ async function renderTaskNeighbours(task) {
 
 /* ── Маршруты ─────────────────────────────────────────────────────── */
 
-async function route() {
+/* Смена якоря (#task-12) тоже поднимает popstate. Без этой защиты клик по
+   номеру задачи перерисовывал список целиком, цель прокрутки исчезала —
+   и страница оставалась на месте. Перерисовываем только смену адреса. */
+let lastRoute = null;
+async function route({ force = false } = {}) {
   markActiveNav();
+  const key = location.pathname + location.search;
+  if (!force && key === lastRoute) return;
+  lastRoute = key;
+
   const path = location.pathname || '/';
   const params = new URLSearchParams(location.search);
 
@@ -585,7 +642,7 @@ async function route() {
   setMeta('', 'Сборник задач по школьной математике: условия, ответы и разбор решений по классам и темам.');
   await loadHome();
 }
-window.addEventListener('popstate', route);
+window.addEventListener('popstate', () => route());
 
 /* Переходы идут через History API: адрес /topic/<slug> должен быть настоящим,
    иначе поисковик видит один и тот же документ на все темы сразу. */
@@ -605,6 +662,8 @@ document.addEventListener('click', event => {
   const link = event.target.closest('a[href]');
   if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
   if (link.origin !== location.origin) return;
+  // Якорь внутри текущей страницы — работа браузера, а не роутера.
+  if (link.hash && link.pathname === location.pathname) return;
   if (/\.[a-z0-9]+$/i.test(link.pathname)) return;
   event.preventDefault();
   navigate(link.pathname + link.search);

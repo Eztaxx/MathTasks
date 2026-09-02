@@ -272,3 +272,42 @@ a.task-title{text-decoration:none;color:inherit}
 a.task-title:hover{color:#1764ff;text-decoration:underline}
 body.dark a.task-title:hover{color:#5a92ff}
 @media(max-width:720px){.task-nav-link.next{text-align:left}}
+
+/* ── Якоря задач внутри темы ─────────────────────────────────────── */
+.topic-anchors[hidden]{display:none}
+.topic-anchors{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 16px}
+.topic-anchors-label{font-size:12px;color:var(--muted);margin-right:3px}
+.topic-anchor{min-width:28px;height:28px;padding:0 7px;display:inline-grid;place-items:center;border:1px solid var(--line);border-radius:8px;font:600 12px Manrope;color:#1764ff;text-decoration:none}
+.topic-anchor:hover{border-color:#c3d2ea;background:#f2f6fd}
+body.dark .topic-anchor{border-color:#2b3a58;color:#5a92ff}
+body.dark .topic-anchor:hover{background:#1a2740}
+/* Якорь не должен упирать карточку в самый верх окна. */
+.task{scroll-margin-top:18px}
+@media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+
+/* ── Кнопки печати ───────────────────────────────────────────────── */
+.list-actions[hidden]{display:none}
+.list-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:4px}
+.list-actions-label{font-size:12px;color:var(--muted)}
+.ghost-button{border:1px solid var(--line);border-radius:8px;background:transparent;color:#455471;font:600 12px Manrope;padding:7px 13px;cursor:pointer}
+.ghost-button:hover{border-color:#c3d2ea;background:#f2f6fd}
+body.dark .ghost-button{border-color:#2b3a58;color:#c4cce0}
+body.dark .ghost-button:hover{background:#1a2740}
+
+/* ── Печать ──────────────────────────────────────────────────────── */
+@media print{
+  /* На бумаге нужны только условия: меню, поиск и кнопки — экранные элементы. */
+  .sidebar,.sidebar-scrim,.topbar,.breadcrumb,.topic-anchors,.list-actions,
+  .task-nav,.solution-toggle,.hero,.grades,dialog{display:none!important}
+  body{background:#fff;color:#000}
+  main,body.sidebar-collapsed main{margin-left:0!important}
+  .list-header h1{font-size:20pt}
+  .task-list{border:0}
+  .task{break-inside:avoid;page-break-inside:avoid;border:0;border-bottom:1px solid #ccc;padding:10px 0}
+  .task-figure{max-width:280px}
+  /* Панели решений скрыты атрибутом hidden; на печати ими управляет режим. */
+  .reveal{display:none!important}
+  body.print-solutions .reveal{display:flex!important}
+  .solution-missing{display:none}
+  a[href]{text-decoration:none;color:#000}
+}
