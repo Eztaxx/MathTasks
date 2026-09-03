@@ -1047,6 +1047,24 @@ window.addEventListener('focus', () => {
   }
 });
 
+let currentTopicTasks = [];
+let filterOnlyUnsolved = false;
+
+function renderCurrentTopicTasks() {
+  const tr = window.MathTasks.t || (k => k);
+  const tasksToRender = filterOnlyUnsolved
+    ? currentTopicTasks.filter(t => !isTaskSolved(t.id))
+    : currentTopicTasks;
+
+  const emptyText = filterOnlyUnsolved
+    ? tr('all_tasks_solved')
+    : 'В этой теме задач пока нет.';
+
+  renderTaskList(listTasks, tasksToRender, emptyText, { showTopicLink: false, showGrade: true });
+  renderTopicAnchors(tasksToRender);
+  renderPrintActions(currentTopicTasks);
+}
+
 function renderPrintActions(tasks) {
   const enough = tasks.length > 0;
   listActions.hidden = !enough;
@@ -1065,8 +1083,16 @@ function renderPrintActions(tasks) {
     </div>
   ` : '';
 
+  const solvedCount = tasks.filter(t => isTaskSolved(t.id)).length;
+  const unsolvedFilterBtn = (tasks.length > 1 && solvedCount > 0) ? `
+    <button class="view-mode-btn${filterOnlyUnsolved ? ' active' : ''}" type="button" data-toggle-unsolved="true" title="${escapeHtml(tr('filter_unsolved_title'))}">
+      <span class="view-mode-icon">🎯</span> ${escapeHtml(tr('filter_unsolved'))} ${filterOnlyUnsolved ? `(${tasks.length - solvedCount})` : ''}
+    </button>
+  ` : '';
+
   listActions.innerHTML = `
     ${viewToggle}
+    ${unsolvedFilterBtn}
     <div class="print-actions-group">
       <span class="list-actions-label">${escapeHtml(tr('print'))}:</span>
       <button class="ghost-button" type="button" data-print="full">${escapeHtml(tr('print_with_solutions'))}</button>
@@ -1078,6 +1104,11 @@ function renderPrintActions(tasks) {
 listActions.addEventListener('click', event => {
   const button = event.target.closest('[data-print]');
   if (button) printTasks(button.dataset.print === 'full');
+  const filterBtn = event.target.closest('[data-toggle-unsolved]');
+  if (filterBtn) {
+    filterOnlyUnsolved = !filterOnlyUnsolved;
+    renderCurrentTopicTasks();
+  }
 });
 
 /* ── Страница темы ────────────────────────────────────────────────── */
@@ -1126,6 +1157,8 @@ async function showTopic(slug) {
   const tasks = data || [];
   topicTasksMap.set(topic.id, tasks.map(t => t.id));
   taskCounts.set(topic.id, tasks.length);
+  currentTopicTasks = tasks;
+  filterOnlyUnsolved = false;
 
   const prog = getTopicProgress(topic.id);
   const progHtml = prog.total > 0 ? `
@@ -1143,9 +1176,7 @@ async function showTopic(slug) {
     metaEl.innerHTML = `${gradeBadge} ${progHtml}`;
   }
 
-  renderTaskList(listTasks, tasks, 'В этой теме задач пока нет.', { showTopicLink: false, showGrade: true });
-  renderTopicAnchors(tasks);
-  renderPrintActions(tasks);
+  renderCurrentTopicTasks();
 }
 
 /* ── Все задачи ───────────────────────────────────────────────────── */
@@ -2123,6 +2154,129 @@ if (location.hash.startsWith('#/')) {
   history.replaceState(null, '', location.hash.slice(1));
 }
 
+/* ── Экзаменационный таймер (Exam Simulator) ─────────────────────── */
+const ExamTimer = {
+  seconds: 0,
+  initialSeconds: 0,
+  isRunning: false,
+  intervalId: null,
+
+  init() {
+    this.btn = document.querySelector('#exam-timer-btn');
+    this.dropdown = document.querySelector('#timer-dropdown');
+    this.display = document.querySelector('#timer-display');
+    this.bigDisplay = document.querySelector('#timer-big-display');
+    this.toggleBtn = document.querySelector('#timer-toggle-btn');
+    this.resetBtn = document.querySelector('#timer-reset-btn');
+    this.closeBtn = document.querySelector('#timer-close-btn');
+    this.presetBtns = document.querySelectorAll('.timer-preset-btn');
+    if (!this.btn || !this.dropdown) return;
+
+    this.btn.addEventListener('click', () => {
+      this.dropdown.hidden = !this.dropdown.hidden;
+    });
+
+    this.closeBtn?.addEventListener('click', () => {
+      this.dropdown.hidden = true;
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#exam-timer-wrap')) {
+        this.dropdown.hidden = true;
+      }
+    });
+
+    this.presetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (this.isRunning) this.pause();
+        this.presetBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const sec = Number(btn.dataset.timerSeconds || 0);
+        this.initialSeconds = sec;
+        this.seconds = sec;
+        this.updateDisplay();
+      });
+    });
+
+    this.toggleBtn?.addEventListener('click', () => {
+      if (this.isRunning) this.pause();
+      else this.start();
+    });
+
+    this.resetBtn?.addEventListener('click', () => {
+      this.reset();
+    });
+
+    this.updateDisplay();
+  },
+
+  start() {
+    if (this.isRunning) return;
+    this.isRunning = true;
+    this.btn.classList.add('running');
+    this.btn.classList.remove('warning');
+    const tr = window.MathTasks.t || (k => k);
+    if (this.toggleBtn) this.toggleBtn.textContent = tr('timer_pause');
+
+    this.intervalId = setInterval(() => {
+      if (this.initialSeconds === 0) {
+        this.seconds++;
+      } else {
+        if (this.seconds > 0) {
+          this.seconds--;
+          if (this.seconds <= 60) this.btn.classList.add('warning');
+          if (this.seconds === 0) this.finish();
+        }
+      }
+      this.updateDisplay();
+    }, 1000);
+  },
+
+  pause() {
+    this.isRunning = false;
+    this.btn.classList.remove('running');
+    clearInterval(this.intervalId);
+    const tr = window.MathTasks.t || (k => k);
+    if (this.toggleBtn) this.toggleBtn.textContent = tr('timer_start');
+  },
+
+  reset() {
+    this.pause();
+    this.btn.classList.remove('warning');
+    this.seconds = this.initialSeconds;
+    this.updateDisplay();
+  },
+
+  finish() {
+    this.pause();
+    this.btn.classList.add('warning');
+    const tr = window.MathTasks.t || (k => k);
+    showToast(tr('timer_finished'));
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.8);
+    } catch {}
+  },
+
+  updateDisplay() {
+    const str = (window.MathTasksLib && window.MathTasksLib.formatTimerDisplay)
+      ? window.MathTasksLib.formatTimerDisplay(this.seconds)
+      : '00:00';
+    if (this.display) this.display.textContent = str;
+    if (this.bigDisplay) this.bigDisplay.textContent = str;
+  }
+};
+
+ExamTimer.init();
+
 // Переключение языка (LV / RU / EN)
 document.querySelector('#lang-switcher')?.addEventListener('click', event => {
   const btn = event.target.closest('.lang-btn');
@@ -2139,6 +2293,10 @@ window.addEventListener('languagechange', async () => {
   renderSidebar();
   renderHeadings();
   fillGradeSelect(gradeSelect, window.MathTasks.t('all_grades'));
+  const tr = window.MathTasks.t || (k => k);
+  if (ExamTimer.toggleBtn) {
+    ExamTimer.toggleBtn.textContent = ExamTimer.isRunning ? tr('timer_pause') : tr('timer_start');
+  }
   if (currentView === 'home') {
     await loadHome();
   } else if (lastRenderedContainer && lastRenderedTasks.length) {

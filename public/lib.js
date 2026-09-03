@@ -116,7 +116,18 @@
     };
   };
 
-  const api = { makeSlug, sanitizeSearch, KATEX_DELIMITERS, normalizeMathAnswer, parseFractionOrNumber, compareAnswers, calcTopicProgress };
+  /* Форматирование времени секундомера / таймера в MM:SS или H:MM:SS */
+  const formatTimerDisplay = seconds => {
+    const s = Math.max(0, Math.floor(seconds || 0));
+    const hrs = Math.floor(s / 3600);
+    const mins = Math.floor((s % 3600) / 60);
+    const secs = s % 60;
+    const pad = n => String(n).padStart(2, '0');
+    if (hrs > 0) return `${hrs}:${pad(mins)}:${pad(secs)}`;
+    return `${pad(mins)}:${pad(secs)}`;
+  };
+
+  const api = { makeSlug, sanitizeSearch, KATEX_DELIMITERS, normalizeMathAnswer, parseFractionOrNumber, compareAnswers, calcTopicProgress, formatTimerDisplay };
   if (typeof window !== 'undefined') window.MathTasksLib = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })();

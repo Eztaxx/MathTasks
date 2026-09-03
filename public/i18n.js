@@ -105,6 +105,21 @@
       topic_progress: 'Atrisināti: {solved} no {total} ({percent}%)',
       topic_mastered: '🎉 Tēma apgūta!',
       topic_progress_short: '{solved}/{total}',
+      filter_unsolved: 'Tikai neatrisinātie',
+      filter_unsolved_title: 'Rādīt tikai vēl neatrisinātos uzdevumus',
+      all_tasks_solved: '🎉 Visi uzdevumi šajā tēmā ir atrisināti! Lielisks darbs!',
+
+      // Taimeris
+      timer_title: 'Eksāmena taimeris',
+      timer_stopwatch: '⏱️ Hronometrs',
+      timer_40m: '40 min (Stunda)',
+      timer_90m: '90 min (Ieskaite)',
+      timer_120m: '120 min (9. klase)',
+      timer_180m: '180 min (Vidusskola)',
+      timer_start: 'Sākt',
+      timer_pause: 'Pauze',
+      timer_reset: 'Atiestatīt',
+      timer_finished: '⏰ Laiks ir beidzies! Eksāmena treniņš pabeigts.',
 
       // Pašpārbaude
       self_check_placeholder: 'Ievadiet savu atbildi...',
@@ -255,6 +270,21 @@
       topic_progress: 'Решено: {solved} из {total} ({percent}%)',
       topic_mastered: '🎉 Тема освоена!',
       topic_progress_short: '{solved}/{total}',
+      filter_unsolved: 'Только нерешённые',
+      filter_unsolved_title: 'Показывать только задачи, которые ещё не решены',
+      all_tasks_solved: '🎉 Все задачи в этой теме уже решены! Отличная работа!',
+
+      // Таймер
+      timer_title: 'Экзаменационный таймер',
+      timer_stopwatch: '⏱️ Секундомер',
+      timer_40m: '40 мин (Урок)',
+      timer_90m: '90 мин (Работа)',
+      timer_120m: '120 мин (9 класс)',
+      timer_180m: '180 мин (12 класс)',
+      timer_start: 'Старт',
+      timer_pause: 'Пауза',
+      timer_reset: 'Сброс',
+      timer_finished: '⏰ Время вышло! Экзаменационная тренировка завершена.',
 
       // Самопроверка
       self_check_placeholder: 'Введите ваш ответ...',
@@ -405,6 +435,21 @@
       topic_progress: 'Solved: {solved} of {total} ({percent}%)',
       topic_mastered: '🎉 Topic mastered!',
       topic_progress_short: '{solved}/{total}',
+      filter_unsolved: 'Unsolved only',
+      filter_unsolved_title: 'Show only tasks that are not solved yet',
+      all_tasks_solved: '🎉 All tasks in this topic are solved! Great job!',
+
+      // Timer
+      timer_title: 'Exam Timer',
+      timer_stopwatch: '⏱️ Stopwatch',
+      timer_40m: '40 min (Lesson)',
+      timer_90m: '90 min (Test)',
+      timer_120m: '120 min (Grade 9)',
+      timer_180m: '180 min (High School)',
+      timer_start: 'Start',
+      timer_pause: 'Pause',
+      timer_reset: 'Reset',
+      timer_finished: '⏰ Time is up! Exam practice completed.',
 
       // Self-check
       self_check_placeholder: 'Enter your answer...',

@@ -46,6 +46,30 @@
         <button type="button" class="lang-btn active" data-lang="ru" title="Русский язык">RU</button>
         <button type="button" class="lang-btn" data-lang="en" title="English language">EN</button>
       </div>
+      <div class="exam-timer-wrap" id="exam-timer-wrap">
+        <button class="timer-topbar-btn" id="exam-timer-btn" type="button" title="Экзаменационный таймер" data-i18n-title="timer_title" aria-label="Таймер">
+          <span class="timer-topbar-icon" aria-hidden="true">⏱️</span>
+          <span class="timer-topbar-digits" id="timer-display">00:00</span>
+        </button>
+        <div class="timer-dropdown" id="timer-dropdown" hidden>
+          <div class="timer-dropdown-header">
+            <span class="timer-dropdown-title" data-i18n="timer_title">Экзаменационный таймер</span>
+            <button type="button" class="timer-close-btn" id="timer-close-btn" aria-label="Aizvērt">×</button>
+          </div>
+          <div class="timer-big-display" id="timer-big-display">00:00</div>
+          <div class="timer-presets" role="radiogroup" aria-label="Режим таймера">
+            <button type="button" class="timer-preset-btn active" data-timer-seconds="0" data-i18n="timer_stopwatch">⏱️ Секундомер</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="2400" data-i18n="timer_40m">40 мин (Урок)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="5400" data-i18n="timer_90m">90 мин (Работа)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="7200" data-i18n="timer_120m">120 мин (9 класс)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="10800" data-i18n="timer_180m">180 мин (12 класс)</button>
+          </div>
+          <div class="timer-controls">
+            <button type="button" class="primary-button timer-action-btn" id="timer-toggle-btn" data-i18n="timer_start">Старт</button>
+            <button type="button" class="ghost-button timer-action-btn" id="timer-reset-btn" data-i18n="timer_reset">Сброс</button>
+          </div>
+        </div>
+      </div>
       <button class="account-button" id="account-button" data-i18n="auth_login">Войти</button>
     </header>
 

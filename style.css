@@ -55,6 +55,36 @@ body.dark .lang-btn{color:#94a3b8}
 body.dark .lang-btn:hover{color:#edf2ff;background:rgba(255,255,255,0.06)}
 body.dark .lang-btn.active{background:#1a2b47;color:#60a5fa;box-shadow:0 1px 4px rgba(0,0,0,0.45)}
 @media(max-width:720px){.lang-btn{padding:4px 6px;font-size:10px}}
+
+/* ── Экзаменационный таймер ── */
+.exam-timer-wrap{position:relative;flex:none}
+.timer-topbar-btn{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;background:#f8fafc;border:1px solid #dfe6f1;border-radius:10px;font:700 12.5px ui-monospace,Consolas,monospace;color:var(--ink);cursor:pointer;transition:all .15s ease}
+.timer-topbar-btn:hover{border-color:#c3d2ea;background:#edf4ff}
+.timer-topbar-btn.running{border-color:#10b981;color:#059669;background:#f0fdf4;box-shadow:0 0 0 2px rgba(16,185,129,.15)}
+.timer-topbar-btn.warning{border-color:#ef4444;color:#dc2626;background:#fef2f2;animation:timerPulse 1s infinite alternate}
+@keyframes timerPulse{0%{transform:scale(1)}100%{transform:scale(1.04)}}
+.timer-dropdown{position:absolute;top:calc(100% + 8px);right:0;z-index:100;width:280px;background:#fff;border:1px solid #dfe6f1;border-radius:14px;box-shadow:0 16px 40px rgba(11,25,53,.15);padding:16px;display:flex;flex-direction:column;gap:12px}
+.timer-dropdown[hidden]{display:none}
+.timer-dropdown-header{display:flex;align-items:center;justify-content:space-between}
+.timer-dropdown-title{font-size:13px;font-weight:700;color:var(--ink)}
+.timer-close-btn{border:0;background:none;font-size:20px;line-height:1;color:var(--muted);cursor:pointer;padding:2px 6px}
+.timer-big-display{text-align:center;font:800 36px ui-monospace,Consolas,monospace;letter-spacing:1px;color:#1e293b;padding:4px 0}
+.timer-presets{display:grid;grid-template-columns:1fr;gap:4px}
+.timer-preset-btn{border:1px solid #e2e8f0;background:#f8fafc;border-radius:8px;padding:7px 10px;text-align:left;font:600 12px Manrope,sans-serif;color:var(--ink);cursor:pointer;transition:all .15s ease}
+.timer-preset-btn:hover{background:#edf4ff;border-color:#bfdbfe}
+.timer-preset-btn.active{background:#eff6ff;border-color:#3b82f6;color:#1d4ed8;font-weight:700}
+.timer-controls{display:flex;gap:8px;margin-top:4px}
+.timer-action-btn{flex:1;height:36px;padding:0 10px;font-size:12px}
+body.dark .timer-topbar-btn{background:#111c2e;border-color:#2b3a58;color:#edf2ff}
+body.dark .timer-topbar-btn:hover{background:#1a2b47}
+body.dark .timer-topbar-btn.running{border-color:#059669;color:#34d399;background:#064e3b33}
+body.dark .timer-dropdown{background:#111b2d;border-color:#253451;box-shadow:0 16px 40px rgba(0,0,0,.5)}
+body.dark .timer-big-display{color:#f1f5f9}
+body.dark .timer-preset-btn{background:#162238;border-color:#2b3a58;color:#cbd5e1}
+body.dark .timer-preset-btn:hover{background:#1e2f4d}
+body.dark .timer-preset-btn.active{background:#1e3a8a33;border-color:#3b82f6;color:#93c5fd}
+@media(max-width:720px){.timer-topbar-btn .timer-topbar-digits{display:none}.timer-topbar-btn{padding:0 8px}}
+
 .sidebar,main{transition:width .2s ease,margin-left .2s ease}
 .sidebar-scrim{display:none}
 

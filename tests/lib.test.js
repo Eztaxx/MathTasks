@@ -175,3 +175,28 @@ describe('calcTopicProgress — трекер прогресса ученика',
   });
 });
 
+describe('formatTimerDisplay — форматирование времени таймера', () => {
+  const { formatTimerDisplay } = require('../public/lib.js');
+
+  it('форматирует 0 секунд как 00:00', () => {
+    expect(formatTimerDisplay(0)).toBe('00:00');
+  });
+
+  it('форматирует секунды до 1 часа как MM:SS', () => {
+    expect(formatTimerDisplay(45)).toBe('00:45');
+    expect(formatTimerDisplay(125)).toBe('02:05');
+    expect(formatTimerDisplay(2400)).toBe('40:00');
+  });
+
+  it('форматирует время более 1 часа как H:MM:SS', () => {
+    expect(formatTimerDisplay(3600)).toBe('1:00:00');
+    expect(formatTimerDisplay(5400)).toBe('1:30:00');
+    expect(formatTimerDisplay(7200)).toBe('2:00:00');
+    expect(formatTimerDisplay(10800)).toBe('3:00:00');
+  });
+
+  it('не уходит в отрицательные числа', () => {
+    expect(formatTimerDisplay(-15)).toBe('00:00');
+  });
+});
+
