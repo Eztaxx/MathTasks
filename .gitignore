@@ -10,3 +10,6 @@ package.json.backup
 # Временные стенды для проверок в браузере
 __stand*.html
 __stand*.js
+
+# Среда IDE
+.idea/

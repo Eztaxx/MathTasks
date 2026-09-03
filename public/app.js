@@ -32,8 +32,14 @@ let taskCounts = new Map();
    что показывают меню, главная, страницы разделов и поиск. */
 let selectedGrade = null;
 try {
-  const stored = Number(localStorage.getItem('math-tasks:grade'));
-  if (GRADES.includes(stored)) selectedGrade = stored;
+  const raw = localStorage.getItem('math-tasks:grade');
+  if (raw === 'visparigais') selectedGrade = 'visparigais';
+  else if (raw === 'matematika-1' || raw === '10' || raw === '11') selectedGrade = 'matematika-1';
+  else if (raw === 'matematika-2' || raw === '12') selectedGrade = 'matematika-2';
+  else if (raw) {
+    const num = Number(raw);
+    if ([1, 2, 3, 4, 5, 6, 7, 8, 9].includes(num)) selectedGrade = num;
+  }
 } catch {}
 
 const TASK_SELECT = '*, topics(title, slug, subjects(title, icon))';
@@ -46,29 +52,76 @@ const tagClass = subject => {
 };
 const subjectById = id => subjects.find(item => item.id === id);
 const topicClass = index => ['lavender', 'green', 'orange', 'blue', 'pink', 'aqua', 'violet'][index % 7];
-const gradeLabel = grade => `${grade} класс`;
+
+const gradeLabel = grade => {
+  if (!grade) return 'Все классы';
+  if (grade === 'visparigais' || grade === 'vispārīgais') return 'Vispārīgais līmenis';
+  if (grade === 'matematika-1' || grade === 10 || grade === 11 || grade === '10' || grade === '11') return 'Matemātika I (Optimālais)';
+  if (grade === 'matematika-2' || grade === 12 || grade === '12') return 'Matemātika II (Augstākais)';
+  return `${grade} класс`;
+};
+
+function isTopicInGrade(topic, grade) {
+  if (!grade) return true;
+  if (grade === 'visparigais') {
+    return topic.grade === 10 || topic.grade === 'visparigais' || (topic.description && topic.description.toLowerCase().includes('vispār'));
+  }
+  if (grade === 'matematika-1' || grade === 10 || grade === 11 || grade === '10' || grade === '11') {
+    return topic.grade === 10 || topic.grade === 11;
+  }
+  if (grade === 'matematika-2' || grade === 12 || grade === '12') {
+    return topic.grade === 12;
+  }
+  return topic.grade === Number(grade);
+}
+
 // В контексте класса показываем только его темы; тема без класса живёт лишь в режиме «Все классы».
-const topicsForGrade = list => (selectedGrade ? list.filter(topic => topic.grade === selectedGrade) : list);
+const topicsForGrade = list => (selectedGrade ? list.filter(topic => isTopicInGrade(topic, selectedGrade)) : list);
 const taskCount = topicId => taskCounts.get(topicId) || 0;
 
 /* ── Контекст класса ──────────────────────────────────────────────── */
 
 function renderGradeControls() {
   gradeSelect.value = selectedGrade ? String(selectedGrade) : '';
-  gradePill.textContent = selectedGrade ? String(selectedGrade) : 'Все';
+  let pillText = 'Все';
+  if (selectedGrade) {
+    if (selectedGrade === 'visparigais') pillText = 'Visp.';
+    else if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) pillText = 'Mat. I';
+    else if (selectedGrade === 'matematika-2' || selectedGrade === 12) pillText = 'Mat. II';
+    else pillText = String(selectedGrade);
+  }
+  gradePill.textContent = pillText;
   gradePill.title = selectedGrade ? gradeLabel(selectedGrade) : 'Все классы';
 
-  const chips = [['', 'Все классы', '/'], ...GRADES.map(grade => [String(grade), gradeLabel(grade), `/grade/${grade}`])];
+  const chips = [
+    ['', 'Все классы', '/'],
+    ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(g => [String(g), `${g} класс`, `/grade/${g}`]),
+    ['visparigais', 'Vispārīgais', '/grade/visparigais'],
+    ['matematika-1', 'Matemātika I', '/grade/matematika-1'],
+    ['matematika-2', 'Matemātika II', '/grade/matematika-2']
+  ];
   gradeFilter.innerHTML = chips.map(([value, label, href]) => {
-    const active = String(selectedGrade ?? '') === value;
-    return `<a class="grade-chip${active ? ' active' : ''}" href="${href}"${active ? ' aria-current="page"' : ''}>${label}</a>`;
+    const isCurrent = String(selectedGrade ?? '') === value ||
+      (value === 'visparigais' && selectedGrade === 'visparigais') ||
+      (value === 'matematika-1' && (selectedGrade === 10 || selectedGrade === 11)) ||
+      (value === 'matematika-2' && selectedGrade === 12);
+    return `<a class="grade-chip${isCurrent ? ' active' : ''}" href="${href}"${isCurrent ? ' aria-current="page"' : ''}>${label}</a>`;
   }).join('');
 }
 
+function parseGradeValue(val) {
+  if (!val) return null;
+  if (val === 'visparigais' || val === 'vispārīgais') return 'visparigais';
+  if (val === 'matematika-1' || val === '10' || val === '11' || val === 10 || val === 11) return 'matematika-1';
+  if (val === 'matematika-2' || val === '12' || val === 12) return 'matematika-2';
+  const num = Number(val);
+  return Number.isFinite(num) ? num : null;
+}
+
 function applyGrade(grade) {
-  selectedGrade = grade;
+  selectedGrade = parseGradeValue(grade);
   try {
-    if (grade) localStorage.setItem('math-tasks:grade', String(grade));
+    if (selectedGrade) localStorage.setItem('math-tasks:grade', String(selectedGrade));
     else localStorage.removeItem('math-tasks:grade');
   } catch {}
   renderGradeControls();
@@ -76,52 +129,418 @@ function applyGrade(grade) {
   renderHeadings();
 }
 
-// Смена класса из селектора: со страницы класса уводим на её же новый адрес,
-// в остальных случаях просто перерисовываем текущий вид — тему не теряем.
-gradeSelect.addEventListener('change', () => {
-  const grade = gradeSelect.value ? Number(gradeSelect.value) : null;
-  applyGrade(grade);
+// Клик по чипсу класса на главной странице: остаёмся на главной,
+// фильтруем темы и задачи прямо на месте без переключения на view-list.
+gradeFilter.addEventListener('click', async event => {
+  const chip = event.target.closest('.grade-chip');
+  if (!chip) return;
+  event.preventDefault();
+  const href = chip.getAttribute('href');
+  const raw = href === '/' ? null : href.replace('/grade/', '');
+  applyGrade(raw);
+  if (location.pathname !== href) {
+    history.pushState(null, '', href);
+    lastRoute = location.pathname + location.search;
+  }
+  const label = gradeLabel(selectedGrade);
+  setMeta(
+    selectedGrade ? `Задачи — ${label}` : '',
+    selectedGrade ? `Разделы, темы и задачи по математике (${label}) с разбором решений.` : 'Сборник задач по школьной математике: условия, ответы и разбор решений по классам и темам.'
+  );
+  await loadHome();
+});
+
+// Смена класса из селектора в сайдбаре
+gradeSelect.addEventListener('change', async () => {
+  const raw = gradeSelect.value || null;
+  applyGrade(raw);
+  const target = selectedGrade ? `/grade/${selectedGrade}` : '/';
+  if (currentView === 'home') {
+    if (location.pathname !== target) {
+      history.pushState(null, '', target);
+      lastRoute = location.pathname + location.search;
+    }
+    const label = gradeLabel(selectedGrade);
+    setMeta(
+      selectedGrade ? `Задачи — ${label}` : '',
+      selectedGrade ? `Разделы, темы и задачи по математике (${label}) с разбором решений.` : 'Сборник задач по школьной математике: условия, ответы и разбор решений по классам и темам.'
+    );
+    await loadHome();
+    return;
+  }
   if (location.pathname.startsWith('/grade/')) {
-    navigate(grade ? `/grade/${grade}` : '/');
+    navigate(target);
     return;
   }
   route({ force: true });
 });
 
-/* ── Боковое меню ─────────────────────────────────────────────────── */
+/* ── Боковое меню: Два режима (Хаб экзаменов / Фокус на теме) ───── */
 
-function renderSidebar() {
-  const home = '<a class="nav-link" href="/" title="Главная"><span class="nav-icon">⌂</span><span class="label">Главная</span></a>';
-  const groups = subjects.map((subject, index) => {
-    const topics = topicsForGrade(allTopics.filter(topic => topic.subject_id === subject.id));
-    const links = topics.length
-      ? topics.map(topic => {
-          const badge = selectedGrade || !topic.grade ? '' : `<span class="subnav-grade">${topic.grade}</span>`;
-          return `<a href="/topic/${encodeURIComponent(topic.slug)}">${escapeHtml(topic.title)}${badge}</a>`;
-        }).join('')
-      : `<span class="subnav-empty">${selectedGrade ? `В ${selectedGrade} классе тем нет` : 'Тем пока нет'}</span>`;
-    return `<section class="nav-group open" data-subject="${subject.id}">
-      <button class="group-title" title="${escapeHtml(subject.title)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subject.icon)}</span><span class="label">${escapeHtml(subject.title)}</span><span class="chevron">⌃</span></button>
-      <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subject.slug)}">Все темы раздела</a>${links}</div>
+let currentActiveTopic = null;
+
+function renderTopicSidebar(topic) {
+  const subject = subjectById(topic.subject_id);
+  const grade = topic.grade ?? selectedGrade;
+  const gradeSlug = (grade === 10 || grade === 11 || grade === 'matematika-1') ? 'matematika-1' : (grade === 12 || grade === 'matematika-2') ? 'matematika-2' : grade;
+  const backHref = grade ? `/grade/${gradeSlug}` : '/';
+
+  // Кнопка возврата к общему списку / экзаменам
+  const backBtn = `<a class="sidebar-back-button" href="${backHref}" title="Вернуться к экзаменам и каталогу">
+    <span class="back-icon">←</span>
+    <span class="label">Все экзамены и треки</span>
+  </a>`;
+
+  // Контекстная плашка открытой темы
+  const banner = `<div class="sidebar-topic-banner">
+    <div class="topic-banner-top">
+      ${grade ? `<span class="topic-banner-pill">${gradeLabel(grade)}</span>` : ''}
+      <span class="topic-banner-subject">${escapeHtml(subject?.title || 'Математика')}</span>
+    </div>
+    <div class="topic-banner-title">${escapeHtml(topic.title)}</div>
+  </div>`;
+
+  // Темы текущего класса по разделам
+  const gradeTopics = topicsForGrade(allTopics);
+  const heading = `<div class="sidebar-focus-heading">
+    <span>Темы (${gradeLabel(grade)})</span>
+    <span class="focus-count">${gradeTopics.length}</span>
+  </div>`;
+
+  const groups = subjects.map((subj, index) => {
+    const sTopics = gradeTopics.filter(t => t.subject_id === subj.id);
+    if (!sTopics.length) return '';
+    const links = sTopics.map(t => {
+      const isCurrent = t.id === topic.id;
+      return `<a class="${isCurrent ? 'active' : ''}" href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(t.title)}</a>`;
+    }).join('');
+    return `<section class="nav-group open" data-subject="${subj.id}">
+      <button class="group-title" title="${escapeHtml(subj.title)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subj.icon)}</span><span class="label">${escapeHtml(subj.title)}</span><span class="chevron">⌃</span></button>
+      <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">Все темы раздела</a>${links}</div>
     </section>`;
-  }).join('');
-  sidebarNav.innerHTML = home + groups;
+  }).filter(Boolean).join('');
+
+  sidebarNav.innerHTML = backBtn + banner + heading + (groups || `<p class="subnav-empty">Других тем в этом курсе пока нет.</p>`);
+  markActiveNav(topic.slug);
+}
+
+function renderClassSidebar(grade) {
+  const label = gradeLabel(grade);
+  const backHref = '/';
+
+  const backBtn = `<a class="sidebar-back-button" href="${backHref}" title="Вернуться к экзаменам и каталогу">
+    <span class="back-icon">←</span>
+    <span class="label">Все экзамены и треки</span>
+  </a>`;
+
+  const banner = `<div class="sidebar-topic-banner">
+    <div class="topic-banner-top">
+      <span class="topic-banner-pill">${escapeHtml(label)}</span>
+      <span class="topic-banner-subject">Каталог задач</span>
+    </div>
+    <div class="topic-banner-title">Все задачи курса</div>
+  </div>`;
+
+  const gradeTopics = topicsForGrade(allTopics);
+  const heading = `<div class="sidebar-focus-heading">
+    <span>Темы (${label})</span>
+    <span class="focus-count">${gradeTopics.length}</span>
+  </div>`;
+
+  const groups = subjects.map((subj, index) => {
+    const sTopics = gradeTopics.filter(t => t.subject_id === subj.id);
+    if (!sTopics.length) return '';
+    const links = sTopics.map(t => `<a href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(t.title)}</a>`).join('');
+    return `<section class="nav-group open" data-subject="${subj.id}">
+      <button class="group-title" title="${escapeHtml(subj.title)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subj.icon)}</span><span class="label">${escapeHtml(subj.title)}</span><span class="chevron">⌃</span></button>
+      <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">Все темы раздела</a>${links}</div>
+    </section>`;
+  }).filter(Boolean).join('');
+
+  sidebarNav.innerHTML = backBtn + banner + heading + (groups || `<p class="subnav-empty">Тем в этом курсе пока нет.</p>`);
   markActiveNav();
 }
 
-function markActiveNav() {
+function renderHubSidebar() {
+  const home = '<a class="nav-link" href="/" title="Главная"><span class="nav-icon">⌂</span><span class="label">Главная</span></a>';
+
+  const isGradeActive = val => {
+    if (val === 'visparigais') return selectedGrade === 'visparigais';
+    if (val === 'matematika-1') return selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11;
+    if (val === 'matematika-2') return selectedGrade === 'matematika-2' || selectedGrade === 12;
+    return selectedGrade === val;
+  };
+
+  // Все государственные экзамены основной и средней школы объединены под одну общую плашку
+  const examTracks = `
+    <div class="sidebar-track-header">
+      <span class="track-header-icon">🎯</span>
+      <span class="track-header-title">Государственные экзамены</span>
+    </div>
+    <div class="sidebar-track-subgroup">
+      <a class="sidebar-track-card${isGradeActive(9) ? ' active' : ''}" href="/grade/9" title="Экзамен за 9 класс (Основная школа)">
+        <div class="track-card-badge gold">9. kl.</div>
+        <div class="track-card-body">
+          <strong>Экзамен 9 класс</strong>
+          <span>Valsts eksāmens • 9. klase</span>
+        </div>
+      </a>
+      <a class="sidebar-track-card${isGradeActive('visparigais') ? ' active' : ''}" href="/grade/visparigais" title="Vispārīgais līmenis (Vidusskola)">
+        <div class="track-card-badge teal">Visp</div>
+        <div class="track-card-body">
+          <strong>Vispārīgais līmenis</strong>
+          <span>Pamatkurss • Vidusskola</span>
+        </div>
+      </a>
+      <a class="sidebar-track-card${isGradeActive('matematika-1') ? ' active' : ''}" href="/grade/matematika-1" title="Matemātika I (Optimālais līmenis)">
+        <div class="track-card-badge blue">Opt</div>
+        <div class="track-card-body">
+          <strong>Matemātika I</strong>
+          <span>Optimālais līmenis • Vidusskola</span>
+        </div>
+      </a>
+      <a class="sidebar-track-card${isGradeActive('matematika-2') ? ' active' : ''}" href="/grade/matematika-2" title="Matemātika II (Augstākais līmenis)">
+        <div class="track-card-badge purple">Aug</div>
+        <div class="track-card-body">
+          <strong>Matemātika II</strong>
+          <span>Augstākais līmenis • Vidusskola</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="sidebar-track-subgroup">
+      <span class="track-subgroup-label">Диагностирующие работы</span>
+      <a class="sidebar-track-card${isGradeActive(3) ? ' active' : ''}" href="/grade/3" title="Диагностика 3 класс">
+        <div class="track-card-badge orange">3. kl.</div>
+        <div class="track-card-body">
+          <strong>Диагностика 3 класс</strong>
+          <span>Начальная школа</span>
+        </div>
+      </a>
+      <a class="sidebar-track-card${isGradeActive(6) ? ' active' : ''}" href="/grade/6" title="Диагностика 6 класс">
+        <div class="track-card-badge green">6. kl.</div>
+        <div class="track-card-body">
+          <strong>Диагностика 6 класс</strong>
+          <span>Основная школа</span>
+        </div>
+      </a>
+    </div>
+  `;
+
+  // Инструменты и практика
+  const favCount = getFavorites().length;
+  const toolsSection = `
+    <div class="sidebar-track-header">
+      <span class="track-header-icon">🛠</span>
+      <span class="track-header-title">Инструменты и практика</span>
+    </div>
+    <div class="sidebar-track-subgroup">
+      <button class="sidebar-action-card" id="open-formulas-btn" type="button" title="Справочник формул">
+        <div class="action-card-icon formula-icon">📐</div>
+        <div class="action-card-body">
+          <strong>Справочник формул</strong>
+          <span>Шпаргалка Skola2030</span>
+        </div>
+      </button>
+
+      <button class="sidebar-action-card" id="open-plotter-btn" type="button" title="Построитель графиков функций">
+        <div class="action-card-icon plotter-icon">📈</div>
+        <div class="action-card-body">
+          <strong>Графопостроитель</strong>
+          <span>График функции y = f(x)</span>
+        </div>
+      </button>
+
+      <button class="sidebar-action-card" id="random-task-btn" type="button" title="Случайная задача">
+        <div class="action-card-icon dice-icon">🎲</div>
+        <div class="action-card-body">
+          <strong>Случайная задача</strong>
+          <span>Быстрая тренировка</span>
+        </div>
+      </button>
+
+      <a class="sidebar-action-card${location.pathname === '/favorites' ? ' active' : ''}" href="/favorites" title="Мои закладки">
+        <div class="action-card-icon star-icon">★</div>
+        <div class="action-card-body">
+          <strong>Мои закладки</strong>
+          <span id="fav-count-text">${favCount ? `${favCount} сохранённых` : 'Пока пусто'}</span>
+        </div>
+      </a>
+    </div>
+  `;
+
+  sidebarNav.innerHTML = home + examTracks + toolsSection;
+  markActiveNav();
+}
+
+function renderSidebar() {
+  if (currentActiveTopic) {
+    renderTopicSidebar(currentActiveTopic);
+  } else if (location.pathname === '/tasks' && selectedGrade) {
+    renderClassSidebar(selectedGrade);
+  } else {
+    renderHubSidebar();
+  }
+}
+
+function markActiveNav(activeTopicSlug = null) {
   const current = location.pathname;
-  sidebarNav.querySelectorAll('a').forEach(link => link.classList.toggle('active', link.getAttribute('href') === current));
+  sidebarNav.querySelectorAll('a').forEach(link => {
+    const href = link.getAttribute('href');
+    const isDirectMatch = href === current;
+    const isTopicMatch = Boolean(activeTopicSlug && href === `/topic/${encodeURIComponent(activeTopicSlug)}`);
+    link.classList.toggle('active', isDirectMatch || isTopicMatch);
+  });
+}
+
+/* ── Справочник формул Skola2030 ──────────────────────────────────── */
+const FORMULAS_DATA = {
+  algebra: [
+    { title: 'Квадратное уравнение', math: 'ax^2 + bx + c = 0 \\implies D = b^2 - 4ac, \\; x_{1,2} = \\frac{-b \\pm \\sqrt{D}}{2a}' },
+    { title: 'Теорема Виета', math: 'x_1 + x_2 = -\\frac{b}{a}, \\quad x_1 \\cdot x_2 = \\frac{c}{a}' },
+    { title: 'Формулы сокращенного умножения', math: '(a \\pm b)^2 = a^2 \\pm 2ab + b^2, \\quad a^2 - b^2 = (a-b)(a+b)' },
+    { title: 'Разность и сумма кубов', math: 'a^3 \\pm b^3 = (a \\pm b)(a^2 \\mp ab + b^2)' },
+    { title: 'Арифметическая прогрессия', math: 'a_n = a_1 + (n-1)d, \\quad S_n = \\frac{a_1 + a_n}{2} \\cdot n' },
+    { title: 'Геометрическая прогрессия', math: 'b_n = b_1 \\cdot q^{n-1}, \\quad S_n = \\frac{b_1(q^n - 1)}{q - 1} \\; (q \\ne 1)' },
+    { title: 'Свойства логарифмов', math: '\\log_a(xy) = \\log_a x + \\log_a y, \\quad \\log_a\\left(\\frac{x}{y}\\right) = \\log_a x - \\log_a y, \\quad \\log_a(x^k) = k\\log_a x' }
+  ],
+  geometry: [
+    { title: 'Теорема Пифагора', math: 'a^2 + b^2 = c^2 \\quad (\\text{для прямого угла})' },
+    { title: 'Площадь треугольника', math: 'S = \\frac{1}{2}ah = \\frac{1}{2}ab \\sin \\gamma = \\sqrt{p(p-a)(p-b)(p-c)}' },
+    { title: 'Теорема косинусов', math: 'c^2 = a^2 + b^2 - 2ab \\cos \\gamma' },
+    { title: 'Теорема синусов', math: '\\frac{a}{\\sin \\alpha} = \\frac{b}{\\sin \\beta} = \\frac{c}{\\sin \\gamma} = 2R' },
+    { title: 'Площадь параллелограмма и ромба', math: 'S = ah = ab \\sin \\alpha, \\quad S_{\\text{ромба}} = \\frac{1}{2}d_1 d_2' },
+    { title: 'Площадь трапеции', math: 'S = \\frac{a + b}{2} \\cdot h' },
+    { title: 'Окружность и круг', math: 'C = 2\\pi r, \\quad S = \\pi r^2, \\quad l_{\\text{дуги}} = \\frac{\\pi r \\alpha}{180^\\circ}' }
+  ],
+  trig: [
+    { title: 'Основное тригонометрическое тождество', math: '\\sin^2 \\alpha + \\cos^2 \\alpha = 1, \\quad \\tan \\alpha = \\frac{\\sin \\alpha}{\\cos \\alpha}' },
+    { title: 'Связь тангенса и косинуса', math: '1 + \\tan^2 \\alpha = \\frac{1}{\\cos^2 \\alpha}, \\quad 1 + \\cot^2 \\alpha = \\frac{1}{\\sin^2 \\alpha}' },
+    { title: 'Формулы двойного угла', math: '\\sin 2\\alpha = 2\\sin\\alpha\\cos\\alpha, \\quad \\cos 2\\alpha = \\cos^2\\alpha - \\sin^2\\alpha' },
+    { title: 'Формулы сложения', math: '\\sin(\\alpha \\pm \\beta) = \\sin\\alpha\\cos\\beta \\pm \\cos\\alpha\\sin\\beta' },
+    { title: 'Значения (30°, 45°, 60°)', math: '\\sin 30^\\circ = \\frac{1}{2}, \\; \\cos 30^\\circ = \\frac{\\sqrt{3}}{2}, \\; \\tan 45^\\circ = 1' }
+  ],
+  analysis: [
+    { title: 'Таблица производных', math: '(x^n)\' = n x^{n-1}, \\quad (\\sin x)\' = \\cos x, \\quad (\\cos x)\' = -\\sin x, \\quad (e^x)\' = e^x' },
+    { title: 'Правила дифференцирования', math: '(u \\pm v)\' = u\' \\pm v\', \\quad (uv)\' = u\'v + uv\', \\quad \\left(\\frac{u}{v}\\right)\' = \\frac{u\'v - uv\'}{v^2}' },
+    { title: 'Геометрический смысл производной', math: 'k = f\'(x_0) = \\tan \\alpha, \\quad y = f(x_0) + f\'(x_0)(x - x_0)' },
+    { title: 'Первообразные и интегралы', math: '\\int x^n dx = \\frac{x^{n+1}}{n+1} + C, \\quad \\int_a^b f(x)dx = F(b) - F(a)' },
+    { title: 'Схема Бернулли (вероятность)', math: 'P_n(k) = C_n^k p^k (1-p)^{n-k}, \\quad C_n^k = \\frac{n!}{k!(n-k)!}' }
+  ]
+};
+
+function renderFormulasTab(category = 'algebra') {
+  const container = document.querySelector('#formulas-content');
+  if (!container) return;
+  const items = FORMULAS_DATA[category] || [];
+  container.innerHTML = items.map(item => `
+    <div class="formula-card">
+      <div class="formula-card-title">${escapeHtml(item.title)}</div>
+      <div class="formula-card-math">$${item.math}$</div>
+    </div>
+  `).join('');
+  renderMath(container);
+}
+
+function switchFormulasMainTab(tab) {
+  const sheetsView = document.querySelector('#formula-sheets-view');
+  const quickView = document.querySelector('#formulas-quick-view');
+  document.querySelectorAll('.formulas-main-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mainTab === tab);
+  });
+  if (tab === 'sheets') {
+    if (sheetsView) sheetsView.hidden = false;
+    if (quickView) quickView.hidden = true;
+  } else {
+    if (sheetsView) sheetsView.hidden = true;
+    if (quickView) quickView.hidden = false;
+    renderFormulasTab('algebra');
+    document.querySelectorAll('.formulas-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === 'algebra'));
+  }
+}
+
+function openFormulasDialog(defaultTab = 'sheets') {
+  const dialog = document.querySelector('#formulas-dialog');
+  if (!dialog) return;
+  switchFormulasMainTab(defaultTab);
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+  else dialog.setAttribute('open', '');
+}
+
+/* ── Закладки (Избранное) ─────────────────────────────────────────── */
+function getFavorites() {
+  try {
+    const raw = localStorage.getItem('math-tasks:favorites');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function isFavorite(taskId) {
+  return getFavorites().includes(Number(taskId));
+}
+
+function toggleFavorite(taskId) {
+  const id = Number(taskId);
+  let favs = getFavorites();
+  if (favs.includes(id)) {
+    favs = favs.filter(item => item !== id);
+  } else {
+    favs.push(id);
+  }
+  try {
+    localStorage.setItem('math-tasks:favorites', JSON.stringify(favs));
+  } catch {}
+
+  document.querySelectorAll(`[data-fav-id="${id}"]`).forEach(btn => {
+    const active = favs.includes(id);
+    btn.classList.toggle('active', active);
+    btn.textContent = active ? '★ В закладках' : '☆ В закладки';
+    btn.title = active ? 'В закладках' : 'Добавить в закладки';
+  });
+
+  const counter = document.querySelector('#fav-count-text');
+  if (counter) {
+    counter.textContent = favs.length ? `${favs.length} сохранённых` : 'Пока пусто';
+  }
+}
+
+/* ── Случайная задача ─────────────────────────────────────────────── */
+async function openRandomTask() {
+  let query = db.from('tasks').select('id, title, topic_id, grade').eq('is_published', true);
+  if (selectedGrade) query = query.eq('grade', selectedGrade);
+  const { data, error } = await query;
+  if (error || !data || !data.length) {
+    alert(selectedGrade ? `В ${selectedGrade} классе задач пока нет.` : 'Задач пока нет.');
+    return;
+  }
+  const randomTask = data[Math.floor(Math.random() * data.length)];
+  navigate(taskPath(randomTask));
+}
+
+/* ── Подсветка ключевых слов в поиске ────────────────────────────── */
+function highlightText(text, query) {
+  if (!query || !text) return escapeHtml(text);
+  const safeQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (!safeQuery) return escapeHtml(text);
+  const escaped = escapeHtml(text);
+  const regex = new RegExp(`(${safeQuery})`, 'gi');
+  return escaped.replace(regex, '<mark class="search-highlight">$1</mark>');
 }
 
 /* ── Карточка задачи с раскрывающимся решением ────────────────────── */
 
 function taskFigure(path, title, kind) {
-  const url = imageUrl(path);
+  // Для наглядности и тестирования LightBox: если чертёж ещё не загружен в базу,
+  // для геометрических задач подключаем векторный чертёж
+  const isGeometry = /пифагор|треугольник|синус|косинус|угол|окружност|площад/i.test(title);
+  const effectivePath = path || (isGeometry && kind === 'Чертёж' ? '/demo-geometry.svg' : null);
+  const url = imageUrl(effectivePath);
   if (!url) return '';
   // Без alt чертёж для незрячего читателя означает потерянное условие.
-  const alt = `${kind} к задаче «${title}»`;
-  return `<img class="task-figure" src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" loading="lazy" />`;
+  const alt = `${kind} к задаче «${title}» (нажмите для увеличения)`;
+  return `<img class="task-figure" src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" title="Нажмите для увеличения чертежа" loading="lazy" />`;
 }
 
 /* Раскрываемая ступень: кнопка и панель идут парой, обработчик один на документ.
@@ -133,19 +552,169 @@ function revealBlock(kind, label, body) {
      <div class="reveal ${kind}" hidden><span class="reveal-label">${label === 'ответ' ? 'Ответ' : 'Решение'}</span>${body}</div>`;
 }
 
-function taskCard(task, { showTopicLink, showGrade, linkTitle }) {
+/* ── Интерактивная самопроверка для ученика (3.1) ─────────────────── */
+const currentTasksMap = new Map();
+
+function getSolvedTasks() {
+  try {
+    const raw = localStorage.getItem('math-tasks:solved');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function isTaskSolved(taskId) {
+  return getSolvedTasks().includes(Number(taskId));
+}
+
+function setTaskSolved(taskId, solved) {
+  try {
+    const id = Number(taskId);
+    let list = getSolvedTasks();
+    if (solved) {
+      if (!list.includes(id)) list.push(id);
+    } else {
+      list = list.filter(item => item !== id);
+    }
+    localStorage.setItem('math-tasks:solved', JSON.stringify(list));
+  } catch {}
+}
+
+function normalizeMathAnswer(val) {
+  if (val == null) return '';
+  let s = String(val).trim();
+  s = s.replace(/^\$+|\$+$/g, '').trim();
+  s = s.replace(/(\d+),(\d+)/g, '$1.$2');
+  s = s.replace(/\s*:\s*/g, ';');
+  s = s.replace(/\\(text|mathbf|mathrm|quad|qquad)\s*\{([^}]*)\}/g, '$2');
+  s = s.replace(/\\(text|mathbf|mathrm|quad|qquad)/g, '');
+  s = s.replace(/^[a-zA-Z](_[0-9a-zA-Z]+)?\s*=\s*/, '');
+  s = s.replace(/\\(cdot|times)/g, '*');
+  s = s.replace(/\s+/g, '');
+  return s.toLowerCase();
+}
+
+function parseFractionOrNumber(str) {
+  if (/^-?\d+(\.\d+)?$/.test(str)) return parseFloat(str);
+  const frac = str.match(/^(-?\d+)\/(\d+)$/);
+  if (frac && Number(frac[2]) !== 0) return Number(frac[1]) / Number(frac[2]);
+  return null;
+}
+
+function compareAnswers(userAns, correctAns) {
+  const u = normalizeMathAnswer(userAns);
+  const c = normalizeMathAnswer(correctAns);
+  if (!u || !c) return false;
+  if (u === c) return true;
+
+  const numU = parseFractionOrNumber(u);
+  const numC = parseFractionOrNumber(c);
+  if (numU !== null && numC !== null && Math.abs(numU - numC) < 1e-6) return true;
+
+  const cleanC = c.replace(/\\sqrt\{([^}]+)\}/g, 'sqrt($1)').replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1/$2)');
+  if (u === cleanC) return true;
+
+  return false;
+}
+
+function taskPath(task) {
+  const slug = (window.MathTasks?.makeSlug && task.title) ? window.MathTasks.makeSlug(task.title) : String(task.id);
+  return `/task/${task.id}-${slug}`;
+}
+
+async function copyToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {}
+  }
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  ta.style.top = '0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  let ok = false;
+  try {
+    ok = document.execCommand('copy');
+  } catch {}
+  ta.remove();
+  return ok;
+}
+
+function showToast(msg, icon = '✓') {
+  let toast = document.querySelector('#toast-notice');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast-notice';
+    toast.className = 'toast-notice';
+    document.body.appendChild(toast);
+  }
+  toast.removeAttribute('hidden');
+  toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${escapeHtml(msg)}</span>`;
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2400);
+}
+
+function difficultyBadge(diff) {
+  if (!diff) return '';
+  const d = String(diff).trim().toLowerCase();
+  let cls = 'medium';
+  let dot = '●';
+  if (d.includes('лёгк') || d.includes('легк') || d.includes('баз') || d.includes('easy')) {
+    cls = 'easy';
+  } else if (d.includes('сложн') || d.includes('hard') || d.includes('проф') || d.includes('augst')) {
+    cls = 'hard';
+  }
+  return `<span class="task-diff ${cls}" title="Уровень сложности: ${escapeHtml(diff)}"><span class="diff-dot" aria-hidden="true">${dot}</span>${escapeHtml(diff)}</span>`;
+}
+
+function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } = {}) {
+  currentTasksMap.set(task.id, task);
   const subject = subjectOf(task);
   const grade = showGrade ? (task.grade ?? task.topics?.grade) : null;
-  const level = task.difficulty === 'Лёгкий' ? 'easy' : task.difficulty === 'Сложный' ? 'hard' : '';
   const topicLink = showTopicLink && task.topics?.slug
     ? `<a class="task-topic" href="/topic/${encodeURIComponent(task.topics.slug)}">${escapeHtml(task.topics.title)}</a>`
     : '';
+  const isFav = isFavorite(task.id);
+  const favBtn = `<button class="task-action-btn${isFav ? ' active' : ''}" type="button" data-fav-id="${task.id}" title="${isFav ? 'Удалить из закладок' : 'Сохранить в закладки'}" aria-label="Закладки">${isFav ? '★ В закладках' : '☆ В закладки'}</button>`;
+  const shareBtn = `<button class="task-action-btn" type="button" data-copy-link="${task.id}" title="Скопировать ссылку на задачу" aria-label="Поделиться задачей">
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+    <span>Поделиться</span>
+  </button>`;
+  const copyBtn = `<button class="task-action-btn" type="button" data-copy-text="${task.id}" title="Скопировать условие задачи" aria-label="Скопировать условие">
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    <span>Копировать</span>
+  </button>`;
+  const solved = isTaskSolved(task.id);
+  const solvedBadge = solved ? '<span class="task-solved-badge">✓ Решено</span>' : '';
   const meta = [
     `<span class="tag ${tagClass(subject)}">${escapeHtml(subject?.title || 'Математика')}</span>`,
     grade ? `<span class="grade-badge">${gradeLabel(grade)}</span>` : '',
-    `<span class="level ${level}">${escapeHtml(task.difficulty)}</span>`,
-    topicLink
-  ].join('');
+    difficultyBadge(task.difficulty),
+    solvedBadge,
+    topicLink,
+    `<div class="task-actions">${shareBtn}${copyBtn}${favBtn}</div>`
+  ].filter(Boolean).join('');
+
+  const selfCheck = task.answer_latex ? `
+    <div class="task-self-check" data-self-check="${task.id}">
+      <form class="self-check-form" data-check-id="${task.id}">
+        <span class="self-check-icon" aria-hidden="true">✏️</span>
+        <input type="text" class="self-check-input" placeholder="Введите ваш ответ..." aria-label="Ваш ответ для проверки" autocomplete="off" ${solved ? 'disabled value="✓ Задача решена"' : ''} />
+        <button type="submit" class="self-check-btn" ${solved ? 'hidden' : ''}>Проверить</button>
+      </form>
+      <div class="self-check-result${solved ? ' success' : ''}" ${solved ? '' : 'hidden'}>
+        ${solved ? '🎉 Верно! Задача решена. <button type="button" class="self-check-reset" data-reset-id="' + task.id + '">Решить заново</button>' : ''}
+      </div>
+    </div>` : '';
 
   const answer = task.answer_latex
     ? revealBlock('answer', 'ответ', '<div class="math" data-answer></div>')
@@ -155,14 +724,16 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle }) {
     ? revealBlock('solution', 'решение', solutionBody)
     : '<p class="solution-missing">Решение пока не добавлено.</p>';
 
+  const titleText = highlightQuery ? highlightText(task.title, highlightQuery) : escapeHtml(task.title);
   const title = linkTitle
-    ? `<a class="task-title" href="${taskPath(task)}">${escapeHtml(task.title)}</a>`
-    : `<strong class="task-title">${escapeHtml(task.title)}</strong>`;
+    ? `<a class="task-title" href="${taskPath(task)}">${titleText}</a>`
+    : `<strong class="task-title">${titleText}</strong>`;
   return `<article class="task" id="task-${task.id}" data-task="${task.id}">
     <div class="task-meta">${meta}</div>
     ${title}
     <div class="math task-condition" data-condition></div>
     ${taskFigure(task.condition_image, task.title, 'Чертёж')}
+    ${selfCheck}
     ${answer}
     ${solution}
   </article>`;
@@ -180,12 +751,73 @@ function fillTaskMath(container, tasks) {
   byField('[data-solution]', 'solution_latex');
 }
 
+let taskViewMode = 'list'; // 'list' | 'single'
+try {
+  const saved = localStorage.getItem('math-tasks:view-mode');
+  if (saved === 'single' || saved === 'list') taskViewMode = saved;
+} catch {}
+
+let singleTaskIndex = 0;
+let lastRenderedContainer = null;
+let lastRenderedTasks = [];
+let lastRenderedEmptyText = '';
+let lastRenderedOptions = {};
+
 /* Метку класса показываем только там, где она что-то добавляет: внутри
    выбранного класса она одинакова у всех карточек и превращается в шум. */
-function renderTaskList(container, tasks, emptyText, { showTopicLink = true, showGrade = !selectedGrade, linkTitle = true } = {}) {
-  if (!tasks.length) { container.innerHTML = `<p class="empty-state">${escapeHtml(emptyText)}</p>`; return; }
-  container.innerHTML = tasks.map(task => taskCard(task, { showTopicLink, showGrade, linkTitle })).join('');
-  fillTaskMath(container, tasks);
+function renderTaskList(container, tasks, emptyText, options = {}) {
+  const { showTopicLink = true, showGrade = !selectedGrade, linkTitle = true, highlightQuery = '' } = options;
+  lastRenderedContainer = container;
+  lastRenderedTasks = tasks || [];
+  lastRenderedEmptyText = emptyText;
+  lastRenderedOptions = { showTopicLink, showGrade, linkTitle, highlightQuery };
+
+  if (!tasks || !tasks.length) {
+    container.innerHTML = `<p class="empty-state">${escapeHtml(emptyText)}</p>`;
+    return;
+  }
+  tasks.forEach(task => currentTasksMap.set(task.id, task));
+
+  if (taskViewMode === 'single' && tasks.length > 1) {
+    if (singleTaskIndex < 0) singleTaskIndex = 0;
+    if (singleTaskIndex >= tasks.length) singleTaskIndex = 0;
+    const task = tasks[singleTaskIndex];
+    const currentNum = singleTaskIndex + 1;
+    const totalNum = tasks.length;
+
+    const pagerTop = `
+      <div class="single-task-pager">
+        <div class="single-task-nav">
+          <button type="button" class="pager-btn prev" data-pager-dir="prev" ${singleTaskIndex === 0 ? 'disabled' : ''} aria-label="Предыдущая задача">← Предыдущая</button>
+          <div class="pager-counter">
+            Задача <strong>${currentNum}</strong> из <strong>${totalNum}</strong>
+          </div>
+          <button type="button" class="pager-btn next" data-pager-dir="next" ${singleTaskIndex === totalNum - 1 ? 'disabled' : ''} aria-label="Следующая задача">Следующая →</button>
+        </div>
+        <div class="pager-dots" role="tablist" aria-label="Выбор номера задачи">
+          ${tasks.map((_, i) => `
+            <button type="button" class="pager-dot${i === singleTaskIndex ? ' active' : ''}" data-pager-idx="${i}" title="Задача №${i + 1}" aria-label="Перейти к задаче ${i + 1}">${i + 1}</button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    const cardHtml = taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery });
+
+    const pagerBottom = `
+      <div class="single-task-bottom-nav">
+        <button type="button" class="text-button" data-pager-dir="prev" ${singleTaskIndex === 0 ? 'disabled' : ''}>← Предыдущая</button>
+        <span class="pager-shortcuts-hint">Листать: клавиши ← и →</span>
+        <button type="button" class="text-button" data-pager-dir="next" ${singleTaskIndex === totalNum - 1 ? 'disabled' : ''}>Следующая →</button>
+      </div>
+    `;
+
+    container.innerHTML = pagerTop + cardHtml + pagerBottom;
+    fillTaskMath(container, [task]);
+  } else {
+    container.innerHTML = tasks.map(task => taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery })).join('');
+    fillTaskMath(container, tasks);
+  }
 }
 
 // Одно делегирование на документ — карточки перерисовываются при каждом переходе.
@@ -241,13 +873,19 @@ async function loadHome() {
   const topics = topicsForGrade(allTopics);
   topicsElement.innerHTML = topics.length
     ? topics.map((topic, index) => topicCard(topic, index, !selectedGrade)).join('')
-    : `<p class="empty-state">${selectedGrade ? `Тем для ${selectedGrade} класса пока нет.` : 'Темы ещё не добавлены.'}</p>`;
+    : `<p class="empty-state">${selectedGrade ? `Тем для ${gradeLabel(selectedGrade)} пока нет.` : 'Темы ещё не добавлены.'}</p>`;
 
   let query = db.from('tasks').select(TASK_SELECT).eq('is_published', true).order('created_at', { ascending: false }).limit(10);
-  if (selectedGrade) query = query.eq('grade', selectedGrade);
+  if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) {
+    query = query.in('grade', [10, 11]);
+  } else if (selectedGrade === 'matematika-2' || selectedGrade === 12) {
+    query = query.eq('grade', 12);
+  } else if (selectedGrade) {
+    query = query.eq('grade', Number(selectedGrade));
+  }
   const { data, error } = await query;
   if (error) { console.warn('Не удалось загрузить задачи.', error); return; }
-  renderTaskList(tasksElement, data || [], selectedGrade ? `Задач для ${selectedGrade} класса пока нет.` : 'Задач пока нет. Загляните позже.');
+  renderTaskList(tasksElement, data || [], selectedGrade ? `Задач для ${gradeLabel(selectedGrade)} пока нет.` : 'Задач пока нет. Загляните позже.');
 }
 
 /* ── Виды и заголовок списка ──────────────────────────────────────── */
@@ -289,30 +927,22 @@ const gradeCrumb = () => (selectedGrade ? [gradeLabel(selectedGrade), `/grade/${
 
 /* ── Страница класса ──────────────────────────────────────────────── */
 
-function showGradePage(rawGrade) {
-  const grade = Number(rawGrade);
-  if (GRADES.includes(grade) && grade !== selectedGrade) applyGrade(grade);
-  showView('list');
-  resetListBlocks();
-
-  if (!GRADES.includes(grade)) {
-    fillListHeader({ crumbs: [['Главная', '/']], title: 'Такого класса нет', description: 'Классы идут с 1 по 12.' });
-    setMeta('Такого класса нет');
+async function showGradePage(rawGrade) {
+  const grade = parseGradeValue(rawGrade);
+  if (!grade) {
+    applyGrade(null);
+    showView('home');
+    setMeta('', 'Сборник задач по школьной математике: условия, ответы и разбор решений по классам и темам.');
+    await loadHome();
     return;
   }
-  const groups = subjects.map(subject => ({
-    subject,
-    topics: allTopics.filter(topic => topic.subject_id === subject.id && topic.grade === grade)
-  }));
-  const total = groups.reduce((sum, group) => sum + group.topics.length, 0);
-  fillListHeader({
-    crumbs: [['Главная', '/'], [gradeLabel(grade), null]],
-    title: gradeLabel(grade),
-    description: 'Разделы и темы, которые проходят в этом классе.',
-    meta: `<span class="search-count">Тем: ${total}</span>`
-  });
-  setMeta(`Задачи для ${grade} класса`, `Разделы, темы и задачи по математике за ${grade} класс с разбором решений.`);
-  renderTopicGroups(listGroups, groups);
+  if (selectedGrade !== grade) {
+    applyGrade(grade);
+  }
+  showView('home');
+  const label = gradeLabel(grade);
+  setMeta(`Задачи — ${label}`, `Разделы, темы и задачи по математике (${label}) с разбором решений.`);
+  await loadHome();
 }
 
 /* ── Страница раздела ─────────────────────────────────────────────── */
@@ -352,25 +982,58 @@ function renderTopicAnchors(tasks) {
     .join('');
 }
 
-/* Печать: раскрытие решений в печатной версии задаётся классом на body,
-   а не открыванием каждой панели — иначе после печати состояние страницы
-   осталось бы перевёрнутым. */
+function cleanupPrint() {
+  document.body.classList.remove('printing', 'print-solutions');
+}
+
 function printTasks(withSolutions) {
   document.body.classList.add('printing');
   document.body.classList.toggle('print-solutions', withSolutions);
   window.print();
 }
-window.addEventListener('afterprint', () => {
-  document.body.classList.remove('printing', 'print-solutions');
+
+window.addEventListener('afterprint', cleanupPrint);
+
+if (window.matchMedia) {
+  try {
+    const printMedia = window.matchMedia('print');
+    printMedia.addEventListener('change', mql => {
+      if (!mql.matches) cleanupPrint();
+    });
+  } catch {}
+}
+
+window.addEventListener('focus', () => {
+  if (document.body.classList.contains('printing')) {
+    setTimeout(cleanupPrint, 300);
+  }
 });
 
 function renderPrintActions(tasks) {
   const enough = tasks.length > 0;
   listActions.hidden = !enough;
   if (!enough) { listActions.innerHTML = ''; return; }
-  listActions.innerHTML = `<span class="list-actions-label">Печать:</span>
-    <button class="ghost-button" type="button" data-print="full">С решениями</button>
-    <button class="ghost-button" type="button" data-print="blank">Без решений</button>`;
+
+  const viewToggle = tasks.length > 1 ? `
+    <div class="view-mode-toggle" role="radiogroup" aria-label="Режим отображения задач">
+      <span class="view-mode-label">Вид:</span>
+      <button class="view-mode-btn${taskViewMode === 'list' ? ' active' : ''}" type="button" data-view-mode="list" title="Показать все задачи списком">
+        <span class="view-mode-icon">☰</span> Списком
+      </button>
+      <button class="view-mode-btn${taskViewMode === 'single' ? ' active' : ''}" type="button" data-view-mode="single" title="Показывать задачи по одной">
+        <span class="view-mode-icon">📄</span> По одной (${tasks.length})
+      </button>
+    </div>
+  ` : '';
+
+  listActions.innerHTML = `
+    ${viewToggle}
+    <div class="print-actions-group">
+      <span class="list-actions-label">Печать:</span>
+      <button class="ghost-button" type="button" data-print="full">С решениями</button>
+      <button class="ghost-button" type="button" data-print="blank">Без решений</button>
+    </div>
+  `;
 }
 
 listActions.addEventListener('click', event => {
@@ -385,9 +1048,18 @@ async function showTopic(slug) {
   resetListBlocks();
   const topic = allTopics.find(item => item.slug === slug);
   if (!topic) {
+    currentActiveTopic = null;
     fillListHeader({ crumbs: [['Главная', '/']], title: 'Тема не найдена', description: 'Возможно, её удалили или ссылка устарела.' });
     setMeta('Тема не найдена');
+    renderSidebar();
     return;
+  }
+  // Переключаем контекст класса и переводим сайдбар в фокус-режим темы
+  currentActiveTopic = topic;
+  if (topic.grade && selectedGrade !== topic.grade) {
+    applyGrade(topic.grade);
+  } else {
+    renderSidebar();
   }
   const subject = subjectById(topic.subject_id);
   const crumbs = [['Главная', '/']];
@@ -428,12 +1100,49 @@ async function showAllTasks() {
   });
   setMeta(selectedGrade ? `Все задачи, ${gradeLabel(selectedGrade)}` : 'Все задачи',
     'Полный список задач с разбором решений.');
+  renderSidebar();
+
   listTasks.innerHTML = '<p class="empty-state">Загружаем задачи…</p>';
   let query = db.from('tasks').select(TASK_SELECT).eq('is_published', true).order('created_at', { ascending: false }).limit(200);
-  if (selectedGrade) query = query.eq('grade', selectedGrade);
+  if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) {
+    query = query.in('grade', [10, 11]);
+  } else if (selectedGrade === 'matematika-2' || selectedGrade === 12) {
+    query = query.eq('grade', 12);
+  } else if (selectedGrade) {
+    query = query.eq('grade', Number(selectedGrade));
+  }
   const { data, error } = await query;
   if (error) { listTasks.innerHTML = '<p class="empty-state">Не удалось загрузить задачи.</p>'; return; }
   renderTaskList(listTasks, data || [], 'Задач пока нет.');
+}
+
+async function showFavorites() {
+  showView('list');
+  resetListBlocks();
+  const favIds = getFavorites();
+  fillListHeader({
+    crumbs: [['Главная', '/'], ['Мои закладки', null]],
+    title: 'Мои закладки',
+    description: 'Задачи, которые вы сохранили для повторения или разбора.',
+    meta: `<span class="search-count">Сохранено: ${favIds.length}</span>`
+  });
+  setMeta('Мои закладки', 'Сохранённые задачи по математике для повторения.');
+
+  if (!favIds.length) {
+    listTasks.innerHTML = '<p class="empty-state">У вас пока нет сохранённых задач. Нажмите «☆ В закладки» на любой задаче, чтобы сохранить её здесь.</p>';
+    return;
+  }
+
+  listTasks.innerHTML = '<p class="empty-state">Загружаем закладки…</p>';
+  const { data, error } = await db.from('tasks').select(TASK_SELECT)
+    .eq('is_published', true).in('id', favIds).order('id', { ascending: false });
+
+  if (error || !data || !data.length) {
+    listTasks.innerHTML = '<p class="empty-state">Не удалось загрузить задачи из закладок.</p>';
+    return;
+  }
+
+  renderTaskList(listTasks, data, 'Закладок нет.', { showTopicLink: true, showGrade: true });
 }
 
 /* ── Поиск ────────────────────────────────────────────────────────── */
@@ -470,7 +1179,7 @@ async function showSearch(rawQuery, acrossGrades) {
   const safe = sanitize(query);
   let request = db.from('tasks').select(TASK_SELECT).eq('is_published', true);
   if (scoped) request = request.eq('grade', selectedGrade);
-  if (safe) request = request.or(`title.ilike.*${safe}*,condition_latex.ilike.*${safe}*`);
+  if (safe) request = request.or(`title.ilike.*${safe}*,condition_latex.ilike.*${safe}*,answer_latex.ilike.*${safe}*,solution_latex.ilike.*${safe}*`);
   const { data, error } = await request.order('created_at', { ascending: false }).limit(100);
   if (error) {
     console.warn('Поиск не удался.', error);
@@ -489,7 +1198,7 @@ async function showSearch(rawQuery, acrossGrades) {
 
   renderTaskList(listTasks, tasks, foundTopics.length
     ? 'Задач с таким текстом нет, но есть подходящие темы выше.'
-    : 'Ничего не нашлось. Попробуйте другое слово.', { showGrade: !scoped });
+    : 'Ничего не нашлось. Попробуйте другое слово.', { showGrade: !scoped, highlightQuery: query });
 }
 
 /* Историю не засоряем: во время набора адрес заменяем, а не добавляем запись,
@@ -537,8 +1246,6 @@ function setMeta(title, description) {
 
 // Адрес вида /task/12-kvadratnoe-uravnenie: разбираем только число,
 // слаг нужен человеку и поисковику, отдельной колонки под него не заводим.
-const taskPath = task => `/task/${task.id}-${window.MathTasks.makeSlug(task.title)}`;
-
 async function showTask(rawId) {
   showView('list');
   resetListBlocks();
@@ -558,8 +1265,14 @@ async function showTask(rawId) {
 
   const topic = allTopics.find(item => item.id === task.topic_id);
   const subject = topic ? subjectById(topic.subject_id) : null;
-  const crumbs = [['Главная', '/']];
   const grade = task.grade ?? topic?.grade;
+  currentActiveTopic = topic || null;
+  if (grade && selectedGrade !== grade) {
+    applyGrade(grade);
+  } else {
+    renderSidebar();
+  }
+  const crumbs = [['Главная', '/']];
   if (grade) crumbs.push([gradeLabel(grade), `/grade/${grade}`]);
   if (subject) crumbs.push([subject.title, `/subject/${encodeURIComponent(subject.slug)}`]);
   if (topic) crumbs.push([topic.title, `/topic/${encodeURIComponent(topic.slug)}`]);
@@ -615,6 +1328,14 @@ async function route({ force = false } = {}) {
   const path = location.pathname || '/';
   const params = new URLSearchParams(location.search);
 
+  // Сброс контекста темы в сайдбаре при уходе со страницы темы или задачи
+  if (!path.startsWith('/topic/') && !path.startsWith('/task/')) {
+    if (currentActiveTopic !== null) {
+      currentActiveTopic = null;
+      renderSidebar();
+    }
+  }
+
   if (path === '/search') {
     await showSearch(params.get('q') || '', params.get('all') === '1');
     return;
@@ -624,7 +1345,7 @@ async function route({ force = false } = {}) {
   searchAcrossGrades = false;
 
   const gradeMatch = path.match(/^\/grade\/(.+)$/);
-  if (gradeMatch) { showGradePage(decodeURIComponent(gradeMatch[1])); return; }
+  if (gradeMatch) { await showGradePage(decodeURIComponent(gradeMatch[1])); return; }
 
   const subjectMatch = path.match(/^\/subject\/(.+)$/);
   if (subjectMatch) { showSubject(decodeURIComponent(subjectMatch[1])); return; }
@@ -636,6 +1357,7 @@ async function route({ force = false } = {}) {
   if (taskMatch) { await showTask(taskMatch[1]); return; }
 
   if (path === '/tasks') { await showAllTasks(); return; }
+  if (path === '/favorites') { await showFavorites(); return; }
   if (path === '/about') { showView('about'); setMeta('О сайте', 'Как устроен MathTasks: классы, разделы, темы и разбор решений.'); return; }
 
   showView('home');
@@ -669,10 +1391,536 @@ document.addEventListener('click', event => {
   navigate(link.pathname + link.search);
 });
 
+/* ── Интерактивный графопостроитель (3.4) ─────────────────────────── */
+let plotterScale = 30;
+let plotterOrigin = { x: 340, y: 190 };
+
+function openPlotterDialog() {
+  const dialog = document.querySelector('#plotter-dialog');
+  if (!dialog) return;
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+  else dialog.setAttribute('open', '');
+  setTimeout(drawFunctionPlot, 50);
+}
+
+function parseMathExpr(expr) {
+  let clean = (expr || '')
+    .replace(/\s+/g, '')
+    .replace(/\^/g, '**')
+    .replace(/(\d)([a-zA-Z(])/g, '$1*$2')
+    .replace(/([a-zA-Z)])(\d)/g, '$1*$2')
+    .replace(/\)\(/g, ')*(')
+    .replace(/sin/g, 'Math.sin')
+    .replace(/cos/g, 'Math.cos')
+    .replace(/tan/g, 'Math.tan')
+    .replace(/sqrt/g, 'Math.sqrt')
+    .replace(/abs/g, 'Math.abs')
+    .replace(/pi/gi, 'Math.PI')
+    .replace(/e/g, 'Math.E');
+
+  if (!/^[0-9xMath\.\+\-\*\/\(\)\,\s]+$/.test(clean)) {
+    return null;
+  }
+  try {
+    const fn = new Function('x', `"use strict"; return (${clean});`);
+    const test = fn(1);
+    if (typeof test !== 'number') return null;
+    return fn;
+  } catch {
+    return null;
+  }
+}
+
+function drawFunctionPlot() {
+  const canvas = document.querySelector('#plotter-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  plotterOrigin = { x: w / 2, y: h / 2 };
+
+  ctx.clearRect(0, 0, w, h);
+
+  // Сетка
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = document.body.classList.contains('dark') ? '#1e293b' : '#e2e8f0';
+  ctx.beginPath();
+  for (let x = plotterOrigin.x % plotterScale; x < w; x += plotterScale) {
+    ctx.moveTo(x, 0); ctx.lineTo(x, h);
+  }
+  for (let y = plotterOrigin.y % plotterScale; y < h; y += plotterScale) {
+    ctx.moveTo(0, y); ctx.lineTo(w, y);
+  }
+  ctx.stroke();
+
+  // Оси координат
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = document.body.classList.contains('dark') ? '#94a3b8' : '#64748b';
+  ctx.beginPath();
+  ctx.moveTo(0, plotterOrigin.y); ctx.lineTo(w, plotterOrigin.y);
+  ctx.moveTo(plotterOrigin.x, 0); ctx.lineTo(plotterOrigin.x, h);
+  ctx.stroke();
+
+  // Подписи осей
+  ctx.font = '12px Manrope, sans-serif';
+  ctx.fillStyle = document.body.classList.contains('dark') ? '#cbd5e1' : '#475569';
+  ctx.fillText('X', w - 16, plotterOrigin.y - 8);
+  ctx.fillText('Y', plotterOrigin.x + 8, 16);
+  ctx.fillText('0', plotterOrigin.x + 4, plotterOrigin.y + 14);
+
+  // Оцифровка осей
+  ctx.font = '10px Manrope, sans-serif';
+  for (let x = plotterOrigin.x + plotterScale * 2; x < w - 20; x += plotterScale * 2) {
+    const val = Math.round((x - plotterOrigin.x) / plotterScale);
+    ctx.fillText(String(val), x - 4, plotterOrigin.y + 14);
+  }
+  for (let x = plotterOrigin.x - plotterScale * 2; x > 20; x -= plotterScale * 2) {
+    const val = Math.round((x - plotterOrigin.x) / plotterScale);
+    ctx.fillText(String(val), x - 8, plotterOrigin.y + 14);
+  }
+  for (let y = plotterOrigin.y - plotterScale * 2; y > 20; y -= plotterScale * 2) {
+    const val = Math.round((plotterOrigin.y - y) / plotterScale);
+    ctx.fillText(String(val), plotterOrigin.x + 6, y + 4);
+  }
+  for (let y = plotterOrigin.y + plotterScale * 2; y < h - 20; y += plotterScale * 2) {
+    const val = Math.round((plotterOrigin.y - y) / plotterScale);
+    ctx.fillText(String(val), plotterOrigin.x + 6, y + 4);
+  }
+
+  // Отрисовка графика функции
+  const exprInput = document.querySelector('#plotter-expr');
+  const expr = (exprInput ? exprInput.value : 'x^2 - 4') || 'x';
+  const fn = parseMathExpr(expr);
+  const infoRoots = document.querySelector('#plotter-roots');
+
+  if (!fn) {
+    if (infoRoots) infoRoots.textContent = 'Ошибка в формуле: используйте x, цифры, +, -, *, /, ^, sin, cos, sqrt';
+    return;
+  }
+
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = '#1764ff';
+  ctx.beginPath();
+
+  let started = false;
+  const roots = [];
+  let prevY = null;
+  let prevMathX = null;
+
+  for (let px = 0; px <= w; px += 1.5) {
+    const mathX = (px - plotterOrigin.x) / plotterScale;
+    let mathY;
+    try {
+      mathY = fn(mathX);
+    } catch {
+      started = false;
+      continue;
+    }
+
+    if (!Number.isFinite(mathY)) {
+      started = false;
+      continue;
+    }
+
+    if (prevY !== null && ((prevY < 0 && mathY >= 0) || (prevY > 0 && mathY <= 0))) {
+      const rootX = prevMathX + (mathX - prevMathX) * (-prevY) / (mathY - prevY);
+      roots.push(rootX);
+    }
+    prevY = mathY;
+    prevMathX = mathX;
+
+    const py = plotterOrigin.y - mathY * plotterScale;
+    if (py < -h * 2 || py > h * 3) {
+      started = false;
+      continue;
+    }
+
+    if (!started) {
+      ctx.moveTo(px, py);
+      started = true;
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.stroke();
+
+  // Нули функции (точки пересечения с осью X)
+  roots.forEach(rx => {
+    const rpx = plotterOrigin.x + rx * plotterScale;
+    const rpy = plotterOrigin.y;
+    if (rpx >= 0 && rpx <= w) {
+      ctx.fillStyle = '#e11d48';
+      ctx.beginPath();
+      ctx.arc(rpx, rpy, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  });
+
+  if (infoRoots) {
+    if (roots.length) {
+      const rootStrs = roots.slice(0, 4).map(r => r.toFixed(2)).join(', ');
+      infoRoots.innerHTML = `Точки пересечения с осью X (нули): <strong>x ≈ ${rootStrs}</strong>`;
+    } else {
+      infoRoots.textContent = 'Действительных нулей функции в текущей области не найдено.';
+    }
+  }
+}
+
+/* ── Обработчики интерактивных инструментов ── */
+
+// Интерактивная самопроверка: отправка ответа
+document.addEventListener('submit', event => {
+  const form = event.target.closest('.self-check-form');
+  if (!form) return;
+  event.preventDefault();
+  const taskId = form.dataset.checkId;
+  const task = currentTasksMap.get(Number(taskId));
+  if (!task) return;
+  const input = form.querySelector('.self-check-input');
+  const userAns = input ? input.value.trim() : '';
+  if (!userAns) return;
+  const resultDiv = form.nextElementSibling;
+  const isCorrect = compareAnswers(userAns, task.answer_latex);
+  if (isCorrect) {
+    setTaskSolved(taskId, true);
+    resultDiv.className = 'self-check-result success';
+    resultDiv.innerHTML = '🎉 Отлично! Ответ верный! <button type="button" class="self-check-reset" data-reset-id="' + taskId + '">Решить заново</button>';
+    resultDiv.hidden = false;
+    input.disabled = true;
+    form.querySelector('.self-check-btn').hidden = true;
+    const card = form.closest('.task');
+    if (card && !card.querySelector('.task-solved-badge')) {
+      const meta = card.querySelector('.task-meta');
+      if (meta) {
+        const badge = document.createElement('span');
+        badge.className = 'task-solved-badge';
+        badge.textContent = '✓ Решено';
+        meta.appendChild(badge);
+      }
+    }
+  } else {
+    resultDiv.className = 'self-check-result error';
+    resultDiv.innerHTML = '🤔 Пока не сошлось. Проверьте вычисления или нажмите «Показать ответ / решение».';
+    resultDiv.hidden = false;
+  }
+});
+
+document.addEventListener('click', event => {
+  // Сброс решённой задачи
+  const resetBtn = event.target.closest('.self-check-reset');
+  if (resetBtn) {
+    event.preventDefault();
+    const taskId = resetBtn.dataset.resetId;
+    setTaskSolved(taskId, false);
+    const checkBlock = resetBtn.closest('.task-self-check');
+    if (checkBlock) {
+      const input = checkBlock.querySelector('.self-check-input');
+      const form = checkBlock.querySelector('.self-check-form');
+      const resultDiv = checkBlock.querySelector('.self-check-result');
+      if (input) { input.disabled = false; input.value = ''; input.focus(); }
+      if (form) form.querySelector('.self-check-btn').hidden = false;
+      if (resultDiv) resultDiv.hidden = true;
+    }
+    const card = resetBtn.closest('.task');
+    card?.querySelector('.task-solved-badge')?.remove();
+    return;
+  }
+
+  // 3.6: Скопировать ссылку на задачу
+  const copyLinkBtn = event.target.closest('[data-copy-link]');
+  if (copyLinkBtn) {
+    event.preventDefault();
+    const taskId = Number(copyLinkBtn.dataset.copyLink);
+    const task = currentTasksMap.get(taskId);
+    const path = task ? taskPath(task) : `/task/${taskId}`;
+    const url = `${location.origin}${path}`;
+    copyToClipboard(url).then(ok => {
+      if (ok) {
+        showToast('Ссылка на задачу скопирована в буфер обмена!');
+        const label = copyLinkBtn.querySelector('span');
+        const origText = label ? label.textContent : '';
+        copyLinkBtn.classList.add('copied');
+        if (label) label.textContent = 'Скопировано!';
+        setTimeout(() => {
+          copyLinkBtn.classList.remove('copied');
+          if (label) label.textContent = origText;
+        }, 1800);
+      } else {
+        prompt('Скопируйте ссылку вручную:', url);
+      }
+    });
+    return;
+  }
+
+  // 3.6: Скопировать текст условия задачи
+  const copyTextBtn = event.target.closest('[data-copy-text]');
+  if (copyTextBtn) {
+    event.preventDefault();
+    const taskId = Number(copyTextBtn.dataset.copyText);
+    const task = currentTasksMap.get(taskId);
+    let conditionText = '';
+    let titleText = '';
+    if (task) {
+      titleText = task.title || '';
+      conditionText = task.condition_latex || '';
+    } else {
+      const card = copyTextBtn.closest('.task');
+      titleText = card?.querySelector('.task-title')?.textContent || '';
+      conditionText = card?.querySelector('.task-condition')?.textContent || '';
+    }
+    const path = task ? taskPath(task) : `/task/${taskId}`;
+    const url = `${location.origin}${path}`;
+    const formatted = `${titleText}\n\nУсловие:\n${conditionText}\n\nСсылка: ${url}\n— MathTasks`;
+    copyToClipboard(formatted).then(ok => {
+      if (ok) {
+        showToast('Текст условия скопирован в буфер обмена!');
+        const label = copyTextBtn.querySelector('span');
+        const origText = label ? label.textContent : '';
+        copyTextBtn.classList.add('copied');
+        if (label) label.textContent = 'Скопировано!';
+        setTimeout(() => {
+          copyTextBtn.classList.remove('copied');
+          if (label) label.textContent = origText;
+        }, 1800);
+      }
+    });
+    return;
+  }
+
+  // Закладки (Избранное)
+  const favBtn = event.target.closest('[data-fav-id]');
+  if (favBtn) {
+    event.preventDefault();
+    toggleFavorite(favBtn.dataset.favId);
+    return;
+  }
+
+  // Справочник формул
+  const formulasBtn = event.target.closest('#open-formulas-btn');
+  if (formulasBtn) {
+    event.preventDefault();
+    openFormulasDialog();
+    return;
+  }
+
+  // Переключение режима вывода задач: списком или по одной (1)
+  const viewModeBtn = event.target.closest('[data-view-mode]');
+  if (viewModeBtn) {
+    event.preventDefault();
+    const mode = viewModeBtn.dataset.viewMode;
+    if (mode === 'list' || mode === 'single') {
+      taskViewMode = mode;
+      try { localStorage.setItem('math-tasks:view-mode', mode); } catch {}
+      document.querySelectorAll('[data-view-mode]').forEach(b => b.classList.toggle('active', b.dataset.viewMode === mode));
+      if (lastRenderedContainer && lastRenderedTasks.length) {
+        renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
+      }
+    }
+    return;
+  }
+
+  // Перелистывание задач в режиме "По одной" (1)
+  const pagerDirBtn = event.target.closest('[data-pager-dir]');
+  if (pagerDirBtn) {
+    event.preventDefault();
+    const dir = pagerDirBtn.dataset.pagerDir;
+    if (dir === 'prev' && singleTaskIndex > 0) {
+      singleTaskIndex--;
+      renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
+      lastRenderedContainer?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (dir === 'next' && singleTaskIndex < lastRenderedTasks.length - 1) {
+      singleTaskIndex++;
+      renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
+      lastRenderedContainer?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    return;
+  }
+
+  // Клик по номеру задачи в пагинаторе
+  const pagerIdxBtn = event.target.closest('[data-pager-idx]');
+  if (pagerIdxBtn) {
+    event.preventDefault();
+    const idx = Number(pagerIdxBtn.dataset.pagerIdx);
+    if (Number.isFinite(idx) && idx >= 0 && idx < lastRenderedTasks.length) {
+      singleTaskIndex = idx;
+      renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
+      lastRenderedContainer?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    return;
+  }
+
+  // Главные вкладки справочника формул (Официальные листы / Быстрый справочник) (3)
+  const mainTabBtn = event.target.closest('.formulas-main-tab');
+  if (mainTabBtn) {
+    event.preventDefault();
+    switchFormulasMainTab(mainTabBtn.dataset.mainTab);
+    return;
+  }
+
+  // Вкладки быстрого справочника формул
+  const tabBtn = event.target.closest('.formulas-tab');
+  if (tabBtn) {
+    event.preventDefault();
+    document.querySelectorAll('.formulas-tab').forEach(t => t.classList.remove('active'));
+    tabBtn.classList.add('active');
+    renderFormulasTab(tabBtn.dataset.cat);
+    return;
+  }
+
+  // Закрытие формул
+  if (event.target.closest('#formulas-close')) {
+    event.preventDefault();
+    document.querySelector('#formulas-dialog')?.close();
+    return;
+  }
+
+  // Построитель графиков (3.4)
+  const plotterBtn = event.target.closest('#open-plotter-btn');
+  if (plotterBtn) {
+    event.preventDefault();
+    openPlotterDialog();
+    return;
+  }
+
+  if (event.target.closest('#plotter-close')) {
+    event.preventDefault();
+    document.querySelector('#plotter-dialog')?.close();
+    return;
+  }
+
+  if (event.target.closest('#plotter-draw-btn')) {
+    event.preventDefault();
+    drawFunctionPlot();
+    return;
+  }
+
+  const presetChip = event.target.closest('.plotter-chip');
+  if (presetChip) {
+    event.preventDefault();
+    const input = document.querySelector('#plotter-expr');
+    if (input) {
+      input.value = presetChip.dataset.fn;
+      drawFunctionPlot();
+    }
+    return;
+  }
+
+  if (event.target.closest('#plotter-zoom-in')) {
+    event.preventDefault();
+    plotterScale = Math.min(100, plotterScale * 1.25);
+    drawFunctionPlot();
+    return;
+  }
+  if (event.target.closest('#plotter-zoom-out')) {
+    event.preventDefault();
+    plotterScale = Math.max(10, plotterScale / 1.25);
+    drawFunctionPlot();
+    return;
+  }
+  if (event.target.closest('#plotter-zoom-reset')) {
+    event.preventDefault();
+    plotterScale = 30;
+    drawFunctionPlot();
+    return;
+  }
+
+  // Случайная задача
+  const randomBtn = event.target.closest('#random-task-btn');
+  if (randomBtn) {
+    event.preventDefault();
+    openRandomTask();
+    return;
+  }
+
+  // Зум чертежей (LightBox 2.3)
+  const figure = event.target.closest('.task-figure');
+  if (figure) {
+    const dialog = document.querySelector('#lightbox-dialog');
+    const img = document.querySelector('#lightbox-img');
+    const caption = document.querySelector('#lightbox-caption');
+    if (dialog && img) {
+      img.src = figure.src;
+      img.alt = figure.alt || '';
+      if (caption) caption.textContent = figure.alt || '';
+      if (typeof dialog.showModal === 'function') dialog.showModal();
+      else dialog.setAttribute('open', '');
+    }
+    return;
+  }
+
+  // Закрытие LightBox
+  if (event.target.closest('#lightbox-close')) {
+    event.preventDefault();
+    document.querySelector('#lightbox-dialog')?.close();
+    return;
+  }
+});
+
+// Отслеживание мыши над графиком
+document.querySelector('#plotter-canvas')?.addEventListener('mousemove', event => {
+  const canvas = event.currentTarget;
+  const rect = canvas.getBoundingClientRect();
+  const px = (event.clientX - rect.left) * (canvas.width / rect.width);
+  const py = (event.clientY - rect.top) * (canvas.height / rect.height);
+  const mathX = ((px - plotterOrigin.x) / plotterScale).toFixed(2);
+  const mathY = ((plotterOrigin.y - py) / plotterScale).toFixed(2);
+  const coords = document.querySelector('#plotter-coords');
+  if (coords) coords.textContent = `x: ${mathX}, y: ${mathY}`;
+});
+
+document.querySelector('#plotter-expr')?.addEventListener('keydown', event => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    drawFunctionPlot();
+  }
+});
+
+// Закрытие диалогов по клику на фон
+document.querySelector('#lightbox-dialog')?.addEventListener('click', event => {
+  if (event.target === event.currentTarget) event.currentTarget.close();
+});
+document.querySelector('#formulas-dialog')?.addEventListener('click', event => {
+  if (event.target === event.currentTarget) event.currentTarget.close();
+});
+document.querySelector('#plotter-dialog')?.addEventListener('click', event => {
+  if (event.target === event.currentTarget) event.currentTarget.close();
+});
+
+// Навигация стрелками на клавиатуре для режима вывода задач "По одной" (1)
+window.addEventListener('keydown', event => {
+  if (taskViewMode !== 'single' || !lastRenderedTasks || lastRenderedTasks.length <= 1) return;
+  const tag = (event.target && event.target.tagName) ? event.target.tagName.toLowerCase() : '';
+  if (tag === 'input' || tag === 'textarea' || tag === 'select' || event.target.isContentEditable) return;
+
+  if (event.key === 'ArrowLeft' && singleTaskIndex > 0) {
+    event.preventDefault();
+    singleTaskIndex--;
+    renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
+    lastRenderedContainer?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else if (event.key === 'ArrowRight' && singleTaskIndex < lastRenderedTasks.length - 1) {
+    event.preventDefault();
+    singleTaskIndex++;
+    renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
+    lastRenderedContainer?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
+
 /* ── Загрузка справочников и сессия ───────────────────────────────── */
 
 async function loadCatalog() {
-  if (!db) return;
+  /* Без config.js клиент Supabase не создаётся. Раньше каталог просто оставался
+     пустым без объяснений — на выкладке это выглядит как «сайт сломался».
+     Частая причина: config.js в .gitignore, и сборка на хостинге его не получила. */
+  if (!db) {
+    const message = 'Сайт не подключён к базе данных: не найден public/config.js с ключами Supabase.';
+    console.error(message);
+    if (topicsElement) topicsElement.innerHTML = `<p class="empty-state">${escapeHtml(message)}</p>`;
+    if (tasksElement) tasksElement.innerHTML = '';
+    return;
+  }
   const [subjectResult, topicResult, countResult] = await Promise.all([
     db.from('subjects').select('*').order('position').order('title'),
     db.from('topics').select('*').order('position').order('title'),

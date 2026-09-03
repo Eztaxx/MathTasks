@@ -12,13 +12,22 @@ window.MathTasks = window.MathTasks || {};
     return el.innerHTML;
   };
 
-  // Классы 1–12: общий справочник для фильтров на главной и форм в админке (включая 12 класс по стандартам Skola2030).
-  window.MathTasks.GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  window.MathTasks.gradeLabel = grade => (grade ? `${grade} класс` : 'Без класса');
+  // Справочник ступеней обучения по стандартам Skola2030 (1–9 классы и средняя школа: Vispārīgais, Matemātika I, Matemātika II)
+  window.MathTasks.GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 'visparigais', 'matematika-1', 'matematika-2'];
+  window.MathTasks.gradeLabel = grade => {
+    if (!grade) return 'Без класса';
+    if (grade === 'visparigais' || grade === 'vispārīgais') return 'Vispārīgais līmenis';
+    if (grade === 'matematika-1' || grade === 10 || grade === 11 || grade === '10' || grade === '11') return 'Matemātika I (Optimālais)';
+    if (grade === 'matematika-2' || grade === 12 || grade === '12') return 'Matemātika II (Augstākais)';
+    return `${grade} класс`;
+  };
   window.MathTasks.fillGradeSelect = (select, emptyLabel) => {
     if (!select) return;
     select.innerHTML = `<option value="">${emptyLabel}</option>` +
-      window.MathTasks.GRADES.map(grade => `<option value="${grade}">${grade} класс</option>`).join('');
+      [1, 2, 3, 4, 5, 6, 7, 8, 9].map(grade => `<option value="${grade}">${grade} класс</option>`).join('') +
+      `<option value="visparigais">Vispārīgais līmenis</option>` +
+      `<option value="matematika-1">Matemātika I (Optimālais 10–11 кл.)</option>` +
+      `<option value="matematika-2">Matemātika II (Augstākais 12 кл.)</option>`;
   };
 
   // Чистые функции живут в lib.js — их же покрывают тесты.
@@ -39,8 +48,12 @@ window.MathTasks = window.MathTasks || {};
      Ссылку собираем здесь, чтобы бакет упоминался ровно в одном месте. */
   window.MathTasks.IMAGE_BUCKET = 'task-images';
   window.MathTasks.imageUrl = path => {
+    if (!path) return null;
+    if (path.startsWith('/') || path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+      return path;
+    }
     const db = window.MathTasks.db;
-    if (!path || !db) return null;
+    if (!db) return null;
     return db.storage.from(window.MathTasks.IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
   };
 

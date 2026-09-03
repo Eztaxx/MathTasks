@@ -14,6 +14,25 @@
   const topicSuccess = document.querySelector('#topic-success');
   const taskSuccess = document.querySelector('#task-success');
 
+  const taskSearchInput = document.querySelector('#task-search-input');
+  const taskFilterGrade = document.querySelector('#task-filter-grade');
+  const taskFilterTopic = document.querySelector('#task-filter-topic');
+  const taskFilterStatus = document.querySelector('#task-filter-status');
+  const taskFilterCount = document.querySelector('#task-filter-count');
+  const taskFilterReset = document.querySelector('#task-filter-reset');
+
+  const bulkDialog = document.querySelector('#bulk-dialog');
+  const bulkDialogTitle = document.querySelector('#bulk-dialog-title');
+  const bulkDialogDesc = document.querySelector('#bulk-dialog-desc');
+  const bulkDialogTextarea = document.querySelector('#bulk-dialog-textarea');
+  const bulkDialogStatus = document.querySelector('#bulk-dialog-status');
+  const bulkDialogSubmit = document.querySelector('#bulk-dialog-submit');
+  const bulkDialogCopy = document.querySelector('#bulk-dialog-copy');
+  const bulkDialogClose = document.querySelector('#bulk-dialog-close');
+  const bulkDialogCancel = document.querySelector('#bulk-dialog-cancel');
+  const btnExportTasks = document.querySelector('#btn-export-tasks');
+  const btnImportTasks = document.querySelector('#btn-import-tasks');
+
   // Одна форма работает и на создание, и на правку: id заполнен — значит правим.
   let editingSubjectId = null;
   let editingTopicId = null;
@@ -25,7 +44,7 @@
   const deny = message => {
     content.hidden = true;
     gate.hidden = false;
-    gate.innerHTML = `${escapeHtml(message)} <a href="index.html">Вернуться на сайт</a>`;
+    gate.innerHTML = `${escapeHtml(message)} <a href="/">Вернуться на сайт</a>`;
   };
 
   const gradeText = grade => (grade ? `${grade} класс` : 'без класса');
@@ -309,12 +328,77 @@
     return siblings.length ? Math.max(...siblings.map(task => task.position ?? 0)) + 1 : 1;
   }
 
+  function difficultyBadge(diff) {
+    if (!diff) return '';
+    const d = String(diff).trim().toLowerCase();
+    let cls = 'medium';
+    if (d.includes('лёгк') || d.includes('легк') || d.includes('баз') || d.includes('easy')) {
+      cls = 'easy';
+    } else if (d.includes('сложн') || d.includes('hard') || d.includes('проф') || d.includes('augst')) {
+      cls = 'hard';
+    }
+    return `<span class="task-diff ${cls}"><span class="diff-dot">●</span>${escapeHtml(diff)}</span>`;
+  }
+
+  function getFilteredTasks() {
+    const query = (taskSearchInput?.value || '').trim().toLowerCase();
+    const gradeVal = taskFilterGrade?.value ? Number(taskFilterGrade.value) : null;
+    const topicVal = taskFilterTopic?.value ? Number(taskFilterTopic.value) : null;
+    const statusVal = taskFilterStatus?.value || '';
+
+    return tasks.filter(task => {
+      if (query) {
+        const titleStr = (task.title || '').toLowerCase();
+        const condStr = (task.condition_latex || '').toLowerCase();
+        if (!titleStr.includes(query) && !condStr.includes(query)) return false;
+      }
+      if (gradeVal !== null) {
+        const taskGrade = task.grade ?? topics.find(t => t.id === task.topic_id)?.grade;
+        if (taskGrade !== gradeVal) return false;
+      }
+      if (topicVal !== null && task.topic_id !== topicVal) return false;
+      if (statusVal === 'published' && !task.is_published) return false;
+      if (statusVal === 'draft' && task.is_published) return false;
+      if (statusVal === 'no_solution' && (task.solution_latex || task.solution_image)) return false;
+      if (statusVal === 'with_image' && !task.condition_image && !task.solution_image) return false;
+      return true;
+    });
+  }
+
+  function resetTaskFilters() {
+    if (taskSearchInput) taskSearchInput.value = '';
+    if (taskFilterGrade) taskFilterGrade.value = '';
+    if (taskFilterTopic) taskFilterTopic.value = '';
+    if (taskFilterStatus) taskFilterStatus.value = '';
+    renderTaskList();
+  }
+
   function renderTaskList() {
-    if (!tasks.length) { taskList.innerHTML = '<p class="admin-empty">Задач пока нет.</p>'; return; }
-    taskList.innerHTML = tasks.map(task => {
+    if (!tasks.length) {
+      taskList.innerHTML = '<p class="admin-empty">Задач пока нет.</p>';
+      if (taskFilterCount) taskFilterCount.textContent = '0 задач';
+      return;
+    }
+
+    const filtered = getFilteredTasks();
+    const isFiltered = Boolean((taskSearchInput?.value || '').trim() || taskFilterGrade?.value || taskFilterTopic?.value || taskFilterStatus?.value);
+
+    if (taskFilterCount) {
+      taskFilterCount.textContent = isFiltered
+        ? `Найдено: ${filtered.length} из ${tasks.length}`
+        : `Всего задач: ${tasks.length}`;
+    }
+    if (taskFilterReset) taskFilterReset.hidden = !isFiltered;
+
+    if (!filtered.length) {
+      taskList.innerHTML = `<p class="admin-empty">Ничего не найдено по фильтрам. <button class="text-button" type="button" id="empty-reset-btn">Сбросить фильтры</button></p>`;
+      document.querySelector('#empty-reset-btn')?.addEventListener('click', resetTaskFilters);
+      return;
+    }
+
+    taskList.innerHTML = filtered.map(task => {
       const topic = topics.find(item => item.id === task.topic_id);
-      const parts = [topic?.title || 'Без темы', gradeText(task.grade), task.difficulty, `порядок: ${task.position ?? 0}`, task.is_published ? 'опубликована' : 'черновик'];
-      const extras = [task.solution_latex ? '' : ' · без решения', task.condition_image || task.solution_image ? ' · с чертежом' : ''].join('');
+      const grade = task.grade ?? topic?.grade;
       const siblings = siblingsOf(task.topic_id);
       const index = siblings.findIndex(item => item.id === task.id);
       const arrows = siblings.length > 1
@@ -323,11 +407,28 @@
             <button class="move-button" type="button" data-move="${task.id}" data-dir="down" ${index === siblings.length - 1 ? 'disabled' : ''} aria-label="Ниже в теме">↓</button>
           </span>`
         : '';
+
+      // Бейджи статусов и индикация черновиков / ошибок (4.4)
+      const badges = [
+        task.is_published
+          ? '<span class="admin-status-badge published">✓ Опубликована</span>'
+          : '<span class="admin-status-badge draft">🟡 Черновик</span>',
+        !task.topic_id ? '<span class="admin-status-badge danger">Без темы</span>' : '',
+        (!task.solution_latex && !task.solution_image) ? '<span class="admin-status-badge warning">Без решения</span>' : '',
+        (task.condition_image || task.solution_image) ? '<span class="admin-status-badge info">🖼️ С чертежом</span>' : '',
+        difficultyBadge(task.difficulty)
+      ].filter(Boolean).join('');
+
       return `<div class="admin-row">
         ${arrows}
-        <span class="admin-row-main"><strong>${escapeHtml(task.title)}</strong><small>${escapeHtml(parts.join(' · '))}${extras}</small></span>
-        <button class="text-button" type="button" data-edit-task="${task.id}">Изменить</button>
-        <button class="text-button danger" type="button" data-delete-task="${task.id}">Удалить</button>
+        <div class="admin-row-main">
+          <strong>${escapeHtml(task.title)}</strong>
+          <small>${escapeHtml(topic?.title || 'Без темы')} · ${escapeHtml(gradeText(grade))} · №${task.position ?? 0}</small>
+          <div class="admin-badge-group">${badges}</div>
+        </div>
+        <button class="text-button" type="button" data-edit-task="${task.id}" title="Редактировать">Изменить</button>
+        <button class="text-button" type="button" data-clone-task="${task.id}" title="Создать копию задачи в форме (4.2)">Клонировать</button>
+        <button class="text-button danger" type="button" data-delete-task="${task.id}" title="Удалить">Удалить</button>
       </div>`;
     }).join('');
   }
@@ -400,6 +501,32 @@
     if (move) { await moveTask(move.dataset.move, move.dataset.dir); return; }
     const editId = event.target.closest('[data-edit-task]')?.dataset.editTask;
     if (editId) { setTaskMode(tasks.find(task => String(task.id) === editId)); return; }
+
+    // 4.2: Клонирование задачи
+    const cloneId = event.target.closest('[data-clone-task]')?.dataset.cloneTask;
+    if (cloneId) {
+      const source = tasks.find(item => String(item.id) === cloneId);
+      if (!source) return;
+      editingTaskId = null; // Гарантирует создание новой задачи при отправке
+      taskForm.elements.title.value = `[Копия] ${source.title}`;
+      taskForm.elements.topic_id.value = source.topic_id ? String(source.topic_id) : '';
+      taskForm.elements.grade.value = source.grade ? String(source.grade) : '';
+      taskForm.elements.difficulty.value = source.difficulty || 'Средний';
+      taskForm.elements.position.value = nextPosition(source.topic_id, null);
+      conditionInput.value = source.condition_latex || '';
+      answerInput.value = source.answer_latex || '';
+      solutionInput.value = source.solution_latex || '';
+      taskForm.elements.is_published.checked = false; // Копия по умолчанию создаётся черновиком
+      setImages(source);
+      updatePreviews();
+      document.querySelector('#task-form-title').textContent = `Клонирование: ${source.title}`;
+      document.querySelector('#task-submit').textContent = 'Добавить задачу (сохранить копию)';
+      document.querySelector('#task-cancel').hidden = false;
+      taskSuccess.textContent = '✨ Черновик копии задачи создан. Измените параметры и нажмите «Добавить задачу».';
+      taskForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     const deleteId = event.target.closest('[data-delete-task]')?.dataset.deleteTask;
     if (!deleteId) return;
     const task = tasks.find(item => String(item.id) === deleteId);
@@ -411,6 +538,173 @@
     await removeFile(task.solution_image);
     if (String(editingTaskId) === deleteId) { taskForm.reset(); setTaskMode(null); }
     taskSuccess.textContent = 'Задача удалена.';
+    await loadTasks();
+  });
+
+  /* ── Фильтры задач (4.1) ─────────────────────────────────────────── */
+  [taskSearchInput, taskFilterGrade, taskFilterTopic, taskFilterStatus].forEach(el => {
+    el?.addEventListener('input', renderTaskList);
+    el?.addEventListener('change', renderTaskList);
+  });
+  taskFilterReset?.addEventListener('click', resetTaskFilters);
+
+  /* ── Массовый импорт и экспорт задач (4.3) ────────────────────────── */
+  let bulkMode = 'export'; // 'export' | 'import'
+
+  function openBulkDialog(mode) {
+    if (!bulkDialog) return;
+    bulkMode = mode;
+    if (bulkDialogStatus) {
+      bulkDialogStatus.hidden = true;
+      bulkDialogStatus.textContent = '';
+    }
+    if (mode === 'export') {
+      const filtered = getFilteredTasks();
+      const exportData = filtered.map(task => {
+        const topic = topics.find(t => t.id === task.topic_id);
+        return {
+          title: task.title,
+          condition_latex: task.condition_latex,
+          answer_latex: task.answer_latex || null,
+          solution_latex: task.solution_latex || null,
+          difficulty: task.difficulty || 'Средний',
+          grade: task.grade ?? topic?.grade ?? null,
+          topic_title: topic?.title || null,
+          position: task.position ?? 0,
+          is_published: Boolean(task.is_published)
+        };
+      });
+      bulkDialogTitle.textContent = `Экспорт задач (${exportData.length} шт.)`;
+      bulkDialogDesc.innerHTML = 'Экспорт текущего списка задач в формате JSON. Можно скопировать текст или сохранить файл резервной копии.';
+      bulkDialogTextarea.value = JSON.stringify(exportData, null, 2);
+      bulkDialogSubmit.textContent = 'Скачать tasks-export.json';
+      bulkDialogCopy.hidden = false;
+    } else {
+      bulkDialogTitle.textContent = 'Массовый импорт задач (JSON)';
+      bulkDialogDesc.innerHTML = 'Вставьте массив задач в формате JSON. Обязательные поля: <code>title</code> и <code>condition_latex</code>. Поле <code>topic_title</code> автоматически свяжет задачу с существующей темой.';
+      bulkDialogTextarea.value = '';
+      bulkDialogTextarea.placeholder = '[\n  {\n    "title": "Квадратное уравнение",\n    "condition_latex": "Решите $x^2 - 4 = 0$",\n    "answer_latex": "$x = \\\\pm 2$",\n    "difficulty": "Лёгкий",\n    "grade": 8\n  }\n]';
+      bulkDialogSubmit.textContent = 'Импортировать в базу';
+      bulkDialogCopy.hidden = true;
+    }
+    bulkDialog.showModal();
+  }
+
+  btnExportTasks?.addEventListener('click', () => openBulkDialog('export'));
+  btnImportTasks?.addEventListener('click', () => openBulkDialog('import'));
+  bulkDialogClose?.addEventListener('click', () => bulkDialog?.close());
+  bulkDialogCancel?.addEventListener('click', () => bulkDialog?.close());
+
+  bulkDialogCopy?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(bulkDialogTextarea.value);
+      bulkDialogStatus.className = 'bulk-dialog-status success';
+      bulkDialogStatus.textContent = '✓ JSON скопирован в буфер обмена!';
+      bulkDialogStatus.hidden = false;
+    } catch {
+      bulkDialogTextarea.select();
+      document.execCommand('copy');
+      bulkDialogStatus.className = 'bulk-dialog-status success';
+      bulkDialogStatus.textContent = '✓ JSON скопирован в буфер обмена!';
+      bulkDialogStatus.hidden = false;
+    }
+  });
+
+  bulkDialogSubmit?.addEventListener('click', async () => {
+    if (bulkMode === 'export') {
+      const blob = new Blob([bulkDialogTextarea.value], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `math-tasks-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      bulkDialogStatus.className = 'bulk-dialog-status success';
+      bulkDialogStatus.textContent = '✓ Файл tasks-export.json сохранён!';
+      bulkDialogStatus.hidden = false;
+      return;
+    }
+
+    // Режим импорта
+    bulkDialogStatus.hidden = true;
+    const raw = bulkDialogTextarea.value.trim();
+    if (!raw) {
+      bulkDialogStatus.className = 'bulk-dialog-status error';
+      bulkDialogStatus.textContent = 'Вставьте JSON для импорта.';
+      bulkDialogStatus.hidden = false;
+      return;
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (e) {
+      bulkDialogStatus.className = 'bulk-dialog-status error';
+      bulkDialogStatus.textContent = 'Ошибка формата JSON: ' + e.message;
+      bulkDialogStatus.hidden = false;
+      return;
+    }
+
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+    if (!items.length) {
+      bulkDialogStatus.className = 'bulk-dialog-status error';
+      bulkDialogStatus.textContent = 'Массив задач пуст.';
+      bulkDialogStatus.hidden = false;
+      return;
+    }
+
+    bulkDialogSubmit.disabled = true;
+    bulkDialogSubmit.textContent = 'Импортируем…';
+
+    let successCount = 0;
+    const errors = [];
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (!item.title || !item.condition_latex) {
+        errors.push(`Задача #${i + 1}: отсутствует title или condition_latex`);
+        continue;
+      }
+      let topicId = item.topic_id || null;
+      if (!topicId && item.topic_title) {
+        const foundTopic = topics.find(t => t.title.toLowerCase() === String(item.topic_title).trim().toLowerCase());
+        if (foundTopic) topicId = foundTopic.id;
+      }
+
+      const payload = {
+        title: String(item.title).trim(),
+        condition_latex: String(item.condition_latex).trim(),
+        answer_latex: item.answer_latex ? String(item.answer_latex).trim() : null,
+        solution_latex: item.solution_latex ? String(item.solution_latex).trim() : null,
+        difficulty: item.difficulty || 'Средний',
+        grade: item.grade ? Number(item.grade) : null,
+        topic_id: topicId,
+        position: item.position !== undefined ? Number(item.position) : nextPosition(topicId, null),
+        is_published: item.is_published !== undefined ? Boolean(item.is_published) : true
+      };
+
+      const { error } = await db.from('tasks').insert(payload);
+      if (error) {
+        errors.push(`Задача #${i + 1} («${item.title}»): ${error.message}`);
+      } else {
+        successCount++;
+      }
+    }
+
+    bulkDialogSubmit.disabled = false;
+    bulkDialogSubmit.textContent = 'Импортировать в базу';
+
+    if (errors.length) {
+      bulkDialogStatus.className = 'bulk-dialog-status ' + (successCount > 0 ? 'warning' : 'error');
+      bulkDialogStatus.innerHTML = `Успешно импортировано: ${successCount} из ${items.length}.<br>Ошибки:<br>${errors.map(escapeHtml).join('<br>')}`;
+      bulkDialogStatus.hidden = false;
+    } else {
+      bulkDialogStatus.className = 'bulk-dialog-status success';
+      bulkDialogStatus.textContent = `🎉 Успешно импортировано задач: ${successCount}!`;
+      bulkDialogStatus.hidden = false;
+      setTimeout(() => bulkDialog?.close(), 1600);
+    }
+
     await loadTasks();
   });
 
@@ -441,6 +735,16 @@
 
     if (!editingTopicId && !topicForm.elements.subject_id.value) {
       topicForm.elements.subject_id.value = String(subjects[0]?.id ?? '');
+    }
+
+    if (taskFilterGrade && taskFilterGrade.children.length <= 1) {
+      fillGradeSelect(taskFilterGrade, 'Все классы');
+    }
+    if (taskFilterTopic) {
+      const keepFilterTopic = taskFilterTopic.value;
+      taskFilterTopic.innerHTML = '<option value="">Все темы</option>' +
+        topics.map(topic => `<option value="${topic.id}">${escapeHtml(topic.title)} (${gradeText(topic.grade)})</option>`).join('');
+      taskFilterTopic.value = keepFilterTopic;
     }
 
     renderSubjectList();

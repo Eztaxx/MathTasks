@@ -10,13 +10,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body class="admin-page">
   <header class="admin-topbar">
-    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path class="logo-radical" d="M7 27.5h4.4l4.3 9.8L25.8 12.5h5.6"/><rect class="logo-square" x="32.5" y="8.9" width="7.6" height="7.6" rx="2.3"/></svg></span><span class="label">MathTasks</span></a>
+    <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img"><path d="M1.6 29.8C9.4 27.2 17.4 26.2 24 27.2V43.4C17.4 42.4 9.4 43.4 1.6 46Z" fill="#12306e"/><path d="M46.4 29.8C38.6 27.2 30.6 26.2 24 27.2V43.4C30.6 42.4 38.6 43.4 46.4 46Z" fill="#1a3f8f"/><path d="M4 31C10.4 29 17 28.2 22.8 29V40.8C17 40 10.4 40.8 4 42.8Z" fill="#eaf1ff"/><path d="M44 31C37.6 29 31 28.2 25.2 29V40.8C31 40 37.6 40.8 44 42.8Z" fill="#d7e5ff"/><path d="M7.4 33.9 19 32.9M7.4 36.7 19 35.7M40.6 33.9 29 32.9M40.6 36.7 29 35.7" stroke="#5a92ff" stroke-width="1.15" stroke-linecap="round"/><path d="M10 28.5v11.2l2.4-2.4 2.4 2.4V28.1Z" fill="#7fb0ff"/><path d="M15 15v9.6c0 4 18 4 18 0V15Z" fill="#12306e"/><path d="M24 5 45.5 13.4 24 21.8 2.5 13.4Z" fill="#1a3f8f"/><path d="M24 5 45.5 13.4 24 21.8Z" fill="#27529f"/><path d="M24 13.4 39.8 15.5v5.9" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M39.8 20.8c-2 0-2.3 2.5-1.9 5.4.6.7 3.2.7 3.8 0 .4-2.9.1-5.4-1.9-5.4Z" fill="#7fb0ff"/></svg></span><span class="label"><span class="brand-math">Math</span><span class="brand-tasks">Tasks</span></span></a>
     <span class="admin-badge">Админ-панель</span>
-    <a class="text-button" href="index.html">← На сайт</a>
+    <a class="text-button" href="/">← На сайт</a>
     <button data-sign-out class="text-button" type="button">Выйти</button>
   </header>
 
@@ -96,17 +96,81 @@
           <label class="checkbox"><input name="is_published" type="checkbox" checked /> Опубликовать сразу</label>
           <div class="wide form-actions"><button class="primary-button" type="submit" id="task-submit">Добавить задачу</button><button class="text-button" type="button" id="task-cancel" hidden>Отменить</button><span class="form-success" id="task-success"></span></div>
         </form>
+
+        <div class="admin-toolbar" id="task-toolbar">
+          <div class="admin-toolbar-row">
+            <div class="admin-search-wrap">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="search" id="task-search-input" class="admin-search-input" placeholder="Поиск по названию или условию задачи…" />
+            </div>
+            <div class="admin-bulk-actions">
+              <button class="admin-tool-btn" type="button" id="btn-export-tasks" title="Скачать или скопировать задачи в JSON">📥 Экспорт JSON</button>
+              <button class="admin-tool-btn" type="button" id="btn-import-tasks" title="Импортировать задачи из JSON">📤 Импорт JSON</button>
+            </div>
+          </div>
+          <div class="admin-filters-row">
+            <label class="admin-filter-field">
+              <span>Класс</span>
+              <select id="task-filter-grade" class="admin-select-filter">
+                <option value="">Все классы</option>
+              </select>
+            </label>
+            <label class="admin-filter-field">
+              <span>Тема</span>
+              <select id="task-filter-topic" class="admin-select-filter">
+                <option value="">Все темы</option>
+              </select>
+            </label>
+            <label class="admin-filter-field">
+              <span>Статус</span>
+              <select id="task-filter-status" class="admin-select-filter">
+                <option value="">Все статусы</option>
+                <option value="published">Опубликованные</option>
+                <option value="draft">Черновики</option>
+                <option value="no_solution">Без решений</option>
+                <option value="with_image">С чертежами</option>
+              </select>
+            </label>
+            <span class="admin-filter-count" id="task-filter-count"></span>
+            <button class="text-button" type="button" id="task-filter-reset" hidden>Сбросить</button>
+          </div>
+        </div>
+
         <div class="admin-list" id="task-list"></div>
+
+        <!-- Модальное окно массового импорта / экспорта (4.3) -->
+        <dialog class="bulk-dialog" id="bulk-dialog">
+          <div class="bulk-dialog-header">
+            <h3 id="bulk-dialog-title">Импорт / Экспорт задач</h3>
+            <button type="button" class="bulk-dialog-close" id="bulk-dialog-close" aria-label="Закрыть">&times;</button>
+          </div>
+          <p class="bulk-dialog-desc" id="bulk-dialog-desc">Вставьте массив задач в формате JSON. Обязательные поля для каждой задачи: <code>title</code> и <code>condition_latex</code>.</p>
+          <textarea class="bulk-dialog-textarea" id="bulk-dialog-textarea" rows="12" spellcheck="false" placeholder='[
+  {
+    "title": "Квадратное уравнение",
+    "condition_latex": "Решите $x^2 - 4 = 0$",
+    "answer_latex": "$x = \\pm 2$",
+    "difficulty": "Лёгкий",
+    "grade": 8
+  }
+]'></textarea>
+          <div class="bulk-dialog-status" id="bulk-dialog-status" hidden></div>
+          <div class="bulk-dialog-actions">
+            <button type="button" class="primary-button" id="bulk-dialog-submit">Выполнить импорт</button>
+            <button type="button" class="text-button" id="bulk-dialog-copy">Скопировать всё</button>
+            <button type="button" class="text-button" id="bulk-dialog-cancel">Закрыть</button>
+          </div>
+        </dialog>
       </div>
     </div>
   </main>
 
-  <script src="config.js"></script>
+  <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="lib.js"></script>
-  <script src="client.js"></script>
-  <script src="admin.js"></script>
+  <script src="/lib.js"></script>
+  <script src="/client.js"></script>
+  <script src="/admin.js"></script>
 </body>
 </html>
