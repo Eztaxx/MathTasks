@@ -35,7 +35,72 @@
     { left: '\\(', right: '\\)', display: false }
   ];
 
-  const api = { makeSlug, sanitizeSearch, KATEX_DELIMITERS };
+  /* Нормализация и сравнение математических ответов ученика с эталоном из базы */
+  const normalizeMathAnswer = val => {
+    if (val == null) return '';
+    let s = String(val).trim();
+    s = s.replace(/^\$+|\$+$/g, '').trim();
+    s = s.replace(/(\d+),(\d+)/g, '$1.$2');
+    s = s.replace(/\s*:\s*/g, ';');
+    s = s.replace(/\\(text|mathbf|mathrm|quad|qquad)\s*\{([^}]*)\}/g, '$2');
+    s = s.replace(/\\(text|mathbf|mathrm|quad|qquad)/g, '');
+    s = s.replace(/^[a-zA-Z](_[0-9a-zA-Z]+)?\s*=\s*/, '');
+    s = s.replace(/\\(cdot|times)/g, '*');
+    s = s.replace(/·/g, '*');
+    s = s.replace(/²/g, '^2');
+    s = s.replace(/³/g, '^3');
+    s = s.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
+    s = s.replace(/√\s*\(([^)]+)\)/g, 'sqrt($1)');
+    s = s.replace(/√\s*(\d+|[a-zA-Z]+)/g, 'sqrt($1)');
+    s = s.replace(/√/g, 'sqrt');
+    s = s.replace(/±/g, '+-');
+    s = s.replace(/\\pm\b/g, '+-');
+    s = s.replace(/π/g, 'pi');
+    s = s.replace(/\\pi\b/g, 'pi');
+    s = s.replace(/≤/g, '<=');
+    s = s.replace(/\\le\b|\\leq\b/g, '<=');
+    s = s.replace(/≥/g, '>=');
+    s = s.replace(/\\ge\b|\\geq\b/g, '>=');
+    s = s.replace(/\\neq\b/g, '!=');
+    s = s.replace(/\\sqrt\{([^}]+)\}/g, 'sqrt($1)');
+    s = s.replace(/\s+/g, '');
+    if (s.startsWith('(') && s.endsWith(')')) {
+      let depth = 0;
+      let ok = true;
+      for (let i = 0; i < s.length - 1; i++) {
+        if (s[i] === '(') depth++;
+        else if (s[i] === ')') depth--;
+        if (depth === 0) { ok = false; break; }
+      }
+      if (ok) s = s.slice(1, -1);
+    }
+    return s.toLowerCase();
+  };
+
+  const parseFractionOrNumber = str => {
+    if (/^-?\d+(\.\d+)?$/.test(str)) return parseFloat(str);
+    const frac = str.match(/^(-?\d+)\/(\d+)$/);
+    if (frac && Number(frac[2]) !== 0) return Number(frac[1]) / Number(frac[2]);
+    return null;
+  };
+
+  const compareAnswers = (userAns, correctAns) => {
+    const u = normalizeMathAnswer(userAns);
+    const c = normalizeMathAnswer(correctAns);
+    if (!u || !c) return false;
+    if (u === c) return true;
+
+    const numU = parseFractionOrNumber(u);
+    const numC = parseFractionOrNumber(c);
+    if (numU !== null && numC !== null && Math.abs(numU - numC) < 1e-6) return true;
+
+    const cleanC = c.replace(/\\sqrt\{([^}]+)\}/g, 'sqrt($1)').replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1/$2)');
+    if (u === cleanC) return true;
+
+    return false;
+  };
+
+  const api = { makeSlug, sanitizeSearch, KATEX_DELIMITERS, normalizeMathAnswer, parseFractionOrNumber, compareAnswers };
   if (typeof window !== 'undefined') window.MathTasksLib = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })();

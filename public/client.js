@@ -33,6 +33,45 @@ window.MathTasks = window.MathTasks || {};
   // Чистые функции живут в lib.js — их же покрывают тесты.
   const lib = window.MathTasksLib;
   window.MathTasks.makeSlug = lib.makeSlug;
+  window.MathTasks.normalizeMathAnswer = lib.normalizeMathAnswer;
+  window.MathTasks.compareAnswers = lib.compareAnswers;
+
+  window.MathTasks.insertIntoInput = (input, text) => {
+    if (!input) return;
+    input.focus();
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? input.value.length;
+    const val = input.value;
+
+    let inserted = text;
+    let newCursor = start + inserted.length;
+
+    if (text === '²') {
+      if (start === 0 || /[\+\-\*\/\(\s,;]$/.test(val.slice(0, start))) {
+        inserted = 'x²';
+        newCursor = start + 2;
+      } else {
+        inserted = '²';
+        newCursor = start + 1;
+      }
+    } else if (text === '√(' || text === '√') {
+      inserted = '√()';
+      newCursor = start + 2;
+    } else if (text === '(') {
+      inserted = '()';
+      newCursor = start + 1;
+    } else if (text === '|') {
+      inserted = '||';
+      newCursor = start + 1;
+    } else if (/^(sin|cos|tan|tg|ctg|ln|lg|sqrt)\($/.test(text)) {
+      inserted = text + ')';
+      newCursor = start + text.length;
+    }
+
+    input.value = val.slice(0, start) + inserted + val.slice(end);
+    input.setSelectionRange(newCursor, newCursor);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  };
 
   window.MathTasks.renderMath = (element, text = '') => {
     element.textContent = text; // textContent — и экранирование, и запасной вид без KaTeX

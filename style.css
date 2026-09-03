@@ -592,6 +592,18 @@ body.dark .self-check-result.success{background:#0d281a;color:#4ade80;border-col
 body.dark .self-check-result.error{background:#2a1b05;color:#fcd34d;border-color:#854d0e}
 body.dark .task-solved-badge{background:#0d281a;color:#4ade80;border-color:#166534}
 
+/* ── Виртуальная математическая панель (Quick Math Bar) ──────────── */
+.quick-math-bar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:8px;padding-bottom:6px;border-bottom:1px dashed #e2e8f0}
+.quick-math-bar.plotter-math-bar{margin-bottom:4px;padding-bottom:8px}
+.quick-math-btn{min-width:28px;height:26px;padding:0 7px;border:1px solid #d0ddec;border-radius:6px;background:#fff;color:#243247;font:600 12px/1 'KaTeX_Main',Manrope,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .12s ease;box-shadow:0 1px 2px rgba(0,0,0,0.04);user-select:none}
+.quick-math-btn:hover{background:#edf4ff;border-color:#1764ff;color:#1764ff;transform:translateY(-1px);box-shadow:0 2px 5px rgba(23,100,255,0.15)}
+.quick-math-btn:active{transform:translateY(0);background:#dbeafe}
+.quick-math-bar-label{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:2px;display:flex;align-items:center;gap:4px}
+body.dark .quick-math-bar{border-bottom-color:#2b3a58}
+body.dark .quick-math-btn{background:#18263e;border-color:#33486e;color:#cbd5e1;box-shadow:0 1px 2px rgba(0,0,0,0.2)}
+body.dark .quick-math-btn:hover{background:#1d3257;border-color:#5a92ff;color:#5a92ff}
+body.dark .quick-math-btn:active{background:#233c69}
+
 /* ── Построитель графиков функций (3.4) ──────────────────────────── */
 .plotter-dialog{width:min(92vw,740px);max-height:90vh;border:0;border-radius:14px;padding:24px;background:#fff;box-shadow:0 24px 70px #07142d55;color:var(--ink);overflow-y:auto;position:relative}
 .plotter-dialog[open]{display:flex;flex-direction:column}

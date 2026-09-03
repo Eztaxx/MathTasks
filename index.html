@@ -156,6 +156,25 @@
         <input type="text" id="plotter-expr" value="x^2 - 4" placeholder="x^2 - 4, 2*x + 1, sin(x)..." aria-label="Формула функции" />
         <button type="button" id="plotter-draw-btn" class="primary-button">Построить</button>
       </div>
+      <div class="quick-math-bar plotter-math-bar" aria-label="Быстрый ввод математических символов">
+        <span class="quick-math-bar-label">Вставка:</span>
+        <button type="button" class="quick-math-btn" data-plotter-insert="x" title="Переменная x">x</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="²" title="Квадрат (²)">x²</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="^" title="Степень (^)">xⁿ</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="√(" title="Квадратный корень (√)">√x</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="/" title="Дробь / Деление">/</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="sin(" title="Синус">sin</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="cos(" title="Косинус">cos</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="tan(" title="Тангенс">tan</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="ln(" title="Натуральный логарифм">ln</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="|" title="Модуль">|x|</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="(" title="Скобки">( )</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="π" title="Число Пи">π</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="e" title="Экспонента e">e</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="+" title="Плюс">+</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="-" title="Минус">−</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="*" title="Умножение">*</button>
+      </div>
       <div class="plotter-presets">
         <span class="plotter-presets-label">Примеры:</span>
         <button type="button" class="plotter-chip" data-fn="x^2 - 4">y = x² - 4</button>

@@ -581,42 +581,9 @@ function setTaskSolved(taskId, solved) {
   } catch {}
 }
 
-function normalizeMathAnswer(val) {
-  if (val == null) return '';
-  let s = String(val).trim();
-  s = s.replace(/^\$+|\$+$/g, '').trim();
-  s = s.replace(/(\d+),(\d+)/g, '$1.$2');
-  s = s.replace(/\s*:\s*/g, ';');
-  s = s.replace(/\\(text|mathbf|mathrm|quad|qquad)\s*\{([^}]*)\}/g, '$2');
-  s = s.replace(/\\(text|mathbf|mathrm|quad|qquad)/g, '');
-  s = s.replace(/^[a-zA-Z](_[0-9a-zA-Z]+)?\s*=\s*/, '');
-  s = s.replace(/\\(cdot|times)/g, '*');
-  s = s.replace(/\s+/g, '');
-  return s.toLowerCase();
-}
-
-function parseFractionOrNumber(str) {
-  if (/^-?\d+(\.\d+)?$/.test(str)) return parseFloat(str);
-  const frac = str.match(/^(-?\d+)\/(\d+)$/);
-  if (frac && Number(frac[2]) !== 0) return Number(frac[1]) / Number(frac[2]);
-  return null;
-}
-
-function compareAnswers(userAns, correctAns) {
-  const u = normalizeMathAnswer(userAns);
-  const c = normalizeMathAnswer(correctAns);
-  if (!u || !c) return false;
-  if (u === c) return true;
-
-  const numU = parseFractionOrNumber(u);
-  const numC = parseFractionOrNumber(c);
-  if (numU !== null && numC !== null && Math.abs(numU - numC) < 1e-6) return true;
-
-  const cleanC = c.replace(/\\sqrt\{([^}]+)\}/g, 'sqrt($1)').replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1/$2)');
-  if (u === cleanC) return true;
-
-  return false;
-}
+const normalizeMathAnswer = window.MathTasks?.normalizeMathAnswer || (val => String(val || '').trim());
+const compareAnswers = window.MathTasks?.compareAnswers || ((u, c) => u === c);
+const insertIntoInput = window.MathTasks?.insertIntoInput || ((input, text) => { if (input) input.value += text; });
 
 function taskPath(task) {
   const slug = (window.MathTasks?.makeSlug && task.title) ? window.MathTasks.makeSlug(task.title) : String(task.id);
@@ -706,6 +673,22 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
 
   const selfCheck = task.answer_latex ? `
     <div class="task-self-check" data-self-check="${task.id}">
+      <div class="quick-math-bar" ${solved ? 'hidden' : ''} aria-label="Быстрый ввод математических символов">
+        <span class="quick-math-bar-label" title="Быстрая вставка математических символов">Вставка:</span>
+        <button type="button" class="quick-math-btn" data-insert="√(" title="Квадратный корень (√)">√x</button>
+        <button type="button" class="quick-math-btn" data-insert="²" title="Квадрат (²)">x²</button>
+        <button type="button" class="quick-math-btn" data-insert="^" title="Степень (^)">xⁿ</button>
+        <button type="button" class="quick-math-btn" data-insert="/" title="Дробь / Деление">/</button>
+        <button type="button" class="quick-math-btn" data-insert="π" title="Число Пи">π</button>
+        <button type="button" class="quick-math-btn" data-insert="±" title="Плюс-минус">±</button>
+        <button type="button" class="quick-math-btn" data-insert="|" title="Модуль">|x|</button>
+        <button type="button" class="quick-math-btn" data-insert="(" title="Скобки">( )</button>
+        <button type="button" class="quick-math-btn" data-insert="x" title="Переменная x">x</button>
+        <button type="button" class="quick-math-btn" data-insert="·" title="Умножение">·</button>
+        <button type="button" class="quick-math-btn" data-insert="≤" title="Меньше или равно">≤</button>
+        <button type="button" class="quick-math-btn" data-insert="≥" title="Больше или равно">≥</button>
+        <button type="button" class="quick-math-btn" data-insert="∞" title="Бесконечность">∞</button>
+      </div>
       <form class="self-check-form" data-check-id="${task.id}">
         <span class="self-check-icon" aria-hidden="true">✏️</span>
         <input type="text" class="self-check-input" placeholder="Введите ваш ответ..." aria-label="Ваш ответ для проверки" autocomplete="off" ${solved ? 'disabled value="✓ Задача решена"' : ''} />
@@ -1407,6 +1390,13 @@ function parseMathExpr(expr) {
   let clean = (expr || '')
     .trim()
     .replace(/\s+/g, '')
+    .replace(/²/g, '^2')
+    .replace(/³/g, '^3')
+    .replace(/√\s*\(([^)]+)\)/g, 'sqrt($1)')
+    .replace(/√\s*(\d+|[a-zA-Z]+)/g, 'sqrt($1)')
+    .replace(/√/g, 'sqrt')
+    .replace(/·/g, '*')
+    .replace(/π/g, 'pi')
     // Поддержка модуля: |x| или |x - 2|
     .replace(/\|([^|]+)\|/g, 'abs($1)')
     // Поддержка русской математической нотации
@@ -1626,6 +1616,8 @@ document.addEventListener('submit', event => {
     resultDiv.hidden = false;
     input.disabled = true;
     form.querySelector('.self-check-btn').hidden = true;
+    const quickBar = form.closest('.task-self-check')?.querySelector('.quick-math-bar');
+    if (quickBar) quickBar.hidden = true;
     const card = form.closest('.task');
     if (card && !card.querySelector('.task-solved-badge')) {
       const meta = card.querySelector('.task-meta');
@@ -1644,6 +1636,25 @@ document.addEventListener('submit', event => {
 });
 
 document.addEventListener('click', event => {
+  // Быстрая виртуальная математическая клавиатура (Quick Math Bar)
+  const mathBtn = event.target.closest('.quick-math-btn');
+  if (mathBtn) {
+    event.preventDefault();
+    if (mathBtn.dataset.plotterInsert) {
+      const pInput = document.querySelector('#plotter-expr');
+      if (pInput) insertIntoInput(pInput, mathBtn.dataset.plotterInsert);
+      return;
+    }
+    if (mathBtn.dataset.insert) {
+      const checkBlock = mathBtn.closest('.task-self-check');
+      const input = checkBlock?.querySelector('.self-check-input');
+      if (input && !input.disabled) {
+        insertIntoInput(input, mathBtn.dataset.insert);
+      }
+    }
+    return;
+  }
+
   // Сброс решённой задачи
   const resetBtn = event.target.closest('.self-check-reset');
   if (resetBtn) {
@@ -1658,6 +1669,8 @@ document.addEventListener('click', event => {
       if (input) { input.disabled = false; input.value = ''; input.focus(); }
       if (form) form.querySelector('.self-check-btn').hidden = false;
       if (resultDiv) resultDiv.hidden = true;
+      const quickBar = checkBlock.querySelector('.quick-math-bar');
+      if (quickBar) quickBar.hidden = false;
     }
     const card = resetBtn.closest('.task');
     card?.querySelector('.task-solved-badge')?.remove();
