@@ -100,7 +100,23 @@
     return false;
   };
 
-  const api = { makeSlug, sanitizeSearch, KATEX_DELIMITERS, normalizeMathAnswer, parseFractionOrNumber, compareAnswers };
+  /* Подсчёт прогресса решения задач темы */
+  const calcTopicProgress = (taskIds = [], solvedIds = []) => {
+    if (!Array.isArray(taskIds) || taskIds.length === 0) {
+      return { total: 0, solved: 0, percent: 0, isComplete: false };
+    }
+    const solvedSet = new Set((solvedIds || []).map(Number));
+    const solvedCount = taskIds.filter(id => solvedSet.has(Number(id))).length;
+    const percent = Math.round((solvedCount / taskIds.length) * 100);
+    return {
+      total: taskIds.length,
+      solved: solvedCount,
+      percent,
+      isComplete: solvedCount === taskIds.length && taskIds.length > 0
+    };
+  };
+
+  const api = { makeSlug, sanitizeSearch, KATEX_DELIMITERS, normalizeMathAnswer, parseFractionOrNumber, compareAnswers, calcTopicProgress };
   if (typeof window !== 'undefined') window.MathTasksLib = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })();

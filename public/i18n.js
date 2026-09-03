@@ -101,6 +101,10 @@
       favorite: 'Favorīts',
       favorite_active: 'Favorītos',
       tasks_in_topic: '{count} uzdevumi',
+      progress: 'Progress',
+      topic_progress: 'Atrisināti: {solved} no {total} ({percent}%)',
+      topic_mastered: '🎉 Tēma apgūta!',
+      topic_progress_short: '{solved}/{total}',
 
       // Pašpārbaude
       self_check_placeholder: 'Ievadiet savu atbildi...',
@@ -247,6 +251,10 @@
       favorite: 'В закладки',
       favorite_active: 'В закладках',
       tasks_in_topic: '{count} задач',
+      progress: 'Прогресс',
+      topic_progress: 'Решено: {solved} из {total} ({percent}%)',
+      topic_mastered: '🎉 Тема освоена!',
+      topic_progress_short: '{solved}/{total}',
 
       // Самопроверка
       self_check_placeholder: 'Введите ваш ответ...',
@@ -393,6 +401,10 @@
       favorite: 'Bookmark',
       favorite_active: 'Bookmarked',
       tasks_in_topic: '{count} tasks',
+      progress: 'Progress',
+      topic_progress: 'Solved: {solved} of {total} ({percent}%)',
+      topic_mastered: '🎉 Topic mastered!',
+      topic_progress_short: '{solved}/{total}',
 
       // Self-check
       self_check_placeholder: 'Enter your answer...',

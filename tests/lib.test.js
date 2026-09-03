@@ -152,3 +152,26 @@ describe('i18n (Trilingual support LV / RU / EN)', () => {
   });
 });
 
+describe('calcTopicProgress — трекер прогресса ученика', () => {
+  const { calcTopicProgress } = require('../public/lib.js');
+
+  it('возвращает нули для пустой темы', () => {
+    expect(calcTopicProgress([], [1, 2])).toEqual({ total: 0, solved: 0, percent: 0, isComplete: false });
+  });
+
+  it('корректно считает частичный прогресс', () => {
+    const res = calcTopicProgress([101, 102, 103, 104, 105], [102, 104]);
+    expect(res).toEqual({ total: 5, solved: 2, percent: 40, isComplete: false });
+  });
+
+  it('корректно определяет 100% завершение темы (isComplete)', () => {
+    const res = calcTopicProgress([1, 2, 3], [1, 2, 3, 999]);
+    expect(res).toEqual({ total: 3, solved: 3, percent: 100, isComplete: true });
+  });
+
+  it('устойчив к строковым и числовым ID', () => {
+    const res = calcTopicProgress(['10', '20'], [10, 20]);
+    expect(res).toEqual({ total: 2, solved: 2, percent: 100, isComplete: true });
+  });
+});
+

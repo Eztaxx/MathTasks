@@ -27,6 +27,15 @@ let currentUser = null;
 let subjects = [];
 let allTopics = [];
 let taskCounts = new Map();
+let topicTasksMap = new Map();
+
+function getTopicProgress(topicId) {
+  const taskIds = topicTasksMap.get(topicId) || [];
+  const solved = getSolvedTasks();
+  return (window.MathTasksLib && window.MathTasksLib.calcTopicProgress)
+    ? window.MathTasksLib.calcTopicProgress(taskIds, solved)
+    : { total: taskIds.length, solved: 0, percent: 0, isComplete: false };
+}
 
 /* Класс — глобальный контекст: он выбирается один раз и определяет,
    что показывают меню, главная, страницы разделов и поиск. */
@@ -836,13 +845,39 @@ document.addEventListener('click', event => {
 /* ── Карточки тем ─────────────────────────────────────────────────── */
 
 function topicCard(topic, index, showGrade) {
+  const tr = window.MathTasks.t || (k => k);
   const subject = subjectById(topic.subject_id);
   const count = taskCount(topic.id);
+  const progress = getTopicProgress(topic.id);
+
+  let progressBadge = '';
+  if (count > 0 && progress.solved > 0) {
+    progressBadge = `<span class="topic-progress-badge${progress.isComplete ? ' done' : ''}" title="${escapeHtml(tr('topic_progress', { solved: progress.solved, total: progress.total, percent: progress.percent }))}">
+      ${progress.isComplete ? '✓ ' : ''}${progress.solved}/${progress.total} (${progress.percent}%)
+    </span>`;
+  }
+
+  const progressBar = (count > 0 && progress.solved > 0) ? `
+    <div class="topic-progress-bar-wrap" title="${escapeHtml(tr('topic_progress', { solved: progress.solved, total: progress.total, percent: progress.percent }))}">
+      <div class="topic-progress-bar-fill${progress.isComplete ? ' done' : ''}" style="width: ${progress.percent}%"></div>
+    </div>
+  ` : '';
+
   const badges = [
     showGrade && topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : '',
-    `<span class="topic-count">${count ? `задач: ${count}` : 'пока пусто'}</span>`
-  ].join('');
-  return `<a class="topic-card" href="/topic/${encodeURIComponent(topic.slug)}"><div class="topic-icon ${topicClass(index)}">${escapeHtml(subject?.icon || 'x²')}</div><div><h3>${escapeHtml(topic.title)}</h3><p>${escapeHtml(topic.description || 'Задачи по теме')}</p><div class="topic-badges">${badges}</div></div></a>`;
+    `<span class="topic-count">${count ? tr('tasks_in_topic', { count }) : (tr('favorites_empty') || 'tukšs')}</span>`,
+    progressBadge
+  ].filter(Boolean).join('');
+
+  return `<a class="topic-card" href="/topic/${encodeURIComponent(topic.slug)}">
+    <div class="topic-icon ${topicClass(index)}">${escapeHtml(subject?.icon || 'x²')}</div>
+    <div class="topic-card-content">
+      <h3>${escapeHtml(topic.title)}</h3>
+      <p>${escapeHtml(topic.description || '')}</p>
+      ${progressBar}
+      <div class="topic-badges">${badges}</div>
+    </div>
+  </a>`;
 }
 
 function renderTopicCards(container, topics, showGrade = !selectedGrade) {
@@ -1065,6 +1100,7 @@ async function showTopic(slug) {
   } else {
     renderSidebar();
   }
+  const tr = window.MathTasks.t || (k => k);
   const subject = subjectById(topic.subject_id);
   const crumbs = [['Главная', '/']];
   if (topic.grade) crumbs.push([gradeLabel(topic.grade), `/grade/${topic.grade}`]);
@@ -1088,6 +1124,25 @@ async function showTopic(slug) {
   // Название темы в карточке здесь лишнее — мы уже внутри неё.
   // Внутри одной темы задачи могут быть для разных параллелей — класс показываем всегда.
   const tasks = data || [];
+  topicTasksMap.set(topic.id, tasks.map(t => t.id));
+  taskCounts.set(topic.id, tasks.length);
+
+  const prog = getTopicProgress(topic.id);
+  const progHtml = prog.total > 0 ? `
+    <div class="topic-header-progress${prog.isComplete ? ' done' : ''}" id="topic-header-progress">
+      <span class="topic-header-progress-text">${prog.isComplete ? escapeHtml(tr('topic_mastered')) : escapeHtml(tr('topic_progress', { solved: prog.solved, total: prog.total, percent: prog.percent }))}</span>
+      <div class="topic-header-progress-bar">
+        <div class="topic-header-progress-fill" style="width: ${prog.percent}%"></div>
+      </div>
+    </div>
+  ` : '';
+
+  const metaEl = document.querySelector('#list-meta');
+  if (metaEl) {
+    const gradeBadge = topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : '';
+    metaEl.innerHTML = `${gradeBadge} ${progHtml}`;
+  }
+
   renderTaskList(listTasks, tasks, 'В этой теме задач пока нет.', { showTopicLink: false, showGrade: true });
   renderTopicAnchors(tasks);
   renderPrintActions(tasks);
@@ -1617,11 +1672,32 @@ function drawFunctionPlot() {
 
 /* ── Обработчики интерактивных инструментов ── */
 
+function updateTopicHeaderProgress() {
+  if (!currentActiveTopic) return;
+  const tr = window.MathTasks.t || (k => k);
+  const prog = getTopicProgress(currentActiveTopic.id);
+  const progEl = document.querySelector('#topic-header-progress');
+  if (progEl) {
+    progEl.className = `topic-header-progress${prog.isComplete ? ' done' : ''}`;
+    const textEl = progEl.querySelector('.topic-header-progress-text');
+    if (textEl) {
+      textEl.textContent = prog.isComplete
+        ? tr('topic_mastered')
+        : tr('topic_progress', { solved: prog.solved, total: prog.total, percent: prog.percent });
+    }
+    const fillEl = progEl.querySelector('.topic-header-progress-fill');
+    if (fillEl) {
+      fillEl.style.width = `${prog.percent}%`;
+    }
+  }
+}
+
 // Интерактивная самопроверка: отправка ответа
 document.addEventListener('submit', event => {
   const form = event.target.closest('.self-check-form');
   if (!form) return;
   event.preventDefault();
+  const tr = window.MathTasks.t || (k => k);
   const taskId = form.dataset.checkId;
   const task = currentTasksMap.get(Number(taskId));
   if (!task) return;
@@ -1633,7 +1709,7 @@ document.addEventListener('submit', event => {
   if (isCorrect) {
     setTaskSolved(taskId, true);
     resultDiv.className = 'self-check-result success';
-    resultDiv.innerHTML = '🎉 Отлично! Ответ верный! <button type="button" class="self-check-reset" data-reset-id="' + taskId + '">Решить заново</button>';
+    resultDiv.innerHTML = `${escapeHtml(tr('self_check_success'))} <button type="button" class="self-check-reset" data-reset-id="${taskId}">${escapeHtml(tr('self_check_reset'))}</button>`;
     resultDiv.hidden = false;
     input.disabled = true;
     form.querySelector('.self-check-btn').hidden = true;
@@ -1645,13 +1721,14 @@ document.addEventListener('submit', event => {
       if (meta) {
         const badge = document.createElement('span');
         badge.className = 'task-solved-badge';
-        badge.textContent = '✓ Решено';
+        badge.textContent = tr('solved_badge');
         meta.appendChild(badge);
       }
     }
+    updateTopicHeaderProgress();
   } else {
     resultDiv.className = 'self-check-result error';
-    resultDiv.innerHTML = '🤔 Пока не сошлось. Проверьте вычисления или нажмите «Показать ответ / решение».';
+    resultDiv.innerHTML = escapeHtml(tr('self_check_error'));
     resultDiv.hidden = false;
   }
 });
@@ -1695,6 +1772,7 @@ document.addEventListener('click', event => {
     }
     const card = resetBtn.closest('.task');
     card?.querySelector('.task-solved-badge')?.remove();
+    updateTopicHeaderProgress();
     return;
   }
 
@@ -1993,7 +2071,7 @@ async function loadCatalog() {
   const [subjectResult, topicResult, countResult] = await Promise.all([
     db.from('subjects').select('*').order('position').order('title'),
     db.from('topics').select('*').order('position').order('title'),
-    db.from('tasks').select('topic_id').eq('is_published', true)
+    db.from('tasks').select('id, topic_id').eq('is_published', true)
   ]);
   if (subjectResult.error || topicResult.error) {
     console.warn('Схема ещё не готова: примените миграции из supabase/migrations.', subjectResult.error || topicResult.error);
@@ -2001,10 +2079,15 @@ async function loadCatalog() {
   }
   subjects = subjectResult.data || [];
   allTopics = topicResult.data || [];
-  // Счётчик задач по темам: одним запросом, чтобы на карточке было видно, где пусто.
+  // Счётчик задач и привязка по темам для трекинга прогресса
   taskCounts = new Map();
-  (countResult.data || []).forEach(({ topic_id: topicId }) => {
-    if (topicId) taskCounts.set(topicId, (taskCounts.get(topicId) || 0) + 1);
+  topicTasksMap = new Map();
+  (countResult.data || []).forEach(({ id, topic_id: topicId }) => {
+    if (topicId) {
+      taskCounts.set(topicId, (taskCounts.get(topicId) || 0) + 1);
+      if (!topicTasksMap.has(topicId)) topicTasksMap.set(topicId, []);
+      topicTasksMap.get(topicId).push(id);
+    }
   });
   renderSidebar();
 }
