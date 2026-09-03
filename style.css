@@ -377,14 +377,44 @@ body.dark .topic-anchor:hover{background:#1a2740}
 .task{scroll-margin-top:18px}
 @media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 
-/* ── Кнопки печати ───────────────────────────────────────────────── */
+/* ── Кнопки печати и переключатель режима вывода (1) ─────────────── */
 .list-actions[hidden]{display:none}
-.list-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:4px}
+.list-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;margin-bottom:8px}
+.view-mode-toggle{display:inline-flex;align-items:center;gap:4px;background:#f1f5f9;padding:3px;border-radius:9px;border:1px solid var(--line)}
+.view-mode-label{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:0 6px}
+.view-mode-btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:var(--muted);font:600 12px Manrope,sans-serif;cursor:pointer;transition:all .15s ease}
+.view-mode-btn:hover{color:var(--ink)}
+.view-mode-btn.active{background:#fff;color:var(--accent);font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.print-actions-group{display:inline-flex;align-items:center;gap:8px}
 .list-actions-label{font-size:12px;color:var(--muted)}
 .ghost-button{border:1px solid var(--line);border-radius:8px;background:transparent;color:#455471;font:600 12px Manrope;padding:7px 13px;cursor:pointer}
 .ghost-button:hover{border-color:#c3d2ea;background:#f2f6fd}
+body.dark .view-mode-toggle{background:#0e1726;border-color:#2b3a58}
+body.dark .view-mode-btn.active{background:#18263e;color:#5a92ff;box-shadow:0 1px 4px rgba(0,0,0,0.4)}
 body.dark .ghost-button{border-color:#2b3a58;color:#c4cce0}
 body.dark .ghost-button:hover{background:#1a2740}
+
+/* ── Пагинатор и навигация для режима "По одной задаче" (1) ───────── */
+.single-task-pager{margin-bottom:16px;padding:12px 16px;background:#f8faff;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;gap:10px}
+.single-task-nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pager-btn{height:34px;padding:0 14px;background:#fff;border:1px solid var(--line);border-radius:8px;font:600 12.5px Manrope,sans-serif;color:var(--ink);cursor:pointer;transition:all .15s ease;display:inline-flex;align-items:center;gap:6px}
+.pager-btn:hover:not(:disabled){background:#edf4ff;border-color:var(--accent);color:var(--accent)}
+.pager-btn:disabled{opacity:.4;cursor:not-allowed}
+.pager-counter{font-size:13px;font-weight:600;color:var(--muted)}
+.pager-counter strong{color:var(--ink);font-weight:700}
+.pager-dots{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding-top:6px;border-top:1px dashed var(--line)}
+.pager-dot{width:28px;height:28px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--muted);font:700 11px Manrope,sans-serif;cursor:pointer;display:grid;place-items:center;transition:all .15s}
+.pager-dot:hover{border-color:#93c5fd;background:#eff6ff;color:var(--accent)}
+.pager-dot.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(29,97,230,0.25)}
+.single-task-bottom-nav{margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0}
+.pager-shortcuts-hint{font-size:11.5px;color:var(--muted);font-style:italic}
+body.dark .single-task-pager{background:#152137;border-color:#2b3a58}
+body.dark .pager-btn{background:#18263e;border-color:#33486e;color:#edf2ff}
+body.dark .pager-btn:hover:not(:disabled){background:#1d3257;border-color:#5a92ff;color:#5a92ff}
+body.dark .pager-dots{border-top-color:#2b3a58}
+body.dark .pager-dot{background:#18263e;border-color:#33486e;color:#a0aec0}
+body.dark .pager-dot:hover{background:#1d3257;color:#5a92ff}
+body.dark .pager-dot.active{background:#1764ff;border-color:#1764ff;color:#fff}
 
 /* ── Сайдбар: Треки экзаменов и диагностических работ ─────────────── */
 .sidebar-track-header{display:flex;align-items:center;gap:8px;padding:14px 10px 6px;margin-top:4px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -483,20 +513,57 @@ dialog:not([open]){display:none!important}
 .lightbox-dialog[open]{display:block}
 .formulas-dialog[open]{display:flex;flex-direction:column}
 
-/* ── Справочник формул (Диалог) ──────────────────────────────────── */
-.formulas-dialog{width:min(92vw,920px);max-height:88vh;border:0;border-radius:14px;padding:26px;background:#fff;box-shadow:0 24px 70px #07142d55;color:var(--ink);overflow:hidden;position:relative}
-.formulas-dialog::backdrop{background:#07142de0;backdrop-filter:blur(4px)}
-.formulas-head h2{font-size:20px;margin:0 0 4px}
-.formulas-head p{margin:0 0 16px;color:var(--muted);font-size:13px}
+/* ── Бейдж для Vispārīgais līmenis (2) ────────────────────────────── */
+.track-card-badge.teal{background:#e0f2fe;color:#0284c7}
+body.dark .track-card-badge.teal{background:#0c314b;color:#38bdf8}
+
+/* ── Справочник формул и официальные формульные листы (3) ────────── */
+.formulas-dialog{width:min(94vw,880px);max-height:88vh;border:1px solid var(--line);border-radius:16px;padding:26px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,0.25);color:var(--ink);overflow:hidden;position:relative}
+.formulas-dialog[open]{display:flex;flex-direction:column}
+.formulas-dialog-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.formulas-dialog-title-wrap h2{font-size:20px;margin:0 0 4px}
+.formulas-dialog-title-wrap p{margin:0;color:var(--muted);font-size:12.5px}
+.formulas-main-tabs{display:flex;gap:6px;background:#f1f5f9;padding:4px;border-radius:10px;margin-bottom:16px;border:1px solid var(--line)}
+.formulas-main-tab{flex:1;height:36px;border:none;border-radius:8px;background:transparent;color:var(--muted);font:600 13px Manrope,sans-serif;cursor:pointer;transition:all .15s ease;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.formulas-main-tab:hover{color:var(--ink)}
+.formulas-main-tab.active{background:#fff;color:var(--accent);font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+
+.formula-sheets-view{overflow-y:auto;max-height:62vh;padding-right:6px}
+.formula-sheets-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+.formula-sheet-card{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fbfcfe;display:flex;flex-direction:column;gap:12px;transition:all .2s ease;position:relative}
+.formula-sheet-card:hover{border-color:#b9d2f8;box-shadow:0 6px 18px rgba(29,97,230,0.08);transform:translateY(-1px)}
+.formula-sheet-badge{align-self:flex-start;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700}
+.formula-sheet-badge.gold{background:#fef3c7;color:#b45309}
+.formula-sheet-badge.teal{background:#e0f2fe;color:#0284c7}
+.formula-sheet-badge.blue{background:#eff6ff;color:#1d4ed8}
+.formula-sheet-badge.purple{background:#f3e8ff;color:#7e22ce}
+.formula-sheet-info h3{margin:0 0 6px;font-size:15px;line-height:1.3}
+.formula-sheet-info p{margin:0 0 8px;font-size:12px;color:var(--muted);line-height:1.45}
+.formula-sheet-meta{font-size:11px;font-weight:600;color:#64748b;display:block}
+.formula-sheet-actions{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
+.formula-sheet-actions .primary-button.small,.formula-sheet-actions .ghost-button.small{height:32px;padding:0 12px;font-size:12px}
+
+.formulas-quick-view{overflow-y:auto;max-height:62vh;padding-right:6px}
 .formulas-nav{display:flex;gap:8px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap}
 .formulas-tab{border:1px solid var(--line);border-radius:8px;background:#fff;color:#455471;font:600 12px Manrope;padding:7px 14px;cursor:pointer;transition:all .15s}
 .formulas-tab:hover{border-color:#c3d2ea;background:#f2f6fd}
 .formulas-tab.active{border-color:#1764ff;background:#1764ff;color:#fff}
-.formulas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;overflow-y:auto;padding-right:6px;max-height:60vh}
+.formulas-content{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .formula-card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fbfcfe}
 .formula-card-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
 .formula-card-math{font-size:14px;line-height:1.7}
+
 body.dark .formulas-dialog{background:#152137;border:1px solid #2b3a58;color:#edf2ff}
+body.dark .formulas-main-tabs{background:#0e1726;border-color:#2b3a58}
+body.dark .formulas-main-tab.active{background:#18263e;color:#5a92ff;box-shadow:0 1px 4px rgba(0,0,0,0.4)}
+body.dark .formula-sheet-card{background:#101a2c;border-color:#2b3a58}
+body.dark .formula-sheet-card:hover{border-color:#1764ff}
+body.dark .formula-sheet-badge.gold{background:#451a03;color:#fbbf24}
+body.dark .formula-sheet-badge.teal{background:#0c314b;color:#38bdf8}
+body.dark .formula-sheet-badge.blue{background:#1e3a8a;color:#93c5fd}
+body.dark .formula-sheet-badge.purple{background:#3b0764;color:#d8b4fe}
+body.dark .formula-sheet-meta{color:#94a3b8}
+body.dark .formula-sheet-actions{border-top-color:#2b3a58}
 body.dark .formulas-tab{background:#101a2c;border-color:#31425f;color:#c4cce0}
 body.dark .formulas-tab.active{background:#1764ff;border-color:#1764ff;color:#fff}
 body.dark .formula-card{background:#101a2c;border-color:#2b3a58}

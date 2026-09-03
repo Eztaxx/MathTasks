@@ -47,6 +47,14 @@
     gate.innerHTML = `${escapeHtml(message)} <a href="/">Вернуться на сайт</a>`;
   };
 
+  const parseFormGrade = val => {
+    if (!val) return null;
+    if (val === 'visparigais') return 10;
+    if (val === 'matematika-1') return 11;
+    if (val === 'matematika-2') return 12;
+    const num = Number(val);
+    return Number.isFinite(num) ? num : null;
+  };
   const gradeText = grade => (grade ? `${grade} класс` : 'без класса');
   const subjectTitle = id => subjects.find(item => item.id === id)?.title || 'Без раздела';
 
@@ -153,7 +161,7 @@
     const payload = {
       title,
       subject_id: form.get('subject_id') ? Number(form.get('subject_id')) : null,
-      grade: form.get('grade') ? Number(form.get('grade')) : null,
+      grade: parseFormGrade(form.get('grade')),
       position: Number(form.get('position')) || 0,
       description: form.get('description').trim() || null
     };
@@ -342,7 +350,7 @@
 
   function getFilteredTasks() {
     const query = (taskSearchInput?.value || '').trim().toLowerCase();
-    const gradeVal = taskFilterGrade?.value ? Number(taskFilterGrade.value) : null;
+    const gradeVal = parseFormGrade(taskFilterGrade?.value);
     const topicVal = taskFilterTopic?.value ? Number(taskFilterTopic.value) : null;
     const statusVal = taskFilterStatus?.value || '';
 
@@ -470,7 +478,7 @@
       solution_image: images.solution.current,
       difficulty: form.get('difficulty'),
       position: nextPosition(topicId, form.get('position')),
-      grade: form.get('grade') ? Number(form.get('grade')) : null,
+      grade: parseFormGrade(form.get('grade')),
       topic_id: topicId,
       is_published: form.get('is_published') === 'on'
     };
@@ -677,7 +685,7 @@
         answer_latex: item.answer_latex ? String(item.answer_latex).trim() : null,
         solution_latex: item.solution_latex ? String(item.solution_latex).trim() : null,
         difficulty: item.difficulty || 'Средний',
-        grade: item.grade ? Number(item.grade) : null,
+        grade: parseFormGrade(item.grade),
         topic_id: topicId,
         position: item.position !== undefined ? Number(item.position) : nextPosition(topicId, null),
         is_published: item.is_published !== undefined ? Boolean(item.is_published) : true

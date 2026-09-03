@@ -25,9 +25,9 @@ window.MathTasks = window.MathTasks || {};
     if (!select) return;
     select.innerHTML = `<option value="">${emptyLabel}</option>` +
       [1, 2, 3, 4, 5, 6, 7, 8, 9].map(grade => `<option value="${grade}">${grade} класс</option>`).join('') +
-      `<option value="visparigais">Vispārīgais līmenis</option>` +
-      `<option value="matematika-1">Matemātika I (Optimālais 10–11 кл.)</option>` +
-      `<option value="matematika-2">Matemātika II (Augstākais 12 кл.)</option>`;
+      `<option value="10">10 класс (Vispārīgais / Mat I)</option>` +
+      `<option value="11">11 класс (Matemātika I)</option>` +
+      `<option value="12">12 класс (Matemātika II)</option>`;
   };
 
   // Чистые функции живут в lib.js — их же покрывают тесты.

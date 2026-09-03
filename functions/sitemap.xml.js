@@ -46,7 +46,9 @@ export async function onRequest({ request, env }) {
       read(env, 'tasks', 'id,title,is_published&is_published=eq.true')
     ]);
     const grades = [...new Set(topics.map(topic => topic.grade).filter(Boolean))];
+    const trackUrls = ['/grade/visparigais', '/grade/matematika-1', '/grade/matematika-2'];
     urls = urls
+      .concat(trackUrls)
       .concat(grades.map(grade => `/grade/${grade}`))
       .concat(subjects.map(subject => `/subject/${subject.slug}`))
       .concat(topics.map(topic => `/topic/${topic.slug}`))

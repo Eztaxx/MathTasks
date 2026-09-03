@@ -1405,22 +1405,57 @@ function openPlotterDialog() {
 
 function parseMathExpr(expr) {
   let clean = (expr || '')
+    .trim()
     .replace(/\s+/g, '')
-    .replace(/\^/g, '**')
+    // Поддержка модуля: |x| или |x - 2|
+    .replace(/\|([^|]+)\|/g, 'abs($1)')
+    // Поддержка русской математической нотации
+    .replace(/ctg/g, '(1/tan)')
+    .replace(/tg/g, 'tan')
+    .replace(/ln/g, 'log')
+    .replace(/lg/g, 'log10');
+
+  // 1. Вставка неявного умножения: 2x -> 2*x, 2(x) -> 2*(x), (x)(y) -> (x)*(y)
+  clean = clean
     .replace(/(\d)([a-zA-Z(])/g, '$1*$2')
-    .replace(/([a-zA-Z)])(\d)/g, '$1*$2')
-    .replace(/\)\(/g, ')*(')
+    .replace(/(\))(\d|[a-zA-Z])/g, '$1*$2')
+    .replace(/\)\(/g, ')*(');
+
+  // 2. Исправление унарного минуса перед степенью: -x^2 или -sin(x)^2 или -(x+1)^2
+  // В JS синтаксис -x**2 запрещен (SyntaxError: unparenthesized unary expression before '**')
+  // В математике -x^2 означает -(x^2) = -1 * x^2
+  const basePattern = '(?:[a-zA-Z0-9_\\.]+(?:\\([^)]+\\))?|\\([^)]+\\))';
+  const expPattern = '(?:[a-zA-Z0-9_\\.]+|\\([^)]+\\))';
+  const powerWithUnaryMinus = new RegExp(`(^|[(+\\-*/])\\s*-\\s*(${basePattern})\\s*\\^\\s*(${expPattern})`, 'g');
+  clean = clean.replace(powerWithUnaryMinus, '$1-(($2)**($3))');
+
+  // 3. Замена всех оставшихся знаков степени ^ на **
+  clean = clean.replace(/\^/g, '**');
+
+  // 4. Привязка математических функций к объекту Math
+  clean = clean
     .replace(/sin/g, 'Math.sin')
     .replace(/cos/g, 'Math.cos')
     .replace(/tan/g, 'Math.tan')
     .replace(/sqrt/g, 'Math.sqrt')
     .replace(/abs/g, 'Math.abs')
+    .replace(/log10/g, 'Math.log10')
+    .replace(/log/g, 'Math.log')
+    .replace(/exp/g, 'Math.exp')
     .replace(/pi/gi, 'Math.PI')
-    .replace(/e/g, 'Math.E');
+    .replace(/\be\b/g, 'Math.E');
 
-  if (!/^[0-9xMath\.\+\-\*\/\(\)\,\s]+$/.test(clean)) {
+  // Безопасность: разрешаем только допустимые математические символы
+  if (!/^[0-9a-zA-Z_\.\+\-\*\/\(\)\,\s]+$/.test(clean)) {
     return null;
   }
+  // Проверяем, что все идентификаторы входят в белый список Math-функций и переменных
+  const words = clean.match(/[a-zA-Z_]+/g) || [];
+  const allowedWords = new Set(['x', 'Math', 'sin', 'cos', 'tan', 'sqrt', 'abs', 'PI', 'E', 'pow', 'log', 'log10', 'exp']);
+  if (!words.every(w => allowedWords.has(w))) {
+    return null;
+  }
+
   try {
     const fn = new Function('x', `"use strict"; return (${clean});`);
     const test = fn(1);
