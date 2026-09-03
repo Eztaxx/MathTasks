@@ -46,6 +46,15 @@ body.dark .hero-badge-icon.badge-amber{background:linear-gradient(135deg,#3a2908
 body.dark .sidebar-toggle{border-color:#31425f;color:#c4cce0}
 body.dark .sidebar-toggle:hover{background:#1a2740}
 .topbar{gap:16px}
+.lang-switcher{display:inline-flex;align-items:center;background:#f1f5f9;border:1px solid #dfe6f1;border-radius:10px;padding:3px;gap:2px;user-select:none;flex:none}
+.lang-btn{border:0;background:transparent;color:var(--muted);font:700 11px Manrope,sans-serif;letter-spacing:.04em;padding:5px 9px;border-radius:7px;cursor:pointer;transition:all .15s ease;display:inline-flex;align-items:center;justify-content:center}
+.lang-btn:hover{color:var(--ink);background:rgba(255,255,255,0.7)}
+.lang-btn.active{background:#fff;color:var(--blue);box-shadow:0 1px 3px rgba(0,0,0,0.12)}
+body.dark .lang-switcher{background:#111c2e;border-color:#2b3a58}
+body.dark .lang-btn{color:#94a3b8}
+body.dark .lang-btn:hover{color:#edf2ff;background:rgba(255,255,255,0.06)}
+body.dark .lang-btn.active{background:#1a2b47;color:#60a5fa;box-shadow:0 1px 4px rgba(0,0,0,0.45)}
+@media(max-width:720px){.lang-btn{padding:4px 6px;font-size:10px}}
 .sidebar,main{transition:width .2s ease,margin-left .2s ease}
 .sidebar-scrim{display:none}
 

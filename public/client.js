@@ -15,19 +15,22 @@ window.MathTasks = window.MathTasks || {};
   // Справочник ступеней обучения по стандартам Skola2030 (1–9 классы и средняя школа: Vispārīgais, Matemātika I, Matemātika II)
   window.MathTasks.GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 'visparigais', 'matematika-1', 'matematika-2'];
   window.MathTasks.gradeLabel = grade => {
-    if (!grade) return 'Без класса';
-    if (grade === 'visparigais' || grade === 'vispārīgais') return 'Vispārīgais līmenis';
-    if (grade === 'matematika-1' || grade === 10 || grade === 11 || grade === '10' || grade === '11') return 'Matemātika I (Optimālais)';
-    if (grade === 'matematika-2' || grade === 12 || grade === '12') return 'Matemātika II (Augstākais)';
-    return `${grade} класс`;
+    const t = window.MathTasks.t || (k => k);
+    if (!grade) return t('without_grade');
+    if (grade === 'visparigais' || grade === 'vispārīgais') return t('grade_visparigais');
+    if (grade === 'matematika-1' || grade === 10 || grade === 11 || grade === '10' || grade === '11') return t('grade_matematika_1');
+    if (grade === 'matematika-2' || grade === 12 || grade === '12') return t('grade_matematika_2');
+    return t('grade_N', { n: grade }) !== 'grade_N' ? t('grade_N', { n: grade }) : `${grade} класс`;
   };
   window.MathTasks.fillGradeSelect = (select, emptyLabel) => {
     if (!select) return;
-    select.innerHTML = `<option value="">${emptyLabel}</option>` +
-      [1, 2, 3, 4, 5, 6, 7, 8, 9].map(grade => `<option value="${grade}">${grade} класс</option>`).join('') +
-      `<option value="10">10 класс (Vispārīgais / Mat I)</option>` +
-      `<option value="11">11 класс (Matemātika I)</option>` +
-      `<option value="12">12 класс (Matemātika II)</option>`;
+    const t = window.MathTasks.t || (k => k);
+    const emptyText = emptyLabel || t('all_grades');
+    select.innerHTML = `<option value="">${emptyText}</option>` +
+      [1, 2, 3, 4, 5, 6, 7, 8, 9].map(grade => `<option value="${grade}">${t('grade_N', { n: grade })}</option>`).join('') +
+      `<option value="10">10: ${t('grade_visparigais')}</option>` +
+      `<option value="11">11: ${t('grade_matematika_1')}</option>` +
+      `<option value="12">12: ${t('grade_matematika_2')}</option>`;
   };
 
   // Чистые функции живут в lib.js — их же покрывают тесты.

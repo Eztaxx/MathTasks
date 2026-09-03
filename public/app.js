@@ -1,4 +1,4 @@
-const { db, escapeHtml, loadViewer, renderMath, imageUrl, GRADES, fillGradeSelect } = window.MathTasks;
+const { db, escapeHtml, loadViewer, renderMath, imageUrl, GRADES, fillGradeSelect, t = (k => k), getLang = () => 'ru', setLang = () => {}, applyTranslations = () => {} } = window.MathTasks;
 
 const sidebarNav = document.querySelector('#sidebar-nav');
 const gradeSelect = document.querySelector('#grade-select');
@@ -54,11 +54,12 @@ const subjectById = id => subjects.find(item => item.id === id);
 const topicClass = index => ['lavender', 'green', 'orange', 'blue', 'pink', 'aqua', 'violet'][index % 7];
 
 const gradeLabel = grade => {
-  if (!grade) return 'Все классы';
-  if (grade === 'visparigais' || grade === 'vispārīgais') return 'Vispārīgais līmenis';
-  if (grade === 'matematika-1' || grade === 10 || grade === 11 || grade === '10' || grade === '11') return 'Matemātika I (Optimālais)';
-  if (grade === 'matematika-2' || grade === 12 || grade === '12') return 'Matemātika II (Augstākais)';
-  return `${grade} класс`;
+  const tr = window.MathTasks.t || (k => k);
+  if (!grade) return tr('all_grades');
+  if (grade === 'visparigais' || grade === 'vispārīgais') return tr('grade_visparigais');
+  if (grade === 'matematika-1' || grade === 10 || grade === 11 || grade === '10' || grade === '11') return tr('grade_matematika_1');
+  if (grade === 'matematika-2' || grade === 12 || grade === '12') return tr('grade_matematika_2');
+  return tr('grade_N', { n: grade }) !== 'grade_N' ? tr('grade_N', { n: grade }) : `${grade} класс`;
 };
 
 function isTopicInGrade(topic, grade) {
@@ -82,8 +83,9 @@ const taskCount = topicId => taskCounts.get(topicId) || 0;
 /* ── Контекст класса ──────────────────────────────────────────────── */
 
 function renderGradeControls() {
+  const tr = window.MathTasks.t || (k => k);
   gradeSelect.value = selectedGrade ? String(selectedGrade) : '';
-  let pillText = 'Все';
+  let pillText = tr('all_grades_short');
   if (selectedGrade) {
     if (selectedGrade === 'visparigais') pillText = 'Visp.';
     else if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) pillText = 'Mat. I';
@@ -91,11 +93,11 @@ function renderGradeControls() {
     else pillText = String(selectedGrade);
   }
   gradePill.textContent = pillText;
-  gradePill.title = selectedGrade ? gradeLabel(selectedGrade) : 'Все классы';
+  gradePill.title = selectedGrade ? gradeLabel(selectedGrade) : tr('all_grades');
 
   const chips = [
-    ['', 'Все классы', '/'],
-    ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(g => [String(g), `${g} класс`, `/grade/${g}`]),
+    ['', tr('all_grades'), '/'],
+    ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(g => [String(g), tr('grade_N', { n: g }), `/grade/${g}`]),
     ['visparigais', 'Vispārīgais', '/grade/visparigais'],
     ['matematika-1', 'Matemātika I', '/grade/matematika-1'],
     ['matematika-2', 'Matemātika II', '/grade/matematika-2']
@@ -262,7 +264,8 @@ function renderClassSidebar(grade) {
 }
 
 function renderHubSidebar() {
-  const home = '<a class="nav-link" href="/" title="Главная"><span class="nav-icon">⌂</span><span class="label">Главная</span></a>';
+  const tr = window.MathTasks.t || (k => k);
+  const home = `<a class="nav-link" href="/" title="${escapeHtml(tr('nav_home'))}"><span class="nav-icon">⌂</span><span class="label">${escapeHtml(tr('nav_home'))}</span></a>`;
 
   const isGradeActive = val => {
     if (val === 'visparigais') return selectedGrade === 'visparigais';
@@ -271,57 +274,57 @@ function renderHubSidebar() {
     return selectedGrade === val;
   };
 
-  // Все государственные экзамены основной и средней школы объединены под одну общую плашку
+  // Все государственные экзамены основной и средней школы
   const examTracks = `
     <div class="sidebar-track-header">
       <span class="track-header-icon">🎯</span>
-      <span class="track-header-title">Государственные экзамены</span>
+      <span class="track-header-title">${escapeHtml(tr('track_heading'))}</span>
     </div>
     <div class="sidebar-track-subgroup">
-      <a class="sidebar-track-card${isGradeActive(9) ? ' active' : ''}" href="/grade/9" title="Экзамен за 9 класс (Основная школа)">
+      <a class="sidebar-track-card${isGradeActive(9) ? ' active' : ''}" href="/grade/9" title="${escapeHtml(tr('track_9'))}">
         <div class="track-card-badge gold">9. kl.</div>
         <div class="track-card-body">
-          <strong>Экзамен 9 класс</strong>
-          <span>Valsts eksāmens • 9. klase</span>
+          <strong>${escapeHtml(tr('track_9'))}</strong>
+          <span>${escapeHtml(tr('track_9_desc'))}</span>
         </div>
       </a>
-      <a class="sidebar-track-card${isGradeActive('visparigais') ? ' active' : ''}" href="/grade/visparigais" title="Vispārīgais līmenis (Vidusskola)">
+      <a class="sidebar-track-card${isGradeActive('visparigais') ? ' active' : ''}" href="/grade/visparigais" title="${escapeHtml(tr('track_visp'))}">
         <div class="track-card-badge teal">Visp</div>
         <div class="track-card-body">
-          <strong>Vispārīgais līmenis</strong>
-          <span>Pamatkurss • Vidusskola</span>
+          <strong>${escapeHtml(tr('track_visp'))}</strong>
+          <span>${escapeHtml(tr('track_visp_desc'))}</span>
         </div>
       </a>
-      <a class="sidebar-track-card${isGradeActive('matematika-1') ? ' active' : ''}" href="/grade/matematika-1" title="Matemātika I (Optimālais līmenis)">
+      <a class="sidebar-track-card${isGradeActive('matematika-1') ? ' active' : ''}" href="/grade/matematika-1" title="${escapeHtml(tr('track_opt'))}">
         <div class="track-card-badge blue">Opt</div>
         <div class="track-card-body">
-          <strong>Matemātika I</strong>
-          <span>Optimālais līmenis • Vidusskola</span>
+          <strong>${escapeHtml(tr('track_opt'))}</strong>
+          <span>${escapeHtml(tr('track_opt_desc'))}</span>
         </div>
       </a>
-      <a class="sidebar-track-card${isGradeActive('matematika-2') ? ' active' : ''}" href="/grade/matematika-2" title="Matemātika II (Augstākais līmenis)">
+      <a class="sidebar-track-card${isGradeActive('matematika-2') ? ' active' : ''}" href="/grade/matematika-2" title="${escapeHtml(tr('track_augst'))}">
         <div class="track-card-badge purple">Aug</div>
         <div class="track-card-body">
-          <strong>Matemātika II</strong>
-          <span>Augstākais līmenis • Vidusskola</span>
+          <strong>${escapeHtml(tr('track_augst'))}</strong>
+          <span>${escapeHtml(tr('track_augst_desc'))}</span>
         </div>
       </a>
     </div>
 
     <div class="sidebar-track-subgroup">
-      <span class="track-subgroup-label">Диагностирующие работы</span>
-      <a class="sidebar-track-card${isGradeActive(3) ? ' active' : ''}" href="/grade/3" title="Диагностика 3 класс">
+      <span class="track-subgroup-label">${escapeHtml(tr('track_diag'))}</span>
+      <a class="sidebar-track-card${isGradeActive(3) ? ' active' : ''}" href="/grade/3" title="${escapeHtml(tr('grade_3'))}">
         <div class="track-card-badge orange">3. kl.</div>
         <div class="track-card-body">
-          <strong>Диагностика 3 класс</strong>
-          <span>Начальная школа</span>
+          <strong>${escapeHtml(tr('grade_3'))}</strong>
+          <span>${escapeHtml(tr('track_diag_desc'))}</span>
         </div>
       </a>
-      <a class="sidebar-track-card${isGradeActive(6) ? ' active' : ''}" href="/grade/6" title="Диагностика 6 класс">
+      <a class="sidebar-track-card${isGradeActive(6) ? ' active' : ''}" href="/grade/6" title="${escapeHtml(tr('grade_6'))}">
         <div class="track-card-badge green">6. kl.</div>
         <div class="track-card-body">
-          <strong>Диагностика 6 класс</strong>
-          <span>Основная школа</span>
+          <strong>${escapeHtml(tr('grade_6'))}</strong>
+          <span>${escapeHtml(tr('track_diag_desc'))}</span>
         </div>
       </a>
     </div>
@@ -332,38 +335,38 @@ function renderHubSidebar() {
   const toolsSection = `
     <div class="sidebar-track-header">
       <span class="track-header-icon">🛠</span>
-      <span class="track-header-title">Инструменты и практика</span>
+      <span class="track-header-title">${escapeHtml(tr('tools_heading'))}</span>
     </div>
     <div class="sidebar-track-subgroup">
-      <button class="sidebar-action-card" id="open-formulas-btn" type="button" title="Справочник формул">
+      <button class="sidebar-action-card" id="open-formulas-btn" type="button" title="${escapeHtml(tr('tool_formulas'))}">
         <div class="action-card-icon formula-icon">📐</div>
         <div class="action-card-body">
-          <strong>Справочник формул</strong>
-          <span>Шпаргалка Skola2030</span>
+          <strong>${escapeHtml(tr('tool_formulas'))}</strong>
+          <span>${escapeHtml(tr('tool_formulas_desc'))}</span>
         </div>
       </button>
 
-      <button class="sidebar-action-card" id="open-plotter-btn" type="button" title="Построитель графиков функций">
+      <button class="sidebar-action-card" id="open-plotter-btn" type="button" title="${escapeHtml(tr('tool_plotter'))}">
         <div class="action-card-icon plotter-icon">📈</div>
         <div class="action-card-body">
-          <strong>Графопостроитель</strong>
-          <span>График функции y = f(x)</span>
+          <strong>${escapeHtml(tr('tool_plotter'))}</strong>
+          <span>${escapeHtml(tr('tool_plotter_desc'))}</span>
         </div>
       </button>
 
-      <button class="sidebar-action-card" id="random-task-btn" type="button" title="Случайная задача">
+      <button class="sidebar-action-card" id="random-task-btn" type="button" title="${escapeHtml(tr('tool_random'))}">
         <div class="action-card-icon dice-icon">🎲</div>
         <div class="action-card-body">
-          <strong>Случайная задача</strong>
-          <span>Быстрая тренировка</span>
+          <strong>${escapeHtml(tr('tool_random'))}</strong>
+          <span>${escapeHtml(tr('tool_random_desc'))}</span>
         </div>
       </button>
 
-      <a class="sidebar-action-card${location.pathname === '/favorites' ? ' active' : ''}" href="/favorites" title="Мои закладки">
+      <a class="sidebar-action-card${location.pathname === '/favorites' ? ' active' : ''}" href="/favorites" title="${escapeHtml(tr('nav_favorites'))}">
         <div class="action-card-icon star-icon">★</div>
         <div class="action-card-body">
-          <strong>Мои закладки</strong>
-          <span id="fav-count-text">${favCount ? `${favCount} сохранённых` : 'Пока пусто'}</span>
+          <strong>${escapeHtml(tr('nav_favorites'))}</strong>
+          <span id="fav-count-text">${favCount ? `${favCount} ${escapeHtml(tr('favorite_active'))}` : '0'}</span>
         </div>
       </a>
     </div>
@@ -547,9 +550,14 @@ function taskFigure(path, title, kind) {
    Панель обязана иметь [hidden]{display:none} в стилях — авторское display
    в этом проекте уже дважды перебивало атрибут. */
 function revealBlock(kind, label, body) {
+  const tr = window.MathTasks.t || (k => k);
+  const isAns = kind === 'answer';
+  const showText = isAns ? tr('reveal_answer') : tr('reveal_solution');
+  const hideText = isAns ? tr('hide_answer') : tr('hide_solution');
+  const labelText = isAns ? (tr('reveal_answer').replace(/^(Rādīt|Показать|Show)\s*/i, '')) : (tr('reveal_solution').replace(/^(Rādīt|Показать|Show)\s*/i, ''));
   return `<button class="solution-toggle" type="button" data-reveal aria-expanded="false"
-       data-show-label="Показать ${label}" data-hide-label="Скрыть ${label}">Показать ${label}</button>
-     <div class="reveal ${kind}" hidden><span class="reveal-label">${label === 'ответ' ? 'Ответ' : 'Решение'}</span>${body}</div>`;
+       data-show-label="${escapeHtml(showText)}" data-hide-label="${escapeHtml(hideText)}">${escapeHtml(showText)}</button>
+     <div class="reveal ${kind}" hidden><span class="reveal-label">${escapeHtml(labelText)}</span>${body}</div>`;
 }
 
 /* ── Интерактивная самопроверка для ученика (3.1) ─────────────────── */
@@ -632,18 +640,28 @@ function showToast(msg, icon = '✓') {
 
 function difficultyBadge(diff) {
   if (!diff) return '';
+  const tr = window.MathTasks.t || (k => k);
   const d = String(diff).trim().toLowerCase();
   let cls = 'medium';
   let dot = '●';
-  if (d.includes('лёгк') || d.includes('легк') || d.includes('баз') || d.includes('easy')) {
+  let label = diff;
+  if (d.includes('лёгк') || d.includes('легк') || d.includes('баз') || d.includes('easy') || d.includes('pamat')) {
     cls = 'easy';
-  } else if (d.includes('сложн') || d.includes('hard') || d.includes('проф') || d.includes('augst')) {
+    label = tr('diff_easy');
+  } else if (d.includes('сложн') || d.includes('hard') || d.includes('проф') || d.includes('augst') || d.includes('padziļ')) {
     cls = 'hard';
+    label = tr('diff_hard');
+  } else if (d.includes('олимп') || d.includes('olimp')) {
+    cls = 'hard';
+    label = tr('diff_olympiad');
+  } else {
+    label = tr('diff_medium');
   }
-  return `<span class="task-diff ${cls}" title="Уровень сложности: ${escapeHtml(diff)}"><span class="diff-dot" aria-hidden="true">${dot}</span>${escapeHtml(diff)}</span>`;
+  return `<span class="task-diff ${cls}" title="${escapeHtml(label)}"><span class="diff-dot" aria-hidden="true">${dot}</span>${escapeHtml(label)}</span>`;
 }
 
 function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } = {}) {
+  const tr = window.MathTasks.t || (k => k);
   currentTasksMap.set(task.id, task);
   const subject = subjectOf(task);
   const grade = showGrade ? (task.grade ?? task.topics?.grade) : null;
@@ -651,19 +669,19 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
     ? `<a class="task-topic" href="/topic/${encodeURIComponent(task.topics.slug)}">${escapeHtml(task.topics.title)}</a>`
     : '';
   const isFav = isFavorite(task.id);
-  const favBtn = `<button class="task-action-btn${isFav ? ' active' : ''}" type="button" data-fav-id="${task.id}" title="${isFav ? 'Удалить из закладок' : 'Сохранить в закладки'}" aria-label="Закладки">${isFav ? '★ В закладках' : '☆ В закладки'}</button>`;
-  const shareBtn = `<button class="task-action-btn" type="button" data-copy-link="${task.id}" title="Скопировать ссылку на задачу" aria-label="Поделиться задачей">
+  const favBtn = `<button class="task-action-btn${isFav ? ' active' : ''}" type="button" data-fav-id="${task.id}" title="${isFav ? escapeHtml(tr('favorite_remove')) : escapeHtml(tr('favorite'))}" aria-label="${escapeHtml(tr('favorite'))}">${isFav ? `★ ${escapeHtml(tr('favorite_active'))}` : `☆ ${escapeHtml(tr('favorite'))}`}</button>`;
+  const shareBtn = `<button class="task-action-btn" type="button" data-copy-link="${task.id}" title="${escapeHtml(tr('copy_link'))}" aria-label="${escapeHtml(tr('copy_link'))}">
     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-    <span>Поделиться</span>
+    <span>${escapeHtml(tr('copy_link'))}</span>
   </button>`;
-  const copyBtn = `<button class="task-action-btn" type="button" data-copy-text="${task.id}" title="Скопировать условие задачи" aria-label="Скопировать условие">
+  const copyBtn = `<button class="task-action-btn" type="button" data-copy-text="${task.id}" title="${escapeHtml(tr('copy_text'))}" aria-label="${escapeHtml(tr('copy_text'))}">
     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-    <span>Копировать</span>
+    <span>${escapeHtml(tr('copy_text'))}</span>
   </button>`;
   const solved = isTaskSolved(task.id);
-  const solvedBadge = solved ? '<span class="task-solved-badge">✓ Решено</span>' : '';
+  const solvedBadge = solved ? `<span class="task-solved-badge">${escapeHtml(tr('solved_badge'))}</span>` : '';
   const meta = [
-    `<span class="tag ${tagClass(subject)}">${escapeHtml(subject?.title || 'Математика')}</span>`,
+    `<span class="tag ${tagClass(subject)}">${escapeHtml(subject?.title || 'Matemātika')}</span>`,
     grade ? `<span class="grade-badge">${gradeLabel(grade)}</span>` : '',
     difficultyBadge(task.difficulty),
     solvedBadge,
@@ -673,39 +691,39 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
 
   const selfCheck = task.answer_latex ? `
     <div class="task-self-check" data-self-check="${task.id}">
-      <div class="quick-math-bar" ${solved ? 'hidden' : ''} aria-label="Быстрый ввод математических символов">
-        <span class="quick-math-bar-label" title="Быстрая вставка математических символов">Вставка:</span>
-        <button type="button" class="quick-math-btn" data-insert="√(" title="Квадратный корень (√)">√x</button>
-        <button type="button" class="quick-math-btn" data-insert="²" title="Квадрат (²)">x²</button>
-        <button type="button" class="quick-math-btn" data-insert="^" title="Степень (^)">xⁿ</button>
-        <button type="button" class="quick-math-btn" data-insert="/" title="Дробь / Деление">/</button>
-        <button type="button" class="quick-math-btn" data-insert="π" title="Число Пи">π</button>
-        <button type="button" class="quick-math-btn" data-insert="±" title="Плюс-минус">±</button>
-        <button type="button" class="quick-math-btn" data-insert="|" title="Модуль">|x|</button>
-        <button type="button" class="quick-math-btn" data-insert="(" title="Скобки">( )</button>
-        <button type="button" class="quick-math-btn" data-insert="x" title="Переменная x">x</button>
-        <button type="button" class="quick-math-btn" data-insert="·" title="Умножение">·</button>
-        <button type="button" class="quick-math-btn" data-insert="≤" title="Меньше или равно">≤</button>
-        <button type="button" class="quick-math-btn" data-insert="≥" title="Больше или равно">≥</button>
-        <button type="button" class="quick-math-btn" data-insert="∞" title="Бесконечность">∞</button>
+      <div class="quick-math-bar" ${solved ? 'hidden' : ''} aria-label="Quick Math Bar">
+        <span class="quick-math-bar-label" title="Quick Math">${escapeHtml(tr('quick_math_label'))}</span>
+        <button type="button" class="quick-math-btn" data-insert="√(" title="√x">√x</button>
+        <button type="button" class="quick-math-btn" data-insert="²" title="x²">x²</button>
+        <button type="button" class="quick-math-btn" data-insert="^" title="xⁿ">xⁿ</button>
+        <button type="button" class="quick-math-btn" data-insert="/" title="/">/</button>
+        <button type="button" class="quick-math-btn" data-insert="π" title="π">π</button>
+        <button type="button" class="quick-math-btn" data-insert="±" title="±">±</button>
+        <button type="button" class="quick-math-btn" data-insert="|" title="|x|">|x|</button>
+        <button type="button" class="quick-math-btn" data-insert="(" title="( )">( )</button>
+        <button type="button" class="quick-math-btn" data-insert="x" title="x">x</button>
+        <button type="button" class="quick-math-btn" data-insert="·" title="·">·</button>
+        <button type="button" class="quick-math-btn" data-insert="≤" title="≤">≤</button>
+        <button type="button" class="quick-math-btn" data-insert="≥" title="≥">≥</button>
+        <button type="button" class="quick-math-btn" data-insert="∞" title="∞">∞</button>
       </div>
       <form class="self-check-form" data-check-id="${task.id}">
         <span class="self-check-icon" aria-hidden="true">✏️</span>
-        <input type="text" class="self-check-input" placeholder="Введите ваш ответ..." aria-label="Ваш ответ для проверки" autocomplete="off" ${solved ? 'disabled value="✓ Задача решена"' : ''} />
-        <button type="submit" class="self-check-btn" ${solved ? 'hidden' : ''}>Проверить</button>
+        <input type="text" class="self-check-input" placeholder="${escapeHtml(tr('self_check_placeholder'))}" aria-label="${escapeHtml(tr('self_check_placeholder'))}" autocomplete="off" ${solved ? `disabled value="${escapeHtml(tr('solved_badge'))}"` : ''} />
+        <button type="submit" class="self-check-btn" ${solved ? 'hidden' : ''}>${escapeHtml(tr('self_check_btn'))}</button>
       </form>
       <div class="self-check-result${solved ? ' success' : ''}" ${solved ? '' : 'hidden'}>
-        ${solved ? '🎉 Верно! Задача решена. <button type="button" class="self-check-reset" data-reset-id="' + task.id + '">Решить заново</button>' : ''}
+        ${solved ? `${escapeHtml(tr('self_check_success'))} <button type="button" class="self-check-reset" data-reset-id="${task.id}">${escapeHtml(tr('self_check_reset'))}</button>` : ''}
       </div>
     </div>` : '';
 
   const answer = task.answer_latex
-    ? revealBlock('answer', 'ответ', '<div class="math" data-answer></div>')
+    ? revealBlock('answer', 'atbilde', '<div class="math" data-answer></div>')
     : '';
-  const solutionBody = `<div class="math" data-solution></div>${taskFigure(task.solution_image, task.title, 'Рисунок к решению')}`;
+  const solutionBody = `<div class="math" data-solution></div>${taskFigure(task.solution_image, task.title, 'Attēls pie atrisinājuma')}`;
   const solution = task.solution_latex || task.solution_image
-    ? revealBlock('solution', 'решение', solutionBody)
-    : '<p class="solution-missing">Решение пока не добавлено.</p>';
+    ? revealBlock('solution', 'atrisinājums', solutionBody)
+    : `<p class="solution-missing">${escapeHtml(tr('solution_missing'))}</p>`;
 
   const titleText = highlightQuery ? highlightText(task.title, highlightQuery) : escapeHtml(task.title);
   const title = linkTitle
@@ -715,7 +733,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
     <div class="task-meta">${meta}</div>
     ${title}
     <div class="math task-condition" data-condition></div>
-    ${taskFigure(task.condition_image, task.title, 'Чертёж')}
+    ${taskFigure(task.condition_image, task.title, 'Zīmējums')}
     ${selfCheck}
     ${answer}
     ${solution}
@@ -768,18 +786,19 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     const currentNum = singleTaskIndex + 1;
     const totalNum = tasks.length;
 
+    const tr = window.MathTasks.t || (k => k);
     const pagerTop = `
       <div class="single-task-pager">
         <div class="single-task-nav">
-          <button type="button" class="pager-btn prev" data-pager-dir="prev" ${singleTaskIndex === 0 ? 'disabled' : ''} aria-label="Предыдущая задача">← Предыдущая</button>
+          <button type="button" class="pager-btn prev" data-pager-dir="prev" ${singleTaskIndex === 0 ? 'disabled' : ''} aria-label="${escapeHtml(tr('prev_task'))}">${escapeHtml(tr('prev_task'))}</button>
           <div class="pager-counter">
-            Задача <strong>${currentNum}</strong> из <strong>${totalNum}</strong>
+            ${tr('task_counter', { cur: `<strong>${currentNum}</strong>`, total: `<strong>${totalNum}</strong>` })}
           </div>
-          <button type="button" class="pager-btn next" data-pager-dir="next" ${singleTaskIndex === totalNum - 1 ? 'disabled' : ''} aria-label="Следующая задача">Следующая →</button>
+          <button type="button" class="pager-btn next" data-pager-dir="next" ${singleTaskIndex === totalNum - 1 ? 'disabled' : ''} aria-label="${escapeHtml(tr('next_task'))}">${escapeHtml(tr('next_task'))}</button>
         </div>
-        <div class="pager-dots" role="tablist" aria-label="Выбор номера задачи">
+        <div class="pager-dots" role="tablist" aria-label="Tabs">
           ${tasks.map((_, i) => `
-            <button type="button" class="pager-dot${i === singleTaskIndex ? ' active' : ''}" data-pager-idx="${i}" title="Задача №${i + 1}" aria-label="Перейти к задаче ${i + 1}">${i + 1}</button>
+            <button type="button" class="pager-dot${i === singleTaskIndex ? ' active' : ''}" data-pager-idx="${i}" title="${i + 1}" aria-label="${i + 1}">${i + 1}</button>
           `).join('')}
         </div>
       </div>
@@ -789,9 +808,9 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
 
     const pagerBottom = `
       <div class="single-task-bottom-nav">
-        <button type="button" class="text-button" data-pager-dir="prev" ${singleTaskIndex === 0 ? 'disabled' : ''}>← Предыдущая</button>
-        <span class="pager-shortcuts-hint">Листать: клавиши ← и →</span>
-        <button type="button" class="text-button" data-pager-dir="next" ${singleTaskIndex === totalNum - 1 ? 'disabled' : ''}>Следующая →</button>
+        <button type="button" class="text-button" data-pager-dir="prev" ${singleTaskIndex === 0 ? 'disabled' : ''}>${escapeHtml(tr('prev_task'))}</button>
+        <span class="pager-shortcuts-hint">${escapeHtml(tr('keyboard_shortcuts_hint'))}</span>
+        <button type="button" class="text-button" data-pager-dir="next" ${singleTaskIndex === totalNum - 1 ? 'disabled' : ''}>${escapeHtml(tr('next_task'))}</button>
       </div>
     `;
 
@@ -847,9 +866,10 @@ function renderTopicGroups(container, groups) {
 /* ── Главная ──────────────────────────────────────────────────────── */
 
 function renderHeadings() {
+  const tr = window.MathTasks.t || (k => k);
   const suffix = selectedGrade ? ` — ${gradeLabel(selectedGrade)}` : '';
-  topicsHeading.textContent = (selectedGrade ? 'Темы' : 'Популярные темы') + suffix;
-  tasksHeading.textContent = 'Новые задачи' + suffix;
+  topicsHeading.textContent = (selectedGrade ? (tr('topics_heading') || 'Tēmas') : tr('popular_topics')) + suffix;
+  tasksHeading.textContent = tr('new_tasks') + suffix;
 }
 
 async function loadHome() {
@@ -996,15 +1016,16 @@ function renderPrintActions(tasks) {
   const enough = tasks.length > 0;
   listActions.hidden = !enough;
   if (!enough) { listActions.innerHTML = ''; return; }
+  const tr = window.MathTasks.t || (k => k);
 
   const viewToggle = tasks.length > 1 ? `
-    <div class="view-mode-toggle" role="radiogroup" aria-label="Режим отображения задач">
-      <span class="view-mode-label">Вид:</span>
-      <button class="view-mode-btn${taskViewMode === 'list' ? ' active' : ''}" type="button" data-view-mode="list" title="Показать все задачи списком">
-        <span class="view-mode-icon">☰</span> Списком
+    <div class="view-mode-toggle" role="radiogroup" aria-label="${escapeHtml(tr('view_mode'))}">
+      <span class="view-mode-label">${escapeHtml(tr('view_mode'))}</span>
+      <button class="view-mode-btn${taskViewMode === 'list' ? ' active' : ''}" type="button" data-view-mode="list" title="${escapeHtml(tr('view_mode_list'))}">
+        <span class="view-mode-icon">☰</span> ${escapeHtml(tr('view_mode_list'))}
       </button>
-      <button class="view-mode-btn${taskViewMode === 'single' ? ' active' : ''}" type="button" data-view-mode="single" title="Показывать задачи по одной">
-        <span class="view-mode-icon">📄</span> По одной (${tasks.length})
+      <button class="view-mode-btn${taskViewMode === 'single' ? ' active' : ''}" type="button" data-view-mode="single" title="${escapeHtml(tr('view_mode_single'))}">
+        <span class="view-mode-icon">📄</span> ${escapeHtml(tr('view_mode_single'))} (${tasks.length})
       </button>
     </div>
   ` : '';
@@ -1012,9 +1033,9 @@ function renderPrintActions(tasks) {
   listActions.innerHTML = `
     ${viewToggle}
     <div class="print-actions-group">
-      <span class="list-actions-label">Печать:</span>
-      <button class="ghost-button" type="button" data-print="full">С решениями</button>
-      <button class="ghost-button" type="button" data-print="blank">Без решений</button>
+      <span class="list-actions-label">${escapeHtml(tr('print'))}:</span>
+      <button class="ghost-button" type="button" data-print="full">${escapeHtml(tr('print_with_solutions'))}</button>
+      <button class="ghost-button" type="button" data-print="blank">${escapeHtml(tr('print_no_solutions'))}</button>
     </div>
   `;
 }
@@ -2019,7 +2040,34 @@ if (location.hash.startsWith('#/')) {
   history.replaceState(null, '', location.hash.slice(1));
 }
 
-fillGradeSelect(gradeSelect, 'Все классы');
+// Переключение языка (LV / RU / EN)
+document.querySelector('#lang-switcher')?.addEventListener('click', event => {
+  const btn = event.target.closest('.lang-btn');
+  if (!btn) return;
+  const lang = btn.dataset.lang;
+  if (lang && window.MathTasksI18n) {
+    window.MathTasksI18n.setLang(lang);
+  }
+});
+
+window.addEventListener('languagechange', async () => {
+  window.MathTasksI18n?.applyTranslations(document);
+  renderGradeControls();
+  renderSidebar();
+  renderHeadings();
+  fillGradeSelect(gradeSelect, window.MathTasks.t('all_grades'));
+  if (currentView === 'home') {
+    await loadHome();
+  } else if (lastRenderedContainer && lastRenderedTasks.length) {
+    renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
+  }
+});
+
+// Инициализация переводов при старте
+window.MathTasksI18n?.applyTranslations(document);
+window.MathTasksI18n?.updateSwitcherUI();
+
+fillGradeSelect(gradeSelect, window.MathTasks.t ? window.MathTasks.t('all_grades') : 'Все классы');
 renderGradeControls();
 renderHeadings();
 (async () => {

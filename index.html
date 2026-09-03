@@ -32,29 +32,34 @@
       <button class="grade-pill" id="grade-pill" type="button" aria-label="Выбрать класс">Все</button>
     </div>
     <nav id="sidebar-nav">
-      <a class="nav-link" href="/" title="Главная"><span class="nav-icon">⌂</span><span class="label">Главная</span></a>
+      <a class="nav-link" href="/" title="Главная" data-i18n-title="nav_home"><span class="nav-icon">⌂</span><span class="label" data-i18n="nav_home">Главная</span></a>
     </nav>
-    <a class="about" href="/about" title="О сайте"><span class="nav-icon">ⓘ</span><span class="label">О сайте</span></a>
+    <a class="about" href="/about" title="О сайте" data-i18n-title="nav_about"><span class="nav-icon">ⓘ</span><span class="label" data-i18n="nav_about">О сайте</span></a>
   </aside>
 
   <main id="home">
     <header class="topbar">
-      <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="Свернуть меню"><span aria-hidden="true">☰</span></button>
-      <label class="search"><span>⌕</span><input id="search-input" type="search" aria-label="Поиск задач" placeholder="Поиск задач по теме или ключевому слову..." /></label>
-      <button class="account-button" id="account-button">Войти</button>
+      <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="Свернуть меню" data-i18n-aria="menu_toggle"><span aria-hidden="true">☰</span></button>
+      <label class="search"><span>⌕</span><input id="search-input" type="search" aria-label="Поиск задач" placeholder="Поиск задач по теме или ключевому слову..." data-i18n-placeholder="search_placeholder" data-i18n-aria="search_placeholder" /></label>
+      <div class="lang-switcher" id="lang-switcher" role="group" aria-label="Valodas izvēle / Выбор языка / Language selection">
+        <button type="button" class="lang-btn" data-lang="lv" title="Latviešu valoda">LV</button>
+        <button type="button" class="lang-btn active" data-lang="ru" title="Русский язык">RU</button>
+        <button type="button" class="lang-btn" data-lang="en" title="English language">EN</button>
+      </div>
+      <button class="account-button" id="account-button" data-i18n="auth_login">Войти</button>
     </header>
 
     <div id="view-home">
       <section class="hero">
-        <div class="hero-copy"><h1>Сборник задач<br>по математике</h1><p>Выбирайте тему, решайте задачи и прокачивайте свои знания</p>
+        <div class="hero-copy"><h1 data-i18n="hero_title">Сборник задач<br>по математике</h1><p data-i18n="hero_subtitle">Выбирайте тему, решайте задачи и прокачивайте свои знания</p>
           <div class="hero-badges">
             <div class="hero-badge">
               <div class="hero-badge-icon badge-blue" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
               </div>
               <div class="hero-badge-info">
-                <strong>Понятные решения</strong>
-                <span>Пошаговый разбор</span>
+                <strong data-i18n="badge_solutions_title">Понятные решения</strong>
+                <span data-i18n="badge_solutions_sub">Пошаговый разбор</span>
               </div>
             </div>
             <div class="hero-badge">
@@ -62,8 +67,8 @@
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
               </div>
               <div class="hero-badge-info">
-                <strong>Все уровни</strong>
-                <span>От базы до профиля</span>
+                <strong data-i18n="badge_levels_title">Все уровни</strong>
+                <span data-i18n="badge_levels_sub">От базы до профиля</span>
               </div>
             </div>
             <div class="hero-badge">
@@ -71,8 +76,8 @@
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
               </div>
               <div class="hero-badge-info">
-                <strong>Skola2030</strong>
-                <span>Подготовка к экзаменам</span>
+                <strong data-i18n="badge_skola_title">Skola2030</strong>
+                <span data-i18n="badge_skola_sub">Подготовка к экзаменам</span>
               </div>
             </div>
           </div>
@@ -80,12 +85,12 @@
       </section>
 
       <section class="grades">
-        <h2>Классы</h2>
+        <h2 data-i18n="section_grades">Классы</h2>
         <div class="grade-filter" id="grade-filter" role="group" aria-label="Фильтр по классу"></div>
       </section>
 
-      <section class="topics"><h2 id="topics-heading">Популярные темы</h2><div class="topic-grid" id="topics"></div></section>
-      <section class="tasks"><div class="section-heading"><h2 id="tasks-heading">Новые задачи</h2><a href="/tasks">Смотреть все →</a></div><div class="task-list" id="tasks"></div></section>
+      <section class="topics"><h2 id="topics-heading" data-i18n="popular_topics">Популярные темы</h2><div class="topic-grid" id="topics"></div></section>
+      <section class="tasks"><div class="section-heading"><h2 id="tasks-heading" data-i18n="new_tasks">Новые задачи</h2><a href="/tasks" data-i18n="view_all">Смотреть все →</a></div><div class="task-list" id="tasks"></div></section>
     </div>
 
     <div id="view-list" hidden>
@@ -103,15 +108,9 @@
     </div>
 
     <div id="view-about" hidden>
-      <nav class="breadcrumb" aria-label="Хлебные крошки"><a href="/">Главная</a><span class="crumb-sep">/</span><span>О сайте</span></nav>
-      <header class="list-header"><h1>О сайте</h1></header>
-      <div class="about-page">
-        <p>MathTasks — сборник задач по школьной математике с разбором решений. Материал структурирован в соответствии со стандартами Skola2030 и разложен по классам с 1 по 12, внутри класса — по разделам и темам.</p>
-        <h2>Как пользоваться</h2>
-        <p>Выберите свой класс в меню слева — сайт покажет только те разделы и темы, которые проходят в этой параллели. Внутри темы задачи идут в том порядке, в каком их удобно разбирать: от простого к сложному.</p>
-        <p>У каждой задачи есть условие и решение. Решение свёрнуто — сначала попробуйте сами, кнопка «Показать решение» никуда не денется.</p>
-        <h2>Поиск</h2>
-        <p>Поиск в шапке ищет по названиям и условиям задач в выбранном классе. Если нужного не нашлось, под заголовком появится ссылка «Искать во всех классах».</p>
+      <nav class="breadcrumb" aria-label="Хлебные крошки"><a href="/" data-i18n="nav_home">Главная</a><span class="crumb-sep">/</span><span data-i18n="nav_about">О сайте</span></nav>
+      <header class="list-header"><h1 data-i18n="about_title">О сайте</h1></header>
+      <div class="about-page" data-i18n-html="about_body">
       </div>
     </div>
   </main>
@@ -147,17 +146,17 @@
   <dialog class="plotter-dialog" id="plotter-dialog">
     <button class="dialog-close" id="plotter-close" type="button" aria-label="Закрыть">×</button>
     <div class="plotter-head">
-      <h2>📈 Графопостроитель функций</h2>
-      <p>Интерактивное исследование функций: введите формулу или выберите готовую.</p>
+      <h2 data-i18n="plotter_title">📈 Графопостроитель функций</h2>
+      <p data-i18n="plotter_subtitle">Интерактивное исследование функций: введите формулу или выберите готовую.</p>
     </div>
     <div class="plotter-controls">
       <div class="plotter-input-wrap">
         <span class="plotter-prefix">y =</span>
         <input type="text" id="plotter-expr" value="x^2 - 4" placeholder="x^2 - 4, 2*x + 1, sin(x)..." aria-label="Формула функции" />
-        <button type="button" id="plotter-draw-btn" class="primary-button">Построить</button>
+        <button type="button" id="plotter-draw-btn" class="primary-button" data-i18n="plotter_draw">Построить</button>
       </div>
       <div class="quick-math-bar plotter-math-bar" aria-label="Быстрый ввод математических символов">
-        <span class="quick-math-bar-label">Вставка:</span>
+        <span class="quick-math-bar-label" data-i18n="quick_math_label">Вставка:</span>
         <button type="button" class="quick-math-btn" data-plotter-insert="x" title="Переменная x">x</button>
         <button type="button" class="quick-math-btn" data-plotter-insert="²" title="Квадрат (²)">x²</button>
         <button type="button" class="quick-math-btn" data-plotter-insert="^" title="Степень (^)">xⁿ</button>
@@ -176,7 +175,7 @@
         <button type="button" class="quick-math-btn" data-plotter-insert="*" title="Умножение">*</button>
       </div>
       <div class="plotter-presets">
-        <span class="plotter-presets-label">Примеры:</span>
+        <span class="plotter-presets-label" data-i18n="plotter_presets">Примеры:</span>
         <button type="button" class="plotter-chip" data-fn="x^2 - 4">y = x² - 4</button>
         <button type="button" class="plotter-chip" data-fn="2*x - 3">y = 2x - 3</button>
         <button type="button" class="plotter-chip" data-fn="-x^2 + 2*x + 3">y = -x² + 2x + 3</button>
@@ -203,15 +202,15 @@
   <dialog class="formulas-dialog" id="formulas-dialog">
     <div class="formulas-dialog-header">
       <div class="formulas-dialog-title-wrap">
-        <h2>Справочник формул Skola2030</h2>
-        <p>Официальные формульные листы экзаменов и интерактивная шпаргалка</p>
+        <h2 data-i18n="formulas_title">Справочник формул Skola2030</h2>
+        <p data-i18n="formulas_subtitle">Официальные формульные листы экзаменов и интерактивная шпаргалка</p>
       </div>
       <button class="dialog-close" id="formulas-close" type="button" aria-label="Закрыть">×</button>
     </div>
 
     <div class="formulas-main-tabs">
-      <button type="button" class="formulas-main-tab active" data-main-tab="sheets">📄 Официальные листы к экзаменам</button>
-      <button type="button" class="formulas-main-tab" data-main-tab="quick">⚡ Быстрый справочник</button>
+      <button type="button" class="formulas-main-tab active" data-main-tab="sheets" data-i18n="tab_sheets">📄 Официальные листы к экзаменам</button>
+      <button type="button" class="formulas-main-tab" data-main-tab="quick" data-i18n="tab_quick">⚡ Быстрый справочник</button>
     </div>
 
     <!-- Секция официальных листов экзаменов (PDF) -->
@@ -221,12 +220,12 @@
           <div class="formula-sheet-badge gold">9. klase</div>
           <div class="formula-sheet-info">
             <h3>Eksāmens 9. klasei (2026)</h3>
-            <p>Formulu lapa • Основная школа: сокращенное умножение, квадратные уравнения, теорема Виета, прогрессии, свойства степеней и корней, значения тригонометрических функций (30°, 45°, 60°), планиметрия и тела вращения.</p>
-            <span class="formula-sheet-meta">2 страницы • PDF • Valsts pārbaudes darbs</span>
+            <p>Formulu lapa • Pamatskola / Основная школа: saīsinātās reizināšanas formulas, kvadrātvienādojumi, Vjeta teorēma, progresijas, pakāpju un sakņu īpašības, trigonometrija (30°, 45°, 60°), planimetrija un rotācijas ķermeņi.</p>
+            <span class="formula-sheet-meta">2 lpp. • PDF • Valsts pārbaudes darbs</span>
           </div>
           <div class="formula-sheet-actions">
-            <a class="primary-button small" href="/formulas/eksamens-matematika-9-klase-2026.pdf" target="_blank" rel="noopener">Открыть PDF</a>
-            <a class="ghost-button small" href="/formulas/eksamens-matematika-9-klase-2026.pdf" download>Скачать</a>
+            <a class="primary-button small" href="/formulas/eksamens-matematika-9-klase-2026.pdf" target="_blank" rel="noopener" data-i18n="open_pdf">Открыть PDF</a>
+            <a class="ghost-button small" href="/formulas/eksamens-matematika-9-klase-2026.pdf" download data-i18n="download_pdf">Скачать</a>
           </div>
         </div>
 
@@ -234,12 +233,12 @@
           <div class="formula-sheet-badge teal">Vispārīgais</div>
           <div class="formula-sheet-info">
             <h3>Vispārīgais līmenis (2026)</h3>
-            <p>Formulu lapa • Средняя школа (общий уровень): сложные проценты, свойства логарифмов, степеней и корней, теория вероятностей, статистика, векторы на плоскости и в пространстве, стереометрия.</p>
-            <span class="formula-sheet-meta">2 страницы • PDF • Valsts eksāmens</span>
+            <p>Formulu lapa • Vidusskola: saliktie procenti, logaritmi, pakāpes un saknes, varbūtību teorija, statistika, vektori plaknē un telpā, stereometrija.</p>
+            <span class="formula-sheet-meta">2 lpp. • PDF • Valsts eksāmens</span>
           </div>
           <div class="formula-sheet-actions">
-            <a class="primary-button small" href="/formulas/eksamens-matematika-visparigais-2026.pdf" target="_blank" rel="noopener">Открыть PDF</a>
-            <a class="ghost-button small" href="/formulas/eksamens-matematika-visparigais-2026.pdf" download>Скачать</a>
+            <a class="primary-button small" href="/formulas/eksamens-matematika-visparigais-2026.pdf" target="_blank" rel="noopener" data-i18n="open_pdf">Открыть PDF</a>
+            <a class="ghost-button small" href="/formulas/eksamens-matematika-visparigais-2026.pdf" download data-i18n="download_pdf">Скачать</a>
           </div>
         </div>
 
@@ -247,12 +246,12 @@
           <div class="formula-sheet-badge blue">Optimālais (Mat I)</div>
           <div class="formula-sheet-info">
             <h3>Optimālais līmenis (2026)</h3>
-            <p>Formulas un teorēmas • Matemātika I: единичная тригонометрическая окружность, формулы двойного угла и сложения, комбинаторика, теорема о трёх перпендикулярах, теоремы синусов и косинусов, пирамиды и призмы.</p>
-            <span class="formula-sheet-meta">2 страницы • PDF • Valsts eksāmens</span>
+            <p>Formulas un teorēmas • Matemātika I: vienības riņķis, trigonometriskās sakarības, kombinatorika, triju perpendikulu teorēma, sinusu un kosinusu teorēmas, piramīdas un prizmas.</p>
+            <span class="formula-sheet-meta">2 lpp. • PDF • Valsts eksāmens</span>
           </div>
           <div class="formula-sheet-actions">
-            <a class="primary-button small" href="/formulas/eksamens-matematika-optimalais-2026.pdf" target="_blank" rel="noopener">Открыть PDF</a>
-            <a class="ghost-button small" href="/formulas/eksamens-matematika-optimalais-2026.pdf" download>Скачать</a>
+            <a class="primary-button small" href="/formulas/eksamens-matematika-optimalais-2026.pdf" target="_blank" rel="noopener" data-i18n="open_pdf">Открыть PDF</a>
+            <a class="ghost-button small" href="/formulas/eksamens-matematika-optimalais-2026.pdf" download data-i18n="download_pdf">Скачать</a>
           </div>
         </div>
 
@@ -260,12 +259,12 @@
           <div class="formula-sheet-badge purple">Augstākais (Mat II)</div>
           <div class="formula-sheet-info">
             <h3>Augstākais līmenis (2026)</h3>
-            <p>Formulas, teorēmas un paņēmieni • Matemātika II: метод математической индукции, бином Ньютона, теорема Безу, теорема Эвклида, свойства пределов функций, таблица производных и интегралов, объёмы тел вращения.</p>
-            <span class="formula-sheet-meta">6 страниц • PDF • Valsts padziļinātais eksāmens</span>
+            <p>Formulas, teorēmas un paņēmieni • Matemātika II: matemātiskās indukcijas metode, Ņūtona binoms, Bezū teorēma, Eiklīda teorēma, robežas, atvasinājumi, integrāļi, rotācijas ķermeņu tilpumi.</p>
+            <span class="formula-sheet-meta">6 lpp. • PDF • Valsts padziļinātais eksāmens</span>
           </div>
           <div class="formula-sheet-actions">
-            <a class="primary-button small" href="/formulas/eksamens-matematika-augstakais-2026.pdf" target="_blank" rel="noopener">Открыть PDF</a>
-            <a class="ghost-button small" href="/formulas/eksamens-matematika-augstakais-2026.pdf" download>Скачать</a>
+            <a class="primary-button small" href="/formulas/eksamens-matematika-augstakais-2026.pdf" target="_blank" rel="noopener" data-i18n="open_pdf">Открыть PDF</a>
+            <a class="ghost-button small" href="/formulas/eksamens-matematika-augstakais-2026.pdf" download data-i18n="download_pdf">Скачать</a>
           </div>
         </div>
       </div>
@@ -274,10 +273,10 @@
     <!-- Секция быстрого интерактивного справочника -->
     <div class="formulas-quick-view" id="formulas-quick-view" hidden>
       <div class="formulas-nav">
-        <button type="button" class="formulas-tab active" data-cat="algebra">Алгебра</button>
-        <button type="button" class="formulas-tab" data-cat="geometry">Геометрия</button>
-        <button type="button" class="formulas-tab" data-cat="trig">Тригонометрия</button>
-        <button type="button" class="formulas-tab" data-cat="analysis">Анализ и вероятность</button>
+        <button type="button" class="formulas-tab active" data-cat="algebra" data-i18n="cat_algebra">Алгебра</button>
+        <button type="button" class="formulas-tab" data-cat="geometry" data-i18n="cat_geometry">Геометрия</button>
+        <button type="button" class="formulas-tab" data-cat="trig" data-i18n="cat_trig">Тригонометрия</button>
+        <button type="button" class="formulas-tab" data-cat="analysis" data-i18n="cat_analysis">Анализ и вероятность</button>
       </div>
       <div class="formulas-content" id="formulas-content"></div>
     </div>
@@ -293,6 +292,7 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="/lib.js"></script>
+  <script src="/i18n.js"></script>
   <script src="/client.js"></script>
   <script src="/ui.js"></script>
   <script src="/app.js"></script>

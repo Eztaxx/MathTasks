@@ -106,3 +106,49 @@ describe('compareAnswers (Quick Math Bar & Self-Check)', () => {
     expect(compareAnswers('', '10')).toBe(false);
   });
 });
+
+describe('i18n (Trilingual support LV / RU / EN)', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const i18n = require('../public/i18n.js');
+
+  it('поддерживает языки lv, ru, en', () => {
+    expect(i18n.SUPPORTED_LANGS).toEqual(['lv', 'ru', 'en']);
+  });
+
+  it('переводит базовые ключи на латышский язык Skola2030', () => {
+    i18n.setLang('lv');
+    expect(i18n.getLang()).toBe('lv');
+    expect(i18n.t('nav_home')).toBe('Sākums');
+    expect(i18n.t('diff_easy')).toBe('Pamatlīmenis');
+    expect(i18n.t('track_9')).toBe('9. klases eksāmens');
+    expect(i18n.t('solved_badge')).toBe('✓ Atrisināts');
+  });
+
+  it('переводит базовые ключи на русский язык', () => {
+    i18n.setLang('ru');
+    expect(i18n.getLang()).toBe('ru');
+    expect(i18n.t('nav_home')).toBe('Главная');
+    expect(i18n.t('diff_easy')).toBe('Базовый');
+    expect(i18n.t('track_9')).toBe('Экзамен 9 класс');
+    expect(i18n.t('solved_badge')).toBe('✓ Решено');
+  });
+
+  it('переводит базовые ключи на английский язык', () => {
+    i18n.setLang('en');
+    expect(i18n.getLang()).toBe('en');
+    expect(i18n.t('nav_home')).toBe('Home');
+    expect(i18n.t('diff_easy')).toBe('Basic');
+    expect(i18n.t('track_9')).toBe('Grade 9 Exam');
+    expect(i18n.t('solved_badge')).toBe('✓ Solved');
+  });
+
+  it('корректно подставляет параметры в строку перевода', () => {
+    i18n.setLang('lv');
+    expect(i18n.t('task_counter', { cur: 3, total: 10 })).toBe('Uzdevums 3 no 10');
+    i18n.setLang('ru');
+    expect(i18n.t('task_counter', { cur: 3, total: 10 })).toBe('Задача 3 из 10');
+    i18n.setLang('en');
+    expect(i18n.t('task_counter', { cur: 3, total: 10 })).toBe('Task 3 of 10');
+  });
+});
+
