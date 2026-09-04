@@ -347,14 +347,12 @@ function renderHubSidebar() {
         <div class="track-card-badge orange">3. kl.</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('grade_3'))}</strong>
-          <span>${escapeHtml(tr('track_diag_desc'))}</span>
         </div>
       </a>
       <a class="sidebar-track-card${isGradeActive(6) ? ' active' : ''}" href="/grade/6" title="${escapeHtml(tr('grade_6'))}">
         <div class="track-card-badge green">6. kl.</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('grade_6'))}</strong>
-          <span>${escapeHtml(tr('track_diag_desc'))}</span>
         </div>
       </a>
     </div>
