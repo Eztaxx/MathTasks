@@ -2,7 +2,7 @@
 -- Запускать в Supabase: SQL Editor -> New query -> Run.
 
 -- ============================================================================
--- 0. Обновление ограничений на класс до 12 (Skola2030)
+-- 0. Обновление ограничений на класс до 12 (Skola2030) и мультиязычность (LV/RU/EN)
 -- ============================================================================
 alter table public.topics drop constraint if exists topics_grade_range;
 alter table public.topics drop constraint if exists topics_grade_check;
@@ -12,17 +12,34 @@ alter table public.tasks drop constraint if exists tasks_grade_range;
 alter table public.tasks drop constraint if exists tasks_grade_check;
 alter table public.tasks add constraint tasks_grade_range check (grade is null or grade between 1 and 12);
 
+-- Мультиязычные колонки (миграция 007)
+alter table public.subjects add column if not exists title_lv text;
+alter table public.subjects add column if not exists title_en text;
+
+alter table public.topics add column if not exists title_lv text;
+alter table public.topics add column if not exists title_en text;
+alter table public.topics add column if not exists description_lv text;
+alter table public.topics add column if not exists description_en text;
+
+alter table public.tasks add column if not exists title_lv text;
+alter table public.tasks add column if not exists title_en text;
+alter table public.tasks add column if not exists condition_latex_lv text;
+alter table public.tasks add column if not exists condition_latex_en text;
+alter table public.tasks add column if not exists solution_latex_lv text;
+alter table public.tasks add column if not exists solution_latex_en text;
 
 -- ============================================================================
 -- 1. Разделы (Mācību jomas / Lielās idejas Skola2030)
 -- ============================================================================
-insert into public.subjects (title, slug, icon, position)
+insert into public.subjects (title, title_lv, title_en, slug, icon, position)
 values
-  ('Алгебра', 'algebra', 'x²', 1),
-  ('Геометрия', 'geometry', '△', 2),
-  ('Статистика и вероятность', 'statistics', '📊', 3)
+  ('Алгебра', 'Algebra', 'Algebra', 'algebra', 'x²', 1),
+  ('Геометрия', 'Ģeometrija', 'Geometry', 'geometry', '△', 2),
+  ('Статистика и вероятность', 'Statistika un varbūtība', 'Statistics & Probability', 'statistics', '📊', 3)
 on conflict (slug) do update set
   title = excluded.title,
+  title_lv = excluded.title_lv,
+  title_en = excluded.title_en,
   icon = excluded.icon,
   position = excluded.position;
 

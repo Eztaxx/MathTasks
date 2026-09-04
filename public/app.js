@@ -51,7 +51,15 @@ try {
   }
 } catch {}
 
-const TASK_SELECT = '*, topics(title, slug, subjects(title, icon))';
+const TASK_SELECT = '*, topics(title, title_lv, title_en, slug, description, description_lv, description_en, subjects(title, title_lv, title_en, icon))';
+
+const loc = (item, field) => {
+  const lang = window.MathTasks?.getLang ? window.MathTasks.getLang() : 'ru';
+  return (window.MathTasksLib && window.MathTasksLib.getLocalizedText)
+    ? window.MathTasksLib.getLocalizedText(item, field, lang)
+    : (item?.[field] || '');
+};
+
 const subjectOf = task => task.topics?.subjects;
 const tagClass = subject => {
   const title = (subject?.title || '').toLowerCase();
@@ -202,13 +210,16 @@ function renderTopicSidebar(topic) {
     <span class="label">Все экзамены и треки</span>
   </a>`;
 
+  const topicTitle = loc(topic, 'title');
+  const subjectTitle = loc(subject, 'title');
+
   // Контекстная плашка открытой темы
   const banner = `<div class="sidebar-topic-banner">
     <div class="topic-banner-top">
       ${grade ? `<span class="topic-banner-pill">${gradeLabel(grade)}</span>` : ''}
-      <span class="topic-banner-subject">${escapeHtml(subject?.title || 'Математика')}</span>
+      <span class="topic-banner-subject">${escapeHtml(subjectTitle || 'Математика')}</span>
     </div>
-    <div class="topic-banner-title">${escapeHtml(topic.title)}</div>
+    <div class="topic-banner-title">${escapeHtml(topicTitle)}</div>
   </div>`;
 
   // Темы текущего класса по разделам
@@ -223,10 +234,11 @@ function renderTopicSidebar(topic) {
     if (!sTopics.length) return '';
     const links = sTopics.map(t => {
       const isCurrent = t.id === topic.id;
-      return `<a class="${isCurrent ? 'active' : ''}" href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(t.title)}</a>`;
+      return `<a class="${isCurrent ? 'active' : ''}" href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(loc(t, 'title'))}</a>`;
     }).join('');
+    const sTitle = loc(subj, 'title');
     return `<section class="nav-group open" data-subject="${subj.id}">
-      <button class="group-title" title="${escapeHtml(subj.title)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subj.icon)}</span><span class="label">${escapeHtml(subj.title)}</span><span class="chevron">⌃</span></button>
+      <button class="group-title" title="${escapeHtml(sTitle)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subj.icon)}</span><span class="label">${escapeHtml(sTitle)}</span><span class="chevron">⌃</span></button>
       <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">Все темы раздела</a>${links}</div>
     </section>`;
   }).filter(Boolean).join('');
@@ -729,12 +741,14 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
   const answer = task.answer_latex
     ? revealBlock('answer', 'atbilde', '<div class="math" data-answer></div>')
     : '';
-  const solutionBody = `<div class="math" data-solution></div>${taskFigure(task.solution_image, task.title, 'Attēls pie atrisinājuma')}`;
-  const solution = task.solution_latex || task.solution_image
+  const taskTitle = loc(task, 'title');
+  const taskSolution = loc(task, 'solution_latex');
+  const solutionBody = `<div class="math" data-solution></div>${taskFigure(task.solution_image, taskTitle, 'Attēls pie atrisinājuma')}`;
+  const solution = taskSolution || task.solution_image
     ? revealBlock('solution', 'atrisinājums', solutionBody)
     : `<p class="solution-missing">${escapeHtml(tr('solution_missing'))}</p>`;
 
-  const titleText = highlightQuery ? highlightText(task.title, highlightQuery) : escapeHtml(task.title);
+  const titleText = highlightQuery ? highlightText(taskTitle, highlightQuery) : escapeHtml(taskTitle);
   const title = linkTitle
     ? `<a class="task-title" href="${taskPath(task)}">${titleText}</a>`
     : `<strong class="task-title">${titleText}</strong>`;
@@ -742,7 +756,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
     <div class="task-meta">${meta}</div>
     ${title}
     <div class="math task-condition" data-condition></div>
-    ${taskFigure(task.condition_image, task.title, 'Zīmējums')}
+    ${taskFigure(task.condition_image, taskTitle, 'Zīmējums')}
     ${selfCheck}
     ${answer}
     ${solution}
@@ -752,13 +766,17 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
 /* Формулы рендерим по спискам тех задач, у которых соответствующее поле есть:
    у панелей нет собственной привязки к задаче, а порядок узлов совпадает. */
 function fillTaskMath(container, tasks) {
-  const byField = (selector, field) => {
-    const source = tasks.filter(task => task[field]);
-    container.querySelectorAll(selector).forEach((element, index) => renderMath(element, source[index][field]));
-  };
-  container.querySelectorAll('[data-condition]').forEach((element, index) => renderMath(element, tasks[index].condition_latex));
-  byField('[data-answer]', 'answer_latex');
-  byField('[data-solution]', 'solution_latex');
+  container.querySelectorAll('[data-condition]').forEach((element, index) => {
+    renderMath(element, loc(tasks[index], 'condition_latex'));
+  });
+  const answerSource = tasks.filter(task => task.answer_latex);
+  container.querySelectorAll('[data-answer]').forEach((element, index) => {
+    renderMath(element, answerSource[index].answer_latex);
+  });
+  const solutionSource = tasks.filter(task => loc(task, 'solution_latex'));
+  container.querySelectorAll('[data-solution]').forEach((element, index) => {
+    renderMath(element, loc(solutionSource[index], 'solution_latex'));
+  });
 }
 
 let taskViewMode = 'list'; // 'list' | 'single'
@@ -869,11 +887,14 @@ function topicCard(topic, index, showGrade) {
     progressBadge
   ].filter(Boolean).join('');
 
+  const topicTitle = loc(topic, 'title');
+  const topicDesc = loc(topic, 'description');
+
   return `<a class="topic-card" href="/topic/${encodeURIComponent(topic.slug)}">
     <div class="topic-icon ${topicClass(index)}">${escapeHtml(subject?.icon || 'x²')}</div>
     <div class="topic-card-content">
-      <h3>${escapeHtml(topic.title)}</h3>
-      <p>${escapeHtml(topic.description || '')}</p>
+      <h3>${escapeHtml(topicTitle)}</h3>
+      <p>${escapeHtml(topicDesc || '')}</p>
       ${progressBar}
       <div class="topic-badges">${badges}</div>
     </div>
@@ -1133,19 +1154,23 @@ async function showTopic(slug) {
   }
   const tr = window.MathTasks.t || (k => k);
   const subject = subjectById(topic.subject_id);
+  const topicTitle = loc(topic, 'title');
+  const topicDesc = loc(topic, 'description');
+  const subjectTitle = loc(subject, 'title');
+
   const crumbs = [['Главная', '/']];
   if (topic.grade) crumbs.push([gradeLabel(topic.grade), `/grade/${topic.grade}`]);
-  if (subject) crumbs.push([subject.title, `/subject/${encodeURIComponent(subject.slug)}`]);
-  crumbs.push([topic.title, null]);
+  if (subject) crumbs.push([subjectTitle, `/subject/${encodeURIComponent(subject.slug)}`]);
+  crumbs.push([topicTitle, null]);
 
   fillListHeader({
     crumbs,
-    title: topic.title,
-    description: topic.description || '',
+    title: topicTitle,
+    description: topicDesc || '',
     meta: topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : ''
   });
-  setMeta(topic.grade ? `${topic.title}, ${gradeLabel(topic.grade)}` : topic.title,
-    topic.description || `Задачи по теме «${topic.title}» с условиями, ответами и разбором решений.`);
+  setMeta(topic.grade ? `${topicTitle}, ${gradeLabel(topic.grade)}` : topicTitle,
+    topicDesc || `Задачи по теме «${topicTitle}» с условиями, ответами и разбором решений.`);
   listTasks.innerHTML = '<p class="empty-state">Загружаем задачи…</p>';
   // Внутри темы порядок задаёт админ полем «порядок»; при равных значениях — по дате.
   const { data, error } = await db.from('tasks').select(TASK_SELECT)
@@ -1362,21 +1387,25 @@ async function showTask(rawId) {
   } else {
     renderSidebar();
   }
+  const taskTitle = loc(task, 'title');
+  const topicTitle = loc(topic, 'title');
+  const subjectTitle = loc(subject, 'title');
+
   const crumbs = [['Главная', '/']];
   if (grade) crumbs.push([gradeLabel(grade), `/grade/${grade}`]);
-  if (subject) crumbs.push([subject.title, `/subject/${encodeURIComponent(subject.slug)}`]);
-  if (topic) crumbs.push([topic.title, `/topic/${encodeURIComponent(topic.slug)}`]);
-  crumbs.push([task.title, null]);
+  if (subject) crumbs.push([subjectTitle, `/subject/${encodeURIComponent(subject.slug)}`]);
+  if (topic) crumbs.push([topicTitle, `/topic/${encodeURIComponent(topic.slug)}`]);
+  crumbs.push([taskTitle, null]);
 
   fillListHeader({
     crumbs,
-    title: task.title,
+    title: taskTitle,
     description: '',
     meta: grade ? `<span class="grade-badge">${gradeLabel(grade)}</span>` : ''
   });
   setMeta(
-    topic ? `${task.title} — ${topic.title}${grade ? `, ${gradeLabel(grade)}` : ''}` : task.title,
-    `${task.title}: условие, ответ и подробное решение.${topic ? ` Тема «${topic.title}».` : ''}`
+    topic ? `${taskTitle} — ${topicTitle}${grade ? `, ${gradeLabel(grade)}` : ''}` : taskTitle,
+    `${taskTitle}: условие, ответ и подробное решение.${topic ? ` Тема «${topicTitle}».` : ''}`
   );
   renderTaskList(listTasks, [task], '', { showTopicLink: false, showGrade: false, linkTitle: false });
   await renderTaskNeighbours(task);
@@ -1386,14 +1415,14 @@ async function showTask(rawId) {
 async function renderTaskNeighbours(task) {
   document.querySelector('#task-nav')?.remove();
   if (!task.topic_id) return;
-  const { data } = await db.from('tasks').select('id, title')
+  const { data } = await db.from('tasks').select('id, title, title_lv, title_en')
     .eq('is_published', true).eq('topic_id', task.topic_id)
     .order('position').order('created_at', { ascending: true });
   const siblings = data || [];
   const index = siblings.findIndex(item => item.id === task.id);
   if (index === -1 || siblings.length < 2) return;
   const link = (item, label, css) => (item
-    ? `<a class="task-nav-link ${css}" href="${taskPath(item)}"><span>${label}</span><strong>${escapeHtml(item.title)}</strong></a>`
+    ? `<a class="task-nav-link ${css}" href="${taskPath(item)}"><span>${label}</span><strong>${escapeHtml(loc(item, 'title'))}</strong></a>`
     : '');
   const nav = document.createElement('nav');
   nav.id = 'task-nav';

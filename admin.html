@@ -49,11 +49,15 @@
         <h3 id="topic-form-title">Добавить тему</h3>
         <p class="admin-hint">Тема — подкатегория внутри раздела. Именно темы видны в боковом меню сайта.</p>
         <form class="topic-form" id="topic-form">
-          <label>Название<input name="title" required placeholder="Например: Квадратные уравнения" /></label>
+          <label>Название (RU)<input name="title" required placeholder="Например: Квадратные уравнения" /></label>
+          <label>Nosaukums (LV)<input name="title_lv" placeholder="Piemēram: Kvadrātvienādojumi" /></label>
+          <label>Title (EN)<input name="title_en" placeholder="E.g.: Quadratic equations" /></label>
           <label>Раздел<select name="subject_id" id="subject-select"></select></label>
           <label>Класс<select name="grade" id="topic-grade"></select></label>
           <label>Порядок <span>чем меньше, тем выше</span><input name="position" type="number" value="0" /></label>
-          <label>Краткое описание <span>необязательно</span><input name="description" placeholder="Что изучается в этой теме" /></label>
+          <label>Краткое описание (RU) <span>необязательно</span><input name="description" placeholder="Что изучается в этой теме" /></label>
+          <label>Apraksts (LV) <span>neobligāti</span><input name="description_lv" placeholder="Ko apgūst šajā tēmā" /></label>
+          <label>Description (EN) <span>optional</span><input name="description_en" placeholder="Topic overview" /></label>
           <button class="primary-button" type="submit" id="topic-submit">Добавить тему</button>
           <button class="text-button" type="button" id="topic-cancel" hidden>Отменить</button>
           <span class="form-success" id="topic-success"></span>
@@ -64,13 +68,51 @@
       <div class="admin-section">
         <h3 id="task-form-title">Добавить задание</h3>
         <form class="task-form" id="task-form">
-          <label>Название<input name="title" required placeholder="Например: Квадратное уравнение" /></label>
+          <div class="wide task-lang-tabs-wrap">
+            <div class="task-lang-tabs" role="tablist">
+              <button type="button" class="task-lang-tab active" data-task-lang="ru">🇷🇺 Русский (Основной)</button>
+              <button type="button" class="task-lang-tab" data-task-lang="lv">🇱🇻 Latviešu (Skola2030)</button>
+              <button type="button" class="task-lang-tab" data-task-lang="en">🇬🇧 English</button>
+            </div>
+            <button type="button" class="ai-translate-btn" id="btn-ai-translate" title="Перевести название, условие и решение на латышский и английский через AI с сохранением всех KaTeX-формул">
+              <span class="ai-icon">✨</span> Автоперевод AI (LV & EN)
+            </button>
+          </div>
+
+          <!-- Общие параметры задачи -->
           <label>Тема<select name="topic_id" id="topic-select"><option value="">Без темы</option></select></label>
           <label>Класс<select name="grade" id="task-grade"></select></label>
           <label>Сложность<select name="difficulty"><option>Лёгкий</option><option selected>Средний</option><option>Сложный</option></select></label>
           <label>Порядок в теме <span>чем меньше, тем выше</span><input name="position" type="number" value="0" /></label>
-          <label class="wide">Условие <span>обычный текст; формулы — между знаками $…$</span><textarea name="condition_latex" id="condition-input" required placeholder="Решите уравнение $2x^2 - 5x - 3 = 0$"></textarea></label>
-          <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель</span><div id="condition-preview"></div></div>
+
+          <!-- Группа полей RU -->
+          <div class="task-lang-group" data-lang-group="ru">
+            <label class="wide">Название (RU)<input name="title" id="title-input-ru" required placeholder="Например: Квадратное уравнение" /></label>
+            <label class="wide">Условие (RU) <span>обычный текст; формулы — между знаками $…$</span><textarea name="condition_latex" id="condition-input" required placeholder="Решите уравнение $2x^2 - 5x - 3 = 0$"></textarea></label>
+            <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель (RU)</span><div id="condition-preview"></div></div>
+            <label class="wide">Решение (RU) <span>необязательно; формулы — между знаками $…$</span><textarea name="solution_latex" id="solution-input" placeholder="Дискриминант $D = 49$, значит $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
+            <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель (RU)</span><div id="solution-preview"></div></div>
+          </div>
+
+          <!-- Группа полей LV -->
+          <div class="task-lang-group" data-lang-group="lv" hidden>
+            <label class="wide">Nosaukums (LV)<input name="title_lv" id="title-input-lv" placeholder="Piemēram: Kvadrātvienādojums" /></label>
+            <label class="wide">Nosacījums (LV) <span>parasts teksts; formulas — starp $…$</span><textarea name="condition_latex_lv" id="condition-input-lv" placeholder="Atrisiniet vienādojumu $2x^2 - 5x - 3 = 0$"></textarea></label>
+            <div class="wide math-preview"><span class="math-preview-label">Kā redzēs skolēns (LV)</span><div id="condition-preview-lv"></div></div>
+            <label class="wide">Atrisinājums (LV) <span>neobligāti; formulas — starp $…$</span><textarea name="solution_latex_lv" id="solution-input-lv" placeholder="Diskriminants $D = 49$, tātad $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
+            <div class="wide math-preview"><span class="math-preview-label">Kā redzēs skolēns (LV)</span><div id="solution-preview-lv"></div></div>
+          </div>
+
+          <!-- Группа полей EN -->
+          <div class="task-lang-group" data-lang-group="en" hidden>
+            <label class="wide">Title (EN)<input name="title_en" id="title-input-en" placeholder="E.g.: Quadratic equation" /></label>
+            <label class="wide">Condition (EN) <span>regular text; formulas — between $…$</span><textarea name="condition_latex_en" id="condition-input-en" placeholder="Solve the equation $2x^2 - 5x - 3 = 0$"></textarea></label>
+            <div class="wide math-preview"><span class="math-preview-label">Student preview (EN)</span><div id="condition-preview-en"></div></div>
+            <label class="wide">Solution (EN) <span>optional; formulas — between $…$</span><textarea name="solution_latex_en" id="solution-input-en" placeholder="Discriminant $D = 49$, hence $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
+            <div class="wide math-preview"><span class="math-preview-label">Student preview (EN)</span><div id="solution-preview-en"></div></div>
+          </div>
+
+          <!-- Общие поля ответа и чертежей -->
           <div class="wide image-field">
             <span class="image-field-head">Чертёж к условию <span>png, jpg, webp — до 2 МБ</span></span>
             <div class="image-field-row">
@@ -80,10 +122,8 @@
             <img class="image-thumb" id="condition-image-thumb" alt="" hidden />
             <span class="form-error" id="condition-image-error"></span>
           </div>
-          <label class="wide">Ответ <span>необязательно; короткий ответ без разбора</span><textarea name="answer_latex" id="answer-input" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
-          <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель</span><div id="answer-preview"></div></div>
-          <label class="wide">Решение <span>необязательно; формулы — между знаками $…$</span><textarea name="solution_latex" id="solution-input" placeholder="Дискриминант $D = 49$, значит $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
-          <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель</span><div id="solution-preview"></div></div>
+          <label class="wide">Ответ <span>необязательно; короткий математический ответ без разбора</span><textarea name="answer_latex" id="answer-input" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
+          <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель (Ответ)</span><div id="answer-preview"></div></div>
           <div class="wide image-field">
             <span class="image-field-head">Рисунок к решению <span>png, jpg, webp — до 2 МБ</span></span>
             <div class="image-field-row">

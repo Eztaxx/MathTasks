@@ -281,6 +281,24 @@ body.dark .breadcrumb a{color:#5a92ff}
 .admin-row-icon{flex:none;width:32px;height:32px;display:grid;place-items:center;border-radius:8px;background:#f0e9ff;color:#7430dd;font-size:13px;font-weight:700}
 body.dark .admin-row-icon{background:#2a2148;color:#c4a8ff}
 
+/* ── Мультиязычность в админке ── */
+.task-lang-tabs-wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.task-lang-tabs{display:inline-flex;align-items:center;background:#f1f5f9;border:1px solid #dfe6f1;border-radius:10px;padding:3px;gap:3px}
+.task-lang-tab{border:0;background:transparent;color:var(--muted);font:700 12px Manrope,sans-serif;padding:6px 12px;border-radius:7px;cursor:pointer;transition:all .15s ease}
+.task-lang-tab:hover{color:var(--ink);background:rgba(255,255,255,.6)}
+.task-lang-tab.active{background:#fff;color:#1764ff;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.ai-translate-btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border:1px solid #c7d2fe;background:linear-gradient(135deg,#eef2ff,#e0e7ff);color:#4338ca;border-radius:9px;font:700 12px Manrope,sans-serif;cursor:pointer;transition:all .15s ease}
+.ai-translate-btn:hover{background:linear-gradient(135deg,#e0e7ff,#c7d2fe);transform:translateY(-1px);box-shadow:0 3px 10px rgba(67,56,202,.15)}
+.ai-translate-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.task-lang-group{display:contents}
+.task-lang-group[hidden]{display:none}
+body.dark .task-lang-tabs{background:#111c2e;border-color:#2b3a58}
+body.dark .task-lang-tab{color:#94a3b8}
+body.dark .task-lang-tab:hover{color:#edf2ff;background:rgba(255,255,255,.06)}
+body.dark .task-lang-tab.active{background:#1a2b47;color:#60a5fa;box-shadow:0 1px 4px rgba(0,0,0,.45)}
+body.dark .ai-translate-btn{background:linear-gradient(135deg,#1e1b4b,#312e81);border-color:#4338ca;color:#c7d2fe}
+body.dark .ai-translate-btn:hover{background:linear-gradient(135deg,#312e81,#3730a3)}
+
 /* Задача теперь карточка, а не узкая строка: сложность нужна и на телефоне
    (в старой раскладке её прятали, чтобы строка помещалась). */
 @media(max-width:720px){.task .level{display:inline-block}}

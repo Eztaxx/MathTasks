@@ -200,3 +200,64 @@ describe('formatTimerDisplay — форматирование времени т�
   });
 });
 
+describe('getLocalizedText — выбор локализованного поля с fallback', () => {
+  const { getLocalizedText } = require('../public/lib.js');
+
+  const task = {
+    title: 'Квадратное уравнение',
+    title_lv: 'Kvadrātvienādojums',
+    title_en: 'Quadratic equation',
+    condition_latex: 'Решите $x^2 - 4 = 0$',
+    condition_latex_lv: 'Atrisiniet $x^2 - 4 = 0$'
+  };
+
+  it('возвращает базовый язык (RU) при lang = "ru"', () => {
+    expect(getLocalizedText(task, 'title', 'ru')).toBe('Квадратное уравнение');
+    expect(getLocalizedText(task, 'condition_latex', 'ru')).toBe('Решите $x^2 - 4 = 0$');
+  });
+
+  it('возвращает перевод на латышский при lang = "lv"', () => {
+    expect(getLocalizedText(task, 'title', 'lv')).toBe('Kvadrātvienādojums');
+    expect(getLocalizedText(task, 'condition_latex', 'lv')).toBe('Atrisiniet $x^2 - 4 = 0$');
+  });
+
+  it('возвращает перевод на английский при lang = "en"', () => {
+    expect(getLocalizedText(task, 'title', 'en')).toBe('Quadratic equation');
+  });
+
+  it('мягко откатывается к базовому тексту при отсутствии перевода (fallback)', () => {
+    expect(getLocalizedText(task, 'condition_latex', 'en')).toBe('Решите $x^2 - 4 = 0$');
+  });
+
+  it('устойчив к пустым объектам и полям', () => {
+    expect(getLocalizedText(null, 'title', 'lv')).toBe('');
+    expect(getLocalizedText({}, 'title', 'lv')).toBe('');
+  });
+});
+
+describe('maskLatexForTranslation & unmaskLatexAfterTranslation — защита LaTeX при переводе', () => {
+  const { maskLatexForTranslation, unmaskLatexAfterTranslation } = require('../public/lib.js');
+
+  it('маскирует инлайн и блочные формулы KaTeX', () => {
+    const text = 'Решите уравнение $x^2 - 5x + 6 = 0$ и найдите $$D = b^2 - 4ac$$.';
+    const { maskedText, tokens } = maskLatexForTranslation(text);
+    expect(tokens).toEqual(['$x^2 - 5x + 6 = 0$', '$$D = b^2 - 4ac$$']);
+    expect(maskedText).toBe('Решите уравнение __MATH_EXPR_0__ и найдите __MATH_EXPR_1__.');
+  });
+
+  it('полностью восстанавливает формулы после перевода', () => {
+    const originalTokens = ['$x^2 - 5x + 6 = 0$', '$$D = b^2 - 4ac$$'];
+    const translatedMasked = 'Solve the equation __MATH_EXPR_0__ and find __MATH_EXPR_1__.';
+    const result = unmaskLatexAfterTranslation(translatedMasked, originalTokens);
+    expect(result).toBe('Solve the equation $x^2 - 5x + 6 = 0$ and find $$D = b^2 - 4ac$$.');
+  });
+
+  it('устойчив к дополнительным пробелам от переводчиков в токенах', () => {
+    const originalTokens = ['$\\sqrt{x} = 3$'];
+    const translatedMasked = 'Atrisiniet vienādojumu __ MATH_EXPR_0 __.';
+    const result = unmaskLatexAfterTranslation(translatedMasked, originalTokens);
+    expect(result).toBe('Atrisiniet vienādojumu $\\sqrt{x} = 3$.');
+  });
+});
+
+

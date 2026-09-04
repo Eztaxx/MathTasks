@@ -130,11 +130,15 @@
     document.querySelector('#topic-submit').textContent = topic ? 'Сохранить тему' : 'Добавить тему';
     document.querySelector('#topic-cancel').hidden = !topic;
     topicForm.elements.title.value = topic?.title || '';
+    if (topicForm.elements.title_lv) topicForm.elements.title_lv.value = topic?.title_lv || '';
+    if (topicForm.elements.title_en) topicForm.elements.title_en.value = topic?.title_en || '';
     // Тема без раздела не попадёт в меню сайта, поэтому для новой подставляем первый раздел.
     topicForm.elements.subject_id.value = String(topic?.subject_id ?? subjects[0]?.id ?? '');
     topicForm.elements.grade.value = topic?.grade ? String(topic.grade) : '';
     topicForm.elements.position.value = topic?.position ?? 0;
     topicForm.elements.description.value = topic?.description || '';
+    if (topicForm.elements.description_lv) topicForm.elements.description_lv.value = topic?.description_lv || '';
+    if (topicForm.elements.description_en) topicForm.elements.description_en.value = topic?.description_en || '';
     if (topic) topicForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
@@ -160,10 +164,14 @@
     const title = form.get('title').trim();
     const payload = {
       title,
+      title_lv: form.get('title_lv')?.trim() || null,
+      title_en: form.get('title_en')?.trim() || null,
       subject_id: form.get('subject_id') ? Number(form.get('subject_id')) : null,
       grade: parseFormGrade(form.get('grade')),
       position: Number(form.get('position')) || 0,
-      description: form.get('description').trim() || null
+      description: form.get('description')?.trim() || null,
+      description_lv: form.get('description_lv')?.trim() || null,
+      description_en: form.get('description_en')?.trim() || null
     };
     const { error } = editingTopicId
       ? await db.from('topics').update(payload).eq('id', editingTopicId)
@@ -200,13 +208,171 @@
   const answerPreview = document.querySelector('#answer-preview');
   const solutionPreview = document.querySelector('#solution-preview');
 
+  const conditionInputLv = document.querySelector('#condition-input-lv');
+  const solutionInputLv = document.querySelector('#solution-input-lv');
+  const conditionPreviewLv = document.querySelector('#condition-preview-lv');
+  const solutionPreviewLv = document.querySelector('#solution-preview-lv');
+
+  const conditionInputEn = document.querySelector('#condition-input-en');
+  const solutionInputEn = document.querySelector('#solution-input-en');
+  const conditionPreviewEn = document.querySelector('#condition-preview-en');
+  const solutionPreviewEn = document.querySelector('#solution-preview-en');
+
   // Предпросмотр показывает ровно то, что увидит посетитель, — до сохранения.
   const updatePreviews = () => {
     renderMath(conditionPreview, conditionInput.value);
     renderMath(answerPreview, answerInput.value);
     renderMath(solutionPreview, solutionInput.value);
+    if (conditionPreviewLv && conditionInputLv) renderMath(conditionPreviewLv, conditionInputLv.value);
+    if (solutionPreviewLv && solutionInputLv) renderMath(solutionPreviewLv, solutionInputLv.value);
+    if (conditionPreviewEn && conditionInputEn) renderMath(conditionPreviewEn, conditionInputEn.value);
+    if (solutionPreviewEn && solutionInputEn) renderMath(solutionPreviewEn, solutionInputEn.value);
   };
-  [conditionInput, answerInput, solutionInput].forEach(input => input.addEventListener('input', updatePreviews));
+  [conditionInput, answerInput, solutionInput, conditionInputLv, solutionInputLv, conditionInputEn, solutionInputEn]
+    .filter(Boolean)
+    .forEach(input => input.addEventListener('input', updatePreviews));
+
+  // Переключение языковых вкладок в форме задания
+  const taskLangTabs = document.querySelectorAll('.task-lang-tab');
+  const taskLangGroups = document.querySelectorAll('.task-lang-group');
+  taskLangTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      taskLangTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const lang = tab.dataset.taskLang;
+      taskLangGroups.forEach(group => {
+        group.hidden = group.dataset.langGroup !== lang;
+      });
+      updatePreviews();
+    });
+  });
+
+  // Встроенный математический глоссарий для надежного перевода терминов
+  const MATH_GLOSSARY = {
+    lv: [
+      [/^Решите уравнение/i, 'Atrisiniet vienādojumu'],
+      [/^Решить уравнение/i, 'Atrisināt vienādojumu'],
+      [/^Вычислите значение/i, 'Aprēķiniet izteiksmes vērtību'],
+      [/^Вычислите/i, 'Aprēķiniet'],
+      [/^Вычислить/i, 'Aprēķināt'],
+      [/^Упростите выражение/i, 'Vienkāršojiet izteiksmi'],
+      [/^Упростить выражение/i, 'Vienkāršot izteiksmi'],
+      [/^Упростите/i, 'Vienkāršojiet'],
+      [/^Найдите корни уравнения/i, 'Atrodiet vienādojuma saknes'],
+      [/^Найдите корень/i, 'Atrodiet sakni'],
+      [/^Найдите/i, 'Atrodiet'],
+      [/^Найти/i, 'Atrast'],
+      [/Раскроем скобки в левой части уравнения/i, 'Atveriet iekavas vienādojuma kreisajā pusē'],
+      [/Раскроем скобки/i, 'Atveriet iekavas'],
+      [/Перенесём слагаемые/i, 'Pārnesiet saskaitāmos'],
+      [/Проверка/i, 'Pārbaude'],
+      [/Дискриминант/i, 'Diskriminants'],
+      [/значит/i, 'tātad'],
+      [/Следовательно/i, 'Tātad'],
+      [/Равенство верное/i, 'Vienādība ir patiesa'],
+      [/Ответ/i, 'Atbilde'],
+      [/Решение/i, 'Atrisinājums']
+    ],
+    en: [
+      [/^Решите уравнение/i, 'Solve the equation'],
+      [/^Решить уравнение/i, 'Solve the equation'],
+      [/^Вычислите значение/i, 'Calculate the value of the expression'],
+      [/^Вычислите/i, 'Calculate'],
+      [/^Вычислить/i, 'Calculate'],
+      [/^Упростите выражение/i, 'Simplify the expression'],
+      [/^Упростить выражение/i, 'Simplify the expression'],
+      [/^Упростите/i, 'Simplify'],
+      [/^Найдите корни уравнения/i, 'Find the roots of the equation'],
+      [/^Найдите корень/i, 'Find the root'],
+      [/^Найдите/i, 'Find'],
+      [/^Найти/i, 'Find'],
+      [/Раскроем скобки в левой части уравнения/i, 'Expand the brackets on the left side of the equation'],
+      [/Раскроем скобки/i, 'Expand brackets'],
+      [/Перенесём слагаемые/i, 'Transfer terms'],
+      [/Проверка/i, 'Check'],
+      [/Дискриминант/i, 'Discriminant'],
+      [/значит/i, 'thus'],
+      [/Следовательно/i, 'Therefore'],
+      [/Равенство верное/i, 'The equality is true'],
+      [/Ответ/i, 'Answer'],
+      [/Решение/i, 'Solution']
+    ]
+  };
+
+  async function translateTextWithLatex(text, targetLang = 'lv') {
+    if (!text || !text.trim()) return '';
+    const { maskedText, tokens } = window.MathTasksLib.maskLatexForTranslation(text);
+    if (!maskedText.trim()) return '';
+
+    let translated = '';
+    try {
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(maskedText)}&langpair=ru|${targetLang}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.responseData?.translatedText && !json.responseData.translatedText.startsWith('MYMEMORY WARNING')) {
+          translated = json.responseData.translatedText;
+        }
+      }
+    } catch (e) {
+      console.warn('Translate API fetch failed, using fallback glossary:', e);
+    }
+
+    if (!translated) {
+      translated = maskedText;
+      const rules = MATH_GLOSSARY[targetLang] || [];
+      for (const [pattern, replacement] of rules) {
+        translated = translated.replace(pattern, replacement);
+      }
+    }
+
+    return window.MathTasksLib.unmaskLatexAfterTranslation(translated, tokens);
+  }
+
+  const btnAiTranslate = document.querySelector('#btn-ai-translate');
+  if (btnAiTranslate) {
+    btnAiTranslate.addEventListener('click', async () => {
+      const titleRu = taskForm.elements.title.value.trim();
+      const condRu = conditionInput.value.trim();
+      const solRu = solutionInput.value.trim();
+
+      if (!titleRu && !condRu) {
+        alert('Сначала заполните Название или Условие задачи на русском языке!');
+        return;
+      }
+
+      btnAiTranslate.disabled = true;
+      btnAiTranslate.innerHTML = '<span>⏳</span> Выполняется AI-перевод…';
+
+      try {
+        const [titleLv, condLv, solLv, titleEn, condEn, solEn] = await Promise.all([
+          translateTextWithLatex(titleRu, 'lv'),
+          translateTextWithLatex(condRu, 'lv'),
+          translateTextWithLatex(solRu, 'lv'),
+          translateTextWithLatex(titleRu, 'en'),
+          translateTextWithLatex(condRu, 'en'),
+          translateTextWithLatex(solRu, 'en')
+        ]);
+
+        if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = titleLv;
+        if (conditionInputLv) conditionInputLv.value = condLv;
+        if (solutionInputLv) solutionInputLv.value = solLv;
+
+        if (taskForm.elements.title_en) taskForm.elements.title_en.value = titleEn;
+        if (conditionInputEn) conditionInputEn.value = condEn;
+        if (solutionInputEn) solutionInputEn.value = solEn;
+
+        updatePreviews();
+        taskSuccess.textContent = '✨ Перевод на латышский и английский сгенерирован! Проверьте вкладки LV и EN.';
+        setTimeout(() => { if (taskSuccess.textContent.startsWith('✨')) taskSuccess.textContent = ''; }, 6000);
+      } catch (err) {
+        alert('Ошибка при переводе: ' + err.message);
+      } finally {
+        btnAiTranslate.disabled = false;
+        btnAiTranslate.innerHTML = '<span class="ai-icon">✨</span> Автоперевод AI (LV & EN)';
+      }
+    });
+  }
 
   /* ── Чертежи ──────────────────────────────────────────────────────
      Файл уходит в хранилище сразу при выборе, чтобы админ увидел его до
@@ -303,13 +469,19 @@
     document.querySelector('#task-submit').textContent = task ? 'Сохранить задачу' : 'Добавить задачу';
     document.querySelector('#task-cancel').hidden = !task;
     taskForm.elements.title.value = task?.title || '';
+    if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = task?.title_lv || '';
+    if (taskForm.elements.title_en) taskForm.elements.title_en.value = task?.title_en || '';
     taskForm.elements.topic_id.value = task?.topic_id ? String(task.topic_id) : '';
     taskForm.elements.grade.value = task?.grade ? String(task.grade) : '';
     taskForm.elements.difficulty.value = task?.difficulty || 'Средний';
     taskForm.elements.position.value = task?.position ?? 0;
     conditionInput.value = task?.condition_latex || '';
+    if (conditionInputLv) conditionInputLv.value = task?.condition_latex_lv || '';
+    if (conditionInputEn) conditionInputEn.value = task?.condition_latex_en || '';
     answerInput.value = task?.answer_latex || '';
     solutionInput.value = task?.solution_latex || '';
+    if (solutionInputLv) solutionInputLv.value = task?.solution_latex_lv || '';
+    if (solutionInputEn) solutionInputEn.value = task?.solution_latex_en || '';
     taskForm.elements.is_published.checked = task ? task.is_published : true;
     setImages(task);
     updatePreviews();
@@ -471,9 +643,15 @@
     const topicId = form.get('topic_id') ? Number(form.get('topic_id')) : null;
     const payload = {
       title: form.get('title').trim(),
+      title_lv: form.get('title_lv')?.trim() || null,
+      title_en: form.get('title_en')?.trim() || null,
       condition_latex: conditionInput.value.trim(),
+      condition_latex_lv: conditionInputLv?.value.trim() || null,
+      condition_latex_en: conditionInputEn?.value.trim() || null,
       answer_latex: answerInput.value.trim() || null,
       solution_latex: solutionInput.value.trim() || null,
+      solution_latex_lv: solutionInputLv?.value.trim() || null,
+      solution_latex_en: solutionInputEn?.value.trim() || null,
       condition_image: images.condition.current,
       solution_image: images.solution.current,
       difficulty: form.get('difficulty'),
@@ -517,13 +695,19 @@
       if (!source) return;
       editingTaskId = null; // Гарантирует создание новой задачи при отправке
       taskForm.elements.title.value = `[Копия] ${source.title}`;
+      if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = source.title_lv ? `[Kopija] ${source.title_lv}` : '';
+      if (taskForm.elements.title_en) taskForm.elements.title_en.value = source.title_en ? `[Copy] ${source.title_en}` : '';
       taskForm.elements.topic_id.value = source.topic_id ? String(source.topic_id) : '';
       taskForm.elements.grade.value = source.grade ? String(source.grade) : '';
       taskForm.elements.difficulty.value = source.difficulty || 'Средний';
       taskForm.elements.position.value = nextPosition(source.topic_id, null);
       conditionInput.value = source.condition_latex || '';
+      if (conditionInputLv) conditionInputLv.value = source.condition_latex_lv || '';
+      if (conditionInputEn) conditionInputEn.value = source.condition_latex_en || '';
       answerInput.value = source.answer_latex || '';
       solutionInput.value = source.solution_latex || '';
+      if (solutionInputLv) solutionInputLv.value = source.solution_latex_lv || '';
+      if (solutionInputEn) solutionInputEn.value = source.solution_latex_en || '';
       taskForm.elements.is_published.checked = false; // Копия по умолчанию создаётся черновиком
       setImages(source);
       updatePreviews();
@@ -572,9 +756,15 @@
         const topic = topics.find(t => t.id === task.topic_id);
         return {
           title: task.title,
+          title_lv: task.title_lv || null,
+          title_en: task.title_en || null,
           condition_latex: task.condition_latex,
+          condition_latex_lv: task.condition_latex_lv || null,
+          condition_latex_en: task.condition_latex_en || null,
           answer_latex: task.answer_latex || null,
           solution_latex: task.solution_latex || null,
+          solution_latex_lv: task.solution_latex_lv || null,
+          solution_latex_en: task.solution_latex_en || null,
           difficulty: task.difficulty || 'Средний',
           grade: task.grade ?? topic?.grade ?? null,
           topic_title: topic?.title || null,
@@ -681,9 +871,15 @@
 
       const payload = {
         title: String(item.title).trim(),
+        title_lv: item.title_lv ? String(item.title_lv).trim() : null,
+        title_en: item.title_en ? String(item.title_en).trim() : null,
         condition_latex: String(item.condition_latex).trim(),
+        condition_latex_lv: item.condition_latex_lv ? String(item.condition_latex_lv).trim() : null,
+        condition_latex_en: item.condition_latex_en ? String(item.condition_latex_en).trim() : null,
         answer_latex: item.answer_latex ? String(item.answer_latex).trim() : null,
         solution_latex: item.solution_latex ? String(item.solution_latex).trim() : null,
+        solution_latex_lv: item.solution_latex_lv ? String(item.solution_latex_lv).trim() : null,
+        solution_latex_en: item.solution_latex_en ? String(item.solution_latex_en).trim() : null,
         difficulty: item.difficulty || 'Средний',
         grade: parseFormGrade(item.grade),
         topic_id: topicId,

@@ -127,7 +127,57 @@
     return `${pad(mins)}:${pad(secs)}`;
   };
 
-  const api = { makeSlug, sanitizeSearch, KATEX_DELIMITERS, normalizeMathAnswer, parseFractionOrNumber, compareAnswers, calcTopicProgress, formatTimerDisplay };
+  /* Получение локализованного текста из сущности (task, topic, subject) с мягким fallback */
+  const getLocalizedText = (item, field, lang = 'ru') => {
+    if (!item || !field) return '';
+    const currentLang = (lang || 'ru').toLowerCase();
+    if (currentLang !== 'ru') {
+      const localizedVal = item[`${field}_${currentLang}`];
+      if (localizedVal && typeof localizedVal === 'string' && localizedVal.trim()) {
+        return localizedVal;
+      }
+    }
+    return item[field] || '';
+  };
+
+  /* Маскирование математических формул перед отправкой в переводчик */
+  const maskLatexForTranslation = (text = '') => {
+    if (!text) return { maskedText: '', tokens: [] };
+    const tokens = [];
+    const mathRegex = /(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/g;
+    const maskedText = text.replace(mathRegex, match => {
+      const idx = tokens.length;
+      tokens.push(match);
+      return `__MATH_EXPR_${idx}__`;
+    });
+    return { maskedText, tokens };
+  };
+
+  /* Восстановление математических формул после перевода */
+  const unmaskLatexAfterTranslation = (maskedText = '', tokens = []) => {
+    if (!maskedText) return '';
+    let result = maskedText;
+    (tokens || []).forEach((tok, idx) => {
+      const reg = new RegExp(`__\\s*MATH_EXPR_${idx}\\s*__`, 'g');
+      // Используем функцию () => tok, чтобы избежать спецсимволов ($$) в строках замены JS
+      result = result.replace(reg, () => tok);
+    });
+    return result;
+  };
+
+  const api = {
+    makeSlug,
+    sanitizeSearch,
+    KATEX_DELIMITERS,
+    normalizeMathAnswer,
+    parseFractionOrNumber,
+    compareAnswers,
+    calcTopicProgress,
+    formatTimerDisplay,
+    getLocalizedText,
+    maskLatexForTranslation,
+    unmaskLatexAfterTranslation
+  };
   if (typeof window !== 'undefined') window.MathTasksLib = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })();
