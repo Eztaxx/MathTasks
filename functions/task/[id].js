@@ -59,7 +59,8 @@ export async function onRequest(context) {
     return context.next();
   }
 
-  if (!env.SUPABASE_URL || !env.SUPABASE_KEY) {
+  const supabaseKey = env.SUPABASE_KEY || env.SUPABASE_ANON_KEY;
+  if (!env.SUPABASE_URL || !supabaseKey) {
     return context.next();
   }
 
@@ -67,8 +68,8 @@ export async function onRequest(context) {
     const apiUrl = `${env.SUPABASE_URL}/rest/v1/tasks?id=eq.${taskId}&select=id,title,condition_latex,condition_image,topics(title,grade)&limit=1`;
     const response = await fetch(apiUrl, {
       headers: {
-        apikey: env.SUPABASE_KEY,
-        Authorization: `Bearer ${env.SUPABASE_KEY}`
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`
       }
     });
 

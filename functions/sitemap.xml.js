@@ -23,17 +23,19 @@ const escapeXml = value => String(value)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 async function read(env, table, columns) {
+  const supabaseKey = env.SUPABASE_KEY || env.SUPABASE_ANON_KEY;
   const url = `${env.SUPABASE_URL}/rest/v1/${table}?select=${columns}`;
   const response = await fetch(url, {
-    headers: { apikey: env.SUPABASE_KEY, Authorization: `Bearer ${env.SUPABASE_KEY}` }
+    headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` }
   });
   if (!response.ok) throw new Error(`${table}: ${response.status}`);
   return response.json();
 }
 
 export async function onRequest({ request, env }) {
-  if (!env.SUPABASE_URL || !env.SUPABASE_KEY) {
-    return new Response('Не заданы SUPABASE_URL и SUPABASE_KEY', { status: 500 });
+  const supabaseKey = env.SUPABASE_KEY || env.SUPABASE_ANON_KEY;
+  if (!env.SUPABASE_URL || !supabaseKey) {
+    return new Response('Не заданы SUPABASE_URL и SUPABASE_KEY / SUPABASE_ANON_KEY', { status: 500 });
   }
   const origin = new URL(request.url).origin;
 

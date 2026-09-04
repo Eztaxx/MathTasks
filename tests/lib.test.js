@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { makeSlug, sanitizeSearch, KATEX_DELIMITERS, compareAnswers, normalizeMathAnswer } from '../public/lib.js';
+import i18n from '../public/i18n.js';
+import {
+  makeSlug,
+  sanitizeSearch,
+  KATEX_DELIMITERS,
+  compareAnswers,
+  normalizeMathAnswer,
+  calcTopicProgress,
+  formatTimerDisplay,
+  getLocalizedText,
+  maskLatexForTranslation,
+  unmaskLatexAfterTranslation
+} from '../public/lib.js';
 
 describe('makeSlug', () => {
   it('транслитерирует кириллицу', () => {
@@ -108,8 +120,6 @@ describe('compareAnswers (Quick Math Bar & Self-Check)', () => {
 });
 
 describe('i18n (Trilingual support LV / RU / EN)', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const i18n = require('../public/i18n.js');
 
   it('поддерживает языки lv, ru, en', () => {
     expect(i18n.SUPPORTED_LANGS).toEqual(['lv', 'ru', 'en']);
@@ -153,7 +163,6 @@ describe('i18n (Trilingual support LV / RU / EN)', () => {
 });
 
 describe('calcTopicProgress — трекер прогресса ученика', () => {
-  const { calcTopicProgress } = require('../public/lib.js');
 
   it('возвращает нули для пустой темы', () => {
     expect(calcTopicProgress([], [1, 2])).toEqual({ total: 0, solved: 0, percent: 0, isComplete: false });
@@ -176,7 +185,6 @@ describe('calcTopicProgress — трекер прогресса ученика',
 });
 
 describe('formatTimerDisplay — форматирование времени таймера', () => {
-  const { formatTimerDisplay } = require('../public/lib.js');
 
   it('форматирует 0 секунд как 00:00', () => {
     expect(formatTimerDisplay(0)).toBe('00:00');
@@ -201,7 +209,6 @@ describe('formatTimerDisplay — форматирование времени т�
 });
 
 describe('getLocalizedText — выбор локализованного поля с fallback', () => {
-  const { getLocalizedText } = require('../public/lib.js');
 
   const task = {
     title: 'Квадратное уравнение',
@@ -236,7 +243,6 @@ describe('getLocalizedText — выбор локализованного пол�
 });
 
 describe('maskLatexForTranslation & unmaskLatexAfterTranslation — защита LaTeX при переводе', () => {
-  const { maskLatexForTranslation, unmaskLatexAfterTranslation } = require('../public/lib.js');
 
   it('маскирует инлайн и блочные формулы KaTeX', () => {
     const text = 'Решите уравнение $x^2 - 5x + 6 = 0$ и найдите $$D = b^2 - 4ac$$.';
