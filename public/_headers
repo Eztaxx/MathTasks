@@ -1,0 +1,17 @@
+# Заголовки безопасности для статики. Workers разбирает этот файл сам,
+# как и _redirects, — отдельного кода в воркере не нужно.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), interest-cohort=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+
+# Служебному домену в поиске делать нечего: индексируется пусть основной домен.
+https://:worker.:subdomain.workers.dev/*
+  X-Robots-Tag: noindex
+
+# Хешированные файлы сборки можно кешировать надолго — имя меняется при правке.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

@@ -822,3 +822,14 @@ body.dark .skola-preset-head strong{color:#edf2ff}
 #gemini-key-wrap[hidden] {
   display: none !important;
 }
+
+/* ── Страница без JavaScript ─────────────────────────────────────── */
+/* Каталог рисуют скрипты; без них раньше оставался белый лист. */
+.noscript-notice{max-width:640px;margin:0 auto;padding:40px 24px;font:400 15px/1.6 Manrope,system-ui,sans-serif;color:#0b1935}
+.noscript-notice h1{font-size:24px;margin:0 0 14px}
+.noscript-notice p{margin:0 0 12px}
+.noscript-notice ul{margin:0;padding-left:20px}
+.noscript-notice li{margin-bottom:6px}
+.noscript-notice a{color:#1764ff}
+/* Парное правило к атрибуту hidden — в этом проекте display уже трижды его перебивал. */
+.lightbox-img[hidden]{display:none}

@@ -21,7 +21,7 @@ const accountButton = document.querySelector('#account-button');
 const accountDialog = document.querySelector('#account-dialog');
 const accountEmail = document.querySelector('#account-email');
 const accountStatus = document.querySelector('#account-status');
-const openAdminPanelLink = document.querySelector('#open-admin-panel');
+const adminPanelSlot = document.querySelector('#admin-panel-slot');
 
 let currentUser = null;
 let subjects = [];
@@ -51,7 +51,23 @@ try {
   }
 } catch {}
 
-const TASK_SELECT = '*, topics(title, title_lv, slug, description, description_lv, subjects(title, title_lv, icon))';
+/* Мультиязычные колонки добавляет миграция 007. Если код выкатили раньше
+   миграции, PostgREST отвечает 400 на весь запрос, и страница темы остаётся
+   без задач. Поэтому набор полей выбирается один раз при загрузке: сначала
+   пробуем полный, при ошибке откатываемся на базовый. */
+const TASK_SELECT_FULL = '*, topics(title, title_lv, slug, description, description_lv, subjects(title, title_lv, icon))';
+const TASK_SELECT_BASE = '*, topics(title, slug, description, subjects(title, icon))';
+let TASK_SELECT = TASK_SELECT_FULL;
+let multilingualColumns = true;
+
+async function detectMultilingualColumns() {
+  if (!db) return;
+  const { error } = await db.from('topics').select('title_lv').limit(1);
+  if (!error) return;
+  multilingualColumns = false;
+  TASK_SELECT = TASK_SELECT_BASE;
+  console.warn('Мультиязычные колонки не найдены — примените supabase/migrations/007_multilingual_tasks.sql. Сайт работает на базовом языке.');
+}
 
 const loc = (item, field) => {
   const lang = window.MathTasks?.getLang ? window.MathTasks.getLang() : 'ru';
@@ -1422,7 +1438,7 @@ async function showTask(rawId) {
 async function renderTaskNeighbours(task) {
   document.querySelector('#task-nav')?.remove();
   if (!task.topic_id) return;
-  const { data } = await db.from('tasks').select('id, title, title_lv')
+  const { data } = await db.from('tasks').select(multilingualColumns ? 'id, title, title_lv' : 'id, title')
     .eq('is_published', true).eq('topic_id', task.topic_id)
     .order('position').order('created_at', { ascending: true });
   const siblings = data || [];
@@ -1599,12 +1615,33 @@ function parseMathExpr(expr) {
   }
 }
 
+/* Холст подгоняем под контейнер: жёсткие 680x380 на телефоне 360-430px
+   вызывали горизонтальную прокрутку всей страницы и разваливали диалог.
+   Рисуем в физических пикселях, а размер в CSS оставляем логическим —
+   иначе на экранах с высокой плотностью график был бы мыльным. */
+function resizePlotterCanvas(canvas) {
+  const box = canvas.parentElement;
+  const cssWidth = Math.max(240, Math.floor(box ? box.clientWidth : 320));
+  const cssHeight = Math.max(220, Math.min(380, Math.round(cssWidth * 0.56)));
+  const ratio = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.style.width = cssWidth + 'px';
+  canvas.style.height = cssHeight + 'px';
+  const wanted = { w: Math.round(cssWidth * ratio), h: Math.round(cssHeight * ratio) };
+  if (canvas.width !== wanted.w || canvas.height !== wanted.h) {
+    canvas.width = wanted.w;
+    canvas.height = wanted.h;
+  }
+  return ratio;
+}
+
 function drawFunctionPlot() {
   const canvas = document.querySelector('#plotter-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const w = canvas.width;
-  const h = canvas.height;
+  const ratio = resizePlotterCanvas(canvas);
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  const w = canvas.width / ratio;
+  const h = canvas.height / ratio;
   plotterOrigin = { x: w / 2, y: h / 2 };
 
   ctx.clearRect(0, 0, w, h);
@@ -1674,6 +1711,7 @@ function drawFunctionPlot() {
   const roots = [];
   let prevY = null;
   let prevMathX = null;
+  let prevPy = null;
 
   for (let px = 0; px <= w; px += 1.5) {
     const mathX = (px - plotterOrigin.x) / plotterScale;
@@ -1690,7 +1728,13 @@ function drawFunctionPlot() {
       continue;
     }
 
-    if (prevY !== null && ((prevY < 0 && mathY >= 0) || (prevY > 0 && mathY <= 0))) {
+    /* Смена знака засчитывается за ноль только на непрерывном участке.
+       У tan(x) и 1/x знак меняется и через асимптоту, и без этой проверки
+       точки «нулей» вставали в разрывы: у tan(x) появлялись ложные
+       корни около -3.5пи и -2.5пи, где функция уходит в бесконечность. */
+    const visibleSpan = h / plotterScale;
+    const continuous = prevY !== null && Math.abs(mathY - prevY) < visibleSpan;
+    if (continuous && ((prevY < 0 && mathY >= 0) || (prevY > 0 && mathY <= 0))) {
       const rootX = prevMathX + (mathX - prevMathX) * (-prevY) / (mathY - prevY);
       roots.push(rootX);
     }
@@ -1702,6 +1746,14 @@ function drawFunctionPlot() {
       started = false;
       continue;
     }
+
+    /* Разрыв функции: между соседними точками значение прыгнуло больше,
+       чем на высоту холста. Так tan(x) и 1/x перестают рисовать
+       паразитную вертикаль между +бесконечностью и -бесконечностью. */
+    if (started && prevPy !== null && Math.abs(py - prevPy) > h) {
+      started = false;
+    }
+    prevPy = py;
 
     if (!started) {
       ctx.moveTo(px, py);
@@ -2058,6 +2110,9 @@ document.addEventListener('click', event => {
     if (dialog && img) {
       img.src = figure.src;
       img.alt = figure.alt || '';
+      // До открытия просмотра картинка скрыта: img без src невалиден
+      // и скринридер объявляет его как «пустое изображение».
+      img.hidden = false;
       if (caption) caption.textContent = figure.alt || '';
       if (typeof dialog.showModal === 'function') dialog.showModal();
       else dialog.setAttribute('open', '');
@@ -2073,16 +2128,38 @@ document.addEventListener('click', event => {
   }
 });
 
-// Отслеживание мыши над графиком
-document.querySelector('#plotter-canvas')?.addEventListener('mousemove', event => {
-  const canvas = event.currentTarget;
-  const rect = canvas.getBoundingClientRect();
-  const px = (event.clientX - rect.left) * (canvas.width / rect.width);
-  const py = (event.clientY - rect.top) * (canvas.height / rect.height);
-  const mathX = ((px - plotterOrigin.x) / plotterScale).toFixed(2);
-  const mathY = ((plotterOrigin.y - py) / plotterScale).toFixed(2);
-  const coords = document.querySelector('#plotter-coords');
-  if (coords) coords.textContent = `x: ${mathX}, y: ${mathY}`;
+/* Координаты под указателем. Слушаем pointer-события, а не mousemove:
+   на телефоне мыши нет, и значения так и оставались x: 0.0, y: 0.0.
+   Координаты считаем в логических пикселях — холст отрисован
+   с масштабом devicePixelRatio. */
+const plotterCanvas = document.querySelector('#plotter-canvas');
+if (plotterCanvas) {
+  const showPlotterCoords = event => {
+    const canvas = event.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    const px = (event.clientX - rect.left) * (canvas.width / ratio / rect.width);
+    const py = (event.clientY - rect.top) * (canvas.height / ratio / rect.height);
+    const mathX = ((px - plotterOrigin.x) / plotterScale).toFixed(2);
+    const mathY = ((plotterOrigin.y - py) / plotterScale).toFixed(2);
+    const coords = document.querySelector('#plotter-coords');
+    if (coords) coords.textContent = `x: ${mathX}, y: ${mathY}`;
+  };
+  plotterCanvas.addEventListener('pointermove', showPlotterCoords);
+  // Касание без движения тоже должно показывать точку.
+  plotterCanvas.addEventListener('pointerdown', showPlotterCoords);
+  // Прокрутку страницы пальцем по графику не перехватываем: жестов тут нет.
+  plotterCanvas.style.touchAction = 'pan-y';
+}
+
+// Поворот экрана и смена ширины окна меняют размер холста.
+let plotterResizeTimer;
+window.addEventListener('resize', () => {
+  const dialog = document.querySelector('#plotter-dialog');
+  if (!dialog?.open) return;
+  clearTimeout(plotterResizeTimer);
+  plotterResizeTimer = setTimeout(drawFunctionPlot, 150);
 });
 
 document.querySelector('#plotter-expr')?.addEventListener('keydown', event => {
@@ -2125,6 +2202,7 @@ window.addEventListener('keydown', event => {
 /* ── Загрузка справочников и сессия ───────────────────────────────── */
 
 async function loadCatalog() {
+  await detectMultilingualColumns();
   /* Без config.js клиент Supabase не создаётся. Раньше каталог просто оставался
      пустым без объяснений — на выкладке это выглядит как «сайт сломался».
      Частая причина: config.js в .gitignore, и сборка на хостинге его не получила. */
@@ -2170,7 +2248,22 @@ async function refreshSession() {
   accountStatus.textContent = !user ? ''
     : isAdmin ? 'Вы вошли как администратор. Панель управления на отдельной странице.'
     : 'У этого аккаунта нет прав администратора.';
-  openAdminPanelLink.hidden = !isAdmin;
+  /* Ссылку на админку не держим в разметке скрытой: убрать hidden в
+     инструментах разработчика может кто угодно. Создаём её только после
+     того, как роль подтверждена запросом к profiles.
+     Права всё равно проверяются в базе политиками RLS, так что адрес сам
+     по себе ничего не открывает, — это защита от лишнего любопытства,
+     а не единственный барьер. */
+  if (adminPanelSlot) {
+    adminPanelSlot.textContent = '';
+    if (isAdmin) {
+      const link = document.createElement('a');
+      link.className = 'primary-button';
+      link.href = '/admin.html';
+      link.textContent = (window.MathTasks.t || (k => k))('open_admin_panel');
+      adminPanelSlot.append(link);
+    }
+  }
 }
 window.addEventListener('math-tasks:authenticated', refreshSession);
 window.MathTasks.openAccount = () => {

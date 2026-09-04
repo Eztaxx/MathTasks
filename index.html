@@ -21,6 +21,20 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
+  <noscript>
+    <div class="noscript-notice">
+      <h1>MathTasks — сборник задач по математике</h1>
+      <p>Каталог задач подгружается скриптами, а они сейчас отключены. Включите JavaScript,
+         чтобы открыть задачи по классам, темам и разбор решений.</p>
+      <p>Справочные материалы Skola2030 доступны и без него:</p>
+      <ul>
+        <li><a href="/formulas/eksamens-matematika-9-klase-2026.pdf">Формулы: экзамен 9 класса (PDF)</a></li>
+        <li><a href="/formulas/eksamens-matematika-visparigais-2026.pdf">Формулы: Vispārīgais līmenis (PDF)</a></li>
+        <li><a href="/formulas/eksamens-matematika-optimalais-2026.pdf">Формулы: Optimālais līmenis (PDF)</a></li>
+        <li><a href="/formulas/eksamens-matematika-augstakais-2026.pdf">Формулы: Augstākais līmenis (PDF)</a></li>
+      </ul>
+    </div>
+  </noscript>
   <div class="sidebar-scrim" id="sidebar-scrim"></div>
   <aside class="sidebar" id="sidebar">
     <a href="/" class="brand" title="MathTasks">
@@ -129,14 +143,14 @@
     <h2>Аккаунт</h2>
     <p id="account-status"></p>
     <div class="account-details"><span>Аккаунт</span><strong id="account-email"></strong></div>
-    <a id="open-admin-panel" class="primary-button" href="/admin.html" hidden>Открыть админ-панель</a>
+    <div id="admin-panel-slot"></div>
     <button data-sign-out class="text-button" type="button">Выйти из аккаунта</button>
   </dialog>
 
   <dialog class="lightbox-dialog" id="lightbox-dialog">
     <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Закрыть">×</button>
     <div class="lightbox-content">
-      <img class="lightbox-img" id="lightbox-img" alt="" />
+      <img class="lightbox-img" id="lightbox-img" alt="" hidden />
       <p class="lightbox-caption" id="lightbox-caption"></p>
     </div>
   </dialog>
@@ -184,7 +198,7 @@
       </div>
     </div>
     <div class="plotter-canvas-container">
-      <canvas id="plotter-canvas" width="680" height="380"></canvas>
+      <canvas id="plotter-canvas" role="img" aria-label="График функции"></canvas>
       <div class="plotter-coords" id="plotter-coords">x: 0.0, y: 0.0</div>
       <div class="plotter-zoom">
         <button type="button" id="plotter-zoom-in" title="Увеличить">+</button>
@@ -218,51 +232,51 @@
         <div class="formula-sheet-card">
           <div class="formula-sheet-badge gold">9. klase</div>
           <div class="formula-sheet-info">
-            <h3>Eksāmens 9. klasei (2026)</h3>
+            <h3 lang="lv">Eksāmens 9. klasei (2026)</h3>
             <p>Formulu lapa • Pamatskola / Основная школа: saīsinātās reizināšanas formulas, kvadrātvienādojumi, Vjeta teorēma, progresijas, pakāpju un sakņu īpašības, trigonometrija (30°, 45°, 60°), planimetrija un rotācijas ķermeņi.</p>
-            <span class="formula-sheet-meta">2 lpp. • PDF • Valsts pārbaudes darbs</span>
+            <span class="formula-sheet-meta" lang="lv">2 lpp. • PDF • Valsts pārbaudes darbs</span>
           </div>
           <div class="formula-sheet-actions">
-            <a class="primary-button small" href="/formulas/eksamens-matematika-9-klase-2026.pdf" target="_blank" rel="noopener" data-i18n="open_pdf">Открыть PDF</a>
+            <a class="primary-button small" href="/formulas/eksamens-matematika-9-klase-2026.pdf" target="_blank" rel="noopener noreferrer" data-i18n="open_pdf">Открыть PDF</a>
             <a class="ghost-button small" href="/formulas/eksamens-matematika-9-klase-2026.pdf" download data-i18n="download_pdf">Скачать</a>
           </div>
         </div>
 
         <div class="formula-sheet-card">
-          <div class="formula-sheet-badge teal">Vispārīgais</div>
+          <div class="formula-sheet-badge teal" lang="lv">Vispārīgais</div>
           <div class="formula-sheet-info">
-            <h3>Vispārīgais līmenis (2026)</h3>
+            <h3 lang="lv">Vispārīgais līmenis (2026)</h3>
             <p>Formulu lapa • Vidusskola: saliktie procenti, logaritmi, pakāpes un saknes, varbūtību teorija, statistika, vektori plaknē un telpā, stereometrija.</p>
-            <span class="formula-sheet-meta">2 lpp. • PDF • Valsts eksāmens</span>
+            <span class="formula-sheet-meta" lang="lv">2 lpp. • PDF • Valsts eksāmens</span>
           </div>
           <div class="formula-sheet-actions">
-            <a class="primary-button small" href="/formulas/eksamens-matematika-visparigais-2026.pdf" target="_blank" rel="noopener" data-i18n="open_pdf">Открыть PDF</a>
+            <a class="primary-button small" href="/formulas/eksamens-matematika-visparigais-2026.pdf" target="_blank" rel="noopener noreferrer" data-i18n="open_pdf">Открыть PDF</a>
             <a class="ghost-button small" href="/formulas/eksamens-matematika-visparigais-2026.pdf" download data-i18n="download_pdf">Скачать</a>
           </div>
         </div>
 
         <div class="formula-sheet-card">
-          <div class="formula-sheet-badge blue">Optimālais (Mat I)</div>
+          <div class="formula-sheet-badge blue" lang="lv">Optimālais (Mat I)</div>
           <div class="formula-sheet-info">
-            <h3>Optimālais līmenis (2026)</h3>
+            <h3 lang="lv">Optimālais līmenis (2026)</h3>
             <p>Formulas un teorēmas • Matemātika I: vienības riņķis, trigonometriskās sakarības, kombinatorika, triju perpendikulu teorēma, sinusu un kosinusu teorēmas, piramīdas un prizmas.</p>
-            <span class="formula-sheet-meta">2 lpp. • PDF • Valsts eksāmens</span>
+            <span class="formula-sheet-meta" lang="lv">2 lpp. • PDF • Valsts eksāmens</span>
           </div>
           <div class="formula-sheet-actions">
-            <a class="primary-button small" href="/formulas/eksamens-matematika-optimalais-2026.pdf" target="_blank" rel="noopener" data-i18n="open_pdf">Открыть PDF</a>
+            <a class="primary-button small" href="/formulas/eksamens-matematika-optimalais-2026.pdf" target="_blank" rel="noopener noreferrer" data-i18n="open_pdf">Открыть PDF</a>
             <a class="ghost-button small" href="/formulas/eksamens-matematika-optimalais-2026.pdf" download data-i18n="download_pdf">Скачать</a>
           </div>
         </div>
 
         <div class="formula-sheet-card">
-          <div class="formula-sheet-badge purple">Augstākais (Mat II)</div>
+          <div class="formula-sheet-badge purple" lang="lv">Augstākais (Mat II)</div>
           <div class="formula-sheet-info">
-            <h3>Augstākais līmenis (2026)</h3>
+            <h3 lang="lv">Augstākais līmenis (2026)</h3>
             <p>Formulas, teorēmas un paņēmieni • Matemātika II: matemātiskās indukcijas metode, Ņūtona binoms, Bezū teorēma, Eiklīda teorēma, robežas, atvasinājumi, integrāļi, rotācijas ķermeņu tilpumi.</p>
-            <span class="formula-sheet-meta">6 lpp. • PDF • Valsts padziļinātais eksāmens</span>
+            <span class="formula-sheet-meta" lang="lv">6 lpp. • PDF • Valsts padziļinātais eksāmens</span>
           </div>
           <div class="formula-sheet-actions">
-            <a class="primary-button small" href="/formulas/eksamens-matematika-augstakais-2026.pdf" target="_blank" rel="noopener" data-i18n="open_pdf">Открыть PDF</a>
+            <a class="primary-button small" href="/formulas/eksamens-matematika-augstakais-2026.pdf" target="_blank" rel="noopener noreferrer" data-i18n="open_pdf">Открыть PDF</a>
             <a class="ghost-button small" href="/formulas/eksamens-matematika-augstakais-2026.pdf" download data-i18n="download_pdf">Скачать</a>
           </div>
         </div>
