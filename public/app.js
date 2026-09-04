@@ -164,11 +164,11 @@ gradeFilter.addEventListener('click', async event => {
   event.preventDefault();
   const href = chip.getAttribute('href');
   const raw = href === '/' ? null : href.replace('/grade/', '');
-  applyGrade(raw);
   if (location.pathname !== href) {
     history.pushState(null, '', href);
     lastRoute = location.pathname + location.search;
   }
+  applyGrade(raw);
   const label = gradeLabel(selectedGrade);
   setMeta(
     selectedGrade ? `Задачи — ${label}` : '',
@@ -180,13 +180,14 @@ gradeFilter.addEventListener('click', async event => {
 // Смена класса из селектора в сайдбаре
 gradeSelect.addEventListener('change', async () => {
   const raw = gradeSelect.value || null;
+  const parsed = parseGradeValue(raw);
+  const target = parsed ? `/grade/${parsed}` : '/';
+  if (currentView === 'home' && location.pathname !== target) {
+    history.pushState(null, '', target);
+    lastRoute = location.pathname + location.search;
+  }
   applyGrade(raw);
-  const target = selectedGrade ? `/grade/${selectedGrade}` : '/';
   if (currentView === 'home') {
-    if (location.pathname !== target) {
-      history.pushState(null, '', target);
-      lastRoute = location.pathname + location.search;
-    }
     const label = gradeLabel(selectedGrade);
     setMeta(
       selectedGrade ? `Задачи — ${label}` : '',

@@ -15,18 +15,16 @@ const configPath = path.resolve(__dirname, '../public/config.js');
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
-if (!fs.existsSync(configPath)) {
-  if (supabaseUrl && supabaseKey) {
-    const content = `window.SUPABASE_CONFIG = {
+if (supabaseUrl && supabaseKey) {
+  const content = `window.SUPABASE_CONFIG = {
   url: ${JSON.stringify(supabaseUrl)},
   publishableKey: ${JSON.stringify(supabaseKey)}
 };
 `;
-    fs.writeFileSync(configPath, content, 'utf8');
-    console.log('✓ scripts/prepare-config.js: public/config.js успешно создан из переменных окружения.');
-  } else {
-    console.warn('⚠ scripts/prepare-config.js: public/config.js отсутствует и переменные SUPABASE_URL / SUPABASE_KEY не заданы.');
-  }
+  fs.writeFileSync(configPath, content, 'utf8');
+  console.log('✅ scripts/prepare-config.js: public/config.js сгенерирован с переменными окружения.');
+} else if (!fs.existsSync(configPath)) {
+  console.warn('⚠️ scripts/prepare-config.js: public/config.js отсутствует и переменные SUPABASE_URL / SUPABASE_KEY не заданы.');
 } else {
-  console.log('✓ scripts/prepare-config.js: локальный public/config.js уже существует, пропуск генерации.');
+  console.log('ℹ️ scripts/prepare-config.js: используются существующий public/config.js (переменные окружения не заданы).');
 }

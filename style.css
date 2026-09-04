@@ -138,8 +138,10 @@ body.dark .auth-dialog input,body.dark .task-form input,body.dark .task-form sel
 /* ── Фильтр по классам на главной ────────────────────────────────── */
 .grades{margin-top:26px}
 .grades h2{font-size:17px;margin:0 0 12px}
-.grade-filter{display:flex;flex-wrap:wrap;gap:8px}
-.grade-chip{border:1px solid var(--line);border-radius:999px;background:#fff;color:#455471;font:600 12px Manrope;padding:8px 15px;cursor:pointer;transition:border-color .15s,background .15s}
+.grade-filter{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+.grade-filter::-webkit-scrollbar{height:4px}
+.grade-filter::-webkit-scrollbar-thumb{background:#c3d2ea;border-radius:4px}
+.grade-chip{border:1px solid var(--line);border-radius:999px;background:#fff;color:#455471;font:600 12px Manrope;padding:8px 15px;cursor:pointer;transition:border-color .15s,background .15s;white-space:nowrap;flex-shrink:0}
 .grade-chip:hover{border-color:#c3d2ea;background:#f2f6fd}
 .grade-chip.active{border-color:#1764ff;background:#1764ff;color:#fff}
 .grade-badge{display:inline-block;font-size:11px;font-weight:600;padding:4px 9px;border-radius:6px;color:#8a5a00;background:#fff3dd;white-space:nowrap}
