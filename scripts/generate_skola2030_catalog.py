@@ -36,8 +36,8 @@ def get_grade_num(grade_name):
     if '7 klase' in grade_name or '7 класс' in grade_name: return 7
     if '8 klase' in grade_name or '8 класс' in grade_name: return 8
     if '9 klase' in grade_name or '9 класс' in grade_name: return 9
-    if 'Matemātika I' in grade_name or 'Математика I' in grade_name: return 11
     if 'Matemātika II' in grade_name or 'Математика II' in grade_name: return 12
+    if 'Matemātika I' in grade_name or 'Математика I' in grade_name: return 11
     m = re.search(r'\d+', grade_name)
     return int(m.group(0)) if m else 10
 

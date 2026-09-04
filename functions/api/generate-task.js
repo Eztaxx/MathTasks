@@ -12,6 +12,7 @@ export async function onRequestPost({ request, env }) {
       subtopic = '',
       difficulty = 'Средний',
       taskType = 'Уравнение',
+      context = '',
       customPrompt = '',
       apiKey = ''
     } = body || {};
@@ -32,6 +33,7 @@ export async function onRequestPost({ request, env }) {
 ${subtopic ? `Конкретный навык/подтема: "${subtopic}".` : ''}
 Сложность: ${difficulty || 'Средний'} (Лёгкий = pamata līmenis, Средний = optimālais līmenis, Сложный = padziļinātais līmenis).
 Тип задачи: ${taskType || 'Уравнение или текстовая задача'}.
+${context ? `Сюжетный контекст задачи (ОБЯЗАТЕЛЬНО составь условие задачи именно про этот жизненный сюжет или ситуацию): "${context}".` : ''}
 ${customPrompt ? `Дополнительные пожелания: "${customPrompt}".` : ''}
 
 Требования:

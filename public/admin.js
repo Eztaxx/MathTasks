@@ -962,6 +962,7 @@
   const aiGenSubtopic = document.querySelector('#ai-gen-subtopic');
   const aiGenDifficulty = document.querySelector('#ai-gen-difficulty');
   const aiGenType = document.querySelector('#ai-gen-type');
+  const aiGenContext = document.querySelector('#ai-gen-context');
   const aiGenPrompt = document.querySelector('#ai-gen-prompt');
   const btnRunAiGenerator = document.querySelector('#btn-run-ai-generator');
   const aiGenStatus = document.querySelector('#ai-gen-status');
@@ -1009,7 +1010,6 @@
 
       topicForm.elements.title.value = topicData.title_ru;
       if (topicForm.elements.title_lv) topicForm.elements.title_lv.value = topicData.title_lv;
-      if (topicForm.elements.title_en) topicForm.elements.title_en.value = topicData.title_en;
       topicForm.elements.grade.value = String(topicData.grade);
 
       const matchingSubj = subjects.find(s => s.slug === topicData.subject_slug) || subjects[0];
@@ -1047,7 +1047,6 @@
         const payload = {
           title: item.title_ru,
           title_lv: item.title_lv,
-          title_en: item.title_en,
           slug: item.slug,
           subject_id: matchingSubj ? matchingSubj.id : null,
           grade: item.grade,
@@ -1145,6 +1144,7 @@
       const subtopic = aiGenSubtopic?.value || '';
       const difficulty = aiGenDifficulty?.value || 'Средний';
       const taskType = aiGenType?.value || 'Уравнение';
+      const context = (aiGenContext?.value || '').trim();
       const customPrompt = (aiGenPrompt?.value || '').trim();
       const engine = aiEngineSelect?.value || 'builtin';
       const apiKey = (aiGeminiKey?.value || '').trim() || localStorage.getItem('math_tasks_gemini_api_key') || '';
@@ -1163,6 +1163,7 @@
           subtopic,
           difficulty,
           taskType,
+          context,
           customPrompt,
           apiKey,
           useGemini: engine === 'gemini'
@@ -1171,7 +1172,6 @@
         // Заполняем форму задания
         taskForm.elements.title.value = result.title_ru || result.title || '';
         if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = result.title_lv || '';
-        if (taskForm.elements.title_en) taskForm.elements.title_en.value = result.title_en || '';
 
         taskGradeSelect.value = String(g);
         updateTaskTopicDropdown();

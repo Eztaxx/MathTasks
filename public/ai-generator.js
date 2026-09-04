@@ -360,14 +360,15 @@
   /**
    * Вызов Google Gemini API
    */
-  async function callGeminiApi({ apiKey, grade, topicTitle, subtopic, difficulty, taskType, customPrompt }) {
+  async function callGeminiApi({ apiKey, grade, topicTitle, subtopic, difficulty, taskType, context, customPrompt }) {
     const prompt = `Ты — ведущий методист и преподаватель математики в Латвии, создающий учебные материалы строго по государственному стандарту Skola2030.
 Создай качественную математическую задачу для ${grade} класса.
 Тема Skola2030: "${topicTitle}".
 ${subtopic ? `Конкретный навык/подтема: "${subtopic}".` : ''}
 Сложность: ${difficulty || 'Средний'} (Лёгкий = pamata līmenis, Средний = optimālais līmenis, Сложный = padziļinātais līmenis).
 Тип задачи: ${taskType || 'Уравнение или текстовая задача'}.
-${customPrompt ? `Дополнительные пожелания автора: "${customPrompt}".` : ''}
+${context ? `Сюжетный контекст задачи (ОБЯЗАТЕЛЬНО составь условие задачи именно про этот жизненный сюжет или ситуацию): "${context}".` : ''}
+${customPrompt ? `Дополнительные математические требования: "${customPrompt}".` : ''}
 
 Требования:
 1. Математическая точность: условие должно иметь ровно одно корректное решение, ответ должен быть строго выверен.
@@ -428,6 +429,7 @@ ${customPrompt ? `Дополнительные пожелания автора: 
       subtopic = '',
       difficulty = 'Средний',
       taskType = 'Уравнение',
+      context = '',
       customPrompt = '',
       apiKey = '',
       useGemini = false
@@ -443,6 +445,7 @@ ${customPrompt ? `Дополнительные пожелания автора: 
           subtopic,
           difficulty,
           taskType,
+          context,
           customPrompt
         });
       } catch (err) {

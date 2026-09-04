@@ -85,6 +85,17 @@ describe('AI Task Generator (Skola2030 Autonomous Engine)', () => {
     expect(task.answer_latex).toMatch(/f'\(\d+\)/);
   });
 
+  it('принимает сюжетный контекст задачи (context) в генератор', async () => {
+    const task = await aiGen.generateTask({
+      grade: 7,
+      topicTitle: 'Линейные уравнения',
+      context: 'Покупка билетов в кино со скидкой'
+    });
+    expect(task.grade).toBe(7);
+    expect(task.condition_latex_ru).toBeTruthy();
+    expect(task.answer_latex).toBeTruthy();
+  });
+
   it('переводит математический текст на латышский и английский языки', () => {
     const text = 'Решите уравнение: $2x + 5 = 15$. Ответ: $x = 5$.';
     const lv = aiGen.translateMathText(text, 'lv');
