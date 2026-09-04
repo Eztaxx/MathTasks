@@ -32,6 +32,45 @@
   const bulkDialogCancel = document.querySelector('#bulk-dialog-cancel');
   const btnExportTasks = document.querySelector('#btn-export-tasks');
   const btnImportTasks = document.querySelector('#btn-import-tasks');
+  const bulkFileInput = document.querySelector('#bulk-file-input');
+  const bulkDialogFileInput = document.querySelector('#bulk-dialog-file-input');
+  const btnUploadFileTasks = document.querySelector('#btn-upload-file-tasks');
+  const bulkDialogPickFileBtn = document.querySelector('#bulk-dialog-pick-file-btn');
+  const bulkDialogTemplateBtn = document.querySelector('#bulk-dialog-template-btn');
+  const skolaTopicsSeededBadge = document.querySelector('#skola-topics-seeded-badge');
+  const aiGenCount = document.querySelector('#ai-gen-count');
+
+  const btnToggleMathGuide = document.querySelector('#btn-toggle-math-guide');
+  const btnCloseMathGuide = document.querySelector('#btn-close-math-guide');
+  const mathGuideCard = document.querySelector('#math-guide-card');
+
+  const btnToggleSampleJson = document.querySelector('#btn-toggle-sample-json');
+  const btnCloseSampleJson = document.querySelector('#btn-close-sample-json');
+  const btnCopySampleJson = document.querySelector('#btn-copy-sample-json');
+  const btnInsertSampleToDialog = document.querySelector('#btn-insert-sample-to-dialog');
+  const jsonSampleCard = document.querySelector('#json-sample-card');
+  const jsonSampleCode = document.querySelector('#json-sample-code');
+
+  // Динамическое определение поддерживаемых колонок в БД Supabase
+  // (защищает от ошибок PGRST204, если миграция 007_multilingual_tasks ещё не выполнена в SQL Editor)
+  const supportedTopicCols = new Set(['title', 'slug', 'subject_id', 'grade', 'position', 'description']);
+  const supportedTaskCols = new Set(['topic_id', 'title', 'condition_latex', 'solution_latex', 'difficulty', 'is_published', 'grade', 'position', 'answer_latex', 'condition_image', 'solution_image']);
+
+  const sanitizeTopicPayload = payload => {
+    const clean = {};
+    for (const [k, v] of Object.entries(payload)) {
+      if (supportedTopicCols.has(k)) clean[k] = v;
+    }
+    return clean;
+  };
+
+  const sanitizeTaskPayload = payload => {
+    const clean = {};
+    for (const [k, v] of Object.entries(payload)) {
+      if (supportedTaskCols.has(k)) clean[k] = v;
+    }
+    return clean;
+  };
 
   // Одна форма работает и на создание, и на правку: id заполнен — значит правим.
   let editingSubjectId = null;
@@ -49,13 +88,19 @@
 
   const parseFormGrade = val => {
     if (!val) return null;
-    if (val === 'visparigais') return 10;
-    if (val === 'matematika-1') return 11;
-    if (val === 'matematika-2') return 12;
+    if (val === 'visparigais' || val === '10' || val === 10) return 10;
+    if (val === 'matematika-1' || val === '11' || val === 11) return 11;
+    if (val === 'matematika-2' || val === '12' || val === 12) return 12;
     const num = Number(val);
     return Number.isFinite(num) ? num : null;
   };
-  const gradeText = grade => (grade ? `${grade} класс` : 'без класса');
+  const gradeText = grade => {
+    if (!grade) return 'без класса';
+    if (grade === 10 || grade === 'visparigais') return 'Vispārīgais līmenis';
+    if (grade === 11 || grade === 'matematika-1') return 'Optimālais līmenis (Matemātika I)';
+    if (grade === 12 || grade === 'matematika-2') return 'Augstākais līmenis (Matemātika II)';
+    return `${grade} класс`;
+  };
   const subjectTitle = id => subjects.find(item => item.id === id)?.title || 'Без раздела';
 
   /* ── Разделы ──────────────────────────────────────────────────────── */
@@ -160,7 +205,7 @@
     topicSuccess.textContent = '';
     const form = new FormData(topicForm);
     const title = form.get('title').trim();
-    const payload = {
+    const payload = sanitizeTopicPayload({
       title,
       title_lv: form.get('title_lv')?.trim() || null,
       subject_id: form.get('subject_id') ? Number(form.get('subject_id')) : null,
@@ -168,7 +213,7 @@
       position: Number(form.get('position')) || 0,
       description: form.get('description')?.trim() || null,
       description_lv: form.get('description_lv')?.trim() || null,
-    };
+    });
     const { error } = editingTopicId
       ? await db.from('topics').update(payload).eq('id', editingTopicId)
       : await db.from('topics').insert({ ...payload, slug: `${makeSlug(title)}-${Date.now()}` });
@@ -209,11 +254,6 @@
   const conditionPreviewLv = document.querySelector('#condition-preview-lv');
   const solutionPreviewLv = document.querySelector('#solution-preview-lv');
 
-  const conditionInputEn = document.querySelector('#condition-input-en');
-  const solutionInputEn = document.querySelector('#solution-input-en');
-  const conditionPreviewEn = document.querySelector('#condition-preview-en');
-  const solutionPreviewEn = document.querySelector('#solution-preview-en');
-
   // Предпросмотр показывает ровно то, что увидит посетитель, — до сохранения.
   const updatePreviews = () => {
     if (conditionPreview && conditionInput) renderMath(conditionPreview, conditionInput.value);
@@ -221,10 +261,8 @@
     if (solutionPreview && solutionInput) renderMath(solutionPreview, solutionInput.value);
     if (conditionPreviewLv && conditionInputLv) renderMath(conditionPreviewLv, conditionInputLv.value);
     if (solutionPreviewLv && solutionInputLv) renderMath(solutionPreviewLv, solutionInputLv.value);
-    if (conditionPreviewEn && conditionInputEn) renderMath(conditionPreviewEn, conditionInputEn.value);
-    if (solutionPreviewEn && solutionInputEn) renderMath(solutionPreviewEn, solutionInputEn.value);
   };
-  [conditionInput, answerInput, solutionInput, conditionInputLv, solutionInputLv, conditionInputEn, solutionInputEn]
+  [conditionInput, answerInput, solutionInput, conditionInputLv, solutionInputLv]
     .filter(Boolean)
     .forEach(input => input.addEventListener('input', updatePreviews));
 
@@ -339,31 +377,24 @@
       btnAiTranslate.innerHTML = '<span>⏳</span> Выполняется AI-перевод…';
 
       try {
-        const [titleLv, condLv, solLv, titleEn, condEn, solEn] = await Promise.all([
+        const [titleLv, condLv, solLv] = await Promise.all([
           translateTextWithLatex(titleRu, 'lv'),
           translateTextWithLatex(condRu, 'lv'),
-          translateTextWithLatex(solRu, 'lv'),
-          translateTextWithLatex(titleRu, 'en'),
-          translateTextWithLatex(condRu, 'en'),
-          translateTextWithLatex(solRu, 'en')
+          translateTextWithLatex(solRu, 'lv')
         ]);
 
         if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = titleLv;
         if (conditionInputLv) conditionInputLv.value = condLv;
         if (solutionInputLv) solutionInputLv.value = solLv;
 
-        if (taskForm.elements.title_en) taskForm.elements.title_en.value = titleEn;
-        if (conditionInputEn) conditionInputEn.value = condEn;
-        if (solutionInputEn) solutionInputEn.value = solEn;
-
         updatePreviews();
-        taskSuccess.textContent = '✨ Перевод на латышский и английский сгенерирован! Проверьте вкладки LV и EN.';
+        taskSuccess.textContent = '✨ Перевод на латышский сгенерирован! Проверьте вкладку LV.';
         setTimeout(() => { if (taskSuccess.textContent.startsWith('✨')) taskSuccess.textContent = ''; }, 6000);
       } catch (err) {
         alert('Ошибка при переводе: ' + err.message);
       } finally {
         btnAiTranslate.disabled = false;
-        btnAiTranslate.innerHTML = '<span class="ai-icon">✨</span> Автоперевод AI (LV & EN)';
+        btnAiTranslate.innerHTML = '<span class="ai-icon">✨</span> Автоперевод AI (LV)';
       }
     });
   }
@@ -520,7 +551,6 @@
     document.querySelector('#task-cancel').hidden = !task;
     taskForm.elements.title.value = task?.title || '';
     if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = task?.title_lv || '';
-    if (taskForm.elements.title_en) taskForm.elements.title_en.value = task?.title_en || '';
     taskForm.elements.grade.value = task?.grade ? String(task.grade) : '';
     updateTaskTopicDropdown(task?.topic_id);
     taskForm.elements.topic_id.value = task?.topic_id ? String(task.topic_id) : '';
@@ -528,11 +558,9 @@
     taskForm.elements.position.value = task?.position ?? 0;
     conditionInput.value = task?.condition_latex || '';
     if (conditionInputLv) conditionInputLv.value = task?.condition_latex_lv || '';
-    if (conditionInputEn) conditionInputEn.value = task?.condition_latex_en || '';
     answerInput.value = task?.answer_latex || '';
     solutionInput.value = task?.solution_latex || '';
     if (solutionInputLv) solutionInputLv.value = task?.solution_latex_lv || '';
-    if (solutionInputEn) solutionInputEn.value = task?.solution_latex_en || '';
     taskForm.elements.is_published.checked = task ? task.is_published : true;
     setImages(task);
     updatePreviews();
@@ -685,17 +713,14 @@
     taskSuccess.textContent = '';
     const form = new FormData(taskForm);
     const topicId = form.get('topic_id') ? Number(form.get('topic_id')) : null;
-    const payload = {
+    const payload = sanitizeTaskPayload({
       title: form.get('title').trim(),
       title_lv: form.get('title_lv')?.trim() || null,
-      title_en: form.get('title_en')?.trim() || null,
       condition_latex: conditionInput.value.trim(),
       condition_latex_lv: conditionInputLv?.value.trim() || null,
-      condition_latex_en: conditionInputEn?.value.trim() || null,
       answer_latex: answerInput.value.trim() || null,
       solution_latex: solutionInput.value.trim() || null,
       solution_latex_lv: solutionInputLv?.value.trim() || null,
-      solution_latex_en: solutionInputEn?.value.trim() || null,
       condition_image: images.condition.current,
       solution_image: images.solution.current,
       difficulty: form.get('difficulty'),
@@ -703,7 +728,7 @@
       grade: parseFormGrade(form.get('grade')),
       topic_id: topicId,
       is_published: form.get('is_published') === 'on'
-    };
+    });
     const { error } = editingTaskId
       ? await db.from('tasks').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', editingTaskId)
       : await db.from('tasks').insert(payload);
@@ -740,18 +765,15 @@
       editingTaskId = null; // Гарантирует создание новой задачи при отправке
       taskForm.elements.title.value = `[Копия] ${source.title}`;
       if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = source.title_lv ? `[Kopija] ${source.title_lv}` : '';
-      if (taskForm.elements.title_en) taskForm.elements.title_en.value = source.title_en ? `[Copy] ${source.title_en}` : '';
       taskForm.elements.topic_id.value = source.topic_id ? String(source.topic_id) : '';
       taskForm.elements.grade.value = source.grade ? String(source.grade) : '';
       taskForm.elements.difficulty.value = source.difficulty || 'Средний';
       taskForm.elements.position.value = nextPosition(source.topic_id, null);
       conditionInput.value = source.condition_latex || '';
       if (conditionInputLv) conditionInputLv.value = source.condition_latex_lv || '';
-      if (conditionInputEn) conditionInputEn.value = source.condition_latex_en || '';
       answerInput.value = source.answer_latex || '';
       solutionInput.value = source.solution_latex || '';
       if (solutionInputLv) solutionInputLv.value = source.solution_latex_lv || '';
-      if (solutionInputEn) solutionInputEn.value = source.solution_latex_en || '';
       taskForm.elements.is_published.checked = false; // Копия по умолчанию создаётся черновиком
       setImages(source);
       updatePreviews();
@@ -820,19 +842,284 @@
       bulkDialogCopy.hidden = false;
     } else {
       bulkDialogTitle.textContent = 'Массовый импорт задач (JSON)';
-      bulkDialogDesc.innerHTML = 'Вставьте массив задач в формате JSON. Обязательные поля: <code>title</code> и <code>condition_latex</code>. Поле <code>topic_title</code> автоматически свяжет задачу с существующей темой.';
+      bulkDialogDesc.innerHTML = 'Загрузите <code>.json</code> файл или вставьте массив. Поддерживается структура с несколькими темами и задачами (недостающие темы создаются автоматически). Обязательные поля задачи: <code>title</code> и <code>condition_latex</code>.';
       bulkDialogTextarea.value = '';
-      bulkDialogTextarea.placeholder = '[\n  {\n    "title": "Квадратное уравнение",\n    "condition_latex": "Решите $x^2 - 4 = 0$",\n    "answer_latex": "$x = \\\\pm 2$",\n    "difficulty": "Лёгкий",\n    "grade": 8\n  }\n]';
+      bulkDialogTextarea.placeholder = '[\n  {\n    "topic_title": "Квадратные уравнения",\n    "grade": 8,\n    "tasks": [\n      {\n        "title": "Неполное уравнение",\n        "condition_latex": "Решите $x^2 - 4 = 0$",\n        "answer_latex": "$x = \\\\pm 2$",\n        "difficulty": "Лёгкий"\n      }\n    ]\n  }\n]';
       bulkDialogSubmit.textContent = 'Импортировать в базу';
       bulkDialogCopy.hidden = true;
     }
-    bulkDialog.showModal();
+    if (bulkDialog && !bulkDialog.open) {
+      bulkDialog.showModal();
+    }
+  }
+
+  /* ── Парсер JSON с поддержкой нескольких тем и задач ────────────── */
+  function parseMultiTopicJson(raw) {
+    let parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      if (Array.isArray(parsed.topics)) {
+        parsed = parsed.topics;
+      } else if (Array.isArray(parsed.tasks)) {
+        parsed = parsed.tasks;
+      } else {
+        parsed = [parsed];
+      }
+    }
+
+    const normalizedTopics = [];
+    const normalizedTasks = [];
+
+    for (const item of parsed) {
+      if (!item) continue;
+      // Вариант 1: Объект темы со вложенным списком задач tasks: [...]
+      if (Array.isArray(item.tasks)) {
+        const topicInfo = {
+          title: String(item.topic_title || item.title || item.name || '').trim(),
+          title_lv: item.topic_title_lv || item.title_lv ? String(item.topic_title_lv || item.title_lv).trim() : null,
+          grade: parseFormGrade(item.grade),
+          subject_id: item.subject_id ? Number(item.subject_id) : null,
+          description: item.description ? String(item.description).trim() : null,
+          description_lv: item.description_lv ? String(item.description_lv).trim() : null
+        };
+        if (topicInfo.title) {
+          normalizedTopics.push(topicInfo);
+        }
+        for (const t of item.tasks) {
+          if (!t) continue;
+          normalizedTasks.push({
+            ...t,
+            topic_title: t.topic_title || topicInfo.title,
+            topic_title_lv: t.topic_title_lv || topicInfo.title_lv,
+            grade: t.grade !== undefined ? parseFormGrade(t.grade) : topicInfo.grade,
+            subject_id: t.subject_id ? Number(t.subject_id) : topicInfo.subject_id
+          });
+        }
+      } else {
+        // Вариант 2: Плоская задача со свойством topic_title или topic
+        const t = item;
+        const topicTitle = String(t.topic_title || t.topic || '').trim();
+        if (topicTitle) {
+          normalizedTopics.push({
+            title: topicTitle,
+            title_lv: t.topic_title_lv ? String(t.topic_title_lv).trim() : null,
+            grade: parseFormGrade(t.grade),
+            subject_id: t.subject_id ? Number(t.subject_id) : null,
+            description: null,
+            description_lv: null
+          });
+        }
+        normalizedTasks.push(t);
+      }
+    }
+
+    // Уникальные темы по названию
+    const uniqueTopics = [];
+    const seen = new Set();
+    for (const top of normalizedTopics) {
+      const key = top.title.toLowerCase();
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        uniqueTopics.push(top);
+      }
+    }
+
+    return { uniqueTopics, tasks: normalizedTasks };
   }
 
   btnExportTasks?.addEventListener('click', () => openBulkDialog('export'));
   btnImportTasks?.addEventListener('click', () => openBulkDialog('import'));
   bulkDialogClose?.addEventListener('click', () => bulkDialog?.close());
   bulkDialogCancel?.addEventListener('click', () => bulkDialog?.close());
+
+  // Выбор файла .json с диска
+  const handleBulkFile = event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const content = e.target.result;
+      openBulkDialog('import');
+      bulkDialogTextarea.value = content;
+      try {
+        const { uniqueTopics, tasks: parsedTasks } = parseMultiTopicJson(content);
+        bulkDialogStatus.className = 'bulk-dialog-status success';
+        bulkDialogStatus.innerHTML = `📁 Файл <strong>${escapeHtml(file.name)}</strong> загружен!<br>` +
+          `Обнаружено тем: <strong>${uniqueTopics.length}</strong>, задач: <strong>${parsedTasks.length}</strong>.<br>` +
+          `Нажмите <strong>«Импортировать в базу»</strong>, чтобы сохранить данные в Supabase.`;
+        bulkDialogStatus.hidden = false;
+      } catch (err) {
+        bulkDialogStatus.className = 'bulk-dialog-status error';
+        bulkDialogStatus.textContent = 'Ошибка синтаксиса JSON в выбранном файле: ' + err.message;
+        bulkDialogStatus.hidden = false;
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+    event.target.value = '';
+  };
+
+  bulkFileInput?.addEventListener('change', handleBulkFile);
+  bulkDialogFileInput?.addEventListener('change', handleBulkFile);
+  btnUploadFileTasks?.addEventListener('click', () => bulkFileInput?.click());
+  bulkDialogPickFileBtn?.addEventListener('click', () => {
+    if (bulkDialogFileInput) bulkDialogFileInput.click();
+    else if (bulkFileInput) bulkFileInput.click();
+  });
+
+  // 📚 Руководство по формулам KaTeX / LaTeX
+  btnToggleMathGuide?.addEventListener('click', () => {
+    if (!mathGuideCard) return;
+    mathGuideCard.hidden = !mathGuideCard.hidden;
+    if (!mathGuideCard.hidden && typeof window.renderMathInElement === 'function') {
+      window.renderMathInElement(mathGuideCard, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false }
+        ],
+        throwOnError: false
+      });
+    }
+  });
+
+  btnCloseMathGuide?.addEventListener('click', () => {
+    if (mathGuideCard) mathGuideCard.hidden = true;
+  });
+
+  // Клик по любому образцу кода в руководстве вставляет его в поле условия
+  mathGuideCard?.addEventListener('click', e => {
+    const codeEl = e.target.closest('code');
+    if (!codeEl) return;
+    const snippet = codeEl.textContent.trim();
+    if (!snippet) return;
+    if (conditionInput) {
+      const start = conditionInput.selectionStart ?? conditionInput.value.length;
+      const end = conditionInput.selectionEnd ?? conditionInput.value.length;
+      const val = conditionInput.value;
+      const needSpaceBefore = start > 0 && !val.slice(0, start).endsWith(' ') && !val.slice(0, start).endsWith('\n');
+      const needSpaceAfter = end < val.length && !val.slice(end).startsWith(' ') && !val.slice(end).startsWith('\n');
+      const insertText = (needSpaceBefore ? ' ' : '') + snippet + (needSpaceAfter ? ' ' : ' ');
+      conditionInput.value = val.slice(0, start) + insertText + val.slice(end);
+      const newPos = start + insertText.length;
+      conditionInput.focus();
+      conditionInput.setSelectionRange(newPos, newPos);
+      updatePreviews();
+    }
+  });
+
+  // 📄 Карточка образца иерархического JSON рядом с загрузкой файлов
+  btnToggleSampleJson?.addEventListener('click', () => {
+    if (!jsonSampleCard) return;
+    jsonSampleCard.hidden = !jsonSampleCard.hidden;
+  });
+
+  btnCloseSampleJson?.addEventListener('click', () => {
+    if (jsonSampleCard) jsonSampleCard.hidden = true;
+  });
+
+  btnCopySampleJson?.addEventListener('click', async () => {
+    const text = jsonSampleCode?.textContent?.trim() || '';
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    const orig = btnCopySampleJson.textContent;
+    btnCopySampleJson.textContent = '✓ Скопировано!';
+    setTimeout(() => { btnCopySampleJson.textContent = orig; }, 2000);
+  });
+
+  btnInsertSampleToDialog?.addEventListener('click', () => {
+    const text = jsonSampleCode?.textContent?.trim() || '';
+    openBulkDialog('import');
+    bulkDialogTextarea.value = text;
+    bulkDialogStatus.className = 'bulk-dialog-status success';
+    bulkDialogStatus.innerHTML = '📋 Образец иерархического формата JSON вставлен в окно! Нажмите «Импортировать в базу» для добавления.';
+    bulkDialogStatus.hidden = false;
+  });
+
+  // Шаблон формата с несколькими темами
+  bulkDialogTemplateBtn?.addEventListener('click', () => {
+    const sampleData = [
+      {
+        "topic_title": "Квадратные уравнения",
+        "topic_title_lv": "Kvadrātvienādojumi",
+        "grade": 8,
+        "tasks": [
+          {
+            "title": "Неполное квадратное уравнение",
+            "title_lv": "Nepilns kvadrātvienādojums",
+            "condition_latex": "Решите уравнение $x^2 - 9 = 0$.",
+            "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 9 = 0$.",
+            "answer_latex": "$x = \\pm 3$",
+            "solution_latex": "Разложим на множители разность квадратов:\n$$(x - 3)(x + 3) = 0$$\nОткуда $x_1 = 3,\\; x_2 = -3$.",
+            "solution_latex_lv": "Sadalām reizinātājos kvadrātu starpību:\n$$(x - 3)(x + 3) = 0$$\nTātad $x_1 = 3,\\; x_2 = -3$.",
+            "difficulty": "Лёгкий",
+            "is_published": true
+          },
+          {
+            "title": "Полное квадратное уравнение",
+            "title_lv": "Pilns kvadrātvienādojums",
+            "condition_latex": "Решите уравнение $x^2 - 5x + 6 = 0$.",
+            "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 5x + 6 = 0$.",
+            "answer_latex": "$x_1 = 2,\\; x_2 = 3$",
+            "solution_latex": "По формуле корней через дискриминант:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
+            "solution_latex_lv": "Pēc sakņu formulas ar diskriminantu:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
+            "difficulty": "Средний",
+            "is_published": true
+          }
+        ]
+      },
+      {
+        "topic_title": "Теорема Пифагора",
+        "topic_title_lv": "Pitagora teorēma",
+        "grade": 8,
+        "tasks": [
+          {
+            "title": "Нахождение гипотенузы треугольника",
+            "title_lv": "Taisnleņķa trijstūra hipotenūzas aprēķināšana",
+            "condition_latex": "В прямоугольном треугольнике катеты равны $a = 3\\text{ см}$ и $b = 4\\text{ см}$. Найдите длину гипотенузы $c$.",
+            "condition_latex_lv": "Taisnleņķa trijstūrī katetes ir $a = 3\\text{ cm}$ un $b = 4\\text{ cm}$. Aprēķiniet hipotenūzas $c$ garumu.",
+            "answer_latex": "$c = 5\\text{ см}$",
+            "solution_latex": "По теореме Пифагора:\n$$c = \\sqrt{a^2 + b^2} = \\sqrt{3^2 + 4^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ см}$$",
+            "solution_latex_lv": "Pēc Pitagora teorēmas:\n$$c = \\sqrt{a^2 + b^2} = \\sqrt{3^2 + 4^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ cm}$$",
+            "difficulty": "Лёгкий",
+            "is_published": true
+          }
+        ]
+      }
+    ];
+
+    openBulkDialog('import');
+    bulkDialogTextarea.value = JSON.stringify(sampleData, null, 2);
+    bulkDialogStatus.className = 'bulk-dialog-status';
+    bulkDialogStatus.innerHTML = '📋 Образец формата с 2 темами и 3 задачами вставлен в поле. Нажмите «Импортировать в базу» для добавления.';
+    bulkDialogStatus.hidden = false;
+  });
+
+  // Подсчёт тем и задач при вводе в поле
+  bulkDialogTextarea?.addEventListener('input', () => {
+    if (bulkMode !== 'import') return;
+    const val = bulkDialogTextarea.value.trim();
+    if (!val) {
+      bulkDialogStatus.hidden = true;
+      return;
+    }
+    try {
+      const { uniqueTopics, tasks: parsedTasks } = parseMultiTopicJson(val);
+      if (parsedTasks.length > 0) {
+        bulkDialogStatus.className = 'bulk-dialog-status';
+        bulkDialogStatus.innerHTML = `📊 Введено: тем: <strong>${uniqueTopics.length}</strong>, задач: <strong>${parsedTasks.length}</strong>. Нажмите «Импортировать в базу».`;
+        bulkDialogStatus.hidden = false;
+      }
+    } catch {
+      // Игнорируем промежуточные синтаксические ошибки при ручном наборе
+    }
+  });
 
   bulkDialogCopy?.addEventListener('click', async () => {
     try {
@@ -869,14 +1156,14 @@
     const raw = bulkDialogTextarea.value.trim();
     if (!raw) {
       bulkDialogStatus.className = 'bulk-dialog-status error';
-      bulkDialogStatus.textContent = 'Вставьте JSON для импорта.';
+      bulkDialogStatus.textContent = 'Вставьте JSON или выберите файл для импорта.';
       bulkDialogStatus.hidden = false;
       return;
     }
 
-    let parsed;
+    let parsedResult;
     try {
-      parsed = JSON.parse(raw);
+      parsedResult = parseMultiTopicJson(raw);
     } catch (e) {
       bulkDialogStatus.className = 'bulk-dialog-status error';
       bulkDialogStatus.textContent = 'Ошибка формата JSON: ' + e.message;
@@ -884,20 +1171,48 @@
       return;
     }
 
-    const items = Array.isArray(parsed) ? parsed : [parsed];
+    const { uniqueTopics, tasks: items } = parsedResult;
     if (!items.length) {
       bulkDialogStatus.className = 'bulk-dialog-status error';
-      bulkDialogStatus.textContent = 'Массив задач пуст.';
+      bulkDialogStatus.textContent = 'В JSON не найдено задач для импорта.';
       bulkDialogStatus.hidden = false;
       return;
     }
 
     bulkDialogSubmit.disabled = true;
-    bulkDialogSubmit.textContent = 'Импортируем…';
+    bulkDialogSubmit.textContent = 'Импортируем в Supabase…';
 
-    let successCount = 0;
+    let createdTopicsCount = 0;
     const errors = [];
 
+    // 1. Создаём недостающие темы в Supabase
+    for (const top of uniqueTopics) {
+      const titleKey = top.title.toLowerCase();
+      let existing = topics.find(t => t.title.toLowerCase() === titleKey);
+      if (!existing) {
+        const targetSubjectId = top.subject_id || subjects[0]?.id || null;
+        const newTopicPayload = sanitizeTopicPayload({
+          title: top.title,
+          title_lv: top.title_lv || null,
+          subject_id: targetSubjectId,
+          grade: top.grade,
+          position: 0,
+          slug: `${makeSlug(top.title)}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          description: top.description || null,
+          description_lv: top.description_lv || null
+        });
+        const { data: createdTopic, error: topErr } = await db.from('topics').insert(newTopicPayload).select().single();
+        if (!topErr && createdTopic) {
+          topics.push(createdTopic);
+          createdTopicsCount++;
+        } else if (topErr) {
+          errors.push(`Не удалось создать тему «${top.title}»: ${topErr.message}`);
+        }
+      }
+    }
+
+    // 2. Добавляем задачи
+    let successCount = 0;
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (!item.title || !item.condition_latex) {
@@ -910,7 +1225,7 @@
         if (foundTopic) topicId = foundTopic.id;
       }
 
-      const payload = {
+      const payload = sanitizeTaskPayload({
         title: String(item.title).trim(),
         title_lv: item.title_lv ? String(item.title_lv).trim() : null,
         condition_latex: String(item.condition_latex).trim(),
@@ -923,7 +1238,7 @@
         topic_id: topicId,
         position: item.position !== undefined ? Number(item.position) : nextPosition(topicId, null),
         is_published: item.is_published !== undefined ? Boolean(item.is_published) : true
-      };
+      });
 
       const { error } = await db.from('tasks').insert(payload);
       if (error) {
@@ -938,15 +1253,18 @@
 
     if (errors.length) {
       bulkDialogStatus.className = 'bulk-dialog-status ' + (successCount > 0 ? 'warning' : 'error');
-      bulkDialogStatus.innerHTML = `Успешно импортировано: ${successCount} из ${items.length}.<br>Ошибки:<br>${errors.map(escapeHtml).join('<br>')}`;
+      bulkDialogStatus.innerHTML = `Обработано тем: <strong>${uniqueTopics.length}</strong> (создано новых: ${createdTopicsCount}).<br>` +
+        `Успешно сохранено задач: <strong>${successCount}</strong> из ${items.length}.<br>` +
+        `Ошибки:<br>${errors.map(escapeHtml).join('<br>')}`;
       bulkDialogStatus.hidden = false;
     } else {
       bulkDialogStatus.className = 'bulk-dialog-status success';
-      bulkDialogStatus.textContent = `🎉 Успешно импортировано задач: ${successCount}!`;
+      bulkDialogStatus.innerHTML = `🎉 Успешно импортировано! Тем обработано: <strong>${uniqueTopics.length}</strong> (создано новых: ${createdTopicsCount}), задач сохранено: <strong>${successCount}</strong> из ${items.length}!`;
       bulkDialogStatus.hidden = false;
-      setTimeout(() => bulkDialog?.close(), 1600);
+      setTimeout(() => bulkDialog?.close(), 2200);
     }
 
+    await loadCatalog();
     await loadTasks();
   });
 
@@ -973,6 +1291,51 @@
   const aiGeminiKey = document.querySelector('#ai-gemini-key');
   const btnSaveGeminiKey = document.querySelector('#btn-save-gemini-key');
 
+  function initAiSettings() {
+    const savedKey = localStorage.getItem('math_tasks_gemini_api_key') || '';
+    if (aiGeminiKey && savedKey) {
+      aiGeminiKey.value = savedKey;
+    }
+    const savedEngine = localStorage.getItem('math_tasks_ai_engine') || (savedKey ? 'gemini' : 'builtin');
+    if (aiEngineSelect) {
+      aiEngineSelect.value = savedEngine;
+      aiEngineSelect.addEventListener('change', () => {
+        localStorage.setItem('math_tasks_ai_engine', aiEngineSelect.value);
+      });
+    }
+
+    btnToggleAiSettings?.addEventListener('click', () => {
+      if (!aiSettingsCard) return;
+      aiSettingsCard.hidden = !aiSettingsCard.hidden;
+      if (!aiSettingsCard.hidden && aiGeminiKey) {
+        aiGeminiKey.focus();
+      }
+    });
+
+    function saveKey() {
+      const k = (aiGeminiKey?.value || '').trim();
+      localStorage.setItem('math_tasks_gemini_api_key', k);
+      if (k) {
+        localStorage.setItem('math_tasks_ai_engine', 'gemini');
+        if (aiEngineSelect) aiEngineSelect.value = 'gemini';
+      }
+      if (btnSaveGeminiKey) {
+        btnSaveGeminiKey.textContent = '✓ Сохранено';
+        setTimeout(() => { btnSaveGeminiKey.textContent = 'Сохранить'; }, 2000);
+      }
+    }
+
+    btnSaveGeminiKey?.addEventListener('click', saveKey);
+    aiGeminiKey?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveKey();
+      }
+    });
+  }
+
+  initAiSettings();
+
   let skola2030Catalog = [];
 
   async function loadSkola2030Catalog() {
@@ -986,22 +1349,39 @@
     }
     setupSkolaPresetControls();
     setupAiGeneratorControls();
+    checkSkolaTopicsSeeded();
+  }
+
+  function checkSkolaTopicsSeeded() {
+    if (!btnBatchSeedTopics) return;
+    const isSeeded = topics.length >= 81 || (skola2030Catalog.length > 0 && skola2030Catalog.every(ct => topics.some(t => t.slug === ct.slug || t.title.toLowerCase() === ct.title_ru.toLowerCase())));
+    if (isSeeded) {
+      btnBatchSeedTopics.hidden = true;
+      if (skolaTopicsSeededBadge) skolaTopicsSeededBadge.hidden = false;
+    } else {
+      btnBatchSeedTopics.hidden = false;
+      if (skolaTopicsSeededBadge) skolaTopicsSeededBadge.hidden = true;
+    }
   }
 
   function setupSkolaPresetControls() {
     if (!skolaPresetGrade || !skolaPresetTopic) return;
-    fillGradeSelect(skolaPresetGrade, 'Все классы (1–12)');
+    fillGradeSelect(skolaPresetGrade, 'Все классы и курсы');
 
     function refreshPresetTopics() {
       const g = parseFormGrade(skolaPresetGrade.value);
       const list = g !== null ? skola2030Catalog.filter(t => t.grade === g) : skola2030Catalog;
       skolaPresetTopic.innerHTML = list.length
-        ? list.map(t => `<option value="${t.slug}">${t.grade} кл: ${escapeHtml(t.title_ru)} (${escapeHtml(t.title_lv)})</option>`).join('')
+        ? list.map(t => {
+            const gradePrefix = t.grade <= 9 ? `${t.grade} кл` : (t.grade === 10 ? 'Vispārīgais' : (t.grade === 11 ? 'Matemātika I' : 'Matemātika II'));
+            return `<option value="${t.slug}">${gradePrefix}: ${escapeHtml(t.title_ru)} (${escapeHtml(t.title_lv)})</option>`;
+          }).join('')
         : '<option value="">Тем не найдено</option>';
     }
 
     skolaPresetGrade.addEventListener('change', refreshPresetTopics);
     refreshPresetTopics();
+    checkSkolaTopicsSeeded();
 
     btnApplySkolaPreset?.addEventListener('click', () => {
       const slug = skolaPresetTopic.value;
@@ -1044,7 +1424,7 @@
       for (let i = 0; i < skola2030Catalog.length; i++) {
         const item = skola2030Catalog[i];
         const matchingSubj = subjects.find(s => s.slug === item.subject_slug) || subjects[0];
-        const payload = {
+        const payload = sanitizeTopicPayload({
           title: item.title_ru,
           title_lv: item.title_lv,
           slug: item.slug,
@@ -1053,7 +1433,7 @@
           position: item.position,
           description: item.description_ru,
           description_lv: item.description_lv
-        };
+        });
 
         const { error } = await db.from('topics').upsert(payload, { onConflict: 'slug' });
         if (error) {
@@ -1072,6 +1452,7 @@
       skolaPresetStatus.className = 'skola-preset-status success';
       skolaPresetStatus.innerHTML = `🎉 Готово! Успешно загружено тем в Supabase: <strong>${insertedCount}</strong>.${errorCount ? ` Ошибок: ${errorCount}.` : ''}`;
       await loadCatalog();
+      checkSkolaTopicsSeeded();
     });
   }
 
@@ -1079,31 +1460,6 @@
     if (!aiGenGrade || !aiGenTopic) return;
     fillGradeSelect(aiGenGrade, '7 класс');
     aiGenGrade.value = '7';
-
-    // Settings
-    const savedKey = localStorage.getItem('math_tasks_gemini_api_key') || '';
-    if (aiGeminiKey) aiGeminiKey.value = savedKey;
-    const savedEngine = localStorage.getItem('math_tasks_ai_engine') || 'builtin';
-    if (aiEngineSelect) {
-      aiEngineSelect.value = savedEngine;
-      if (geminiKeyWrap) geminiKeyWrap.hidden = savedEngine !== 'gemini';
-      aiEngineSelect.addEventListener('change', () => {
-        const eng = aiEngineSelect.value;
-        localStorage.setItem('math_tasks_ai_engine', eng);
-        if (geminiKeyWrap) geminiKeyWrap.hidden = eng !== 'gemini';
-      });
-    }
-
-    btnToggleAiSettings?.addEventListener('click', () => {
-      if (aiSettingsCard) aiSettingsCard.hidden = !aiSettingsCard.hidden;
-    });
-
-    btnSaveGeminiKey?.addEventListener('click', () => {
-      const k = (aiGeminiKey?.value || '').trim();
-      localStorage.setItem('math_tasks_gemini_api_key', k);
-      btnSaveGeminiKey.textContent = '✓ Сохранено';
-      setTimeout(() => { btnSaveGeminiKey.textContent = 'Сохранить'; }, 2000);
-    });
 
     function refreshAiTopics() {
       const g = parseFormGrade(aiGenGrade.value);
@@ -1136,42 +1492,81 @@
     aiGenTopic.addEventListener('change', refreshAiSubtopics);
     refreshAiTopics();
 
+    function getDifficultyForTask(selectedDifficulty, taskIndex, totalCount) {
+      if (selectedDifficulty !== 'mix') {
+        return selectedDifficulty;
+      }
+      if (totalCount <= 1) {
+        const r = Math.random();
+        if (r < 0.45) return 'Лёгкий';
+        if (r < 0.80) return 'Средний';
+        return 'Сложный';
+      }
+      // 45% лёгкий, 35% средний, 20% сложный
+      const easyCount = Math.max(1, Math.round(totalCount * 0.45));
+      const medCount = Math.max(1, Math.round(totalCount * 0.35));
+      if (taskIndex < easyCount) return 'Лёгкий';
+      if (taskIndex < easyCount + medCount) return 'Средний';
+      return 'Сложный';
+    }
+
     btnRunAiGenerator?.addEventListener('click', async () => {
       const g = parseFormGrade(aiGenGrade.value) || 7;
       const topicSlugOrId = aiGenTopic.value;
       const topicItem = skola2030Catalog.find(t => t.slug === topicSlugOrId) || topics.find(t => String(t.id) === topicSlugOrId);
       const topicTitle = topicItem ? (topicItem.title_ru || topicItem.title) : 'Математика';
       const subtopic = aiGenSubtopic?.value || '';
-      const difficulty = aiGenDifficulty?.value || 'Средний';
+      const selectedDifficulty = aiGenDifficulty?.value || 'mix';
       const taskType = aiGenType?.value || 'Уравнение';
       const context = (aiGenContext?.value || '').trim();
       const customPrompt = (aiGenPrompt?.value || '').trim();
       const engine = aiEngineSelect?.value || 'builtin';
       const apiKey = (aiGeminiKey?.value || '').trim() || localStorage.getItem('math_tasks_gemini_api_key') || '';
+      const rawCount = Number(aiGenCount?.value) || 1;
+      const count = Math.min(Math.max(1, rawCount), 25);
 
       btnRunAiGenerator.disabled = true;
       aiGenStatus.className = 'ai-gen-status';
-      aiGenStatus.innerHTML = '<span>⏳</span> Генератор создаёт условие, KaTeX-формулы и решение…';
+      aiGenStatus.innerHTML = `<span>⏳</span> Генерация ${count === 1 ? 'задачи' : `задач (${count} шт.)`}…`;
 
       try {
         const generator = window.MathTasks.aiGenerator;
         if (!generator) throw new Error('Модуль ai-generator.js не загружен');
 
-        const result = await generator.generateTask({
-          grade: g,
-          topicTitle,
-          subtopic,
-          difficulty,
-          taskType,
-          context,
-          customPrompt,
-          apiKey,
-          useGemini: engine === 'gemini'
-        });
+        const generatedResults = [];
+        let easyCount = 0;
+        let medCount = 0;
+        let hardCount = 0;
 
-        // Заполняем форму задания
-        taskForm.elements.title.value = result.title_ru || result.title || '';
-        if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = result.title_lv || '';
+        for (let i = 0; i < count; i++) {
+          const currentDiff = getDifficultyForTask(selectedDifficulty, i, count);
+          if (currentDiff === 'Лёгкий') easyCount++;
+          else if (currentDiff === 'Средний') medCount++;
+          else hardCount++;
+
+          aiGenStatus.className = 'ai-gen-status';
+          aiGenStatus.innerHTML = `<span>⏳</span> Генерация задачи ${i + 1} из ${count} [уровень: ${currentDiff}]…`;
+
+          const result = await generator.generateTask({
+            grade: g,
+            topicTitle,
+            subtopic,
+            difficulty: currentDiff,
+            taskType,
+            context,
+            customPrompt,
+            apiKey,
+            useGemini: engine === 'gemini'
+          });
+
+          generatedResults.push({ result, difficulty: currentDiff });
+        }
+
+        const first = generatedResults[0];
+
+        // Заполняем форму первой сгенерированной задачей для предпросмотра
+        taskForm.elements.title.value = first.result.title_ru || first.result.title || '';
+        if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = first.result.title_lv || '';
 
         taskGradeSelect.value = String(g);
         updateTaskTopicDropdown();
@@ -1186,27 +1581,55 @@
           topicSelect.value = String(dbMatchingTopic.id);
         }
 
-        taskForm.elements.difficulty.value = difficulty;
+        taskForm.elements.difficulty.value = first.difficulty;
 
-        conditionInput.value = result.condition_latex_ru || result.condition_latex || '';
-        if (conditionInputLv) conditionInputLv.value = result.condition_latex_lv || '';
-        if (conditionInputEn) conditionInputEn.value = result.condition_latex_en || '';
+        conditionInput.value = first.result.condition_latex_ru || first.result.condition_latex || '';
+        if (conditionInputLv) conditionInputLv.value = first.result.condition_latex_lv || '';
 
-        answerInput.value = result.answer_latex || '';
+        answerInput.value = first.result.answer_latex || '';
 
-        solutionInput.value = result.solution_latex_ru || result.solution_latex || '';
-        if (solutionInputLv) solutionInputLv.value = result.solution_latex_lv || '';
-        if (solutionInputEn) solutionInputEn.value = result.solution_latex_en || '';
+        solutionInput.value = first.result.solution_latex_ru || first.result.solution_latex || '';
+        if (solutionInputLv) solutionInputLv.value = first.result.solution_latex_lv || '';
 
         updatePreviews();
 
-        aiGenStatus.className = 'ai-gen-status success';
-        aiGenStatus.innerHTML = '🎉 Задача сгенерирована и перенесена в форму ниже!';
+        if (count === 1) {
+          aiGenStatus.className = 'ai-gen-status success';
+          aiGenStatus.innerHTML = `🎉 Задача сгенерирована [${first.difficulty}] и перенесена в форму ниже!`;
+          taskSuccess.textContent = '✨ Сгенерированная задача готова к публикации или редактированию.';
+          setTimeout(() => {
+            taskForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 300);
+        } else {
+          // Формируем пакет задач для массового окна
+          const tasksForBulk = generatedResults.map(({ result: r, difficulty: diff }, idx) => ({
+            title: r.title_ru || r.title || `${topicTitle} #${idx + 1}`,
+            title_lv: r.title_lv || null,
+            condition_latex: r.condition_latex_ru || r.condition_latex || '',
+            condition_latex_lv: r.condition_latex_lv || null,
+            answer_latex: r.answer_latex || null,
+            solution_latex: r.solution_latex_ru || r.solution_latex || null,
+            solution_latex_lv: r.solution_latex_lv || null,
+            difficulty: diff,
+            grade: g,
+            topic_id: dbMatchingTopic ? dbMatchingTopic.id : null,
+            topic_title: topicTitle,
+            is_published: true
+          }));
 
-        taskSuccess.textContent = '✨ Сгенерированная задача готова к публикации или редактированию.';
-        setTimeout(() => {
-          taskForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 300);
+          openBulkDialog('import');
+          bulkDialogTitle.textContent = `Сгенерировано задач: ${count}`;
+          bulkDialogDesc.innerHTML = `Сгенерировано <strong>${count}</strong> задач по теме «${escapeHtml(topicTitle)}» (${easyCount} лёгких, ${medCount} средних, ${hardCount} сложных). Вы можете проверить JSON и нажать <strong>«Импортировать в базу»</strong>. Первая задача также перенесена в форму.`;
+          bulkDialogTextarea.value = JSON.stringify(tasksForBulk, null, 2);
+          bulkDialogSubmit.textContent = `Импортировать все ${count} задач в базу`;
+          bulkDialogCopy.hidden = false;
+          bulkDialogStatus.className = 'bulk-dialog-status success';
+          bulkDialogStatus.innerHTML = `🎉 Сгенерировано: <strong>${count}</strong> задач (${easyCount} лёгких ~45%, ${medCount} средних ~35%, ${hardCount} сложных ~20%).`;
+          bulkDialogStatus.hidden = false;
+
+          aiGenStatus.className = 'ai-gen-status success';
+          aiGenStatus.innerHTML = `🎉 Сгенерировано ${count} задач (${easyCount} лёгких, ${medCount} средних, ${hardCount} сложных)! Открыто окно массового импорта.`;
+        }
       } catch (err) {
         aiGenStatus.className = 'ai-gen-status error';
         aiGenStatus.textContent = 'Ошибка генерации: ' + err.message;
@@ -1230,6 +1653,9 @@
     }
     subjects = subjectResult.data || [];
     topics = topicResult.data || [];
+    if (topics.length > 0 && topics[0]) {
+      Object.keys(topics[0]).forEach(k => supportedTopicCols.add(k));
+    }
 
     const keepSubject = subjectSelect.value;
     subjectSelect.innerHTML = '<option value="">Без раздела</option>' +
@@ -1261,12 +1687,16 @@
     renderSubjectList();
     renderTopicList();
     renderTaskList();
+    checkSkolaTopicsSeeded();
   }
 
   async function loadTasks() {
     const { data, error } = await db.from('tasks').select('*').order('topic_id').order('position').order('created_at', { ascending: true });
     if (error) { taskList.innerHTML = `<p class="admin-empty">Не удалось загрузить задачи: ${escapeHtml(error.message)}</p>`; return; }
     tasks = data || [];
+    if (tasks.length > 0 && tasks[0]) {
+      Object.keys(tasks[0]).forEach(k => supportedTaskCols.add(k));
+    }
     renderTaskList();
     renderTopicList();
   }

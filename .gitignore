@@ -1,5 +1,7 @@
-# Ключи проекта: config.js создаётся из config.example.js на каждой машине
 config.js
+.env
+.env.*
+
 
 node_modules/
 dist/

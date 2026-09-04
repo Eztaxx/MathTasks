@@ -19,6 +19,69 @@ if sys.platform == 'win32':
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
+def load_dotenv(filepath=".env"):
+    """Загрузка переменных окружения из .env файла"""
+    if not os.path.exists(filepath):
+        return
+    with open(filepath, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, val = line.split("=", 1)
+            key = key.strip()
+            val = val.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = val
+
+def push_tasks_to_supabase(tasks, topic_name, grade, supabase_url, service_key):
+    """Прямая загрузка задач в Supabase через REST API с service_role ключом"""
+    headers = {
+        "apikey": service_key,
+        "Authorization": f"Bearer {service_key}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+    }
+
+    topic_id = None
+    try:
+        url_topics = f"{supabase_url}/rest/v1/topics?select=id,title,grade&grade=eq.{grade}"
+        req = urllib.request.Request(url_topics, headers=headers)
+        with urllib.request.urlopen(req, timeout=15) as res:
+            topics_data = json.loads(res.read().decode("utf-8"))
+            for top in topics_data:
+                t_title = (top.get("title") or "").lower()
+                if t_title in topic_name.lower() or topic_name.lower() in t_title:
+                    topic_id = top["id"]
+                    break
+            if not topic_id and topics_data:
+                topic_id = topics_data[0]["id"]
+    except Exception as e:
+        print(f"  Предупреждение при поиске темы: {e}")
+
+    payload = []
+    for t in tasks:
+        item = dict(t)
+        if topic_id:
+            item["topic_id"] = topic_id
+        payload.append(item)
+
+    url_tasks = f"{supabase_url}/rest/v1/tasks"
+    data_bytes = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    req = urllib.request.Request(url_tasks, data=data_bytes, headers=headers, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=20) as res:
+            inserted = json.loads(res.read().decode("utf-8"))
+            print(f"🚀 УСПЕХ: {len(inserted)} задач автоматически загружены напрямую в базу Supabase (topic_id: {topic_id})!")
+            return True
+    except urllib.error.HTTPError as e:
+        err_msg = e.read().decode("utf-8")
+        print(f"❌ Ошибка загрузки в Supabase ({e.code}): {err_msg}")
+        return False
+    except Exception as e:
+        print(f"❌ Ошибка соединения с Supabase: {e}")
+        return False
+
 
 # Подключение глоссария терминов для Skola2030
 GLOSSARY_LV = [
@@ -237,7 +300,7 @@ def generate_gemini_task(grade=7, topic="Квадратные уравнения
   "solution_latex_lv": "Soli pa solim atrisinājums latviski"
 }}"""
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}"
     headers = {"Content-Type": "application/json"}
     body = json.dumps({
         "contents": [{"parts": [{"text": prompt}]}],
@@ -267,6 +330,8 @@ def generate_gemini_task(grade=7, topic="Квадратные уравнения
         }
 
 def main():
+    load_dotenv()
+
     parser = argparse.ArgumentParser(description="AI Генератор задач Skola2030")
     parser.add_argument("--grade", type=int, default=7, help="Класс (1–12)")
     parser.add_argument("--topic", type=str, default="Линейные уравнения", help="Тема стандарта Skola2030")
@@ -275,6 +340,7 @@ def main():
     parser.add_argument("--context", type=str, default="", help="Сюжетный контекст задачи (о чем жизненная ситуация)")
     parser.add_argument("--api-key", type=str, default="", help="API-ключ Google Gemini (или через переменную окружения GEMINI_API_KEY)")
     parser.add_argument("--output", type=str, default="generated_tasks.json", help="Имя выходного файла (.json или .sql)")
+    parser.add_argument("--push-db", action="store_true", help="Принудительно загрузить задачи в Supabase")
     args = parser.parse_args()
 
     api_key = args.api_key or os.environ.get("GEMINI_API_KEY", "").strip()
@@ -329,6 +395,17 @@ def main():
             json.dump(tasks, f, ensure_ascii=False, indent=2)
         print(f"\nУспешно сохранено {len(tasks)} задач в JSON-файл: {args.output}")
         print("💡 Вы можете открыть админ-панель (admin.html), нажать «Импорт JSON» и загрузить этот файл в базу!")
+
+    # Прямая загрузка в Supabase, если задан SUPABASE_SERVICE_ROLE_KEY в .env
+    supabase_url = os.environ.get("SUPABASE_URL", "https://rjtirahpwxlsrzoblesi.supabase.co").strip()
+    service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+
+    if service_key:
+        print("\n🔑 Обнаружен SUPABASE_SERVICE_ROLE_KEY в .env!")
+        print("Начинаем автоматическую прямую отправку задач в базу данных Supabase...")
+        push_tasks_to_supabase(tasks, args.topic, args.grade, supabase_url, service_key)
+    else:
+        print("\nℹ️ Для автоматической загрузки прямо в базу без SQL Editor укажите SUPABASE_SERVICE_ROLE_KEY в .env")
 
 if __name__ == "__main__":
     main()

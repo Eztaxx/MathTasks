@@ -165,6 +165,111 @@
     return result;
   };
 
+  /* Парсер JSON с поддержкой нескольких тем и задач */
+  const parseFormGrade = val => {
+    if (!val && val !== 0) return null;
+    if (val === 'visparigais' || val === '10' || val === 10) return 10;
+    if (val === 'matematika-1' || val === '11' || val === 11) return 11;
+    if (val === 'matematika-2' || val === '12' || val === 12) return 12;
+    const num = Number(val);
+    return Number.isFinite(num) ? num : null;
+  };
+
+  const resolveDifficultyMix = (requestedDiff, index, total) => {
+    if (requestedDiff !== 'mix') return requestedDiff;
+    if (total <= 1) {
+      const r = Math.random();
+      if (r < 0.45) return 'Лёгкий';
+      if (r < 0.80) return 'Средний';
+      return 'Сложный';
+    }
+    // Распределение 45% лёгкий, 35% средний, 20% сложный
+    const easyCount = Math.max(1, Math.round(total * 0.45));
+    const medCount = Math.max(1, Math.round(total * 0.35));
+    if (index < easyCount) return 'Лёгкий';
+    if (index < easyCount + medCount) return 'Средний';
+    return 'Сложный';
+  };
+
+  const parseMultiTopicJson = raw => {
+    if (!raw || typeof raw !== 'string') {
+      if (typeof raw === 'object' && raw !== null) {
+        // уже распарсенный объект
+      } else {
+        throw new Error('Пустой или некорректный JSON');
+      }
+    }
+    let parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (!Array.isArray(parsed)) {
+      if (Array.isArray(parsed.topics)) {
+        parsed = parsed.topics;
+      } else if (Array.isArray(parsed.tasks)) {
+        parsed = parsed.tasks;
+      } else {
+        parsed = [parsed];
+      }
+    }
+
+    const normalizedTopics = [];
+    const normalizedTasks = [];
+
+    for (const item of parsed) {
+      if (!item) continue;
+      // Вложенный массив tasks
+      if (Array.isArray(item.tasks)) {
+        const topicInfo = {
+          title: String(item.topic_title || item.title || item.name || '').trim(),
+          title_lv: item.topic_title_lv || item.title_lv ? String(item.topic_title_lv || item.title_lv).trim() : null,
+          grade: parseFormGrade(item.grade),
+          subject_id: item.subject_id ? Number(item.subject_id) : null,
+          description: item.description ? String(item.description).trim() : null,
+          description_lv: item.description_lv ? String(item.description_lv).trim() : null
+        };
+        if (topicInfo.title) {
+          normalizedTopics.push(topicInfo);
+        }
+        for (const t of item.tasks) {
+          if (!t) continue;
+          normalizedTasks.push({
+            ...t,
+            topic_title: t.topic_title || topicInfo.title,
+            topic_title_lv: t.topic_title_lv || topicInfo.title_lv,
+            grade: t.grade !== undefined ? parseFormGrade(t.grade) : topicInfo.grade,
+            subject_id: t.subject_id ? Number(t.subject_id) : topicInfo.subject_id
+          });
+        }
+      } else {
+        // Плоская запись задачи
+        const t = item;
+        const topicTitle = String(t.topic_title || t.topic || '').trim();
+        if (topicTitle) {
+          normalizedTopics.push({
+            title: topicTitle,
+            title_lv: t.topic_title_lv ? String(t.topic_title_lv).trim() : null,
+            grade: parseFormGrade(t.grade),
+            subject_id: t.subject_id ? Number(t.subject_id) : null,
+            description: null,
+            description_lv: null
+          });
+        }
+        normalizedTasks.push(t);
+      }
+    }
+
+    // Дедупликация тем по названию (case-insensitive)
+    const uniqueTopics = [];
+    const seen = new Set();
+    for (const top of normalizedTopics) {
+      const key = top.title.toLowerCase();
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        uniqueTopics.push(top);
+      }
+    }
+
+    return { uniqueTopics, tasks: normalizedTasks };
+  };
+
   const api = {
     makeSlug,
     sanitizeSearch,
@@ -176,7 +281,9 @@
     formatTimerDisplay,
     getLocalizedText,
     maskLatexForTranslation,
-    unmaskLatexAfterTranslation
+    unmaskLatexAfterTranslation,
+    parseMultiTopicJson,
+    resolveDifficultyMix
   };
   if (typeof window !== 'undefined') window.MathTasksLib = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

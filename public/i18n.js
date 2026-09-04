@@ -4,7 +4,7 @@
 (() => {
   const STORAGE_KEY = 'math-tasks:lang';
   const DEFAULT_LANG = 'ru';
-  const SUPPORTED_LANGS = ['lv', 'ru', 'en'];
+  const SUPPORTED_LANGS = ['lv', 'ru'];
 
   const TRANSLATIONS = {
     lv: {
@@ -62,6 +62,7 @@
       all_courses_sub: 'Izvēlieties savu klasi vai sagatavošanās kursu',
 
       // Klases nosaukumi
+      grade_label: 'Klase',
       grade_1: '1. klase',
       grade_2: '2. klase',
       grade_3: '3. klase',
@@ -71,9 +72,10 @@
       grade_7: '7. klase',
       grade_8: '8. klase',
       grade_9: '9. klase',
-      grade_10: '10. klase',
-      grade_11: '11. klase',
-      grade_12: '12. klase',
+      grade_10: 'Vispārīgais līmenis',
+      grade_11: 'Matemātika I (Optimālais)',
+      grade_12: 'Matemātika II (Augstākais)',
+      grade_N: '{n}. klase',
       grade_visparigais: 'Vispārīgais līmenis',
       grade_matematika_1: 'Matemātika I (Optimālais)',
       grade_matematika_2: 'Matemātika II (Augstākais)',
@@ -197,7 +199,7 @@
 
       // Классы & Фильтры
       section_grades: 'Классы и ступени',
-      all_grades: 'Все классы',
+      all_grades: 'Все классы и курсы',
       all_grades_short: 'Все',
       popular_topics: 'Популярные темы',
       new_tasks: 'Новые задачи',
@@ -206,27 +208,28 @@
       // Сайдбар: треки
       track_heading: 'Государственные экзамены',
       track_9: 'Экзамен 9 класс',
-      track_9_desc: 'Основная школа • Valsts pārbaudes darbs',
-      track_visp: 'Vispārīgais līmenis',
-      track_visp_desc: 'Средняя школа • Общий уровень (10 кл.)',
-      track_opt: 'Matemātika I (Optimālais)',
-      track_opt_desc: 'Средняя школа • 10–11 классы',
-      track_augst: 'Matemātika II (Augstākais)',
-      track_augst_desc: 'Углубленный курс • 12 класс',
-      track_diag: 'Диагностирующие работы',
+      track_9_desc: 'Итоговая работа основной школы',
+      track_visp: 'Общий курс (Vispārīgais)',
+      track_visp_desc: 'Базовый курс средней школы (10 кл.)',
+      track_opt: 'Математика I (Оптимальный)',
+      track_opt_desc: 'Оптимальный курс средней школы (10–11 кл.)',
+      track_augst: 'Математика II (Высший)',
+      track_augst_desc: 'Углубленный курс средней школы (12 кл.)',
+      track_diag: 'Диагностические работы',
       track_diag_desc: '3 и 6 классы',
-      tools_heading: 'Инструменты и справочник',
+      tools_heading: 'Инструменты и справка',
       tool_random: 'Случайная задача',
-      tool_random_desc: 'Быстрая тренировка',
-      tool_formulas: 'Справочник формул',
-      tool_formulas_desc: 'Официальные листы к экзаменам и KaTeX',
+      tool_random_desc: 'Для быстрой разминки',
+      tool_formulas: 'Листы формул',
+      tool_formulas_desc: 'Официальные буклеты экзаменов и KaTeX',
       tool_plotter: 'Графопостроитель',
-      tool_plotter_desc: 'Интерактивный 2D Canvas',
-      all_tracks_back: '← Все экзамены и треки',
+      tool_plotter_desc: 'Интерактивный 2D калькулятор графиков',
+      all_tracks_back: '← Все экзамены и курсы',
       all_courses_title: 'Учебные курсы и экзамены',
       all_courses_sub: 'Выберите ваш класс или программу подготовки',
 
       // Классы
+      grade_label: 'Класс',
       grade_1: '1 класс',
       grade_2: '2 класс',
       grade_3: '3 класс',
@@ -236,12 +239,13 @@
       grade_7: '7 класс',
       grade_8: '8 класс',
       grade_9: '9 класс',
-      grade_10: '10 класс',
-      grade_11: '11 класс',
-      grade_12: '12 класс',
-      grade_visparigais: 'Vispārīgais līmenis',
-      grade_matematika_1: 'Matemātika I (Optimālais)',
-      grade_matematika_2: 'Matemātika II (Augstākais)',
+      grade_10: 'Vispārīgais līmenis (Общий курс)',
+      grade_11: 'Optimālais līmenis (Математика I)',
+      grade_12: 'Augstākais līmenis (Математика II)',
+      grade_N: '{n} класс',
+      grade_visparigais: 'Vispārīgais līmenis (Общий курс)',
+      grade_matematika_1: 'Optimālais līmenis (Математика I)',
+      grade_matematika_2: 'Augstākais līmenis (Математика II)',
       without_grade: 'Без класса',
 
       // Сложности
@@ -335,171 +339,6 @@
       // О сайте
       about_title: 'О сайте',
       about_body: '<p><strong>MathTasks</strong> — сборник задач по школьной математике с разбором решений, структурированный в соответствии со стандартами <strong>Skola2030</strong>.</p><h2>Как пользоваться</h2><p>Выберите свой класс в меню слева — сайт покажет только те разделы и темы, которые проходят в этой параллели. Внутри темы задачи идут от простого к сложному.</p><p>Используйте интерактивный блок самопроверки и виртуальную клавиатуру формул для тренировки решения задач!</p>'
-    },
-
-    en: {
-      // Navigation & Header
-      brand_title: 'MathTasks',
-      brand_subtitle: 'Skola2030 Mathematics',
-      nav_home: 'Home',
-      nav_favorites: 'Bookmarks',
-      nav_about: 'About',
-      search_placeholder: 'Search tasks by topic or keyword...',
-      auth_login: 'Sign In',
-      auth_logout: 'Sign Out',
-      auth_account: 'Account',
-      menu_toggle: 'Menu',
-
-      // Hero Section
-      hero_title: 'Mathematics Problem Bank',
-      hero_subtitle: 'Select a topic, solve problems, and master your math skills for state exams!',
-      badge_solutions_title: 'Clear Solutions',
-      badge_solutions_sub: 'Step-by-step guidance',
-      badge_levels_title: 'All Levels',
-      badge_levels_sub: 'From basic to advanced',
-      badge_skola_title: 'Skola2030 Standards',
-      badge_skola_sub: 'Exam preparation',
-
-      // Grades & Filters
-      section_grades: 'Grades & Courses',
-      all_grades: 'All Grades',
-      all_grades_short: 'All',
-      popular_topics: 'Popular Topics',
-      new_tasks: 'Recent Tasks',
-      view_all: 'View all →',
-
-      // Sidebar tracks
-      track_heading: 'State Examination Tracks',
-      track_9: 'Grade 9 Exam',
-      track_9_desc: 'Basic school final exam',
-      track_visp: 'General Level',
-      track_visp_desc: 'High school general course (Grade 10)',
-      track_opt: 'Mathematics I (Optimal)',
-      track_opt_desc: 'High school optimal track (Grades 10–11)',
-      track_augst: 'Mathematics II (Higher)',
-      track_augst_desc: 'Advanced level course (Grade 12)',
-      track_diag: 'Diagnostic Tests',
-      track_diag_desc: 'Grades 3 and 6',
-      tools_heading: 'Tools & Reference',
-      tool_random: 'Random Problem',
-      tool_random_desc: 'Quick practice session',
-      tool_formulas: 'Formula Sheets',
-      tool_formulas_desc: 'Official exam sheets & KaTeX quick sheet',
-      tool_plotter: 'Function Plotter',
-      tool_plotter_desc: 'Interactive 2D Canvas calculator',
-      all_tracks_back: '← All exams and tracks',
-      all_courses_title: 'Study Courses and Exams',
-      all_courses_sub: 'Select your grade or exam preparation track',
-
-      // Grades
-      grade_1: 'Grade 1',
-      grade_2: 'Grade 2',
-      grade_3: 'Grade 3',
-      grade_4: 'Grade 4',
-      grade_5: 'Grade 5',
-      grade_6: 'Grade 6',
-      grade_7: 'Grade 7',
-      grade_8: 'Grade 8',
-      grade_9: 'Grade 9',
-      grade_10: 'Grade 10',
-      grade_11: 'Grade 11',
-      grade_12: 'Grade 12',
-      grade_visparigais: 'General Level',
-      grade_matematika_1: 'Mathematics I (Optimal)',
-      grade_matematika_2: 'Mathematics II (Higher)',
-      without_grade: 'No grade',
-
-      // Difficulties
-      diff_easy: 'Basic',
-      diff_medium: 'Intermediate',
-      diff_hard: 'Advanced',
-      diff_olympiad: 'Olympiad',
-
-      // Task actions
-      print: 'Print',
-      print_with_solutions: 'With solutions',
-      print_no_solutions: 'Without solutions',
-      view_mode: 'View:',
-      view_mode_list: 'List',
-      view_mode_single: 'Single task',
-      prev_task: '← Previous',
-      next_task: 'Next →',
-      task_counter: 'Task {cur} of {total}',
-      keyboard_shortcuts_hint: 'Use ← and → keys to navigate tasks',
-      copy_link: 'Copy link',
-      copy_text: 'Copy text',
-      favorite: 'Bookmark',
-      favorite_active: 'Bookmarked',
-      tasks_in_topic: '{count} tasks',
-      progress: 'Progress',
-      topic_progress: 'Solved: {solved} of {total} ({percent}%)',
-      topic_mastered: '🎉 Topic mastered!',
-      topic_progress_short: '{solved}/{total}',
-      filter_unsolved: 'Unsolved only',
-      filter_unsolved_title: 'Show only tasks that are not solved yet',
-      all_tasks_solved: '🎉 All tasks in this topic are solved! Great job!',
-
-      // Timer
-      timer_title: 'Exam Timer',
-      timer_stopwatch: '⏱️ Stopwatch',
-      timer_40m: '40 min (Lesson)',
-      timer_90m: '90 min (Test)',
-      timer_120m: '120 min (Grade 9)',
-      timer_180m: '180 min (High School)',
-      timer_start: 'Start',
-      timer_pause: 'Pause',
-      timer_reset: 'Reset',
-      timer_finished: '⏰ Time is up! Exam practice completed.',
-
-      // Self-check
-      self_check_placeholder: 'Enter your answer...',
-      self_check_btn: 'Check',
-      self_check_success: '🎉 Great! Correct answer!',
-      self_check_error: '🤔 Not quite right yet. Check your calculations or reveal the solution.',
-      self_check_reset: 'Solve again',
-      solved_badge: '✓ Solved',
-      quick_math_label: 'Insert:',
-
-      // Solutions
-      reveal_answer: 'Show answer',
-      hide_answer: 'Hide answer',
-      reveal_solution: 'Show solution',
-      hide_solution: 'Hide solution',
-      solution_missing: 'Solution for this problem is being prepared.',
-
-      // Toasts
-      toast_link_copied: 'Link copied to clipboard!',
-      toast_text_copied: 'Problem text copied to clipboard!',
-      toast_fav_added: 'Task added to bookmarks!',
-      toast_fav_removed: 'Task removed from bookmarks.',
-
-      // Formulas
-      formulas_title: '📐 Formula Sheets & Reference',
-      formulas_subtitle: 'Official Skola2030 exam formula sheets and interactive quick reference',
-      tab_sheets: '📄 Official Exam Sheets',
-      tab_quick: '⚡ Quick Reference',
-      open_pdf: 'Open PDF',
-      download_pdf: 'Download',
-      cat_algebra: 'Algebra',
-      cat_geometry: 'Geometry',
-      cat_trig: 'Trigonometry',
-      cat_analysis: 'Analysis & Probability',
-
-      // Plotter
-      plotter_title: '📈 Function Graph Plotter',
-      plotter_subtitle: 'Interactive function analysis: type an expression or pick a preset.',
-      plotter_draw: 'Plot',
-      plotter_presets: 'Presets:',
-      plotter_roots_title: 'X-axis intercepts (roots):',
-      plotter_roots_none: 'No real roots found in the current viewport.',
-
-      // Bookmarks
-      favorites_title: 'My Bookmarks',
-      favorites_empty: 'You have no saved tasks yet. Click the bookmark icon on any task to add it here!',
-
-      // About
-      about_title: 'About',
-      about_body: '<p><strong>MathTasks</strong> is a comprehensive mathematics problem collection aligned with the Latvian <strong>Skola2030</strong> education standard.</p><h2>How to use</h2><p>Select your grade or examination course in the left sidebar to view topics and tasks designed for your level.</p><p>Practice with interactive self-checking and the quick math keyboard on any device!</p>'
     }
   };
 
@@ -546,8 +385,9 @@
     }
   }
 
-  function t(key, params = {}) {
-    const dict = TRANSLATIONS[currentLang] || TRANSLATIONS[DEFAULT_LANG];
+  function t(key, params = {}, langOverride = null) {
+    const activeLang = langOverride && TRANSLATIONS[langOverride] ? langOverride : currentLang;
+    const dict = TRANSLATIONS[activeLang] || TRANSLATIONS[DEFAULT_LANG];
     let text = dict[key] || TRANSLATIONS[DEFAULT_LANG][key] || key;
     if (params && typeof params === 'object') {
       for (const [k, v] of Object.entries(params)) {

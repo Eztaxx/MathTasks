@@ -41,42 +41,10 @@
     [/верно/gi, 'patiess']
   ];
 
-  const GLOSSARY_EN = [
-    [/Решите уравнение/gi, 'Solve the equation'],
-    [/Решить уравнение/gi, 'Solve the equation'],
-    [/Решите квадратное уравнение/gi, 'Solve the quadratic equation'],
-    [/Решите систему уравнений/gi, 'Solve the system of equations'],
-    [/Решите неравенство/gi, 'Solve the inequality'],
-    [/Вычислите значение суммы/gi, 'Calculate the sum'],
-    [/Вычислите значение разности/gi, 'Calculate the difference'],
-    [/Вычислите значение выражения/gi, 'Calculate the value of the expression'],
-    [/Вычислите значение/gi, 'Calculate the value'],
-    [/Вычислите/gi, 'Calculate'],
-    [/Упростите выражение/gi, 'Simplify the expression'],
-    [/Найдите корни уравнения/gi, 'Find the roots of the equation'],
-    [/Найдите корень уравнения/gi, 'Find the root of the equation'],
-    [/Найдите значение производной функции/gi, 'Find the derivative of the function'],
-    [/В прямоугольном треугольнике катеты равны/gi, 'In a right triangle, the legs are'],
-    [/Найдите гипотенузу/gi, 'Find the hypotenuse'],
-    [/Найдите площадь/gi, 'Find the area'],
-    [/Найдите периметр/gi, 'Find the perimeter'],
-    [/По теореме Пифагора/gi, 'By the Pythagorean theorem'],
-    [/По формуле корней/gi, 'Using the quadratic formula'],
-    [/По формуле n-го члена/gi, 'Using the n-th term formula'],
-    [/Раскроем скобки/gi, 'Expand the brackets'],
-    [/Перенесём слагаемые/gi, 'Group the terms'],
-    [/Дискриминант/gi, 'Discriminant'],
-    [/Коэффициенты/gi, 'Coefficients'],
-    [/Корни уравнения/gi, 'Roots of the equation'],
-    [/Ответ:/gi, 'Answer:'],
-    [/верно/gi, 'is true']
-  ];
-
-  function translateMathText(text, targetLang) {
+  function translateMathText(text, targetLang = 'lv') {
     if (!text) return '';
     let res = text;
-    const glossary = targetLang === 'lv' ? GLOSSARY_LV : GLOSSARY_EN;
-    for (const [pattern, repl] of glossary) {
+    for (const [pattern, repl] of GLOSSARY_LV) {
       res = res.replace(pattern, repl);
     }
     return res;
@@ -373,37 +341,52 @@ ${customPrompt ? `Дополнительные математические тр
 Требования:
 1. Математическая точность: условие должно иметь ровно одно корректное решение, ответ должен быть строго выверен.
 2. Формулы: оформляй все переменные, числа в вычислениях и формулы в KaTeX-разметке: внутри $...$ для инлайн и $$...$$ для выключных формул.
-3. Локализация: создай полные версии на русском (RU), латышском (LV) и английском (EN) языках. Латышский текст должен соответствовать латвийской школьной терминологии Skola2030.
+3. Локализация: создай версии на русском (RU) и латышском (LV) языках. Латышский текст должен строго соответствовать стандартам и терминологии Skola2030.
 4. Ответ верни СТРОГО в формате валидного JSON-объекта (без обёрток \`\`\`json):
 {
   "title_ru": "Краткое название задачи",
   "title_lv": "Nosaukums latviski",
-  "title_en": "Title in English",
   "condition_latex_ru": "Условие задачи с формулами $...$",
   "condition_latex_lv": "Nosacījums ar formulām $...$",
-  "condition_latex_en": "Condition with formulas $...$",
   "answer_latex": "Короткий математический ответ, например: $x = 4$ или $c = 10\\text{ см}$",
   "solution_latex_ru": "Пошаговое понятное решение с формулами",
-  "solution_latex_lv": "Soli pa solim atrisinājums latviski",
-  "solution_latex_en": "Step-by-step solution in English"
+  "solution_latex_lv": "Soli pa solim atrisinājums latviski"
 }`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.3
-        }
-      })
+    const requestBody = JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.3
+      }
     });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Gemini API error (${res.status}): ${errText}`);
+    const candidateModels = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+    let lastError = null;
+    let res = null;
+
+    for (const model of candidateModels) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const r = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: requestBody
+        });
+        if (r.ok) {
+          res = r;
+          break;
+        } else {
+          const errText = await r.text();
+          lastError = new Error(`Ошибка модели ${model} (${r.status}): ${errText}`);
+        }
+      } catch (e) {
+        lastError = e;
+      }
+    }
+
+    if (!res || !res.ok) {
+      throw lastError || new Error('Не удалось получить ответ от Google Gemini API.');
     }
 
     const data = await res.json();
@@ -414,6 +397,9 @@ ${customPrompt ? `Дополнительные математические тр
     const parsed = JSON.parse(cleanJson);
     return {
       ...parsed,
+      title_en: parsed.title_en || parsed.title_ru,
+      condition_latex_en: parsed.condition_latex_en || parsed.condition_latex_ru,
+      solution_latex_en: parsed.solution_latex_en || parsed.solution_latex_ru,
       grade: Number(grade) || 7,
       difficulty: difficulty || 'Средний'
     };
@@ -435,22 +421,21 @@ ${customPrompt ? `Дополнительные математические тр
       useGemini = false
     } = options;
 
-    // 1. Попытка через Gemini API (если передан ключ или запрошен Gemini)
-    if (useGemini && apiKey) {
-      try {
-        return await callGeminiApi({
-          apiKey,
-          grade,
-          topicTitle,
-          subtopic,
-          difficulty,
-          taskType,
-          context,
-          customPrompt
-        });
-      } catch (err) {
-        console.warn('Ошибка вызова Gemini API, переключаемся на встроенный генератор Skola2030:', err);
+    // 1. Попытка через Gemini API (если запрошен Gemini)
+    if (useGemini) {
+      if (!apiKey) {
+        throw new Error('API-ключ Google Gemini не указан. Нажмите «⚙️ Настройки AI» в генераторе задач и сохраните ваш ключ.');
       }
+      return await callGeminiApi({
+        apiKey,
+        grade,
+        topicTitle,
+        subtopic,
+        difficulty,
+        taskType,
+        context,
+        customPrompt
+      });
     }
 
     // 2. Встроенный автономный генератор Skola2030
@@ -473,10 +458,11 @@ ${customPrompt ? `Дополнительные математические тр
     GENERATORS
   };
 
-  if (isNode) {
+  if (typeof module !== 'undefined' && module.exports) {
     module.exports = api;
-  } else {
-    window.MathTasks = window.MathTasks || {};
-    window.MathTasks.aiGenerator = api;
+  }
+  if (typeof globalThis !== 'undefined') {
+    globalThis.MathTasks = globalThis.MathTasks || {};
+    globalThis.MathTasks.aiGenerator = api;
   }
 })();

@@ -56,6 +56,7 @@
             <button type="button" class="text-button" id="btn-batch-seed-topics" title="Импортировать все 81 тему Skola2030 прямо в базу Supabase">
               🚀 Загрузить все 81 тему в Supabase
             </button>
+            <span class="admin-status-badge published" id="skola-topics-seeded-badge" hidden>✓ Все 81 тема Skola2030 загружены в базу</span>
           </div>
           <div class="skola-preset-controls">
             <select id="skola-preset-grade" class="admin-select-filter">
@@ -72,7 +73,6 @@
         <form class="topic-form" id="topic-form">
           <label>Название (RU)<input name="title" id="topic-title-ru" required placeholder="Например: Квадратные уравнения" /></label>
           <label>Nosaukums (LV)<input name="title_lv" id="topic-title-lv" placeholder="Piemēram: Kvadrātvienādojumi" /></label>
-          <label>Title (EN)<input name="title_en" id="topic-title-en" placeholder="E.g.: Quadratic Equations" /></label>
           <label>Раздел<select name="subject_id" id="subject-select"></select></label>
           <label>Класс<select name="grade" id="topic-grade"></select></label>
           <label>Порядок <span>чем меньше, тем выше</span><input name="position" type="number" value="0" /></label>
@@ -91,7 +91,7 @@
           <div>
             <span class="ai-badge">🤖 AI & Skola2030</span>
             <h3>Генератор математических задач</h3>
-            <p class="admin-hint">Генерация задач строго по стандартам Skola2030 с формулами KaTeX, ответом и пошаговым разбором сразу на трёх языках.</p>
+            <p class="admin-hint">Генерация задач строго по стандартам Skola2030 с формулами KaTeX, ответом и пошаговым разбором на латышском и русском языках.</p>
           </div>
           <button type="button" class="text-button" id="btn-toggle-ai-settings" title="Настройки API">⚙️ Настройки AI</button>
         </div>
@@ -105,49 +105,64 @@
                 <option value="gemini">Google Gemini AI (нейросеть по программе Латвии)</option>
               </select>
             </label>
-            <label class="ai-settings-field" id="gemini-key-wrap" hidden>
+            <label class="ai-settings-field" id="gemini-key-wrap">
               <span>API-ключ Google Gemini</span>
               <div class="ai-key-input-row">
-                <input type="password" id="ai-gemini-key" placeholder="AIzaSy..." autocomplete="off" />
+                <input type="password" id="ai-gemini-key" placeholder="Вставьте AIzaSy... и нажмите Сохранить" autocomplete="off" />
                 <button type="button" class="admin-tool-btn" id="btn-save-gemini-key">Сохранить</button>
               </div>
             </label>
           </div>
-          <p class="admin-hint" id="ai-key-hint">Встроенный генератор создаёт аутентичные задачи Skola2030 без API-ключа. Для неограниченного разнообразия задач включите Gemini AI.</p>
+          <p class="admin-hint" id="ai-key-hint">Встроенный генератор создаёт аутентичные задачи Skola2030 без API-ключа. Чтобы генерировать задачи через нейросеть Google Gemini, введите ключ выше.</p>
         </div>
 
-        <div class="ai-generator-grid">
-          <label>Класс
-            <select id="ai-gen-grade"></select>
-          </label>
-          <label>Тема стандарта Skola2030
-            <select id="ai-gen-topic"></select>
-          </label>
-          <label>Подтема / навык
-            <select id="ai-gen-subtopic">
-              <option value="">Все навыки темы</option>
-            </select>
-          </label>
-          <label>Сложность
-            <select id="ai-gen-difficulty">
-              <option value="Лёгкий">Лёгкий (pamata līmenis)</option>
-              <option value="Средний" selected>Средний (optimālais līmenis)</option>
-              <option value="Сложный">Сложный (padziļinātais līmenis)</option>
-            </select>
-          </label>
-          <label>Тип задачи
-            <select id="ai-gen-type">
-              <option value="Уравнение или пример" selected>Уравнение или пример</option>
-              <option value="Текстовая прикладная задача">Текстовая прикладная задача</option>
-              <option value="Геометрическая задача">Геометрическая задача</option>
-            </select>
-          </label>
-          <label class="wide">Контекст и сюжет задачи <span>о чём жизненная ситуация или условие</span>
-            <textarea id="ai-gen-context" rows="2" placeholder="Например: Покупка билетов на концерт в Риге со скидкой; Движение двух поездов Рига–Валмиера; Расчёт стройматериалов для ремонта"></textarea>
-          </label>
-          <label class="wide">Дополнительные требования к формулам и числам <span>необязательно</span>
-            <input id="ai-gen-prompt" placeholder="Например: только целые числа в ответе, с квадратными корнями, без калькулятора" />
-          </label>
+        <div class="ai-generator-form">
+          <div class="ai-form-row">
+            <label class="field-grade">Класс / курс
+              <select id="ai-gen-grade"></select>
+            </label>
+            <label class="field-topic">Тема стандарта Skola2030
+              <select id="ai-gen-topic"></select>
+            </label>
+            <label class="field-subtopic">Подтема / навык
+              <select id="ai-gen-subtopic">
+                <option value="">Все навыки темы</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="ai-form-row">
+            <label class="field-difficulty">Сложность
+              <select id="ai-gen-difficulty">
+                <option value="mix" selected>Сбалансированный микс (45% лёгкий, 35% средний, 20% сложный)</option>
+                <option value="Лёгкий">Лёгкий (pamata līmenis)</option>
+                <option value="Средний">Средний (optimālais līmenis)</option>
+                <option value="Сложный">Сложный (padziļinātais līmenis)</option>
+              </select>
+            </label>
+            <label class="field-type">Тип задачи
+              <select id="ai-gen-type">
+                <option value="Уравнение или пример" selected>Уравнение или пример</option>
+                <option value="Текстовая прикладная задача">Текстовая прикладная задача</option>
+                <option value="Геометрическая задача">Геометрическая задача</option>
+              </select>
+            </label>
+            <label class="field-count">Количество задач
+              <input type="number" id="ai-gen-count" value="1" min="1" max="25" />
+            </label>
+          </div>
+
+          <div class="ai-form-row full-width">
+            <label>Контекст и сюжет задачи <span>жизненная ситуация, сюжет или практическое применение</span>
+              <textarea id="ai-gen-context" rows="2" placeholder="Например: Покупка билетов на концерт в Риге со скидкой; Движение двух поездов Рига–Валмиера; Расчёт стройматериалов для ремонта"></textarea>
+            </label>
+          </div>
+
+          <div class="ai-form-row full-width">
+            <label>Дополнительные требования к формулам и числам <span>необязательно</span>
+              <input id="ai-gen-prompt" placeholder="Например: только целые числа в ответе, с квадратными корнями, без калькулятора" />
+            </label>
+          </div>
         </div>
 
         <div class="ai-generator-actions">
@@ -159,16 +174,64 @@
       </div>
 
       <div class="admin-section">
-        <h3 id="task-form-title">Добавить задание</h3>
+        <div class="admin-section-head-with-action">
+          <h3 id="task-form-title">Добавить задание</h3>
+          <button type="button" class="text-button" id="btn-toggle-math-guide">📚 Руководство по формулам KaTeX</button>
+        </div>
+
+        <!-- 📚 Справочник и руководство по написанию формул и индексов -->
+        <div class="math-guide-card" id="math-guide-card" hidden>
+          <div class="math-guide-head">
+            <strong>📐 Руководство по форматированию формул KaTeX / LaTeX</strong>
+            <button type="button" class="text-button" id="btn-close-math-guide">Закрыть</button>
+          </div>
+          <p class="admin-hint">Все формулы в условии, ответе и решении оборачиваются в <code>$...$</code> (в строке) или <code>$$...$$</code> (по центру отдельной строкой). Нажмите на пример, чтобы вставить его в поле условия:</p>
+          
+          <div class="math-guide-grid">
+            <div class="math-guide-item">
+              <span class="math-guide-label">Индексы и степени:</span>
+              <code>$x^2$</code> → $x^2$<br>
+              <code>$2^{n+1}$</code> → $2^{n+1}$ (скобки <code>{}</code> если &gt; 1 символа)<br>
+              <code>$x_1, x_2$</code> → $x_1, x_2$<br>
+              <code>$a_{n-1}$</code> → $a_{n-1}$
+            </div>
+
+            <div class="math-guide-item">
+              <span class="math-guide-label">Дроби и корни:</span>
+              <code>$\frac{a}{b}$</code> → $\frac{a}{b}$<br>
+              <code>$\frac{x^2 - 1}{2x}$</code> → $\frac{x^2 - 1}{2x}$<br>
+              <code>$\sqrt{x}$</code> → $\sqrt{x}$<br>
+              <code>$\sqrt{b^2 - 4ac}$</code> → $\sqrt{b^2 - 4ac}$<br>
+              <code>$\sqrt[3]{8} = 2$</code> → $\sqrt[3]{8} = 2$
+            </div>
+
+            <div class="math-guide-item">
+              <span class="math-guide-label">Знаки и операции:</span>
+              <code>$\pm 3$</code> → $\pm 3$<br>
+              <code>$a \cdot b$</code> → $a \cdot b$ (умножение)<br>
+              <code>$a : b$</code> или <code>$\div$</code> (деление)<br>
+              <code>$\le, \ge, \neq$</code> → $\le, \ge, \neq$<br>
+              <code>$\approx 3{,}14$</code> → $\approx 3{,}14$
+            </div>
+
+            <div class="math-guide-item">
+              <span class="math-guide-label">Геометрия и текст:</span>
+              <code>$\angle ABC = 90^\circ$</code> → $\angle ABC = 90^\circ$<br>
+              <code>$\triangle ABC$</code> → $\triangle ABC$<br>
+              <code>$\pi \approx 3{,}14$</code> → $\pi \approx 3{,}14$<br>
+              <code>$S = 25\text{ см}^2$</code> → $S = 25\text{ см}^2$<br>
+              <code>$\begin{cases} x+y=5 \\ x-y=1 \end{cases}$</code> (система)
+            </div>
+          </div>
+        </div>
         <form class="task-form" id="task-form">
           <div class="wide task-lang-tabs-wrap">
             <div class="task-lang-tabs" role="tablist">
               <button type="button" class="task-lang-tab active" data-task-lang="ru">🇷🇺 Русский (оригинал)</button>
               <button type="button" class="task-lang-tab" data-task-lang="lv">🇱🇻 Latviešu (Skola2030)</button>
-              <button type="button" class="task-lang-tab" data-task-lang="en">🇬🇧 English</button>
             </div>
-            <button type="button" class="ai-translate-btn" id="btn-ai-translate" title="Перевести тему, условие и решение на латышский и английский языки через AI с сохранением разметки KaTeX-формул">
-              <span class="ai-icon">✨</span> Автоперевод AI (LV & EN)
+            <button type="button" class="ai-translate-btn" id="btn-ai-translate" title="Перевести тему, условие и решение на латышский язык через AI с сохранением разметки KaTeX-формул">
+              <span class="ai-icon">✨</span> Автоперевод AI (LV)
             </button>
           </div>
 
@@ -196,14 +259,7 @@
             <div class="wide math-preview"><span class="math-preview-label">Kā redzēs skolēns (LV)</span><div id="solution-preview-lv"></div></div>
           </div>
 
-          <!-- Группа полей EN -->
-          <div class="task-lang-group" data-lang-group="en" hidden>
-            <label class="wide">Title (EN)<input name="title_en" id="title-input-en" placeholder="E.g.: Quadratic Equation" /></label>
-            <label class="wide">Condition (EN) <span>plain text; formulas between $…$</span><textarea name="condition_latex_en" id="condition-input-en" placeholder="Solve the equation $2x^2 - 5x - 3 = 0$"></textarea></label>
-            <div class="wide math-preview"><span class="math-preview-label">Student View (EN)</span><div id="condition-preview-en"></div></div>
-            <label class="wide">Solution (EN) <span>optional; formulas between $…$</span><textarea name="solution_latex_en" id="solution-input-en" placeholder="Discriminant $D = 49$, thus $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
-            <div class="wide math-preview"><span class="math-preview-label">Student View (EN)</span><div id="solution-preview-en"></div></div>
-          </div>
+
 
 
 
@@ -239,15 +295,74 @@
               <input type="search" id="task-search-input" class="admin-search-input" placeholder="Поиск по названию или условию задачи…" />
             </div>
             <div class="admin-bulk-actions">
+              <label class="admin-tool-btn" id="btn-upload-file-tasks-label" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Загрузить готовый файл .json с темами и задачами с вашего компьютера">
+                📁 Загрузить файл .json
+                <input type="file" id="bulk-file-input" accept=".json,application/json" style="display:none" />
+              </label>
+              <button class="admin-tool-btn" type="button" id="btn-toggle-sample-json" title="Посмотреть образец структуры JSON-файла для загрузки">📄 Образец JSON</button>
               <button class="admin-tool-btn" type="button" id="btn-export-tasks" title="Скачать или скопировать задачи в JSON">📥 Экспорт JSON</button>
-              <button class="admin-tool-btn" type="button" id="btn-import-tasks" title="Импортировать задачи из JSON">📤 Импорт JSON</button>
+              <button class="admin-tool-btn" type="button" id="btn-import-tasks" title="Вставить JSON вручную в текстовое поле">📤 Вставить JSON</button>
             </div>
           </div>
+
+          <!-- 📄 Образец иерархического формата JSON прямо рядом с кнопками загрузки (Требование 5) -->
+          <div class="json-sample-card" id="json-sample-card" hidden>
+            <div class="json-sample-head">
+              <strong>📋 Образец структуры файла .json (Иерархический формат: темы → массив задач)</strong>
+              <div class="json-sample-head-actions">
+                <button type="button" class="admin-tool-btn" id="btn-copy-sample-json">📋 Скопировать образец</button>
+                <button type="button" class="admin-tool-btn" id="btn-insert-sample-to-dialog">📤 Вставить в окно импорта</button>
+                <button type="button" class="text-button" id="btn-close-sample-json">Закрыть</button>
+              </div>
+            </div>
+            <p class="admin-hint">Вы можете сохранить этот пример как файл <code>tasks.json</code> на компьютере, заполнить своими задачами и нажать «📁 Загрузить файл .json». Недостающие темы создадутся автоматически.</p>
+            <pre class="json-sample-pre"><code id="json-sample-code">[
+  {
+    "topic_title": "Квадратные уравнения",
+    "topic_title_lv": "Kvadrātvienādojumi",
+    "grade": 8,
+    "tasks": [
+      {
+        "title": "Неполное квадратное уравнение",
+        "condition_latex": "Решите уравнение $x^2 - 9 = 0$.",
+        "answer_latex": "$x = \\pm 3$",
+        "solution_latex": "Разложим разность квадратов:\n$$(x - 3)(x + 3) = 0$$\nКорни: $x_1 = 3,\\; x_2 = -3$.",
+        "difficulty": "Лёгкий",
+        "is_published": true
+      },
+      {
+        "title": "Полное квадратное уравнение",
+        "condition_latex": "Решите уравнение $x^2 - 5x + 6 = 0$.",
+        "answer_latex": "$x_1 = 2,\\; x_2 = 3$",
+        "solution_latex": "По формуле через дискриминант: $D = 1$, корни: $x_1 = 2,\\; x_2 = 3$.",
+        "difficulty": "Средний",
+        "is_published": true
+      }
+    ]
+  },
+  {
+    "topic_title": "Теорема Пифагора",
+    "topic_title_lv": "Pitagora teorēma",
+    "grade": 8,
+    "tasks": [
+      {
+        "title": "Нахождение гипотенузы",
+        "condition_latex": "Катеты прямоугольного треугольника $a = 3\\text{ см}$ и $b = 4\\text{ см}$. Найдите гипотенузу $c$.",
+        "answer_latex": "$c = 5\\text{ см}$",
+        "solution_latex": "По теореме Пифагора $c = \\sqrt{3^2 + 4^2} = 5\\text{ см}$.",
+        "difficulty": "Лёгкий",
+        "is_published": true
+      }
+    ]
+  }
+]</code></pre>
+          </div>
+
           <div class="admin-filters-row">
             <label class="admin-filter-field">
-              <span>Класс</span>
+              <span>Класс / курс</span>
               <select id="task-filter-grade" class="admin-select-filter">
-                <option value="">Все классы</option>
+                <option value="">Все классы и курсы</option>
               </select>
             </label>
             <label class="admin-filter-field">
@@ -279,16 +394,15 @@
             <h3 id="bulk-dialog-title">Импорт / Экспорт задач</h3>
             <button type="button" class="bulk-dialog-close" id="bulk-dialog-close" aria-label="Закрыть">&times;</button>
           </div>
-          <p class="bulk-dialog-desc" id="bulk-dialog-desc">Вставьте массив задач в формате JSON. Обязательные поля для каждой задачи: <code>title</code> и <code>condition_latex</code>.</p>
-          <textarea class="bulk-dialog-textarea" id="bulk-dialog-textarea" rows="12" spellcheck="false" placeholder='[
-  {
-    "title": "Квадратное уравнение",
-    "condition_latex": "Решите $x^2 - 4 = 0$",
-    "answer_latex": "$x = \\pm 2$",
-    "difficulty": "Лёгкий",
-    "grade": 8
-  }
-]'></textarea>
+          <p class="bulk-dialog-desc" id="bulk-dialog-desc">Поддерживается загрузка файла .json с несколькими темами и задачами или плоский список задач.</p>
+          <div class="bulk-dialog-toolbar" style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <label class="admin-tool-btn" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Выбрать файл .json с компьютера">
+              📁 Выбрать файл с диска (.json)
+              <input type="file" id="bulk-dialog-file-input" accept=".json,application/json" style="display:none" />
+            </label>
+            <button type="button" class="admin-tool-btn" id="bulk-dialog-template-btn">📋 Вставить образец формата с несколькими темами</button>
+          </div>
+          <textarea class="bulk-dialog-textarea" id="bulk-dialog-textarea" rows="12" spellcheck="false" placeholder="Вставьте JSON или выберите файл выше..."></textarea>
           <div class="bulk-dialog-status" id="bulk-dialog-status" hidden></div>
           <div class="bulk-dialog-actions">
             <button type="button" class="primary-button" id="bulk-dialog-submit">Выполнить импорт</button>
@@ -305,6 +419,7 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="/lib.js"></script>
+  <script src="/i18n.js"></script>
   <script src="/client.js"></script>
   <script src="/ai-generator.js"></script>
   <script src="/admin.js"></script>

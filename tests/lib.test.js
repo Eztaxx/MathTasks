@@ -10,7 +10,9 @@ import {
   formatTimerDisplay,
   getLocalizedText,
   maskLatexForTranslation,
-  unmaskLatexAfterTranslation
+  unmaskLatexAfterTranslation,
+  parseMultiTopicJson,
+  resolveDifficultyMix
 } from '../public/lib.js';
 
 describe('makeSlug', () => {
@@ -119,10 +121,10 @@ describe('compareAnswers (Quick Math Bar & Self-Check)', () => {
   });
 });
 
-describe('i18n (Trilingual support LV / RU / EN)', () => {
+describe('i18n (Bilingual support LV / RU)', () => {
 
-  it('поддерживает языки lv, ru, en', () => {
-    expect(i18n.SUPPORTED_LANGS).toEqual(['lv', 'ru', 'en']);
+  it('поддерживает языки lv, ru', () => {
+    expect(i18n.SUPPORTED_LANGS).toEqual(['lv', 'ru']);
   });
 
   it('переводит базовые ключи на латышский язык Skola2030', () => {
@@ -143,22 +145,11 @@ describe('i18n (Trilingual support LV / RU / EN)', () => {
     expect(i18n.t('solved_badge')).toBe('✓ Решено');
   });
 
-  it('переводит базовые ключи на английский язык', () => {
-    i18n.setLang('en');
-    expect(i18n.getLang()).toBe('en');
-    expect(i18n.t('nav_home')).toBe('Home');
-    expect(i18n.t('diff_easy')).toBe('Basic');
-    expect(i18n.t('track_9')).toBe('Grade 9 Exam');
-    expect(i18n.t('solved_badge')).toBe('✓ Solved');
-  });
-
   it('корректно подставляет параметры в строку перевода', () => {
     i18n.setLang('lv');
     expect(i18n.t('task_counter', { cur: 3, total: 10 })).toBe('Uzdevums 3 no 10');
     i18n.setLang('ru');
     expect(i18n.t('task_counter', { cur: 3, total: 10 })).toBe('Задача 3 из 10');
-    i18n.setLang('en');
-    expect(i18n.t('task_counter', { cur: 3, total: 10 })).toBe('Task 3 of 10');
   });
 });
 
@@ -265,5 +256,152 @@ describe('maskLatexForTranslation & unmaskLatexAfterTranslation — защита
     expect(result).toBe('Atrisiniet vienādojumu $\\sqrt{x} = 3$.');
   });
 });
+
+describe('parseMultiTopicJson (Массовый импорт файла JSON с несколькими темами)', () => {
+  it('парсит иерархический формат тем со вложенными задачами', () => {
+    const raw = JSON.stringify([
+      {
+        topic_title: 'Квадратные уравнения',
+        topic_title_lv: 'Kvadrātvienādojumi',
+        grade: 8,
+        tasks: [
+          { title: 'Задача 1', condition_latex: '$x^2 - 4 = 0$', answer_latex: '$x = \\pm 2$' },
+          { title: 'Задача 2', condition_latex: '$x^2 - 9 = 0$', answer_latex: '$x = \\pm 3$' }
+        ]
+      },
+      {
+        topic_title: 'Теорема Пифагора',
+        topic_title_lv: 'Pitagora teorēma',
+        grade: 8,
+        tasks: [
+          { title: 'Гипотенуза', condition_latex: 'Катеты $3$ и $4$', answer_latex: '$5$' }
+        ]
+      }
+    ]);
+
+    const { uniqueTopics, tasks } = parseMultiTopicJson(raw);
+    expect(uniqueTopics).toHaveLength(2);
+    expect(uniqueTopics[0].title).toBe('Квадратные уравнения');
+    expect(uniqueTopics[0].title_lv).toBe('Kvadrātvienādojumi');
+    expect(uniqueTopics[0].grade).toBe(8);
+    expect(uniqueTopics[1].title).toBe('Теорема Пифагора');
+
+    expect(tasks).toHaveLength(3);
+    expect(tasks[0].topic_title).toBe('Квадратные уравнения');
+    expect(tasks[0].grade).toBe(8);
+    expect(tasks[2].topic_title).toBe('Теорема Пифагора');
+  });
+
+  it('парсит объект верхнего уровня с полем topics', () => {
+    const raw = JSON.stringify({
+      topics: [
+        {
+          title: 'Линейные уравнения',
+          grade: 7,
+          tasks: [
+            { title: 'Простое уравнение', condition_latex: '$2x = 6$', answer_latex: '$3$' }
+          ]
+        }
+      ]
+    });
+
+    const { uniqueTopics, tasks } = parseMultiTopicJson(raw);
+    expect(uniqueTopics).toHaveLength(1);
+    expect(uniqueTopics[0].title).toBe('Линейные уравнения');
+    expect(uniqueTopics[0].grade).toBe(7);
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].title).toBe('Простое уравнение');
+  });
+
+  it('парсит плоский список задач с указанием тем', () => {
+    const raw = JSON.stringify([
+      {
+        topic_title: 'Дроби',
+        grade: 5,
+        title: 'Сложение дробей',
+        condition_latex: '$1/3 + 1/3 = ?$',
+        answer_latex: '$2/3$'
+      },
+      {
+        topic_title: 'Проценты',
+        grade: 5,
+        title: 'Нахождение 10%',
+        condition_latex: '$10\\% \\text{ от } 200$',
+        answer_latex: '$20$'
+      }
+    ]);
+
+    const { uniqueTopics, tasks } = parseMultiTopicJson(raw);
+    expect(uniqueTopics).toHaveLength(2);
+    expect(uniqueTopics.map(t => t.title)).toEqual(['Дроби', 'Проценты']);
+    expect(tasks).toHaveLength(2);
+    expect(tasks[0].topic_title).toBe('Дроби');
+    expect(tasks[1].topic_title).toBe('Проценты');
+  });
+
+  it('выбрасывает ошибку при невалидном или пустом вводе', () => {
+    expect(() => parseMultiTopicJson('')).toThrow();
+    expect(() => parseMultiTopicJson('{ broken json ')).toThrow();
+  });
+});
+
+describe('resolveDifficultyMix (Сбалансированное распределение сложности 45% / 35% / 20%)', () => {
+  it('возвращает фиксированную сложность, если выбран конкретный уровень', () => {
+    expect(resolveDifficultyMix('Лёгкий', 0, 10)).toBe('Лёгкий');
+    expect(resolveDifficultyMix('Средний', 5, 10)).toBe('Средний');
+    expect(resolveDifficultyMix('Сложный', 9, 10)).toBe('Сложный');
+  });
+
+  it('при mix корректно распределяет уровни для 20 задач', () => {
+    const total = 20;
+    const diffs = Array.from({ length: total }, (_, i) => resolveDifficultyMix('mix', i, total));
+    const easy = diffs.filter(d => d === 'Лёгкий').length;
+    const med = diffs.filter(d => d === 'Средний').length;
+    const hard = diffs.filter(d => d === 'Сложный').length;
+
+    // 45% от 20 = 9, 35% от 20 = 7, 20% от 20 = 4
+    expect(easy).toBe(9);
+    expect(med).toBe(7);
+    expect(hard).toBe(4);
+  });
+
+  it('при mix корректно распределяет для малого числа задач (N=3)', () => {
+    const total = 3;
+    const diffs = Array.from({ length: total }, (_, i) => resolveDifficultyMix('mix', i, total));
+    expect(diffs).toContain('Лёгкий');
+    expect(diffs).toContain('Средний');
+    expect(diffs).toContain('Сложный');
+  });
+});
+
+describe('Grade Name Resilience (Защита от вывода технических ключей grade_8)', () => {
+  it('i18n возвращает корректное название для всех классов (1–9) и курсов (10–12 / уровни)', () => {
+    for (let g = 1; g <= 9; g++) {
+      const nameRu = i18n.t(`grade_${g}`, {}, 'ru');
+      expect(nameRu).not.toBe(`grade_${g}`);
+      expect(nameRu).toContain('класс');
+
+      const nameLv = i18n.t(`grade_${g}`, {}, 'lv');
+      expect(nameLv).not.toBe(`grade_${g}`);
+      expect(nameLv).toContain('klase');
+    }
+    for (let g = 10; g <= 12; g++) {
+      const nameRu = i18n.t(`grade_${g}`, {}, 'ru');
+      expect(nameRu).not.toBe(`grade_${g}`);
+      expect(nameRu).not.toContain(`${g} класс`);
+
+      const nameLv = i18n.t(`grade_${g}`, {}, 'lv');
+      expect(nameLv).not.toBe(`grade_${g}`);
+      expect(nameLv).not.toContain(`${g}. klase`);
+    }
+  });
+
+  it('i18n корректно переводит старшие уровни (visparigais, matematika-1, matematika-2)', () => {
+    expect(i18n.t('grade_visparigais', {}, 'ru')).not.toBe('grade_visparigais');
+    expect(i18n.t('grade_matematika_1', {}, 'ru')).not.toBe('grade_matematika_1');
+    expect(i18n.t('grade_matematika_2', {}, 'ru')).not.toBe('grade_matematika_2');
+  });
+});
+
 
 

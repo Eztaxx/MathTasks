@@ -14,23 +14,36 @@ window.MathTasks = window.MathTasks || {};
 
   // Справочник ступеней обучения по стандартам Skola2030 (1–9 классы и средняя школа: Vispārīgais, Matemātika I, Matemātika II)
   window.MathTasks.GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 'visparigais', 'matematika-1', 'matematika-2'];
+  const resolveGradeName = (grade, t) => {
+    const specific = t(`grade_${grade}`);
+    if (specific && specific !== `grade_${grade}`) return specific;
+    const nForm = t('grade_N', { n: grade });
+    if (nForm && nForm !== 'grade_N') return nForm;
+    return `${grade} класс`;
+  };
+
   window.MathTasks.gradeLabel = grade => {
     const t = window.MathTasks.t || (k => k);
-    if (!grade) return t('without_grade');
-    if (grade === 'visparigais' || grade === 'vispārīgais') return t('grade_visparigais');
-    if (grade === 'matematika-1' || grade === 10 || grade === 11 || grade === '10' || grade === '11') return t('grade_matematika_1');
-    if (grade === 'matematika-2' || grade === 12 || grade === '12') return t('grade_matematika_2');
-    return t('grade_N', { n: grade }) !== 'grade_N' ? t('grade_N', { n: grade }) : `${grade} класс`;
+    if (!grade) return t('without_grade') !== 'without_grade' ? t('without_grade') : 'Без класса';
+    if (grade === 'visparigais' || grade === 'vispārīgais') return t('grade_visparigais') !== 'grade_visparigais' ? t('grade_visparigais') : 'Vispārīgais līmenis';
+    if (grade === 'matematika-1') return t('grade_matematika_1') !== 'grade_matematika_1' ? t('grade_matematika_1') : 'Matemātika I (Optimālais)';
+    if (grade === 'matematika-2') return t('grade_matematika_2') !== 'grade_matematika_2' ? t('grade_matematika_2') : 'Matemātika II (Augstākais)';
+    return resolveGradeName(grade, t);
   };
+
   window.MathTasks.fillGradeSelect = (select, emptyLabel) => {
     if (!select) return;
     const t = window.MathTasks.t || (k => k);
-    const emptyText = emptyLabel || t('all_grades');
+    const emptyText = emptyLabel || (t('all_grades') !== 'all_grades' ? t('all_grades') : 'Все классы и курсы');
+    const optVisp = t('grade_visparigais') !== 'grade_visparigais' ? t('grade_visparigais') : 'Vispārīgais līmenis';
+    const optOpt = t('grade_matematika_1') !== 'grade_matematika_1' ? t('grade_matematika_1') : 'Optimālais līmenis (Matemātika I)';
+    const optAugst = t('grade_matematika_2') !== 'grade_matematika_2' ? t('grade_matematika_2') : 'Augstākais līmenis (Matemātika II)';
+
     select.innerHTML = `<option value="">${emptyText}</option>` +
-      [1, 2, 3, 4, 5, 6, 7, 8, 9].map(grade => `<option value="${grade}">${t('grade_N', { n: grade })}</option>`).join('') +
-      `<option value="10">10: ${t('grade_visparigais')}</option>` +
-      `<option value="11">11: ${t('grade_matematika_1')}</option>` +
-      `<option value="12">12: ${t('grade_matematika_2')}</option>`;
+      [1, 2, 3, 4, 5, 6, 7, 8, 9].map(grade => `<option value="${grade}">${resolveGradeName(grade, t)}</option>`).join('') +
+      `<option value="visparigais">${optVisp}</option>` +
+      `<option value="matematika-1">${optOpt}</option>` +
+      `<option value="matematika-2">${optAugst}</option>`;
   };
 
   // Чистые функции живут в lib.js — их же покрывают тесты.

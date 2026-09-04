@@ -51,7 +51,7 @@ try {
   }
 } catch {}
 
-const TASK_SELECT = '*, topics(title, title_lv, title_en, slug, description, description_lv, description_en, subjects(title, title_lv, title_en, icon))';
+const TASK_SELECT = '*, topics(title, title_lv, slug, description, description_lv, subjects(title, title_lv, icon))';
 
 const loc = (item, field) => {
   const lang = window.MathTasks?.getLang ? window.MathTasks.getLang() : 'ru';
@@ -72,11 +72,16 @@ const topicClass = index => ['lavender', 'green', 'orange', 'blue', 'pink', 'aqu
 
 const gradeLabel = grade => {
   const tr = window.MathTasks.t || (k => k);
-  if (!grade) return tr('all_grades');
-  if (grade === 'visparigais' || grade === 'vispārīgais') return tr('grade_visparigais');
-  if (grade === 'matematika-1' || grade === 10 || grade === 11 || grade === '10' || grade === '11') return tr('grade_matematika_1');
-  if (grade === 'matematika-2' || grade === 12 || grade === '12') return tr('grade_matematika_2');
-  return tr('grade_N', { n: grade }) !== 'grade_N' ? tr('grade_N', { n: grade }) : `${grade} класс`;
+  if (!grade) return tr('all_grades') !== 'all_grades' ? tr('all_grades') : 'Все классы';
+  if (grade === 'visparigais' || grade === 'vispārīgais') return tr('grade_visparigais') !== 'grade_visparigais' ? tr('grade_visparigais') : 'Vispārīgais līmenis';
+  if (grade === 'matematika-1') return tr('grade_matematika_1') !== 'grade_matematika_1' ? tr('grade_matematika_1') : 'Matemātika I (Optimālais)';
+  if (grade === 'matematika-2') return tr('grade_matematika_2') !== 'grade_matematika_2' ? tr('grade_matematika_2') : 'Matemātika II (Augstākais)';
+  const key = `grade_${grade}`;
+  const translated = tr(key);
+  if (translated && translated !== key) return translated;
+  const nForm = tr('grade_N', { n: grade });
+  if (nForm && nForm !== 'grade_N') return nForm;
+  return `${grade} класс`;
 };
 
 function isTopicInGrade(topic, grade) {
@@ -84,11 +89,11 @@ function isTopicInGrade(topic, grade) {
   if (grade === 'visparigais') {
     return topic.grade === 10 || topic.grade === 'visparigais' || (topic.description && topic.description.toLowerCase().includes('vispār'));
   }
-  if (grade === 'matematika-1' || grade === 10 || grade === 11 || grade === '10' || grade === '11') {
-    return topic.grade === 10 || topic.grade === 11;
+  if (grade === 'matematika-1') {
+    return topic.grade === 10 || topic.grade === 11 || topic.grade === 'matematika-1';
   }
-  if (grade === 'matematika-2' || grade === 12 || grade === '12') {
-    return topic.grade === 12;
+  if (grade === 'matematika-2') {
+    return topic.grade === 12 || topic.grade === 'matematika-2';
   }
   return topic.grade === Number(grade);
 }
@@ -105,25 +110,25 @@ function renderGradeControls() {
   let pillText = tr('all_grades_short');
   if (selectedGrade) {
     if (selectedGrade === 'visparigais') pillText = 'Visp.';
-    else if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) pillText = 'Mat. I';
-    else if (selectedGrade === 'matematika-2' || selectedGrade === 12) pillText = 'Mat. II';
+    else if (selectedGrade === 'matematika-1') pillText = 'Mat. I';
+    else if (selectedGrade === 'matematika-2') pillText = 'Mat. II';
     else pillText = String(selectedGrade);
   }
   gradePill.textContent = pillText;
   gradePill.title = selectedGrade ? gradeLabel(selectedGrade) : tr('all_grades');
 
   const chips = [
-    ['', tr('all_grades'), '/'],
-    ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(g => [String(g), tr('grade_N', { n: g }), `/grade/${g}`]),
-    ['visparigais', 'Vispārīgais', '/grade/visparigais'],
-    ['matematika-1', 'Matemātika I', '/grade/matematika-1'],
-    ['matematika-2', 'Matemātika II', '/grade/matematika-2']
+    ['', tr('all_grades_short'), '/'],
+    ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(g => [String(g), tr(`grade_${g}`) || tr('grade_N', { n: g }), `/grade/${g}`]),
+    ['visparigais', tr('grade_visparigais'), '/grade/visparigais'],
+    ['matematika-1', tr('grade_matematika_1'), '/grade/matematika-1'],
+    ['matematika-2', tr('grade_matematika_2'), '/grade/matematika-2']
   ];
   gradeFilter.innerHTML = chips.map(([value, label, href]) => {
     const isCurrent = String(selectedGrade ?? '') === value ||
       (value === 'visparigais' && selectedGrade === 'visparigais') ||
-      (value === 'matematika-1' && (selectedGrade === 10 || selectedGrade === 11)) ||
-      (value === 'matematika-2' && selectedGrade === 12);
+      (value === 'matematika-1' && (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11)) ||
+      (value === 'matematika-2' && (selectedGrade === 'matematika-2' || selectedGrade === 12));
     return `<a class="grade-chip${isCurrent ? ' active' : ''}" href="${href}"${isCurrent ? ' aria-current="page"' : ''}>${label}</a>`;
   }).join('');
 }
@@ -131,8 +136,11 @@ function renderGradeControls() {
 function parseGradeValue(val) {
   if (!val) return null;
   if (val === 'visparigais' || val === 'vispārīgais') return 'visparigais';
-  if (val === 'matematika-1' || val === '10' || val === '11' || val === 10 || val === 11) return 'matematika-1';
-  if (val === 'matematika-2' || val === '12' || val === 12) return 'matematika-2';
+  if (val === 'matematika-1') return 'matematika-1';
+  if (val === 'matematika-2') return 'matematika-2';
+  if (val === '10' || val === 10) return 'visparigais';
+  if (val === '11' || val === 11) return 'matematika-1';
+  if (val === '12' || val === 12) return 'matematika-2';
   const num = Number(val);
   return Number.isFinite(num) ? num : null;
 }
@@ -982,7 +990,7 @@ function resetListBlocks() {
   document.querySelector('#task-nav')?.remove();
 }
 
-const gradeCrumb = () => (selectedGrade ? [gradeLabel(selectedGrade), `/grade/${selectedGrade}`] : ['Все классы', '/']);
+const gradeCrumb = () => (selectedGrade ? [gradeLabel(selectedGrade), `/grade/${selectedGrade}`] : [(window.MathTasks?.t ? window.MathTasks.t('all_grades') : 'Все классы'), '/']);
 
 /* ── Страница класса ──────────────────────────────────────────────── */
 
@@ -1415,7 +1423,7 @@ async function showTask(rawId) {
 async function renderTaskNeighbours(task) {
   document.querySelector('#task-nav')?.remove();
   if (!task.topic_id) return;
-  const { data } = await db.from('tasks').select('id, title, title_lv, title_en')
+  const { data } = await db.from('tasks').select('id, title, title_lv')
     .eq('is_published', true).eq('topic_id', task.topic_id)
     .order('position').order('created_at', { ascending: true });
   const siblings = data || [];
@@ -2183,130 +2191,7 @@ if (location.hash.startsWith('#/')) {
   history.replaceState(null, '', location.hash.slice(1));
 }
 
-/* ── Экзаменационный таймер (Exam Simulator) ─────────────────────── */
-const ExamTimer = {
-  seconds: 0,
-  initialSeconds: 0,
-  isRunning: false,
-  intervalId: null,
-
-  init() {
-    this.btn = document.querySelector('#exam-timer-btn');
-    this.dropdown = document.querySelector('#timer-dropdown');
-    this.display = document.querySelector('#timer-display');
-    this.bigDisplay = document.querySelector('#timer-big-display');
-    this.toggleBtn = document.querySelector('#timer-toggle-btn');
-    this.resetBtn = document.querySelector('#timer-reset-btn');
-    this.closeBtn = document.querySelector('#timer-close-btn');
-    this.presetBtns = document.querySelectorAll('.timer-preset-btn');
-    if (!this.btn || !this.dropdown) return;
-
-    this.btn.addEventListener('click', () => {
-      this.dropdown.hidden = !this.dropdown.hidden;
-    });
-
-    this.closeBtn?.addEventListener('click', () => {
-      this.dropdown.hidden = true;
-    });
-
-    document.addEventListener('click', e => {
-      if (!e.target.closest('#exam-timer-wrap')) {
-        this.dropdown.hidden = true;
-      }
-    });
-
-    this.presetBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (this.isRunning) this.pause();
-        this.presetBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const sec = Number(btn.dataset.timerSeconds || 0);
-        this.initialSeconds = sec;
-        this.seconds = sec;
-        this.updateDisplay();
-      });
-    });
-
-    this.toggleBtn?.addEventListener('click', () => {
-      if (this.isRunning) this.pause();
-      else this.start();
-    });
-
-    this.resetBtn?.addEventListener('click', () => {
-      this.reset();
-    });
-
-    this.updateDisplay();
-  },
-
-  start() {
-    if (this.isRunning) return;
-    this.isRunning = true;
-    this.btn.classList.add('running');
-    this.btn.classList.remove('warning');
-    const tr = window.MathTasks.t || (k => k);
-    if (this.toggleBtn) this.toggleBtn.textContent = tr('timer_pause');
-
-    this.intervalId = setInterval(() => {
-      if (this.initialSeconds === 0) {
-        this.seconds++;
-      } else {
-        if (this.seconds > 0) {
-          this.seconds--;
-          if (this.seconds <= 60) this.btn.classList.add('warning');
-          if (this.seconds === 0) this.finish();
-        }
-      }
-      this.updateDisplay();
-    }, 1000);
-  },
-
-  pause() {
-    this.isRunning = false;
-    this.btn.classList.remove('running');
-    clearInterval(this.intervalId);
-    const tr = window.MathTasks.t || (k => k);
-    if (this.toggleBtn) this.toggleBtn.textContent = tr('timer_start');
-  },
-
-  reset() {
-    this.pause();
-    this.btn.classList.remove('warning');
-    this.seconds = this.initialSeconds;
-    this.updateDisplay();
-  },
-
-  finish() {
-    this.pause();
-    this.btn.classList.add('warning');
-    const tr = window.MathTasks.t || (k => k);
-    showToast(tr('timer_finished'));
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.8);
-    } catch {}
-  },
-
-  updateDisplay() {
-    const str = (window.MathTasksLib && window.MathTasksLib.formatTimerDisplay)
-      ? window.MathTasksLib.formatTimerDisplay(this.seconds)
-      : '00:00';
-    if (this.display) this.display.textContent = str;
-    if (this.bigDisplay) this.bigDisplay.textContent = str;
-  }
-};
-
-ExamTimer.init();
-
-// Переключение языка (LV / RU / EN)
+// Переключение языка (LV / RU)
 document.querySelector('#lang-switcher')?.addEventListener('click', event => {
   const btn = event.target.closest('.lang-btn');
   if (!btn) return;

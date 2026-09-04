@@ -96,14 +96,11 @@ describe('AI Task Generator (Skola2030 Autonomous Engine)', () => {
     expect(task.answer_latex).toBeTruthy();
   });
 
-  it('переводит математический текст на латышский и английский языки', () => {
+  it('переводит математический текст на латышский язык (термины Skola2030)', () => {
     const text = 'Решите уравнение: $2x + 5 = 15$. Ответ: $x = 5$.';
     const lv = aiGen.translateMathText(text, 'lv');
-    const en = aiGen.translateMathText(text, 'en');
 
     expect(lv).toContain('Atrisiniet vienādojumu');
     expect(lv).toContain('Atbilde:');
-    expect(en).toContain('Solve the equation');
-    expect(en).toContain('Answer:');
   });
 });
