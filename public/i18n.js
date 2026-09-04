@@ -169,6 +169,7 @@
 
       // Favorītu lapa
       favorites_title: 'Mani favorīti',
+      topic_no_tasks: 'Pagaidām tukšs',
       favorites_empty: 'Jums vēl nav saglabātu uzdevumu. Noklikšķiniet uz zvaigznītes pie jebkura uzdevuma, lai to pievienotu!',
 
       // Par vietni
@@ -338,6 +339,7 @@
 
       // Закладки
       favorites_title: 'Мои закладки',
+      topic_no_tasks: 'Пока пусто',
       favorites_empty: 'У вас пока нет сохраненных задач. Нажмите на значок закладки у любой задачи, чтобы добавить её сюда!',
 
       // О сайте

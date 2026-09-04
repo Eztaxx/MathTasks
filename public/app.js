@@ -906,7 +906,7 @@ function topicCard(topic, index, showGrade) {
 
   const badges = [
     showGrade && topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : '',
-    `<span class="topic-count">${count ? tr('tasks_in_topic', { count }) : (tr('favorites_empty') || 'tukšs')}</span>`,
+    `<span class="topic-count">${count ? tr('tasks_in_topic', { count }) : tr('topic_no_tasks')}</span>`,
     progressBadge
   ].filter(Boolean).join('');
 
@@ -1915,7 +1915,14 @@ document.addEventListener('click', event => {
           if (label) label.textContent = origText;
         }, 1800);
       } else {
-        prompt('Скопируйте ссылку вручную:', url);
+        /* prompt доступен не везде: встроенные просмотрщики и часть браузеров
+           его блокируют, и тогда обещание падало необработанной ошибкой.
+           Показываем адрес хотя бы уведомлением. */
+        try {
+          window.prompt('Скопируйте ссылку вручную:', url);
+        } catch {
+          showToast(url);
+        }
       }
     });
     return;

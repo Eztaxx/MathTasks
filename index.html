@@ -128,26 +128,26 @@
     </div>
   </main>
 
-  <dialog class="auth-dialog" id="auth-dialog">
+  <dialog class="auth-dialog" id="auth-dialog" aria-labelledby="auth-dialog-title">
     <button class="dialog-close" type="button" aria-label="Закрыть">×</button>
     <form id="login-form">
-      <h2>Вход для администратора</h2><p>Войдите с email и паролем администратора.</p>
+      <h2 id="auth-dialog-title">Вход для администратора</h2><p>Войдите с email и паролем администратора.</p>
       <label>Email<input id="login-email" type="email" required autocomplete="email" /></label>
       <label>Пароль<input id="login-password" type="password" required autocomplete="current-password" /></label>
       <p class="form-error" id="login-error" aria-live="polite"></p><button class="primary-button" type="submit">Войти</button>
     </form>
   </dialog>
 
-  <dialog class="auth-dialog account-dialog" id="account-dialog">
+  <dialog class="auth-dialog account-dialog" id="account-dialog" aria-labelledby="account-dialog-title">
     <button class="dialog-close" id="account-dialog-close" type="button" aria-label="Закрыть">×</button>
-    <h2>Аккаунт</h2>
+    <h2 id="account-dialog-title">Аккаунт</h2>
     <p id="account-status"></p>
     <div class="account-details"><span>Аккаунт</span><strong id="account-email"></strong></div>
     <div id="admin-panel-slot"></div>
     <button data-sign-out class="text-button" type="button">Выйти из аккаунта</button>
   </dialog>
 
-  <dialog class="lightbox-dialog" id="lightbox-dialog">
+  <dialog class="lightbox-dialog" id="lightbox-dialog" aria-label="Просмотр чертежа">
     <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Закрыть">×</button>
     <div class="lightbox-content">
       <img class="lightbox-img" id="lightbox-img" alt="" hidden />
@@ -156,10 +156,10 @@
   </dialog>
 
 
-  <dialog class="plotter-dialog" id="plotter-dialog">
+  <dialog class="plotter-dialog" id="plotter-dialog" aria-labelledby="plotter-dialog-title">
     <button class="dialog-close" id="plotter-close" type="button" aria-label="Закрыть">×</button>
     <div class="plotter-head">
-      <h2 data-i18n="plotter_title">📈 Графопостроитель функций</h2>
+      <h2 data-i18n="plotter_title" id="plotter-dialog-title">📈 Графопостроитель функций</h2>
       <p data-i18n="plotter_subtitle">Интерактивное исследование функций: введите формулу или выберите готовую.</p>
     </div>
     <div class="plotter-controls">
@@ -212,10 +212,10 @@
   </dialog>
 
   <!-- Справочник формул и официальные формульные листы Skola2030 (3.5) -->
-  <dialog class="formulas-dialog" id="formulas-dialog">
+  <dialog class="formulas-dialog" id="formulas-dialog" aria-labelledby="formulas-dialog-title">
     <div class="formulas-dialog-header">
       <div class="formulas-dialog-title-wrap">
-        <h2 data-i18n="formulas_title">Справочник формул Skola2030</h2>
+        <h2 data-i18n="formulas_title" id="formulas-dialog-title">Справочник формул Skola2030</h2>
         <p data-i18n="formulas_subtitle">Официальные формульные листы экзаменов и интерактивная шпаргалка</p>
       </div>
       <button class="dialog-close" id="formulas-close" type="button" aria-label="Закрыть">×</button>
