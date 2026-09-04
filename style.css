@@ -733,3 +733,39 @@ body.dark .topic-progress-bar-wrap{background:#1e293b}
 body.dark .topic-header-progress{background:#111c2e;border-color:#2b3a58;color:#edf2ff}
 body.dark .topic-header-progress.done{background:#064e3b33;border-color:#065f46;color:#6ee7b7}
 body.dark .topic-header-progress-bar{background:#1e293b}
+
+/* ── AI Генератор задач и помощник тем Skola2030 (v1.8.0) ────────── */
+.ai-generator-section{background:linear-gradient(135deg,rgba(59,130,246,.04) 0%,rgba(147,51,234,.05) 100%);border:1.5px solid rgba(59,130,246,.2);border-radius:14px;padding:22px;margin-bottom:28px;box-shadow:0 4px 20px rgba(0,0,0,.03)}
+.ai-generator-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.ai-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:99px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;margin-bottom:6px}
+.ai-generator-head h3{margin:0 0 4px;font-size:19px;font-weight:800;color:var(--ink)}
+.ai-settings-card{background:rgba(255,255,255,.7);border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px;margin-bottom:18px}
+.ai-settings-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.ai-settings-field{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700;color:#475569}
+.ai-key-input-row{display:flex;gap:8px}
+.ai-key-input-row input{flex:1}
+.ai-generator-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:18px}
+.ai-generator-grid label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700;color:var(--ink)}
+.ai-generator-grid label.wide{grid-column:1/-1}
+.ai-generator-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.ai-primary-btn{background:linear-gradient(135deg,#2563eb,#7c3aed)!important;color:#fff!important;border:none!important;box-shadow:0 4px 14px rgba(37,99,235,.3);transition:all .2s ease}
+.ai-primary-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,99,235,.4)}
+.ai-primary-btn:disabled{opacity:.6;transform:none;box-shadow:none}
+.ai-gen-status{font-size:13px;font-weight:600;color:#0284c7}
+.ai-gen-status.success{color:#16a34a}
+.ai-gen-status.error{color:#dc2626}
+
+.skola-preset-box{background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:14px 16px;margin-bottom:18px}
+.skola-preset-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;font-size:13px}
+.skola-preset-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.skola-preset-controls select{min-width:160px}
+.skola-preset-status{font-size:12px;font-weight:600;margin-top:8px;color:#0369a1}
+.skola-preset-status.success{color:#15803d}
+.skola-preset-status.error{color:#b91c1c}
+
+body.dark .ai-generator-section{background:linear-gradient(135deg,rgba(30,58,138,.15) 0%,rgba(88,28,135,.15) 100%);border-color:rgba(59,130,246,.3)}
+body.dark .ai-generator-head h3{color:#edf2ff}
+body.dark .ai-settings-card{background:rgba(15,23,42,.6);border-color:#334155}
+body.dark .ai-settings-field{color:#cbd5e1}
+body.dark .skola-preset-box{background:#0f172a;border-color:#334155}
+body.dark .skola-preset-head strong{color:#edf2ff}

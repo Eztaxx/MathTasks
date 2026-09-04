@@ -131,14 +131,12 @@
     document.querySelector('#topic-cancel').hidden = !topic;
     topicForm.elements.title.value = topic?.title || '';
     if (topicForm.elements.title_lv) topicForm.elements.title_lv.value = topic?.title_lv || '';
-    if (topicForm.elements.title_en) topicForm.elements.title_en.value = topic?.title_en || '';
     // Тема без раздела не попадёт в меню сайта, поэтому для новой подставляем первый раздел.
     topicForm.elements.subject_id.value = String(topic?.subject_id ?? subjects[0]?.id ?? '');
     topicForm.elements.grade.value = topic?.grade ? String(topic.grade) : '';
     topicForm.elements.position.value = topic?.position ?? 0;
     topicForm.elements.description.value = topic?.description || '';
     if (topicForm.elements.description_lv) topicForm.elements.description_lv.value = topic?.description_lv || '';
-    if (topicForm.elements.description_en) topicForm.elements.description_en.value = topic?.description_en || '';
     if (topic) topicForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
@@ -165,13 +163,11 @@
     const payload = {
       title,
       title_lv: form.get('title_lv')?.trim() || null,
-      title_en: form.get('title_en')?.trim() || null,
       subject_id: form.get('subject_id') ? Number(form.get('subject_id')) : null,
       grade: parseFormGrade(form.get('grade')),
       position: Number(form.get('position')) || 0,
       description: form.get('description')?.trim() || null,
       description_lv: form.get('description_lv')?.trim() || null,
-      description_en: form.get('description_en')?.trim() || null
     };
     const { error } = editingTopicId
       ? await db.from('topics').update(payload).eq('id', editingTopicId)
@@ -220,9 +216,9 @@
 
   // Предпросмотр показывает ровно то, что увидит посетитель, — до сохранения.
   const updatePreviews = () => {
-    renderMath(conditionPreview, conditionInput.value);
-    renderMath(answerPreview, answerInput.value);
-    renderMath(solutionPreview, solutionInput.value);
+    if (conditionPreview && conditionInput) renderMath(conditionPreview, conditionInput.value);
+    if (answerPreview && answerInput) renderMath(answerPreview, answerInput.value);
+    if (solutionPreview && solutionInput) renderMath(solutionPreview, solutionInput.value);
     if (conditionPreviewLv && conditionInputLv) renderMath(conditionPreviewLv, conditionInputLv.value);
     if (solutionPreviewLv && solutionInputLv) renderMath(solutionPreviewLv, solutionInputLv.value);
     if (conditionPreviewEn && conditionInputEn) renderMath(conditionPreviewEn, conditionInputEn.value);
@@ -286,14 +282,12 @@
       [/^Найдите корень/i, 'Find the root'],
       [/^Найдите/i, 'Find'],
       [/^Найти/i, 'Find'],
-      [/Раскроем скобки в левой части уравнения/i, 'Expand the brackets on the left side of the equation'],
-      [/Раскроем скобки/i, 'Expand brackets'],
-      [/Перенесём слагаемые/i, 'Transfer terms'],
+      [/Раскроем скобки/i, 'Expand the brackets'],
+      [/Перенесём слагаемые/i, 'Group the terms'],
       [/Проверка/i, 'Check'],
       [/Дискриминант/i, 'Discriminant'],
       [/значит/i, 'thus'],
       [/Следовательно/i, 'Therefore'],
-      [/Равенство верное/i, 'The equality is true'],
       [/Ответ/i, 'Answer'],
       [/Решение/i, 'Solution']
     ]
@@ -463,6 +457,62 @@
     });
   }
 
+  const taskGradeSelect = document.querySelector('#task-grade');
+
+  function updateTaskTopicDropdown(preferredTopicId = null) {
+    const selectedGrade = parseFormGrade(taskGradeSelect?.value);
+    const currentVal = preferredTopicId !== null ? String(preferredTopicId) : topicSelect.value;
+    const filtered = (selectedGrade !== null)
+      ? topics.filter(t => t.grade === selectedGrade)
+      : topics;
+
+    topicSelect.innerHTML = '<option value="">Без темы</option>' +
+      filtered.map(t => `<option value="${t.id}">${escapeHtml(t.title)} (${gradeText(t.grade)})</option>`).join('') +
+      (selectedGrade !== null && filtered.length < topics.length ? `<option value="__all__">-- Показать все темы (${topics.length}) --</option>` : '');
+
+    if (filtered.some(t => String(t.id) === currentVal)) {
+      topicSelect.value = currentVal;
+    } else if (currentVal === '') {
+      topicSelect.value = '';
+    }
+  }
+
+  function updateFilterTopicDropdown() {
+    if (!taskFilterTopic) return;
+    const selectedGrade = parseFormGrade(taskFilterGrade?.value);
+    const currentVal = taskFilterTopic.value;
+    const filtered = (selectedGrade !== null)
+      ? topics.filter(t => t.grade === selectedGrade)
+      : topics;
+
+    taskFilterTopic.innerHTML = '<option value="">Все темы</option>' +
+      filtered.map(t => `<option value="${t.id}">${escapeHtml(t.title)} (${gradeText(t.grade)})</option>`).join('');
+
+    if (filtered.some(t => String(t.id) === currentVal)) {
+      taskFilterTopic.value = currentVal;
+    } else {
+      taskFilterTopic.value = '';
+    }
+  }
+
+  taskGradeSelect?.addEventListener('change', () => {
+    updateTaskTopicDropdown();
+  });
+
+  // Класс обычно совпадает с классом темы — подставляем, но не запрещаем менять.
+  topicSelect.addEventListener('change', () => {
+    if (topicSelect.value === '__all__') {
+      topicSelect.innerHTML = '<option value="">Без темы</option>' +
+        topics.map(t => `<option value="${t.id}">${escapeHtml(t.title)} (${gradeText(t.grade)})</option>`).join('');
+      return;
+    }
+    const topic = topics.find(item => String(item.id) === topicSelect.value);
+    if (topic?.grade && !taskGradeSelect.value) {
+      taskGradeSelect.value = String(topic.grade);
+      updateTaskTopicDropdown(topic.id);
+    }
+  });
+
   function setTaskMode(task) {
     editingTaskId = task?.id ?? null;
     document.querySelector('#task-form-title').textContent = task ? `Редактировать задачу: ${task.title}` : 'Добавить задание';
@@ -471,8 +521,9 @@
     taskForm.elements.title.value = task?.title || '';
     if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = task?.title_lv || '';
     if (taskForm.elements.title_en) taskForm.elements.title_en.value = task?.title_en || '';
-    taskForm.elements.topic_id.value = task?.topic_id ? String(task.topic_id) : '';
     taskForm.elements.grade.value = task?.grade ? String(task.grade) : '';
+    updateTaskTopicDropdown(task?.topic_id);
+    taskForm.elements.topic_id.value = task?.topic_id ? String(task.topic_id) : '';
     taskForm.elements.difficulty.value = task?.difficulty || 'Средний';
     taskForm.elements.position.value = task?.position ?? 0;
     conditionInput.value = task?.condition_latex || '';
@@ -487,13 +538,6 @@
     updatePreviews();
     if (task) taskForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-
-  // Класс обычно совпадает с классом темы — подставляем, но не запрещаем менять.
-  topicSelect.addEventListener('change', () => {
-    if (taskForm.elements.grade.value) return;
-    const topic = topics.find(item => String(item.id) === topicSelect.value);
-    if (topic?.grade) taskForm.elements.grade.value = String(topic.grade);
-  });
 
   /* Порядок задаётся внутри темы: соседи по списку — только задачи той же темы,
      иначе стрелка перекинула бы задачу через границу раздела. */
@@ -757,14 +801,11 @@
         return {
           title: task.title,
           title_lv: task.title_lv || null,
-          title_en: task.title_en || null,
           condition_latex: task.condition_latex,
           condition_latex_lv: task.condition_latex_lv || null,
-          condition_latex_en: task.condition_latex_en || null,
           answer_latex: task.answer_latex || null,
           solution_latex: task.solution_latex || null,
           solution_latex_lv: task.solution_latex_lv || null,
-          solution_latex_en: task.solution_latex_en || null,
           difficulty: task.difficulty || 'Средний',
           grade: task.grade ?? topic?.grade ?? null,
           topic_title: topic?.title || null,
@@ -872,14 +913,11 @@
       const payload = {
         title: String(item.title).trim(),
         title_lv: item.title_lv ? String(item.title_lv).trim() : null,
-        title_en: item.title_en ? String(item.title_en).trim() : null,
         condition_latex: String(item.condition_latex).trim(),
         condition_latex_lv: item.condition_latex_lv ? String(item.condition_latex_lv).trim() : null,
-        condition_latex_en: item.condition_latex_en ? String(item.condition_latex_en).trim() : null,
         answer_latex: item.answer_latex ? String(item.answer_latex).trim() : null,
         solution_latex: item.solution_latex ? String(item.solution_latex).trim() : null,
         solution_latex_lv: item.solution_latex_lv ? String(item.solution_latex_lv).trim() : null,
-        solution_latex_en: item.solution_latex_en ? String(item.solution_latex_en).trim() : null,
         difficulty: item.difficulty || 'Средний',
         grade: parseFormGrade(item.grade),
         topic_id: topicId,
@@ -911,6 +949,272 @@
 
     await loadTasks();
   });
+
+  /* ── Skola2030 Помощник тем и AI Генератор задач ────────────────── */
+  const skolaPresetGrade = document.querySelector('#skola-preset-grade');
+  const skolaPresetTopic = document.querySelector('#skola-preset-topic');
+  const btnApplySkolaPreset = document.querySelector('#btn-apply-skola-preset');
+  const btnBatchSeedTopics = document.querySelector('#btn-batch-seed-topics');
+  const skolaPresetStatus = document.querySelector('#skola-preset-status');
+
+  const aiGenGrade = document.querySelector('#ai-gen-grade');
+  const aiGenTopic = document.querySelector('#ai-gen-topic');
+  const aiGenSubtopic = document.querySelector('#ai-gen-subtopic');
+  const aiGenDifficulty = document.querySelector('#ai-gen-difficulty');
+  const aiGenType = document.querySelector('#ai-gen-type');
+  const aiGenPrompt = document.querySelector('#ai-gen-prompt');
+  const btnRunAiGenerator = document.querySelector('#btn-run-ai-generator');
+  const aiGenStatus = document.querySelector('#ai-gen-status');
+  const btnToggleAiSettings = document.querySelector('#btn-toggle-ai-settings');
+  const aiSettingsCard = document.querySelector('#ai-settings-card');
+  const aiEngineSelect = document.querySelector('#ai-engine-select');
+  const geminiKeyWrap = document.querySelector('#gemini-key-wrap');
+  const aiGeminiKey = document.querySelector('#ai-gemini-key');
+  const btnSaveGeminiKey = document.querySelector('#btn-save-gemini-key');
+
+  let skola2030Catalog = [];
+
+  async function loadSkola2030Catalog() {
+    try {
+      const res = await fetch('/data/skola2030_topics.json');
+      if (res.ok) {
+        skola2030Catalog = await res.json();
+      }
+    } catch (e) {
+      console.warn('Не удалось загрузить skola2030_topics.json:', e);
+    }
+    setupSkolaPresetControls();
+    setupAiGeneratorControls();
+  }
+
+  function setupSkolaPresetControls() {
+    if (!skolaPresetGrade || !skolaPresetTopic) return;
+    fillGradeSelect(skolaPresetGrade, 'Все классы (1–12)');
+
+    function refreshPresetTopics() {
+      const g = parseFormGrade(skolaPresetGrade.value);
+      const list = g !== null ? skola2030Catalog.filter(t => t.grade === g) : skola2030Catalog;
+      skolaPresetTopic.innerHTML = list.length
+        ? list.map(t => `<option value="${t.slug}">${t.grade} кл: ${escapeHtml(t.title_ru)} (${escapeHtml(t.title_lv)})</option>`).join('')
+        : '<option value="">Тем не найдено</option>';
+    }
+
+    skolaPresetGrade.addEventListener('change', refreshPresetTopics);
+    refreshPresetTopics();
+
+    btnApplySkolaPreset?.addEventListener('click', () => {
+      const slug = skolaPresetTopic.value;
+      const topicData = skola2030Catalog.find(t => t.slug === slug);
+      if (!topicData) return;
+
+      topicForm.elements.title.value = topicData.title_ru;
+      if (topicForm.elements.title_lv) topicForm.elements.title_lv.value = topicData.title_lv;
+      if (topicForm.elements.title_en) topicForm.elements.title_en.value = topicData.title_en;
+      topicForm.elements.grade.value = String(topicData.grade);
+
+      const matchingSubj = subjects.find(s => s.slug === topicData.subject_slug) || subjects[0];
+      if (matchingSubj) topicForm.elements.subject_id.value = String(matchingSubj.id);
+
+      topicForm.elements.position.value = topicData.position || 0;
+      topicForm.elements.description.value = topicData.description_ru || '';
+      if (topicForm.elements.description_lv) topicForm.elements.description_lv.value = topicData.description_lv || '';
+
+      skolaPresetStatus.className = 'skola-preset-status success';
+      skolaPresetStatus.textContent = `✨ Тема «${topicData.title_ru}» успешно заполнена в форме! Нажмите «Добавить тему».`;
+      skolaPresetStatus.hidden = false;
+      setTimeout(() => { skolaPresetStatus.hidden = true; }, 5000);
+      topicForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    btnBatchSeedTopics?.addEventListener('click', async () => {
+      if (!skola2030Catalog.length) {
+        alert('Каталог Skola2030 ещё загружается. Подождите пару секунд.');
+        return;
+      }
+      if (!confirm(`Импортировать все ${skola2030Catalog.length} тем стандарта Skola2030 в базу данных Supabase?`)) return;
+
+      btnBatchSeedTopics.disabled = true;
+      skolaPresetStatus.className = 'skola-preset-status';
+      skolaPresetStatus.textContent = `⏳ Загрузка тем в базу Supabase (0 из ${skola2030Catalog.length})…`;
+      skolaPresetStatus.hidden = false;
+
+      let insertedCount = 0;
+      let errorCount = 0;
+
+      for (let i = 0; i < skola2030Catalog.length; i++) {
+        const item = skola2030Catalog[i];
+        const matchingSubj = subjects.find(s => s.slug === item.subject_slug) || subjects[0];
+        const payload = {
+          title: item.title_ru,
+          title_lv: item.title_lv,
+          title_en: item.title_en,
+          slug: item.slug,
+          subject_id: matchingSubj ? matchingSubj.id : null,
+          grade: item.grade,
+          position: item.position,
+          description: item.description_ru,
+          description_lv: item.description_lv
+        };
+
+        const { error } = await db.from('topics').upsert(payload, { onConflict: 'slug' });
+        if (error) {
+          console.warn('Ошибка темы:', item.slug, error.message);
+          errorCount++;
+        } else {
+          insertedCount++;
+        }
+
+        if ((i + 1) % 15 === 0 || i === skola2030Catalog.length - 1) {
+          skolaPresetStatus.textContent = `⏳ Загружено ${insertedCount} из ${skola2030Catalog.length} тем…`;
+        }
+      }
+
+      btnBatchSeedTopics.disabled = false;
+      skolaPresetStatus.className = 'skola-preset-status success';
+      skolaPresetStatus.innerHTML = `🎉 Готово! Успешно загружено тем в Supabase: <strong>${insertedCount}</strong>.${errorCount ? ` Ошибок: ${errorCount}.` : ''}`;
+      await loadCatalog();
+    });
+  }
+
+  function setupAiGeneratorControls() {
+    if (!aiGenGrade || !aiGenTopic) return;
+    fillGradeSelect(aiGenGrade, '7 класс');
+    aiGenGrade.value = '7';
+
+    // Settings
+    const savedKey = localStorage.getItem('math_tasks_gemini_api_key') || '';
+    if (aiGeminiKey) aiGeminiKey.value = savedKey;
+    const savedEngine = localStorage.getItem('math_tasks_ai_engine') || 'builtin';
+    if (aiEngineSelect) {
+      aiEngineSelect.value = savedEngine;
+      if (geminiKeyWrap) geminiKeyWrap.hidden = savedEngine !== 'gemini';
+      aiEngineSelect.addEventListener('change', () => {
+        const eng = aiEngineSelect.value;
+        localStorage.setItem('math_tasks_ai_engine', eng);
+        if (geminiKeyWrap) geminiKeyWrap.hidden = eng !== 'gemini';
+      });
+    }
+
+    btnToggleAiSettings?.addEventListener('click', () => {
+      if (aiSettingsCard) aiSettingsCard.hidden = !aiSettingsCard.hidden;
+    });
+
+    btnSaveGeminiKey?.addEventListener('click', () => {
+      const k = (aiGeminiKey?.value || '').trim();
+      localStorage.setItem('math_tasks_gemini_api_key', k);
+      btnSaveGeminiKey.textContent = '✓ Сохранено';
+      setTimeout(() => { btnSaveGeminiKey.textContent = 'Сохранить'; }, 2000);
+    });
+
+    function refreshAiTopics() {
+      const g = parseFormGrade(aiGenGrade.value);
+      const catalogTopics = g !== null ? skola2030Catalog.filter(t => t.grade === g) : skola2030Catalog;
+      if (catalogTopics.length) {
+        aiGenTopic.innerHTML = catalogTopics.map(t => `<option value="${t.slug}">${escapeHtml(t.title_ru)} (${escapeHtml(t.title_lv)})</option>`).join('');
+      } else {
+        const dbTopics = g !== null ? topics.filter(t => t.grade === g) : topics;
+        aiGenTopic.innerHTML = dbTopics.length
+          ? dbTopics.map(t => `<option value="${t.id}">${escapeHtml(t.title)}</option>`).join('')
+          : '<option value="">Нет тем</option>';
+      }
+      refreshAiSubtopics();
+    }
+
+    function refreshAiSubtopics() {
+      if (!aiGenSubtopic) return;
+      const slugOrId = aiGenTopic.value;
+      const topicItem = skola2030Catalog.find(t => t.slug === slugOrId) || topics.find(t => String(t.id) === slugOrId);
+      const subtopics = topicItem?.subtopics || [];
+      if (subtopics.length) {
+        aiGenSubtopic.innerHTML = '<option value="">Все навыки темы</option>' +
+          subtopics.map(s => `<option value="${escapeHtml(s.ru)}">${escapeHtml(s.ru)}</option>`).join('');
+      } else {
+        aiGenSubtopic.innerHTML = '<option value="">Все навыки темы</option>';
+      }
+    }
+
+    aiGenGrade.addEventListener('change', refreshAiTopics);
+    aiGenTopic.addEventListener('change', refreshAiSubtopics);
+    refreshAiTopics();
+
+    btnRunAiGenerator?.addEventListener('click', async () => {
+      const g = parseFormGrade(aiGenGrade.value) || 7;
+      const topicSlugOrId = aiGenTopic.value;
+      const topicItem = skola2030Catalog.find(t => t.slug === topicSlugOrId) || topics.find(t => String(t.id) === topicSlugOrId);
+      const topicTitle = topicItem ? (topicItem.title_ru || topicItem.title) : 'Математика';
+      const subtopic = aiGenSubtopic?.value || '';
+      const difficulty = aiGenDifficulty?.value || 'Средний';
+      const taskType = aiGenType?.value || 'Уравнение';
+      const customPrompt = (aiGenPrompt?.value || '').trim();
+      const engine = aiEngineSelect?.value || 'builtin';
+      const apiKey = (aiGeminiKey?.value || '').trim() || localStorage.getItem('math_tasks_gemini_api_key') || '';
+
+      btnRunAiGenerator.disabled = true;
+      aiGenStatus.className = 'ai-gen-status';
+      aiGenStatus.innerHTML = '<span>⏳</span> Генератор создаёт условие, KaTeX-формулы и решение…';
+
+      try {
+        const generator = window.MathTasks.aiGenerator;
+        if (!generator) throw new Error('Модуль ai-generator.js не загружен');
+
+        const result = await generator.generateTask({
+          grade: g,
+          topicTitle,
+          subtopic,
+          difficulty,
+          taskType,
+          customPrompt,
+          apiKey,
+          useGemini: engine === 'gemini'
+        });
+
+        // Заполняем форму задания
+        taskForm.elements.title.value = result.title_ru || result.title || '';
+        if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = result.title_lv || '';
+        if (taskForm.elements.title_en) taskForm.elements.title_en.value = result.title_en || '';
+
+        taskGradeSelect.value = String(g);
+        updateTaskTopicDropdown();
+
+        // Ищем подходящую тему в БД
+        const dbMatchingTopic = topics.find(t => t.grade === g && (
+          (t.slug && topicItem?.slug && t.slug === topicItem.slug) ||
+          t.title.toLowerCase().includes(topicTitle.toLowerCase()) ||
+          topicTitle.toLowerCase().includes(t.title.toLowerCase())
+        ));
+        if (dbMatchingTopic) {
+          topicSelect.value = String(dbMatchingTopic.id);
+        }
+
+        taskForm.elements.difficulty.value = difficulty;
+
+        conditionInput.value = result.condition_latex_ru || result.condition_latex || '';
+        if (conditionInputLv) conditionInputLv.value = result.condition_latex_lv || '';
+        if (conditionInputEn) conditionInputEn.value = result.condition_latex_en || '';
+
+        answerInput.value = result.answer_latex || '';
+
+        solutionInput.value = result.solution_latex_ru || result.solution_latex || '';
+        if (solutionInputLv) solutionInputLv.value = result.solution_latex_lv || '';
+        if (solutionInputEn) solutionInputEn.value = result.solution_latex_en || '';
+
+        updatePreviews();
+
+        aiGenStatus.className = 'ai-gen-status success';
+        aiGenStatus.innerHTML = '🎉 Задача сгенерирована и перенесена в форму ниже!';
+
+        taskSuccess.textContent = '✨ Сгенерированная задача готова к публикации или редактированию.';
+        setTimeout(() => {
+          taskForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      } catch (err) {
+        aiGenStatus.className = 'ai-gen-status error';
+        aiGenStatus.textContent = 'Ошибка генерации: ' + err.message;
+      } finally {
+        btnRunAiGenerator.disabled = false;
+      }
+    });
+  }
 
   /* ── Загрузка ─────────────────────────────────────────────────────── */
 
@@ -951,6 +1255,9 @@
       taskFilterTopic.value = keepFilterTopic;
     }
 
+    updateTaskTopicDropdown();
+    updateFilterTopicDropdown();
+
     renderSubjectList();
     renderTopicList();
     renderTaskList();
@@ -984,5 +1291,6 @@
     setTaskMode(null);
     await loadTasks();
     await loadCatalog();
+    await loadSkola2030Catalog();
   })();
 })();

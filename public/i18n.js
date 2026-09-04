@@ -548,7 +548,7 @@
 
   function t(key, params = {}) {
     const dict = TRANSLATIONS[currentLang] || TRANSLATIONS[DEFAULT_LANG];
-    let text = dict[key] || TRANSLATIONS[DEFAULT_LANG][key] || TRANSLATIONS.en[key] || key;
+    let text = dict[key] || TRANSLATIONS[DEFAULT_LANG][key] || key;
     if (params && typeof params === 'object') {
       for (const [k, v] of Object.entries(params)) {
         text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));

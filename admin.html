@@ -48,16 +48,36 @@
       <div class="admin-section">
         <h3 id="topic-form-title">Добавить тему</h3>
         <p class="admin-hint">Тема — подкатегория внутри раздела. Именно темы видны в боковом меню сайта.</p>
+        
+        <!-- Помощник выбора темы из стандарта Skola2030 -->
+        <div class="skola-preset-box">
+          <div class="skola-preset-head">
+            <strong>📋 Выбрать готовую тему из стандарта Skola2030 (1–12 классы):</strong>
+            <button type="button" class="text-button" id="btn-batch-seed-topics" title="Импортировать все 81 тему Skola2030 прямо в базу Supabase">
+              🚀 Загрузить все 81 тему в Supabase
+            </button>
+          </div>
+          <div class="skola-preset-controls">
+            <select id="skola-preset-grade" class="admin-select-filter">
+              <option value="">Выберите класс...</option>
+            </select>
+            <select id="skola-preset-topic" class="admin-select-filter">
+              <option value="">Сначала выберите класс</option>
+            </select>
+            <button type="button" class="admin-tool-btn" id="btn-apply-skola-preset">Заполнить поля темы</button>
+          </div>
+          <div class="skola-preset-status" id="skola-preset-status" hidden></div>
+        </div>
+
         <form class="topic-form" id="topic-form">
-          <label>Название (RU)<input name="title" required placeholder="Например: Квадратные уравнения" /></label>
-          <label>Nosaukums (LV)<input name="title_lv" placeholder="Piemēram: Kvadrātvienādojumi" /></label>
-          <label>Title (EN)<input name="title_en" placeholder="E.g.: Quadratic equations" /></label>
+          <label>Название (RU)<input name="title" id="topic-title-ru" required placeholder="Например: Квадратные уравнения" /></label>
+          <label>Nosaukums (LV)<input name="title_lv" id="topic-title-lv" placeholder="Piemēram: Kvadrātvienādojumi" /></label>
+          <label>Title (EN)<input name="title_en" id="topic-title-en" placeholder="E.g.: Quadratic Equations" /></label>
           <label>Раздел<select name="subject_id" id="subject-select"></select></label>
           <label>Класс<select name="grade" id="topic-grade"></select></label>
           <label>Порядок <span>чем меньше, тем выше</span><input name="position" type="number" value="0" /></label>
-          <label>Краткое описание (RU) <span>необязательно</span><input name="description" placeholder="Что изучается в этой теме" /></label>
-          <label>Apraksts (LV) <span>neobligāti</span><input name="description_lv" placeholder="Ko apgūst šajā tēmā" /></label>
-          <label>Description (EN) <span>optional</span><input name="description_en" placeholder="Topic overview" /></label>
+          <label class="wide">Краткое описание / компетенции (RU) <span>необязательно</span><input name="description" id="topic-desc-ru" placeholder="Что изучается в этой теме" /></label>
+          <label class="wide">Apraksts / prasmes (LV) <span>neobligāti</span><input name="description_lv" id="topic-desc-lv" placeholder="Ko apgūst šajā tēmā" /></label>
           <button class="primary-button" type="submit" id="topic-submit">Добавить тему</button>
           <button class="text-button" type="button" id="topic-cancel" hidden>Отменить</button>
           <span class="form-success" id="topic-success"></span>
@@ -65,23 +85,93 @@
         <div class="admin-list" id="topic-list"></div>
       </div>
 
+      <!-- 🤖 AI Генератор задач Skola2030 -->
+      <div class="admin-section ai-generator-section" id="ai-generator-section">
+        <div class="ai-generator-head">
+          <div>
+            <span class="ai-badge">🤖 AI & Skola2030</span>
+            <h3>Генератор математических задач</h3>
+            <p class="admin-hint">Генерация задач строго по стандартам Skola2030 с формулами KaTeX, ответом и пошаговым разбором сразу на трёх языках.</p>
+          </div>
+          <button type="button" class="text-button" id="btn-toggle-ai-settings" title="Настройки API">⚙️ Настройки AI</button>
+        </div>
+
+        <div class="ai-settings-card" id="ai-settings-card" hidden>
+          <div class="ai-settings-row">
+            <label class="ai-settings-field">
+              <span>Режим генератора</span>
+              <select id="ai-engine-select">
+                <option value="builtin" selected>Встроенный автономный Skola2030 (быстро, без ключа)</option>
+                <option value="gemini">Google Gemini AI (нейросеть по программе Латвии)</option>
+              </select>
+            </label>
+            <label class="ai-settings-field" id="gemini-key-wrap" hidden>
+              <span>API-ключ Google Gemini</span>
+              <div class="ai-key-input-row">
+                <input type="password" id="ai-gemini-key" placeholder="AIzaSy..." autocomplete="off" />
+                <button type="button" class="admin-tool-btn" id="btn-save-gemini-key">Сохранить</button>
+              </div>
+            </label>
+          </div>
+          <p class="admin-hint" id="ai-key-hint">Встроенный генератор создаёт аутентичные задачи Skola2030 без API-ключа. Для неограниченного разнообразия задач включите Gemini AI.</p>
+        </div>
+
+        <div class="ai-generator-grid">
+          <label>Класс
+            <select id="ai-gen-grade"></select>
+          </label>
+          <label>Тема стандарта Skola2030
+            <select id="ai-gen-topic"></select>
+          </label>
+          <label>Подтема / навык
+            <select id="ai-gen-subtopic">
+              <option value="">Все навыки темы</option>
+            </select>
+          </label>
+          <label>Сложность
+            <select id="ai-gen-difficulty">
+              <option value="Лёгкий">Лёгкий (pamata līmenis)</option>
+              <option value="Средний" selected>Средний (optimālais līmenis)</option>
+              <option value="Сложный">Сложный (padziļinātais līmenis)</option>
+            </select>
+          </label>
+          <label>Тип задачи
+            <select id="ai-gen-type">
+              <option value="Уравнение или пример" selected>Уравнение или пример</option>
+              <option value="Текстовая прикладная задача">Текстовая прикладная задача</option>
+              <option value="Геометрическая задача">Геометрическая задача</option>
+            </select>
+          </label>
+          <label class="wide">Дополнительные пожелания к условию <span>необязательно</span>
+            <input id="ai-gen-prompt" placeholder="Например: с отрицательными числами, про билеты в кино, с корнями" />
+          </label>
+        </div>
+
+        <div class="ai-generator-actions">
+          <button type="button" class="primary-button ai-primary-btn" id="btn-run-ai-generator">
+            <span class="ai-icon">✨</span> Сгенерировать задачу Skola2030
+          </button>
+          <span class="ai-gen-status" id="ai-gen-status"></span>
+        </div>
+      </div>
+
       <div class="admin-section">
         <h3 id="task-form-title">Добавить задание</h3>
         <form class="task-form" id="task-form">
           <div class="wide task-lang-tabs-wrap">
             <div class="task-lang-tabs" role="tablist">
-              <button type="button" class="task-lang-tab active" data-task-lang="ru">🇷🇺 Русский (Основной)</button>
+              <button type="button" class="task-lang-tab active" data-task-lang="ru">🇷🇺 Русский (оригинал)</button>
               <button type="button" class="task-lang-tab" data-task-lang="lv">🇱🇻 Latviešu (Skola2030)</button>
               <button type="button" class="task-lang-tab" data-task-lang="en">🇬🇧 English</button>
             </div>
-            <button type="button" class="ai-translate-btn" id="btn-ai-translate" title="Перевести название, условие и решение на латышский и английский через AI с сохранением всех KaTeX-формул">
+            <button type="button" class="ai-translate-btn" id="btn-ai-translate" title="Перевести тему, условие и решение на латышский и английский языки через AI с сохранением разметки KaTeX-формул">
               <span class="ai-icon">✨</span> Автоперевод AI (LV & EN)
             </button>
           </div>
 
           <!-- Общие параметры задачи -->
-          <label>Тема<select name="topic_id" id="topic-select"><option value="">Без темы</option></select></label>
           <label>Класс<select name="grade" id="task-grade"></select></label>
+          <label>Тема<select name="topic_id" id="topic-select"><option value="">Без темы</option></select></label>
           <label>Сложность<select name="difficulty"><option>Лёгкий</option><option selected>Средний</option><option>Сложный</option></select></label>
           <label>Порядок в теме <span>чем меньше, тем выше</span><input name="position" type="number" value="0" /></label>
 
@@ -105,12 +195,14 @@
 
           <!-- Группа полей EN -->
           <div class="task-lang-group" data-lang-group="en" hidden>
-            <label class="wide">Title (EN)<input name="title_en" id="title-input-en" placeholder="E.g.: Quadratic equation" /></label>
-            <label class="wide">Condition (EN) <span>regular text; formulas — between $…$</span><textarea name="condition_latex_en" id="condition-input-en" placeholder="Solve the equation $2x^2 - 5x - 3 = 0$"></textarea></label>
-            <div class="wide math-preview"><span class="math-preview-label">Student preview (EN)</span><div id="condition-preview-en"></div></div>
-            <label class="wide">Solution (EN) <span>optional; formulas — between $…$</span><textarea name="solution_latex_en" id="solution-input-en" placeholder="Discriminant $D = 49$, hence $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
-            <div class="wide math-preview"><span class="math-preview-label">Student preview (EN)</span><div id="solution-preview-en"></div></div>
+            <label class="wide">Title (EN)<input name="title_en" id="title-input-en" placeholder="E.g.: Quadratic Equation" /></label>
+            <label class="wide">Condition (EN) <span>plain text; formulas between $…$</span><textarea name="condition_latex_en" id="condition-input-en" placeholder="Solve the equation $2x^2 - 5x - 3 = 0$"></textarea></label>
+            <div class="wide math-preview"><span class="math-preview-label">Student View (EN)</span><div id="condition-preview-en"></div></div>
+            <label class="wide">Solution (EN) <span>optional; formulas between $…$</span><textarea name="solution_latex_en" id="solution-input-en" placeholder="Discriminant $D = 49$, thus $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
+            <div class="wide math-preview"><span class="math-preview-label">Student View (EN)</span><div id="solution-preview-en"></div></div>
           </div>
+
+
 
           <!-- Общие поля ответа и чертежей -->
           <div class="wide image-field">
@@ -211,6 +303,7 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="/lib.js"></script>
   <script src="/client.js"></script>
+  <script src="/ai-generator.js"></script>
   <script src="/admin.js"></script>
 </body>
 </html>
