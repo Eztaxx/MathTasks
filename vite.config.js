@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 
 // Сайт многостраничный: публичная часть и отдельная админ-панель.
 export default defineConfig({
+  plugins: [],
   build: {
     rollupOptions: {
       input: {
