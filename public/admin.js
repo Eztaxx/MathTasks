@@ -18,6 +18,13 @@
   const taskFilterGrade = document.querySelector('#task-filter-grade');
   const taskFilterTopic = document.querySelector('#task-filter-topic');
   const taskFilterStatus = document.querySelector('#task-filter-status');
+  const taskFilterSort = document.querySelector('#task-filter-sort');
+  const topicSearchInput = document.querySelector('#topic-search-input');
+  const topicFilterGrade = document.querySelector('#topic-filter-grade');
+  const topicFilterSubject = document.querySelector('#topic-filter-subject');
+  const topicFilterSort = document.querySelector('#topic-filter-sort');
+  const topicFilterCount = document.querySelector('#topic-filter-count');
+  const topicFilterReset = document.querySelector('#topic-filter-reset');
   const taskFilterCount = document.querySelector('#task-filter-count');
   const taskFilterReset = document.querySelector('#task-filter-reset');
 
@@ -186,8 +193,29 @@
   }
 
   function renderTopicList() {
-    if (!topics.length) { topicList.innerHTML = '<p class="admin-empty">Тем пока нет.</p>'; return; }
-    topicList.innerHTML = topics.map(topic => {
+    if (!topics.length) {
+      topicList.innerHTML = '<p class="admin-empty">Тем пока нет.</p>';
+      if (topicFilterCount) topicFilterCount.textContent = '0 тем';
+      return;
+    }
+
+    const filtered = sortTopics(getFilteredTopics());
+    const isFiltered = Boolean((topicSearchInput?.value || '').trim() || topicFilterGrade?.value || topicFilterSubject?.value);
+
+    if (topicFilterCount) {
+      topicFilterCount.textContent = isFiltered
+        ? `Найдено: ${filtered.length} из ${topics.length}`
+        : `Всего тем: ${topics.length}`;
+    }
+    if (topicFilterReset) topicFilterReset.hidden = !isFiltered;
+
+    if (!filtered.length) {
+      topicList.innerHTML = '<p class="admin-empty">Ничего не найдено по фильтрам. <button class="text-button" type="button" id="topic-empty-reset">Сбросить фильтры</button></p>';
+      document.querySelector('#topic-empty-reset')?.addEventListener('click', resetTopicFilters);
+      return;
+    }
+
+    topicList.innerHTML = filtered.map(topic => {
       const count = tasks.filter(task => task.topic_id === topic.id).length;
       /* Класс — глобальный контекст сайта: тему без него посетитель увидит
          только в режиме «Все классы», поэтому предупреждаем прямо в списке. */
@@ -592,6 +620,98 @@
     return `<span class="task-diff ${cls}"><span class="diff-dot">●</span>${escapeHtml(diff)}</span>`;
   }
 
+  /* Выбранная сортировка переживает перезагрузку: админ обычно работает
+     в одном режиме подряд, и сбрасывать его на каждый F5 — мучение. */
+  const SORT_KEY = 'math-tasks:admin-sort';
+  const loadSort = () => { try { return JSON.parse(localStorage.getItem(SORT_KEY)) || {}; } catch { return {}; } };
+  const saveSort = () => {
+    try {
+      localStorage.setItem(SORT_KEY, JSON.stringify({
+        tasks: taskFilterSort?.value || 'recent',
+        topics: topicFilterSort?.value || 'grade'
+      }));
+    } catch {}
+  };
+
+  // Класс может быть числом или курсом старшей школы — сравниваем по числу.
+  const gradeRank = value => (value == null ? 999 : Number(parseFormGrade(value) ?? 999));
+  const byText = (a, b) => String(a || '').localeCompare(String(b || ''), 'ru');
+  const DIFFICULTY_RANK = { 'Лёгкий': 1, 'Средний': 2, 'Сложный': 3 };
+
+  function sortTasks(list) {
+    const mode = taskFilterSort?.value || 'recent';
+    const topicOf = task => topics.find(t => t.id === task.topic_id);
+    const copy = [...list];
+    switch (mode) {
+      case 'title':
+        return copy.sort((a, b) => byText(a.title, b.title));
+      case 'grade':
+        return copy.sort((a, b) =>
+          gradeRank(a.grade ?? topicOf(a)?.grade) - gradeRank(b.grade ?? topicOf(b)?.grade)
+          || byText(a.title, b.title));
+      case 'topic':
+        return copy.sort((a, b) =>
+          byText(topicOf(a)?.title || 'яяя', topicOf(b)?.title || 'яяя')
+          || (a.position ?? 0) - (b.position ?? 0));
+      case 'difficulty':
+        return copy.sort((a, b) =>
+          (DIFFICULTY_RANK[a.difficulty] || 9) - (DIFFICULTY_RANK[b.difficulty] || 9)
+          || byText(a.title, b.title));
+      case 'status':
+        // Черновики сверху: именно их обычно и ищут, чтобы доделать.
+        return copy.sort((a, b) => Number(a.is_published) - Number(b.is_published) || byText(a.title, b.title));
+      default:
+        return copy.sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+    }
+  }
+
+  function sortTopics(list) {
+    const mode = topicFilterSort?.value || 'grade';
+    const taskCount = topic => tasks.filter(t => t.topic_id === topic.id).length;
+    const copy = [...list];
+    switch (mode) {
+      case 'title':
+        return copy.sort((a, b) => byText(a.title, b.title));
+      case 'subject':
+        return copy.sort((a, b) =>
+          byText(subjectTitle(a.subject_id), subjectTitle(b.subject_id))
+          || gradeRank(a.grade) - gradeRank(b.grade)
+          || (a.position ?? 0) - (b.position ?? 0));
+      case 'tasks_desc':
+        return copy.sort((a, b) => taskCount(b) - taskCount(a) || byText(a.title, b.title));
+      case 'tasks_asc':
+        // Пустые темы сверху — так видно, что осталось наполнить.
+        return copy.sort((a, b) => taskCount(a) - taskCount(b) || byText(a.title, b.title));
+      default:
+        return copy.sort((a, b) =>
+          gradeRank(a.grade) - gradeRank(b.grade)
+          || (a.position ?? 0) - (b.position ?? 0)
+          || byText(a.title, b.title));
+    }
+  }
+
+  function getFilteredTopics() {
+    const query = (topicSearchInput?.value || '').trim().toLowerCase();
+    const gradeVal = parseFormGrade(topicFilterGrade?.value);
+    const subjectVal = topicFilterSubject?.value ? Number(topicFilterSubject.value) : null;
+    return topics.filter(topic => {
+      if (query) {
+        const haystack = `${topic.title || ''} ${topic.title_lv || ''} ${topic.description || ''}`.toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      if (gradeVal !== null && topic.grade !== gradeVal) return false;
+      if (subjectVal !== null && topic.subject_id !== subjectVal) return false;
+      return true;
+    });
+  }
+
+  function resetTopicFilters() {
+    if (topicSearchInput) topicSearchInput.value = '';
+    if (topicFilterGrade) topicFilterGrade.value = '';
+    if (topicFilterSubject) topicFilterSubject.value = '';
+    renderTopicList();
+  }
+
   function getFilteredTasks() {
     const query = (taskSearchInput?.value || '').trim().toLowerCase();
     const gradeVal = parseFormGrade(taskFilterGrade?.value);
@@ -632,7 +752,7 @@
       return;
     }
 
-    const filtered = getFilteredTasks();
+    const filtered = sortTasks(getFilteredTasks());
     const isFiltered = Boolean((taskSearchInput?.value || '').trim() || taskFilterGrade?.value || taskFilterTopic?.value || taskFilterStatus?.value);
 
     if (taskFilterCount) {
@@ -799,8 +919,18 @@
     await loadTasks();
   });
 
+  /* ── Фильтры и сортировка тем ─────────────────────────────────────
+     Со Skola2030 тем уже под три десятка, и дальше их будет больше:
+     листать плоский список станет невозможно. */
+  [topicSearchInput, topicFilterGrade, topicFilterSubject, topicFilterSort].forEach(el => {
+    el?.addEventListener('input', renderTopicList);
+    el?.addEventListener('change', renderTopicList);
+  });
+  topicFilterReset?.addEventListener('click', resetTopicFilters);
+  [taskFilterSort, topicFilterSort].forEach(el => el?.addEventListener('change', saveSort));
+
   /* ── Фильтры задач (4.1) ─────────────────────────────────────────── */
-  [taskSearchInput, taskFilterGrade, taskFilterTopic, taskFilterStatus].forEach(el => {
+  [taskSearchInput, taskFilterGrade, taskFilterTopic, taskFilterStatus, taskFilterSort].forEach(el => {
     el?.addEventListener('input', renderTaskList);
     el?.addEventListener('change', renderTaskList);
   });
@@ -1681,6 +1811,16 @@
       taskFilterTopic.value = keepFilterTopic;
     }
 
+    if (topicFilterGrade && topicFilterGrade.children.length <= 1) {
+      fillGradeSelect(topicFilterGrade, 'Все классы');
+    }
+    if (topicFilterSubject) {
+      const keepSubject = topicFilterSubject.value;
+      topicFilterSubject.innerHTML = '<option value="">Все разделы</option>' +
+        subjects.map(sub => `<option value="${sub.id}">${escapeHtml(sub.title)}</option>`).join('');
+      topicFilterSubject.value = keepSubject;
+    }
+
     updateTaskTopicDropdown();
     updateFilterTopicDropdown();
 
@@ -1719,6 +1859,10 @@
     setSubjectMode(null);
     setTopicMode(null);
     setTaskMode(null);
+    // Возвращаем режим сортировки, выбранный в прошлый раз.
+    const savedSort = loadSort();
+    if (taskFilterSort && savedSort.tasks) taskFilterSort.value = savedSort.tasks;
+    if (topicFilterSort && savedSort.topics) topicFilterSort.value = savedSort.topics;
     await loadTasks();
     await loadCatalog();
     await loadSkola2030Catalog();

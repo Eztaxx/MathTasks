@@ -82,6 +82,35 @@
           <button class="text-button" type="button" id="topic-cancel" hidden>Отменить</button>
           <span class="form-success" id="topic-success"></span>
         </form>
+        <div class="admin-list-toolbar">
+          <input type="search" id="topic-search-input" class="admin-search-input" placeholder="Поиск по названию или описанию темы…" aria-label="Поиск по темам" />
+          <div class="admin-filters-row">
+            <label class="admin-filter-field">
+              <span>Класс / курс</span>
+              <select id="topic-filter-grade" class="admin-select-filter">
+                <option value="">Все классы и курсы</option>
+              </select>
+            </label>
+            <label class="admin-filter-field">
+              <span>Раздел</span>
+              <select id="topic-filter-subject" class="admin-select-filter">
+                <option value="">Все разделы</option>
+              </select>
+            </label>
+            <label class="admin-filter-field">
+              <span>Сортировка</span>
+              <select id="topic-filter-sort" class="admin-select-filter">
+                <option value="grade">По классу и порядку</option>
+                <option value="title">По названию (А→Я)</option>
+                <option value="subject">По разделу</option>
+                <option value="tasks_desc">Больше задач сверху</option>
+                <option value="tasks_asc">Пустые темы сверху</option>
+              </select>
+            </label>
+            <span class="admin-filter-count" id="topic-filter-count"></span>
+            <button class="text-button" type="button" id="topic-filter-reset" hidden>Сбросить</button>
+          </div>
+        </div>
         <div class="admin-list" id="topic-list"></div>
       </div>
 
@@ -369,6 +398,17 @@
               <span>Тема</span>
               <select id="task-filter-topic" class="admin-select-filter">
                 <option value="">Все темы</option>
+              </select>
+            </label>
+            <label class="admin-filter-field">
+              <span>Сортировка</span>
+              <select id="task-filter-sort" class="admin-select-filter">
+                <option value="recent">Сначала новые</option>
+                <option value="topic">По теме и порядку</option>
+                <option value="title">По названию (А→Я)</option>
+                <option value="grade">По классу</option>
+                <option value="difficulty">По сложности</option>
+                <option value="status">Черновики сверху</option>
               </select>
             </label>
             <label class="admin-filter-field">

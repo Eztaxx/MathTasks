@@ -833,3 +833,21 @@ body.dark .skola-preset-head strong{color:#edf2ff}
 .noscript-notice a{color:#1764ff}
 /* Парное правило к атрибуту hidden — в этом проекте display уже трижды его перебивал. */
 .lightbox-img[hidden]{display:none}
+
+/* ── Панель фильтров над списком тем в админке ───────────────────── */
+.admin-list-toolbar{display:flex;flex-direction:column;gap:10px;margin:16px 0 12px}
+
+/* ── Панель фильтров над списком тем в админке ───────────────────── */
+.admin-list-toolbar{display:flex;flex-direction:column;gap:10px;margin:16px 0 12px}
+
+/* Селект растягивался по длине самого длинного названия темы и выносил
+   всю страницу за край экрана на телефоне. Ограничиваем и разрешаем
+   строке фильтров переноситься. */
+.admin-select-filter{max-width:100%;min-width:0;text-overflow:ellipsis}
+.admin-filter-field{min-width:0;max-width:100%;flex-wrap:wrap}
+.admin-bulk-actions{flex-wrap:wrap}
+@media(max-width:720px){
+  .admin-filters-row{flex-wrap:wrap}
+  .admin-filter-field{flex:1 1 100%}
+  .admin-select-filter{flex:1 1 auto;width:100%}
+}
