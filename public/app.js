@@ -797,7 +797,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
   const subject = subjectOf(task);
   const grade = showGrade ? (task.grade ?? task.topics?.grade) : null;
   const topicLink = showTopicLink && task.topics?.slug
-    ? `<a class="task-topic" href="/topic/${encodeURIComponent(task.topics.slug)}">${escapeHtml(task.topics.title)}</a>`
+    ? `<a class="task-topic" href="/topic/${encodeURIComponent(task.topics.slug)}">${escapeHtml(loc(task.topics, 'title'))}</a>`
     : '';
   const isFav = isFavorite(task.id);
   const favBtn = `<button class="task-action-btn${isFav ? ' active' : ''}" type="button" data-fav-id="${task.id}" title="${isFav ? escapeHtml(tr('favorite_remove')) : escapeHtml(tr('favorite'))}" aria-label="${escapeHtml(tr('favorite'))}">${isFav ? `★ ${escapeHtml(tr('favorite_active'))}` : `☆ ${escapeHtml(tr('favorite'))}`}</button>`;
