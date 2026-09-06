@@ -252,6 +252,54 @@
     if (topic) topicForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  /* Соседи темы — темы того же класса в том же разделе: именно внутри
+     этой пары идёт нумерация, поэтому и стрелки переставляют внутри неё. */
+  const topicSiblingsOf = topic => topics
+    .filter(t => (t.grade ?? null) === (topic.grade ?? null)
+              && (t.subject_id ?? null) === (topic.subject_id ?? null))
+    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+
+  /* После перестановки перенумеровываем группу подряд: у старых тем
+     позиции могли совпадать, и простой обмен значениями ничего бы не дал. */
+  async function moveTopic(topicId, direction) {
+    const topic = topics.find(t => String(t.id) === String(topicId));
+    if (!topic) return;
+    const siblings = topicSiblingsOf(topic);
+    const from = siblings.findIndex(t => t.id === topic.id);
+    const to = direction === 'up' ? from - 1 : from + 1;
+    if (to < 0 || to >= siblings.length) return;
+    siblings.splice(to, 0, siblings.splice(from, 1)[0]);
+
+    const updates = siblings
+      .map((item, index) => ({ item, position: index + 1 }))
+      .filter(({ item, position }) => item.position !== position);
+    for (const { item, position } of updates) {
+      const { error } = await db.from('topics').update({ position }).eq('id', item.id);
+      if (error) { topicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    }
+    topicSuccess.textContent = 'Порядок тем изменён.';
+    await loadCatalog();
+  }
+
+  /* Новая тема встаёт в конец своей группы, а не в начало: иначе
+     каждая добавленная тема оказывалась бы выше всех уже расставленных. */
+  function nextTopicPosition(grade, subjectId, rawValue) {
+    const typed = Number(rawValue) || 0;
+    if (editingTopicId || typed) return typed;
+    const siblings = topicSiblingsOf({ grade, subject_id: subjectId });
+    return siblings.length ? Math.max(...siblings.map(t => t.position ?? 0)) + 1 : 1;
+  }
+
+  function topicArrows(topic) {
+    const siblings = topicSiblingsOf(topic);
+    if (siblings.length < 2) return '';
+    const index = siblings.findIndex(t => t.id === topic.id);
+    return `<span class="admin-move">
+      <button class="move-button" type="button" data-move-topic="${topic.id}" data-dir="up" ${index === 0 ? 'disabled' : ''} aria-label="Выше в разделе">↑</button>
+      <button class="move-button" type="button" data-move-topic="${topic.id}" data-dir="down" ${index === siblings.length - 1 ? 'disabled' : ''} aria-label="Ниже в разделе">↓</button>
+    </span>`;
+  }
+
   function renderTopicList() {
     if (!topics.length) {
       topicList.innerHTML = '<p class="admin-empty">Тем пока нет.</p>';
@@ -282,6 +330,7 @@
       const warning = topic.grade ? '' : '<span class="admin-warn">не видна в меню при выбранном классе</span>';
       return `<div class="admin-row">
         <span class="admin-row-main"><strong><span class="admin-row-num">${topic.position ?? 0}.</span> ${escapeHtml(topic.title)}</strong><small>${escapeHtml(subjectTitle(topic.subject_id))} · ${gradeText(topic.grade)} · задач: ${count}</small>${warning}</span>
+        ${topicArrows(topic)}
         <button class="text-button" type="button" data-edit-topic="${topic.id}">Изменить</button>
         <button class="text-button danger" type="button" data-delete-topic="${topic.id}">Удалить</button>
       </div>`;
@@ -298,7 +347,7 @@
       title_lv: form.get('title_lv')?.trim() || null,
       subject_id: form.get('subject_id') ? Number(form.get('subject_id')) : null,
       grade: parseFormGrade(form.get('grade')),
-      position: Number(form.get('position')) || 0,
+      position: nextTopicPosition(parseFormGrade(form.get('grade')), form.get('subject_id') ? Number(form.get('subject_id')) : null, form.get('position')),
       description: form.get('description')?.trim() || null,
       description_lv: form.get('description_lv')?.trim() || null,
     });
@@ -315,6 +364,9 @@
   document.querySelector('#topic-cancel').addEventListener('click', () => { topicForm.reset(); setTopicMode(null); });
 
   topicList.addEventListener('click', async event => {
+    const moveTopicBtn = event.target.closest('[data-move-topic]');
+    if (moveTopicBtn) { await moveTopic(moveTopicBtn.dataset.moveTopic, moveTopicBtn.dataset.dir); return; }
+
     const editId = event.target.closest('[data-edit-topic]')?.dataset.editTopic;
     if (editId) {
       const full = await fetchFullRow('topics', editId);

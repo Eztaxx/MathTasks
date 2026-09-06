@@ -75,7 +75,7 @@
           <label>Nosaukums (LV)<input name="title_lv" id="topic-title-lv" placeholder="Piemēram: Kvadrātvienādojumi" /></label>
           <label>Раздел<select name="subject_id" id="subject-select"></select></label>
           <label>Класс<select name="grade" id="topic-grade"></select></label>
-          <label>Порядок <span>чем меньше, тем выше</span><input name="position" type="number" value="0" /></label>
+          <label>Порядок <span>можно не трогать — есть стрелки в списке</span><input name="position" type="number" value="0" /></label>
           <label class="wide">Краткое описание / компетенции (RU) <span>необязательно</span><input name="description" id="topic-desc-ru" placeholder="Что изучается в этой теме" /></label>
           <label class="wide">Apraksts / prasmes (LV) <span>neobligāti</span><input name="description_lv" id="topic-desc-lv" placeholder="Ko apgūst šajā tēmā" /></label>
           <button class="primary-button" type="submit" id="topic-submit">Добавить тему</button>
@@ -274,6 +274,15 @@
           <label>Тема<select name="topic_id" id="topic-select"><option value="">Без темы</option></select></label>
           <label>Сложность<select name="difficulty"><option>Лёгкий</option><option selected>Средний</option><option>Сложный</option></select></label>
           <label>Порядок в теме <span>чем меньше, тем выше</span><input name="position" type="number" value="0" /></label>
+
+          <!-- Кросс-теги задачи (до 3 тегов) -->
+          <div class="wide task-tags-section">
+            <div class="task-tags-header">
+              <label class="task-tags-label">Кросс-теги <span id="task-tags-count">(выбрано: 0 / макс. 3)</span></label>
+              <button type="button" class="text-button" id="btn-suggest-tags" title="Автоматически подобрать теги по теме задачи">✨ Подобрать по теме</button>
+            </div>
+            <div class="task-tags-selector" id="task-tags-selector"></div>
+          </div>
 
           <!-- Группа полей RU -->
           <div class="task-lang-group" data-lang-group="ru">
