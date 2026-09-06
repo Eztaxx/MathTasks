@@ -111,7 +111,14 @@
             <button class="text-button" type="button" id="topic-filter-reset" hidden>Сбросить</button>
           </div>
         </div>
-        <div class="admin-list" id="topic-list"></div>
+        <div class="admin-list-defer" id="topic-list-defer">
+          <p>Список тем не загружается сразу — так панель открывается быстрее.</p>
+          <button class="secondary-button" type="button" id="btn-load-topics">Показать темы</button>
+        </div>
+        <div class="admin-list" id="topic-list" hidden></div>
+        <div class="admin-list-close" id="topic-list-close" hidden>
+          <button class="text-button" type="button" id="btn-hide-topics">Свернуть список тем</button>
+        </div>
       </div>
 
       <!-- 🤖 AI Генератор задач Skola2030 -->
@@ -445,6 +452,9 @@
           <button class="secondary-button" type="button" id="btn-load-tasks">Показать задачи</button>
         </div>
         <div class="admin-list" id="task-list" hidden></div>
+        <div class="admin-list-close" id="task-list-close" hidden>
+          <button class="text-button" type="button" id="btn-hide-tasks">Свернуть список задач</button>
+        </div>
 
         <!-- Модальное окно массового импорта / экспорта (4.3) -->
         <dialog class="bulk-dialog" id="bulk-dialog">

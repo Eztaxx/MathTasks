@@ -1206,3 +1206,9 @@ body.dark .tag-catalog-card {
 body.dark .tag-catalog-chip {
   color: #6da2ff;
 }
+
+/* Кнопка «свернуть» под длинным списком: докручивать обратно к шапке
+   раздела ради этого не нужно. Парное правило для [hidden] обязательно —
+   авторский display иначе перебил бы атрибут. */
+.admin-list-close{margin-top:10px;display:flex;justify-content:flex-end}
+.admin-list-close[hidden]{display:none}

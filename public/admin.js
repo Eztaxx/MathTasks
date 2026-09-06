@@ -74,6 +74,10 @@
      поэтому сам список можно не грузить, пока его не попросят. */
   let taskIndex = [];
   let tasksLoaded = false;
+  /* Темы всё равно нужны в памяти — из них собираются выпадающие списки
+     в формах. Откладываем не загрузку, а отрисовку: на трёх сотнях тем
+     построение разметки заметно дороже самого запроса. */
+  let topicsShown = false;
 
   const supportedTopicCols = new Set(['title', 'slug', 'subject_id', 'grade', 'position', 'description']);
   const supportedTaskCols = new Set(['topic_id', 'title', 'condition_latex', 'solution_latex', 'difficulty', 'is_published', 'grade', 'position', 'answer_latex', 'condition_image', 'solution_image']);
@@ -307,6 +311,7 @@
   }
 
   function renderTopicList() {
+    if (!topicsShown) return;
     if (!topics.length) {
       topicList.innerHTML = '<p class="admin-empty">Тем пока нет.</p>';
       if (topicFilterCount) topicFilterCount.textContent = '0 тем';
@@ -1200,9 +1205,12 @@
   /* ── Фильтры и сортировка тем ─────────────────────────────────────
      Со Skola2030 тем уже под три десятка, и дальше их будет больше:
      листать плоский список станет невозможно. */
+  /* Любой ввод в поиск или фильтр сам раскрывает список: искать вслепую
+     в свёрнутом списке бессмысленно. */
+  const showTopicsThenRender = () => { if (!topicsShown) setTopicsShown(true); else renderTopicList(); };
   [topicSearchInput, topicFilterGrade, topicFilterSubject, topicFilterSort].forEach(el => {
-    el?.addEventListener('input', renderTopicList);
-    el?.addEventListener('change', renderTopicList);
+    el?.addEventListener('input', showTopicsThenRender);
+    el?.addEventListener('change', showTopicsThenRender);
   });
   topicFilterReset?.addEventListener('click', resetTopicFilters);
   [taskFilterSort, topicFilterSort].forEach(el => el?.addEventListener('change', saveSort));
@@ -1709,6 +1717,28 @@
   const aiGenType = document.querySelector('#ai-gen-type');
   const aiGenContext = document.querySelector('#ai-gen-context');
   const aiGenPrompt = document.querySelector('#ai-gen-prompt');
+  const topicListDefer = document.querySelector('#topic-list-defer');
+  const topicListClose = document.querySelector('#topic-list-close');
+  const taskListClose = document.querySelector('#task-list-close');
+
+  function setTopicsShown(shown) {
+    topicsShown = shown;
+    if (topicListDefer) topicListDefer.hidden = shown;
+    if (topicList) topicList.hidden = !shown;
+    if (topicListClose) topicListClose.hidden = !shown;
+    if (shown) renderTopicList();
+  }
+
+  function setTasksShown(shown) {
+    if (taskListDefer) taskListDefer.hidden = shown;
+    if (taskList) taskList.hidden = !shown;
+    if (taskListClose) taskListClose.hidden = !shown;
+  }
+
+  document.querySelector('#btn-load-topics')?.addEventListener('click', () => setTopicsShown(true));
+  document.querySelector('#btn-hide-topics')?.addEventListener('click', () => setTopicsShown(false));
+  document.querySelector('#btn-hide-tasks')?.addEventListener('click', () => setTasksShown(false));
+
   const taskListDefer = document.querySelector('#task-list-defer');
   const btnLoadTasks = document.querySelector('#btn-load-tasks');
   btnLoadTasks?.addEventListener('click', async () => {
@@ -2154,8 +2184,7 @@
     if (error) { taskList.innerHTML = `<p class="admin-empty">Не удалось загрузить задачи: ${escapeHtml(error.message)}</p>`; return; }
     tasks = data || [];
     tasksLoaded = true;
-    if (taskListDefer) taskListDefer.hidden = true;
-    if (taskList) taskList.hidden = false;
+    setTasksShown(true);
     if (tasks.length > 0 && tasks[0]) {
       Object.keys(tasks[0]).forEach(k => supportedTaskCols.add(k));
     }
