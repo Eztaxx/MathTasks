@@ -136,21 +136,92 @@ body.dark .auth-dialog input,body.dark .task-form input,body.dark .task-form sel
 @media(max-width:720px){.admin-topbar{padding:12px 14px;gap:10px}.admin-main{padding:16px 14px 40px}}
 
 /* ── Фильтр по классам на главной ────────────────────────────────── */
-.grades{margin-top:26px}
-.grades h2{font-size:17px;margin:0 0 12px}
-.grade-filter{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
-.grade-filter::-webkit-scrollbar{height:4px}
-.grade-filter::-webkit-scrollbar-thumb{background:#c3d2ea;border-radius:4px}
-.grade-chip{border:1px solid var(--line);border-radius:999px;background:#fff;color:#455471;font:600 12px Manrope;padding:8px 15px;cursor:pointer;transition:border-color .15s,background .15s;white-space:nowrap;flex-shrink:0}
-.grade-chip:hover{border-color:#c3d2ea;background:#f2f6fd}
-.grade-chip.active{border-color:#1764ff;background:#1764ff;color:#fff}
+.grades{margin-top:28px}
+.grades h2{font-size:18px;font-weight:800;margin:0 0 14px;color:var(--ink);letter-spacing:-.01em}
+.grade-filter{display:flex;flex-direction:column;gap:18px}
+.grade-stage-block{display:flex;flex-direction:column;gap:10px;background:transparent;border:none;padding:0}
+.grade-stage-header{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.stage-badge{display:inline-flex;align-items:center;gap:6px;font:700 12px Manrope;letter-spacing:.02em;padding:4px 10px;border-radius:8px;white-space:nowrap}
+.stage-badge-pamat{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.stage-badge-vidus{background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe}
+.stage-sub{font-size:12px;font-weight:500;color:var(--muted)}
+.grade-chips-list{display:flex;flex-wrap:wrap;gap:8px;scrollbar-width:thin}
+.grade-chip{border:1px solid var(--line);border-radius:999px;background:#fff;color:#455471;font:600 12.5px Manrope;padding:7px 15px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,0.02)}
+.grade-chip:hover{border-color:#bad1fa;background:#f0f5ff;color:#1764ff;transform:translateY(-1px)}
+.grade-chip.active{border-color:#1764ff;background:#1764ff;color:#fff;box-shadow:0 2px 8px rgba(23,100,255,0.25);transform:translateY(-1px)}
+.grade-chip-exam{border-color:#fcd34d;background:#fffdf5;color:#92400e}
+.grade-chip-exam:hover{border-color:#f59e0b;background:#fef3c7;color:#78350f}
+.grade-chip-exam.active{border-color:#d97706;background:#d97706;color:#fff;box-shadow:0 2px 8px rgba(217,119,6,0.3)}
 .grade-badge{display:inline-block;font-size:11px;font-weight:600;padding:4px 9px;border-radius:6px;color:#8a5a00;background:#fff3dd;white-space:nowrap}
 .topic-card .grade-badge{margin-top:2px}
-body.dark .grade-chip{background:#152137;border-color:#2b3a58;color:#c4cce0}
-body.dark .grade-chip:hover{background:#1a2740}
+
+/* Разделы ступеней и классов на странице предмета (showSubject) */
+.subject-stage-section{margin-bottom:38px}
+.subject-stage-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px;margin-bottom:18px;border-bottom:2px solid var(--line)}
+.stage-header-title{display:flex;align-items:center;gap:10px}
+.stage-header-title h2{font-size:19px;font-weight:800;margin:0;color:var(--ink)}
+.stage-count-badge{font:700 12px Manrope;padding:3px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+
+/* Навигация быстрого перехода по классам раздела (якоря) */
+.grade-jump-bar{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:8px}
+.grade-jump-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:600 12px Manrope;padding:6px 13px;text-decoration:none;transition:all .15s}
+.grade-jump-chip:hover{border-color:#1764ff;background:#eff6ff;color:#1764ff;transform:translateY(-1px)}
+.grade-jump-chip.active{background:#1764ff;border-color:#1764ff;color:#fff}
+.jump-chip-count{font-size:11px;font-weight:700;color:var(--muted);background:var(--line);border-radius:999px;padding:1px 7px}
+.grade-jump-chip:hover .jump-chip-count{background:#bfdbfe;color:#1d4ed8}
+.grade-jump-chip.active .jump-chip-count{background:rgba(255,255,255,0.25);color:#fff}
+
+/* Секции конкретных классов внутри раздела */
+.subject-grade-section{margin-bottom:40px;scroll-margin-top:28px}
+.subject-grade-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-bottom:10px;margin-bottom:16px;border-bottom:2px solid var(--line)}
+.grade-header-left{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.grade-bullet{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:#eff6ff;color:#1764ff;font-size:18px;font-weight:800}
+.grade-header-title{font-size:19px;font-weight:800;margin:0;color:var(--ink);letter-spacing:-.01em}
+.grade-header-badge{font:700 11.5px Manrope;padding:4px 9px;border-radius:7px;white-space:nowrap}
+.grade-header-badge.badge-gold{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.grade-header-badge.badge-teal{background:#ccfbf1;color:#0f766e;border:1px solid #99f6e4}
+.grade-header-badge.badge-blue{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.grade-header-badge.badge-purple{background:#f3e8ff;color:#6b21a8;border:1px solid #e9d5ff}
+.grade-topics-count{font:700 12px Manrope;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px 11px}
+
+/* Баннер фильтра по классу */
+.subject-filter-notice{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:11px 16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:11px;margin-bottom:20px;font:600 13px Manrope;color:#1e40af}
+.btn-clear-grade{border:1px solid #93c5fd;background:#fff;color:#1d4ed8;font:700 12px Manrope;padding:5px 13px;border-radius:8px;cursor:pointer;transition:all .15s}
+.btn-clear-grade:hover{background:#1d4ed8;color:#fff;border-color:#1d4ed8}
+
+body.dark .grade-stage-block{background:transparent;border:none}
+body.dark .stage-badge-pamat{background:#172554;color:#93c5fd;border-color:#1e3a8a}
+body.dark .stage-badge-vidus{background:#2e1065;color:#c4b5fd;border-color:#4c1d95}
+body.dark .grade-chip{background:#152137;border-color:#2b3a58;color:#c4cce0;box-shadow:none}
+body.dark .grade-chip:hover{background:#1e2e4d;border-color:#5a92ff;color:#93c5fd}
 body.dark .grade-chip.active{background:#1764ff;border-color:#1764ff;color:#fff}
+body.dark .grade-chip-exam{background:#2c210d;border-color:#78490a;color:#fcd34d}
+body.dark .grade-chip-exam:hover{background:#3b2d13;border-color:#a16207;color:#fef08a}
+body.dark .grade-chip-exam.active{background:#d97706;border-color:#d97706;color:#fff}
 body.dark .grade-badge{color:#ffcd7a;background:#3a2c14}
-@media(max-width:720px){.grades{margin-top:18px}}
+body.dark .subject-stage-header{border-bottom-color:var(--line)}
+body.dark .stage-count-badge{background:#101a2c;border-color:#2b3a58;color:#94a3b8}
+body.dark .grade-bullet{background:#172554;color:#93c5fd}
+body.dark .grade-jump-chip{background:#152137;border-color:#2b3a58;color:#c4cce0}
+body.dark .grade-jump-chip:hover{background:#1e2e4d;border-color:#5a92ff;color:#93c5fd}
+body.dark .grade-jump-chip.active{background:#1764ff;border-color:#1764ff;color:#fff}
+body.dark .jump-chip-count{background:#23324d;color:#94a3b8}
+body.dark .grade-header-badge.badge-gold{background:#3b2d13;color:#fde68a;border-color:#78490a}
+body.dark .grade-header-badge.badge-teal{background:#134e48;color:#99f6e4;border-color:#115e59}
+body.dark .grade-header-badge.badge-blue{background:#1e3a8a;color:#bfdbfe;border-color:#172554}
+body.dark .grade-header-badge.badge-purple{background:#581c87;color:#e9d5ff;border-color:#3b0764}
+body.dark .subject-filter-notice{background:#172554;border-color:#1e3a8a;color:#bfdbfe}
+body.dark .btn-clear-grade{background:#1e293b;border-color:#3b82f6;color:#93c5fd}
+body.dark .btn-clear-grade:hover{background:#2563eb;color:#fff}
+
+@media(max-width:720px){
+  .grades{margin-top:20px}
+  .grade-stage-block{padding:0}
+  .grade-chips-list{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+  .grade-chips-list::-webkit-scrollbar{height:4px}
+  .grade-chips-list::-webkit-scrollbar-thumb{background:#c3d2ea;border-radius:4px}
+  .grade-header-title{font-size:17px}
+}
 
 /* ── Списки контента и предпросмотр формул в админке ─────────────── */
 .admin-list{margin-top:18px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -506,6 +577,22 @@ body.dark .track-card-badge.teal{background:#092d2c;color:#4be2de;border-color:#
 body.dark .track-card-badge.orange{background:#3a1909;color:#ff9e6e;border-color:#612c14}
 body.dark .track-card-badge.green{background:#092e18;color:#5de292;border-color:#13542c}
 
+.sidebar-track-mini-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px}
+.sidebar-track-mini-card{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:8px;text-decoration:none;color:var(--ink);background:transparent;border:1px solid var(--line);transition:background .15s,border-color .15s,transform .15s;min-width:0}
+.sidebar-track-mini-card:hover{background:#f0f4fc;border-color:#dce5f5;transform:translateY(-1px)}
+.sidebar-track-mini-card.active{background:linear-gradient(110deg,#edf4ff,#e4edfe);border-color:#bed6ff;color:#1255e2;box-shadow:0 1px 4px #1764ff15}
+.mini-badge{flex:none;width:24px;height:24px;border-radius:6px;display:grid;place-items:center;font-size:9.5px;font-weight:800;letter-spacing:-.02em}
+.mini-badge.orange{background:#ffede4;color:#d95209;border:1px solid #fed1bc}
+.mini-badge.green{background:#e2f7ea;color:#008a47;border:1px solid #b7ecc8}
+.mini-label{font-size:10.5px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-track-mini-card.active .mini-label{color:#1255e2}
+
+body.dark .sidebar-track-mini-card{border-color:#1e2d48}
+body.dark .sidebar-track-mini-card:hover{background:#172238;border-color:#2b3a58}
+body.dark .sidebar-track-mini-card.active{background:linear-gradient(110deg,#192848,#15223e);border-color:#2e4b85;color:#5a92ff}
+body.dark .mini-badge.orange{background:#3a1909;color:#ff9e6e;border-color:#612c14}
+body.dark .mini-badge.green{background:#092e18;color:#5de292;border-color:#13542c}
+
 /* ── Сайдбар: Тематический режим (Когда тема выбрана) ─────────────── */
 .sidebar-back-button{display:flex;align-items:center;gap:9px;padding:9px 12px;margin:2px 0 10px;border-radius:9px;background:#f0f4fc;color:#1764ff;text-decoration:none;font-weight:700;font-size:12px;transition:background .15s,transform .15s}
 .sidebar-back-button:hover{background:#e3ecfa;transform:translateX(-2px)}
@@ -528,6 +615,9 @@ body.dark .focus-count{background:#23324d;color:#a9b4ca}
 
 body.sidebar-collapsed .sidebar-track-card{justify-content:center;padding:7px 0}
 body.sidebar-collapsed .track-card-body,body.sidebar-collapsed .sidebar-track-header,body.sidebar-collapsed .track-subgroup-label,body.sidebar-collapsed .sidebar-topic-banner,body.sidebar-collapsed .sidebar-focus-heading{display:none}
+body.sidebar-collapsed .sidebar-track-mini-row{display:flex;flex-direction:column;gap:5px}
+body.sidebar-collapsed .sidebar-track-mini-card{justify-content:center;padding:6px 0;border:none}
+body.sidebar-collapsed .mini-label{display:none}
 body.sidebar-collapsed .sidebar-back-button{justify-content:center;padding:8px 0}
 body.sidebar-collapsed .sidebar-back-button .label{display:none}
 

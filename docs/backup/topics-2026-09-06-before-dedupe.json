@@ -1,0 +1,1654 @@
+[
+ {
+  "id": 80,
+  "title": "Как рассказать и показать: сколько, где, какой",
+  "title_lv": "Kā pastāstīt un parādīt: cik, kur, kāds",
+  "grade": 1,
+  "slug": "skola2030-g1-1-rasskazat-i-pokazat-skolko"
+ },
+ {
+  "id": 81,
+  "title": "Сколько всего, сколько осталось",
+  "title_lv": "Cik pavisam, cik palicis",
+  "grade": 1,
+  "slug": "skola2030-g1-2-skolko-vsego-skolko-ostalos"
+ },
+ {
+  "id": 82,
+  "title": "Как измерять длины и получать симметричные фигуры",
+  "title_lv": "Kā mērīt garumus un iegūt simetriskas figūras",
+  "grade": 1,
+  "slug": "skola2030-g1-3-izmeryat-dliny-i-poluchat"
+ },
+ {
+  "id": 83,
+  "title": "Как записывают и сравнивают числа больше 10",
+  "title_lv": "Kā pieraksta un salīdzina skaitļus, kas lielāki par 10",
+  "grade": 1,
+  "slug": "skola2030-g1-4-zapisyvayut-i-sravnivayut-chisla"
+ },
+ {
+  "id": 84,
+  "title": "Как складывают и вычитают числа больше 10",
+  "title_lv": "Kā saskaita un atņem skaitļus, kas lielāki par 10",
+  "grade": 1,
+  "slug": "skola2030-g1-5-skladyvayut-i-vychitayut-chisla"
+ },
+ {
+  "id": 85,
+  "title": "Что значит «на столько больше», «на столько меньше»",
+  "title_lv": "Ko nozīmē «par tik lielāks», «par tik mazāks»",
+  "grade": 1,
+  "slug": "skola2030-g1-6-znachit-na-stolko-bolshe"
+ },
+ {
+  "id": 86,
+  "title": "Где мы встречаемся с большими числами",
+  "title_lv": "Kur sastopamies ar lieliem skaitļiem",
+  "grade": 1,
+  "slug": "skola2030-g1-7-my-vstrechaemsya-s-bolshimi"
+ },
+ {
+  "id": 87,
+  "title": "Как складывают и вычитают двузначные числа",
+  "title_lv": "Kā saskaita un atņem divciparu skaitļus",
+  "grade": 2,
+  "slug": "skola2030-g2-1-skladyvayut-i-vychitayut-dvuznachnye"
+ },
+ {
+  "id": 88,
+  "title": "Как умножают и делят на 3, 4 и 5",
+  "title_lv": "Kā reizina un dala ar 3, 4 un 5",
+  "grade": 2,
+  "slug": "skola2030-g2-2-umnozhayut-i-delyat-na"
+ },
+ {
+  "id": 89,
+  "title": "Как умножают и делят на 6, 7, 8, 9 и 10",
+  "title_lv": "Kā reizina un dala ar 6, 7, 8, 9 un 10",
+  "grade": 3,
+  "slug": "skola2030-g3-1-umnozhayut-i-delyat-na"
+ },
+ {
+  "id": 90,
+  "title": "Как используют все действия",
+  "title_lv": "Kā izmanto visas darbības",
+  "grade": 3,
+  "slug": "skola2030-g3-2-ispolzuyut-vse-deystviya"
+ },
+ {
+  "id": 91,
+  "title": "Как составляют план местности",
+  "title_lv": "Kā izveido apvidus plānu",
+  "grade": 3,
+  "slug": "skola2030-g3-3-sostavlyayut-plan-mestnosti"
+ },
+ {
+  "id": 92,
+  "title": "Что значит часть от целого: доли и запись дроби",
+  "title_lv": "Ko nozīmē daļa no veselā: daļas un daļas pieraksts",
+  "grade": 3,
+  "slug": "skola2030-g3-4-znachit-chast-ot-tselogo"
+ },
+ {
+  "id": 93,
+  "title": "Как создают пространственные модели",
+  "title_lv": "Kā veido telpiskus modeļus",
+  "grade": 3,
+  "slug": "skola2030-g3-5-sozdayut-prostranstvennye-modeli"
+ },
+ {
+  "id": 94,
+  "title": "Как складывают и вычитают многозначные числа",
+  "title_lv": "Kā saskaita un atņem daudzciparu skaitļus",
+  "grade": 4,
+  "slug": "skola2030-g4-1-skladyvayut-i-vychitayut-mnogoznachnye"
+ },
+ {
+  "id": 95,
+  "title": "Как многозначные числа умножают и делят на однозначное число",
+  "title_lv": "Kā daudzciparu skaitļus reizina un dala ar viencipara skaitli",
+  "grade": 4,
+  "slug": "skola2030-g4-2-mnogoznachnye-chisla-umnozhayut-i"
+ },
+ {
+  "id": 96,
+  "title": "Как многозначные числа умножают и делят на двузначное число",
+  "title_lv": "Kā daudzciparu skaitļus reizina un dala ar divciparu skaitli",
+  "grade": 4,
+  "slug": "skola2030-g4-3-mnogoznachnye-chisla-umnozhayut-i"
+ },
+ {
+  "id": 97,
+  "title": "Как сравнивают, складывают и вычитают дроби",
+  "title_lv": "Kā salīdzina, saskaita un atņem daļas",
+  "grade": 4,
+  "slug": "skola2030-g4-4-sravnivayut-skladyvayut-i-vychitayut"
+ },
+ {
+  "id": 98,
+  "title": "Что значит часть от целого: целое как числовое значение",
+  "title_lv": "Ko nozīmē daļa no veselā: veselais kā skaitliska vērtība",
+  "grade": 4,
+  "slug": "skola2030-g4-5-znachit-chast-ot-tselogo"
+ },
+ {
+  "id": 99,
+  "title": "Что общего в математическом описании покупок и движения",
+  "title_lv": "Kas kopīgs pirkumu un kustības matemātiskajā aprakstā",
+  "grade": 4,
+  "slug": "skola2030-g4-6-obshchego-v-matematicheskom-opisanii"
+ },
+ {
+  "id": 100,
+  "title": "Как по-разному записывают натуральные числа",
+  "title_lv": "Kā dažādi pieraksta naturālus skaitļus",
+  "grade": 5,
+  "slug": "skola2030-g5-1-po-raznomu-zapisyvayut-naturalnye"
+ },
+ {
+  "id": 101,
+  "title": "Как используют разложение числа на множители",
+  "title_lv": "Kā izmanto skaitļa sadalīšanu reizinātājos",
+  "grade": 5,
+  "slug": "skola2030-g5-2-ispolzuyut-razlozhenie-chisla-na"
+ },
+ {
+  "id": 102,
+  "title": "Как объясняют и применяют основное свойство дроби",
+  "title_lv": "Kā skaidro un lieto daļas pamatīpašību",
+  "grade": 5,
+  "slug": "skola2030-g5-3-obyasnyayut-i-primenyayut-osnovnoe"
+ },
+ {
+  "id": 103,
+  "title": "Как одно число выражают как часть другого числа",
+  "title_lv": "Kā vienu skaitli izsaka kā daļu no cita skaitļa",
+  "grade": 5,
+  "slug": "skola2030-g5-4-odno-chislo-vyrazhayut-chast"
+ },
+ {
+  "id": 104,
+  "title": "Как складывают и вычитают смешанные числа",
+  "title_lv": "Kā saskaita un atņem jauktus skaitļus",
+  "grade": 5,
+  "slug": "skola2030-g5-5-skladyvayut-i-vychitayut-smeshannye"
+ },
+ {
+  "id": 105,
+  "title": "Как определяют неизвестные величины фигур",
+  "title_lv": "Kā nosaka figūru nezināmos lielumus",
+  "grade": 5,
+  "slug": "skola2030-g5-6-opredelyayut-neizvestnye-velichiny-figur"
+ },
+ {
+  "id": 106,
+  "title": "Как используют десятичные дроби и проценты",
+  "title_lv": "Kā izmanto decimāldaļas un procentus",
+  "grade": 5,
+  "slug": "skola2030-g5-7-ispolzuyut-desyatichnye-drobi-i"
+ },
+ {
+  "id": 168,
+  "title": "Обыкновенные дроби и части величин",
+  "title_lv": "Parastās daļas un lielumu daļas",
+  "grade": 5,
+  "slug": "obyknovennye-drobi-i-chasti-velichin-1788561128700-622"
+ },
+ {
+  "id": 175,
+  "title": "Делимость чисел, НОД и НОК",
+  "title_lv": "Skaitļu dalāmība, LKD un MKD",
+  "grade": 5,
+  "slug": "delimost-chisel-nod-i-nok-1788561150154-986"
+ },
+ {
+  "id": 107,
+  "title": "Как совокупность делят в определенном отношении",
+  "title_lv": "Kā kopumu sadala noteiktā attiecībā",
+  "grade": 6,
+  "slug": "skola2030-g6-1-sovokupnost-delyat-v-opredelennom"
+ },
+ {
+  "id": 108,
+  "title": "Как умножают и делят обыкновенные дроби",
+  "title_lv": "Kā reizina un dala parastās daļas",
+  "grade": 6,
+  "slug": "skola2030-g6-2-umnozhayut-i-delyat-obyknovennye"
+ },
+ {
+  "id": 109,
+  "title": "Как изображают и характеризуют пространственные тела",
+  "title_lv": "Kā attēlo un raksturo telpiskus ķermeņus",
+  "grade": 6,
+  "slug": "skola2030-g6-3-izobrazhayut-i-kharakterizuyut-prostranstvennye"
+ },
+ {
+  "id": 110,
+  "title": "Зачем нужны числа, которые меньше нуля",
+  "title_lv": "Kāpēc vajadzīgi skaitļi, kas mazāki par nulli",
+  "grade": 6,
+  "slug": "skola2030-g6-4-nuzhny-chisla-kotorye-menshe"
+ },
+ {
+  "id": 111,
+  "title": "Что значит прибавить к числу отрицательное число или вычесть отрицательное число",
+  "title_lv": "Ko nozīmē pieskaitīt skaitlim negatīvu skaitli vai atņemt negatīvu skaitli",
+  "grade": 6,
+  "slug": "skola2030-g6-5-znachit-pribavit-k-chislu"
+ },
+ {
+  "id": 161,
+  "title": "Дроби и проценты в реальных контекстах",
+  "title_lv": "Daļas un procenti reālās situācijās",
+  "grade": 6,
+  "slug": "drobi-i-protsenty-v-realnyh-kontekstah-1788561101589-815"
+ },
+ {
+  "id": 169,
+  "title": "Координатная плоскость и прямая пропорциональность",
+  "title_lv": "Koordinātu plakne un tiešā proporcionalitāte",
+  "grade": 6,
+  "slug": "koordinatnaya-ploskost-i-pryamaya-proportsionalnost-1788561128991-522"
+ },
+ {
+  "id": 176,
+  "title": "Действия с отрицательными числами и модуль",
+  "title_lv": "Darbības ar negatīviem skaitļiem un modulis",
+  "grade": 6,
+  "slug": "deystviya-s-otritsatelnymi-chislami-i-modul-1788561150499-669"
+ },
+ {
+  "id": 25,
+  "title": "Линейные уравнения с одной переменной",
+  "title_lv": "Lineāri vienādojumi ar vienu mainīgo",
+  "grade": 7,
+  "slug": "lineynye-uravneniya-7"
+ },
+ {
+  "id": 26,
+  "title": "Свойства степеней с натуральным показателем",
+  "title_lv": "Pakāpju īpašības ar naturālu kāpinātāju",
+  "grade": 7,
+  "slug": "stepeni-7"
+ },
+ {
+  "id": 27,
+  "title": "Смежные и вертикальные углы",
+  "title_lv": "Blakusleņķi un krustleņķi",
+  "grade": 7,
+  "slug": "smezhnye-i-vertikalnye-ugly-7"
+ },
+ {
+  "id": 28,
+  "title": "Множества и классическая вероятность",
+  "title_lv": "Kopas un klasiskā varbūtība",
+  "grade": 7,
+  "slug": "mnozhestva-i-veroyatnost-7"
+ },
+ {
+  "id": 112,
+  "title": "Как определяют все элементы множества, вычисляют вероятность события",
+  "title_lv": "Kā nosaka visus kopas elementus un aprēķina notikuma varbūtību",
+  "grade": 7,
+  "slug": "skola2030-g7-1-opredelyayut-vse-elementy-mnozhestva"
+ },
+ {
+  "id": 113,
+  "title": "Как определяют геометрические фигуры",
+  "title_lv": "Kā definē ģeometriskas figūras",
+  "grade": 7,
+  "slug": "skola2030-g7-2-opredelyayut-geometricheskie-figury"
+ },
+ {
+  "id": 114,
+  "title": "Как характеризуют зависимость между переменными величинами",
+  "title_lv": "Kā raksturo sakarību starp mainīgiem lielumiem",
+  "grade": 7,
+  "slug": "skola2030-g7-3-kharakterizuyut-zavisimost-mezhdu-peremennymi"
+ },
+ {
+  "id": 115,
+  "title": "Как записывают и исследуют функции, график которых — прямая",
+  "title_lv": "Kā pieraksta un pēta funkcijas, kuru grafiks ir taisne",
+  "grade": 7,
+  "slug": "skola2030-g7-4-zapisyvayut-i-issleduyut-funktsii"
+ },
+ {
+  "id": 116,
+  "title": "Как характеризуют треугольник, используя его элементы",
+  "title_lv": "Kā raksturo trijstūri, izmantojot tā elementus",
+  "grade": 7,
+  "slug": "skola2030-g7-5-kharakterizuyut-treugolnik-ispolzuya-ego"
+ },
+ {
+  "id": 117,
+  "title": "Каковы зависимости между величинами в треугольнике",
+  "title_lv": "Kādas ir sakarības starp trijstūra lielumiem",
+  "grade": 7,
+  "slug": "skola2030-g7-6-zavisimosti-mezhdu-velichinami-v"
+ },
+ {
+  "id": 118,
+  "title": "Что значит преобразовать выражение с переменной величиной",
+  "title_lv": "Ko nozīmē pārveidot izteiksmi ar mainīgo lielumu",
+  "grade": 7,
+  "slug": "skola2030-g7-7-znachit-preobrazovat-vyrazhenie-s"
+ },
+ {
+  "id": 119,
+  "title": "Каковы приемы определения неизвестного, линейное уравнение",
+  "title_lv": "Kādi ir nezināmā noteikšanas paņēmieni, lineārs vienādojums",
+  "grade": 7,
+  "slug": "skola2030-g7-8-priemy-opredeleniya-neizvestnogo-lineynoe"
+ },
+ {
+  "id": 120,
+  "title": "Как сравнивают выражения, где есть переменная, неравенства",
+  "title_lv": "Kā salīdzina izteiksmes ar mainīgo, nevienādības",
+  "grade": 7,
+  "slug": "skola2030-g7-9-sravnivayut-vyrazheniya-est-peremennaya"
+ },
+ {
+  "id": 162,
+  "title": "Линейные уравнения и алгебраическое моделирование",
+  "title_lv": "Lineāri vienādojumi un algebriskā modelēšana",
+  "grade": 7,
+  "slug": "lineynye-uravneniya-i-algebraicheskoe-modelirovanie-1788561101760-249"
+ },
+ {
+  "id": 170,
+  "title": "Системы линейных уравнений с двумя переменными",
+  "title_lv": "Lineāru vienādojumu sistēmas ar diviem mainīgajiem",
+  "grade": 7,
+  "slug": "sistemy-lineynyh-uravneniy-s-dvumya-peremennymi-1788561129096-37"
+ },
+ {
+  "id": 29,
+  "title": "Формулы сокращенного умножения",
+  "title_lv": "Saīsinātās reizināšanas formulas",
+  "grade": 8,
+  "slug": "sokrashchennoe-umnozhenie-8"
+ },
+ {
+  "id": 30,
+  "title": "Квадратные корни и свойства корней",
+  "title_lv": "Kvadrātsaknes un sakņu īpašības",
+  "grade": 8,
+  "slug": "kvadratnye-korni-8"
+ },
+ {
+  "id": 31,
+  "title": "Линейная функция и график",
+  "title_lv": "Lineāra funkcija un tās grafiks",
+  "grade": 8,
+  "slug": "lineynaya-funkciya-8"
+ },
+ {
+  "id": 32,
+  "title": "Теорема Пифагора и прямоугольный треугольник",
+  "title_lv": "Pitagora teorēma un taisnleņķa trijstūris",
+  "grade": 8,
+  "slug": "teorema-pifagora-8"
+ },
+ {
+  "id": 33,
+  "title": "Параллелограмм, ромб и их площади",
+  "title_lv": "Paralelograms, rombs un to laukumi",
+  "grade": 8,
+  "slug": "chetyrehugolniki-8"
+ },
+ {
+  "id": 34,
+  "title": "Статистические характеристики числовых данных",
+  "title_lv": "Skaitlisku datu statistiskie raksturlielumi",
+  "grade": 8,
+  "slug": "statistika-8"
+ },
+ {
+  "id": 121,
+  "title": "Как математически описывают и анализируют данные, статистика",
+  "title_lv": "Kā matemātiski apraksta un analizē datus, statistika",
+  "grade": 8,
+  "slug": "skola2030-g8-1-matematicheski-opisyvayut-i-analiziruyut"
+ },
+ {
+  "id": 122,
+  "title": "Как объясняют и применяют степень с целым показателем",
+  "title_lv": "Kā skaidro un lieto pakāpi ar veselu kāpinātāju",
+  "grade": 8,
+  "slug": "skola2030-g8-2-obyasnyayut-i-primenyayut-stepen"
+ },
+ {
+  "id": 123,
+  "title": "Как поступают, если число нельзя записать в виде дроби, квадратный корень",
+  "title_lv": "Kā rīkojas, ja skaitli nevar pierakstīt kā daļu, kvadrātsakne",
+  "grade": 8,
+  "slug": "skola2030-g8-3-postupayut-esli-chislo-nelzya"
+ },
+ {
+  "id": 124,
+  "title": "Как вычисляют площадь для любого треугольника, круга, призмы, цилиндра",
+  "title_lv": "Kā aprēķina laukumu jebkuram trijstūrim, riņķim, prizmai, cilindram",
+  "grade": 8,
+  "slug": "skola2030-g8-4-vychislyayut-ploshchad-dlya-lyubogo"
+ },
+ {
+  "id": 125,
+  "title": "Что общего у четырехугольников, противоположные стороны которых попарно параллельны",
+  "title_lv": "Kas kopīgs četrstūriem, kuru pretējās malas ir pa pāriem paralēlas",
+  "grade": 8,
+  "slug": "skola2030-g8-5-obshchego-u-chetyrekhugolnikov-protivopolozhnye"
+ },
+ {
+  "id": 126,
+  "title": "Как объясняют и выполняют действия с выражениями",
+  "title_lv": "Kā skaidro un veic darbības ar izteiksmēm",
+  "grade": 8,
+  "slug": "skola2030-g8-6-obyasnyayut-i-vypolnyayut-deystviya"
+ },
+ {
+  "id": 127,
+  "title": "Как различные функции используют для математического моделирования",
+  "title_lv": "Kā dažādas funkcijas izmanto matemātiskajā modelēšanā",
+  "grade": 8,
+  "slug": "skola2030-g8-7-razlichnye-funktsii-ispolzuyut-dlya"
+ },
+ {
+  "id": 128,
+  "title": "Как определяют неизвестную сторону прямоугольного треугольника, теорема Пифагора",
+  "title_lv": "Kā nosaka taisnleņķa trijstūra nezināmo malu, Pitagora teorēma",
+  "grade": 8,
+  "slug": "skola2030-g8-8-opredelyayut-neizvestnuyu-storonu-pryamougolnogo"
+ },
+ {
+  "id": 163,
+  "title": "Преобразование алгебраических выражений и степени",
+  "title_lv": "Algebrisku izteiksmju pārveidošana un pakāpes",
+  "grade": 8,
+  "slug": "preobrazovanie-algebraicheskih-vyrazheniy-i-stepeni-1788561101961-965"
+ },
+ {
+  "id": 164,
+  "title": "Теорема Пифагора и метрические соотношения",
+  "title_lv": "Pitagora teorēma un metriskās sakarības",
+  "grade": 8,
+  "slug": "teorema-pifagora-i-metricheskie-sootnosheniya-1788561102066-58"
+ },
+ {
+  "id": 171,
+  "title": "Свойства корней и преобразование радикалов",
+  "title_lv": "Sakņu īpašības un radikāļu pārveidošana",
+  "grade": 8,
+  "slug": "svoystva-korney-i-preobrazovanie-radikalov-1788561129193-343"
+ },
+ {
+  "id": 172,
+  "title": "Многоугольники, четырехугольники и площади",
+  "title_lv": "Daudzstūri, četrstūri un laukumi",
+  "grade": 8,
+  "slug": "mnogougolniki-chetyrehugolniki-i-ploschadi-1788561129299-816"
+ },
+ {
+  "id": 177,
+  "title": "Линейная функция и её свойства",
+  "title_lv": "Lineāra funkcija un tās īpašības",
+  "grade": 8,
+  "slug": "lineynaya-funktsiya-i-ee-svoystva-1788561150583-995"
+ },
+ {
+  "id": 35,
+  "title": "Квадратные уравнения и теорема Виета",
+  "title_lv": "Kvadrātvienādojumi un Vjeta teorēma",
+  "grade": 9,
+  "slug": "kvadratnye-uravneniya-9"
+ },
+ {
+  "id": 36,
+  "title": "Системы двух уравнений с двумя переменными",
+  "title_lv": "Divu vienādojumu sistēmas ar diviem mainīgajiem",
+  "grade": 9,
+  "slug": "sistemy-uravneniy-9"
+ },
+ {
+  "id": 37,
+  "title": "Арифметическая прогрессия",
+  "title_lv": "Aritmētiskā progresija",
+  "grade": 9,
+  "slug": "arifmeticheskaya-progressiya-9"
+ },
+ {
+  "id": 38,
+  "title": "Подобные треугольники и теорема Фалеса",
+  "title_lv": "Līdzīgi trijstūri un Talesa teorēma",
+  "grade": 9,
+  "slug": "podobnye-treugolniki-9"
+ },
+ {
+  "id": 39,
+  "title": "Окружность: центральные и вписанные углы",
+  "title_lv": "Riņķa līnija: centra leņķi un ievilktie leņķi",
+  "grade": 9,
+  "slug": "okruzhnost-i-ugly-9"
+ },
+ {
+  "id": 129,
+  "title": "Как определяют и характеризуют подобные треугольники",
+  "title_lv": "Kā nosaka un raksturo līdzīgus trijstūrus",
+  "grade": 9,
+  "slug": "skola2030-g9-1-opredelyayut-i-kharakterizuyut-podobnye"
+ },
+ {
+  "id": 130,
+  "title": "Что общего у четырехугольников, у которых ровно две стороны параллельны, трапеция",
+  "title_lv": "Kas kopīgs četrstūriem, kuriem tieši divas malas ir paralēlas, trapece",
+  "grade": 9,
+  "slug": "skola2030-g9-2-obshchego-u-chetyrekhugolnikov-u"
+ },
+ {
+  "id": 131,
+  "title": "Как в вычислениях используют отношение двух сторон прямоугольного треугольника",
+  "title_lv": "Kā aprēķinos izmanto taisnleņķa trijstūra divu malu attiecību",
+  "grade": 9,
+  "slug": "skola2030-g9-3-v-vychisleniyakh-ispolzuyut-otnoshenie"
+ },
+ {
+  "id": 132,
+  "title": "Как используют разложение выражений на множители",
+  "title_lv": "Kā izmanto izteiksmju sadalīšanu reizinātājos",
+  "grade": 9,
+  "slug": "skola2030-g9-4-ispolzuyut-razlozhenie-vyrazheniy-na"
+ },
+ {
+  "id": 133,
+  "title": "Как объясняют и используют формулы при работе с квадратным уравнением, квадратичной функцией",
+  "title_lv": "Kā skaidro un lieto formulas darbā ar kvadrātvienādojumu un kvadrātfunkciju",
+  "grade": 9,
+  "slug": "skola2030-g9-5-obyasnyayut-i-ispolzuyut-formuly"
+ },
+ {
+  "id": 134,
+  "title": "Как описывают ситуации с двумя неизвестными величинами",
+  "title_lv": "Kā apraksta situācijas ar diviem nezināmiem lielumiem",
+  "grade": 9,
+  "slug": "skola2030-g9-6-opisyvayut-situatsii-s-dvumya"
+ },
+ {
+  "id": 135,
+  "title": "Как числовую последовательность записывают формулой",
+  "title_lv": "Kā skaitļu virkni pieraksta ar formulu",
+  "grade": 9,
+  "slug": "skola2030-g9-7-chislovuyu-posledovatelnost-zapisyvayut-formuloy"
+ },
+ {
+  "id": 136,
+  "title": "Как описывают взаимное расположение окружности и многоугольника",
+  "title_lv": "Kā apraksta riņķa līnijas un daudzstūra savstarpējo novietojumu",
+  "grade": 9,
+  "slug": "skola2030-g9-8-opisyvayut-vzaimnoe-raspolozhenie-okruzhnosti"
+ },
+ {
+  "id": 165,
+  "title": "Дробно-рациональные уравнения и задачи на процессы",
+  "title_lv": "Daļveida racionāli vienādojumi un uzdevumi par procesiem",
+  "grade": 9,
+  "slug": "drobno-ratsionalnye-uravneniya-i-zadachi-na-protsessy-1788561102165-701"
+ },
+ {
+  "id": 166,
+  "title": "Тригонометрические соотношения в прямоугольном треугольнике",
+  "title_lv": "Trigonometriskās sakarības taisnleņķa trijstūrī",
+  "grade": 9,
+  "slug": "trigonometricheskie-sootnosheniya-v-pryamougolnom-treugolnike-1788561102265-330"
+ },
+ {
+  "id": 167,
+  "title": "Олимпиадные методы, инварианты и диофантовы уравнения",
+  "title_lv": "Olimpiāžu metodes, invarianti un Diofanta vienādojumi",
+  "grade": 9,
+  "slug": "olimpiadnye-metody-invarianty-i-diofantovy-uravneniya-1788561102366-852"
+ },
+ {
+  "id": 173,
+  "title": "Квадратные неравенства и метод интервалов",
+  "title_lv": "Kvadrātnevienādības un intervālu metode",
+  "grade": 9,
+  "slug": "kvadratnye-neravenstva-i-metod-intervalov-1788561129401-198"
+ },
+ {
+  "id": 174,
+  "title": "Подобие треугольников и метрические соотношения в окружности",
+  "title_lv": "Trijstūru līdzība un metriskās sakarības riņķa līnijā",
+  "grade": 9,
+  "slug": "podobie-treugolnikov-i-metricheskie-sootnosheniya-v-okruzhnosti-1788561129505-715"
+ },
+ {
+  "id": 178,
+  "title": "Элементы комбинаторики и вероятность",
+  "title_lv": "Kombinatorikas elementi un varbūtība",
+  "grade": 9,
+  "slug": "elementy-kombinatoriki-i-veroyatnost-1788561150684-978"
+ },
+ {
+  "id": 40,
+  "title": "Квадратичная функция и метод интервалов",
+  "title_lv": "Kvadrātfunkcija un intervālu metode",
+  "grade": 10,
+  "slug": "kvadratichnaya-funkciya-10"
+ },
+ {
+  "id": 41,
+  "title": "Теорема синусов и косинусов",
+  "title_lv": "Sinusu un kosinusu teorēma",
+  "grade": 10,
+  "slug": "teorema-kosinusov-i-sinusov-10"
+ },
+ {
+  "id": 42,
+  "title": "Элементы комбинаторики",
+  "title_lv": "Kombinatorikas elementi",
+  "grade": 10,
+  "slug": "kombinatorika-10"
+ },
+ {
+  "id": 179,
+  "title": "Числовые расчеты в жизненных ситуациях",
+  "title_lv": "Skaitliski aprēķini dzīves darbībās",
+  "grade": 10,
+  "slug": "visp-skaitliski-aprekini-dzive"
+ },
+ {
+  "id": 180,
+  "title": "Проценты, кредиты и финансовые расчеты",
+  "title_lv": "Procenti, kredīti un finanšu aprēķini",
+  "grade": 10,
+  "slug": "visp-procenti-krediti-finanses"
+ },
+ {
+  "id": 181,
+  "title": "Преобразование выражений и работа с формулами",
+  "title_lv": "Izteiksmju pārveidošana un formulu lietošana",
+  "grade": 10,
+  "slug": "visp-izteiksmes-un-formulas"
+ },
+ {
+  "id": 182,
+  "title": "Линейные и квадратные уравнения в практическом контексте",
+  "title_lv": "Lineāri un kvadrātvienādojumi praktiskos kontekstos",
+  "grade": 10,
+  "slug": "visp-vienadojumi-praktiski"
+ },
+ {
+  "id": 183,
+  "title": "Неравенства и числовые промежутки",
+  "title_lv": "Nevienādības un skaitļu intervāli",
+  "grade": 10,
+  "slug": "visp-nevienadibas-intervali"
+ },
+ {
+  "id": 184,
+  "title": "Функция как зависимость между величинами",
+  "title_lv": "Funkcija kā sakarība starp lielumiem",
+  "grade": 10,
+  "slug": "visp-funkcija-sakariba"
+ },
+ {
+  "id": 185,
+  "title": "Линейная функция и её применение",
+  "title_lv": "Lineāra funkcija un tās lietojums",
+  "grade": 10,
+  "slug": "visp-lineara-funkcija"
+ },
+ {
+  "id": 186,
+  "title": "Квадратичная функция и её график",
+  "title_lv": "Kvadrātfunkcija un tās grafiks",
+  "grade": 10,
+  "slug": "visp-kvadratfunkcija-grafiks"
+ },
+ {
+  "id": 187,
+  "title": "Чтение графиков и таблиц в реальных данных",
+  "title_lv": "Grafiku un tabulu lasīšana reālos datos",
+  "grade": 10,
+  "slug": "visp-grafiki-tabulas-dati"
+ },
+ {
+  "id": 188,
+  "title": "Тригонометрические соотношения в прямоугольном треугольнике",
+  "title_lv": "Trigonometriskās sakarības taisnleņķa trijstūrī",
+  "grade": 10,
+  "slug": "visp-trigonometrija-taisnlenkis"
+ },
+ {
+  "id": 189,
+  "title": "Применение теорем синусов и косинусов",
+  "title_lv": "Sinusu un kosinusu teorēmas lietojums",
+  "grade": 10,
+  "slug": "visp-sinusu-kosinusu-teorema"
+ },
+ {
+  "id": 190,
+  "title": "Периметр, площадь и единицы измерения",
+  "title_lv": "Perimetrs, laukums un mērvienības",
+  "grade": 10,
+  "slug": "visp-planimetrija-laukumi"
+ },
+ {
+  "id": 191,
+  "title": "Масштаб, планы и карты местности",
+  "title_lv": "Mērogs, plāni un kartes",
+  "grade": 10,
+  "slug": "visp-merogs-plani-kartes"
+ },
+ {
+  "id": 192,
+  "title": "Подобие треугольников в практических задачах",
+  "title_lv": "Trijstūru līdzība praktiskos uzdevumos",
+  "grade": 10,
+  "slug": "visp-trijsturu-lidziba"
+ },
+ {
+  "id": 193,
+  "title": "Окружность и площадь круга",
+  "title_lv": "Riņķa līnija un riņķa laukums",
+  "grade": 10,
+  "slug": "visp-rinka-linija-laukums"
+ },
+ {
+  "id": 194,
+  "title": "Объём и площадь поверхности призмы и цилиндра",
+  "title_lv": "Prizmas un cilindra tilpums un virsma",
+  "grade": 10,
+  "slug": "visp-prizma-cilindrs-tilpums"
+ },
+ {
+  "id": 195,
+  "title": "Объём пирамиды и конуса",
+  "title_lv": "Piramīdas un konusa tilpums",
+  "grade": 10,
+  "slug": "visp-piramida-konuss-tilpums"
+ },
+ {
+  "id": 196,
+  "title": "Объём и площадь поверхности шара и сферы",
+  "title_lv": "Lodes tilpums un virsmas laukums",
+  "grade": 10,
+  "slug": "visp-lode-sfera"
+ },
+ {
+  "id": 197,
+  "title": "Расчёт материалов и затрат на строительство/ремонт",
+  "title_lv": "Materiālu un izmaksu aprēķini",
+  "grade": 10,
+  "slug": "visp-materialu-izmaksu-aprekini"
+ },
+ {
+  "id": 198,
+  "title": "Сбор, группировка и представление данных",
+  "title_lv": "Datu vākšana, apkopošana un attēlošana",
+  "grade": 10,
+  "slug": "visp-datu-apstrade-grafiki"
+ },
+ {
+  "id": 199,
+  "title": "Средние величины и статистический размах",
+  "title_lv": "Vidējie lielumi un izkliede",
+  "grade": 10,
+  "slug": "visp-videjie-lielumi-izkliede"
+ },
+ {
+  "id": 200,
+  "title": "Чтение и критический анализ диаграмм",
+  "title_lv": "Diagrammu lasīšana un kritiska interpretācija",
+  "grade": 10,
+  "slug": "visp-diagrammu-kritika"
+ },
+ {
+  "id": 201,
+  "title": "Основные правила комбинаторики",
+  "title_lv": "Kombinatorikas pamatprincipi",
+  "grade": 10,
+  "slug": "visp-kombinatorika-pamatprincipi"
+ },
+ {
+  "id": 202,
+  "title": "Вероятность в повседневных ситуациях",
+  "title_lv": "Varbūtība ikdienas situācijās",
+  "grade": 10,
+  "slug": "visp-varbutiba-ikdiena"
+ },
+ {
+  "id": 203,
+  "title": "Независимые события и произведение вероятностей",
+  "title_lv": "Neatkarīgi notikumi un varbūtību reizināšana",
+  "grade": 10,
+  "slug": "visp-neatkarigi-notikumi"
+ },
+ {
+  "id": 43,
+  "title": "Логарифмы и логарифмические уравнения",
+  "title_lv": "Logaritmi un logaritmiskie vienādojumi",
+  "grade": 11,
+  "slug": "logaritmy-11"
+ },
+ {
+  "id": 46,
+  "title": "Стереометрия: тела вращения и пирамиды",
+  "title_lv": "Stereometrija: rotācijas ķermeņi un piramīdas",
+  "grade": 11,
+  "slug": "stereometriya-11"
+ },
+ {
+  "id": 137,
+  "title": "Векторы и движение",
+  "title_lv": "Vektori un kustība",
+  "grade": 11,
+  "slug": "skola2030-g11-1-vektory-i-dvizhenie"
+ },
+ {
+  "id": 139,
+  "title": "Комбинаторика и вероятность I",
+  "title_lv": "Kombinatorika un varbūtība I",
+  "grade": 11,
+  "slug": "skola2030-g11-3-kombinatorika-i-veroyatnost-i"
+ },
+ {
+  "id": 140,
+  "title": "Статистика I",
+  "title_lv": "Statistika I",
+  "grade": 11,
+  "slug": "skola2030-g11-4-statistika-i"
+ },
+ {
+  "id": 145,
+  "title": "Степень с рациональным показателем, геометрическая прогрессия",
+  "title_lv": "Pakāpe ar racionālu kāpinātāju, ģeometriskā progresija",
+  "grade": 11,
+  "slug": "skola2030-g11-9-stepen-s-ratsionalnym-pokazatelem"
+ },
+ {
+  "id": 148,
+  "title": "Тела вращения",
+  "title_lv": "Rotācijas ķermeņi",
+  "grade": 11,
+  "slug": "skola2030-g11-12-tela-vrashcheniya"
+ },
+ {
+  "id": 204,
+  "title": "Действительные числа и преобразование выражений",
+  "title_lv": "Reālie skaitļi un izteiksmju pārveidošana",
+  "grade": 11,
+  "slug": "opt-realie-skaitli-izteiksmes"
+ },
+ {
+  "id": 205,
+  "title": "Линейные и квадратные уравнения, их системы",
+  "title_lv": "Lineāri un kvadrātvienādojumi, to sistēmas",
+  "grade": 11,
+  "slug": "opt-lineari-kvadratvienadojumi"
+ },
+ {
+  "id": 206,
+  "title": "Неравенства и метод интервалов",
+  "title_lv": "Nevienādības un intervālu metode",
+  "grade": 11,
+  "slug": "opt-nevienadibas-intervalu-metode"
+ },
+ {
+  "id": 207,
+  "title": "Алгебраические дроби и действия с ними",
+  "title_lv": "Algebriskās daļas un darbības ar tām",
+  "grade": 11,
+  "slug": "opt-algebriskas-dalas"
+ },
+ {
+  "id": 208,
+  "title": "Дробно-рациональные уравнения и неравенства",
+  "title_lv": "Daļveida racionāli vienādojumi un nevienādības",
+  "grade": 11,
+  "slug": "opt-dalveida-racionali-vienadojumi"
+ },
+ {
+  "id": 209,
+  "title": "Корень n-й степени и степень с рациональным показателем",
+  "title_lv": "N-tās pakāpes sakne un pakāpe ar racionālu kāpinātāju",
+  "grade": 11,
+  "slug": "opt-n-tas-pakapes-sakne"
+ },
+ {
+  "id": 210,
+  "title": "Последовательности, арифметическая и геометрическая прогрессия",
+  "title_lv": "Virknes, aritmētiskā un ģeometriskā progresija",
+  "grade": 11,
+  "slug": "opt-virknes-progresijas"
+ },
+ {
+  "id": 211,
+  "title": "Показательные уравнения и неравенства",
+  "title_lv": "Eksponentvienādojumi un eksponentnevienādības",
+  "grade": 11,
+  "slug": "opt-eksponentvienadojumi-nevienadibas"
+ },
+ {
+  "id": 212,
+  "title": "Логарифм и логарифмические уравнения",
+  "title_lv": "Logaritms, logaritmiskie vienādojumi",
+  "grade": 11,
+  "slug": "opt-logaritmi-vienadojumi"
+ },
+ {
+  "id": 213,
+  "title": "Уравнения и неравенства с модулем",
+  "title_lv": "Moduļa vienādojumi un nevienādības",
+  "grade": 11,
+  "slug": "opt-modula-vienadojumi-nevienadibas"
+ },
+ {
+  "id": 214,
+  "title": "Понятие функции, область определения и область значений",
+  "title_lv": "Funkcijas jēdziens, definīcijas un vērtību kopa",
+  "grade": 11,
+  "slug": "opt-funkcijas-jedziens-kopas"
+ },
+ {
+  "id": 215,
+  "title": "Линейная функция и её график",
+  "title_lv": "Lineāra funkcija un tās grafiks",
+  "grade": 11,
+  "slug": "opt-lineara-funkcija-grafiks"
+ },
+ {
+  "id": 216,
+  "title": "Квадратичная функция и вершина параболы",
+  "title_lv": "Kvadrātfunkcija un parabolas virsotne",
+  "grade": 11,
+  "slug": "opt-kvadratfunkcija-virsotne"
+ },
+ {
+  "id": 217,
+  "title": "Свойства функций: монотонность, нули, экстремумы",
+  "title_lv": "Funkciju īpašības: monotonitāte, nulles, ekstrēmi",
+  "grade": 11,
+  "slug": "opt-funkciju-ipasibas"
+ },
+ {
+  "id": 218,
+  "title": "Дробно-линейная функция y = k/x",
+  "title_lv": "Daļveida racionāla funkcija y = k/x",
+  "grade": 11,
+  "slug": "opt-dalveida-funkcija"
+ },
+ {
+  "id": 219,
+  "title": "Степенная функция",
+  "title_lv": "Pakāpes funkcija",
+  "grade": 11,
+  "slug": "opt-pakapes-funkcija"
+ },
+ {
+  "id": 220,
+  "title": "Показательная функция и экспоненциальные процессы",
+  "title_lv": "Eksponentfunkcija un eksponenciāli procesi",
+  "grade": 11,
+  "slug": "opt-eksponentfunkcija-procesi"
+ },
+ {
+  "id": 221,
+  "title": "Логарифмическая функция",
+  "title_lv": "Logaritmiskā funkcija",
+  "grade": 11,
+  "slug": "opt-logaritmiska-funkcija"
+ },
+ {
+  "id": 222,
+  "title": "Преобразования графиков функций",
+  "title_lv": "Funkciju grafiku transformācijas",
+  "grade": 11,
+  "slug": "opt-grafiku-transformacijas"
+ },
+ {
+  "id": 223,
+  "title": "Математическое моделирование с помощью функций",
+  "title_lv": "Matemātiskā modelēšana ar funkcijām",
+  "grade": 11,
+  "slug": "opt-matematiska-modelesana-funkcijas"
+ },
+ {
+  "id": 224,
+  "title": "Соотношения в прямоугольном треугольнике (повторение)",
+  "title_lv": "Sakarības taisnleņķa trijstūrī (atkārtojums)",
+  "grade": 11,
+  "slug": "opt-trig-taisnlenka-trijsturi"
+ },
+ {
+  "id": 225,
+  "title": "Угол поворота, радианы и единичная окружность",
+  "title_lv": "Pagrieziena leņķis, radiāni un vienības riņķa līnija",
+  "grade": 11,
+  "slug": "opt-pagrieziena-lenkis-radiani"
+ },
+ {
+  "id": 226,
+  "title": "Функции синуса и косинуса, их свойства",
+  "title_lv": "Sinusa un kosinusa funkcijas, to īpašības",
+  "grade": 11,
+  "slug": "opt-sinusa-kosinusa-funkcijas"
+ },
+ {
+  "id": 227,
+  "title": "Основное тригонометрическое тождество",
+  "title_lv": "Trigonometriskā pamatidentitāte",
+  "grade": 11,
+  "slug": "opt-trig-pamatidentitate"
+ },
+ {
+  "id": 228,
+  "title": "Теорема синусов и теорема косинусов",
+  "title_lv": "Sinusu un kosinusu teorēma",
+  "grade": 11,
+  "slug": "opt-sinusu-kosinusu-teorema"
+ },
+ {
+  "id": 229,
+  "title": "Формулы сложения и двойного угла",
+  "title_lv": "Argumentu summas un divkāršā argumenta formulas",
+  "grade": 11,
+  "slug": "opt-argumentu-summas-formulas"
+ },
+ {
+  "id": 230,
+  "title": "Преобразование тригонометрических выражений",
+  "title_lv": "Trigonometrisko izteiksmju pārveidošana",
+  "grade": 11,
+  "slug": "opt-trig-izteiksmju-parveidosana"
+ },
+ {
+  "id": 231,
+  "title": "Простейшие тригонометрические уравнения",
+  "title_lv": "Pamatvienādojumi sin x = a, cos x = a",
+  "grade": 11,
+  "slug": "opt-trig-pamatvienadojumi"
+ },
+ {
+  "id": 232,
+  "title": "Равенство и подобие треугольников (повторение)",
+  "title_lv": "Trijstūru vienādība un līdzība (atkārtojums)",
+  "grade": 11,
+  "slug": "opt-trijsturu-vienadiba-lidziba"
+ },
+ {
+  "id": 233,
+  "title": "Геометрические преобразования плоскости",
+  "title_lv": "Ģeometriskie pārveidojumi: simetrija, pagrieziens, paralēlā pārnese",
+  "grade": 11,
+  "slug": "opt-geometriskie-parveidojumi"
+ },
+ {
+  "id": 234,
+  "title": "Площади многоугольников",
+  "title_lv": "Daudzstūru laukumi",
+  "grade": 11,
+  "slug": "opt-daudzsturu-laukumi"
+ },
+ {
+  "id": 235,
+  "title": "Окружность: центральные и вписанные углы, касательные",
+  "title_lv": "Riņķa līnija: leņķi, pieskares, ievilktie daudzstūri",
+  "grade": 11,
+  "slug": "opt-rinka-linija-lenki-pieskares"
+ },
+ {
+  "id": 236,
+  "title": "Вписанная и описанная окружность треугольника",
+  "title_lv": "Trijstūrī ievilktā un apvilktā riņķa līnija",
+  "grade": 11,
+  "slug": "opt-ievilkta-apvilkta-rinka-linija"
+ },
+ {
+  "id": 237,
+  "title": "Векторы на плоскости и действия с ними",
+  "title_lv": "Vektori plaknē un darbības ar tiem",
+  "grade": 11,
+  "slug": "opt-vektori-plakne"
+ },
+ {
+  "id": 238,
+  "title": "Координаты векторов и скалярное произведение",
+  "title_lv": "Vektoru koordinātas un skalārais reizinājums",
+  "grade": 11,
+  "slug": "opt-vektoru-skalarais-reizinajums"
+ },
+ {
+  "id": 239,
+  "title": "Уравнение прямой, параллельные и перпендикулярные прямые",
+  "title_lv": "Taisnes vienādojums, paralēlas un perpendikulāras taisnes",
+  "grade": 11,
+  "slug": "opt-taisnes-vienadojums"
+ },
+ {
+  "id": 240,
+  "title": "Уравнение окружности",
+  "title_lv": "Riņķa līnijas vienādojums",
+  "grade": 11,
+  "slug": "opt-rinka-linijas-vienadojums"
+ },
+ {
+  "id": 241,
+  "title": "Прямые и плоскости в пространстве",
+  "title_lv": "Taisnes un plaknes telpā, to savstarpējais novietojums",
+  "grade": 11,
+  "slug": "opt-taisnes-plaknes-telpa"
+ },
+ {
+  "id": 242,
+  "title": "Многогранники и их сечения плоскостью",
+  "title_lv": "Daudzskaldņi, to elementi un šķēlums ar plakni",
+  "grade": 11,
+  "slug": "opt-daudzskaldni-skelumi"
+ },
+ {
+  "id": 243,
+  "title": "Призма: площадь поверхности и объем",
+  "title_lv": "Prizma: virsmas laukums un tilpums",
+  "grade": 11,
+  "slug": "opt-prizma-virsma-tilpums"
+ },
+ {
+  "id": 244,
+  "title": "Пирамида: правильная и произвольная",
+  "title_lv": "Piramīda: regulāra un neregulāra",
+  "grade": 11,
+  "slug": "opt-piramida-regulara"
+ },
+ {
+  "id": 245,
+  "title": "Цилиндр",
+  "title_lv": "Cilindrs",
+  "grade": 11,
+  "slug": "opt-cilindrs"
+ },
+ {
+  "id": 246,
+  "title": "Конус",
+  "title_lv": "Konuss",
+  "grade": 11,
+  "slug": "opt-konuss"
+ },
+ {
+  "id": 247,
+  "title": "Шар и сфера",
+  "title_lv": "Lode un sfēra",
+  "grade": 11,
+  "slug": "opt-lode-sfera"
+ },
+ {
+  "id": 248,
+  "title": "Векторы в пространстве",
+  "title_lv": "Vektori telpā",
+  "grade": 11,
+  "slug": "opt-vektori-telpa"
+ },
+ {
+  "id": 249,
+  "title": "Множества и операции над множествами",
+  "title_lv": "Kopas un darbības ar kopām",
+  "grade": 11,
+  "slug": "opt-kopas-darbibas"
+ },
+ {
+  "id": 250,
+  "title": "Основные принципы комбинаторики",
+  "title_lv": "Kombinatorikas pamatprincipi",
+  "grade": 11,
+  "slug": "opt-kombinatorikas-pamatprincipi"
+ },
+ {
+  "id": 251,
+  "title": "Перестановки, сочетания и размещения",
+  "title_lv": "Permutācijas, kombinācijas un variācijas",
+  "grade": 11,
+  "slug": "opt-permutacijas-kombinacijas"
+ },
+ {
+  "id": 252,
+  "title": "Классическое определение вероятности",
+  "title_lv": "Klasiskā varbūtība un pilna pārlase",
+  "grade": 11,
+  "slug": "opt-klasiska-varbutiba"
+ },
+ {
+  "id": 253,
+  "title": "Сложение вероятностей и условная вероятность",
+  "title_lv": "Summas varbūtība un nosacītā varbūtība",
+  "grade": 11,
+  "slug": "opt-summas-un-nosacita-varbutiba"
+ },
+ {
+  "id": 254,
+  "title": "Генеральная совокупность, выборка и средние величины",
+  "title_lv": "Populācija, izlase un vidējie lielumi",
+  "grade": 11,
+  "slug": "opt-populacija-izlase-videjie"
+ },
+ {
+  "id": 255,
+  "title": "Меры рассеяния и графическое представление данных",
+  "title_lv": "Izkliedes mēri un datu grafiska attēlošana",
+  "grade": 11,
+  "slug": "opt-izkliedes-meri-grafika"
+ },
+ {
+  "id": 48,
+  "title": "Производная и исследование функций",
+  "title_lv": "Atvasinājums un funkciju pētīšana",
+  "grade": 12,
+  "slug": "proizvodnaya-funkcii-12"
+ },
+ {
+  "id": 49,
+  "title": "Первообразная и определенный интеграл",
+  "title_lv": "Primitīvā funkcija un noteiktais integrālis",
+  "grade": 12,
+  "slug": "integral-12"
+ },
+ {
+  "id": 50,
+  "title": "Схема Бернулли и биномиальное распределение",
+  "title_lv": "Bernulli shēma un binomiālais sadalījums",
+  "grade": 12,
+  "slug": "bernulli-12"
+ },
+ {
+  "id": 149,
+  "title": "Математическая индукция",
+  "title_lv": "Matemātiskā indukcija",
+  "grade": 12,
+  "slug": "skola2030-g12-1-matematicheskaya-induktsiya"
+ },
+ {
+  "id": 150,
+  "title": "Вероятность и статистика II",
+  "title_lv": "Varbūtība un statistika II",
+  "grade": 12,
+  "slug": "skola2030-g12-2-veroyatnost-i-statistika-ii"
+ },
+ {
+  "id": 151,
+  "title": "Последовательности и показательная функция",
+  "title_lv": "Virknes un eksponentfunkcija",
+  "grade": 12,
+  "slug": "skola2030-g12-3-posledovatelnosti-i-pokazatelnaya-funktsiya"
+ },
+ {
+  "id": 152,
+  "title": "Степенная функция и логарифмическая функция, модуль",
+  "title_lv": "Pakāpes funkcija un logaritmiskā funkcija, modulis",
+  "grade": 12,
+  "slug": "skola2030-g12-4-stepennaya-funktsiya-i-logarifmicheskaya"
+ },
+ {
+  "id": 153,
+  "title": "Дробно-рациональная функция и алгебраические преобразования",
+  "title_lv": "Daļveida racionāla funkcija un algebriskie pārveidojumi",
+  "grade": 12,
+  "slug": "skola2030-g12-5-drobno-ratsionalnaya-funktsiya-i"
+ },
+ {
+  "id": 154,
+  "title": "Производная и её применение",
+  "title_lv": "Atvasinājums un tā lietojums",
+  "grade": 12,
+  "slug": "skola2030-g12-6-proizvodnaya-i-eyo-primenenie"
+ },
+ {
+  "id": 155,
+  "title": "Интеграл и его применение",
+  "title_lv": "Integrālis un tā lietojums",
+  "grade": 12,
+  "slug": "skola2030-g12-7-integral-i-ego-primenenie"
+ },
+ {
+  "id": 156,
+  "title": "Тригонометрия II",
+  "title_lv": "Trigonometrija II",
+  "grade": 12,
+  "slug": "skola2030-g12-8-trigonometriya-ii"
+ },
+ {
+  "id": 158,
+  "title": "Планиметрия II",
+  "title_lv": "Planimetrija II",
+  "grade": 12,
+  "slug": "skola2030-g12-10-planimetriya-ii"
+ },
+ {
+  "id": 159,
+  "title": "Стереометрия II",
+  "title_lv": "Stereometrija II",
+  "grade": 12,
+  "slug": "skola2030-g12-11-stereometriya-ii"
+ },
+ {
+  "id": 160,
+  "title": "Комплексные задачи по алгебре",
+  "title_lv": "Kompleksi uzdevumi algebrā",
+  "grade": 12,
+  "slug": "skola2030-g12-12-kompleksnye-zadachi-po-algebre"
+ },
+ {
+  "id": 256,
+  "title": "Иррациональные уравнения",
+  "title_lv": "Iracionālie vienādojumi",
+  "grade": 12,
+  "slug": "augst-iracionalie-vienadojumi"
+ },
+ {
+  "id": 257,
+  "title": "Логарифмические уравнения, неравенства и системы",
+  "title_lv": "Logaritmiskie vienādojumi, nevienādības un sistēmas",
+  "grade": 12,
+  "slug": "augst-logaritmiskie-vienadojumi-sistemas"
+ },
+ {
+  "id": 258,
+  "title": "Деление многочленов и теорема Безу",
+  "title_lv": "Polinomu dalīšana un Bezū teorēma",
+  "grade": 12,
+  "slug": "augst-polinomu-dalisana-bezu"
+ },
+ {
+  "id": 259,
+  "title": "Метод неопределенных коэффициентов",
+  "title_lv": "Nenoteikto koeficientu metode",
+  "grade": 12,
+  "slug": "augst-nenoteikto-koeficientu-metode"
+ },
+ {
+  "id": 260,
+  "title": "Уравнения и неравенства с параметром",
+  "title_lv": "Vienādojumi un nevienādības ar parametru",
+  "grade": 12,
+  "slug": "augst-vienadojumi-parametri"
+ },
+ {
+  "id": 261,
+  "title": "Комплексные приемы решения уравнений",
+  "title_lv": "Kompleksi vienādojumu risināšanas paņēmieni",
+  "grade": 12,
+  "slug": "augst-kompleksi-vienadojumu-panemieni"
+ },
+ {
+  "id": 262,
+  "title": "Обратная функция",
+  "title_lv": "Inversā funkcija",
+  "grade": 12,
+  "slug": "augst-inversa-funkcija"
+ },
+ {
+  "id": 263,
+  "title": "Последовательности, их монотонность и предел",
+  "title_lv": "Virknes, to monotonitāte un robeža",
+  "grade": 12,
+  "slug": "augst-virknes-monotonitate-robeza"
+ },
+ {
+  "id": 264,
+  "title": "Бесконечно убывающая геометрическая прогрессия",
+  "title_lv": "Bezgalīgi dilstoša ģeometriskā progresija",
+  "grade": 12,
+  "slug": "augst-bezgaligi-dilstosa-progresija"
+ },
+ {
+  "id": 265,
+  "title": "Число e и экспоненциальные процессы",
+  "title_lv": "Skaitlis e un eksponenciāli procesi",
+  "grade": 12,
+  "slug": "augst-skaitlis-e-eksponenciali-procesi"
+ },
+ {
+  "id": 266,
+  "title": "Непрерывность функции",
+  "title_lv": "Funkcijas nepārtrauktība",
+  "grade": 12,
+  "slug": "augst-funkcijas-nepartrauktiba"
+ },
+ {
+  "id": 267,
+  "title": "Исследование дробно-рациональной функции",
+  "title_lv": "Daļveida racionālas funkcijas pētīšana",
+  "grade": 12,
+  "slug": "augst-dalveida-racionalas-funkcijas-petisana"
+ },
+ {
+  "id": 268,
+  "title": "Тангенс и котангенс угла",
+  "title_lv": "Leņķa tangenss un kotangenss",
+  "grade": 12,
+  "slug": "augst-lenka-tangenss-kotangenss"
+ },
+ {
+  "id": 269,
+  "title": "Обратные тригонометрические функции",
+  "title_lv": "Apgrieztās trigonometriskās funkcijas",
+  "grade": 12,
+  "slug": "augst-apgrieztas-trig-funkcijas"
+ },
+ {
+  "id": 270,
+  "title": "Тригонометрические неравенства",
+  "title_lv": "Trigonometriskās nevienādības",
+  "grade": 12,
+  "slug": "augst-trigonometriskas-nevienadibas"
+ },
+ {
+  "id": 271,
+  "title": "Системы тригонометрических уравнений",
+  "title_lv": "Trigonometrisko vienādojumu sistēmas",
+  "grade": 12,
+  "slug": "augst-trig-vienadojumu-sistemas"
+ },
+ {
+  "id": 272,
+  "title": "Гармонические колебания и тригонометрические модели",
+  "title_lv": "Harmoniskās svārstības un trigonometriskie modeļi",
+  "grade": 12,
+  "slug": "augst-harmoniskas-svarstibas-modeli"
+ },
+ {
+  "id": 273,
+  "title": "Соотношения в треугольниках (углубленно)",
+  "title_lv": "Sakarības trijstūros (padziļināti)",
+  "grade": 12,
+  "slug": "augst-sakaribas-trijsturos-padzilinati"
+ },
+ {
+  "id": 274,
+  "title": "Соотношения в четырехугольниках и правильных многоугольниках",
+  "title_lv": "Sakarības četrstūros un regulāros daudzstūros",
+  "grade": 12,
+  "slug": "augst-sakaribas-cetrsturos-daudzsturos"
+ },
+ {
+  "id": 275,
+  "title": "Отрезки и углы, связанные с окружностью",
+  "title_lv": "Ar riņķa līniju saistīti leņķi un nogriežņi",
+  "grade": 12,
+  "slug": "augst-rinka-linija-lenki-nogriezni"
+ },
+ {
+  "id": 276,
+  "title": "Геометрические преобразования (углубленно)",
+  "title_lv": "Ģeometriskie pārveidojumi",
+  "grade": 12,
+  "slug": "augst-geometriskie-parveidojumi-padzilinati"
+ },
+ {
+  "id": 277,
+  "title": "Аналитическая геометрия: прямая и окружность",
+  "title_lv": "Analītiskā ģeometrija: taisne un riņķa līnija",
+  "grade": 12,
+  "slug": "augst-analitiska-geometrija-taisne-rinkis"
+ },
+ {
+  "id": 278,
+  "title": "Скалярное произведение векторов в геометрических задачах",
+  "title_lv": "Vektoru skalārais reizinājums uzdevumos",
+  "grade": 12,
+  "slug": "augst-vektoru-skalarais-uzdevumos"
+ },
+ {
+  "id": 279,
+  "title": "Сечения многогранников плоскостью (углубленно)",
+  "title_lv": "Daudzskaldņi un to šķēlumi ar plakni",
+  "grade": 12,
+  "slug": "augst-daudzskaldnu-skelumi-padzilinati"
+ },
+ {
+  "id": 280,
+  "title": "Комбинации призмы и цилиндра",
+  "title_lv": "Prizmas un cilindra ģeometriskās kombinācijas",
+  "grade": 12,
+  "slug": "augst-prizmas-cilindra-kombinacijas"
+ },
+ {
+  "id": 281,
+  "title": "Комбинации конуса и пирамиды",
+  "title_lv": "Konusa un piramīdas ģeometriskās kombinācijas",
+  "grade": 12,
+  "slug": "augst-konusa-piramidas-kombinacijas"
+ },
+ {
+  "id": 282,
+  "title": "Комбинации шара, цилиндра и конуса",
+  "title_lv": "Lodes, cilindra un konusa ģeometriskās kombinācijas",
+  "grade": 12,
+  "slug": "augst-lodes-cilindra-konusa-kombinacijas"
+ },
+ {
+  "id": 283,
+  "title": "Комбинации призмы, пирамиды и сферы",
+  "title_lv": "Prizmas un lodes, piramīdas un lodes kombinācijas",
+  "grade": 12,
+  "slug": "augst-prizmas-piramidas-lodes-kombinacijas"
+ },
+ {
+  "id": 284,
+  "title": "Комбинаторика II: Треугольник Паскаля",
+  "title_lv": "Kombinatorika II: Paskāla trijstūris",
+  "grade": 12,
+  "slug": "augst-kombinatorika-paskala-trijsturis"
+ },
+ {
+  "id": 285,
+  "title": "Бином Ньютона",
+  "title_lv": "Ņūtona binoms",
+  "grade": 12,
+  "slug": "augst-nutona-binoms"
+ },
+ {
+  "id": 286,
+  "title": "Элементы математической логики",
+  "title_lv": "Matemātiskās loģikas elementi",
+  "grade": 12,
+  "slug": "augst-matematiskas-logikas-elementi"
+ },
+ {
+  "id": 287,
+  "title": "Принцип математической индукции",
+  "title_lv": "Matemātiskās indukcijas princips",
+  "grade": 12,
+  "slug": "augst-matematiskas-indukcijas-princips"
+ },
+ {
+  "id": 288,
+  "title": "Распределения случайной величины и формула Бернулли",
+  "title_lv": "Gadījuma lieluma sadalījumi un Bernulli formula",
+  "grade": 12,
+  "slug": "augst-bernulli-formula-sadalijumi"
+ },
+ {
+  "id": 289,
+  "title": "Формула полной вероятности и формула Байеса",
+  "title_lv": "Notikumu apvienojuma un pilnās varbūtības formula",
+  "grade": 12,
+  "slug": "augst-pilnas-varbutibas-formula"
+ },
+ {
+  "id": 290,
+  "title": "Статистика II: Выводы о генеральной совокупности",
+  "title_lv": "Statistika II: secinājumi par populāciju",
+  "grade": 12,
+  "slug": "augst-statistika-secinajumi-populacija"
+ },
+ {
+  "id": 291,
+  "title": "Предел функции",
+  "title_lv": "Funkcijas robeža",
+  "grade": 12,
+  "slug": "augst-funkcijas-robeza"
+ },
+ {
+  "id": 292,
+  "title": "Определение производной и её геометрический смысл",
+  "title_lv": "Atvasinājuma definīcija un tā ģeometriskā jēga",
+  "grade": 12,
+  "slug": "augst-atvasinajuma-definicija-geometriska-jega"
+ },
+ {
+  "id": 293,
+  "title": "Правила и формулы дифференцирования",
+  "title_lv": "Diferencēšanas likumi un formulas",
+  "grade": 12,
+  "slug": "augst-diferencesanas-likumi-formulas"
+ },
+ {
+  "id": 294,
+  "title": "Касательная к графику функции",
+  "title_lv": "Pieskare funkcijas grafikam",
+  "grade": 12,
+  "slug": "augst-pieskare-grafikam"
+ },
+ {
+  "id": 295,
+  "title": "Исследование функций с помощью производной",
+  "title_lv": "Funkciju pētīšana ar atvasinājumu: monotonitāte un ekstrēmi",
+  "grade": 12,
+  "slug": "augst-funkciju-petisana-ar-atvasinajumu"
+ },
+ {
+  "id": 296,
+  "title": "Прикладные задачи на оптимизацию",
+  "title_lv": "Lietišķi optimizācijas uzdevumi",
+  "grade": 12,
+  "slug": "augst-lietiski-optimizacijas-uzdevumi"
+ },
+ {
+  "id": 297,
+  "title": "Первообразная и неопределенный интеграл",
+  "title_lv": "Primitīvā funkcija un nenoteiktais integrālis",
+  "grade": 12,
+  "slug": "augst-primitiva-funkcija-integraliss"
+ },
+ {
+  "id": 298,
+  "title": "Определенный интеграл и формула Ньютона–Лейбница",
+  "title_lv": "Noteiktais integrālis un Ņūtona–Leibnica formula",
+  "grade": 12,
+  "slug": "augst-noteiktais-integralis-nutona-leibnica"
+ },
+ {
+  "id": 299,
+  "title": "Вычисление площадей и объемов с помощью интеграла",
+  "title_lv": "Laukumu un tilpumu aprēķināšana ar integrāli",
+  "grade": 12,
+  "slug": "augst-laukumi-tilpumi-integralis"
+ },
+ {
+  "id": 300,
+  "title": "Применение интеграла в физике",
+  "title_lv": "Integrāļa lietojums fizikā",
+  "grade": 12,
+  "slug": "augst-integrala-lietojums-fizika"
+ }
+]

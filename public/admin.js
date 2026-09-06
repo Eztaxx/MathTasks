@@ -159,6 +159,12 @@
     const num = Number(val);
     return Number.isFinite(num) ? num : null;
   };
+  const toAdminGradeVal = g => {
+    if (g === 'visparigais') return '10';
+    if (g === 'matematika-1') return '11';
+    if (g === 'matematika-2') return '12';
+    return g ? String(g) : '';
+  };
   const gradeText = grade => {
     if (!grade) return 'без класса';
     if (grade === 10 || grade === 'visparigais') return 'Vispārīgais līmenis';
@@ -245,7 +251,7 @@
     if (topicForm.elements.title_lv) topicForm.elements.title_lv.value = topic?.title_lv || '';
     // Тема без раздела не попадёт в меню сайта, поэтому для новой подставляем первый раздел.
     topicForm.elements.subject_id.value = String(topic?.subject_id ?? subjects[0]?.id ?? '');
-    topicForm.elements.grade.value = topic?.grade ? String(topic.grade) : '';
+    topicForm.elements.grade.value = toAdminGradeVal(topic?.grade);
     topicForm.elements.position.value = topic?.position ?? 0;
     topicForm.elements.description.value = topic?.description || '';
     if (topicForm.elements.description_lv) topicForm.elements.description_lv.value = topic?.description_lv || '';
@@ -796,7 +802,7 @@
     document.querySelector('#task-cancel').hidden = !task;
     taskForm.elements.title.value = task?.title || '';
     if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = task?.title_lv || '';
-    taskForm.elements.grade.value = task?.grade ? String(task.grade) : '';
+    taskForm.elements.grade.value = toAdminGradeVal(task?.grade);
     updateTaskTopicDropdown(task?.topic_id);
     taskForm.elements.topic_id.value = task?.topic_id ? String(task.topic_id) : '';
     taskForm.elements.difficulty.value = task?.difficulty || 'Средний';
@@ -1147,7 +1153,7 @@
       taskForm.elements.title.value = `[Копия] ${source.title}`;
       if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = source.title_lv ? `[Kopija] ${source.title_lv}` : '';
       taskForm.elements.topic_id.value = source.topic_id ? String(source.topic_id) : '';
-      taskForm.elements.grade.value = source.grade ? String(source.grade) : '';
+      taskForm.elements.grade.value = toAdminGradeVal(source.grade);
       taskForm.elements.difficulty.value = source.difficulty || 'Средний';
       taskForm.elements.position.value = nextPosition(source.topic_id, null);
       conditionInput.value = source.condition_latex || '';
@@ -1793,7 +1799,7 @@
 
   function setupSkolaPresetControls() {
     if (!skolaPresetGrade || !skolaPresetTopic) return;
-    fillGradeSelect(skolaPresetGrade, 'Все классы и курсы');
+    fillGradeSelect(skolaPresetGrade, 'Все классы и курсы', { numeric: true });
 
     function refreshPresetTopics() {
       const g = parseFormGrade(skolaPresetGrade.value);
@@ -1885,7 +1891,7 @@
 
   function setupAiGeneratorControls() {
     if (!aiGenGrade || !aiGenTopic) return;
-    fillGradeSelect(aiGenGrade, '7 класс');
+    fillGradeSelect(aiGenGrade, '7 класс', { numeric: true });
     aiGenGrade.value = '7';
 
     function refreshAiTopics() {
@@ -2099,7 +2105,7 @@
     }
 
     if (taskFilterGrade && taskFilterGrade.children.length <= 1) {
-      fillGradeSelect(taskFilterGrade, 'Все классы');
+      fillGradeSelect(taskFilterGrade, 'Все классы', { numeric: true });
     }
     if (taskFilterTopic) {
       const keepFilterTopic = taskFilterTopic.value;
@@ -2109,7 +2115,7 @@
     }
 
     if (topicFilterGrade && topicFilterGrade.children.length <= 1) {
-      fillGradeSelect(topicFilterGrade, 'Все классы');
+      fillGradeSelect(topicFilterGrade, 'Все классы', { numeric: true });
     }
     if (topicFilterSubject) {
       const keepSubject = topicFilterSubject.value;
@@ -2170,8 +2176,8 @@
     document.querySelector('#admin-email').textContent = user.email || '';
     gate.hidden = true;
     content.hidden = false;
-    fillGradeSelect(document.querySelector('#topic-grade'), 'Без класса');
-    fillGradeSelect(document.querySelector('#task-grade'), 'Без класса');
+    fillGradeSelect(document.querySelector('#topic-grade'), 'Без класса', { numeric: true });
+    fillGradeSelect(document.querySelector('#task-grade'), 'Без класса', { numeric: true });
     setSubjectMode(null);
     setTopicMode(null);
     setTaskMode(null);

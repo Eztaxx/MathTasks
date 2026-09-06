@@ -15,7 +15,10 @@ import {
   resolveDifficultyMix,
   CROSS_TAGS,
   getCrossTag,
-  suggestTagsForTopic
+  suggestTagsForTopic,
+  isGradePamatskola,
+  isGradeVidusskola,
+  getTopicStage
 } from '../public/lib.js';
 
 describe('makeSlug', () => {
@@ -449,8 +452,36 @@ describe('CROSS_TAGS (23 closed tags)', () => {
   });
 });
 
+describe('Educational stages (Pamatskola vs Vidusskola)', () => {
+  it('isGradePamatskola определяет 1–9 классы', () => {
+    for (let g = 1; g <= 9; g++) {
+      expect(isGradePamatskola(g)).toBe(true);
+      expect(isGradePamatskola(String(g))).toBe(true);
+    }
+    expect(isGradePamatskola(10)).toBe(false);
+    expect(isGradePamatskola(12)).toBe(false);
+    expect(isGradePamatskola('visparigais')).toBe(false);
+    expect(isGradePamatskola(null)).toBe(false);
+  });
 
+  it('isGradeVidusskola определяет 10–12 классы и уровни', () => {
+    expect(isGradeVidusskola(10)).toBe(true);
+    expect(isGradeVidusskola(11)).toBe(true);
+    expect(isGradeVidusskola(12)).toBe(true);
+    expect(isGradeVidusskola('visparigais')).toBe(true);
+    expect(isGradeVidusskola('matematika-1')).toBe(true);
+    expect(isGradeVidusskola('matematika-2')).toBe(true);
+    expect(isGradeVidusskola(9)).toBe(false);
+    expect(isGradeVidusskola(1)).toBe(false);
+    expect(isGradeVidusskola(null)).toBe(false);
+  });
 
-
-
-
+  it('getTopicStage корректно классифицирует темы', () => {
+    expect(getTopicStage({ grade: 1, slug: 'skaitli-lidz-20' })).toBe('pamatskola');
+    expect(getTopicStage({ grade: 9, slug: 'kvadratvienadojumi' })).toBe('pamatskola');
+    expect(getTopicStage({ grade: 10, slug: 'visp-skaitliski-aprekini' })).toBe('vidusskola');
+    expect(getTopicStage({ slug: 'opt-eksponencialas-funkcijas' })).toBe('vidusskola');
+    expect(getTopicStage({ slug: 'augst-integrali' })).toBe('vidusskola');
+    expect(getTopicStage(null)).toBe('pamatskola');
+  });
+});

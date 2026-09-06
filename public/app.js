@@ -172,20 +172,48 @@ function renderGradeControls() {
   gradePill.textContent = pillText;
   gradePill.title = selectedGrade ? gradeLabel(selectedGrade) : tr('all_grades');
 
-  const chips = [
-    ['', tr('all_grades_short'), '/'],
-    ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(g => [String(g), tr(`grade_${g}`) || tr('grade_N', { n: g }), `/grade/${g}`]),
-    ['visparigais', tr('grade_visparigais'), '/grade/visparigais'],
-    ['matematika-1', tr('grade_matematika_1'), '/grade/matematika-1'],
-    ['matematika-2', tr('grade_matematika_2'), '/grade/matematika-2']
+  const isCurrent = val => {
+    if (val === '' && selectedGrade == null) return true;
+    if (val === 'visparigais' && selectedGrade === 'visparigais') return true;
+    if (val === 'matematika-1' && (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11)) return true;
+    if (val === 'matematika-2' && (selectedGrade === 'matematika-2' || selectedGrade === 12)) return true;
+    return String(selectedGrade ?? '') === String(val);
+  };
+
+  const renderChip = ([value, label, href, isExam]) => {
+    const active = isCurrent(value);
+    const cls = ['grade-chip', active ? 'active' : '', isExam ? 'grade-chip-exam' : ''].filter(Boolean).join(' ');
+    return `<a class="${cls}" href="${href}"${active ? ' aria-current="page"' : ''}>${escapeHtml(label)}</a>`;
+  };
+
+  const pamatChips = [
+    ['', tr('all_grades_short') || 'Visi', '/'],
+    ...[1, 2, 3, 4, 5, 6, 7, 8].map(g => [String(g), tr(`grade_${g}`) || tr('grade_N', { n: g }) || `${g}. klase`, `/grade/${g}`]),
+    ['9', `${tr('grade_9') || '9. klase'} 🎯`, '/grade/9', true]
   ];
-  gradeFilter.innerHTML = chips.map(([value, label, href]) => {
-    const isCurrent = String(selectedGrade ?? '') === value ||
-      (value === 'visparigais' && selectedGrade === 'visparigais') ||
-      (value === 'matematika-1' && (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11)) ||
-      (value === 'matematika-2' && (selectedGrade === 'matematika-2' || selectedGrade === 12));
-    return `<a class="grade-chip${isCurrent ? ' active' : ''}" href="${href}"${isCurrent ? ' aria-current="page"' : ''}>${label}</a>`;
-  }).join('');
+
+  const vidusChips = [
+    ['visparigais', tr('grade_visparigais') || 'Vispārīgais līmenis', '/grade/visparigais'],
+    ['matematika-1', tr('grade_matematika_1') || 'Matemātika I (Optimālais)', '/grade/matematika-1'],
+    ['matematika-2', tr('grade_matematika_2') || 'Matemātika II (Augstākais)', '/grade/matematika-2']
+  ];
+
+  gradeFilter.innerHTML = `
+    <div class="grade-stage-block">
+      <div class="grade-stage-header">
+        <span class="stage-badge stage-badge-pamat">🎓 ${escapeHtml(tr('stage_pamatskola'))}</span>
+        <span class="stage-sub">${escapeHtml(tr('stage_pamatskola_desc'))}</span>
+      </div>
+      <div class="grade-chips-list">${pamatChips.map(renderChip).join('')}</div>
+    </div>
+    <div class="grade-stage-block">
+      <div class="grade-stage-header">
+        <span class="stage-badge stage-badge-vidus">🏛️ ${escapeHtml(tr('stage_vidusskola'))}</span>
+        <span class="stage-sub">${escapeHtml(tr('stage_vidusskola_desc'))}</span>
+      </div>
+      <div class="grade-chips-list">${vidusChips.map(renderChip).join('')}</div>
+    </div>
+  `;
 }
 
 function parseGradeValue(val) {
@@ -359,20 +387,48 @@ function renderHubSidebar() {
     return selectedGrade === val;
   };
 
-  // Все государственные экзамены основной и средней школы
-  const examTracks = `
+  // 1. Pamatskola: 9. klases valsts eksāmens un diagnostikas darbi (3. un 6. klase)
+  const pamatTrack = `
     <div class="sidebar-track-header">
-      <span class="track-header-icon">🎯</span>
-      <span class="track-header-title">${escapeHtml(tr('track_heading'))}</span>
+      <span class="track-header-icon">🎓</span>
+      <span class="track-header-title">${escapeHtml(tr('track_heading_pamat') || 'Pamatskola (1.–9. klase)')}</span>
     </div>
     <div class="sidebar-track-subgroup">
       <a class="sidebar-track-card${isGradeActive(9) ? ' active' : ''}" href="/grade/9" title="${escapeHtml(tr('track_9'))}">
         <div class="track-card-badge gold">9. kl.</div>
         <div class="track-card-body">
-          <strong>${escapeHtml(tr('track_9'))}</strong>
+          <strong>${escapeHtml(tr('track_9'))} 🎯</strong>
           <span>${escapeHtml(tr('track_9_desc'))}</span>
         </div>
       </a>
+    </div>
+
+    <div class="sidebar-track-subgroup">
+      <span class="track-subgroup-label">${escapeHtml(tr('track_diag'))}</span>
+      <a class="sidebar-track-card${isGradeActive(3) ? ' active' : ''}" href="/grade/3" title="${escapeHtml(tr('grade_3'))}">
+        <div class="track-card-badge orange">3. kl.</div>
+        <div class="track-card-body">
+          <strong>${escapeHtml(tr('grade_3'))}</strong>
+          <span>${escapeHtml(tr('track_diag'))}</span>
+        </div>
+      </a>
+      <a class="sidebar-track-card${isGradeActive(6) ? ' active' : ''}" href="/grade/6" title="${escapeHtml(tr('grade_6'))}">
+        <div class="track-card-badge green">6. kl.</div>
+        <div class="track-card-body">
+          <strong>${escapeHtml(tr('grade_6'))}</strong>
+          <span>${escapeHtml(tr('track_diag'))}</span>
+        </div>
+      </a>
+    </div>
+  `;
+
+  // 2. Vidusskola: Centralizētie eksāmeni (Vispārīgais, Optimālais, Augstākais līmenis)
+  const vidusTrack = `
+    <div class="sidebar-track-header">
+      <span class="track-header-icon">🏛️</span>
+      <span class="track-header-title">${escapeHtml(tr('track_heading_vidus') || 'Vidusskola (Līmeņi)')}</span>
+    </div>
+    <div class="sidebar-track-subgroup">
       <a class="sidebar-track-card${isGradeActive('visparigais') ? ' active' : ''}" href="/grade/visparigais" title="${escapeHtml(tr('track_visp'))}">
         <div class="track-card-badge teal">Visp</div>
         <div class="track-card-body">
@@ -392,22 +448,6 @@ function renderHubSidebar() {
         <div class="track-card-body">
           <strong>${escapeHtml(tr('track_augst'))}</strong>
           <span>${escapeHtml(tr('track_augst_desc'))}</span>
-        </div>
-      </a>
-    </div>
-
-    <div class="sidebar-track-subgroup">
-      <span class="track-subgroup-label">${escapeHtml(tr('track_diag'))}</span>
-      <a class="sidebar-track-card${isGradeActive(3) ? ' active' : ''}" href="/grade/3" title="${escapeHtml(tr('grade_3'))}">
-        <div class="track-card-badge orange">3. kl.</div>
-        <div class="track-card-body">
-          <strong>${escapeHtml(tr('grade_3'))}</strong>
-        </div>
-      </a>
-      <a class="sidebar-track-card${isGradeActive(6) ? ' active' : ''}" href="/grade/6" title="${escapeHtml(tr('grade_6'))}">
-        <div class="track-card-badge green">6. kl.</div>
-        <div class="track-card-body">
-          <strong>${escapeHtml(tr('grade_6'))}</strong>
         </div>
       </a>
     </div>
@@ -463,7 +503,7 @@ function renderHubSidebar() {
     </div>
   `;
 
-  sidebarNav.innerHTML = home + examTracks + toolsSection;
+  sidebarNav.innerHTML = home + pamatTrack + vidusTrack + toolsSection;
   markActiveNav();
 }
 
@@ -1092,26 +1132,142 @@ async function showGradePage(rawGrade) {
 
 /* ── Страница раздела ─────────────────────────────────────────────── */
 
+function getTopicGradeBucket(t) {
+  if (t.slug && t.slug.startsWith('visp-')) return 10;
+  if (t.slug && t.slug.startsWith('opt-')) return 11;
+  if (t.slug && t.slug.startsWith('augst-')) return 12;
+  const num = Number(t.grade);
+  if ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].includes(num)) return num;
+  if (t.grade === 'visparigais') return 10;
+  if (t.grade === 'matematika-1') return 11;
+  if (t.grade === 'matematika-2') return 12;
+  return 1;
+}
+
+function getGradeBucketHeader(bucket) {
+  const tr = window.MathTasks.t || (k => k);
+  if (bucket >= 1 && bucket <= 8) {
+    return {
+      title: tr(`grade_${bucket}`) || tr('grade_N', { n: bucket }) || `${bucket}. klase`,
+      bullet: '•',
+      badge: null,
+      badgeClass: ''
+    };
+  }
+  if (bucket === 9) {
+    return {
+      title: tr('grade_9') || '9. klase',
+      bullet: '•',
+      badge: tr('track_9_desc') || '9. klases valsts eksāmens',
+      badgeClass: 'gold'
+    };
+  }
+  if (bucket === 10) {
+    return {
+      title: tr('grade_visparigais') || 'Vispārīgais līmenis (10. klase)',
+      bullet: '•',
+      badge: tr('track_visp_desc') || 'Pamatkurss',
+      badgeClass: 'teal'
+    };
+  }
+  if (bucket === 11) {
+    return {
+      title: tr('grade_matematika_1') || 'Optimālais līmenis — Matemātika I',
+      bullet: '•',
+      badge: tr('track_opt_desc') || '10.–11. klase • Centralizētais eksāmens',
+      badgeClass: 'blue'
+    };
+  }
+  if (bucket === 12) {
+    return {
+      title: tr('grade_matematika_2') || 'Augstākais līmenis — Matemātika II',
+      bullet: '•',
+      badge: tr('track_augst_desc') || '12. klase • Padziļinātais kurss',
+      badgeClass: 'purple'
+    };
+  }
+  return { title: `${bucket}. klase`, bullet: '•', badge: null, badgeClass: '' };
+}
+
 function showSubject(slug) {
   showView('list');
   resetListBlocks();
   const subject = subjects.find(item => item.slug === slug);
+  const tr = window.MathTasks.t || (k => k);
   if (!subject) {
-    fillListHeader({ crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/']], title: 'Раздел не найден', description: 'Возможно, его удалили или ссылка устарела.' });
+    fillListHeader({ crumbs: [[tr('nav_home'), '/']], title: 'Раздел не найден', description: 'Возможно, его удалили или ссылка устарела.' });
     setMeta('Раздел не найден');
     return;
   }
-  const topics = topicsForGrade(allTopics.filter(topic => topic.subject_id === subject.id));
+  const allSubjectTopics = allTopics.filter(topic => topic.subject_id === subject.id);
+  const title = loc(subject, 'title');
+
   fillListHeader({
-    crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/'], gradeCrumb(), [loc(subject, 'title'), null]],
-    title: loc(subject, 'title'),
-    description: selectedGrade ? `Темы раздела в ${selectedGrade} классе.` : 'Все темы раздела.',
-    meta: `<span class="search-count">Тем: ${topics.length}</span>`
+    crumbs: [[tr('nav_home'), '/'], [title, null]],
+    title: `${subjectIcon(subject)} ${title}`,
+    description: tr('topics_per_grade_subtitle') || 'Все темы раздела по классам и курсам',
+    meta: `<span class="search-count">${allSubjectTopics.length} ${tr('topics_heading').toLowerCase()}</span>`
   });
-  setMeta(selectedGrade ? `${loc(subject, 'title')}, ${gradeLabel(selectedGrade)}` : loc(subject, 'title'),
-    `Темы раздела «${subject.title}»${selectedGrade ? ` за ${gradeLabel(selectedGrade)}` : ''} с задачами и решениями.`);
-  if (topics.length) renderTopicCards(listTopics, topics);
-  else listTasks.innerHTML = `<p class="empty-state">${selectedGrade ? (window.MathTasks.t || (k => k))('subject_no_topics', { grade: selectedGrade }) : (window.MathTasks.t || (k => k))('course_no_topics_yet')}</p>`;
+  setMeta(title, `Темы раздела «${subject.title}» по всем классам (1–12) с задачами и решениями.`);
+
+  // Всегда отображаем все классы раздела:
+  // "Раздел"
+  // • 1 класс -> темы
+  // • 2 класс -> темы
+  // ...
+  const BUCKETS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const groupedBuckets = [];
+
+  for (const b of BUCKETS) {
+    const bTopics = allSubjectTopics.filter(t => getTopicGradeBucket(t) === b);
+    if (bTopics.length > 0) {
+      bTopics.sort((a, b) => (a.position || 0) - (b.position || 0));
+      groupedBuckets.push({
+        bucket: b,
+        header: getGradeBucketHeader(b),
+        topics: bTopics
+      });
+    }
+  }
+
+  if (!groupedBuckets.length) {
+    listTasks.innerHTML = `<p class="empty-state">${tr('course_no_topics_yet')}</p>`;
+    return;
+  }
+
+  // Навигация быстрого перехода по классам раздела (якоря)
+  if (groupedBuckets.length > 1) {
+    listAnchors.hidden = false;
+    listAnchors.innerHTML = `
+      <span class="topic-anchors-label">${tr('grade_label')}:</span>
+      <div class="grade-jump-bar">
+        ${groupedBuckets.map(({ bucket, header, topics }) => `
+          <a class="grade-jump-chip" href="#grade-sec-${bucket}">
+            <span>${header.title.split('(')[0].trim()}</span>
+            <span class="jump-chip-count">${topics.length}</span>
+          </a>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // Группы по классам
+  listGroups.hidden = false;
+  listGroups.innerHTML = groupedBuckets.map(({ bucket, header, topics: gTopics }) => `
+    <section class="subject-grade-section" id="grade-sec-${bucket}">
+      <div class="subject-grade-header">
+        <div class="grade-header-left">
+          <span class="grade-bullet">•</span>
+          <h2 class="grade-header-title">${escapeHtml(header.title)}</h2>
+          ${header.badge ? `<span class="grade-header-badge badge-${header.badgeClass}">${escapeHtml(header.badge)}</span>` : ''}
+        </div>
+        <span class="grade-topics-count">${gTopics.length} ${tr('topics_heading').toLowerCase()}</span>
+      </div>
+      <div class="topic-grid">
+        ${gTopics.map((t, idx) => topicCard(t, idx, false)).join('')}
+      </div>
+    </section>
+  `).join('');
 }
 
 /* ── Якоря и печать внутри темы ───────────────────────────────────── */
@@ -1641,7 +1797,11 @@ async function showTag(slug) {
   }
 
   const tagTitle = loc(tag, 'title') || tag.title || tag.slug;
-  const tagDesc = tag.description || '';
+  /* Описание на языке посетителя. Латышский текст берём из базы,
+     а если колонки description_lv там ещё нет — из словаря в lib.js,
+     чтобы перевод работал и до применения миграции 015. */
+  const tagDict = window.MathTasksLib?.getCrossTag ? window.MathTasksLib.getCrossTag(tag.slug) : null;
+  const tagDesc = loc(tag, 'description') || loc(tagDict || {}, 'description') || tag.description || '';
   const crumbs = [
     [tr('nav_home'), '/'],
     [tagsListLabel, '/tags'],
@@ -1658,7 +1818,20 @@ async function showTag(slug) {
 
   listTasks.innerHTML = `<p class="empty-state">${tr('state_loading_tasks')}</p>`;
 
+  /* Класс — глобальный контекст сайта, поэтому тег по умолчанию показывает
+     задачи выбранного класса. Ссылка «во всех классах» снимает сужение —
+     так же, как это уже сделано в поиске. */
+  const showAllGrades = new URLSearchParams(location.search).get('all') === '1';
+  const inSelectedGrade = task => {
+    if (!selectedGrade) return true;
+    if (selectedGrade === 'matematika-1') return task.grade === 10 || task.grade === 11;
+    if (selectedGrade === 'matematika-2') return task.grade === 12;
+    if (selectedGrade === 'visparigais') return task.grade === 10;
+    return task.grade === Number(selectedGrade);
+  };
+
   let tasks = [];
+  let tagTaskTotal = 0;
   if (db) {
     try {
       let tagId = tag.id;
@@ -1671,20 +1844,14 @@ async function showTag(slug) {
         const { data: links, error: linkErr } = await db.from('task_tags').select('task_id').eq('tag_id', tagId);
         if (!linkErr && links && links.length > 0) {
           const taskIds = links.map(l => l.task_id);
-          let taskQuery = db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('id', taskIds);
-          if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) {
-            taskQuery = taskQuery.in('grade', [10, 11]);
-          } else if (selectedGrade === 'matematika-2' || selectedGrade === 12) {
-            taskQuery = taskQuery.eq('grade', 12);
-          } else if (selectedGrade) {
-            taskQuery = taskQuery.eq('grade', Number(selectedGrade));
-          }
+          const taskQuery = db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('id', taskIds);
           const { data, error } = await taskQuery
             .order('grade', { ascending: true })
             .order('position', { ascending: true })
             .order('created_at', { ascending: true });
           if (!error && data) {
-            tasks = data;
+            tagTaskTotal = data.length;
+            tasks = showAllGrades ? data : data.filter(inSelectedGrade);
           }
         }
       }
@@ -1697,7 +1864,16 @@ async function showTag(slug) {
   if (metaEl) {
     const tasksCountLabel = currentLang === 'lv' ? `Uzdevumi: ${tasks.length}` : `Задач: ${tasks.length}`;
     const allTagsLabel = currentLang === 'lv' ? '← Visas birkas' : '← Все теги';
-    metaEl.innerHTML = `<span class="search-count">${tasksCountLabel}</span> <a class="search-escape" href="/tags">${allTagsLabel}</a>`;
+    /* Когда фильтр класса что-то прячет, об этом надо сказать прямо: иначе
+       тег с задачами выглядит пустым, и посетитель решает, что их нет. */
+    const hidden = Math.max(0, tagTaskTotal - tasks.length);
+    const showAllLabel = currentLang === 'lv'
+      ? `Rādīt visās klasēs (vēl ${hidden}) →`
+      : `Показать во всех классах (ещё ${hidden}) →`;
+    const showAllLink = hidden > 0
+      ? ` <a class="search-escape" href="/tag/${encodeURIComponent(slug)}?all=1">${escapeHtml(showAllLabel)}</a>`
+      : '';
+    metaEl.innerHTML = `<span class="search-count">${tasksCountLabel}</span>${showAllLink} <a class="search-escape" href="/tags">${allTagsLabel}</a>`;
   }
 
   renderTaskList(listTasks, tasks, tr('tag_empty') || (currentLang === 'lv' ? 'Šai birkai pagaidām nav pievienots neviens uzdevums.' : 'Задач с этим тегом пока нет.'), { showTopicLink: true, showGrade: true });
@@ -2555,10 +2731,10 @@ document.querySelector('#lang-switcher')?.addEventListener('click', event => {
 
 window.addEventListener('languagechange', async () => {
   window.MathTasksI18n?.applyTranslations(document);
+  fillGradeSelect(gradeSelect, window.MathTasks.t('all_grades'));
   renderGradeControls();
   renderSidebar();
   renderHeadings();
-  fillGradeSelect(gradeSelect, window.MathTasks.t('all_grades'));
   const tr = window.MathTasks.t || (k => k);
   if (ExamTimer.toggleBtn) {
     ExamTimer.toggleBtn.textContent = ExamTimer.isRunning ? tr('timer_pause') : tr('timer_start');
