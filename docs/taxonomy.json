@@ -1,0 +1,267 @@
+{
+  "_": "Таксономия каталога MathTasks по программе VISC/Skola2030. Курс → раздел → подтема; klase — отдельная ось фильтрации. tags — кросс-теги для задач на стыке разделов. Источник формулировок: public/data/skola2030_topics.json (81 тема, 296 подтем) и программы курсов Matemātika I/II.",
+  "tag_vocabulary": {
+    "algebriskie-parveidojumi": "тождественные преобразования выражений",
+    "vienadojumi": "уравнения и их системы",
+    "nevienadibas": "неравенства и их системы",
+    "funkcijas": "функции и их свойства",
+    "grafiki": "графики и их чтение",
+    "koordinatu-metode": "координатный метод",
+    "vektori": "векторы",
+    "trigonometrija": "тригонометрия",
+    "planimetrija": "планиметрия",
+    "stereometrija": "стереометрия",
+    "merijumi": "измерения, площади, объёмы",
+    "dalas-procenti": "дроби и проценты",
+    "dalamiba": "делимость",
+    "pakapes-saknes": "степени и корни",
+    "logaritmi": "логарифмы",
+    "virknes": "последовательности и прогрессии",
+    "kombinatorika": "комбинаторика",
+    "varbutiba": "вероятность",
+    "statistika": "статистика и данные",
+    "matematiska-analize": "производная и интеграл",
+    "modelesana": "математическое моделирование",
+    "teksta-uzdevumi": "текстовые задачи",
+    "pieradijumi": "доказательства и рассуждение"
+  },
+  "courses": [
+    {
+      "course": "Pamatskola",
+      "course_lv": "Pamatskola (1.–9. klase)",
+      "chapters": [
+        {
+          "chapter": "Aritmētika un skaitļi",
+          "note": "Сюда же попадает алгебра 7–9 класса: отдельного раздела для неё в структуре Pamatskola нет.",
+          "topics": [
+            { "lv": "Skaitīšana, skaitļa sastāvs un pieraksts līdz 20", "klase": [1], "tags": [] },
+            { "lv": "Saskaitīšana un atņemšana 100 apjomā", "klase": [1, 2], "tags": ["teksta-uzdevumi"] },
+            { "lv": "Reizināšana un dalīšana, reizrēķins", "klase": [2, 3], "tags": ["teksta-uzdevumi"] },
+            { "lv": "Daudzciparu skaitļi un rakstiskie algoritmi", "klase": [3, 4], "tags": [] },
+            { "lv": "Daļa no veselā, parastās daļas un to salīdzināšana", "klase": [3, 4, 5], "tags": ["dalas-procenti", "merijumi"] },
+            { "lv": "Decimāldaļas un darbības ar tām", "klase": [5, 6], "tags": ["dalas-procenti"] },
+            { "lv": "Skaitļu dalāmība, LKD un MKD", "klase": [5, 6], "tags": ["dalamiba"] },
+            { "lv": "Procenti un procentu uzdevumi", "klase": [6, 7], "tags": ["dalas-procenti", "teksta-uzdevumi"] },
+            { "lv": "Veseli skaitļi, pretēji skaitļi un modulis", "klase": [6], "tags": ["koordinatu-metode"] },
+            { "lv": "Attiecības, proporcijas un mērogs", "klase": [6, 7], "tags": ["teksta-uzdevumi", "planimetrija"] },
+            { "lv": "Pakāpe ar naturālu kāpinātāju un tās īpašības", "klase": [7, 8], "tags": ["pakapes-saknes", "algebriskie-parveidojumi"] },
+            { "lv": "Algebriskas izteiksmes, monomi un polinomi", "klase": [7, 8], "tags": ["algebriskie-parveidojumi"] },
+            { "lv": "Lineāri vienādojumi, nevienādības un to sistēmas", "klase": [7, 8], "tags": ["vienadojumi", "nevienadibas", "teksta-uzdevumi"] },
+            { "lv": "Kvadrātsakne, racionāli un iracionāli skaitļi", "klase": [8], "tags": ["pakapes-saknes", "algebriskie-parveidojumi"] },
+            { "lv": "Kvadrātvienādojumi, diskriminants un Vjeta teorēma", "klase": [9], "tags": ["vienadojumi", "funkcijas"] }
+          ]
+        },
+        {
+          "chapter": "Ģeometrija",
+          "topics": [
+            { "lv": "Figūras, līnijas un ģeometrisku objektu raksturošana", "klase": [1, 2], "tags": [] },
+            { "lv": "Garuma mērīšana un perimetrs", "klase": [1, 2, 3], "tags": ["merijumi"] },
+            { "lv": "Simetriskas figūras", "klase": [1, 2], "tags": [] },
+            { "lv": "Taisnstūra un kvadrāta laukums", "klase": [3, 4], "tags": ["merijumi"] },
+            { "lv": "Telpiskas figūras un to izklājumi", "klase": [3, 6], "tags": ["stereometrija", "merijumi"] },
+            { "lv": "Leņķi, to veidi un mērīšana", "klase": [5, 7], "tags": ["merijumi"] },
+            { "lv": "Riņķa līnija, riņķis un tā garums", "klase": [5, 6], "tags": ["merijumi"] },
+            { "lv": "Trijstūris, tā elementi un vienādības pazīmes", "klase": [7], "tags": ["pieradijumi"] },
+            { "lv": "Paralēlas taisnes, blakusleņķi un krustleņķi", "klase": [7], "tags": ["pieradijumi"] },
+            { "lv": "Četrstūri: paralelograms, rombs, taisnstūris", "klase": [8], "tags": ["pieradijumi", "merijumi"] },
+            { "lv": "Pitagora teorēma un metriskās sakarības", "klase": [8], "tags": ["algebriskie-parveidojumi", "pakapes-saknes"] },
+            { "lv": "Daudzstūru, trapeces un riņķa laukumi", "klase": [8, 9], "tags": ["merijumi"] },
+            { "lv": "Trijstūru līdzība un Talesa teorēma", "klase": [9], "tags": ["pieradijumi", "algebriskie-parveidojumi"] },
+            { "lv": "Riņķa līnijas leņķi, pieskare, ievilkti un apvilkti daudzstūri", "klase": [9], "tags": ["pieradijumi"] },
+            { "lv": "Trigonometriskās sakarības taisnleņķa trijstūrī", "klase": [9], "tags": ["trigonometrija", "teksta-uzdevumi"] }
+          ]
+        },
+        {
+          "chapter": "Kombinatorika un varbūtības",
+          "topics": [
+            { "lv": "Datu vākšana un pieraksts tabulās", "klase": [1, 2, 3], "tags": ["statistika"] },
+            { "lv": "Diagrammas: stabiņu un sektoru", "klase": [4, 5, 6], "tags": ["statistika", "grafiki"] },
+            { "lv": "Vidējais aritmētiskais", "klase": [5, 6], "tags": ["statistika"] },
+            { "lv": "Kopas un Eilera–Venna diagrammas", "klase": [7], "tags": ["kombinatorika"] },
+            { "lv": "Pilna pārlase un izlašu veidošana", "klase": [7], "tags": ["kombinatorika"] },
+            { "lv": "Klasiskā varbūtība P(A) = m/n", "klase": [7, 9], "tags": ["varbutiba", "dalas-procenti"] },
+            { "lv": "Statistiskie raksturlielumi: mediāna, moda, amplitūda", "klase": [8], "tags": ["statistika"] },
+            { "lv": "Datu attēlošana un interpretācija", "klase": [8], "tags": ["statistika", "grafiki"] },
+            { "lv": "Kombinatorikas pamatprincipi: reizināšanas likums", "klase": [9], "tags": ["kombinatorika"] },
+            { "lv": "Neatkarīgi notikumi un varbūtību saskaitīšana", "klase": [9], "tags": ["varbutiba"] }
+          ]
+        }
+      ]
+    },
+    {
+      "course": "Matemātika I",
+      "course_lv": "Matemātika I (10.–11. klase, optimālais līmenis)",
+      "chapters": [
+        {
+          "chapter": "Algebra",
+          "topics": [
+            { "lv": "Reālie skaitļi un izteiksmju pārveidošana", "klase": [10], "tags": ["algebriskie-parveidojumi", "pakapes-saknes"] },
+            { "lv": "Lineāri un kvadrātvienādojumi, to sistēmas", "klase": [10], "tags": ["vienadojumi", "funkcijas"] },
+            { "lv": "Nevienādības un intervālu metode", "klase": [10], "tags": ["nevienadibas", "funkcijas"] },
+            { "lv": "Algebriskās daļas un darbības ar tām", "klase": [11], "tags": ["algebriskie-parveidojumi"] },
+            { "lv": "Daļveida racionāli vienādojumi un nevienādības", "klase": [11], "tags": ["vienadojumi", "nevienadibas", "teksta-uzdevumi"] },
+            { "lv": "N-tās pakāpes sakne un pakāpe ar racionālu kāpinātāju", "klase": [11], "tags": ["pakapes-saknes", "algebriskie-parveidojumi"] },
+            { "lv": "Virknes, aritmētiskā un ģeometriskā progresija", "klase": [11], "tags": ["virknes", "modelesana"] },
+            { "lv": "Eksponentvienādojumi un eksponentnevienādības", "klase": [11], "tags": ["vienadojumi", "funkcijas"] },
+            { "lv": "Logaritms, logaritmiskie vienādojumi", "klase": [11], "tags": ["logaritmi", "vienadojumi"] },
+            { "lv": "Moduļa vienādojumi un nevienādības", "klase": [11], "tags": ["vienadojumi", "grafiki"] }
+          ]
+        },
+        {
+          "chapter": "Funkcijas",
+          "topics": [
+            { "lv": "Funkcijas jēdziens, definīcijas un vērtību kopa", "klase": [10], "tags": ["grafiki"] },
+            { "lv": "Lineāra funkcija un tās grafiks", "klase": [10], "tags": ["grafiki", "koordinatu-metode"] },
+            { "lv": "Kvadrātfunkcija un parabolas virsotne", "klase": [10], "tags": ["vienadojumi", "grafiki"] },
+            { "lv": "Funkciju īpašības: monotonitāte, nulles, ekstrēmi", "klase": [10, 11], "tags": ["grafiki"] },
+            { "lv": "Daļveida racionāla funkcija y = k/x", "klase": [11], "tags": ["grafiki", "algebriskie-parveidojumi"] },
+            { "lv": "Pakāpes funkcija", "klase": [11], "tags": ["pakapes-saknes", "grafiki"] },
+            { "lv": "Eksponentfunkcija un eksponenciāli procesi", "klase": [11], "tags": ["modelesana", "virknes"] },
+            { "lv": "Logaritmiskā funkcija", "klase": [11], "tags": ["logaritmi", "grafiki"] },
+            { "lv": "Funkciju grafiku transformācijas", "klase": [11], "tags": ["grafiki", "koordinatu-metode"] },
+            { "lv": "Matemātiskā modelēšana ar funkcijām", "klase": [10, 11], "tags": ["modelesana", "teksta-uzdevumi"] }
+          ]
+        },
+        {
+          "chapter": "Trigonometrija",
+          "topics": [
+            { "lv": "Sakarības taisnleņķa trijstūrī (atkārtojums)", "klase": [10], "tags": ["planimetrija"] },
+            { "lv": "Pagrieziena leņķis, radiāni un vienības riņķa līnija", "klase": [11], "tags": ["planimetrija", "koordinatu-metode"] },
+            { "lv": "Sinusa un kosinusa funkcijas, to īpašības", "klase": [11], "tags": ["funkcijas", "grafiki"] },
+            { "lv": "Trigonometriskā pamatidentitāte", "klase": [11], "tags": ["algebriskie-parveidojumi"] },
+            { "lv": "Sinusu un kosinusu teorēma", "klase": [11], "tags": ["planimetrija", "teksta-uzdevumi"] },
+            { "lv": "Argumentu summas un divkāršā argumenta formulas", "klase": [11], "tags": ["algebriskie-parveidojumi"] },
+            { "lv": "Trigonometrisko izteiksmju pārveidošana", "klase": [11], "tags": ["algebriskie-parveidojumi"] },
+            { "lv": "Pamatvienādojumi sin x = a, cos x = a", "klase": [11], "tags": ["vienadojumi", "grafiki"] }
+          ]
+        },
+        {
+          "chapter": "Planimetrija",
+          "topics": [
+            { "lv": "Trijstūru vienādība un līdzība (atkārtojums)", "klase": [10], "tags": ["pieradijumi"] },
+            { "lv": "Ģeometriskie pārveidojumi: simetrija, pagrieziens, paralēlā pārnese", "klase": [10], "tags": ["koordinatu-metode"] },
+            { "lv": "Daudzstūru laukumi", "klase": [10], "tags": ["merijumi", "trigonometrija"] },
+            { "lv": "Riņķa līnija: leņķi, pieskares, ievilktie daudzstūri", "klase": [10], "tags": ["pieradijumi"] },
+            { "lv": "Trijstūrī ievilktā un apvilktā riņķa līnija", "klase": [10], "tags": ["merijumi", "trigonometrija"] },
+            { "lv": "Vektori plaknē un darbības ar tiem", "klase": [11], "tags": ["vektori", "koordinatu-metode"] },
+            { "lv": "Vektoru koordinātas un skalārais reizinājums", "klase": [11], "tags": ["vektori", "koordinatu-metode"] },
+            { "lv": "Taisnes vienādojums, paralēlas un perpendikulāras taisnes", "klase": [11], "tags": ["koordinatu-metode", "funkcijas"] },
+            { "lv": "Riņķa līnijas vienādojums", "klase": [11], "tags": ["koordinatu-metode", "vienadojumi"] }
+          ]
+        },
+        {
+          "chapter": "Stereometrija",
+          "topics": [
+            { "lv": "Taisnes un plaknes telpā, to savstarpējais novietojums", "klase": [11], "tags": ["pieradijumi"] },
+            { "lv": "Daudzskaldņi, to elementi un šķēlums ar plakni", "klase": [11], "tags": ["planimetrija"] },
+            { "lv": "Prizma: virsmas laukums un tilpums", "klase": [11], "tags": ["merijumi", "planimetrija"] },
+            { "lv": "Piramīda: regulāra un neregulāra", "klase": [11], "tags": ["merijumi", "trigonometrija"] },
+            { "lv": "Cilindrs", "klase": [11], "tags": ["merijumi"] },
+            { "lv": "Konuss", "klase": [11], "tags": ["merijumi", "trigonometrija"] },
+            { "lv": "Lode un sfēra", "klase": [11], "tags": ["merijumi"] },
+            { "lv": "Vektori telpā", "klase": [11], "tags": ["vektori", "koordinatu-metode"] }
+          ]
+        },
+        {
+          "chapter": "Kombinatorika un varbūtību teorija",
+          "topics": [
+            { "lv": "Kopas un darbības ar kopām", "klase": [11], "tags": ["kombinatorika"] },
+            { "lv": "Kombinatorikas pamatprincipi", "klase": [11], "tags": ["kombinatorika"] },
+            { "lv": "Permutācijas, kombinācijas un variācijas", "klase": [11], "tags": ["kombinatorika", "algebriskie-parveidojumi"] },
+            { "lv": "Klasiskā varbūtība un pilna pārlase", "klase": [11], "tags": ["varbutiba", "kombinatorika"] },
+            { "lv": "Summas varbūtība un nosacītā varbūtība", "klase": [11], "tags": ["varbutiba"] },
+            { "lv": "Populācija, izlase un vidējie lielumi", "klase": [11], "tags": ["statistika", "modelesana"] },
+            { "lv": "Izkliedes mēri un datu grafiska attēlošana", "klase": [11], "tags": ["statistika", "grafiki"] }
+          ]
+        }
+      ]
+    },
+    {
+      "course": "Matemātika II",
+      "course_lv": "Matemātika II (12. klase, padziļinātais kurss)",
+      "chapters": [
+        {
+          "chapter": "Algebra",
+          "topics": [
+            { "lv": "Iracionālie vienādojumi", "klase": [12], "tags": ["vienadojumi", "pakapes-saknes"] },
+            { "lv": "Logaritmiskie vienādojumi, nevienādības un sistēmas", "klase": [12], "tags": ["logaritmi", "vienadojumi", "nevienadibas"] },
+            { "lv": "Polinomu dalīšana un Bezū teorēma", "klase": [12], "tags": ["algebriskie-parveidojumi", "pieradijumi"] },
+            { "lv": "Nenoteikto koeficientu metode", "klase": [12], "tags": ["algebriskie-parveidojumi"] },
+            { "lv": "Vienādojumi un nevienādības ar parametru", "klase": [12], "tags": ["vienadojumi", "grafiki"] },
+            { "lv": "Kompleksi vienādojumu risināšanas paņēmieni", "klase": [12], "tags": ["vienadojumi", "funkcijas"] }
+          ]
+        },
+        {
+          "chapter": "Funkcijas",
+          "topics": [
+            { "lv": "Inversā funkcija", "klase": [12], "tags": ["grafiki", "logaritmi"] },
+            { "lv": "Virknes, to monotonitāte un robeža", "klase": [12], "tags": ["virknes", "matematiska-analize"] },
+            { "lv": "Bezgalīgi dilstoša ģeometriskā progresija", "klase": [12], "tags": ["virknes", "matematiska-analize"] },
+            { "lv": "Skaitlis e un eksponenciāli procesi", "klase": [12], "tags": ["logaritmi", "modelesana"] },
+            { "lv": "Funkcijas nepārtrauktība", "klase": [12], "tags": ["matematiska-analize", "grafiki"] },
+            { "lv": "Daļveida racionālas funkcijas pētīšana", "klase": [12], "tags": ["algebriskie-parveidojumi", "grafiki"] }
+          ]
+        },
+        {
+          "chapter": "Trigonometrija",
+          "topics": [
+            { "lv": "Leņķa tangenss un kotangenss", "klase": [12], "tags": ["funkcijas", "grafiki"] },
+            { "lv": "Apgrieztās trigonometriskās funkcijas", "klase": [12], "tags": ["funkcijas", "grafiki"] },
+            { "lv": "Trigonometriskās nevienādības", "klase": [12], "tags": ["nevienadibas", "grafiki"] },
+            { "lv": "Trigonometrisko vienādojumu sistēmas", "klase": [12], "tags": ["vienadojumi", "algebriskie-parveidojumi"] },
+            { "lv": "Harmoniskās svārstības un trigonometriskie modeļi", "klase": [12], "tags": ["modelesana", "funkcijas"] }
+          ]
+        },
+        {
+          "chapter": "Planimetrija",
+          "topics": [
+            { "lv": "Sakarības trijstūros (padziļināti)", "klase": [12], "tags": ["trigonometrija", "pieradijumi"] },
+            { "lv": "Sakarības četrstūros un regulāros daudzstūros", "klase": [12], "tags": ["merijumi", "pieradijumi"] },
+            { "lv": "Ar riņķa līniju saistīti leņķi un nogriežņi", "klase": [12], "tags": ["pieradijumi"] },
+            { "lv": "Ģeometriskie pārveidojumi", "klase": [12], "tags": ["koordinatu-metode"] },
+            { "lv": "Analītiskā ģeometrija: taisne un riņķa līnija", "klase": [12], "tags": ["koordinatu-metode", "vienadojumi"] },
+            { "lv": "Vektoru skalārais reizinājums uzdevumos", "klase": [12], "tags": ["vektori", "trigonometrija"] }
+          ]
+        },
+        {
+          "chapter": "Stereometrija",
+          "topics": [
+            { "lv": "Daudzskaldņi un to šķēlumi ar plakni", "klase": [12], "tags": ["planimetrija", "pieradijumi"] },
+            { "lv": "Prizmas un cilindra ģeometriskās kombinācijas", "klase": [12], "tags": ["merijumi", "planimetrija"] },
+            { "lv": "Konusa un piramīdas ģeometriskās kombinācijas", "klase": [12], "tags": ["merijumi", "trigonometrija"] },
+            { "lv": "Lodes, cilindra un konusa ģeometriskās kombinācijas", "klase": [12], "tags": ["merijumi"] },
+            { "lv": "Prizmas un lodes, piramīdas un lodes kombinācijas", "klase": [12], "tags": ["merijumi", "trigonometrija"] }
+          ]
+        },
+        {
+          "chapter": "Kombinatorika un varbūtību teorija",
+          "topics": [
+            { "lv": "Kombinatorika II: Paskāla trijstūris", "klase": [12], "tags": ["kombinatorika", "virknes"] },
+            { "lv": "Ņūtona binoms", "klase": [12], "tags": ["kombinatorika", "algebriskie-parveidojumi"] },
+            { "lv": "Matemātiskās loģikas elementi", "klase": [12], "tags": ["pieradijumi"] },
+            { "lv": "Matemātiskās indukcijas princips", "klase": [12], "tags": ["pieradijumi", "virknes"] },
+            { "lv": "Gadījuma lieluma sadalījumi un Bernulli formula", "klase": [12], "tags": ["varbutiba", "statistika"] },
+            { "lv": "Notikumu apvienojuma un pilnās varbūtības formula", "klase": [12], "tags": ["varbutiba"] },
+            { "lv": "Statistika II: secinājumi par populāciju", "klase": [12], "tags": ["statistika", "modelesana"] }
+          ]
+        },
+        {
+          "chapter": "Matemātiskā analīze",
+          "note": "Раздел только для Matemātika II.",
+          "topics": [
+            { "lv": "Funkcijas robeža", "klase": [12], "tags": ["funkcijas", "virknes"] },
+            { "lv": "Atvasinājuma definīcija un tā ģeometriskā jēga", "klase": [12], "tags": ["funkcijas", "grafiki"] },
+            { "lv": "Diferencēšanas likumi un formulas", "klase": [12], "tags": ["algebriskie-parveidojumi"] },
+            { "lv": "Pieskare funkcijas grafikam", "klase": [12], "tags": ["grafiki", "koordinatu-metode"] },
+            { "lv": "Funkciju pētīšana ar atvasinājumu: monotonitāte un ekstrēmi", "klase": [12], "tags": ["funkcijas", "grafiki"] },
+            { "lv": "Lietišķi optimizācijas uzdevumi", "klase": [12], "tags": ["modelesana", "teksta-uzdevumi"] },
+            { "lv": "Primitīvā funkcija un nenoteiktais integrālis", "klase": [12], "tags": ["algebriskie-parveidojumi"] },
+            { "lv": "Noteiktais integrālis un Ņūtona–Leibnica formula", "klase": [12], "tags": ["merijumi"] },
+            { "lv": "Laukumu un tilpumu aprēķināšana ar integrāli", "klase": [12], "tags": ["merijumi", "stereometrija"] },
+            { "lv": "Integrāļa lietojums fizikā", "klase": [12], "tags": ["modelesana", "teksta-uzdevumi"] }
+          ]
+        }
+      ]
+    }
+  ]
+}
