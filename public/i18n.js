@@ -225,6 +225,13 @@
       tag_empty: 'Šai birkai pagaidām nav pievienots neviens uzdevums.',
       tag_heading: 'Birka',
       tags_label: 'Krustbirkas',
+      all_exams_tracks: "Visi eksāmeni un kursi",
+      subject_all_topics: "Visas sadaļas tēmas",
+      auth_title: "Administratora pieteikšanās",
+      auth_hint: "Pieteicieties ar administratora e-pastu un paroli.",
+      auth_password: "Parole",
+      auth_submit: "Ieiet",
+      dialog_close: "Aizvērt",
 
       // Par vietni
       about_title: 'Par vietni',
@@ -449,6 +456,13 @@
       tag_empty: 'С этим тегом задач пока нет.',
       tag_heading: 'Тег',
       tags_label: 'Кросс-теги',
+      all_exams_tracks: "Все экзамены и треки",
+      subject_all_topics: "Все темы раздела",
+      auth_title: "Вход для администратора",
+      auth_hint: "Войдите с email и паролем администратора.",
+      auth_password: "Пароль",
+      auth_submit: "Войти",
+      dialog_close: "Закрыть",
 
       // О сайте
       about_title: 'О сайте',
