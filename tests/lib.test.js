@@ -204,7 +204,6 @@ describe('getLocalizedText — выбор локализованного пол�
   const task = {
     title: 'Квадратное уравнение',
     title_lv: 'Kvadrātvienādojums',
-    title_en: 'Quadratic equation',
     condition_latex: 'Решите $x^2 - 4 = 0$',
     condition_latex_lv: 'Atrisiniet $x^2 - 4 = 0$'
   };
@@ -219,12 +218,12 @@ describe('getLocalizedText — выбор локализованного пол�
     expect(getLocalizedText(task, 'condition_latex', 'lv')).toBe('Atrisiniet $x^2 - 4 = 0$');
   });
 
-  it('возвращает перевод на английский при lang = "en"', () => {
-    expect(getLocalizedText(task, 'title', 'en')).toBe('Quadratic equation');
+  it('мягко откатывается к русскому, если латышского перевода нет', () => {
+    expect(getLocalizedText({ title: 'Без перевода' }, 'title', 'lv')).toBe('Без перевода');
   });
 
-  it('мягко откатывается к базовому тексту при отсутствии перевода (fallback)', () => {
-    expect(getLocalizedText(task, 'condition_latex', 'en')).toBe('Решите $x^2 - 4 = 0$');
+  it('для неизвестного языка тоже отдаёт базовый текст, а не пустоту', () => {
+    expect(getLocalizedText(task, 'title', 'de')).toBe('Квадратное уравнение');
   });
 
   it('устойчив к пустым объектам и полям', () => {

@@ -64,6 +64,7 @@
      не сохранялся бы — молча, потому что поле просто отбрасывалось. */
   const supportedTopicCols = new Set(['title', 'slug', 'subject_id', 'grade', 'position', 'description']);
   const supportedTaskCols = new Set(['topic_id', 'title', 'condition_latex', 'solution_latex', 'difficulty', 'is_published', 'grade', 'position', 'answer_latex', 'condition_image', 'solution_image']);
+  const supportedSubjectCols = new Set(['title', 'slug', 'icon', 'position']);
   let multilingualReady = false;
 
   async function detectMultilingualColumns() {
@@ -75,13 +76,14 @@
     multilingualReady = true;
     ['title_lv', 'description_lv'].forEach(c => supportedTopicCols.add(c));
     ['title_lv', 'condition_latex_lv', 'solution_latex_lv'].forEach(c => supportedTaskCols.add(c));
+    supportedSubjectCols.add('title_lv');
   }
 
   /* Пока миграции нет, поля LV выглядят рабочими, но введённое молча
      отбрасывается санитайзером. Честнее сказать об этом прямо в форме. */
   function markLatvianFieldsUnavailable() {
     if (multilingualReady) return;
-    const ids = ['topic-title-lv', 'topic-desc-lv', 'title-input-lv', 'condition-input-lv', 'solution-input-lv'];
+    const ids = ['subject-title-lv', 'topic-title-lv', 'topic-desc-lv', 'title-input-lv', 'condition-input-lv', 'solution-input-lv'];
     const hint = 'Недоступно: не выполнена миграция 007_multilingual_tasks.sql';
     for (const id of ids) {
       const field = document.querySelector('#' + id);
@@ -102,6 +104,14 @@
     const clean = {};
     for (const [k, v] of Object.entries(payload)) {
       if (supportedTopicCols.has(k)) clean[k] = v;
+    }
+    return clean;
+  };
+
+  const sanitizeSubjectPayload = payload => {
+    const clean = {};
+    for (const [k, v] of Object.entries(payload)) {
+      if (supportedSubjectCols.has(k)) clean[k] = v;
     }
     return clean;
   };
@@ -153,6 +163,7 @@
     document.querySelector('#subject-submit').textContent = subject ? 'Сохранить раздел' : 'Добавить раздел';
     document.querySelector('#subject-cancel').hidden = !subject;
     subjectForm.elements.title.value = subject?.title || '';
+    subjectForm.elements.title_lv.value = subject?.title_lv || '';
     subjectForm.elements.icon.value = subject?.icon || '';
     subjectForm.elements.position.value = subject?.position ?? 0;
     if (subject) subjectForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -164,7 +175,7 @@
       const count = topics.filter(topic => topic.subject_id === subject.id).length;
       return `<div class="admin-row">
         <span class="admin-row-icon">${escapeHtml(subject.icon)}</span>
-        <span class="admin-row-main"><strong>${escapeHtml(subject.title)}</strong><small>тем: ${count} · порядок: ${subject.position}</small></span>
+        <span class="admin-row-main"><strong>${escapeHtml(subject.title)}</strong><small>${subject.title_lv ? escapeHtml(subject.title_lv) + ' · ' : ''}тем: ${count} · порядок: ${subject.position}</small>${multilingualReady && !subject.title_lv ? '<span class="admin-warn">нет названия на латышском</span>' : ''}</span>
         <button class="text-button" type="button" data-edit-subject="${subject.id}">Изменить</button>
         <button class="text-button danger" type="button" data-delete-subject="${subject.id}">Удалить</button>
       </div>`;
@@ -176,11 +187,12 @@
     subjectSuccess.textContent = '';
     const form = new FormData(subjectForm);
     const title = form.get('title').trim();
-    const payload = {
+    const payload = sanitizeSubjectPayload({
       title,
+      title_lv: form.get('title_lv')?.trim() || null,
       icon: form.get('icon').trim() || 'x²',
       position: Number(form.get('position')) || 0
-    };
+    });
     const { error } = editingSubjectId
       ? await db.from('subjects').update(payload).eq('id', editingSubjectId)
       : await db.from('subjects').insert({ ...payload, slug: `${makeSlug(title)}-${Date.now()}` });

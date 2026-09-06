@@ -25,7 +25,6 @@ describe('Skola2030 Topics Catalog (JSON & Database integrity)', () => {
       expect(validSubjects).toContain(topic.subject_slug);
       expect(topic.title_ru.length).toBeGreaterThan(3);
       expect(topic.title_lv.length).toBeGreaterThan(3);
-      expect(topic.title_en.length).toBeGreaterThan(3);
       expect(Array.isArray(topic.subtopics)).toBe(true);
       expect(topic.subtopics.length).toBeGreaterThan(0);
     });
@@ -35,7 +34,7 @@ describe('Skola2030 Topics Catalog (JSON & Database integrity)', () => {
     expect(fs.existsSync(sqlPath)).toBe(true);
     const sql = fs.readFileSync(sqlPath, 'utf8');
     expect(sql).toContain('alter table public.topics add constraint topics_grade_range check (grade is null or grade between 1 and 12);');
-    expect(sql).toContain("insert into public.subjects (title, title_lv, title_en, slug, icon, position)");
+    expect(sql).toContain("insert into public.subjects (title, title_lv, slug, icon, position)");
     expect(sql).toContain("insert into public.topics");
     expect(sql).toContain("skola2030-g1-1");
     expect(sql).toContain("skola2030-g12-");
@@ -48,7 +47,6 @@ describe('AI Task Generator (Skola2030 Autonomous Engine)', () => {
     expect(task.grade).toBe(1);
     expect(task.title_ru).toBeTruthy();
     expect(task.title_lv).toBeTruthy();
-    expect(task.title_en).toBeTruthy();
     expect(task.condition_latex_ru).toContain('$');
     expect(task.answer_latex).toContain('$');
     expect(task.solution_latex_ru).toContain('$');

@@ -39,19 +39,16 @@ ${customPrompt ? `Дополнительные пожелания: "${customProm
 Требования:
 1. Математическая точность: условие должно иметь ровно одно корректное решение, ответ должен быть строго выверен.
 2. Формулы: оформляй все переменные, числа в вычислениях и формулы в KaTeX-разметке: внутри $...$ для инлайн и $$...$$ для выключных формул.
-3. Локализация: создай полные версии на русском (RU), латышском (LV) и английском (EN) языках. Латышский текст должен строго соответствовать терминологии Skola2030.
+3. Локализация: создай полные версии на русском (RU) и латышском (LV) языках. Английский не нужен — на сайте его нет. Латышский текст должен строго соответствовать терминологии Skola2030.
 4. Ответ верни СТРОГО в формате валидного JSON-объекта (без markdown-блоков):
 {
   "title_ru": "Краткое название задачи",
   "title_lv": "Nosaukums latviski",
-  "title_en": "Title in English",
   "condition_latex_ru": "Условие задачи с формулами $...$",
   "condition_latex_lv": "Nosacījums ar formulām $...$",
-  "condition_latex_en": "Condition with formulas $...$",
   "answer_latex": "Короткий математический ответ",
   "solution_latex_ru": "Пошаговое понятное решение с формулами",
-  "solution_latex_lv": "Soli pa solim atrisinājums latviski",
-  "solution_latex_en": "Step-by-step solution in English"
+  "solution_latex_lv": "Soli pa solim atrisinājums latviski"
 }`;
 
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(activeApiKey)}`;

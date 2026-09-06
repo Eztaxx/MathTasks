@@ -725,7 +725,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
   const solved = isTaskSolved(task.id);
   const solvedBadge = solved ? `<span class="task-solved-badge">${escapeHtml(tr('solved_badge'))}</span>` : '';
   const meta = [
-    `<span class="tag ${tagClass(subject)}">${escapeHtml(subject?.title || 'Matemātika')}</span>`,
+    `<span class="tag ${tagClass(subject)}">${escapeHtml(loc(subject, 'title') || tr('subject_fallback'))}</span>`,
     grade ? `<span class="grade-badge">${gradeLabel(grade)}</span>` : '',
     difficultyBadge(task.difficulty),
     solvedBadge,
@@ -933,7 +933,7 @@ function renderTopicGroups(container, groups) {
   container.hidden = !groups.length;
   container.innerHTML = groups.map(({ subject, topics }) => `<section class="topic-group">
     <div class="topic-group-head">
-      <h2><span class="topic-group-icon">${escapeHtml(subject.icon)}</span>${escapeHtml(subject.title)}</h2>
+      <h2><span class="topic-group-icon">${escapeHtml(subject.icon)}</span>${escapeHtml(loc(subject, 'title'))}</h2>
       <a href="/subject/${encodeURIComponent(subject.slug)}">Все темы →</a>
     </div>
     ${topics.length
@@ -1040,12 +1040,12 @@ function showSubject(slug) {
   }
   const topics = topicsForGrade(allTopics.filter(topic => topic.subject_id === subject.id));
   fillListHeader({
-    crumbs: [['Главная', '/'], gradeCrumb(), [subject.title, null]],
-    title: subject.title,
+    crumbs: [['Главная', '/'], gradeCrumb(), [loc(subject, 'title'), null]],
+    title: loc(subject, 'title'),
     description: selectedGrade ? `Темы раздела в ${selectedGrade} классе.` : 'Все темы раздела.',
     meta: `<span class="search-count">Тем: ${topics.length}</span>`
   });
-  setMeta(selectedGrade ? `${subject.title}, ${gradeLabel(selectedGrade)}` : subject.title,
+  setMeta(selectedGrade ? `${loc(subject, 'title')}, ${gradeLabel(selectedGrade)}` : loc(subject, 'title'),
     `Темы раздела «${subject.title}»${selectedGrade ? ` за ${gradeLabel(selectedGrade)}` : ''} с задачами и решениями.`);
   if (topics.length) renderTopicCards(listTopics, topics);
   else listTasks.innerHTML = `<p class="empty-state">${selectedGrade ? `В ${selectedGrade} классе тем этого раздела нет.` : 'Тем в этом разделе пока нет.'}</p>`;

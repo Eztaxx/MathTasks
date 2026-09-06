@@ -68,14 +68,11 @@
       return {
         title_ru: 'Сложение в пределах 10',
         title_lv: 'Saskaitīšana 10 apjomā',
-        title_en: 'Addition within 10',
         condition_latex_ru: `Вычислите значение суммы: $$${a} + ${b} = ?$$`,
         condition_latex_lv: `Aprēķiniet summas vērtību: $$${a} + ${b} = ?$$`,
-        condition_latex_en: `Calculate the sum: $$${a} + ${b} = ?$$`,
         answer_latex: `$${sum}$`,
         solution_latex_ru: `Сложим числа $${a}$ и $${b}$:\n$$${a} + ${b} = ${sum}$$\nОтвет: $${sum}$.`,
         solution_latex_lv: `Saskaitīsim skaitļus $${a}$ un $${b}$:\n$$${a} + ${b} = ${sum}$$\nAtbilde: $${sum}$.`,
-        solution_latex_en: `Add numbers $${a}$ and $${b}$:\n$$${a} + ${b} = ${sum}$$\nAnswer: $${sum}$.`,
         grade: 1
       };
     },
@@ -88,14 +85,11 @@
       return {
         title_ru: 'Сложение двузначных чисел',
         title_lv: 'Divciparu skaitļu saskaitīšana',
-        title_en: 'Adding two-digit numbers',
         condition_latex_ru: `Вычислите значение выражения: $$${a} + ${b} = ?$$`,
         condition_latex_lv: `Aprēķiniet izteiksmes vērtību: $$${a} + ${b} = ?$$`,
-        condition_latex_en: `Calculate the value of the expression: $$${a} + ${b} = ?$$`,
         answer_latex: `$${sum}$`,
         solution_latex_ru: `Сложим десятки и единицы:\nДесятки: $${Math.floor(a/10)*10} + ${Math.floor(b/10)*10} = ${(Math.floor(a/10)+Math.floor(b/10))*10}$\nЕдиницы: $${a%10} + ${b%10} = ${(a%10)+(b%10)}$\nИтого: $${sum}$.`,
         solution_latex_lv: `Saskaitīsim desmitus un vienus:\nDesmiti: $${Math.floor(a/10)*10} + ${Math.floor(b/10)*10} = ${(Math.floor(a/10)+Math.floor(b/10))*10}$\nVieni: $${a%10} + ${b%10} = ${(a%10)+(b%10)}$\nKopā: $${sum}$.`,
-        solution_latex_en: `Add tens and ones:\nTens: $${Math.floor(a/10)*10} + ${Math.floor(b/10)*10} = ${(Math.floor(a/10)+Math.floor(b/10))*10}$\nOnes: $${a%10} + ${b%10} = ${(a%10)+(b%10)}$\nTotal: $${sum}$.`,
         grade: 2
       };
     },
@@ -108,14 +102,11 @@
       return {
         title_ru: 'Таблица умножения и периметр',
         title_lv: 'Reizināšanas tabula un taisnstūra perimetrs',
-        title_en: 'Multiplication table and rectangle perimeter',
         condition_latex_ru: `Стороны прямоугольника равны $a = ${a}\\text{ см}$ и $b = ${b}\\text{ см}$. Найдите площадь $S$ и периметр $P$ прямоугольника.`,
         condition_latex_lv: `Taisnstūra malas ir $a = ${a}\\text{ cm}$ un $b = ${b}\\text{ cm}$. Aprēķiniet taisnstūra laukumu $S$ un perimetru $P$.`,
-        condition_latex_en: `A rectangle has sides $a = ${a}\\text{ cm}$ and $b = ${b}\\text{ cm}$. Find its area $S$ and perimeter $P$.`,
         answer_latex: `$S = ${prod}\\text{ см}^2,\\; P = ${2*(a+b)}\\text{ см}$`,
         solution_latex_ru: `1) Площадь прямоугольника:\n$$S = a \\cdot b = ${a} \\cdot ${b} = ${prod}\\text{ см}^2$$\n2) Периметр прямоугольника:\n$$P = 2(a + b) = 2(${a} + ${b}) = 2 \\cdot ${a+b} = ${2*(a+b)}\\text{ см}$$`,
         solution_latex_lv: `1) Taisnstūra laukums:\n$$S = a \\cdot b = ${a} \\cdot ${b} = ${prod}\\text{ cm}^2$$\n2) Taisnstūra perimetrs:\n$$P = 2(a + b) = 2(${a} + ${b}) = 2 \\cdot ${a+b} = ${2*(a+b)}\\text{ cm}$$`,
-        solution_latex_en: `1) Area of the rectangle:\n$$S = a \\cdot b = ${a} \\cdot ${b} = ${prod}\\text{ cm}^2$$\n2) Perimeter of the rectangle:\n$$P = 2(a + b) = 2(${a} + ${b}) = 2 \\cdot ${a+b} = ${2*(a+b)}\\text{ cm}$$`,
         grade: 3
       };
     },
@@ -129,14 +120,11 @@
       return {
         title_ru: 'Сложение обыкновенных дробей',
         title_lv: 'Parasto daļu saskaitīšana',
-        title_en: 'Addition of common fractions',
         condition_latex_ru: `Вычислите сумму дробей с одинаковыми знаменателями: $$\\frac{${n1}}{${denom}} + \\frac{${n2}}{${denom}} = ?$$`,
         condition_latex_lv: `Aprēķiniet daļu summu ar vienādiem saucējiem: $$\\frac{${n1}}{${denom}} + \\frac{${n2}}{${denom}} = ?$$`,
-        condition_latex_en: `Calculate the sum of fractions with common denominator: $$\\frac{${n1}}{${denom}} + \\frac{${n2}}{${denom}} = ?$$`,
         answer_latex: `$\\frac{${sumN}}{${denom}}$`,
         solution_latex_ru: `При сложении дробей с одинаковыми знаменателями числители складываются, а знаменатель остаётся прежним:\n$$\\frac{${n1}}{${denom}} + \\frac{${n2}}{${denom}} = \\frac{${n1} + ${n2}}{${denom}} = \\frac{${sumN}}{${denom}}$$`,
         solution_latex_lv: `Saskaitot daļas ar vienādiem saucējiem, skaitītājus saskaita, bet saucēju atstāj nemainīgu:\n$$\\frac{${n1}}{${denom}} + \\frac{${n2}}{${denom}} = \\frac{${n1} + ${n2}}{${denom}} = \\frac{${sumN}}{${denom}}$$`,
-        solution_latex_en: `When adding fractions with equal denominators, add the numerators and keep the denominator:\n$$\\frac{${n1}}{${denom}} + \\frac{${n2}}{${denom}} = \\frac{${n1} + ${n2}}{${denom}} = \\frac{${sumN}}{${denom}}$$`,
         grade: 4
       };
     },
@@ -149,14 +137,11 @@
       return {
         title_ru: 'Вычисление процентов от числа',
         title_lv: 'Procentu aprēķināšana no skaitļa',
-        title_en: 'Finding percentages of a quantity',
         condition_latex_ru: `Товар стоил $${total}\\text{ €}$. Во время распродажи его цена снизилась на $${pct}\\%$. Сколько евро составила скидка и какова новая цена?`,
         condition_latex_lv: `Prece maksāja $${total}\\text{ €}$. Izpārdošanas laikā tās cena samazinājās par $${pct}\\%$. Cik eiro bija atlaide un kāda ir jaunā cena?`,
-        condition_latex_en: `An item cost $${total}\\text{ €}$. During a sale, its price dropped by $${pct}\\%$. How much was the discount and what is the new price?`,
         answer_latex: `Скидка: $${ans}\\text{ €}$, новая цена: $${total - ans}\\text{ €}$`,
         solution_latex_ru: `1) Найдём размер скидки ($${pct}\\%$ от $${total}$):\n$$${total} \\cdot \\frac{${pct}}{100} = ${ans}\\text{ €}$$\n2) Вычислим новую цену:\n$$${total} - ${ans} = ${total - ans}\\text{ €}$$`,
         solution_latex_lv: `1) Aprēķinām atlaides lielumu ($${pct}\\%$ no $${total}$):\n$$${total} \\cdot \\frac{${pct}}{100} = ${ans}\\text{ €}$$\n2) Aprēķinām jauno cenu:\n$$${total} - ${ans} = ${total - ans}\\text{ €}$$`,
-        solution_latex_en: `1) Calculate discount ($${pct}\\%$ of $${total}$):\n$$${total} \\cdot \\frac{${pct}}{100} = ${ans}\\text{ €}$$\n2) Calculate new price:\n$$${total} - ${ans} = ${total - ans}\\text{ €}$$`,
         grade: 5
       };
     },
@@ -169,14 +154,11 @@
       return {
         title_ru: 'Сложение чисел с разными знаками',
         title_lv: 'Darbības ar pretēju zīmju skaitļiem',
-        title_en: 'Adding integers with different signs',
         condition_latex_ru: `Вычислите значение выражения с отрицательными числами: $$${a} + (${b}) = ?$$`,
         condition_latex_lv: `Aprēķiniet izteiksmes vērtību ar negatīviem skaitļiem: $$${a} + (${b}) = ?$$`,
-        condition_latex_en: `Calculate the value with negative numbers: $$${a} + (${b}) = ?$$`,
         answer_latex: `$${res}$`,
         solution_latex_ru: `Чтобы сложить числа с разными знаками, из большего модуля вычитаем меньший и ставим знак числа с большим модулем:\n$$|${b}| > |${a}| \\implies ${b} - ${Math.abs(a)} = ${res}$$`,
         solution_latex_lv: `Lai saskaitītu skaitļus ar dažādām zīmēm, no lielākā moduļa atņem mazāko un saglabā lielākā moduļa zīmi:\n$$|${b}| > |${a}| \\implies ${b} - ${Math.abs(a)} = ${res}$$`,
-        solution_latex_en: `To add numbers with different signs, subtract the smaller absolute value from the larger:\n$$${b} - ${Math.abs(a)} = ${res}$$`,
         grade: 6
       };
     },
@@ -192,14 +174,11 @@
       return {
         title_ru: 'Линейное уравнение с раскрытием скобок',
         title_lv: 'Lineārs vienādojums ar iekavu atvēršanu',
-        title_en: 'Linear equation with expanding brackets',
         condition_latex_ru: `Решите уравнение: $$${a}(x + ${b}) - ${c} = ${d}$$`,
         condition_latex_lv: `Atrisiniet vienādojumu: $$${a}(x + ${b}) - ${c} = ${d}$$`,
-        condition_latex_en: `Solve the equation: $$${a}(x + ${b}) - ${c} = ${d}$$`,
         answer_latex: `$x = ${x}$`,
         solution_latex_ru: `Раскроем скобки в левой части:\n$$${a}x + ${a*b} - ${c} = ${d}$$\n$$${a}x + ${a*b - c} = ${d}$$\nПеренесём свободный член вправо:\n$$${a}x = ${d} - ${a*b - c}$$\n$$${a}x = ${a*x}$$\nРазделим на $${a}$:\n$$x = ${x}$$`,
         solution_latex_lv: `Atveriet iekavas kreisajā pusē:\n$$${a}x + ${a*b} - ${c} = ${d}$$\n$$${a}x + ${a*b - c} = ${d}$$\nPārnesiet brīvo locekli pa labi:\n$$${a}x = ${d} - ${a*b - c}$$\n$$${a}x = ${a*x}$$\nIzdaliet ar $${a}$:\n$$x = ${x}$$`,
-        solution_latex_en: `Expand the brackets on the left side:\n$$${a}x + ${a*b} - ${c} = ${d}$$\n$$${a}x = ${a*x}$$\nDivide by $${a}$:\n$$x = ${x}$$`,
         grade: 7
       };
     },
@@ -212,14 +191,11 @@
       return {
         title_ru: 'Теорема Пифагора в прямоугольном треугольнике',
         title_lv: 'Pitagora teorēma taisnleņķa trijstūrī',
-        title_en: 'Pythagorean theorem in a right triangle',
         condition_latex_ru: `В прямоугольном треугольнике катеты равны $a = ${a}\\text{ см}$ и $b = ${b}\\text{ см}$. Найдите длину гипотенузы $c$.`,
         condition_latex_lv: `Taisnleņķa trijstūrī katetes ir $a = ${a}\\text{ cm}$ un $b = ${b}\\text{ cm}$. Aprēķiniet hipotenūzas garumu $c$.`,
-        condition_latex_en: `In a right triangle, the legs are $a = ${a}\\text{ cm}$ and $b = ${b}\\text{ cm}$. Find the length of the hypotenuse $c$.`,
         answer_latex: `$c = ${c}\\text{ см}$`,
         solution_latex_ru: `По теореме Пифагора для прямоугольного треугольника:\n$$c^2 = a^2 + b^2$$\nПодставим известные катеты:\n$$c^2 = ${a}^2 + ${b}^2 = ${a*a} + ${b*b} = ${c*c}$$\n$$c = \\sqrt{${c*c}} = ${c}\\text{ см}$$\nОтвет: $${c}\\text{ см}$.`,
         solution_latex_lv: `Pēc Pitagora teorēmas taisnleņķa trijstūrim:\n$$c^2 = a^2 + b^2$$\nIevietojam zināmās katetes:\n$$c^2 = ${a}^2 + ${b}^2 = ${a*a} + ${b*b} = ${c*c}$$\n$$c = \\sqrt{${c*c}} = ${c}\\text{ cm}$$\nAtbilde: $${c}\\text{ cm}$.`,
-        solution_latex_en: `By the Pythagorean theorem:\n$$c^2 = a^2 + b^2 = ${a*a} + ${b*b} = ${c*c}$$\n$$c = \\sqrt{${c*c}} = ${c}\\text{ cm}$$\nAnswer: $${c}\\text{ cm}$.`,
         grade: 8
       };
     },
@@ -239,14 +215,11 @@
       return {
         title_ru: 'Квадратное уравнение через дискриминант',
         title_lv: 'Kvadrātvienādojums ar diskriminantu',
-        title_en: 'Quadratic equation using discriminant',
         condition_latex_ru: `Решите квадратное уравнение: $$x^2 ${bSign}x ${cSign} = 0$$`,
         condition_latex_lv: `Atrisiniet kvadrātvienādojumu: $$x^2 ${bSign}x ${cSign} = 0$$`,
-        condition_latex_en: `Solve the quadratic equation: $$x^2 ${bSign}x ${cSign} = 0$$`,
         answer_latex: `$x_1 = ${x1},\\; x_2 = ${x2}$`,
         solution_latex_ru: `Коэффициенты уравнения: $a = 1, b = ${bCoeff}, c = ${cCoeff}$.\n1) Найдём дискриминант:\n$$D = b^2 - 4ac = (${bCoeff})^2 - 4 \\cdot 1 \\cdot (${cCoeff}) = ${bCoeff*bCoeff} - (${4*cCoeff}) = ${D}$$\nТак как $D > 0$, уравнение имеет 2 действительных корня:\n$$\\sqrt{D} = \\sqrt{${D}} = ${sqrtD}$$\n2) Найдём корни по формуле:\n$$x = \\frac{-b \\pm \\sqrt{D}}{2a} = \\frac{${-bCoeff} \\pm ${sqrtD}}{2}$$\n$$x_1 = \\frac{${-bCoeff} - ${sqrtD}}{2} = ${x1}, \\quad x_2 = \\frac{${-bCoeff} + ${sqrtD}}{2} = ${x2}$$\nОтвет: $x_1 = ${x1}, x_2 = ${x2}$.`,
         solution_latex_lv: `Vienādojuma koeficienti: $a = 1, b = ${bCoeff}, c = ${cCoeff}$.\n1) Aprēķinām diskriminantu:\n$$D = b^2 - 4ac = (${bCoeff})^2 - 4 \\cdot 1 \\cdot (${cCoeff}) = ${D}$$\nTā kā $D > 0$, vienādojumam ir divas dažādas saknes:\n$$\\sqrt{D} = \\sqrt{${D}} = ${sqrtD}$$\n2) Aprēķinām saknes:\n$$x = \\frac{-b \\pm \\sqrt{D}}{2a} = \\frac{${-bCoeff} \\pm ${sqrtD}}{2}$$\n$$x_1 = ${x1}, \\quad x_2 = ${x2}$$\nAtbilde: $x_1 = ${x1}, x_2 = ${x2}$.`,
-        solution_latex_en: `Coefficients: $a = 1, b = ${bCoeff}, c = ${cCoeff}$.\n1) Discriminant:\n$$D = b^2 - 4ac = (${bCoeff})^2 - 4(${cCoeff}) = ${D}$$\n$$\\sqrt{D} = ${sqrtD}$$\n2) Roots:\n$$x = \\frac{${-bCoeff} \\pm ${sqrtD}}{2}$$\n$$x_1 = ${x1},\\quad x_2 = ${x2}$$\nAnswer: $x_1 = ${x1}, x_2 = ${x2}$.`,
         grade: 9
       };
     },
@@ -265,14 +238,11 @@
       return {
         title_ru: 'Координаты вершины параболы',
         title_lv: 'Parabolas virsotnes koordinātas',
-        title_en: 'Vertex coordinates of a parabola',
         condition_latex_ru: `Найдите координаты вершины параболы, заданной квадратичной функцией: $$y = ${a === 1 ? '' : (a === -1 ? '-' : a)}x^2 ${bSign}x ${cSign}$$`,
         condition_latex_lv: `Atrodiet parabolas virsotnes koordinātas kvadrātfunkcijai: $$y = ${a === 1 ? '' : (a === -1 ? '-' : a)}x^2 ${bSign}x ${cSign}$$`,
-        condition_latex_en: `Find the vertex coordinates of the parabola: $$y = ${a === 1 ? '' : (a === -1 ? '-' : a)}x^2 ${bSign}x ${cSign}$$`,
         answer_latex: `$(x_0; y_0) = (${x0}; ${y0})$`,
         solution_latex_ru: `Коэффициенты: $a = ${a}, b = ${bCoeff}, c = ${cCoeff}$.\n1) Абсцисса вершины параболы:\n$$x_0 = -\\frac{b}{2a} = -\\frac{${bCoeff}}{2 \\cdot (${a})} = ${x0}$$\n2) Ордината вершины параболы:\n$$y_0 = y(${x0}) = ${a}(${x0})^2 + (${bCoeff})(${x0}) + (${cCoeff}) = ${y0}$$\nВершина параболы: $(${x0}; ${y0})$.`,
         solution_latex_lv: `Koeficienti: $a = ${a}, b = ${bCoeff}, c = ${cCoeff}$.\n1) Virsotnes abscisa:\n$$x_0 = -\\frac{b}{2a} = -\\frac{${bCoeff}}{2 \\cdot (${a})} = ${x0}$$\n2) Virsotnes ordināta:\n$$y_0 = y(${x0}) = ${y0}$$\nVirsotnes punkts: $(${x0}; ${y0})$.`,
-        solution_latex_en: `Coefficients: $a = ${a}, b = ${bCoeff}, c = ${cCoeff}$.\n1) X-coordinate of the vertex:\n$$x_0 = -\\frac{b}{2a} = ${x0}$$\n2) Y-coordinate:\n$$y_0 = y(${x0}) = ${y0}$$\nVertex: $(${x0}; ${y0})$.`,
         grade: 10
       };
     },
@@ -288,14 +258,11 @@
       return {
         title_ru: 'Логарифмическое уравнение',
         title_lv: 'Logaritmisks vienādojums',
-        title_en: 'Logarithmic equation',
         condition_latex_ru: `Решите уравнение: $$\\log_${base}(x - ${shift}) = ${p}$$`,
         condition_latex_lv: `Atrisiniet vienādojumu: $$\\log_${base}(x - ${shift}) = ${p}$$`,
-        condition_latex_en: `Solve the equation: $$\\log_${base}(x - ${shift}) = ${p}$$`,
         answer_latex: `$x = ${x}$`,
         solution_latex_ru: `1) Область определения (ОДЗ):\n$$x - ${shift} > 0 \\implies x > ${shift}$$\n2) По определению логарифма $\\log_a b = c \\iff b = a^c$:\n$$x - ${shift} = ${base}^{${p}}$$\n$$x - ${shift} = ${val}$$\n$$x = ${val} + ${shift} = ${x}$$\nКорень удовлетворяет ОДЗ ($${x} > ${shift}$). Ответ: $x = ${x}$.`,
         solution_latex_lv: `1) Definīcijas apgabals:\n$$x - ${shift} > 0 \\implies x > ${shift}$$\n2) Pēc logaritma definīcijas:\n$$x - ${shift} = ${base}^{${p}} = ${val}$$\n$$x = ${val} + ${shift} = ${x}$$\nSakne pieder definīcijas apgabalam. Atbilde: $x = ${x}$.`,
-        solution_latex_en: `1) Domain:\n$$x - ${shift} > 0 \\implies x > ${shift}$$\n2) By logarithm definition:\n$$x - ${shift} = ${base}^{${p}} = ${val}$$\n$$x = ${x}$$\nAnswer: $x = ${x}$.`,
         grade: 11
       };
     },
@@ -312,14 +279,11 @@
       return {
         title_ru: 'Производная функции в точке',
         title_lv: 'Funkcijas atvasinājums punktā',
-        title_en: 'Derivative of a function at a point',
         condition_latex_ru: `Найдите значение производной функции $f(x) = ${a}x^2 - ${b}x + ${c}$ в точке $x_0 = ${x0}$.`,
         condition_latex_lv: `Aprēķiniet funkcijas $f(x) = ${a}x^2 - ${b}x + ${c}$ atvasinājuma vērtību punktā $x_0 = ${x0}$.`,
-        condition_latex_en: `Find the derivative of the function $f(x) = ${a}x^2 - ${b}x + ${c}$ at the point $x_0 = ${x0}$.`,
         answer_latex: `$f'(${x0}) = ${derivVal}$`,
         solution_latex_ru: `1) Найдём производную функции по правилам дифференцирования:\n$$f'(x) = (${a}x^2)' - (${b}x)' + (${c})' = 2 \\cdot ${a}x - ${b} = ${2*a}x - ${b}$$\n2) Вычислим значение производной в точке $x_0 = ${x0}$:\n$$f'(${x0}) = ${2*a} \\cdot ${x0} - ${b} = ${2*a*x0} - ${b} = ${derivVal}$$\nОтвет: $f'(${x0}) = ${derivVal}$.`,
         solution_latex_lv: `1) Atrodiet funkcijas atvasinājumu:\n$$f'(x) = (${a}x^2)' - (${b}x)' + (${c})' = ${2*a}x - ${b}$$\n2) Aprēķiniet atvasinājumu punktā $x_0 = ${x0}$:\n$$f'(${x0}) = ${2*a} \\cdot ${x0} - ${b} = ${derivVal}$$\nAtbilde: $f'(${x0}) = ${derivVal}$.`,
-        solution_latex_en: `1) Find the derivative:\n$$f'(x) = ${2*a}x - ${b}$$\n2) Evaluate at $x_0 = ${x0}$:\n$$f'(${x0}) = ${2*a}(${x0}) - ${b} = ${derivVal}$$\nAnswer: $f'(${x0}) = ${derivVal}$.`,
         grade: 12
       };
     }
@@ -397,9 +361,6 @@ ${customPrompt ? `Дополнительные математические тр
     const parsed = JSON.parse(cleanJson);
     return {
       ...parsed,
-      title_en: parsed.title_en || parsed.title_ru,
-      condition_latex_en: parsed.condition_latex_en || parsed.condition_latex_ru,
-      solution_latex_en: parsed.solution_latex_en || parsed.solution_latex_ru,
       grade: Number(grade) || 7,
       difficulty: difficulty || 'Средний'
     };
