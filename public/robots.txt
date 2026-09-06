@@ -3,5 +3,5 @@ Allow: /
 # Админка закрыта авторизацией, но в индексе ей делать нечего
 Disallow: /admin.html
 
-# Замените домен на свой после выкладки
-Sitemap: https://example.com/sitemap.xml
+# Карту сайта отдаёт воркер, она собирается из базы на каждый запрос
+Sitemap: https://mathtasks.unitutor.workers.dev/sitemap.xml
