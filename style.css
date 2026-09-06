@@ -851,3 +851,79 @@ body.dark .skola-preset-head strong{color:#edf2ff}
   .admin-filter-field{flex:1 1 100%}
   .admin-select-filter{flex:1 1 auto;width:100%}
 }
+
+/* Смайлик темы в боковом меню — подбирается по названию, своей колонки у тем нет. */
+.subnav-emoji{display:inline-block;width:1.15em;margin-right:6px;text-align:center;font-size:12px;line-height:1}
+
+/* ── Генератор задач: приведение к общей системе ──────────────────
+   Блок выбивался из остального интерфейса: сине-фиолетовые градиенты
+   на секции, бейдже и кнопке, подпрыгивание при наведении. Остальная
+   админка плоская и построена на --surface/--line и одном синем акценте.
+   Ниже — те же токены, сетка вместо флексов вразнобой и спокойный акцент. */
+.ai-generator-section{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:20px 22px;
+  margin-bottom:28px;
+  box-shadow:none;
+}
+.ai-generator-head{align-items:center;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.ai-generator-head h3{font-size:17px;font-weight:700}
+.ai-generator-head .admin-hint{margin:4px 0 0;max-width:64ch}
+.ai-badge{
+  background:#eef4ff;color:#1764ff;
+  font-weight:700;letter-spacing:.06em;padding:4px 10px;
+}
+body.dark .ai-badge{background:#1a2a4c;color:#5a92ff}
+
+/* Настройки: тот же светлый лист, что у прочих карточек админки. */
+.ai-settings-card{background:var(--ground);border-color:var(--line);border-radius:11px}
+
+/* Поля раскладываем сеткой: флексы с разными flex-basis давали
+   рваные строки на средних ширинах. */
+.ai-generator-form{display:flex;flex-direction:column;gap:14px}
+.ai-form-row{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;align-items:end}
+.ai-form-row .field-grade{grid-column:span 3}
+.ai-form-row .field-topic{grid-column:span 5}
+.ai-form-row .field-subtopic{grid-column:span 4}
+.ai-form-row .field-difficulty{grid-column:span 5}
+.ai-form-row .field-type{grid-column:span 4}
+.ai-form-row .field-count{grid-column:span 3}
+.ai-form-row.full-width label{grid-column:1 / -1}
+.ai-form-row label{min-width:0}
+.ai-form-row select,.ai-form-row input,.ai-form-row textarea{min-width:0}
+
+/* Действие: обычная акцентная кнопка проекта, без градиента и прыжка. */
+.ai-generator-actions{
+  margin-top:18px;padding-top:16px;border-top:1px solid var(--line);
+  justify-content:space-between;
+}
+.ai-primary-btn{
+  background:#1764ff!important;color:#fff!important;border:0!important;
+  box-shadow:none!important;height:40px;padding:0 20px;font:700 13px Manrope,sans-serif;
+}
+.ai-primary-btn:hover:not(:disabled){background:#1149d6!important;transform:none}
+.ai-primary-btn:disabled{opacity:.55;transform:none}
+.ai-gen-status{color:var(--muted);font-weight:600}
+.ai-gen-status.success{color:#007a49}
+.ai-gen-status.error{color:#cf2544}
+body.dark .ai-gen-status.success{color:#4ad699}
+body.dark .ai-gen-status.error{color:#ff7d92}
+
+/* Кнопки перевода — та же плоская манера, что и остальные. */
+.ai-translate-group{display:flex;gap:8px;flex-wrap:wrap}
+.ai-translate-btn{
+  background:#eef4ff;border-color:#c3d2ea;color:#1764ff;
+  transition:background .15s ease,border-color .15s ease;
+}
+.ai-translate-btn:hover:not(:disabled){background:#dfe9ff;border-color:#9fbdf0;transform:none;box-shadow:none}
+body.dark .ai-translate-btn{background:#1a2a4c;border-color:#2b3a58;color:#5a92ff}
+body.dark .ai-translate-btn:hover:not(:disabled){background:#22355e}
+
+@media(max-width:860px){
+  .ai-form-row{grid-template-columns:repeat(6,1fr)}
+  .ai-form-row .field-grade,.ai-form-row .field-topic,.ai-form-row .field-subtopic,
+  .ai-form-row .field-difficulty,.ai-form-row .field-type,.ai-form-row .field-count{grid-column:1 / -1}
+  .ai-generator-actions{flex-direction:column;align-items:stretch}
+}

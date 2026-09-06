@@ -57,7 +57,6 @@
             <button type="button" class="text-button" id="btn-batch-seed-topics" title="Импортировать все 81 тему Skola2030 прямо в базу Supabase">
               🚀 Загрузить все 81 тему в Supabase
             </button>
-            <span class="admin-status-badge published" id="skola-topics-seeded-badge" hidden>✓ Все 81 тема Skola2030 загружены в базу</span>
           </div>
           <div class="skola-preset-controls">
             <select id="skola-preset-grade" class="admin-select-filter">
@@ -260,9 +259,14 @@
               <button type="button" class="task-lang-tab active" data-task-lang="ru">🇷🇺 Русский (оригинал)</button>
               <button type="button" class="task-lang-tab" data-task-lang="lv">🇱🇻 Latviešu (Skola2030)</button>
             </div>
-            <button type="button" class="ai-translate-btn" id="btn-ai-translate" title="Перевести тему, условие и решение на латышский язык через AI с сохранением разметки KaTeX-формул">
-              <span class="ai-icon">✨</span> Автоперевод AI (LV)
-            </button>
+            <div class="ai-translate-group">
+              <button type="button" class="ai-translate-btn" id="btn-ai-translate" title="Перевести название, условие и решение с русского на латышский, сохранив разметку формул">
+                <span class="ai-icon">✨</span> Перевести RU → LV
+              </button>
+              <button type="button" class="ai-translate-btn" id="btn-ai-translate-back" title="Перевести название, условие и решение с латышского на русский, сохранив разметку формул">
+                <span class="ai-icon">✨</span> Перевести LV → RU
+              </button>
+            </div>
           </div>
 
           <!-- Общие параметры задачи -->

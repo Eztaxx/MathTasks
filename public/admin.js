@@ -44,7 +44,6 @@
   const btnUploadFileTasks = document.querySelector('#btn-upload-file-tasks');
   const bulkDialogPickFileBtn = document.querySelector('#bulk-dialog-pick-file-btn');
   const bulkDialogTemplateBtn = document.querySelector('#bulk-dialog-template-btn');
-  const skolaTopicsSeededBadge = document.querySelector('#skola-topics-seeded-badge');
   const aiGenCount = document.querySelector('#ai-gen-count');
 
   const btnToggleMathGuide = document.querySelector('#btn-toggle-math-guide');
@@ -382,38 +381,40 @@
       [/Ответ/i, 'Atbilde'],
       [/Решение/i, 'Atrisinājums']
     ],
-    en: [
-      [/^Решите уравнение/i, 'Solve the equation'],
-      [/^Решить уравнение/i, 'Solve the equation'],
-      [/^Вычислите значение/i, 'Calculate the value of the expression'],
-      [/^Вычислите/i, 'Calculate'],
-      [/^Вычислить/i, 'Calculate'],
-      [/^Упростите выражение/i, 'Simplify the expression'],
-      [/^Упростить выражение/i, 'Simplify the expression'],
-      [/^Упростите/i, 'Simplify'],
-      [/^Найдите корни уравнения/i, 'Find the roots of the equation'],
-      [/^Найдите корень/i, 'Find the root'],
-      [/^Найдите/i, 'Find'],
-      [/^Найти/i, 'Find'],
-      [/Раскроем скобки/i, 'Expand the brackets'],
-      [/Перенесём слагаемые/i, 'Group the terms'],
-      [/Проверка/i, 'Check'],
-      [/Дискриминант/i, 'Discriminant'],
-      [/значит/i, 'thus'],
-      [/Следовательно/i, 'Therefore'],
-      [/Ответ/i, 'Answer'],
-      [/Решение/i, 'Solution']
+    ru: [
+      [/^Atrisiniet vienādojumu/i, 'Решите уравнение'],
+      [/^Atrisināt vienādojumu/i, 'Решить уравнение'],
+      [/^Aprēķiniet izteiksmes vērtību/i, 'Вычислите значение выражения'],
+      [/^Aprēķiniet/i, 'Вычислите'],
+      [/^Aprēķināt/i, 'Вычислить'],
+      [/^Vienkāršojiet izteiksmi/i, 'Упростите выражение'],
+      [/^Vienkāršojiet/i, 'Упростите'],
+      [/^Atrodiet vienādojuma saknes/i, 'Найдите корни уравнения'],
+      [/^Atrodiet sakni/i, 'Найдите корень'],
+      [/^Atrodiet/i, 'Найдите'],
+      [/^Atrast/i, 'Найти'],
+      [/Atveriet iekavas/i, 'Раскроем скобки'],
+      [/Pārnesiet saskaitāmos/i, 'Перенесём слагаемые'],
+      [/Pārbaude/i, 'Проверка'],
+      [/Diskriminants/i, 'Дискриминант'],
+      [/Vienādība ir patiesa/i, 'Равенство верное'],
+      [/tātad/i, 'значит'],
+      [/Atbilde/i, 'Ответ'],
+      [/Atrisinājums/i, 'Решение']
     ]
   };
 
+  /* Перевод работает в обе стороны: раньше пара языков была зашита как ru|lv,
+     и заполнить русские поля по латышским было нечем. */
   async function translateTextWithLatex(text, targetLang = 'lv') {
     if (!text || !text.trim()) return '';
+    const sourceLang = targetLang === 'ru' ? 'lv' : 'ru';
     const { maskedText, tokens } = window.MathTasksLib.maskLatexForTranslation(text);
     if (!maskedText.trim()) return '';
 
     let translated = '';
     try {
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(maskedText)}&langpair=ru|${targetLang}`;
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(maskedText)}&langpair=${sourceLang}|${targetLang}`;
       const res = await fetch(url);
       if (res.ok) {
         const json = await res.json();
@@ -436,43 +437,50 @@
     return window.MathTasksLib.unmaskLatexAfterTranslation(translated, tokens);
   }
 
-  const btnAiTranslate = document.querySelector('#btn-ai-translate');
-  if (btnAiTranslate) {
-    btnAiTranslate.addEventListener('click', async () => {
-      const titleRu = taskForm.elements.title.value.trim();
-      const condRu = conditionInput.value.trim();
-      const solRu = solutionInput.value.trim();
+  /* Одна процедура на оба направления: раньше перевод был только RU → LV,
+     и заполнить русские поля по латышским было нечем. */
+  async function runTranslation(button, direction) {
+    const toLv = direction === 'ru2lv';
+    const fields = toLv
+      ? [[taskForm.elements.title, taskForm.elements.title_lv],
+         [conditionInput, conditionInputLv],
+         [solutionInput, solutionInputLv]]
+      : [[taskForm.elements.title_lv, taskForm.elements.title],
+         [conditionInputLv, conditionInput],
+         [solutionInputLv, solutionInput]];
 
-      if (!titleRu && !condRu) {
-        alert('Сначала заполните Название или Условие задачи на русском языке!');
-        return;
-      }
+    const [titleField, conditionField] = [fields[0][0], fields[1][0]];
+    if (!titleField?.value.trim() && !conditionField?.value.trim()) {
+      taskSuccess.textContent = toLv
+        ? 'Сначала заполните название или условие на русском.'
+        : 'Сначала заполните название или условие на латышском.';
+      return;
+    }
 
-      btnAiTranslate.disabled = true;
-      btnAiTranslate.innerHTML = '<span>⏳</span> Выполняется AI-перевод…';
-
-      try {
-        const [titleLv, condLv, solLv] = await Promise.all([
-          translateTextWithLatex(titleRu, 'lv'),
-          translateTextWithLatex(condRu, 'lv'),
-          translateTextWithLatex(solRu, 'lv')
-        ]);
-
-        if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = titleLv;
-        if (conditionInputLv) conditionInputLv.value = condLv;
-        if (solutionInputLv) solutionInputLv.value = solLv;
-
-        updatePreviews();
-        taskSuccess.textContent = '✨ Перевод на латышский сгенерирован! Проверьте вкладку LV.';
-        setTimeout(() => { if (taskSuccess.textContent.startsWith('✨')) taskSuccess.textContent = ''; }, 6000);
-      } catch (err) {
-        alert('Ошибка при переводе: ' + err.message);
-      } finally {
-        btnAiTranslate.disabled = false;
-        btnAiTranslate.innerHTML = '<span class="ai-icon">✨</span> Автоперевод AI (LV)';
-      }
-    });
+    const label = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<span class="ai-icon">⏳</span> Переводим…';
+    try {
+      const target = toLv ? 'lv' : 'ru';
+      const results = await Promise.all(fields.map(([from]) => translateTextWithLatex(from?.value.trim() || '', target)));
+      fields.forEach(([, to], i) => { if (to) to.value = results[i]; });
+      updatePreviews();
+      taskSuccess.textContent = toLv
+        ? '✨ Перевод на латышский готов — проверьте вкладку LV.'
+        : '✨ Перевод на русский готов — проверьте вкладку RU.';
+      setTimeout(() => { if (taskSuccess.textContent.startsWith('✨')) taskSuccess.textContent = ''; }, 6000);
+    } catch (err) {
+      taskSuccess.textContent = 'Ошибка при переводе: ' + err.message;
+    } finally {
+      button.disabled = false;
+      button.innerHTML = label;
+    }
   }
+
+  document.querySelector('#btn-ai-translate')
+    ?.addEventListener('click', event => runTranslation(event.currentTarget, 'ru2lv'));
+  document.querySelector('#btn-ai-translate-back')
+    ?.addEventListener('click', event => runTranslation(event.currentTarget, 'lv2ru'));
 
   /* ── Чертежи ──────────────────────────────────────────────────────
      Файл уходит в хранилище сразу при выборе, чтобы админ увидел его до
@@ -1532,13 +1540,9 @@
   function checkSkolaTopicsSeeded() {
     if (!btnBatchSeedTopics) return;
     const isSeeded = topics.length >= 81 || (skola2030Catalog.length > 0 && skola2030Catalog.every(ct => topics.some(t => t.slug === ct.slug || t.title.toLowerCase() === ct.title_ru.toLowerCase())));
-    if (isSeeded) {
-      btnBatchSeedTopics.hidden = true;
-      if (skolaTopicsSeededBadge) skolaTopicsSeededBadge.hidden = false;
-    } else {
-      btnBatchSeedTopics.hidden = false;
-      if (skolaTopicsSeededBadge) skolaTopicsSeededBadge.hidden = true;
-    }
+    // Кнопку загрузки прячем, когда всё уже залито; отдельной плашки об этом
+    // не показываем — она только занимала место в шапке блока.
+    btnBatchSeedTopics.hidden = isSeeded;
   }
 
   function setupSkolaPresetControls() {

@@ -259,7 +259,8 @@ function renderTopicSidebar(topic) {
     if (!sTopics.length) return '';
     const links = sTopics.map(t => {
       const isCurrent = t.id === topic.id;
-      return `<a class="${isCurrent ? 'active' : ''}" href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(loc(t, 'title'))}</a>`;
+      const emoji = window.MathTasksLib.topicEmoji(loc(t, 'title'), subj.slug);
+      return `<a class="${isCurrent ? 'active' : ''}" href="/topic/${encodeURIComponent(t.slug)}"><span class="subnav-emoji" aria-hidden="true">${emoji}</span>${escapeHtml(loc(t, 'title'))}</a>`;
     }).join('');
     const sTitle = loc(subj, 'title');
     return `<section class="nav-group open" data-subject="${subj.id}">
@@ -268,7 +269,7 @@ function renderTopicSidebar(topic) {
     </section>`;
   }).filter(Boolean).join('');
 
-  sidebarNav.innerHTML = backBtn + banner + heading + (groups || `<p class="subnav-empty">Других тем в этом курсе пока нет.</p>`);
+  sidebarNav.innerHTML = backBtn + banner + heading + (groups || `<p class="subnav-empty">${(window.MathTasks.t || (k => k))('course_no_topics_yet')}</p>`);
   markActiveNav(topic.slug);
 }
 
@@ -298,14 +299,14 @@ function renderClassSidebar(grade) {
   const groups = subjects.map((subj, index) => {
     const sTopics = gradeTopics.filter(t => t.subject_id === subj.id);
     if (!sTopics.length) return '';
-    const links = sTopics.map(t => `<a href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(t.title)}</a>`).join('');
+    const links = sTopics.map(t => `<a href="/topic/${encodeURIComponent(t.slug)}"><span class="subnav-emoji" aria-hidden="true">${window.MathTasksLib.topicEmoji(loc(t, 'title'), subj.slug)}</span>${escapeHtml(loc(t, 'title'))}</a>`).join('');
     return `<section class="nav-group open" data-subject="${subj.id}">
       <button class="group-title" title="${escapeHtml(subj.title)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subj.icon)}</span><span class="label">${escapeHtml(subj.title)}</span><span class="chevron">⌃</span></button>
       <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">Все темы раздела</a>${links}</div>
     </section>`;
   }).filter(Boolean).join('');
 
-  sidebarNav.innerHTML = backBtn + banner + heading + (groups || `<p class="subnav-empty">Тем в этом курсе пока нет.</p>`);
+  sidebarNav.innerHTML = backBtn + banner + heading + (groups || `<p class="subnav-empty">${(window.MathTasks.t || (k => k))('course_no_topics_yet')}</p>`);
   markActiveNav();
 }
 
@@ -543,13 +544,13 @@ function toggleFavorite(taskId) {
   document.querySelectorAll(`[data-fav-id="${id}"]`).forEach(btn => {
     const active = favs.includes(id);
     btn.classList.toggle('active', active);
-    btn.textContent = active ? '★ В закладках' : '☆ В закладки';
+    btn.textContent = active ? (window.MathTasks.t || (k => k))('fav_added') : (window.MathTasks.t || (k => k))('fav_add');
     btn.title = active ? 'В закладках' : 'Добавить в закладки';
   });
 
   const counter = document.querySelector('#fav-count-text');
   if (counter) {
-    counter.textContent = favs.length ? `${favs.length} сохранённых` : 'Пока пусто';
+    counter.textContent = favs.length ? (window.MathTasks.t || (k => k))('fav_counter', { count: favs.length }) : (window.MathTasks.t || (k => k))('fav_empty_short');
   }
 }
 
@@ -914,7 +915,7 @@ function topicCard(topic, index, showGrade) {
   const topicDesc = loc(topic, 'description');
 
   return `<a class="topic-card" href="/topic/${encodeURIComponent(topic.slug)}">
-    <div class="topic-icon ${topicClass(index)}">${escapeHtml(subject?.icon || 'x²')}</div>
+    <div class="topic-icon ${topicClass(index)}">${escapeHtml(window.MathTasksLib.topicEmoji(loc(topic, 'title'), subject?.slug))}</div>
     <div class="topic-card-content">
       <h3>${escapeHtml(topicTitle)}</h3>
       <p>${escapeHtml(topicDesc || '')}</p>
@@ -1034,13 +1035,13 @@ function showSubject(slug) {
   resetListBlocks();
   const subject = subjects.find(item => item.slug === slug);
   if (!subject) {
-    fillListHeader({ crumbs: [['Главная', '/']], title: 'Раздел не найден', description: 'Возможно, его удалили или ссылка устарела.' });
+    fillListHeader({ crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/']], title: 'Раздел не найден', description: 'Возможно, его удалили или ссылка устарела.' });
     setMeta('Раздел не найден');
     return;
   }
   const topics = topicsForGrade(allTopics.filter(topic => topic.subject_id === subject.id));
   fillListHeader({
-    crumbs: [['Главная', '/'], gradeCrumb(), [loc(subject, 'title'), null]],
+    crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/'], gradeCrumb(), [loc(subject, 'title'), null]],
     title: loc(subject, 'title'),
     description: selectedGrade ? `Темы раздела в ${selectedGrade} классе.` : 'Все темы раздела.',
     meta: `<span class="search-count">Тем: ${topics.length}</span>`
@@ -1048,7 +1049,7 @@ function showSubject(slug) {
   setMeta(selectedGrade ? `${loc(subject, 'title')}, ${gradeLabel(selectedGrade)}` : loc(subject, 'title'),
     `Темы раздела «${subject.title}»${selectedGrade ? ` за ${gradeLabel(selectedGrade)}` : ''} с задачами и решениями.`);
   if (topics.length) renderTopicCards(listTopics, topics);
-  else listTasks.innerHTML = `<p class="empty-state">${selectedGrade ? `В ${selectedGrade} классе тем этого раздела нет.` : 'Тем в этом разделе пока нет.'}</p>`;
+  else listTasks.innerHTML = `<p class="empty-state">${selectedGrade ? (window.MathTasks.t || (k => k))('subject_no_topics', { grade: selectedGrade }) : (window.MathTasks.t || (k => k))('course_no_topics_yet')}</p>`;
 }
 
 /* ── Якоря и печать внутри темы ───────────────────────────────────── */
@@ -1059,7 +1060,7 @@ function renderTopicAnchors(tasks) {
   const enough = tasks.length >= 3;
   listAnchors.hidden = !enough;
   if (!enough) { listAnchors.innerHTML = ''; return; }
-  listAnchors.innerHTML = '<span class="topic-anchors-label">К задаче:</span>' + tasks
+  listAnchors.innerHTML = `<span class="topic-anchors-label">${(window.MathTasks.t || (k => k))('anchors_label')}</span>` + tasks
     .map((task, index) => `<a class="topic-anchor" href="#task-${task.id}" title="${escapeHtml(task.title)}">${index + 1}</a>`)
     .join('');
 }
@@ -1163,7 +1164,7 @@ async function showTopic(slug) {
   const topic = allTopics.find(item => item.slug === slug);
   if (!topic) {
     currentActiveTopic = null;
-    fillListHeader({ crumbs: [['Главная', '/']], title: 'Тема не найдена', description: 'Возможно, её удалили или ссылка устарела.' });
+    fillListHeader({ crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/']], title: 'Тема не найдена', description: 'Возможно, её удалили или ссылка устарела.' });
     setMeta('Тема не найдена');
     renderSidebar();
     return;
@@ -1181,7 +1182,7 @@ async function showTopic(slug) {
   const topicDesc = loc(topic, 'description');
   const subjectTitle = loc(subject, 'title');
 
-  const crumbs = [['Главная', '/']];
+  const crumbs = [[(window.MathTasks.t || (k => k))('nav_home'), '/']];
   if (topic.grade) crumbs.push([gradeLabel(topic.grade), `/grade/${topic.grade}`]);
   if (subject) crumbs.push([subjectTitle, `/subject/${encodeURIComponent(subject.slug)}`]);
   crumbs.push([topicTitle, null]);
@@ -1194,12 +1195,12 @@ async function showTopic(slug) {
   });
   setMeta(topic.grade ? `${topicTitle}, ${gradeLabel(topic.grade)}` : topicTitle,
     topicDesc || `Задачи по теме «${topicTitle}» с условиями, ответами и разбором решений.`);
-  listTasks.innerHTML = '<p class="empty-state">Загружаем задачи…</p>';
+  listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_loading_tasks')}</p>`;
   // Внутри темы порядок задаёт админ полем «порядок»; при равных значениях — по дате.
   const { data, error } = await db.from('tasks').select(TASK_SELECT)
     .eq('is_published', true).eq('topic_id', topic.id)
     .order('position').order('created_at', { ascending: true });
-  if (error) { listTasks.innerHTML = '<p class="empty-state">Не удалось загрузить задачи.</p>'; return; }
+  if (error) { listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('err_load_tasks')}</p>`; return; }
   // Название темы в карточке здесь лишнее — мы уже внутри неё.
   // Внутри одной темы задачи могут быть для разных параллелей — класс показываем всегда.
   const tasks = data || [];
@@ -1233,14 +1234,14 @@ async function showAllTasks() {
   showView('list');
   resetListBlocks();
   fillListHeader({
-    crumbs: [['Главная', '/'], gradeCrumb(), ['Все задачи', null]],
+    crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/'], gradeCrumb(), ['Все задачи', null]],
     title: selectedGrade ? `Все задачи — ${gradeLabel(selectedGrade)}` : 'Все задачи'
   });
   setMeta(selectedGrade ? `Все задачи, ${gradeLabel(selectedGrade)}` : 'Все задачи',
     'Полный список задач с разбором решений.');
   renderSidebar();
 
-  listTasks.innerHTML = '<p class="empty-state">Загружаем задачи…</p>';
+  listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_loading_tasks')}</p>`;
   let query = db.from('tasks').select(TASK_SELECT).eq('is_published', true).order('created_at', { ascending: false }).limit(200);
   if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) {
     query = query.in('grade', [10, 11]);
@@ -1250,7 +1251,7 @@ async function showAllTasks() {
     query = query.eq('grade', Number(selectedGrade));
   }
   const { data, error } = await query;
-  if (error) { listTasks.innerHTML = '<p class="empty-state">Не удалось загрузить задачи.</p>'; return; }
+  if (error) { listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('err_load_tasks')}</p>`; return; }
   renderTaskList(listTasks, data || [], 'Задач пока нет.');
 }
 
@@ -1259,7 +1260,7 @@ async function showFavorites() {
   resetListBlocks();
   const favIds = getFavorites();
   fillListHeader({
-    crumbs: [['Главная', '/'], ['Мои закладки', null]],
+    crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/'], ['Мои закладки', null]],
     title: 'Мои закладки',
     description: 'Задачи, которые вы сохранили для повторения или разбора.',
     meta: `<span class="search-count">Сохранено: ${favIds.length}</span>`
@@ -1267,16 +1268,16 @@ async function showFavorites() {
   setMeta('Мои закладки', 'Сохранённые задачи по математике для повторения.');
 
   if (!favIds.length) {
-    listTasks.innerHTML = '<p class="empty-state">У вас пока нет сохранённых задач. Нажмите «☆ В закладки» на любой задаче, чтобы сохранить её здесь.</p>';
+    listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('fav_empty_hint')}</p>`;
     return;
   }
 
-  listTasks.innerHTML = '<p class="empty-state">Загружаем закладки…</p>';
+  listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_loading_favorites')}</p>`;
   const { data, error } = await db.from('tasks').select(TASK_SELECT)
     .eq('is_published', true).in('id', favIds).order('id', { ascending: false });
 
   if (error || !data || !data.length) {
-    listTasks.innerHTML = '<p class="empty-state">Не удалось загрузить задачи из закладок.</p>';
+    listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('err_load_favorites')}</p>`;
     return;
   }
 
@@ -1297,7 +1298,7 @@ async function showSearch(rawQuery, acrossGrades) {
   if (searchInput.value !== query) searchInput.value = query;
 
   const scoped = selectedGrade && !acrossGrades;
-  const crumbs = [['Главная', '/'], ['Поиск', null]];
+  const crumbs = [[(window.MathTasks.t || (k => k))('nav_home'), '/'], ['Поиск', null]];
 
   if (query.length < 2) {
     fillListHeader({ crumbs, title: 'Поиск', description: 'Введите хотя бы два символа.' });
@@ -1312,7 +1313,7 @@ async function showSearch(rawQuery, acrossGrades) {
   setMeta(`Поиск: ${query}`, `Результаты поиска по задачам: ${query}.`);
   // Ищем во всех классах — значит, у каждого результата видно, к какому классу он относится.
   renderTopicCards(listTopics, foundTopics, !scoped);
-  listTasks.innerHTML = '<p class="empty-state">Ищем…</p>';
+  listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_searching')}</p>`;
 
   const safe = sanitize(query);
   let request = db.from('tasks').select(TASK_SELECT).eq('is_published', true);
@@ -1321,18 +1322,18 @@ async function showSearch(rawQuery, acrossGrades) {
   const { data, error } = await request.order('created_at', { ascending: false }).limit(100);
   if (error) {
     console.warn('Поиск не удался.', error);
-    listTasks.innerHTML = '<p class="empty-state">Не удалось выполнить поиск.</p>';
+    listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('err_search')}</p>`;
     return;
   }
 
   const tasks = data || [];
   const counts = [foundTopics.length ? `тем: ${foundTopics.length}` : '', `задач: ${tasks.length}`].filter(Boolean).join(', ');
-  const where = scoped ? `в ${selectedGrade} классе` : 'во всех классах';
+  const where = scoped ? (window.MathTasks.t || (k => k))('search_scope_grade', { grade: selectedGrade }) : (window.MathTasks.t || (k => k))('search_scope_all');
   // Из класса всегда есть выход: иначе человек решит, что задачи просто нет.
   const escape = scoped
     ? `<a class="search-escape" href="/search?q=${encodeURIComponent(query)}&all=1">Искать во всех классах →</a>`
     : '';
-  document.querySelector('#list-meta').innerHTML = `<span class="search-count">Найдено ${where} — ${counts}</span>${escape}`;
+  document.querySelector('#list-meta').innerHTML = `<span class="search-count">${(window.MathTasks.t || (k => k))('search_found', { where, counts })}</span>${escape}`;
 
   renderTaskList(listTasks, tasks, foundTopics.length
     ? 'Задач с таким текстом нет, но есть подходящие темы выше.'
@@ -1389,13 +1390,13 @@ async function showTask(rawId) {
   resetListBlocks();
   const id = Number.parseInt(rawId, 10);
   const notFound = () => fillListHeader({
-    crumbs: [['Главная', '/']],
+    crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/']],
     title: 'Задача не найдена',
     description: 'Возможно, её удалили или ссылка устарела.'
   });
   if (!Number.isFinite(id)) { notFound(); setMeta('Задача не найдена'); return; }
 
-  listTasks.innerHTML = '<p class="empty-state">Загружаем задачу…</p>';
+  listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_loading_task')}</p>`;
   const { data, error } = await db.from('tasks').select(TASK_SELECT)
     .eq('is_published', true).eq('id', id).limit(1);
   const task = data?.[0];
@@ -1414,7 +1415,7 @@ async function showTask(rawId) {
   const topicTitle = loc(topic, 'title');
   const subjectTitle = loc(subject, 'title');
 
-  const crumbs = [['Главная', '/']];
+  const crumbs = [[(window.MathTasks.t || (k => k))('nav_home'), '/']];
   if (grade) crumbs.push([gradeLabel(grade), `/grade/${grade}`]);
   if (subject) crumbs.push([subjectTitle, `/subject/${encodeURIComponent(subject.slug)}`]);
   if (topic) crumbs.push([topicTitle, `/topic/${encodeURIComponent(topic.slug)}`]);
@@ -1451,7 +1452,7 @@ async function renderTaskNeighbours(task) {
   nav.id = 'task-nav';
   nav.className = 'task-nav';
   nav.setAttribute('aria-label', 'Соседние задачи темы');
-  nav.innerHTML = link(siblings[index - 1], '← Предыдущая', 'prev') + link(siblings[index + 1], 'Следующая →', 'next');
+  nav.innerHTML = link(siblings[index - 1], (window.MathTasks.t || (k => k))('nav_prev_task'), 'prev') + link(siblings[index + 1], (window.MathTasks.t || (k => k))('nav_next_task'), 'next');
   if (nav.innerHTML) listTasks.after(nav);
 }
 
@@ -1699,7 +1700,7 @@ function drawFunctionPlot() {
   const infoRoots = document.querySelector('#plotter-roots');
 
   if (!fn) {
-    if (infoRoots) infoRoots.textContent = 'Ошибка в формуле: используйте x, цифры, +, -, *, /, ^, sin, cos, sqrt';
+    if (infoRoots) infoRoots.textContent = (window.MathTasks.t || (k => k))('plot_formula_error');
     return;
   }
 
@@ -1782,9 +1783,9 @@ function drawFunctionPlot() {
   if (infoRoots) {
     if (roots.length) {
       const rootStrs = roots.slice(0, 4).map(r => r.toFixed(2)).join(', ');
-      infoRoots.innerHTML = `Точки пересечения с осью X (нули): <strong>x ≈ ${rootStrs}</strong>`;
+      infoRoots.innerHTML = `${(window.MathTasks.t || (k => k))('plot_roots')}<strong>x ≈ ${rootStrs}</strong>`;
     } else {
-      infoRoots.textContent = 'Действительных нулей функции в текущей области не найдено.';
+      infoRoots.textContent = (window.MathTasks.t || (k => k))('plot_no_roots');
     }
   }
 }
@@ -1909,7 +1910,7 @@ document.addEventListener('click', event => {
         const label = copyLinkBtn.querySelector('span');
         const origText = label ? label.textContent : '';
         copyLinkBtn.classList.add('copied');
-        if (label) label.textContent = 'Скопировано!';
+        if (label) label.textContent = (window.MathTasks.t || (k => k))('copied');
         setTimeout(() => {
           copyLinkBtn.classList.remove('copied');
           if (label) label.textContent = origText;
@@ -1953,7 +1954,7 @@ document.addEventListener('click', event => {
         const label = copyTextBtn.querySelector('span');
         const origText = label ? label.textContent : '';
         copyTextBtn.classList.add('copied');
-        if (label) label.textContent = 'Скопировано!';
+        if (label) label.textContent = (window.MathTasks.t || (k => k))('copied');
         setTimeout(() => {
           copyTextBtn.classList.remove('copied');
           if (label) label.textContent = origText;
@@ -2250,7 +2251,7 @@ async function refreshSession() {
   /* Регистрации для учеников нет, и делать им в аккаунте пока нечего,
      поэтому «Личный кабинет» из интерфейса убран. Вошедший без прав всё же
      видит диалог — иначе ему нечем было бы выйти. */
-  accountButton.textContent = user ? (isAdmin ? 'Админ-панель' : 'Аккаунт') : 'Войти';
+  accountButton.textContent = user ? (isAdmin ? (window.MathTasks.t || (k => k))('account_admin') : (window.MathTasks.t || (k => k))('account_plain')) : (window.MathTasks.t || (k => k))('account_signin');
   accountEmail.textContent = user?.email || '';
   accountStatus.textContent = !user ? ''
     : isAdmin ? 'Вы вошли как администратор. Панель управления на отдельной странице.'

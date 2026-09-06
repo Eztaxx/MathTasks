@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import i18n from '../public/i18n.js';
 import {
+  topicEmoji,
   makeSlug,
   sanitizeSearch,
   KATEX_DELIMITERS,
@@ -404,3 +405,37 @@ describe('Grade Name Resilience (Защита от вывода техничес
 
 
 
+
+describe('topicEmoji — значок темы по названию', () => {
+  it('узнаёт математическую тему по ключевому слову', () => {
+    expect(topicEmoji('Как сравнивают, складывают и вычитают дроби', 'algebra')).toBe('🍕');
+    expect(topicEmoji('Множества и классическая вероятность', 'statistics')).toBe('🎲');
+    expect(topicEmoji('Смежные и вертикальные углы', 'geometry')).toBe('📐');
+    expect(topicEmoji('Линейные уравнения с одной переменной', 'algebra')).toBe('🟰');
+    expect(topicEmoji('Как записывают и исследуют функции', 'algebra')).toBe('📈');
+    expect(topicEmoji('Свойства степеней с натуральным показателем', 'algebra')).toBe('🔣');
+  });
+
+  it('не путает алгебраическое моделирование с объёмными телами', () => {
+    expect(topicEmoji('Линейные уравнения и алгебраическое моделирование', 'algebra')).toBe('🟰');
+    expect(topicEmoji('Как создают пространственные модели', 'geometry')).toBe('🧊');
+  });
+
+  it('более частное правило важнее общего', () => {
+    // «неравенства» не должны попасть под правило «уравнения»
+    expect(topicEmoji('Линейные неравенства', 'algebra')).toBe('⚖️');
+    // «треугольник» важнее общего «фигуры»
+    expect(topicEmoji('Фигуры: признаки треугольника', 'geometry')).toBe('🔺');
+  });
+
+  it('без совпадений берёт значок раздела', () => {
+    expect(topicEmoji('Абракадабра', 'algebra')).toBe('🔢');
+    expect(topicEmoji('Абракадабра', 'geometry')).toBe('📐');
+    expect(topicEmoji('Абракадабра', 'statistics')).toBe('📊');
+  });
+
+  it('устойчив к пустому названию и неизвестному разделу', () => {
+    expect(topicEmoji('', 'unknown')).toBe('📘');
+    expect(topicEmoji(null, null)).toBe('📘');
+  });
+});
