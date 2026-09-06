@@ -299,7 +299,7 @@ function renderTopicSidebar(topic) {
   // Кнопка возврата к общему списку / экзаменам
   const backBtn = `<a class="sidebar-back-button" href="${backHref}" title="Вернуться к экзаменам и каталогу">
     <span class="back-icon">←</span>
-    <span class="label">${escapeHtml(tr('all_exams_tracks'))}</span>
+    <span class="label">${escapeHtml((window.MathTasks.t || (k => k))('all_exams_tracks'))}</span>
   </a>`;
 
   const topicTitle = loc(topic, 'title');
@@ -331,7 +331,7 @@ function renderTopicSidebar(topic) {
     const sTitle = loc(subj, 'title');
     return `<section class="nav-group open" data-subject="${subj.id}">
       <button class="group-title" title="${escapeHtml(sTitle)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(sTitle)}</span><span class="chevron">⌃</span></button>
-      <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">${escapeHtml(tr('subject_all_topics'))}</a>${links}</div>
+      <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">${escapeHtml((window.MathTasks.t || (k => k))('subject_all_topics'))}</a>${links}</div>
     </section>`;
   }).filter(Boolean).join('');
 
@@ -345,7 +345,7 @@ function renderClassSidebar(grade) {
 
   const backBtn = `<a class="sidebar-back-button" href="${backHref}" title="Вернуться к экзаменам и каталогу">
     <span class="back-icon">←</span>
-    <span class="label">${escapeHtml(tr('all_exams_tracks'))}</span>
+    <span class="label">${escapeHtml((window.MathTasks.t || (k => k))('all_exams_tracks'))}</span>
   </a>`;
 
   const banner = `<div class="sidebar-topic-banner">
@@ -368,7 +368,7 @@ function renderClassSidebar(grade) {
     const links = sTopics.map(t => `<a href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(loc(t, 'title'))}</a>`).join('');
     return `<section class="nav-group open" data-subject="${subj.id}">
       <button class="group-title" title="${escapeHtml(subj.title)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(subj.title)}</span><span class="chevron">⌃</span></button>
-      <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">${escapeHtml(tr('subject_all_topics'))}</a>${links}</div>
+      <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">${escapeHtml((window.MathTasks.t || (k => k))('subject_all_topics'))}</a>${links}</div>
     </section>`;
   }).filter(Boolean).join('');
 
