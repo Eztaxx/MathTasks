@@ -31,9 +31,16 @@
         </div>
       </div>
 
-      <div class="admin-section">
-        <h3 id="subject-form-title">Добавить раздел</h3>
-        <p class="admin-hint">Разделы — верхний уровень меню: Алгебра, Геометрия, Тригонометрия и любые другие.</p>
+      <div class="admin-section" id="section-subjects">
+        <div class="admin-feature-head">
+          <div class="admin-feature-badge-title">
+            <span class="admin-feature-icon">📁</span>
+            <div>
+              <h3 class="admin-feature-title" id="subject-form-title">Разделы математики</h3>
+              <p class="admin-feature-desc">Верхний уровень каталога и бокового меню: Алгебра, Геометрия, Анализ и др.</p>
+            </div>
+          </div>
+        </div>
         <form class="topic-form" id="subject-form">
           <label>Название<input name="title" required placeholder="Например: Тригонометрия" /></label>
           <label>Nosaukums (LV)<input name="title_lv" id="subject-title-lv" placeholder="Piemēram: Trigonometrija" /></label>
@@ -46,9 +53,16 @@
         <div class="admin-list" id="subject-list"></div>
       </div>
 
-      <div class="admin-section">
-        <h3 id="topic-form-title">Добавить тему</h3>
-        <p class="admin-hint">Тема — подкатегория внутри раздела. Именно темы видны в боковом меню сайта.</p>
+      <div class="admin-section" id="section-topics">
+        <div class="admin-feature-head">
+          <div class="admin-feature-badge-title">
+            <span class="admin-feature-icon">📚</span>
+            <div>
+              <h3 class="admin-feature-title" id="topic-form-title">Темы и программа Skola2030</h3>
+              <p class="admin-feature-desc">Темы внутри разделов, готовый каталог 81 темы стандартов Латвии, список и сортировка.</p>
+            </div>
+          </div>
+        </div>
         
         <!-- Помощник выбора темы из стандарта Skola2030 -->
         <div class="skola-preset-box">
@@ -115,19 +129,24 @@
           <p>Список тем не загружается сразу — так панель открывается быстрее.</p>
           <button class="secondary-button" type="button" id="btn-load-topics">Показать темы</button>
         </div>
+        <div class="admin-list-close admin-list-close-top" id="topic-list-close" hidden>
+          <button class="text-button" type="button" id="btn-hide-topics">▲ Свернуть список тем</button>
+        </div>
         <div class="admin-list" id="topic-list" hidden></div>
-        <div class="admin-list-close" id="topic-list-close" hidden>
-          <button class="text-button" type="button" id="btn-hide-topics">Свернуть список тем</button>
+        <div class="admin-list-close admin-list-close-bottom" id="topic-list-close-bottom" hidden>
+          <button class="text-button" type="button" id="btn-hide-topics-bottom">▲ Свернуть список тем</button>
         </div>
       </div>
 
       <!-- 🤖 AI Генератор задач Skola2030 -->
       <div class="admin-section ai-generator-section" id="ai-generator-section">
-        <div class="ai-generator-head">
-          <div>
-            <span class="ai-badge">🤖 AI & Skola2030</span>
-            <h3>Генератор математических задач</h3>
-            <p class="admin-hint">Генерация задач строго по стандартам Skola2030 с формулами KaTeX, ответом и пошаговым разбором на латышском и русском языках.</p>
+        <div class="admin-feature-head">
+          <div class="admin-feature-badge-title">
+            <span class="admin-feature-icon">🤖</span>
+            <div>
+              <h3 class="admin-feature-title">Генератор математических задач</h3>
+              <p class="admin-feature-desc">Автоматическое составление задач строго по стандартам Skola2030 с формулами KaTeX, ответом и пошаговым разбором.</p>
+            </div>
           </div>
           <button type="button" class="text-button" id="btn-toggle-ai-settings" title="Настройки API">⚙️ Настройки AI</button>
         </div>
@@ -188,16 +207,55 @@
             </label>
           </div>
 
-          <div class="ai-form-row full-width">
-            <label>Контекст и сюжет задачи <span>жизненная ситуация, сюжет или практическое применение</span>
-              <textarea id="ai-gen-context" rows="2" placeholder="Например: Покупка билетов на концерт в Риге со скидкой; Движение двух поездов Рига–Валмиера; Расчёт стройматериалов для ремонта"></textarea>
-            </label>
+          <!-- Тонкая настройка сюжета и математических требований к генерации -->
+          <div class="ai-custom-card">
+            <div class="ai-custom-card-head">
+              <div class="ai-custom-title-wrap">
+                <span class="ai-custom-icon">🎭</span>
+                <div>
+                  <span class="ai-custom-title">Контекст и сюжет задачи</span>
+                  <span class="ai-custom-hint">Жизненная ситуация, сюжет или латвийский практический контекст</span>
+                </div>
+              </div>
+              <button type="button" class="ai-field-clear-btn" data-target="ai-gen-context" title="Очистить сюжет">Очистить</button>
+            </div>
+            <textarea id="ai-gen-context" class="ai-custom-input ai-custom-textarea" rows="2" placeholder="Например: Покупка билетов на концерт в Риге со скидкой; Движение двух поездов Рига–Валмиера; Расчёт стройматериалов для ремонта"></textarea>
+            <div class="ai-preset-chips-wrap">
+              <span class="ai-preset-caption">Быстрые сюжеты:</span>
+              <div class="ai-preset-chips" data-target="ai-gen-context">
+                <button type="button" class="ai-preset-chip" data-text="Покупка билетов на концерт в Риге со скидкой">🎭 Покупка билетов</button>
+                <button type="button" class="ai-preset-chip" data-text="Движение двух поездов Рига–Валмиера навстречу друг другу">🚂 Поезда и движение</button>
+                <button type="button" class="ai-preset-chip" data-text="Расчёт площади и стройматериалов для ремонта квартиры">🧱 Ремонт и стройка</button>
+                <button type="button" class="ai-preset-chip" data-text="Приготовление десерта по рецепту с пропорциями ингредиентов">🍰 Рецепты и пропорции</button>
+                <button type="button" class="ai-preset-chip" data-text="Выбор тарифного плана мобильной связи и интернет-трафика в Латвии">📱 Тарифы связи</button>
+                <button type="button" class="ai-preset-chip" data-text="Банковский вклад с процентной ставкой и ежегодным начислением">🏦 Вклады и проценты</button>
+              </div>
+            </div>
           </div>
 
-          <div class="ai-form-row full-width">
-            <label>Дополнительные требования к формулам и числам <span>необязательно</span>
-              <input id="ai-gen-prompt" placeholder="Например: только целые числа в ответе, с квадратными корнями, без калькулятора" />
-            </label>
+          <div class="ai-custom-card">
+            <div class="ai-custom-card-head">
+              <div class="ai-custom-title-wrap">
+                <span class="ai-custom-icon">⚙️</span>
+                <div>
+                  <span class="ai-custom-title">Дополнительные требования к формулам и числам</span>
+                  <span class="ai-custom-hint">Необязательно. Ограничения на вид ответа, методы и числа</span>
+                </div>
+              </div>
+              <button type="button" class="ai-field-clear-btn" data-target="ai-gen-prompt" title="Очистить требования">Очистить</button>
+            </div>
+            <input id="ai-gen-prompt" class="ai-custom-input" placeholder="Например: только целые числа в ответе, с квадратными корнями, без калькулятора" />
+            <div class="ai-preset-chips-wrap">
+              <span class="ai-preset-caption">Быстрые требования:</span>
+              <div class="ai-preset-chips" data-target="ai-gen-prompt">
+                <button type="button" class="ai-preset-chip" data-text="Только целые числа в ответе, красивые круглые промежуточные данные">🔢 Только целые числа</button>
+                <button type="button" class="ai-preset-chip" data-text="В вычислениях должны присутствовать квадратные корни">√ С корнями</button>
+                <button type="button" class="ai-preset-chip" data-text="Рассчитано на устный счёт без калькулятора">🚫 Без калькулятора</button>
+                <button type="button" class="ai-preset-chip" data-text="С геометрическим чертежом и пояснением">📐 С чертежом</button>
+                <button type="button" class="ai-preset-chip" data-text="С обыкновенными дробями и сокращением">➗ С дробями</button>
+                <button type="button" class="ai-preset-chip" data-text="Ответ должен быть однозначным целым числом">🎯 Ответ — целое число</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -209,10 +267,16 @@
         </div>
       </div>
 
-      <div class="admin-section">
-        <div class="admin-section-head-with-action">
-          <h3 id="task-form-title">Добавить задание</h3>
-          <button type="button" class="text-button" id="btn-toggle-math-guide">📚 Руководство по формулам KaTeX</button>
+      <div class="admin-section" id="section-task-form">
+        <div class="admin-feature-head">
+          <div class="admin-feature-badge-title">
+            <span class="admin-feature-icon">✏️</span>
+            <div>
+              <h3 class="admin-feature-title" id="task-form-title">Создание и редактирование задачи</h3>
+              <p class="admin-feature-desc">Условие, перевод RU ↔ LV, формулы KaTeX, чертежи и кросс-теги стандарта Skola2030.</p>
+            </div>
+          </div>
+          <button type="button" class="text-button" id="btn-toggle-math-guide">📚 Руководство по формулам</button>
         </div>
 
         <!-- 📚 Справочник и руководство по написанию формул и индексов -->
@@ -286,7 +350,25 @@
           <div class="wide task-tags-section">
             <div class="task-tags-header">
               <label class="task-tags-label">Кросс-теги <span id="task-tags-count">(выбрано: 0 / макс. 3)</span></label>
-              <button type="button" class="text-button" id="btn-suggest-tags" title="Автоматически подобрать теги по теме задачи">✨ Подобрать по теме</button>
+              <div class="task-tags-header-actions">
+                <button type="button" class="text-button" id="btn-suggest-tags" title="Автоматически подобрать теги по теме задачи">✨ Подобрать по теме</button>
+              </div>
+            </div>
+            <div class="task-tags-toolbar">
+              <div class="task-tags-search-wrap">
+                <input type="search" id="task-tags-search" class="task-tags-search-input" placeholder="🔍 Поиск тега…" autocomplete="off" />
+              </div>
+              <div class="task-tags-category-tabs" id="task-tags-categories">
+                <button type="button" class="tag-cat-btn active" data-cat="all">Все (23)</button>
+                <button type="button" class="tag-cat-btn" data-cat="algebra">Алгебра</button>
+                <button type="button" class="tag-cat-btn" data-cat="geometry">Геометрия</button>
+                <button type="button" class="tag-cat-btn" data-cat="functions">Функции</button>
+                <button type="button" class="tag-cat-btn" data-cat="data">Данные</button>
+              </div>
+            </div>
+            <div class="task-tags-selected-bar" id="task-tags-selected-bar" hidden>
+              <span class="tags-selected-caption">Выбранные:</span>
+              <div class="tags-selected-list" id="tags-selected-list"></div>
             </div>
             <div class="task-tags-selector" id="task-tags-selector"></div>
           </div>
@@ -337,6 +419,19 @@
           <label class="checkbox"><input name="is_published" type="checkbox" checked /> Опубликовать сразу</label>
           <div class="wide form-actions"><button class="primary-button" type="submit" id="task-submit">Добавить задачу</button><button class="text-button" type="button" id="task-cancel" hidden>Отменить</button><span class="form-success" id="task-success"></span></div>
         </form>
+      </div>
+
+      <!-- 📑 Каталог и база задач -->
+      <div class="admin-section" id="section-tasks-database">
+        <div class="admin-feature-head">
+          <div class="admin-feature-badge-title">
+            <span class="admin-feature-icon">📑</span>
+            <div>
+              <h3 class="admin-feature-title">Каталог и база задач</h3>
+              <p class="admin-feature-desc">Поиск по условию и названию, фильтрация по статусам и классам, пакетный импорт и экспорт в JSON.</p>
+            </div>
+          </div>
+        </div>
 
         <div class="admin-toolbar" id="task-toolbar">
           <div class="admin-toolbar-row">
@@ -365,7 +460,7 @@
                 <button type="button" class="text-button" id="btn-close-sample-json">Закрыть</button>
               </div>
             </div>
-            <p class="admin-hint">Вы можете сохранить этот пример как файл <code>tasks.json</code> на компьютере, заполнить своими задачами и нажать «📁 Загрузить файл .json». Недостающие темы создадутся автоматически.</p>
+            <p class="admin-hint">Вы можете сохранить этот пример как файл <code>tasks.json</code> на компьютере, заполнить своими задачами и нажать «📁 Загрузить файл .json». Недостающие темы, латышские переводы и кросс-теги Skola2030 привяжутся автоматически.</p>
             <pre class="json-sample-pre"><code id="json-sample-code">[
   {
     "topic_title": "Квадратные уравнения",
@@ -374,17 +469,25 @@
     "tasks": [
       {
         "title": "Неполное квадратное уравнение",
+        "title_lv": "Nepilns kvadrātvienādojums",
         "condition_latex": "Решите уравнение $x^2 - 9 = 0$.",
+        "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 9 = 0$.",
         "answer_latex": "$x = \\pm 3$",
-        "solution_latex": "Разложим разность квадратов:\n$$(x - 3)(x + 3) = 0$$\nКорни: $x_1 = 3,\\; x_2 = -3$.",
+        "solution_latex": "Разложим на множители разность квадратов:\n$$(x - 3)(x + 3) = 0$$\nОткуда $x_1 = 3,\\; x_2 = -3$.",
+        "solution_latex_lv": "Sadalām reizinātājos kvadrātu starpību:\n$$(x - 3)(x + 3) = 0$$\nTātad $x_1 = 3,\\; x_2 = -3$.",
+        "tags": ["vienadojumi", "algebriskie-parveidojumi"],
         "difficulty": "Лёгкий",
         "is_published": true
       },
       {
         "title": "Полное квадратное уравнение",
+        "title_lv": "Pilns kvadrātvienādojums",
         "condition_latex": "Решите уравнение $x^2 - 5x + 6 = 0$.",
+        "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 5x + 6 = 0$.",
         "answer_latex": "$x_1 = 2,\\; x_2 = 3$",
-        "solution_latex": "По формуле через дискриминант: $D = 1$, корни: $x_1 = 2,\\; x_2 = 3$.",
+        "solution_latex": "По формуле корней через дискриминант:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
+        "solution_latex_lv": "Pēc sakņu formulas ar diskriminantu:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
+        "tags": ["vienadojumi"],
         "difficulty": "Средний",
         "is_published": true
       }
@@ -396,10 +499,14 @@
     "grade": 8,
     "tasks": [
       {
-        "title": "Нахождение гипотенузы",
-        "condition_latex": "Катеты прямоугольного треугольника $a = 3\\text{ см}$ и $b = 4\\text{ см}$. Найдите гипотенузу $c$.",
+        "title": "Нахождение гипотенузы треугольника",
+        "title_lv": "Taisnleņķa trijstūra hipotenūzas aprēķināšana",
+        "condition_latex": "В прямоугольном треугольнике катеты равны $a = 3\\text{ см}$ и $b = 4\\text{ см}$. Найдите длину гипотенузы $c$.",
+        "condition_latex_lv": "Taisnleņķa trijstūrī katetes ir $a = 3\\text{ cm}$ un $b = 4\\text{ cm}$. Aprēķiniet hipotenūzas $c$ garumu.",
         "answer_latex": "$c = 5\\text{ см}$",
-        "solution_latex": "По теореме Пифагора $c = \\sqrt{3^2 + 4^2} = 5\\text{ см}$.",
+        "solution_latex": "По теореме Пифагора:\n$$c = \\sqrt{a^2 + b^2} = \\sqrt{3^2 + 4^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ см}$$",
+        "solution_latex_lv": "Pēc Pitagora teorēmas:\n$$c = \\sqrt{a^2 + b^2} = \\sqrt{3^2 + 4^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ cm}$$",
+        "tags": ["planimetrija", "merijumi"],
         "difficulty": "Лёгкий",
         "is_published": true
       }
@@ -451,9 +558,12 @@
           <p>Список задач не загружается при входе — так панель открывается сразу.</p>
           <button class="secondary-button" type="button" id="btn-load-tasks">Показать задачи</button>
         </div>
+        <div class="admin-list-close admin-list-close-top" id="task-list-close" hidden>
+          <button class="text-button" type="button" id="btn-hide-tasks">▲ Свернуть список задач</button>
+        </div>
         <div class="admin-list" id="task-list" hidden></div>
-        <div class="admin-list-close" id="task-list-close" hidden>
-          <button class="text-button" type="button" id="btn-hide-tasks">Свернуть список задач</button>
+        <div class="admin-list-close admin-list-close-bottom" id="task-list-close-bottom" hidden>
+          <button class="text-button" type="button" id="btn-hide-tasks-bottom">▲ Свернуть список задач</button>
         </div>
 
         <!-- Модальное окно массового импорта / экспорта (4.3) -->

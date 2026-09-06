@@ -1,0 +1,407 @@
+{
+ "1": {
+  "title_lv": "Lineārs vienādojums ar iekavām",
+  "condition_latex_lv": "Atrisiniet vienādojumu:\n$$3(2x - 5) + 4 = 5x - 7$$",
+  "solution_latex_lv": "Atvērsim iekavas vienādojuma kreisajā pusē:\n$$6x - 15 + 4 = 5x - 7$$\n$$6x - 11 = 5x - 7$$\n\nPārnesīsim saskaitāmos ar mainīgo $x$ uz kreiso pusi, bet skaitļus — uz labo pusi ar pretējām zīmēm:\n$$6x - 5x = -7 + 11$$\n$$x = 4$$\n\nPārbaude: $3(2 \\cdot 4 - 5) + 4 = 3(3) + 4 = 13$; $5 \\cdot 4 - 7 = 13$. Vienādība ir patiesa."
+ },
+ "2": {
+  "title_lv": "Daļveida izteiksmes ar pakāpēm vienkāršošana",
+  "condition_latex_lv": "Aprēķiniet skaitliskās izteiksmes vērtību:\n$$\\frac{2^7 \\cdot 4^3}{8^4}$$",
+  "solution_latex_lv": "Pārveidosim visas pakāpes uz kopīgu bāzi $2$, jo $4 = 2^2$, bet $8 = 2^3$:\n$$4^3 = (2^2)^3 = 2^{2 \\cdot 3} = 2^6$$\n$$8^4 = (2^3)^4 = 2^{3 \\cdot 4} = 2^{12}$$\n\nIevietosim iegūtās pakāpes daļā:\n$$\\frac{2^7 \\cdot 2^6}{2^{12}} = \\frac{2^{7+6}}{2^{12}} = \\frac{2^{13}}{2^{12}} = 2^{13-12} = 2^1 = 2$$"
+ },
+ "3": {
+  "title_lv": "Blakusleņķu atrašana pēc to starpības",
+  "condition_latex_lv": "Viens no blakusleņķiem ir par $40^\\circ$ lielāks nekā otrs. Atrodiet lielākā leņķa grādu mēru.",
+  "solution_latex_lv": "Pieņemsim, ka mazākā leņķa grādu mērs ir $\\alpha$, tad lielākais leņķis ir $\\alpha + 40^\\circ$.\n\nTā kā blakusleņķu summa vienmēr ir $180^\\circ$:\n$$\\alpha + (\\alpha + 40^\\circ) = 180^\\circ$$\n$$2\\alpha + 40^\\circ = 180^\\circ$$\n$$2\\alpha = 140^\\circ \\implies \\alpha = 70^\\circ$$\n\nAtradīsim lielāko leņķi:\n$$70^\\circ + 40^\\circ = 110^\\circ$$"
+ },
+ "4": {
+  "title_lv": "Klasiskā varbūtība, izvelkot bumbiņu",
+  "condition_latex_lv": "Necaurspīdīgā kastē ir $5$ zilas, $7$ sarkanas un $8$ zaļas bumbiņas. Nejauši izvelk vienu bumbiņu. Kāda ir varbūtība, ka izvilktā bumbiņa **nav zaļa**?",
+  "solution_latex_lv": "1. Atradīsim visu vienlīdz iespējamo elementāro iznākumu kopskaitu $n$:\n$$n = 5 + 7 + 8 = 20$$\n\n2. Notikums $A$ — «izvilkta nezaļa bumbiņa». Tas nozīmē, ka izvilkta vai nu zila, vai sarkana bumbiņa. Labvēlīgo iznākumu skaits $m$:\n$$m = 5 + 7 = 12$$\n\n3. Pēc klasiskās varbūtības formulas:\n$$P(A) = \\frac{m}{n} = \\frac{12}{20} = \\frac{3}{5} = 0{,}6$$"
+ },
+ "5": {
+  "title_lv": "Izteiksmes ar kvadrātiem vienkāršošana",
+  "condition_latex_lv": "Vienkāršojiet izteiksmi $(2x - 3)^2 - (2x + 1)(2x - 1)$ un atrodiet tās vērtību, ja $x = -\\frac{1}{3}$.",
+  "solution_latex_lv": "Lietosim starpības kvadrāta formulu $(a - b)^2 = a^2 - 2ab + b^2$ un kvadrātu starpības formulu $(a + b)(a - b) = a^2 - b^2$:\n$$(2x - 3)^2 = 4x^2 - 12x + 9$$\n$$(2x + 1)(2x - 1) = 4x^2 - 1$$\n\nAtņemsim otro izteiksmi no pirmās:\n$$(4x^2 - 12x + 9) - (4x^2 - 1) = 4x^2 - 12x + 9 - 4x^2 + 1 = -12x + 10$$\n\nIevietosim vērtību $x = -\\frac{1}{3}$:\n$$-12 \\cdot \\left(-\\frac{1}{3}\\right) + 10 = 4 + 10 = 14$$"
+ },
+ "6": {
+  "title_lv": "Taisnleņķa trijstūra laukums",
+  "condition_latex_lv": "Taisnleņķa trijstūrī hipotenūzas garums ir $15\\text{ cm}$, bet viena katete ir $9\\text{ cm}$. Atrodiet šī trijstūra laukumu.",
+  "solution_latex_lv": "Pieņemsim, ka $c = 15\\text{ cm}$ ir hipotenūza, $a = 9\\text{ cm}$ ir zināmā katete, bet $b$ — otra katete.\n\nPēc Pitagora teorēmas $a^2 + b^2 = c^2$:\n$$b = \\sqrt{c^2 - a^2} = \\sqrt{15^2 - 9^2} = \\sqrt{225 - 81} = \\sqrt{144} = 12\\text{ cm}$$\n\nTaisnleņķa trijstūra laukums ir vienāds ar pusi no tā katešu reizinājuma:\n$$S = \\frac{1}{2} \\cdot a \\cdot b = \\frac{1}{2} \\cdot 9 \\cdot 12 = 54\\text{ cm}^2$$"
+ },
+ "7": {
+  "title_lv": "Mediāna un skaitļu rindas vidējais lielums",
+  "condition_latex_lv": "Dota skolēna vērtējumu rinda semestrī: $6, 8, 7, 9, 8, 4, 8, 10, 7$. Atrodiet šīs rindas vidējo aritmētisko, mediānu un amplitūdu.",
+  "solution_latex_lv": "1. Pierakstīsim variāciju rindu (sakārtosim skaitļus augošā secībā):\n$$4, 6, 7, 7, 8, 8, 8, 9, 10$$\nElementu kopskaits: $n = 9$.\n\n2. **Vidējais aritmētiskais** ($\\overline{x}$):\n$$\\overline{x} = \\frac{4 + 6 + 7 + 7 + 8 + 8 + 8 + 9 + 10}{9} = \\frac{67}{9} \\approx 7{,}44$$\n\n3. **Mediāna** — sakārtotās rindas vidējais (5.) elements:\n$$Me = 8$$\n\n4. **Amplitūda** — lielākās un mazākās vērtības starpība:\n$$R = 10 - 4 = 6$$"
+ },
+ "8": {
+  "title_lv": "Kvadrātvienādojuma risināšana ar diskriminantu",
+  "condition_latex_lv": "Atrisiniet kvadrātvienādojumu:\n$$2x^2 - 7x + 3 = 0$$",
+  "solution_latex_lv": "Izdalīsim koeficientus: $a = 2$, $b = -7$, $c = 3$.\n\nAprēķināsim diskriminantu:\n$$D = b^2 - 4ac = (-7)^2 - 4 \\cdot 2 \\cdot 3 = 49 - 24 = 25 = 5^2$$\n\nTā kā $D > 0$, vienādojumam ir divas reālas saknes:\n$$x_{1,2} = \\frac{-b \\pm \\sqrt{D}}{2a} = \\frac{7 \\pm 5}{2 \\cdot 2} = \\frac{7 \\pm 5}{4}$$\n$$x_1 = \\frac{7 + 5}{4} = \\frac{12}{4} = 3$$\n$$x_2 = \\frac{7 - 5}{4} = \\frac{2}{4} = 0{,}5$$"
+ },
+ "9": {
+  "title_lv": "Aritmētiskās progresijas pirmo locekļu summa",
+  "condition_latex_lv": "Aritmētiskajā progresijā $(a_n)$ pirmais loceklis ir $a_1 = 3$, bet diference ir $d = 4$. Atrodiet desmito locekli $a_{10}$ un pirmo desmit locekļu summu $S_{10}$.",
+  "solution_latex_lv": "1. Aritmētiskās progresijas $n$-tā locekļa formula:\n$$a_n = a_1 + (n - 1)d$$\nJa $n = 10$:\n$$a_{10} = 3 + (10 - 1) \\cdot 4 = 3 + 9 \\cdot 4 = 3 + 36 = 39$$\n\n2. Pirmo $n$ locekļu summas formula:\n$$S_n = \\frac{a_1 + a_n}{2} \\cdot n$$\nJa $n = 10$:\n$$S_{10} = \\frac{a_1 + a_{10}}{2} \\cdot 10 = \\frac{3 + 39}{2} \\cdot 10 = \\frac{42}{2} \\cdot 10 = 21 \\cdot 10 = 210$$"
+ },
+ "10": {
+  "title_lv": "Līdzīgu figūru laukumu un perimetru attiecība",
+  "condition_latex_lv": "Divu līdzīgu trijstūru laukumi ir $18\\text{ cm}^2$ un $50\\text{ cm}^2$. Mazākā trijstūra perimetrs ir $24\\text{ cm}$. Atrodiet lielākā trijstūra perimetru.",
+  "solution_latex_lv": "Līdzīgu figūru laukumu attiecība ir vienāda ar līdzības koeficienta kvadrātu:\n$$\\frac{S_1}{S_2} = k^2 \\implies k^2 = \\frac{18}{50} = \\frac{9}{25}$$\n\nTātad līdzības koeficients:\n$$k = \\sqrt{\\frac{9}{25}} = \\frac{3}{5}$$\n\nLīdzīgu trijstūru perimetru attiecība ir vienāda ar līdzības koeficientu pirmajā pakāpē:\n$$\\frac{P_1}{P_2} = k = \\frac{3}{5}$$\n\nIevietosim pirmā trijstūra perimetru $P_1 = 24\\text{ cm}$:\n$$\\frac{24}{P_2} = \\frac{3}{5} \\implies P_2 = \\frac{24 \\cdot 5}{3} = 8 \\cdot 5 = 40\\text{ cm}$$"
+ },
+ "11": {
+  "title_lv": "Daļveida racionāla nevienādība ar intervālu metodi",
+  "condition_latex_lv": "Atrisiniet nevienādību ar intervālu metodi:\n$$\\frac{x^2 - 4x + 3}{x + 2} \\le 0$$",
+  "solution_latex_lv": "1. Sadalīsim skaitītāju lineāros reizinātājos. Vienādojuma $x^2 - 4x + 3 = 0$ saknes: $x_1 = 1, x_2 = 3$.\n$$\\frac{(x - 1)(x - 3)}{x + 2} \\le 0$$\n\n2. Skaitītāja nulles: $x = 1, x = 3$ (ietilpst atbildē, jo zīme ir $\\le$).\nSaucēja nulle: $x = -2$ (neietilpst atbildē, jo dalīt ar $0$ nav iespējams).\n\n3. Atzīmēsim punktus uz skaitļu ass un noteiksim izteiksmes zīmes iegūtajos intervālos:\n- $(3; +\\infty)$: zīme $+$\n- $[1; 3]$: zīme $-$\n- $(-2; 1]$: zīme $+$\n- $(-\\infty; -2)$: zīme $-$\n\n4. Izvēlamies intervālus ar zīmi «mīnuss»:\n$$x \\in (-\\infty; -2) \\cup [1; 3]$$"
+ },
+ "12": {
+  "title_lv": "Trijstūra malas aprēķināšana pēc kosinusu teorēmas",
+  "condition_latex_lv": "Trijstūrī malas ir $a = 5$, $b = 7$, bet leņķis starp tām ir $\\gamma = 60^\\circ$. Atrodiet trešo malu $c$.",
+  "solution_latex_lv": "Pēc kosinusu teorēmas:\n$$c^2 = a^2 + b^2 - 2ab \\cos \\gamma$$\n\nIevietosim lielumu vērtības ($\\cos 60^\\circ = \\frac{1}{2}$):\n$$c^2 = 5^2 + 7^2 - 2 \\cdot 5 \\cdot 7 \\cdot \\frac{1}{2}$$\n$$c^2 = 25 + 49 - 35 = 74 - 35 = 39$$\n$$c = \\sqrt{39}$$"
+ },
+ "13": {
+  "title_lv": "Komandas dalībnieku izvēle (kombinācijas)",
+  "condition_latex_lv": "Klasē mācās $12$ skolēni. Cik veidos var izvēlēties komandu no $3$ cilvēkiem dalībai matemātikas olimpiādē?",
+  "solution_latex_lv": "Tā kā dalībnieku izvēles secībai komandā nav nozīmes, izmantosim kombināciju bez atkārtojumiem skaita formulu no $n$ pa $k$:\n$$C_n^k = \\frac{n!}{k!(n - k)!}$$\n\nJa $n = 12$ un $k = 3$:\n$$C_{12}^3 = \\frac{12!}{3! \\cdot 9!} = \\frac{12 \\cdot 11 \\cdot 10}{3 \\cdot 2 \\cdot 1} = \\frac{1320}{6} = 220$$"
+ },
+ "14": {
+  "title_lv": "Otrās pakāpes logaritmisks vienādojums",
+  "condition_latex_lv": "Atrisiniet vienādojumu:\n$$\\log_2(x^2 - 3x) = 2$$",
+  "solution_latex_lv": "Pēc logaritma definīcijas:\n$$x^2 - 3x = 2^2 \\implies x^2 - 3x - 4 = 0$$\n\nPēc Vjeta teorēmas saknes:\n$$x_1 = -1, \\quad x_2 = 4$$\n\nPārbaudīsim pieļaujamo vērtību apgabalu ($x^2 - 3x > 0$):\n- Ja $x = -1$: $(-1)^2 - 3(-1) = 1 + 3 = 4 > 0$ — apmierina.\n- Ja $x = 4$: $4^2 - 3 \\cdot 4 = 16 - 12 = 4 > 0$ — apmierina.\n\nAbas saknes ir vienādojuma atrisinājumi."
+ },
+ "15": {
+  "title_lv": "Regulāras piramīdas tilpums un sānu virsma",
+  "condition_latex_lv": "Regulārā četrstūra piramīdā pamata mala ir $6\\text{ cm}$, bet piramīdas augstums ir $4\\text{ cm}$. Atrodiet piramīdas tilpumu un tās sānu virsmas laukumu.",
+  "solution_latex_lv": "1. **Piramīdas tilpums**:\nPamats ir kvadrāts ar malu $a = 6\\text{ cm}$, tā laukums:\n$$S_{\\text{pam}} = a^2 = 6^2 = 36\\text{ cm}^2$$\nTilpums:\n$$V = \\frac{1}{3} S_{\\text{pam}} \\cdot H = \\frac{1}{3} \\cdot 36 \\cdot 4 = 48\\text{ cm}^3$$\n\n2. **Sānu virsma**:\nAtradīsim apotēmu $h_{\\text{ap}}$ (sānu skaldnes augstumu). No taisnleņķa trijstūra, ko veido augstums $H$, pamata malas puse $\\frac{a}{2} = 3\\text{ cm}$ un apotēma:\n$$h_{\\text{ap}} = \\sqrt{H^2 + \\left(\\frac{a}{2}\\right)^2} = \\sqrt{4^2 + 3^2} = \\sqrt{25} = 5\\text{ cm}$$\n\nSānu virsmas laukums:\n$$S_{\\text{sān}} = \\frac{1}{2} P_{\\text{pam}} \\cdot h_{\\text{ap}} = \\frac{1}{2} \\cdot (4 \\cdot 6) \\cdot 5 = 12 \\cdot 5 = 60\\text{ cm}^2$$"
+ },
+ "16": {
+  "title_lv": "Funkcijas mazākā vērtība ar atvasinājumu",
+  "condition_latex_lv": "Atrodiet funkcijas $f(x) = x^3 - 3x^2 - 9x + 5$ mazāko vērtību nogrieznī $[-2; 4]$.",
+  "solution_latex_lv": "1. Atradīsim funkcijas atvasinājumu:\n$$f'(x) = 3x^2 - 6x - 9$$\n\n2. Atradīsim stacionāros punktus, atrisinot vienādojumu $f'(x) = 0$:\n$$3(x^2 - 2x - 3) = 0 \\implies (x - 3)(x + 1) = 0$$\nPunkti: $x_1 = -1$ un $x_2 = 3$. Abi punkti pieder nogrieznim $[-2; 4]$.\n\n3. Aprēķināsim funkcijas vērtības nogriežņa galos un stacionārajos punktos:\n$$f(-2) = (-2)^3 - 3(-2)^2 - 9(-2) + 5 = -8 - 12 + 18 + 5 = 3$$\n$$f(-1) = (-1)^3 - 3(-1)^2 - 9(-1) + 5 = -1 - 3 + 9 + 5 = 10 \\quad (\\text{lokālais maksimums})$$\n$$f(3) = 3^3 - 3(3)^2 - 9(3) + 5 = 27 - 27 - 27 + 5 = -22 \\quad (\\text{lokālais minimums})$$\n$$f(4) = 4^3 - 3(4)^2 - 9(4) + 5 = 64 - 48 - 36 + 5 = -15$$\n\nSalīdzinot iegūtās vērtības, atrodam mazāko:\n$$f_{\\min} = -22 \\quad \\text{ja } x = 3$$"
+ },
+ "17": {
+  "title_lv": "Līklīnijas trapeces laukums zem parabolas",
+  "condition_latex_lv": "Aprēķiniet plaknes figūras laukumu, ko ierobežo parabola $y = 4 - x^2$ un abscisu ass $y = 0$.",
+  "solution_latex_lv": "1. Atradīsim integrēšanas robežas — parabolas krustpunktus ar asi $Ox$ ($y = 0$):\n$$4 - x^2 = 0 \\implies x_1 = -2, \\quad x_2 = 2$$\n\n2. Laukumu aprēķina ar noteikto integrāli pēc Ņūtona–Leibnica formulas:\n$$S = \\int_{-2}^{2} (4 - x^2) \\, dx$$\n\n3. Tā kā zemintegrāļa funkcija ir pāra, izmantosim simetrijas īpašību:\n$$S = 2 \\int_{0}^{2} (4 - x^2) \\, dx = 2 \\left[ 4x - \\frac{x^3}{3} \\right]_0^2$$\n$$S = 2 \\cdot \\left( 4 \\cdot 2 - \\frac{2^3}{3} \\right) = 2 \\cdot \\left( 8 - \\frac{8}{3} \\right) = 2 \\cdot \\frac{16}{3} = \\frac{32}{3} = 10\\frac{2}{3}$$"
+ },
+ "18": {
+  "title_lv": "Bernulli formula neatkarīgos mēģinājumos",
+  "condition_latex_lv": "Varbūtība, ka šāvējs trāpa mērķī ar vienu šāvienu, ir $p = 0{,}8$. Tiek izdarīta $5$ neatkarīgu šāvienu sērija. Kāda ir varbūtība, ka šāvējs trāpīs mērķī tieši $4$ reizes?",
+  "solution_latex_lv": "Izmantosim Bernulli formulu $k$ veiksmju varbūtībai $n$ neatkarīgos mēģinājumos:\n$$P_n(k) = C_n^k \\cdot p^k \\cdot q^{n-k}$$\n\nŠeit:\n- $n = 5$ — šāvienu kopskaits,\n- $k = 4$ — nepieciešamais trāpījumu skaits,\n- $p = 0{,}8$ — trāpījuma varbūtība ar vienu šāvienu,\n- $q = 1 - p = 1 - 0{,}8 = 0{,}2$ — garām šāviena varbūtība.\n\nKombināciju skaits:\n$$C_5^4 = \\frac{5!}{4! \\cdot 1!} = 5$$\n\nIevietosim vērtības:\n$$P_5(4) = 5 \\cdot (0{,}8)^4 \\cdot (0{,}2)^1 = 5 \\cdot 0{,}4096 \\cdot 0{,}2 = 1 \\cdot 0{,}4096 = 0{,}4096$$"
+ },
+ "20": {
+  "title_lv": "Lieluma procentuālās izmaiņas aprēķināšana",
+  "condition_latex_lv": "Grāmatas cena sākotnēji bija $25\\text{ EUR}$. Sezonas izpārdošanā cenu samazināja par $20\\%$, bet pēc mēneša jauno cenu paaugstināja par $10\\%$. Atrodiet grāmatas galīgo cenu.",
+  "solution_latex_lv": "1) Aprēķināsim grāmatas cenu pēc pirmās atlaides $20\\%$ apmērā:\n$$25 \\cdot (1 - 0{,}20) = 25 \\cdot 0{,}8 = 20\\text{ EUR}$$\n2) Aprēķināsim galīgo cenu pēc paaugstinājuma par $10\\%$ no starpcenas:\n$$20 \\cdot (1 + 0{,}10) = 20 \\cdot 1{,}1 = 22\\text{ EUR}$$"
+ },
+ "21": {
+  "title_lv": "Apgriezts procentu uzdevums (bāzes atrašana)",
+  "condition_latex_lv": "Pēc iedzīvotāju ienākuma nodokļa $20\\%$ apmērā nomaksas darbinieks saņēma $960\\text{ EUR}$. Kāda bija aprēķinātā darba alga pirms nodokļa ieturēšanas?",
+  "solution_latex_lv": "Pieņemsim, ka aprēķinātā darba alga ir $x\\text{ EUR}$. Tad summa pēc nodokļa ieturēšanas ir:\n$$x \\cdot (1 - 0{,}20) = 0{,}8x$$\nSastādīsim vienādojumu pēc uzdevuma nosacījuma:\n$$0{,}8x = 960 \\implies x = \\frac{960}{0{,}8} = 1200\\text{ EUR}$$"
+ },
+ "22": {
+  "title_lv": "Heiristisks uzdevums par koncentrāciju un sakausējumiem",
+  "condition_latex_lv": "Ir $400\\text{ g}$ sāls šķīduma ar koncentrāciju $15\\%$. Cik gramu tīra ūdens jāiztvaicē no šķīduma, lai sāls koncentrācija palielinātos līdz $20\\%$?",
+  "solution_latex_lv": "1) Aprēķināsim tīrā sāls masu šķīdumā, kas paliek nemainīga:\n$$m_{\\text{sāls}} = 400 \\cdot 0{,}15 = 60\\text{ g}$$\n2) Pieņemsim, ka jaunā šķīduma masa ir $M\\text{ g}$. Jaunajā šķīdumā $60\\text{ g}$ sāls veido $20\\%$ no kopējās masas:\n$$0{,}20 \\cdot M = 60 \\implies M = \\frac{60}{0{,}20} = 300\\text{ g}$$\n3) Iztvaicētā ūdens masa ir sākuma un beigu maisījuma masas starpība:\n$$\\Delta m = 400 - 300 = 100\\text{ g}$$"
+ },
+ "23": {
+  "title_lv": "Lineārs vienādojums ar iekavām",
+  "condition_latex_lv": "Atrisiniet lineāro vienādojumu $4(2x - 3) - 3(x + 1) = 10$.",
+  "solution_latex_lv": "Atvērsim iekavas vienādojuma kreisajā pusē:\n$$8x - 12 - 3x - 3 = 10$$\nSavilksim līdzīgos saskaitāmos:\n$$5x - 15 = 10$$\nPārnesīsim brīvo locekli uz labo pusi:\n$$5x = 25 \\implies x = 5$$"
+ },
+ "24": {
+  "title_lv": "Vienādojums ar daļveida koeficientiem",
+  "condition_latex_lv": "Atrodiet vienādojuma $\\frac{2x - 1}{3} - \\frac{x + 2}{4} = 1$ sakni.",
+  "solution_latex_lv": "Reizināsim abas vienādojuma puses ar mazāko kopīgo saucēju $\\text{MKD}(3, 4) = 12$:\n$$4(2x - 1) - 3(x + 2) = 12$$\nAtvērsim iekavas:\n$$8x - 4 - 3x - 6 = 12$$\n$$5x - 10 = 12 \\implies 5x = 22 \\implies x = \\frac{22}{5} = 4{,}4$$"
+ },
+ "25": {
+  "title_lv": "Lineārs vienādojums ar parametru",
+  "condition_latex_lv": "Pie kādas parametra $a$ vērtības vienādojumam $(a^2 - 4)x = a - 2$ ir bezgalīgi daudz atrisinājumu?",
+  "solution_latex_lv": "Vienādojumam veidā $K \\cdot x = M$ ir bezgalīgi daudz atrisinājumu tad un tikai tad, ja koeficients pie mainīgā un brīvais loceklis vienlaikus ir vienādi ar nulli: $K = 0$ un $M = 0$.\n1) Pielīdzināsim nullei koeficientu pie $x$:\n$$a^2 - 4 = 0 \\implies a = 2 \\quad \\text{vai} \\quad a = -2$$\n2) Pielīdzināsim nullei brīvo locekli labajā pusē:\n$$a - 2 = 0 \\implies a = 2$$\nAbi nosacījumi vienlaikus izpildās tikai tad, ja $a = 2$. Ja $a = -2$, vienādojums pieņem veidu $0 \\cdot x = -4$ un tam nav atrisinājumu."
+ },
+ "26": {
+  "title_lv": "Darbības ar pakāpēm, kurām ir veseli kāpinātāji",
+  "condition_latex_lv": "Vienkāršojiet skaitlisko izteiksmi $\\frac{2^7 \\cdot 4^{-2}}{8^2}$.",
+  "solution_latex_lv": "Pārveidosim visas pakāpes uz kopīgu bāzi $2$:\n$$4^{-2} = (2^2)^{-2} = 2^{-4}$$\n$$8^2 = (2^3)^2 = 2^6$$\nIevietosim pārveidotās pakāpes izteiksmē:\n$$\\frac{2^7 \\cdot 2^{-4}}{2^6} = \\frac{2^{7 + (-4)}}{2^6} = \\frac{2^3}{2^6} = 2^{3 - 6} = 2^{-3} = \\frac{1}{8}$$"
+ },
+ "27": {
+  "title_lv": "Polinoma sadalīšana reizinātājos ar grupēšanas paņēmienu",
+  "condition_latex_lv": "Sadaliet reizinātājos trešās pakāpes polinomu $x^3 - 3x^2 - 4x + 12$.",
+  "solution_latex_lv": "Sagrupēsim polinoma locekļus pa pāriem:\n$$(x^3 - 3x^2) - (4x - 12) = x^2(x - 3) - 4(x - 3)$$\nIznesīsim kopīgo reizinātāju $(x - 3)$ pirms iekavām:\n$$(x - 3)(x^2 - 4)$$\nLietosim kvadrātu starpības formulu izteiksmei $(x^2 - 4)$:\n$$(x - 3)(x - 2)(x + 2)$$"
+ },
+ "28": {
+  "title_lv": "Pilnā kvadrāta izdalīšana un ekstrēma atrašana",
+  "condition_latex_lv": "Pierādiet, ka pie jebkurām reālām mainīgo $x$ un $y$ vērtībām izteiksme $x^2 + 4y^2 - 4x + 4y + 6$ pieņem stingri pozitīvas vērtības, un atrodiet tās mazāko vērtību.",
+  "solution_latex_lv": "Sagrupēsim mainīgos un izdalīsim divlocekļu pilnos kvadrātus:\n$$(x^2 - 4x + 4) + (4y^2 + 4y + 1) + 1 = (x - 2)^2 + (2y + 1)^2 + 1$$\nTā kā reālu skaitļu kvadrāti ir nenegatīvi pie jebkuriem $x, y \\in \\mathbb{R}$, ir spēkā nevienādības $(x - 2)^2 \\ge 0$ un $(2y + 1)^2 \\ge 0$.\nTātad:\n$$(x - 2)^2 + (2y + 1)^2 + 1 \\ge 0 + 0 + 1 = 1 > 0$$\nIzteiksme ir stingri pozitīva pie jebkuriem argumentiem. Tās mazākā vērtība ir $1$, un tā tiek sasniegta, ja $x - 2 = 0$ un $2y + 1 = 0$, tas ir, ja $x = 2$ un $y = -0{,}5$."
+ },
+ "29": {
+  "title_lv": "Trijstūra nezināmās katetes atrašana",
+  "condition_latex_lv": "Taisnleņķa trijstūrī hipotenūzas garums ir $c = 13\\text{ cm}$, bet vienas katetes garums ir $a = 5\\text{ cm}$. Atrodiet otras katetes $b$ garumu.",
+  "solution_latex_lv": "Pēc Pitagora teorēmas $a^2 + b^2 = c^2$. Izteiksim nezināmo kateti:\n$$b = \\sqrt{c^2 - a^2} = \\sqrt{13^2 - 5^2} = \\sqrt{169 - 25} = \\sqrt{144} = 12\\text{ cm}$$"
+ },
+ "30": {
+  "title_lv": "Vienādsānu trapeces augstums un laukums",
+  "condition_latex_lv": "Vienādsānu trapeces pamati ir $10\\text{ cm}$ un $22\\text{ cm}$, bet sānu mala ir $10\\text{ cm}$. Aprēķiniet trapeces augstumu un laukumu.",
+  "solution_latex_lv": "1) Novilksim augstumus no mazākā pamata virsotnēm uz lielāko. Sānu malas projekcija uz lielāko pamatu ir:\n$$x = \\frac{22 - 10}{2} = 6\\text{ cm}$$\n2) No taisnleņķa trijstūra pēc Pitagora teorēmas atrodam trapeces augstumu:\n$$h = \\sqrt{10^2 - 6^2} = \\sqrt{100 - 36} = \\sqrt{64} = 8\\text{ cm}$$\n3) Aprēķinām trapeces laukumu kā pamatu pussummas un augstuma reizinājumu:\n$$S = \\frac{10 + 22}{2} \\cdot 8 = 16 \\cdot 8 = 128\\text{ cm}^2$$"
+ },
+ "31": {
+  "title_lv": "Metriski aprēķini ar patvaļīga trijstūra augstumu",
+  "condition_latex_lv": "Šaurleņķu trijstūrī ar malām $13\\text{ cm}$, $14\\text{ cm}$ un $15\\text{ cm}$ novilkts augstums pret malu, kuras garums ir $14\\text{ cm}$. Atrodiet šī augstuma garumu un to daļu laukumus, kurās tas sadala sākotnējo trijstūri.",
+  "solution_latex_lv": "Pieņemsim, ka trijstūrī $ABC$ malas ir $AB = 13$, $BC = 15$, $AC = 14$. Augstums $BH = h$ ir novilkts uz pamatu $AC$.\nApzīmēsim $AH = x$, tad $HC = 14 - x$.\nPierakstīsim Pitagora teorēmu diviem taisnleņķa trijstūriem $\\triangle ABH$ un $\\triangle CBH$:\n$$h^2 = 13^2 - x^2 = 169 - x^2$$\n$$h^2 = 15^2 - (14 - x)^2 = 225 - (196 - 28x + x^2) = 29 + 28x - x^2$$\nPielīdzināsim izteiksmju labās puses priekš $h^2$:\n$$169 - x^2 = 29 + 28x - x^2 \\implies 28x = 140 \\implies x = 5\\text{ cm}$$\nTad $HC = 14 - 5 = 9\\text{ cm}$.\nAugstuma garums ir:\n$$h = \\sqrt{169 - 5^2} = \\sqrt{144} = 12\\text{ cm}$$\nIegūto trijstūru laukumi ir:\n$$S_1 = \\frac{1}{2} \\cdot 5 \\cdot 12 = 30\\text{ cm}^2;\\quad S_2 = \\frac{1}{2} \\cdot 9 \\cdot 12 = 54\\text{ cm}^2$$"
+ },
+ "32": {
+  "title_lv": "Pilna kvadrātvienādojuma saknes ar diskriminantu",
+  "condition_latex_lv": "Atrisiniet kvadrātvienādojumu $2x^2 - 5x + 2 = 0$.",
+  "solution_latex_lv": "Aprēķināsim vienādojuma diskriminantu $D = b^2 - 4ac$:\n$$D = (-5)^2 - 4 \\cdot 2 \\cdot 2 = 25 - 16 = 9 = 3^2$$\nAtradīsim saknes pēc formulas:\n$$x_{1,2} = \\frac{-b \\pm \\sqrt{D}}{2a} = \\frac{5 \\pm 3}{4}$$\n$$x_1 = \\frac{5 - 3}{4} = \\frac{2}{4} = 0{,}5;\\quad x_2 = \\frac{5 + 3}{4} = \\frac{8}{4} = 2$$"
+ },
+ "33": {
+  "title_lv": "Simetrisku izteiksmju aprēķināšana ar Vjeta teorēmu",
+  "condition_latex_lv": "Neaprēķinot vienādojuma $x^2 - 7x + 5 = 0$ sakņu $x_1$ un $x_2$ skaitliskās vērtības, atrodiet skaitliskās izteiksmes $x_1^2 + x_2^2$ vērtību.",
+  "solution_latex_lv": "Pēc Vjeta teorēmas reducētam kvadrātvienādojumam:\n$$x_1 + x_2 = 7,\\quad x_1 \\cdot x_2 = 5$$\nIzteiksim kvadrātu summu ar lielumu summas kvadrātu:\n$$x_1^2 + x_2^2 = (x_1 + x_2)^2 - 2x_1 x_2$$\nIevietosim zināmās koeficientu vērtības:\n$$x_1^2 + x_2^2 = 7^2 - 2 \\cdot 5 = 49 - 10 = 39$$"
+ },
+ "34": {
+  "title_lv": "Kvadrātvienādojums ar parametru un nosacījumu par sakņu zīmēm",
+  "condition_latex_lv": "Atrodiet visas reāla parametra $m$ vērtības, pie kurām kvadrātvienādojumam $x^2 - 2(m - 1)x + (m + 5) = 0$ ir divas dažādas stingri pozitīvas saknes.",
+  "solution_latex_lv": "Kvadrātvienādojumam ir divas dažādas pozitīvas saknes tad un tikai tad, ja vienlaikus izpildās trīs nosacījumi:\n1) Diskriminants ir stingri pozitīvs ($D > 0$):\n$$\\frac{D}{4} = (m - 1)^2 - 1 \\cdot (m + 5) = m^2 - 2m + 1 - m - 5 = m^2 - 3m - 4 > 0$$\n$$(m - 4)(m + 1) > 0 \\implies m \\in (-\\infty; -1) \\cup (4; +\\infty)$$\n2) Sakņu reizinājums ir stingri pozitīvs ($x_1 x_2 = m + 5 > 0$):\n$$m > -5$$\n3) Sakņu summa ir stingri pozitīva ($x_1 + x_2 = 2(m - 1) > 0$):\n$$m > 1$$\nŠķelsim atrastos pieļaujamo vērtību intervālus:\n$$m \\in ((-5; +\\infty) \\cap (1; +\\infty)) \\cap ((-\\infty; -1) \\cup (4; +\\infty)) = (4; +\\infty)$$\nTātad $m > 4$."
+ },
+ "35": {
+  "title_lv": "Daļveida racionāla vienādojuma risināšana",
+  "condition_latex_lv": "Atrisiniet vienādojumu $\\frac{x^2 - 4}{x - 2} = 3x - 8$.",
+  "solution_latex_lv": "Noteiksim vienādojuma pieļaujamo vērtību apgabalu:\n$$x - 2 \\ne 0 \\implies x \\ne 2$$\nSadalīsim skaitītāju pēc kvadrātu starpības formulas:\n$$\\frac{(x - 2)(x + 2)}{x - 2} = 3x - 8$$\nJa $x \\ne 2$, saīsināsim daļu ar $(x - 2)$:\n$$x + 2 = 3x - 8 \\implies 2x = 10 \\implies x = 5$$\nIegūtā sakne apmierina pieļaujamo vērtību apgabalu."
+ },
+ "36": {
+  "title_lv": "Kustības pret straumi un pa straumi modelēšana",
+  "condition_latex_lv": "Motorlaiva nobrauca $24\\text{ km}$ pa upes straumi un atgriezās atpakaļ, visam maršrutam patērējot $5\\text{ stundas}$. Nosakiet laivas pašas ātrumu stāvošā ūdenī, ja upes straumes ātrums ir $2\\text{ km/h}$.",
+  "solution_latex_lv": "Apzīmēsim laivas pašas ātrumu ar $v\\text{ km/h}$ ($v > 2$).\nKustības ātrums pa straumi ir $v + 2$, ceļā pavadītais laiks ir $t_1 = \\frac{24}{v + 2}$.\nKustības ātrums pret straumi ir $v - 2$, laiks ir $t_2 = \\frac{24}{v - 2}$.\nSastādīsim vienādojumu pēc kopējā patērētā laika:\n$$\\frac{24}{v + 2} + \\frac{24}{v - 2} = 5$$\nReizināsim abas vienādojuma puses ar kopīgo saucēju $(v^2 - 4)$:\n$$24(v - 2) + 24(v + 2) = 5(v^2 - 4)$$\n$$48v = 5v^2 - 20 \\implies 5v^2 - 48v - 20 = 0$$\nVienādojuma diskriminants ir $D = (-48)^2 - 4 \\cdot 5 \\cdot (-20) = 2304 + 400 = 2704 = 52^2$.\nVienādojuma saknes:\n$$v_1 = \\frac{48 + 52}{10} = 10;\\quad v_2 = \\frac{48 - 52}{10} = -0{,}4$$\nPēc fizikālā uzdevuma jēgas ātrumam jābūt pozitīvam, tāpēc $v = 10\\text{ km/h}$."
+ },
+ "37": {
+  "title_lv": "Kopīga darba modelēšana ar mainīgiem režīmiem",
+  "condition_latex_lv": "Divas caurules, strādājot vienlaikus, piepilda rezervuāru $6\\text{ stundās}$. Ja pirmā caurule strādātu viena $4\\text{ stundas}$, bet pēc tam otra strādātu atsevišķi $9\\text{ stundas}$, tiktu piepildītas $\\frac{5}{6}$ no rezervuāra tilpuma. Cik stundās katra caurule var piepildīt šo rezervuāru, darbojoties neatkarīgi?",
+  "solution_latex_lv": "Pieņemsim rezervuāra kopējo tilpumu par $1$.\nPieņemsim, ka pirmās caurules ražīgums ir $p_1$ (rezervuāra daļas stundā), bet otras caurules — $p_2$.\nPēc kopīgas piepildīšanas nosacījuma 6 stundās:\n$$6(p_1 + p_2) = 1 \\implies p_1 + p_2 = \\frac{1}{6}$$\nPēc atsevišķa darba nosacījuma dažādos laika intervālos:\n$$4p_1 + 9p_2 = \\frac{5}{6}$$\nAttēlosim otro vienādojumu veidā $4(p_1 + p_2) + 5p_2 = \\frac{5}{6}$ un ievietosim ražīgumu summu:\n$$4 \\cdot \\frac{1}{6} + 5p_2 = \\frac{5}{6} \\implies \\frac{2}{3} + 5p_2 = \\frac{5}{6}$$\n$$5p_2 = \\frac{5}{6} - \\frac{4}{6} = \\frac{1}{6} \\implies p_2 = \\frac{1}{30}$$\nNoteiksim pirmās caurules ražīgumu:\n$$p_1 = \\frac{1}{6} - \\frac{1}{30} = \\frac{5 - 1}{30} = \\frac{4}{30} = \\frac{2}{15}$$\nAtradīsim katras caurules individuālo darba laiku:\n$$T_1 = \\frac{1}{p_1} = \\frac{15}{2} = 7{,}5\\text{ h};\\quad T_2 = \\frac{1}{p_2} = 30\\text{ h}$$"
+ },
+ "38": {
+  "title_lv": "Trigonometrisko funkciju vērtību noteikšana pēc katetēm",
+  "condition_latex_lv": "Taisnleņķa trijstūrī katetes ir $a = 6\\text{ cm}$ un $b = 8\\text{ cm}$. Atrodiet leņķa $\\alpha$, kas atrodas pretī katetei $a$, sinusa, kosinusa un tangensa vērtības.",
+  "solution_latex_lv": "1) Atradīsim trijstūra hipotenūzu pēc Pitagora teorēmas:\n$$c = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = \\sqrt{100} = 10\\text{ cm}$$\n2) Pēc šaura leņķa trigonometrisko funkciju ģeometriskajām definīcijām:\n$$\\sin\\alpha = \\frac{a}{c} = \\frac{6}{10} = 0{,}6$$\n$$\\cos\\alpha = \\frac{b}{c} = \\frac{8}{10} = 0{,}8$$\n$$\\tan\\alpha = \\frac{a}{b} = \\frac{6}{8} = 0{,}75$$"
+ },
+ "39": {
+  "title_lv": "Praktisks trigonometrisks uzdevums par augstumu",
+  "condition_latex_lv": "Novērotājs redz televīzijas torņa virsotni $30^\\circ$ leņķī pret horizontu. Pietuvojoties tornim pa taisnu līniju par $40\\text{ metriem}$, viņš redz tā virsotni $45^\\circ$ leņķī. Atrodiet torņa augstumu (novērotāja acu augstumu neievērot).",
+  "solution_latex_lv": "Apzīmēsim torņa augstumu ar $h$, bet attālumu no otrā novērošanas punkta līdz torņa pamatnei ar $x$.\nNo otrā taisnleņķa trijstūra:\n$$\\tan 45^\\circ = \\frac{h}{x} = 1 \\implies x = h$$\nNo pirmā taisnleņķa trijstūra ar novērošanas leņķi $30^\\circ$:\n$$\\tan 30^\\circ = \\frac{h}{x + 40} = \\frac{1}{\\sqrt{3}}$$\nIevietosim vienādību $x = h$:\n$$\\frac{h}{h + 40} = \\frac{1}{\\sqrt{3}} \\implies \\sqrt{3}h = h + 40$$\n$$h(\\sqrt{3} - 1) = 40 \\implies h = \\frac{40}{\\sqrt{3} - 1} = \\frac{40(\\sqrt{3} + 1)}{3 - 1} = 20(\\sqrt{3} + 1)\\text{ m}$$"
+ },
+ "40": {
+  "title_lv": "Ģeometrisks sintēzes uzdevums: trigonometrija un ievilktās riņķa līnijas rādiuss",
+  "condition_latex_lv": "Trijstūrī divas malas ir $8\\text{ cm}$ un $10\\text{ cm}$, bet leņķis starp tām ir $60^\\circ$. Atrodiet trešās malas precīzu garumu, trijstūra laukumu un ievilktās riņķa līnijas rādiusu.",
+  "solution_latex_lv": "1) Atradīsim trešo malu $c$ pēc kosinusu teorēmas:\n$$c^2 = a^2 + b^2 - 2ab \\cos 60^\\circ = 8^2 + 10^2 - 2 \\cdot 8 \\cdot 10 \\cdot 0{,}5 = 64 + 100 - 80 = 84$$\n$$c = \\sqrt{84} = 2\\sqrt{21}\\text{ cm}$$\n2) Aprēķināsim trijstūra laukumu ar divām malām un leņķa starp tām sinusu:\n$$S = \\frac{1}{2} a b \\sin 60^\\circ = \\frac{1}{2} \\cdot 8 \\cdot 10 \\cdot \\frac{\\sqrt{3}}{2} = 20\\sqrt{3}\\text{ cm}^2$$\n3) Ievilktās riņķa līnijas rādiuss izsakāms ar laukumu un pusperimetru $r = \\frac{S}{p}$:\n$$p = \\frac{8 + 10 + 2\\sqrt{21}}{2} = 9 + \\sqrt{21}\\text{ cm}$$\n$$r = \\frac{20\\sqrt{3}}{9 + \\sqrt{21}}\\text{ cm}$$"
+ },
+ "41": {
+  "title_lv": "Diskrēts summas invariants secīgās darbībās",
+  "condition_latex_lv": "Uz skolas tāfeles uzrakstīti skaitļi no $1$ līdz $20$. Atļauts nodzēst jebkurus divus skaitļus $a$ un $b$ un to vietā uzrakstīt skaitli $a + b - 1$. Kāds skaitlis paliks uz tāfeles pēc $19$ šādām darbībām?",
+  "solution_latex_lv": "Aplūkosim visu uz tāfeles esošo skaitļu sākotnējo summu:\n$$S_0 = 1 + 2 + \\dots + 20 = \\frac{20 \\cdot 21}{2} = 210$$\nKatrā darbībā skaitļu daudzums samazinās par vienu, bet skaitļu summa mainās šādi: $(a + b)$ vietā parādās $(a + b - 1)$, tas ir, visu uz tāfeles esošo skaitļu summa stingri samazinās par $1$.\nProcesa invariants ir summas izmaiņas likums: pēc $k$ soļiem summa ir $S_k = S_0 - k$.\nTā kā pēc $19$ soļiem uz tāfeles paliks tieši viens skaitlis, tā vērtība ir:\n$$X = S_{19} = 210 - 19 = 191$$"
+ },
+ "42": {
+  "title_lv": "Dalāmības pierādījums ar algebrisku sadalīšanu",
+  "condition_latex_lv": "Pierādiet, ka pie jebkuras naturālas $n$ vērtības skaitlis $n^3 - n$ dalās ar $6$ bez atlikuma.",
+  "solution_latex_lv": "Sadalīsim algebrisko izteiksmi lineāros reizinātājos:\n$$n^3 - n = n(n^2 - 1) = (n - 1)n(n + 1)$$\nIegūtā izteiksme ir trīs secīgu veselu skaitļu reizinājums.\n1) No trim secīgiem skaitļiem vismaz viens noteikti dalās ar $2$.\n2) No trim secīgiem skaitļiem tieši viens noteikti dalās ar $3$.\nTā kā skaitļi $2$ un $3$ ir savstarpēji pirmskaitļi ($\\gcd(2, 3) = 1$), reizinājums dalās ar to reizinājumu $2 \\cdot 3 = 6$ bez atlikuma pie jebkura naturāla $n$."
+ },
+ "43": {
+  "title_lv": "Diofanta vienādojuma risināšana veselos skaitļos",
+  "condition_latex_lv": "Atrodiet visus veselu skaitļu pārus $(x; y)$, kas apmierina vienādojumu $xy + 2x - 3y = 11$.",
+  "solution_latex_lv": "Sagrupēsim mainīgos un izdalīsim reizinātājus, mākslīgi pievienojot konstanti:\n$$x(y + 2) - 3(y + 2) + 6 = 11$$\n$$(x - 3)(y + 2) = 5$$\nTā kā $x$ un $y$ ir veseli skaitļi, reizinātājiem $(x - 3)$ un $(y + 2)$ jābūt pirmskaitļa $5$ dalītājiem. Skaitlim $5$ ir četri veseli dalītāji: $\\{1, 5, -1, -5\\}$. Aplūkosim četrus neatkarīgus gadījumus:\n1) $x - 3 = 1 \\implies x = 4$; $y + 2 = 5 \\implies y = 3$. Pāris $(4; 3)$.\n2) $x - 3 = 5 \\implies x = 8$; $y + 2 = 1 \\implies y = -1$. Pāris $(8; -1)$.\n3) $x - 3 = -1 \\implies x = 2$; $y + 2 = -5 \\implies y = -7$. Pāris $(2; -7)$.\n4) $x - 3 = -5 \\implies x = -2$; $y + 2 = -1 \\implies y = -3$. Pāris $(-2; -3)$.\nVisi četri pāri ir precīzi sākotnējā vienādojuma atrisinājumi."
+ },
+ "44": {
+  "title_lv": "Daļu ar vienādiem saucējiem saskaitīšana un atņemšana",
+  "condition_latex_lv": "Aprēķiniet skaitliskās izteiksmes $\\frac{5}{14} + \\frac{4}{14} - \\frac{2}{14}$ vērtību. Atbildi pierakstiet nesaīsināmas daļas veidā.",
+  "solution_latex_lv": "Veiksim secīgas aritmētiskās darbības ar skaitītājiem pie kopīga saucēja:\n$$\\frac{5 + 4 - 2}{14} = \\frac{7}{14}$$\nSaīsināsim iegūto daļu ar skaitītāja un saucēja lielāko kopīgo dalītāju $\\text{LKD}(7, 14) = 7$:\n$$\\frac{7 : 7}{14 : 7} = \\frac{1}{2}$$"
+ },
+ "45": {
+  "title_lv": "Daļas atrašana no vesela skaitļa",
+  "condition_latex_lv": "Skolas bibliotēkā pavisam ir $480\\text{ grāmatas}$. Mācību grāmatas veido $\\frac{5}{8}$ no visām grāmatām, bet daiļliteratūra — $\\frac{2}{3}$ no atlikušajām grāmatām. Cik daiļliteratūras grāmatu ir bibliotēkā?",
+  "solution_latex_lv": "1) Aprēķināsim mācību grāmatu skaitu bibliotēkā:\n$$480 \\cdot \\frac{5}{8} = \\frac{480 \\cdot 5}{8} = 60 \\cdot 5 = 300\\text{ grāmatas}$$\n2) Atradīsim grāmatu atlikumu pēc mācību grāmatu atskaitīšanas:\n$$480 - 300 = 180\\text{ grāmatas}$$\n3) Aprēķināsim daiļliteratūras grāmatu skaitu:\n$$180 \\cdot \\frac{2}{3} = \\frac{180 \\cdot 2}{3} = 60 \\cdot 2 = 120\\text{ grāmatas}$$"
+ },
+ "46": {
+  "title_lv": "Vesela lieluma atjaunošana pēc atlikuma daļām",
+  "condition_latex_lv": "Tūrists pirmajā dienā veica $\\frac{1}{3}$ no visa maršruta, otrajā dienā — $\\frac{3}{5}$ no atlikušā attāluma, bet trešajā dienā noiets pēdējos $16\\text{ km}$. Kāds ir tūrista maršruta kopgarums?",
+  "solution_latex_lv": "Pieņemsim visu ceļu par $1$.\n1) Noteiksim ceļa daļu, kas palikusi pēc pirmās dienas:\n$$1 - \\frac{1}{3} = \\frac{2}{3}$$\n2) Aprēķināsim maršruta daļu, kas veikta otrajā dienā:\n$$\\frac{2}{3} \\cdot \\frac{3}{5} = \\frac{2}{5}$$\n3) Noteiksim kopējo ceļa daļu pirmajās divās dienās:\n$$\\frac{1}{3} + \\frac{2}{5} = \\frac{5 + 6}{15} = \\frac{11}{15}$$\n4) Atradīsim ceļa daļu, kas attiecas uz trešo dienu:\n$$1 - \\frac{11}{15} = \\frac{4}{15}$$\n5) Aprēķināsim maršruta pilno garumu pēc tā zināmās daļas:\n$$16 : \\frac{4}{15} = 16 \\cdot \\frac{15}{4} = 4 \\cdot 15 = 60\\text{ km}$$"
+ },
+ "47": {
+  "title_lv": "Punkta simetrija pret koordinātu asi",
+  "condition_latex_lv": "Dots punkts $A(-3; 4)$. Atrodiet punkta $B$ koordinātas, kas ir simetrisks punktam $A$ pret ordinātu asi ($Oy$).",
+  "solution_latex_lv": "Asu simetrijā pret ordinātu asi ($Oy$) punkta abscisa maina zīmi uz pretējo, bet ordināta paliek nemainīga:\n$$x_B = -x_A = -(-3) = 3$$\n$$y_B = y_A = 4$$\nTātad meklētajam punktam ir koordinātas $B(3; 4)$."
+ },
+ "48": {
+  "title_lv": "Tiešās proporcionalitātes koeficienta atrašana",
+  "condition_latex_lv": "Tiešās proporcionalitātes funkcijas $y = kx$ grafiks iet caur punktu $M(-4; 14)$. Atrodiet koeficienta $k$ vērtību un aprēķiniet funkcijas vērtību $y$, ja $x = 6$.",
+  "solution_latex_lv": "1) Ievietosim punkta $M(-4; 14)$ koordinātas sakarības formulā:\n$$14 = k \\cdot (-4) \\implies k = \\frac{14}{-4} = -3{,}5$$\n2) Funkcijai ir analītiskais veids $y = -3{,}5x$.\n3) Aprēķināsim mainīgā $y$ vērtību pie dotā argumenta $x = 6$:\n$$y = -3{,}5 \\cdot 6 = -21$$"
+ },
+ "49": {
+  "title_lv": "Trijstūra laukuma aprēķināšana koordinātu plaknē",
+  "condition_latex_lv": "Trijstūra virsotnes atrodas punktos $A(-2; 1)$, $B(4; 1)$ un $C(1; 6)$. Atrodiet pamata $AB$ garumu, uz malu $AB$ novilkto augstumu un trijstūra $ABC$ laukumu.",
+  "solution_latex_lv": "1) Punkti $A(-2; 1)$ un $B(4; 1)$ atrodas uz taisnes, kas paralēla abscisu asij ($y = 1$). Malas $AB$ garums ir vienāds ar attālumu starp tiem:\n$$AB = |4 - (-2)| = 4 + 2 = 6$$\n2) Augstums $h$, kas novilkts no virsotnes $C(1; 6)$ uz pamatu $AB$, ir vienāds ar ordinātu starpību:\n$$h = |6 - 1| = 5$$\n3) Aprēķināsim trijstūra $ABC$ laukumu:\n$$S = \\frac{1}{2} \\cdot AB \\cdot h = \\frac{1}{2} \\cdot 6 \\cdot 5 = 15$$"
+ },
+ "50": {
+  "title_lv": "Sistēmas risināšana ar ievietošanas paņēmienu",
+  "condition_latex_lv": "Atrisiniet vienādojumu sistēmu:\n$$\\begin{cases} y = 2x - 1 \\\\ 3x + 2y = 12 \\end{cases}$$",
+  "solution_latex_lv": "Ievietosim izteiksmi $y = 2x - 1$ no pirmā vienādojuma otrajā:\n$$3x + 2(2x - 1) = 12$$\nAtvērsim iekavas un savilksim līdzīgos saskaitāmos:\n$$3x + 4x - 2 = 12 \\implies 7x = 14 \\implies x = 2$$\nAtradīsim atbilstošo mainīgā $y$ vērtību:\n$$y = 2 \\cdot 2 - 1 = 3$$\nSistēmas atrisinājums ir skaitļu pāris $(2; 3)$."
+ },
+ "51": {
+  "title_lv": "Vienādojumu sistēmas sastādīšana pēc uzdevuma nosacījuma",
+  "condition_latex_lv": "Par $3\\text{ burtnīcām}$ un $2\\text{ pildspalvām}$ samaksāja $4{,}60\\text{ EUR}$, bet par $2\\text{ tādām pašām burtnīcām}$ un $4\\text{ pildspalvām}$ — $5{,}20\\text{ EUR}$. Atrodiet vienas burtnīcas un vienas pildspalvas cenu.",
+  "solution_latex_lv": "Apzīmēsim burtnīcas cenu ar $x\\text{ EUR}$, bet pildspalvas cenu — ar $y\\text{ EUR}$. Sastādīsim vienādojumu sistēmu:\n$$\\begin{cases} 3x + 2y = 4{,}60 \\\\ 2x + 4y = 5{,}20 \\end{cases}$$\nReizināsim pirmo vienādojumu ar $-2$, lai izmantotu algebriskās saskaitīšanas paņēmienu:\n$$-6x - 4y = -9{,}20$$\nSaskaitīsim iegūto vienādojumu ar otro:\n$$(-6x + 2x) + (-4y + 4y) = -9{,}20 + 5{,}20$$\n$$-4x = -4{,}00 \\implies x = 1{,}00\\text{ EUR}$$\nIevietosim atrasto $x$ vērtību pirmajā vienādojumā:\n$$3 \\cdot 1{,}00 + 2y = 4{,}60 \\implies 2y = 1{,}60 \\implies y = 0{,}80\\text{ EUR}$$"
+ },
+ "52": {
+  "title_lv": "Lineāras sistēmas ar parametru saderības pētīšana",
+  "condition_latex_lv": "Pie kādas reāla parametra $a$ vērtības vienādojumu sistēmai\n$$\\begin{cases} ax + 4y = 8 \\\\ 4x + ay = 8 \\end{cases}$$\nnav atrisinājumu?",
+  "solution_latex_lv": "Divu lineāru vienādojumu sistēmai nav atrisinājumu tad un tikai tad, ja taisnes ir paralēlas un nesakrīt, tas ir, izpildās koeficientu proporcionalitātes sakarība:\n$$\\frac{a}{4} = \\frac{4}{a} \\ne \\frac{8}{8}$$\n1) No pirmo divu attiecību vienādības izriet:\n$$a^2 = 16 \\implies a = 4 \\quad \\text{vai} \\quad a = -4$$\n2) Pārbaudīsim gadījumu $a = 4$:\n$$\\frac{4}{4} = \\frac{4}{4} = \\frac{8}{8} = 1$$\nTaisnes sakrīt, sistēmai ir bezgalīgi daudz atrisinājumu.\n3) Pārbaudīsim gadījumu $a = -4$:\n$$\\frac{-4}{4} = \\frac{4}{-4} = -1;\\quad \\frac{8}{8} = 1 \\implies -1 \\ne 1$$\nKoeficienti pie mainīgajiem ir proporcionāli, bet nav vienādi ar brīvo locekļu attiecību. Taisnes ir paralēlas un nekrustojas, tāpēc sistēmai nav atrisinājumu, ja $a = -4$."
+ },
+ "53": {
+  "title_lv": "Reizinātāja iznešana no saknes zīmes",
+  "condition_latex_lv": "Vienkāršojiet algebrisko skaitlisko izteiksmi $\\sqrt{48} - 2\\sqrt{27} + \\sqrt{75}$.",
+  "solution_latex_lv": "Sadalīsim zemsaknes izteiksmes reizinātājos, izdalot precīzos kvadrātus:\n$$\\sqrt{48} = \\sqrt{16 \\cdot 3} = 4\\sqrt{3}$$\n$$2\\sqrt{27} = 2\\sqrt{9 \\cdot 3} = 2 \\cdot 3\\sqrt{3} = 6\\sqrt{3}$$\n$$\\sqrt{75} = \\sqrt{25 \\cdot 3} = 5\\sqrt{3}$$\nSavilksim līdzīgos iracionālos saskaitāmos:\n$$4\\sqrt{3} - 6\\sqrt{3} + 5\\sqrt{3} = (4 - 6 + 5)\\sqrt{3} = 3\\sqrt{3}$$"
+ },
+ "54": {
+  "title_lv": "Iracionalitātes novēršana saucējā",
+  "condition_latex_lv": "Aprēķiniet izteiksmes $\\frac{12}{\\sqrt{7} - 1} - \\sqrt{28}$ vērtību.",
+  "solution_latex_lv": "1) Paplašināsim pirmo daļu ar saistīto izteiksmi $(\\sqrt{7} + 1)$:\n$$\\frac{12(\\sqrt{7} + 1)}{(\\sqrt{7} - 1)(\\sqrt{7} + 1)} = \\frac{12(\\sqrt{7} + 1)}{(\\sqrt{7})^2 - 1^2} = \\frac{12(\\sqrt{7} + 1)}{7 - 1} = \\frac{12(\\sqrt{7} + 1)}{6} = 2(\\sqrt{7} + 1) = 2\\sqrt{7} + 2$$\n2) Pārveidosim otro saskaitāmo:\n$$\\sqrt{28} = \\sqrt{4 \\cdot 7} = 2\\sqrt{7}$$\n3) Veiksim atņemšanu:\n$$(2\\sqrt{7} + 2) - 2\\sqrt{7} = 2$$"
+ },
+ "55": {
+  "title_lv": "Salikta radikāļa vienkāršošana ar pilno kvadrātu",
+  "condition_latex_lv": "Aprēķiniet izteiksmes $\\sqrt{11 - 6\\sqrt{2}} + \\sqrt{11 + 6\\sqrt{2}}$ precīzu skaitlisko vērtību.",
+  "solution_latex_lv": "Attēlosim zemsaknes izteiksmes divlocekļu kvadrātu veidā:\n$$11 \\pm 6\\sqrt{2} = 9 \\pm 2 \\cdot 3 \\cdot \\sqrt{2} + 2 = 3^2 \\pm 2 \\cdot 3 \\cdot \\sqrt{2} + (\\sqrt{2})^2 = (3 \\pm \\sqrt{2})^2$$\nLietosim identitāti $\\sqrt{A^2} = |A|$:\n$$\\sqrt{(3 - \\sqrt{2})^2} = |3 - \\sqrt{2}| = 3 - \\sqrt{2} \\quad (\\text{jo } 3 > \\sqrt{2})$$\n$$\\sqrt{(3 + \\sqrt{2})^2} = |3 + \\sqrt{2}| = 3 + \\sqrt{2}$$\nSaskaitīsim abus saskaitāmos:\n$$(3 - \\sqrt{2}) + (3 + \\sqrt{2}) = 6$$"
+ },
+ "56": {
+  "title_lv": "Paralelograma leņķi pēc to starpības",
+  "condition_latex_lv": "Paralelogramā $ABCD$ viens no leņķiem ir par $40^\\circ$ lielāks nekā otrs. Atrodiet visu četru paralelograma leņķu grādu lielumus.",
+  "solution_latex_lv": "Divu paralelograma leņķu, kas piekļaujas vienai malai, summa ir $180^\\circ$.\nApzīmēsim mazāko leņķi ar $\\alpha$, tad lielākais leņķis ir $\\alpha + 40^\\circ$:\n$$\\alpha + (\\alpha + 40^\\circ) = 180^\\circ \\implies 2\\alpha = 140^\\circ \\implies \\alpha = 70^\\circ$$\nLielākais leņķis ir:\n$$70^\\circ + 40^\\circ = 110^\\circ$$\nTā kā paralelograma pretējie leņķi ir vienādi, paralelograma leņķi ir $70^\\circ, 110^\\circ, 70^\\circ, 110^\\circ$."
+ },
+ "57": {
+  "title_lv": "Romba malas un augstuma aprēķināšana pēc diagonālēm",
+  "condition_latex_lv": "Romba diagonāles ir $12\\text{ cm}$ un $16\\text{ cm}$. Atrodiet romba malu, tā laukumu un augstumu.",
+  "solution_latex_lv": "1) Romba diagonāles ir savstarpēji perpendikulāras un krustpunktā dalās uz pusēm. Diagonāļu puses veido taisnleņķa trijstūri ar katetēm $6\\text{ cm}$ un $8\\text{ cm}$.\n2) Pēc Pitagora teorēmas aprēķināsim romba malu:\n$$a = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = \\sqrt{100} = 10\\text{ cm}$$\n3) Romba laukums ir vienāds ar pusi no tā diagonāļu reizinājuma:\n$$S = \\frac{1}{2} \\cdot d_1 \\cdot d_2 = \\frac{1}{2} \\cdot 12 \\cdot 16 = 96\\text{ cm}^2$$\n4) Izteiksim romba augstumu no laukuma formulas $S = a \\cdot h$:\n$$h = \\frac{S}{a} = \\frac{96}{10} = 9{,}6\\text{ cm}$$"
+ },
+ "58": {
+  "title_lv": "Paralelograma leņķa bisektrises īpašības",
+  "condition_latex_lv": "Paralelogramā $ABCD$ malas ir $AB = 7\\text{ cm}$ un $AD = 11\\text{ cm}$. Šaurā leņķa $A$ bisektrise krusto malu $BC$ punktā $K$. Atrodiet nogriežņu $BK$ un $KC$ garumus, kā arī to figūru laukumu attiecību, kurās nogrieznis $AK$ sadala doto paralelogramu.",
+  "solution_latex_lv": "1) Tā kā $AK$ ir $\\angle BAD$ bisektrise, tad $\\angle BAK = \\angle DAK$.\n2) Tā kā taisnes $AD$ un $BC$ ir paralēlas, iekšējie šķērsleņķi ir vienādi: $\\angle BKA = \\angle DAK$.\n3) Tātad $\\angle BAK = \\angle BKA$, kas nozīmē, ka $\\triangle ABK$ ir vienādsānu ar pamatu $AK$, no kā $BK = AB = 7\\text{ cm}$.\n4) Pretējās malas garums $BC = AD = 11\\text{ cm}$, tad:\n$$KC = BC - BK = 11 - 7 = 4\\text{ cm}$$\n5) Nogrieznis $AK$ sadala paralelogramu trapecē $ABKD$ (ar pamatiem $AD = 11\\text{ cm}$, $BK = 7\\text{ cm}$) un trijstūrī $KCD$ (ar pamatu $KC = 4\\text{ cm}$) ar kopīgu augstumu $h$.\n$$S_{ABKD} = \\frac{11 + 7}{2} \\cdot h = 9h$$\n$$S_{KCD} = \\frac{1}{2} \\cdot 4 \\cdot h = 2h$$\nTo laukumu attiecība ir:\n$$\\frac{S_{ABKD}}{S_{KCD}} = \\frac{9h}{2h} = \\frac{9}{2}$$"
+ },
+ "59": {
+  "title_lv": "Stingras kvadrātnevienādības risināšana",
+  "condition_latex_lv": "Atrisiniet kvadrātnevienādību $x^2 - 6x + 8 < 0$.",
+  "solution_latex_lv": "1) Atradīsim vienādojuma $x^2 - 6x + 8 = 0$ saknes pēc sakņu formulas vai Vjeta teorēmas:\n$$x_1 = 2,\\; x_2 = 4$$\n2) Kvadrātfunkcijas $y = x^2 - 6x + 8$ grafiks ir parabola ar zariem uz augšu ($a = 1 > 0$).\n3) Funkcija pieņem negatīvas vērtības stingri starp funkcijas nullēm:\n$$x \\in (2; 4)$$"
+ },
+ "60": {
+  "title_lv": "Daļveida racionāla nevienādība ar intervālu metodi",
+  "condition_latex_lv": "Atrisiniet nevienādību $\\frac{x^2 - 4x}{x + 3} \\ge 0$.",
+  "solution_latex_lv": "1) Sadalīsim daļas skaitītāju lineāros reizinātājos:\n$$\\frac{x(x - 4)}{x + 3} \\ge 0$$\n2) Skaitītāja nulles: $x = 0$ un $x = 4$ (ietilpst atrisinājumā, jo nevienādība nav stingra).\n3) Saucēja nulle: $x = -3$ (izslēdzama no pieļaujamo vērtību apgabala: $x \\ne -3$).\n4) Atzīmēsim punktus $-3, 0, 4$ uz skaitļu ass un noteiksim daļas zīmes intervālos:\n- Ja $x > 4$: zīme $+$\n- Ja $0 < x < 4$: zīme $-$\n- Ja $-3 < x < 0$: zīme $+$\n- Ja $x < -3$: zīme $-$\nIzvēlamies intervālus, kuros izteiksme ir nenegatīva:\n$$x \\in (-3; 0] \\cup [4; +\\infty)$$"
+ },
+ "61": {
+  "title_lv": "Kvadrātnevienādība ar parametru pie visiem reāliem x",
+  "condition_latex_lv": "Atrodiet visas parametra $k$ vērtības, pie kurām nevienādība $(k - 1)x^2 + 2(k - 1)x + 3 > 0$ ir spēkā pie visiem reāliem skaitļiem $x \\in \\mathbb{R}$.",
+  "solution_latex_lv": "Aplūkosim divus iespējamos gadījumus:\n1) Ja vecākais koeficients ir vienāds ar nulli, tas ir, $k - 1 = 0 \\implies k = 1$:\nIevietosim $k = 1$ nevienādībā: $0 \\cdot x^2 + 0 \\cdot x + 3 > 0 \\implies 3 > 0$.\nNevienādība ir patiesa pie visiem $x \\in \\mathbb{R}$, tātad vērtība $k = 1$ apmierina nosacījumu.\n2) Ja vecākais koeficients nav vienāds ar nulli ($k \\ne 1$):\nKvadrātnevienādība izpildās pie visiem $x \\in \\mathbb{R}$ tad un tikai tad, ja parabolas zari ir vērsti uz augšu ($a > 0$), bet diskriminants ir stingri negatīvs ($D < 0$):\n$$\\begin{cases} k - 1 > 0 \\\\ \\frac{D}{4} = (k - 1)^2 - 3(k - 1) < 0 \\end{cases}$$\nAtrisināsim nevienādību diskriminanta ceturtdaļai:\n$$(k - 1)(k - 1 - 3) = (k - 1)(k - 4) < 0$$\nŅemot vērā nosacījumu $k - 1 > 0$, dalīsim abas puses ar $(k - 1)$:\n$$k - 4 < 0 \\implies k < 4$$\nIegūstam intervālu $k \\in (1; 4)$.\n3) Apvienosim abus aplūkotos gadījumus (pievienojot $k = 1$):\n$$k \\in [1; 4)$$"
+ },
+ "62": {
+  "title_lv": "Līdzīgu ģeometrisku figūru laukumu attiecība",
+  "condition_latex_lv": "Trijstūri $ABC$ un $A_1B_1C_1$ ir līdzīgi, turklāt atbilstošās malas ir $AB = 6\\text{ cm}$ un $A_1B_1 = 15\\text{ cm}$. Atrodiet līdzības koeficientu $k$ un trijstūra $A_1B_1C_1$ laukumu, ja $\\triangle ABC$ laukums ir $16\\text{ cm}^2$.",
+  "solution_latex_lv": "1) Aprēķināsim trijstūru līdzības koeficientu:\n$$k = \\frac{A_1B_1}{AB} = \\frac{15}{6} = 2{,}5$$\n2) Līdzīgu figūru laukumu attiecība ir vienāda ar līdzības koeficienta kvadrātu:\n$$\\frac{S_{A_1B_1C_1}}{S_{ABC}} = k^2 = (2{,}5)^2 = 6{,}25$$\n3) Aprēķināsim trijstūra $A_1B_1C_1$ laukumu:\n$$S_{A_1B_1C_1} = S_{ABC} \\cdot k^2 = 16 \\cdot 6{,}25 = 100\\text{ cm}^2$$"
+ },
+ "63": {
+  "title_lv": "Teorēma par krustojošos hordu nogriežņu reizinājumu",
+  "condition_latex_lv": "Riņķa līnijas hordas $AB$ un $CD$ krustojas punktā $M$. Zināms, ka $AM = 4\\text{ cm}$, $MB = 9\\text{ cm}$, bet hordas $CD$ kopgarums ir $15\\text{ cm}$. Atrodiet nogriežņu $CM$ un $MD$ garumus.",
+  "solution_latex_lv": "Pēc teorēmas par krustojošām hordām vienas hordas nogriežņu reizinājums ir vienāds ar otras hordas nogriežņu reizinājumu:\n$$CM \\cdot MD = AM \\cdot MB$$\n$$CM \\cdot MD = 4 \\cdot 9 = 36$$\nPieņemsim, ka $CM = x\\text{ cm}$, tad $MD = (15 - x)\\text{ cm}$. Sastādīsim vienādojumu:\n$$x(15 - x) = 36 \\implies 15x - x^2 = 36 \\implies x^2 - 15x + 36 = 0$$\nPēc Vjeta teorēmas vienādojuma saknes ir:\n$$x_1 = 3,\\; x_2 = 12$$\nTātad hordas nogriežņi ir $3\\text{ cm}$ un $12\\text{ cm}$."
+ },
+ "64": {
+  "title_lv": "Teorēma par pieskari un sekanti",
+  "condition_latex_lv": "No punkta $P$ pret riņķa līniju novilkta pieskare $PT$ ($T$ — pieskaršanās punkts) ar garumu $12\\text{ cm}$ un sekante, kas krusto riņķa līniju punktos $A$ un $B$ (punkts $A$ atrodas starp $P$ un $B$). Atrodiet sekantes $PB$ pilno garumu, ja tās iekšējais nogrieznis $AB$ ir $10\\text{ cm}$.",
+  "solution_latex_lv": "Pēc teorēmas par pieskari un sekanti pieskares nogriežņa kvadrāts ir vienāds ar visas sekantes un tās ārējās daļas reizinājumu:\n$$PT^2 = PA \\cdot PB$$\nApzīmēsim sekantes ārējo nogriezni $PA$ ar $x\\text{ cm}$ ($x > 0$).\nTad visa sekante $PB = PA + AB = (x + 10)\\text{ cm}$.\nIevietosim zināmos lielumus formulā:\n$$12^2 = x(x + 10) \\implies 144 = x^2 + 10x \\implies x^2 + 10x - 144 = 0$$\nAprēķināsim kvadrātvienādojuma diskriminantu:\n$$D = 10^2 - 4 \\cdot 1 \\cdot (-144) = 100 + 576 = 676 = 26^2$$\nAtradīsim pozitīvo sakni:\n$$x = \\frac{-10 + 26}{2} = \\frac{16}{2} = 8\\text{ cm}$$\nTātad sekantes ārējā daļa $PA = 8\\text{ cm}$, bet sekantes pilnais garums ir:\n$$PB = 8 + 10 = 18\\text{ cm}$$"
+ },
+ "65": {
+  "title_lv": "Lielākā kopīgā dalītāja atrašana",
+  "condition_latex_lv": "Atrodiet skaitļu $24$ un $36$ lielāko kopīgo dalītāju.",
+  "solution_latex_lv": "Sadalīsim skaitļus pirmreizinātājos:\n$$24 = 2^3 \\cdot 3$$\n$$36 = 2^2 \\cdot 3^2$$\nIzvēlēsimies kopīgos pirmreizinātājus mazākajās pakāpēs:\n$$\\text{LKD}(24, 36) = 2^2 \\cdot 3 = 4 \\cdot 3 = 12$$"
+ },
+ "66": {
+  "title_lv": "Notikumu periodiskums un mazākais kopīgais dalāmais",
+  "condition_latex_lv": "No autoostas vienlaikus plkst. $08:00$ izbrauca divi autobusi. Pirmais maršruts veic pilnu apli $12\\text{ minūtēs}$, bet otrais — $18\\text{ minūtēs}$. Kurā tuvākajā laikā abi autobusi atkal vienlaikus būs autoostā?",
+  "solution_latex_lv": "1) Atkārtotas vienlaicīgas satikšanās laiks autoostā ir vienāds ar autobusu kustības periodu mazāko kopīgo dalāmo: $\\text{MKD}(12, 18)$.\n2) Sadalīsim skaitļus pirmreizinātājos:\n$$12 = 2^2 \\cdot 3$$\n$$18 = 2 \\cdot 3^2$$\n$$\\text{MKD}(12, 18) = 2^2 \\cdot 3^2 = 4 \\cdot 9 = 36\\text{ minūtes}$$\n3) Pieskaitīsim intervālu izbraukšanas laikam:\n$$08:00 + 36\\text{ min} = 08:36$$"
+ },
+ "67": {
+  "title_lv": "Salikta skaitļa dalāmības pazīmes",
+  "condition_latex_lv": "Piecciparu skaitlis $\\overline{4a52b}$ dalās ar $45$ bez atlikuma. Atrodiet visus iespējamos ciparu pārus $(a; b)$ un nosakiet starp tiem lielāko šādu skaitli.",
+  "solution_latex_lv": "Skaitlis dalās ar $45$, ja tas vienlaikus dalās ar $5$ un ar $9$ (jo $45 = 5 \\cdot 9$, bet $\\text{LKD}(5, 9) = 1$).\n1) Pēc dalāmības ar $5$ pazīmes pēdējais cipars $b$ var būt $0$ vai $5$.\n2) 1. gadījums: $b = 0$.\nSkaitlim ir veids $\\overline{4a520}$. Ciparu summa ir $4 + a + 5 + 2 + 0 = 11 + a$.\nPēc dalāmības ar $9$ pazīmes ciparu summai jādalās ar $9$. Tā kā $a$ ir cipars ($0 \\le a \\le 9$), tad $11 + a = 18 \\implies a = 7$. Iegūstam skaitli $47520$.\n3) 2. gadījums: $b = 5$.\nSkaitlim ir veids $\\overline{4a525}$. Ciparu summa ir $4 + a + 5 + 2 + 5 = 16 + a$.\nCiparu summa dalās ar $9$, ja $16 + a = 18 \\implies a = 2$. Iegūstam skaitli $42525$.\n4) Salīdzināsim iegūtos skaitļus: $47520 > 42525$. Meklētais lielākais skaitlis ir $47520$."
+ },
+ "68": {
+  "title_lv": "Darbību secība ar zīmēm un moduli",
+  "condition_latex_lv": "Aprēķiniet skaitliskās izteiksmes $|-18| - |-6| \\cdot (-2) + (-20) : (-4)$ vērtību.",
+  "solution_latex_lv": "1) Aprēķināsim moduļu vērtības: $|-18| = 18$, $|-6| = 6$.\n2) Veiksim reizināšanu: $6 \\cdot (-2) = -12$.\n3) Veiksim negatīva skaitļa atņemšanu: $18 - (-12) = 18 + 12 = 30$.\n4) Veiksim dalīšanu: $(-20) : (-4) = 5$.\n5) Saskaitīsim iegūtos rezultātus: $30 + 5 = 35$."
+ },
+ "69": {
+  "title_lv": "Lineārs vienādojums ar moduli",
+  "condition_latex_lv": "Atrisiniet vienādojumu $|3x - 6| = 12$.",
+  "solution_latex_lv": "Pēc moduļa definīcijas izteiksme zem moduļa zīmes var pieņemt divas pretējas vērtības:\n1) $3x - 6 = 12 \\implies 3x = 18 \\implies x_1 = 6$\n2) $3x - 6 = -12 \\implies 3x = -6 \\implies x_2 = -2$\nVienādojumam ir divas saknes: $x = -2$ un $x = 6$."
+ },
+ "70": {
+  "title_lv": "Vienādojums ar moduļu summu",
+  "condition_latex_lv": "Atrisiniet vienādojumu $|x + 2| + |x - 4| = 10$.",
+  "solution_latex_lv": "Punkti, kuros mainās zem moduļiem esošo izteiksmju zīmes: $x = -2$ un $x = 4$. Sadalīsim skaitļu taisni trīs intervālos:\n1) Ja $x < -2$:\n$$-(x + 2) - (x - 4) = 10 \\implies -x - 2 - x + 4 = 10 \\implies -2x + 2 = 10 \\implies -2x = 8 \\implies x = -4$$\nVērtība $x = -4$ apmierina nosacījumu $x < -2$.\n2) Ja $-2 \\le x \\le 4$:\n$$(x + 2) - (x - 4) = 10 \\implies x + 2 - x + 4 = 10 \\implies 6 = 10$$\nVienādība nav patiesa, šajā nogrieznī atrisinājumu nav.\n3) Ja $x > 4$:\n$$(x + 2) + (x - 4) = 10 \\implies 2x - 2 = 10 \\implies 2x = 12 \\implies x = 6$$\nVērtība $x = 6$ apmierina nosacījumu $x > 4$.\nVienādojuma saknes: $x_1 = -4$, $x_2 = 6$."
+ },
+ "71": {
+  "title_lv": "Divlocekļa starpības kvadrāts",
+  "condition_latex_lv": "Pārveidojiet izteiksmi $(4x - 3y)^2$ par standartveida polinomu.",
+  "solution_latex_lv": "Lietosim starpības kvadrāta formulu $(a - b)^2 = a^2 - 2ab + b^2$:\n$$(4x - 3y)^2 = (4x)^2 - 2 \\cdot 4x \\cdot 3y + (3y)^2 = 16x^2 - 24xy + 9y^2$$"
+ },
+ "72": {
+  "title_lv": "Racionālas daļas saīsināšana",
+  "condition_latex_lv": "Saīsiniet algebrisko daļu $\\frac{x^2 - 9}{x^2 - 6x + 9}$.",
+  "solution_latex_lv": "1) Sadalīsim skaitītāju pēc kvadrātu starpības formulas:\n$$x^2 - 9 = (x - 3)(x + 3)$$\n2) Savilksim saucēju pēc starpības kvadrāta formulas:\n$$x^2 - 6x + 9 = (x - 3)^2$$\n3) Saīsināsim daļu ar kopīgo reizinātāju $(x - 3)$ ar nosacījumu $x \\ne 3$:\n$$\\frac{(x - 3)(x + 3)}{(x - 3)^2} = \\frac{x + 3}{x - 3}$$"
+ },
+ "73": {
+  "title_lv": "Kubu summas aprēķināšana ar identitātēm",
+  "condition_latex_lv": "Zināms, ka $x + \\frac{1}{x} = 5$. Atrodiet izteiksmes $x^3 + \\frac{1}{x^3}$ precīzu skaitlisko vērtību.",
+  "solution_latex_lv": "Kāpināsim vienādību $x + \\frac{1}{x} = 5$ kubā, izmantojot formulu $(a + b)^3 = a^3 + 3ab(a + b) + b^3$:\n$$\\left(x + \\frac{1}{x}\\right)^3 = x^3 + 3 \\cdot x \\cdot \\frac{1}{x} \\cdot \\left(x + \\frac{1}{x}\\right) + \\frac{1}{x^3}$$\n$$5^3 = x^3 + \\frac{1}{x^3} + 3 \\cdot 1 \\cdot 5$$\n$$125 = x^3 + \\frac{1}{x^3} + 15$$\nIzteiksim meklēto kubu summu:\n$$x^3 + \\frac{1}{x^3} = 125 - 15 = 110$$"
+ },
+ "74": {
+  "title_lv": "Lineāras funkcijas grafika krustpunkti ar koordinātu asīm",
+  "condition_latex_lv": "Atrodiet funkcijas $y = -3x + 9$ grafika krustpunktu koordinātas ar koordinātu asīm $Ox$ un $Oy$.",
+  "solution_latex_lv": "1) Krustpunkts ar ordinātu asi ($Oy$): ievietosim $x = 0$:\n$$y = -3 \\cdot 0 + 9 = 9 \\implies (0; 9)$$\n2) Krustpunkts ar abscisu asi ($Ox$): pielīdzināsim $y = 0$:\n$$-3x + 9 = 0 \\implies 3x = 9 \\implies x = 3 \\implies (3; 0)$$"
+ },
+ "75": {
+  "title_lv": "Taisnes vienādojums pēc diviem dotiem punktiem",
+  "condition_latex_lv": "Uzrakstiet taisnes $y = kx + b$ analītisko vienādojumu, ja tā iet caur punktiem $A(2; 5)$ un $B(-1; -1)$.",
+  "solution_latex_lv": "1) Atradīsim virziena koeficientu $k$ pēc koordinātu pieaugumiem:\n$$k = \\frac{y_B - y_A}{x_B - x_A} = \\frac{-1 - 5}{-1 - 2} = \\frac{-6}{-3} = 2$$\n2) Ievietosim punkta $A(2; 5)$ koordinātas un vērtību $k = 2$ taisnes vienādojumā:\n$$5 = 2 \\cdot 2 + b \\implies 5 = 4 + b \\implies b = 1$$\nTaisnes vienādojumam ir veids $y = 2x + 1$."
+ },
+ "76": {
+  "title_lv": "Lineāra vienādojuma grafika ģeometriskie raksturlielumi",
+  "condition_latex_lv": "Taisne dota ar vienādojumu $4x + 3y - 24 = 0$. Aprēķiniet tā trijstūra laukumu, ko ierobežo šī taisne un koordinātu asis, kā arī attālumu no koordinātu sākumpunkta $O(0; 0)$ līdz dotajai taisnei.",
+  "solution_latex_lv": "1) Atradīsim taisnes krustpunktus ar koordinātu asīm:\nJa $x = 0$: $3y = 24 \\implies y = 8$. Punkts $A(0; 8)$.\nJa $y = 0$: $4x = 24 \\implies x = 6$. Punkts $B(6; 0)$.\n2) Taisnleņķa trijstūrim $AOB$ ir katetes $OA = 8$ un $OB = 6$. Aprēķināsim tā laukumu:\n$$S = \\frac{1}{2} \\cdot OA \\cdot OB = \\frac{1}{2} \\cdot 8 \\cdot 6 = 24$$\n3) Pēc Pitagora teorēmas hipotenūzas $AB$ garums ir:\n$$AB = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = 10$$\n4) Attālums no koordinātu sākumpunkta līdz taisnei ir vienāds ar augstumu $h$, kas novilkts pret hipotenūzu $AB$:\n$$S = \\frac{1}{2} \\cdot AB \\cdot h \\implies 24 = \\frac{1}{2} \\cdot 10 \\cdot h \\implies 5h = 24 \\implies h = 4{,}8$$"
+ },
+ "77": {
+  "title_lv": "Progresijas n-tā locekļa aprēķināšana",
+  "condition_latex_lv": "Aritmētiskajā progresijā $(a_n)$ pirmais loceklis ir $a_1 = 4$, bet diference $d = 3$. Atrodiet šīs progresijas divdesmito locekli $a_{20}$.",
+  "solution_latex_lv": "Izmantosim aritmētiskās progresijas vispārīgā locekļa formulu $a_n = a_1 + (n - 1)d$:\n$$a_{20} = a_1 + 19d = 4 + 19 \\cdot 3 = 4 + 57 = 61$$"
+ },
+ "78": {
+  "title_lv": "Progresijas parametru un locekļu summas atjaunošana",
+  "condition_latex_lv": "Aritmētiskajā progresijā trešais loceklis ir $a_3 = 13$, bet septītais loceklis $a_7 = 29$. Atrodiet progresijas diferenci $d$, pirmo locekli $a_1$ un pirmo desmit locekļu summu $S_{10}$.",
+  "solution_latex_lv": "1) Izteiksim progresijas diferenci ar doto locekļu starpību:\n$$a_7 - a_3 = (7 - 3)d = 4d$$\n$$29 - 13 = 4d \\implies 4d = 16 \\implies d = 4$$\n2) Atradīsim pirmo locekli:\n$$a_1 = a_3 - 2d = 13 - 2 \\cdot 4 = 13 - 8 = 5$$\n3) Aprēķināsim progresijas desmito locekli:\n$$a_{10} = a_1 + 9d = 5 + 9 \\cdot 4 = 5 + 36 = 41$$\n4) Aprēķināsim pirmo desmit locekļu summu:\n$$S_{10} = \\frac{a_1 + a_{10}}{2} \\cdot 10 = \\frac{5 + 41}{2} \\cdot 10 = 23 \\cdot 10 = 230$$"
+ },
+ "79": {
+  "title_lv": "Progresijas locekļu skaita noteikšana pēc dotās summas",
+  "condition_latex_lv": "Atrodiet aritmētiskās progresijas locekļu skaitu $n$, ja tās pirmais loceklis ir $a_1 = 3$, diference $d = 2$, bet pirmo $n$ locekļu summa ir $195$.",
+  "solution_latex_lv": "Pierakstīsim aritmētiskās progresijas pirmo $n$ locekļu summas formulu:\n$$S_n = \\frac{2a_1 + (n - 1)d}{2} \\cdot n$$\nIevietosim zināmās vērtības:\n$$195 = \\frac{2 \\cdot 3 + (n - 1) \\cdot 2}{2} \\cdot n$$\n$$195 = \\frac{6 + 2n - 2}{2} \\cdot n = \\frac{2n + 4}{2} \\cdot n = (n + 2)n$$\n$$n^2 + 2n - 195 = 0$$\nAtrisināsim kvadrātvienādojumu ar diskriminantu:\n$$D = 2^2 - 4 \\cdot 1 \\cdot (-195) = 4 + 780 = 784 = 28^2$$\n$$n = \\frac{-2 \\pm 28}{2}$$\n$$n_1 = \\frac{-2 + 28}{2} = 13;\\quad n_2 = \\frac{-2 - 28}{2} = -15$$\nPēc uzdevuma jēgas virknes locekļu skaits ir naturāls skaitlis ($n \\in \\mathbb{N}$), tāpēc $n = 13$."
+ },
+ "80": {
+  "title_lv": "Klasiskā varbūtības definīcija",
+  "condition_latex_lv": "Kastē ir $6$ sarkanas, $8$ zilas un $10$ baltas vienādas formas un masas bumbiņas. Nejauši izņem vienu bumbiņu. Kāda ir varbūtība, ka izvilktā bumbiņa būs zila?",
+  "solution_latex_lv": "1) Aprēķināsim vienlīdz iespējamo elementāro iznākumu kopskaitu:\n$$N = 6 + 8 + 10 = 24$$\n2) Labvēlīgo iznākumu skaits (zilas bumbiņas izvēle) ir $m = 8$.\n3) Pēc klasiskās varbūtības formulas:\n$$P = \\frac{m}{N} = \\frac{8}{24} = \\frac{1}{3}$$"
+ },
+ "81": {
+  "title_lv": "Punktu summa, metot divus spēļu kauliņus",
+  "condition_latex_lv": "Vienlaikus met divus standarta spēļu kauliņus (kubus ar skaitļiem no $1$ līdz $6$). Kāda ir varbūtība, ka uzmesto punktu summa būs $7$ vai $11$?",
+  "solution_latex_lv": "1) Visu iespējamo iznākumu kopskaits, metot divus kauliņus, ir $N = 6 \\cdot 6 = 36$.\n2) Uzskaitīsim labvēlīgos iznākumus, kas dod summu $7$:\n$$(1; 6), (2; 5), (3; 4), (4; 3), (5; 2), (6; 1) \\implies 6\\text{ iznākumi}$$\n3) Uzskaitīsim labvēlīgos iznākumus, kas dod summu $11$:\n$$(5; 6), (6; 5) \\implies 2\\text{ iznākumi}$$\n4) Labvēlīgo iznākumu kopskaits ir $m = 6 + 2 = 8$.\n5) Notikuma varbūtība ir:\n$$P = \\frac{8}{36} = \\frac{2}{9}$$"
+ },
+ "82": {
+  "title_lv": "Izlases varbūtība ar kombinācijām un pretējo notikumu",
+  "condition_latex_lv": "Grupā mācās $6$ jaunieši un $4$ jaunietes. Dalībai konferencē nejauši atlasa komandu no $3$ cilvēkiem. Kāda ir varbūtība, ka komandā iekļūs vismaz viena jauniete?",
+  "solution_latex_lv": "1) Aprēķināsim, cik veidos var izvēlēties $3$ cilvēkus no $10$:\n$$N = C_{10}^3 = \\frac{10 \\cdot 9 \\cdot 8}{3 \\cdot 2 \\cdot 1} = 120$$\n2) Aplūkosim pretējo notikumu: komandā neiekļūs neviena jauniete (visi $3$ dalībnieki ir jaunieši). Veidu skaits, kā izvēlēties $3$ jauniešus no $6$, ir:\n$$m_0 = C_6^3 = \\frac{6 \\cdot 5 \\cdot 4}{3 \\cdot 2 \\cdot 1} = 20$$\n3) Pretējā notikuma varbūtība:\n$$P(\\bar{A}) = \\frac{m_0}{N} = \\frac{20}{120} = \\frac{1}{6}$$\n4) Sākotnējā notikuma varbūtība (vismaz viena jauniete):\n$$P(A) = 1 - P(\\bar{A}) = 1 - \\frac{1}{6} = \\frac{5}{6}$$"
+ }
+}

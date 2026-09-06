@@ -182,7 +182,7 @@
 
   function setSubjectMode(subject) {
     editingSubjectId = subject?.id ?? null;
-    document.querySelector('#subject-form-title').textContent = subject ? `Редактировать раздел: ${subject.title}` : 'Добавить раздел';
+    document.querySelector('#subject-form-title').textContent = subject ? `Редактировать раздел: ${subject.title}` : 'Разделы математики';
     document.querySelector('#subject-submit').textContent = subject ? 'Сохранить раздел' : 'Добавить раздел';
     document.querySelector('#subject-cancel').hidden = !subject;
     subjectForm.elements.title.value = subject?.title || '';
@@ -248,7 +248,7 @@
 
   function setTopicMode(topic) {
     editingTopicId = topic?.id ?? null;
-    document.querySelector('#topic-form-title').textContent = topic ? `Редактировать тему: ${topic.title}` : 'Добавить тему';
+    document.querySelector('#topic-form-title').textContent = topic ? `Редактировать тему: ${topic.title}` : 'Темы и программа Skola2030';
     document.querySelector('#topic-submit').textContent = topic ? 'Сохранить тему' : 'Добавить тему';
     document.querySelector('#topic-cancel').hidden = !topic;
     topicForm.elements.title.value = topic?.title || '';
@@ -519,6 +519,71 @@
     return window.MathTasksLib.unmaskLatexAfterTranslation(translated, tokens);
   }
 
+  function translateWithGlossaryFast(text, targetLang = 'lv') {
+    if (!text || !String(text).trim()) return null;
+    const { maskedText, tokens } = window.MathTasksLib.maskLatexForTranslation(String(text));
+    if (!maskedText.trim()) return null;
+    let translated = maskedText;
+    const rules = MATH_GLOSSARY[targetLang] || [];
+    let modified = false;
+    for (const [pattern, replacement] of rules) {
+      if (pattern.test(translated)) {
+        translated = translated.replace(pattern, replacement);
+        modified = true;
+      }
+    }
+    return modified ? window.MathTasksLib.unmaskLatexAfterTranslation(translated, tokens) : null;
+  }
+
+  async function translateWithGemini(texts, direction, apiKey) {
+    const toLv = direction === 'ru2lv';
+    const prompt = `Ты эксперт по латвийской школьной математике и стандартам Skola2030.
+Переведи массив текстов задачи ${toLv ? 'с русского на латышский язык' : 'с латышского на русский язык'}.
+
+ПРАВИЛА:
+1. Используй официальную латвийскую терминологию Skola2030 (например: vienādojums, atrisināt vienādojumu, aprēķināt, saknes, trijstūris, laukums, perimetrs, taisnleņķa, riņķa līnija).
+2. СТРОГО СОХРАНЯЙ все формулы LaTeX / KaTeX внутри $...$ и $$...$$ БЕЗ ИЗМЕНЕНИЙ.
+3. Верни ТОЛЬКО валидный JSON-массив строк той же длины [${texts.map(() => '""').join(', ')}], без markdown-блоков и без \`\`\`json.
+
+Тексты:
+${JSON.stringify(texts)}`;
+
+    const requestBody = JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.1
+      }
+    });
+
+    const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+    let lastError = null;
+    for (const model of candidateModels) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const r = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: requestBody
+        });
+        if (r.ok) {
+          const data = await r.json();
+          const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (candidateText) {
+            const cleanJson = candidateText.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+            const parsed = JSON.parse(cleanJson);
+            if (Array.isArray(parsed) && parsed.length === texts.length) {
+              return parsed;
+            }
+          }
+        }
+      } catch (e) {
+        lastError = e;
+      }
+    }
+    throw lastError || new Error('Не удалось получить перевод от Gemini AI');
+  }
+
   /* Одна процедура на оба направления: раньше перевод был только RU → LV,
      и заполнить русские поля по латышским было нечем. */
   async function runTranslation(button, direction) {
@@ -541,8 +606,28 @@
 
     const label = button.innerHTML;
     button.disabled = true;
-    button.innerHTML = '<span class="ai-icon">⏳</span> Переводим…';
+
+    const apiKey = (document.querySelector('#ai-gemini-key')?.value || '').trim() || localStorage.getItem('math_tasks_gemini_api_key') || '';
+
     try {
+      if (apiKey) {
+        button.innerHTML = '<span class="ai-icon">✨</span> Gemini AI переводит…';
+        try {
+          const sourceTexts = fields.map(([from]) => from?.value?.trim() || '');
+          const results = await translateWithGemini(sourceTexts, direction, apiKey);
+          fields.forEach(([, to], i) => { if (to && results[i]) to.value = results[i]; });
+          updatePreviews();
+          taskSuccess.textContent = toLv
+            ? '✨ Качественный перевод через Google Gemini AI готов — проверьте вкладку LV.'
+            : '✨ Качественный перевод через Google Gemini AI готов — проверьте вкладку RU.';
+          setTimeout(() => { if (taskSuccess.textContent.startsWith('✨')) taskSuccess.textContent = ''; }, 6000);
+          return;
+        } catch (geminiErr) {
+          console.warn('Gemini translation failed, falling back to MyMemory:', geminiErr);
+        }
+      }
+
+      button.innerHTML = '<span class="ai-icon">⏳</span> Переводим…';
       const target = toLv ? 'lv' : 'ru';
       const results = await Promise.all(fields.map(([from]) => translateTextWithLatex(from?.value.trim() || '', target)));
       fields.forEach(([, to], i) => { if (to) to.value = results[i]; });
@@ -675,16 +760,39 @@
     renderTagSelector();
   }
 
+  const TAG_CATEGORIES = {
+    algebra: ['algebriskie-parveidojumi', 'vienadojumi', 'nevienadibas', 'dalas-procenti', 'dalamiba', 'pakapes-saknes', 'logaritmi'],
+    geometry: ['planimetrija', 'stereometrija', 'merijumi', 'vektori', 'koordinatu-metode'],
+    functions: ['funkcijas', 'grafiki', 'trigonometrija', 'matematiska-analize', 'virknes'],
+    data: ['varbutiba', 'statistika', 'kombinatorika', 'teksta-uzdevumi', 'modelesana', 'pieradijumi']
+  };
+
+  function getTagCategory(slug) {
+    for (const [cat, slugs] of Object.entries(TAG_CATEGORIES)) {
+      if (slugs.includes(slug)) return cat;
+    }
+    return 'algebra';
+  }
+
+  let activeTagCategory = 'all';
+  let tagSearchQuery = '';
+  let tagFiltersInitialized = false;
+
   function renderTagSelector() {
     const container = document.querySelector('#task-tags-selector');
     if (!container) return;
     const list = allTags.length ? allTags : (window.MathTasksLib?.CROSS_TAGS || []);
-    container.innerHTML = list.map(tag => `
-      <label class="tag-checkbox-pill" title="${escapeHtml(tag.description || tag.title)}">
-        <input type="checkbox" name="task_tag" value="${tag.slug}" data-tag-id="${tag.id || ''}" />
-        <span>${escapeHtml(tag.title)}</span>
-      </label>
-    `).join('');
+
+    container.innerHTML = list.map(tag => {
+      const cat = getTagCategory(tag.slug);
+      return `
+        <label class="tag-chip" data-slug="${escapeHtml(tag.slug)}" data-cat="${cat}" title="${escapeHtml(tag.description || tag.title)}">
+          <input type="checkbox" name="task_tag" value="${escapeHtml(tag.slug)}" data-tag-id="${tag.id || ''}" class="tag-chip-checkbox" />
+          <span class="tag-chip-icon">+</span>
+          <span class="tag-chip-title">${escapeHtml(tag.title)}</span>
+        </label>
+      `;
+    }).join('');
 
     container.querySelectorAll('input[name="task_tag"]').forEach(cb => {
       cb.addEventListener('change', () => {
@@ -696,13 +804,107 @@
         updateSelectedTagsCount();
       });
     });
+
+    if (!tagFiltersInitialized) {
+      setupTagFilters();
+      tagFiltersInitialized = true;
+    }
+    applyTagFilters();
     updateSelectedTagsCount();
+  }
+
+  function setupTagFilters() {
+    const searchInput = document.querySelector('#task-tags-search');
+    const catContainer = document.querySelector('#task-tags-categories');
+
+    searchInput?.addEventListener('input', () => {
+      tagSearchQuery = (searchInput.value || '').toLowerCase().trim();
+      applyTagFilters();
+    });
+
+    catContainer?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.tag-cat-btn');
+      if (!btn) return;
+      catContainer.querySelectorAll('.tag-cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTagCategory = btn.dataset.cat || 'all';
+      applyTagFilters();
+    });
+  }
+
+  function applyTagFilters() {
+    const chips = document.querySelectorAll('#task-tags-selector .tag-chip');
+    chips.forEach(chip => {
+      const slug = chip.dataset.slug || '';
+      const cat = chip.dataset.cat || '';
+      const text = chip.querySelector('.tag-chip-title')?.textContent?.toLowerCase() || '';
+      const matchesCat = activeTagCategory === 'all' || cat === activeTagCategory;
+      const matchesSearch = !tagSearchQuery || text.includes(tagSearchQuery) || slug.includes(tagSearchQuery);
+      chip.hidden = !(matchesCat && matchesSearch);
+    });
   }
 
   function updateSelectedTagsCount() {
     const countEl = document.querySelector('#task-tags-count');
     const checked = document.querySelectorAll('#task-tags-selector input[name="task_tag"]:checked');
-    if (countEl) countEl.textContent = `(выбрано: ${checked.length} / макс. 3)`;
+    const totalSelected = checked.length;
+    if (countEl) countEl.textContent = `(выбрано: ${totalSelected} / макс. 3)`;
+
+    const allChips = document.querySelectorAll('#task-tags-selector .tag-chip');
+    allChips.forEach(chip => {
+      const cb = chip.querySelector('input[type="checkbox"]');
+      const icon = chip.querySelector('.tag-chip-icon');
+      if (cb?.checked) {
+        chip.classList.add('active');
+        chip.classList.remove('disabled');
+        if (icon) icon.textContent = '✓';
+      } else {
+        chip.classList.remove('active');
+        if (icon) icon.textContent = '+';
+        if (totalSelected >= 3) {
+          chip.classList.add('disabled');
+        } else {
+          chip.classList.remove('disabled');
+        }
+      }
+    });
+
+    // Панель выбранных тегов с кнопкой удаления
+    const selectedBar = document.querySelector('#task-tags-selected-bar');
+    const selectedList = document.querySelector('#tags-selected-list');
+    if (selectedBar && selectedList) {
+      if (totalSelected === 0) {
+        selectedBar.hidden = true;
+        selectedList.innerHTML = '';
+      } else {
+        selectedBar.hidden = false;
+        selectedList.innerHTML = Array.from(checked).map(cb => {
+          const chip = cb.closest('.tag-chip');
+          const title = chip?.querySelector('.tag-chip-title')?.textContent || cb.value;
+          return `
+            <span class="tag-selected-badge" data-slug="${escapeHtml(cb.value)}">
+              <span class="badge-text">${escapeHtml(title)}</span>
+              <button type="button" class="badge-remove-btn" title="Удалить тег">&times;</button>
+            </span>
+          `;
+        }).join('');
+
+        selectedList.querySelectorAll('.badge-remove-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const badge = btn.closest('.tag-selected-badge');
+            const slug = badge?.dataset.slug;
+            if (slug) {
+              const targetCb = document.querySelector(`#task-tags-selector input[value="${slug}"]`);
+              if (targetCb) {
+                targetCb.checked = false;
+                updateSelectedTagsCount();
+              }
+            }
+          });
+        });
+      }
+    }
   }
 
   function getSelectedTagSlugs() {
@@ -802,7 +1004,7 @@
 
   function setTaskMode(task) {
     editingTaskId = task?.id ?? null;
-    document.querySelector('#task-form-title').textContent = task ? `Редактировать задачу: ${task.title}` : 'Добавить задание';
+    document.querySelector('#task-form-title').textContent = task ? `Редактировать задачу: ${task.title}` : 'Создание и редактирование задачи';
     document.querySelector('#task-submit').textContent = task ? 'Сохранить задачу' : 'Добавить задачу';
     document.querySelector('#task-cancel').hidden = !task;
     taskForm.elements.title.value = task?.title || '';
@@ -1255,7 +1457,8 @@
       const exportData = filtered.map(light => {
         const task = fullById[light.id] || light;
         const topic = topics.find(t => t.id === task.topic_id);
-        return {
+        const tagSlugs = (task.task_tags || []).map(tt => tt.tags?.slug).filter(Boolean);
+        const obj = {
           title: task.title,
           title_lv: task.title_lv || null,
           condition_latex: task.condition_latex,
@@ -1266,9 +1469,14 @@
           difficulty: task.difficulty || 'Средний',
           grade: task.grade ?? topic?.grade ?? null,
           topic_title: topic?.title || null,
+          topic_title_lv: topic?.title_lv || null,
           position: task.position ?? 0,
           is_published: Boolean(task.is_published)
         };
+        if (tagSlugs.length) {
+          obj.tags = tagSlugs;
+        }
+        return obj;
       });
       bulkDialogTitle.textContent = `Экспорт задач (${exportData.length} шт.)`;
       bulkDialogDesc.innerHTML = 'Экспорт текущего списка задач в формате JSON. Можно скопировать текст или сохранить файл резервной копии.';
@@ -1493,6 +1701,7 @@
             "answer_latex": "$x = \\pm 3$",
             "solution_latex": "Разложим на множители разность квадратов:\n$$(x - 3)(x + 3) = 0$$\nОткуда $x_1 = 3,\\; x_2 = -3$.",
             "solution_latex_lv": "Sadalām reizinātājos kvadrātu starpību:\n$$(x - 3)(x + 3) = 0$$\nTātad $x_1 = 3,\\; x_2 = -3$.",
+            "tags": ["vienadojumi", "algebriskie-parveidojumi"],
             "difficulty": "Лёгкий",
             "is_published": true
           },
@@ -1504,6 +1713,7 @@
             "answer_latex": "$x_1 = 2,\\; x_2 = 3$",
             "solution_latex": "По формуле корней через дискриминант:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
             "solution_latex_lv": "Pēc sakņu formulas ar diskriminantu:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
+            "tags": ["vienadojumi"],
             "difficulty": "Средний",
             "is_published": true
           }
@@ -1522,6 +1732,7 @@
             "answer_latex": "$c = 5\\text{ см}$",
             "solution_latex": "По теореме Пифагора:\n$$c = \\sqrt{a^2 + b^2} = \\sqrt{3^2 + 4^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ см}$$",
             "solution_latex_lv": "Pēc Pitagora teorēmas:\n$$c = \\sqrt{a^2 + b^2} = \\sqrt{3^2 + 4^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ cm}$$",
+            "tags": ["planimetrija", "merijumi"],
             "difficulty": "Лёгкий",
             "is_published": true
           }
@@ -1625,7 +1836,16 @@
       const titleKey = top.title.toLowerCase();
       let existing = topics.find(t => t.title.toLowerCase() === titleKey);
       if (!existing) {
-        const targetSubjectId = top.subject_id || subjects[0]?.id || null;
+        let targetSubjectId = top.subject_id;
+        if (!targetSubjectId && (top.subject_slug || top.subject_title)) {
+          const foundSubj = subjects.find(s =>
+            (top.subject_slug && s.slug?.toLowerCase() === top.subject_slug.toLowerCase()) ||
+            (top.subject_title && s.title?.toLowerCase() === top.subject_title.toLowerCase())
+          );
+          if (foundSubj) targetSubjectId = foundSubj.id;
+        }
+        if (!targetSubjectId) targetSubjectId = subjects[0]?.id || null;
+
         const newTopicPayload = sanitizeTopicPayload({
           title: top.title,
           title_lv: top.title_lv || null,
@@ -1675,11 +1895,25 @@
         is_published: item.is_published !== undefined ? Boolean(item.is_published) : true
       });
 
-      const { error } = await db.from('tasks').insert(payload);
+      const { data: insertedTask, error } = await db.from('tasks').insert(payload).select('id').maybeSingle();
       if (error) {
         errors.push(`Задача #${i + 1} («${item.title}»): ${error.message}`);
       } else {
         successCount++;
+        const newTaskId = insertedTask?.id;
+        // Привязываем кросс-теги Skola2030 если они переданы в массиве tags
+        if (newTaskId && Array.isArray(item.tags) && item.tags.length && tagsReady) {
+          try {
+            const rawTags = item.tags.map(t => String(t).trim().toLowerCase());
+            const tagRows = allTags.filter(t => rawTags.includes(t.slug?.toLowerCase()) || rawTags.includes(t.title?.toLowerCase()));
+            const tagInserts = tagRows.slice(0, 3).map(t => ({ task_id: newTaskId, tag_id: t.id }));
+            if (tagInserts.length) {
+              await db.from('task_tags').insert(tagInserts);
+            }
+          } catch (tErr) {
+            console.warn('Ошибка сохранения тегов при импорте:', tErr.message);
+          }
+        }
       }
     }
 
@@ -1718,26 +1952,32 @@
   const aiGenContext = document.querySelector('#ai-gen-context');
   const aiGenPrompt = document.querySelector('#ai-gen-prompt');
   const topicListDefer = document.querySelector('#topic-list-defer');
-  const topicListClose = document.querySelector('#topic-list-close');
-  const taskListClose = document.querySelector('#task-list-close');
+  const topicListCloseTop = document.querySelector('#topic-list-close');
+  const topicListCloseBottom = document.querySelector('#topic-list-close-bottom');
+  const taskListCloseTop = document.querySelector('#task-list-close');
+  const taskListCloseBottom = document.querySelector('#task-list-close-bottom');
 
   function setTopicsShown(shown) {
     topicsShown = shown;
     if (topicListDefer) topicListDefer.hidden = shown;
     if (topicList) topicList.hidden = !shown;
-    if (topicListClose) topicListClose.hidden = !shown;
+    if (topicListCloseTop) topicListCloseTop.hidden = !shown;
+    if (topicListCloseBottom) topicListCloseBottom.hidden = !shown;
     if (shown) renderTopicList();
   }
 
   function setTasksShown(shown) {
     if (taskListDefer) taskListDefer.hidden = shown;
     if (taskList) taskList.hidden = !shown;
-    if (taskListClose) taskListClose.hidden = !shown;
+    if (taskListCloseTop) taskListCloseTop.hidden = !shown;
+    if (taskListCloseBottom) taskListCloseBottom.hidden = !shown;
   }
 
   document.querySelector('#btn-load-topics')?.addEventListener('click', () => setTopicsShown(true));
   document.querySelector('#btn-hide-topics')?.addEventListener('click', () => setTopicsShown(false));
+  document.querySelector('#btn-hide-topics-bottom')?.addEventListener('click', () => setTopicsShown(false));
   document.querySelector('#btn-hide-tasks')?.addEventListener('click', () => setTasksShown(false));
+  document.querySelector('#btn-hide-tasks-bottom')?.addEventListener('click', () => setTasksShown(false));
 
   const taskListDefer = document.querySelector('#task-list-defer');
   const btnLoadTasks = document.querySelector('#btn-load-tasks');
@@ -1827,9 +2067,183 @@
     btnBatchSeedTopics.hidden = isSeeded;
   }
 
+  /* ── Кастомный rich-dropdown поверх нативного <select> ─────────── */
+  function createRichSelect(nativeSelect, opts = {}) {
+    if (!nativeSelect) return null;
+    const { searchable = false, placeholder = 'Выберите...', renderItem, onSelect } = opts;
+    if (nativeSelect._richSelect) {
+      nativeSelect._richSelect.destroy();
+    }
+
+    nativeSelect.style.display = 'none';
+    const wrap = document.createElement('div');
+    wrap.className = 'custom-select-wrap';
+    nativeSelect.parentNode.insertBefore(wrap, nativeSelect);
+    wrap.appendChild(nativeSelect);
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'custom-select-trigger';
+    trigger.innerHTML = '<span class="custom-select-text">—</span><span class="custom-select-arrow">▾</span>';
+    wrap.insertBefore(trigger, nativeSelect);
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'custom-select-dropdown';
+    let searchInput = null;
+    if (searchable) {
+      const searchWrap = document.createElement('div');
+      searchWrap.className = 'custom-select-search-wrap';
+      searchInput = document.createElement('input');
+      searchInput.type = 'search';
+      searchInput.className = 'custom-select-search';
+      searchInput.placeholder = 'Поиск по списку…';
+      searchInput.autocomplete = 'off';
+      searchWrap.appendChild(searchInput);
+      dropdown.appendChild(searchWrap);
+    }
+    const list = document.createElement('div');
+    list.className = 'custom-select-list';
+    dropdown.appendChild(list);
+    wrap.appendChild(dropdown);
+
+    let isOpen = false;
+    let items = [];
+
+    function setTriggerText(value) {
+      const textEl = trigger.querySelector('.custom-select-text');
+      const opt = items.find(i => String(i.value) === String(value));
+      if (opt) {
+        textEl.innerHTML = opt.triggerHtml || escapeHtml(opt.main);
+      } else {
+        const selOpt = nativeSelect.selectedOptions?.[0];
+        textEl.textContent = selOpt ? selOpt.textContent : placeholder;
+      }
+    }
+
+    function buildItems() {
+      items = [];
+      for (const option of nativeSelect.options) {
+        const raw = option.textContent;
+        let main = raw, sub = '';
+        if (renderItem) {
+          const r = renderItem(option.value, raw);
+          main = r.main;
+          sub = r.sub || '';
+          items.push({ value: option.value, main, sub, text: raw, triggerHtml: r.triggerHtml });
+        } else {
+          items.push({ value: option.value, main, sub, text: raw });
+        }
+      }
+      renderList('');
+      setTriggerText(nativeSelect.value);
+    }
+
+    function renderList(query) {
+      const q = (query || '').toLowerCase().trim();
+      const filtered = q
+        ? items.filter(i => (i.text && i.text.toLowerCase().includes(q)) || (i.main && i.main.toLowerCase().includes(q)) || (i.sub && i.sub.toLowerCase().includes(q)))
+        : items;
+      if (!filtered.length) {
+        list.innerHTML = '<div class="custom-select-empty">Ничего не найдено</div>';
+        return;
+      }
+      list.innerHTML = filtered.map(i => {
+        const activeClass = String(i.value) === String(nativeSelect.value) ? ' active' : '';
+        const subHtml = i.sub ? `<span class="custom-select-item-sub">${escapeHtml(i.sub)}</span>` : '';
+        return `
+          <div class="custom-select-item${activeClass}" data-value="${escapeHtml(String(i.value))}">
+            <div class="custom-select-item-content">
+              <span class="custom-select-item-main">${escapeHtml(i.main)}</span>
+              ${subHtml}
+            </div>
+            <span class="custom-select-check">✓</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function open() {
+      if (isOpen) return;
+      document.querySelectorAll('.custom-select-trigger.open').forEach(t => t.classList.remove('open'));
+      document.querySelectorAll('.custom-select-dropdown.open').forEach(d => d.classList.remove('open'));
+      isOpen = true;
+      trigger.classList.add('open');
+      dropdown.classList.add('open');
+      if (searchInput) {
+        searchInput.value = '';
+        renderList('');
+        setTimeout(() => searchInput.focus(), 20);
+      }
+      const activeEl = list.querySelector('.active');
+      if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
+    }
+
+    function close() {
+      if (!isOpen) return;
+      isOpen = false;
+      trigger.classList.remove('open');
+      dropdown.classList.remove('open');
+    }
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      isOpen ? close() : open();
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener('input', () => renderList(searchInput.value));
+      searchInput.addEventListener('click', e => e.stopPropagation());
+    }
+
+    list.addEventListener('click', (e) => {
+      const el = e.target.closest('.custom-select-item');
+      if (!el) return;
+      const val = el.dataset.value;
+      nativeSelect.value = val;
+      setTriggerText(val);
+      close();
+      nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      if (onSelect) onSelect(val);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (isOpen && !wrap.contains(e.target)) close();
+    });
+
+    const api = {
+      refresh() { buildItems(); },
+      setValue(val) {
+        nativeSelect.value = val;
+        setTriggerText(val);
+        renderList(searchInput?.value || '');
+      },
+      destroy() {
+        nativeSelect.style.display = '';
+        if (wrap.parentNode) {
+          wrap.parentNode.insertBefore(nativeSelect, wrap);
+          wrap.remove();
+        }
+        nativeSelect._richSelect = null;
+      }
+    };
+    nativeSelect._richSelect = api;
+    buildItems();
+    return api;
+  }
+
   function setupSkolaPresetControls() {
     if (!skolaPresetGrade || !skolaPresetTopic) return;
     fillGradeSelect(skolaPresetGrade, 'Все классы и курсы', { numeric: true });
+
+    createRichSelect(skolaPresetGrade, {
+      searchable: false,
+      renderItem(val, text) {
+        const g = parseFormGrade(val);
+        if (g === null) return { main: 'Все классы и курсы', sub: 'Полный каталог Skola2030 (81 тема)' };
+        const gradePrefix = g <= 9 ? `${g}. klase (${g} класс)` : (g === 10 ? 'Vispārīgais (10 кл)' : (g === 11 ? 'Matemātika I (11 кл)' : 'Matemātika II (12 кл)'));
+        return { main: gradePrefix, sub: '' };
+      }
+    });
 
     function refreshPresetTopics() {
       const g = parseFormGrade(skolaPresetGrade.value);
@@ -1840,6 +2254,22 @@
             return `<option value="${t.slug}">${gradePrefix}: ${escapeHtml(t.title_ru)} (${escapeHtml(t.title_lv)})</option>`;
           }).join('')
         : '<option value="">Тем не найдено</option>';
+
+      createRichSelect(skolaPresetTopic, {
+        searchable: true,
+        renderItem(slug) {
+          const t = skola2030Catalog.find(item => item.slug === slug);
+          if (t) {
+            const gradePrefix = t.grade <= 9 ? `${t.grade} кл` : (t.grade === 10 ? 'Visp' : (t.grade === 11 ? 'Opt' : 'Augst'));
+            return {
+              main: `[${gradePrefix}] ${t.title_ru}`,
+              sub: t.title_lv,
+              triggerHtml: `[${gradePrefix}] ${escapeHtml(t.title_ru)} <span class="cs-sub">${escapeHtml(t.title_lv)}</span>`
+            };
+          }
+          return { main: slug, sub: '' };
+        }
+      });
     }
 
     skolaPresetGrade.addEventListener('change', refreshPresetTopics);
@@ -1924,6 +2354,50 @@
     fillGradeSelect(aiGenGrade, '7 класс', { numeric: true });
     aiGenGrade.value = '7';
 
+    createRichSelect(aiGenGrade, {
+      searchable: false,
+      renderItem(val, text) {
+        const g = parseFormGrade(val);
+        let main = text;
+        let sub = '';
+        if (g !== null && g <= 9) {
+          main = `${g}. klase (${g} класс)`;
+          sub = g === 9 ? '🎯 Valsts eksāmens (Госэкзамен)' : (g === 3 || g === 6 ? '📋 Diagnostikas darbs' : 'Pamatskola');
+        } else if (g === 10) {
+          main = 'Vispārīgais līmenis';
+          sub = '10. klase / Общий школьный курс';
+        } else if (g === 11) {
+          main = 'Matemātika I (Optimālais)';
+          sub = '11. klase / Оптимальный уровень экзамена';
+        } else if (g === 12) {
+          main = 'Matemātika II (Augstākais)';
+          sub = '12. klase / Высший уровень экзамена';
+        }
+        return { main, sub, triggerHtml: escapeHtml(main) };
+      }
+    });
+
+    createRichSelect(aiGenDifficulty, {
+      searchable: false,
+      renderItem(value) {
+        if (value === 'mix') return { main: 'Сбалансированный микс', sub: '45% лёгкий, 35% средний, 20% сложный' };
+        if (value === 'Лёгкий') return { main: 'Лёгкий уровень', sub: 'pamata līmenis (базовые понятия и алгоритмы)' };
+        if (value === 'Средний') return { main: 'Средний уровень', sub: 'optimālais līmenis (стандартная программа)' };
+        if (value === 'Сложный') return { main: 'Сложный уровень', sub: 'padziļinātais līmenis (олимпиадные и комплексные)' };
+        return { main: value, sub: '' };
+      }
+    });
+
+    createRichSelect(aiGenType, {
+      searchable: false,
+      renderItem(value) {
+        if (value === 'Уравнение или пример') return { main: 'Уравнение или пример', sub: 'Алгебра, формулы, тождества и вычисления' };
+        if (value === 'Текстовая прикладная задача') return { main: 'Текстовая прикладная задача', sub: 'Жизненный сюжет, движение, проценты, работа' };
+        if (value === 'Геометрическая задача') return { main: 'Геометрическая задача', sub: 'Фигуры, углы, площади, стереометрия' };
+        return { main: value, sub: '' };
+      }
+    });
+
     function refreshAiTopics() {
       const g = parseFormGrade(aiGenGrade.value);
       const catalogTopics = g !== null ? skola2030Catalog.filter(t => t.grade === g) : skola2030Catalog;
@@ -1935,6 +2409,26 @@
           ? dbTopics.map(t => `<option value="${t.id}">${escapeHtml(t.title)}</option>`).join('')
           : '<option value="">Нет тем</option>';
       }
+
+      createRichSelect(aiGenTopic, {
+        searchable: true,
+        renderItem(value, text) {
+          const t = skola2030Catalog.find(c => c.slug === value);
+          if (t) {
+            return {
+              main: t.title_ru,
+              sub: t.title_lv,
+              triggerHtml: `${escapeHtml(t.title_ru)} <span class="cs-sub">${escapeHtml(t.title_lv)}</span>`
+            };
+          }
+          const dbT = topics.find(t => String(t.id) === value);
+          if (dbT) {
+            return { main: dbT.title, sub: dbT.title_lv || '', triggerHtml: escapeHtml(dbT.title) };
+          }
+          return { main: text, sub: '' };
+        }
+      });
+
       refreshAiSubtopics();
     }
 
@@ -1949,11 +2443,58 @@
       } else {
         aiGenSubtopic.innerHTML = '<option value="">Все навыки темы</option>';
       }
+
+      createRichSelect(aiGenSubtopic, {
+        searchable: subtopics.length > 4,
+        renderItem(value, text) {
+          if (!value) return { main: 'Все навыки темы', sub: 'Случайный выбор из программы Skola2030' };
+          const s = subtopics.find(st => st.ru === value);
+          if (s && s.lv) {
+            return {
+              main: s.ru || text,
+              sub: s.lv,
+              triggerHtml: `${escapeHtml(s.ru || text)} <span class="cs-sub">${escapeHtml(s.lv)}</span>`
+            };
+          }
+          return { main: text, sub: '' };
+        }
+      });
     }
 
     aiGenGrade.addEventListener('change', refreshAiTopics);
     aiGenTopic.addEventListener('change', refreshAiSubtopics);
     refreshAiTopics();
+
+    // Быстрые сюжеты и требования к формулам
+    document.querySelectorAll('.ai-preset-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const targetId = chip.closest('.ai-preset-chips')?.dataset.target;
+        const targetInput = targetId ? document.getElementById(targetId) : null;
+        if (!targetInput) return;
+        const textToInsert = chip.dataset.text || chip.textContent.trim();
+        const currentVal = targetInput.value.trim();
+        if (!currentVal) {
+          targetInput.value = textToInsert;
+        } else if (!currentVal.includes(textToInsert)) {
+          targetInput.value = currentVal + '; ' + textToInsert;
+        }
+        targetInput.focus();
+        chip.classList.add('applied');
+        setTimeout(() => chip.classList.remove('applied'), 600);
+      });
+    });
+
+    document.querySelectorAll('.ai-field-clear-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        const targetInput = targetId ? document.getElementById(targetId) : null;
+        if (targetInput) {
+          targetInput.value = '';
+          targetInput.focus();
+        }
+      });
+    });
+
 
     function getDifficultyForTask(selectedDifficulty, taskIndex, totalCount) {
       if (selectedDifficulty !== 'mix') {
