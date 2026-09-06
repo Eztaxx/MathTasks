@@ -642,6 +642,82 @@
     });
   }
 
+  /* ── Кросс-теги (VISC/Skola2030) ─────────────────────────────────── */
+  let tagsReady = false;
+  let allTags = [];
+
+  async function detectTagsSupport() {
+    if (!db) return;
+    try {
+      const { data, error } = await db.from('tags').select('id,slug,title,title_lv,description').order('position');
+      if (!error && data && data.length > 0) {
+        tagsReady = true;
+        allTags = data;
+      } else {
+        tagsReady = false;
+        allTags = window.MathTasksLib?.CROSS_TAGS || [];
+      }
+    } catch {
+      tagsReady = false;
+      allTags = window.MathTasksLib?.CROSS_TAGS || [];
+    }
+    renderTagSelector();
+  }
+
+  function renderTagSelector() {
+    const container = document.querySelector('#task-tags-selector');
+    if (!container) return;
+    const list = allTags.length ? allTags : (window.MathTasksLib?.CROSS_TAGS || []);
+    container.innerHTML = list.map(tag => `
+      <label class="tag-checkbox-pill" title="${escapeHtml(tag.description || tag.title)}">
+        <input type="checkbox" name="task_tag" value="${tag.slug}" data-tag-id="${tag.id || ''}" />
+        <span>${escapeHtml(tag.title)}</span>
+      </label>
+    `).join('');
+
+    container.querySelectorAll('input[name="task_tag"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const checked = container.querySelectorAll('input[name="task_tag"]:checked');
+        if (checked.length > 3) {
+          cb.checked = false;
+          alert('Можно выбрать не более 3 кросс-тегов для одной задачи.');
+        }
+        updateSelectedTagsCount();
+      });
+    });
+    updateSelectedTagsCount();
+  }
+
+  function updateSelectedTagsCount() {
+    const countEl = document.querySelector('#task-tags-count');
+    const checked = document.querySelectorAll('#task-tags-selector input[name="task_tag"]:checked');
+    if (countEl) countEl.textContent = `(выбрано: ${checked.length} / макс. 3)`;
+  }
+
+  function getSelectedTagSlugs() {
+    const checked = document.querySelectorAll('#task-tags-selector input[name="task_tag"]:checked');
+    return Array.from(checked).map(cb => cb.value);
+  }
+
+  function setSelectedTagSlugs(slugs = []) {
+    const set = new Set(slugs);
+    document.querySelectorAll('#task-tags-selector input[name="task_tag"]').forEach(cb => {
+      cb.checked = set.has(cb.value);
+    });
+    updateSelectedTagsCount();
+  }
+
+  document.querySelector('#btn-suggest-tags')?.addEventListener('click', () => {
+    const topic = topics.find(item => String(item.id) === topicSelect.value);
+    const titleVal = taskForm.elements.title?.value || '';
+    const condVal = conditionInput?.value || '';
+    const text = `${topic ? topic.title + ' ' + (topic.description || '') : ''} ${titleVal} ${condVal}`;
+    const suggested = window.MathTasksLib?.suggestTagsForTopic(text) || [];
+    if (suggested.length) {
+      setSelectedTagSlugs(suggested);
+    }
+  });
+
   const taskGradeSelect = document.querySelector('#task-grade');
 
   function updateTaskTopicDropdown(preferredTopicId = null) {
@@ -696,6 +772,13 @@
       taskGradeSelect.value = String(topic.grade);
       updateTaskTopicDropdown(topic.id);
     }
+    if (getSelectedTagSlugs().length === 0 && topic) {
+      const text = `${topic.title} ${topic.description || ''}`;
+      const suggested = window.MathTasksLib?.suggestTagsForTopic(text) || [];
+      if (suggested.length) {
+        setSelectedTagSlugs(suggested);
+      }
+    }
   });
 
   /* В списках лежат укороченные строки, поэтому перед правкой добираем
@@ -726,6 +809,16 @@
     taskForm.elements.is_published.checked = task ? task.is_published : true;
     setImages(task);
     updatePreviews();
+    if (task && tagsReady) {
+      db.from('task_tags').select('tags(slug)').eq('task_id', task.id)
+        .then(({ data: tagLinks }) => {
+          const slugs = (tagLinks || []).map(l => l.tags?.slug).filter(Boolean);
+          setSelectedTagSlugs(slugs);
+        })
+        .catch(() => setSelectedTagSlugs([]));
+    } else {
+      setSelectedTagSlugs([]);
+    }
     if (task) taskForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
@@ -916,6 +1009,11 @@
           </span>`
         : '';
 
+      const tagBadges = (task.task_tags || []).map(tt => {
+        const title = tt.tags?.title || tt.tags?.slug;
+        return title ? `<span class="admin-status-badge info" style="background:#eef4ff;color:#1764ff;border:1px solid #c3d2ea">#${escapeHtml(title)}</span>` : '';
+      }).join('');
+
       // Бейджи статусов и индикация черновиков / ошибок (4.4)
       const badges = [
         task.is_published
@@ -924,7 +1022,8 @@
         !task.topic_id ? '<span class="admin-status-badge danger">Без темы</span>' : '',
         (!task.solution_latex && !task.solution_image) ? '<span class="admin-status-badge warning">Без решения</span>' : '',
         (task.condition_image || task.solution_image) ? '<span class="admin-status-badge info">🖼️ С чертежом</span>' : '',
-        difficultyBadge(task.difficulty)
+        difficultyBadge(task.difficulty),
+        tagBadges
       ].filter(Boolean).join('');
 
       return `<div class="admin-row">
@@ -985,10 +1084,31 @@
       topic_id: topicId,
       is_published: form.get('is_published') === 'on'
     });
-    const { error } = editingTaskId
-      ? await db.from('tasks').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', editingTaskId)
-      : await db.from('tasks').insert(payload);
-    if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    let savedTaskId = editingTaskId;
+    if (editingTaskId) {
+      const { error } = await db.from('tasks').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', editingTaskId);
+      if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    } else {
+      const { data: inserted, error } = await db.from('tasks').insert(payload).select('id').maybeSingle();
+      if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
+      savedTaskId = inserted?.id;
+    }
+    // Синхронизируем кросс-теги в task_tags
+    if (savedTaskId && tagsReady) {
+      try {
+        await db.from('task_tags').delete().eq('task_id', savedTaskId);
+        const slugs = getSelectedTagSlugs();
+        if (slugs.length) {
+          const tagRows = allTags.filter(t => slugs.includes(t.slug));
+          const inserts = tagRows.map(t => ({ task_id: savedTaskId, tag_id: t.id }));
+          if (inserts.length) {
+            await db.from('task_tags').insert(inserts);
+          }
+        }
+      } catch (tagErr) {
+        console.warn('Ошибка сохранения тегов:', tagErr.message);
+      }
+    }
     // Сохранились — прежние файлы больше не нужны.
     for (const kind of ['condition', 'solution']) {
       const { saved, current } = images[kind];
@@ -1038,6 +1158,16 @@
       taskForm.elements.is_published.checked = false; // Копия по умолчанию создаётся черновиком
       setImages(source);
       updatePreviews();
+      if (tagsReady) {
+        db.from('task_tags').select('tags(slug)').eq('task_id', cloneId)
+          .then(({ data: tagLinks }) => {
+            const slugs = (tagLinks || []).map(l => l.tags?.slug).filter(Boolean);
+            setSelectedTagSlugs(slugs);
+          })
+          .catch(() => setSelectedTagSlugs([]));
+      } else {
+        setSelectedTagSlugs([]);
+      }
       document.querySelector('#task-form-title').textContent = `Клонирование: ${source.title}`;
       document.querySelector('#task-submit').textContent = 'Добавить задачу (сохранить копию)';
       document.querySelector('#task-cancel').hidden = false;
@@ -2012,7 +2142,9 @@
   }
 
   async function loadTasks() {
-    const { data, error } = await db.from('tasks').select(TASK_LIST_COLS).order('topic_id').order('position').order('created_at', { ascending: true });
+    let selectCols = TASK_LIST_COLS;
+    if (tagsReady) selectCols += ',task_tags(tags(slug,title,title_lv))';
+    const { data, error } = await db.from('tasks').select(selectCols).order('topic_id').order('position').order('created_at', { ascending: true });
     if (error) { taskList.innerHTML = `<p class="admin-empty">Не удалось загрузить задачи: ${escapeHtml(error.message)}</p>`; return; }
     tasks = data || [];
     tasksLoaded = true;
@@ -2054,6 +2186,7 @@
        задачи и темы целиком. Теперь запросы идут параллельно, задачи
        представлены лёгким указателем, а сам список ждёт кнопки. */
     await Promise.all([
+      detectTagsSupport(),
       loadSkola2030Catalog(),
       loadCatalog(),
       loadTaskIndex()

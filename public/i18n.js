@@ -201,6 +201,13 @@
       topic_no_tasks: 'Pagaidām tukšs',
       favorites_empty: 'Jums vēl nav saglabātu uzdevumu. Noklikšķiniet uz zvaigznītes pie jebkura uzdevuma, lai to pievienotu!',
 
+      // Tagu lapa
+      tag_prefix: 'Birkas:',
+      tag_title: 'Uzdevumi ar birku «{tag}»',
+      tag_empty: 'Šai birkai pagaidām nav pievienots neviens uzdevums.',
+      tag_heading: 'Birka',
+      tags_label: 'Krustbirkas:',
+
       // Par vietni
       about_title: 'Par vietni',
       about_body: '<p><strong>MathTasks</strong> ir matemātikas uzdevumu un atrisinājumu krātuve skolēniem un skolotājiem, kas izstrādāta saskaņā ar Latvijas valsts izglītības standartu <strong>Skola2030</strong>.</p><h2>Kā izmantot vietni</h2><p>Kreisajā izvēlnē izvēlieties savu klasi vai eksāmena sagatavošanās kursu (9. klase, Vispārīgais, Optimālais vai Augstākais līmenis). Katrā tēmā uzdevumi ir sakārtoti secīgi no vienkāršākā uz sarežģītāku.</p><p>Izmantojiet pašpārbaudes lauku un ātro matemātisko tastatūru, lai uzreiz pārbaudītu iegūtos rezultātus!</p>'
@@ -399,6 +406,13 @@
       favorites_title: 'Мои закладки',
       topic_no_tasks: 'Пока пусто',
       favorites_empty: 'У вас пока нет сохраненных задач. Нажмите на значок закладки у любой задачи, чтобы добавить её сюда!',
+
+      // Страница тегов
+      tag_prefix: 'Теги:',
+      tag_title: 'Задачи с тегом «{tag}»',
+      tag_empty: 'С этим тегом задач пока нет.',
+      tag_heading: 'Тег',
+      tags_label: 'Кросс-теги:',
 
       // О сайте
       about_title: 'О сайте',

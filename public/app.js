@@ -51,22 +51,51 @@ try {
   }
 } catch {}
 
-/* Мультиязычные колонки добавляет миграция 007. Если код выкатили раньше
-   миграции, PostgREST отвечает 400 на весь запрос, и страница темы остаётся
-   без задач. Поэтому набор полей выбирается один раз при загрузке: сначала
-   пробуем полный, при ошибке откатываемся на базовый. */
+/* Мультиязычные колонки добавляет миграция 007, а кросс-теги — миграция 010.
+   Если код выкатили раньше миграций, PostgREST отвечает 400 на весь запрос.
+   Поэтому набор полей выбирается адаптивно: пробуем с тегами, при ошибке
+   откатываемся на полный без тегов, а при отсутствии колонок языка — на базовый. */
+const TASK_SELECT_WITH_TAGS = '*, task_tags(tags(id, slug, title, title_lv, description)), topics(title, title_lv, slug, description, description_lv, subjects(title, title_lv, icon))';
 const TASK_SELECT_FULL = '*, topics(title, title_lv, slug, description, description_lv, subjects(title, title_lv, icon))';
 const TASK_SELECT_BASE = '*, topics(title, slug, description, subjects(title, icon))';
 let TASK_SELECT = TASK_SELECT_FULL;
 let multilingualColumns = true;
+let hasTagsSupport = false;
+let allTags = (window.MathTasksLib && window.MathTasksLib.CROSS_TAGS) ? window.MathTasksLib.CROSS_TAGS : [];
 
 async function detectMultilingualColumns() {
   if (!db) return;
-  const { error } = await db.from('topics').select('title_lv').limit(1);
-  if (!error) return;
-  multilingualColumns = false;
-  TASK_SELECT = TASK_SELECT_BASE;
-  console.warn('Мультиязычные колонки не найдены — примените supabase/migrations/007_multilingual_tasks.sql. Сайт работает на базовом языке.');
+  try {
+    const { error } = await db.from('topics').select('title_lv').limit(1);
+    if (error) {
+      multilingualColumns = false;
+      TASK_SELECT = TASK_SELECT_BASE;
+      console.warn('Мультиязычные колонки не найдены — примените supabase/migrations/007_multilingual_tasks.sql. Сайт работает на базовом языке.');
+      return;
+    }
+  } catch {
+    multilingualColumns = false;
+    TASK_SELECT = TASK_SELECT_BASE;
+    return;
+  }
+
+  // Проверяем наличие таблицы tags и task_tags (миграция 010)
+  try {
+    const { data, error } = await db.from('tags').select('id, slug, title, title_lv, description').order('position');
+    if (!error && data && data.length > 0) {
+      hasTagsSupport = true;
+      allTags = data;
+      TASK_SELECT = TASK_SELECT_WITH_TAGS;
+    } else {
+      hasTagsSupport = false;
+      allTags = (window.MathTasksLib && window.MathTasksLib.CROSS_TAGS) ? window.MathTasksLib.CROSS_TAGS : [];
+      TASK_SELECT = TASK_SELECT_FULL;
+    }
+  } catch {
+    hasTagsSupport = false;
+    allTags = (window.MathTasksLib && window.MathTasksLib.CROSS_TAGS) ? window.MathTasksLib.CROSS_TAGS : [];
+    TASK_SELECT = TASK_SELECT_FULL;
+  }
 }
 
 const loc = (item, field) => {
@@ -110,13 +139,16 @@ const gradeLabel = grade => {
 function isTopicInGrade(topic, grade) {
   if (!grade) return true;
   if (grade === 'visparigais') {
-    return topic.grade === 10 || topic.grade === 'visparigais' || (topic.description && topic.description.toLowerCase().includes('vispār'));
+    if (topic.slug && (topic.slug.startsWith('opt-') || topic.slug.startsWith('augst-'))) return false;
+    return topic.grade === 10 || topic.grade === 'visparigais' || (topic.slug && topic.slug.startsWith('visp-')) || (topic.description && topic.description.toLowerCase().includes('vispār'));
   }
   if (grade === 'matematika-1') {
-    return topic.grade === 10 || topic.grade === 11 || topic.grade === 'matematika-1';
+    if (topic.slug && (topic.slug.startsWith('visp-') || topic.slug.startsWith('augst-'))) return false;
+    return topic.grade === 11 || topic.grade === 'matematika-1' || (topic.slug && topic.slug.startsWith('opt-'));
   }
   if (grade === 'matematika-2') {
-    return topic.grade === 12 || topic.grade === 'matematika-2';
+    if (topic.slug && (topic.slug.startsWith('visp-') || topic.slug.startsWith('opt-'))) return false;
+    return topic.grade === 12 || topic.grade === 'matematika-2' || (topic.slug && topic.slug.startsWith('augst-'));
   }
   return topic.grade === Number(grade);
 }
@@ -418,6 +450,14 @@ function renderHubSidebar() {
         <div class="action-card-body">
           <strong>${escapeHtml(tr('nav_favorites'))}</strong>
           <span id="fav-count-text">${favCount ? `${favCount} ${escapeHtml(tr('favorite_active'))}` : '0'}</span>
+        </div>
+      </a>
+
+      <a class="sidebar-action-card${location.pathname === '/tags' ? ' active' : ''}" href="/tags" title="${escapeHtml(tr('tags_label') || (getLang() === 'lv' ? 'Krustbirkas' : 'Кросс-теги'))}">
+        <div class="action-card-icon tag-icon" style="background:#f0f7ff;color:#1764ff">🏷️</div>
+        <div class="action-card-body">
+          <strong>${escapeHtml(tr('tags_label') || (getLang() === 'lv' ? 'Krustbirkas' : 'Кросс-теги'))}</strong>
+          <span>${getLang() === 'lv' ? '23 krostagi prasmēm' : '23 тега по навыкам'}</span>
         </div>
       </a>
     </div>
@@ -782,9 +822,25 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
   const title = linkTitle
     ? `<a class="task-title" href="${taskPath(task)}">${titleText}</a>`
     : `<strong class="task-title">${titleText}</strong>`;
+
+  // Кросс-теги задачи
+  const rawTaskTags = Array.isArray(task.task_tags)
+    ? task.task_tags.map(tt => tt.tags).filter(Boolean)
+    : (Array.isArray(task.tags) ? task.tags : []);
+
+  const tagsRowHtml = rawTaskTags.length > 0 ? `
+    <div class="task-tags-row" aria-label="Теги">
+      ${rawTaskTags.map(tg => {
+        const tgTitle = loc(tg, 'title') || tg.title || tg.slug;
+        const tgDesc = tg.description || '';
+        return `<a class="task-tag-chip" href="/tag/${encodeURIComponent(tg.slug)}"${tgDesc ? ` title="${escapeHtml(tgDesc)}"` : ''}>#${escapeHtml(tgTitle)}</a>`;
+      }).join('')}
+    </div>` : '';
+
   return `<article class="task" id="task-${task.id}" data-task="${task.id}">
     <div class="task-meta">${meta}</div>
     ${title}
+    ${tagsRowHtml}
     <div class="math task-condition" data-condition></div>
     ${taskFigure(task.condition_image, taskTitle, 'Zīmējums')}
     ${selfCheck}
@@ -1321,10 +1377,44 @@ async function showSearch(rawQuery, acrossGrades) {
   renderTopicCards(listTopics, foundTopics, !scoped);
   listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_searching')}</p>`;
 
+  // Поиск по кросс-тегам
+  const matchedTags = allTags.filter(t => {
+    const tSlug = (t.slug || '').toLowerCase();
+    const tTitle = (t.title || '').toLowerCase();
+    const tTitleLv = (t.title_lv || '').toLowerCase();
+    return tSlug.includes(needle) || tTitle.includes(needle) || tTitleLv.includes(needle);
+  });
+
+  let taggedTaskIds = [];
+  if (hasTagsSupport && matchedTags.length > 0) {
+    const matchedTagIds = matchedTags.map(t => t.id).filter(Boolean);
+    if (matchedTagIds.length > 0) {
+      try {
+        const { data: tagLinks } = await db.from('task_tags').select('task_id').in('tag_id', matchedTagIds);
+        if (tagLinks && tagLinks.length > 0) {
+          taggedTaskIds = [...new Set(tagLinks.map(l => l.task_id))];
+        }
+      } catch (e) {
+        console.warn('Ошибка поиска по тегам:', e);
+      }
+    }
+  }
+
   const safe = sanitize(query);
   let request = db.from('tasks').select(TASK_SELECT).eq('is_published', true);
   if (scoped) request = request.eq('grade', selectedGrade);
-  if (safe) request = request.or(`title.ilike.*${safe}*,condition_latex.ilike.*${safe}*,answer_latex.ilike.*${safe}*,solution_latex.ilike.*${safe}*`);
+
+  const orClauses = [];
+  if (safe) {
+    orClauses.push(`title.ilike.*${safe}*,condition_latex.ilike.*${safe}*,answer_latex.ilike.*${safe}*,solution_latex.ilike.*${safe}*`);
+  }
+  if (taggedTaskIds.length > 0) {
+    orClauses.push(`id.in.(${taggedTaskIds.slice(0, 100).join(',')})`);
+  }
+  if (orClauses.length > 0) {
+    request = request.or(orClauses.join(','));
+  }
+
   const { data, error } = await request.order('created_at', { ascending: false }).limit(100);
   if (error) {
     console.warn('Поиск не удался.', error);
@@ -1333,16 +1423,31 @@ async function showSearch(rawQuery, acrossGrades) {
   }
 
   const tasks = data || [];
-  const counts = [foundTopics.length ? `тем: ${foundTopics.length}` : '', `задач: ${tasks.length}`].filter(Boolean).join(', ');
+  const counts = [
+    matchedTags.length ? `тегов: ${matchedTags.length}` : '',
+    foundTopics.length ? `тем: ${foundTopics.length}` : '',
+    `задач: ${tasks.length}`
+  ].filter(Boolean).join(', ');
   const where = scoped ? (window.MathTasks.t || (k => k))('search_scope_grade', { grade: selectedGrade }) : (window.MathTasks.t || (k => k))('search_scope_all');
   // Из класса всегда есть выход: иначе человек решит, что задачи просто нет.
   const escape = scoped
     ? `<a class="search-escape" href="/search?q=${encodeURIComponent(query)}&all=1">Искать во всех классах →</a>`
     : '';
-  document.querySelector('#list-meta').innerHTML = `<span class="search-count">${(window.MathTasks.t || (k => k))('search_found', { where, counts })}</span>${escape}`;
 
-  renderTaskList(listTasks, tasks, foundTopics.length
-    ? 'Задач с таким текстом нет, но есть подходящие темы выше.'
+  const matchedTagsHtml = matchedTags.length > 0 ? `
+    <div class="search-matched-tags">
+      <span class="search-matched-tags-label">${loc({ title: 'Кросс-теги', title_lv: 'Krustbirkas' }, 'title')}:</span>
+      ${matchedTags.map(t => `<a class="task-tag-chip" href="/tag/${encodeURIComponent(t.slug)}" title="${escapeHtml(t.description || '')}">#${escapeHtml(loc(t, 'title'))}</a>`).join('')}
+    </div>
+  ` : '';
+
+  document.querySelector('#list-meta').innerHTML = `
+    <span class="search-count">${(window.MathTasks.t || (k => k))('search_found', { where, counts })}</span>${escape}
+    ${matchedTagsHtml}
+  `;
+
+  renderTaskList(listTasks, tasks, (foundTopics.length || matchedTags.length)
+    ? 'Задач с таким текстом нет, но есть подходящие темы или теги выше.'
     : 'Ничего не нашлось. Попробуйте другое слово.', { showGrade: !scoped, highlightQuery: query });
 }
 
@@ -1462,6 +1567,142 @@ async function renderTaskNeighbours(task) {
   if (nav.innerHTML) listTasks.after(nav);
 }
 
+/* ── Кросс-теги (VISC / Skola2030) ────────────────────────────────── */
+
+async function showTagsList() {
+  showView('list');
+  resetListBlocks();
+  const tr = window.MathTasks.t || (k => k);
+  const currentLang = window.MathTasks?.getLang ? window.MathTasks.getLang() : 'ru';
+  const listTitle = tr('tags_label') || (currentLang === 'lv' ? 'Krustbirkas' : 'Кросс-теги');
+  const crumbs = [
+    [tr('nav_home'), '/'],
+    [listTitle, null]
+  ];
+  const listDesc = currentLang === 'lv'
+    ? '23 tēmu krosstagi saskaņā ar VISC un Skola2030 standartu ļauj atrast uzdevumus pēc metodēm un prasmēm starp dažādām tēmām un klasēm.'
+    : '23 кросс-тега стандарта VISC / Skola2030 позволяют находить задачи по общим методам и математическим навыкам на стыке тем и классов.';
+
+  fillListHeader({
+    crumbs,
+    title: listTitle,
+    description: listDesc
+  });
+  setMeta(listTitle, listDesc);
+  renderSidebar();
+
+  const list = allTags.length ? allTags : (window.MathTasksLib?.CROSS_TAGS || []);
+  const metaEl = document.querySelector('#list-meta');
+  if (metaEl) {
+    metaEl.innerHTML = `<span class="search-count">${list.length} ${currentLang === 'lv' ? 'birkas' : 'тегов'}</span>`;
+  }
+
+  listTasks.innerHTML = `
+    <div class="tags-catalog-grid">
+      ${list.map(tag => {
+        const title = loc(tag, 'title') || tag.title || tag.slug;
+        const titleOther = currentLang === 'lv' ? tag.title : tag.title_lv;
+        const desc = tag.description || '';
+        return `
+          <a class="tag-catalog-card" href="/tag/${encodeURIComponent(tag.slug)}">
+            <div class="tag-catalog-header">
+              <span class="tag-catalog-chip">#${escapeHtml(title)}</span>
+              ${titleOther && titleOther !== title ? `<span class="tag-catalog-alt">${escapeHtml(titleOther)}</span>` : ''}
+            </div>
+            ${desc ? `<p class="tag-catalog-desc">${escapeHtml(desc)}</p>` : ''}
+          </a>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+async function showTag(slug) {
+  showView('list');
+  resetListBlocks();
+  const tr = window.MathTasks.t || (k => k);
+  const currentLang = window.MathTasks?.getLang ? window.MathTasks.getLang() : 'ru';
+  const tagsListLabel = tr('tags_label') || (currentLang === 'lv' ? 'Krustbirkas' : 'Кросс-теги');
+
+  let tag = allTags.find(t => t.slug === slug);
+  if (!tag && window.MathTasksLib?.getCrossTag) {
+    tag = window.MathTasksLib.getCrossTag(slug);
+  }
+
+  if (!tag) {
+    fillListHeader({
+      crumbs: [[tr('nav_home'), '/'], [tagsListLabel, '/tags'], ['Тег не найден', null]],
+      title: 'Тег не найден',
+      description: 'Возможно, ссылка устарела или тег не существует.'
+    });
+    setMeta('Тег не найден');
+    renderSidebar();
+    return;
+  }
+
+  const tagTitle = loc(tag, 'title') || tag.title || tag.slug;
+  const tagDesc = tag.description || '';
+  const crumbs = [
+    [tr('nav_home'), '/'],
+    [tagsListLabel, '/tags'],
+    [`#${tagTitle}`, null]
+  ];
+
+  fillListHeader({
+    crumbs,
+    title: `#${tagTitle}`,
+    description: tagDesc
+  });
+  setMeta(`#${tagTitle}`, tagDesc || `Задачи с тегом #${tagTitle}`);
+  renderSidebar();
+
+  listTasks.innerHTML = `<p class="empty-state">${tr('state_loading_tasks')}</p>`;
+
+  let tasks = [];
+  if (db) {
+    try {
+      let tagId = tag.id;
+      if (!tagId) {
+        const { data: tagRow } = await db.from('tags').select('id').eq('slug', slug).maybeSingle();
+        if (tagRow) tagId = tagRow.id;
+      }
+
+      if (tagId) {
+        const { data: links, error: linkErr } = await db.from('task_tags').select('task_id').eq('tag_id', tagId);
+        if (!linkErr && links && links.length > 0) {
+          const taskIds = links.map(l => l.task_id);
+          let taskQuery = db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('id', taskIds);
+          if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) {
+            taskQuery = taskQuery.in('grade', [10, 11]);
+          } else if (selectedGrade === 'matematika-2' || selectedGrade === 12) {
+            taskQuery = taskQuery.eq('grade', 12);
+          } else if (selectedGrade) {
+            taskQuery = taskQuery.eq('grade', Number(selectedGrade));
+          }
+          const { data, error } = await taskQuery
+            .order('grade', { ascending: true })
+            .order('position', { ascending: true })
+            .order('created_at', { ascending: true });
+          if (!error && data) {
+            tasks = data;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Ошибка загрузки задач по тегу:', e);
+    }
+  }
+
+  const metaEl = document.querySelector('#list-meta');
+  if (metaEl) {
+    const tasksCountLabel = currentLang === 'lv' ? `Uzdevumi: ${tasks.length}` : `Задач: ${tasks.length}`;
+    const allTagsLabel = currentLang === 'lv' ? '← Visas birkas' : '← Все теги';
+    metaEl.innerHTML = `<span class="search-count">${tasksCountLabel}</span> <a class="search-escape" href="/tags">${allTagsLabel}</a>`;
+  }
+
+  renderTaskList(listTasks, tasks, tr('tag_empty') || (currentLang === 'lv' ? 'Šai birkai pagaidām nav pievienots neviens uzdevums.' : 'Задач с этим тегом пока нет.'), { showTopicLink: true, showGrade: true });
+}
+
 /* ── Маршруты ─────────────────────────────────────────────────────── */
 
 /* Смена якоря (#task-12) тоже поднимает popstate. Без этой защиты клик по
@@ -1504,6 +1745,11 @@ async function route({ force = false } = {}) {
 
   const taskMatch = path.match(/^\/task\/(\d+)/);
   if (taskMatch) { await showTask(taskMatch[1]); return; }
+
+  const tagMatch = path.match(/^\/tag\/([^\/]+)/);
+  if (tagMatch) { await showTag(decodeURIComponent(tagMatch[1])); return; }
+
+  if (path === '/tags') { await showTagsList(); return; }
 
   if (path === '/tasks') { await showAllTasks(); return; }
   if (path === '/favorites') { await showFavorites(); return; }

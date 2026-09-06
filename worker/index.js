@@ -46,23 +46,35 @@ async function readSupabase(env, path) {
 
 /* ── Карта сайта ─────────────────────────────────────────────────── */
 
+const CROSS_TAG_SLUGS = [
+  'algebriskie-parveidojumi', 'vienadojumi', 'nevienadibas', 'funkcijas', 'grafiki',
+  'koordinatu-metode', 'vektori', 'trigonometrija', 'planimetrija', 'stereometrija',
+  'merijumi', 'dalas-procenti', 'dalamiba', 'pakapes-saknes', 'logaritmi',
+  'virknes', 'kombinatorika', 'varbutiba', 'statistika', 'matematiska-analize',
+  'modelesana', 'teksta-uzdevumi', 'pieradijumi'
+];
+
 async function sitemap(request, env) {
   const origin = new URL(request.url).origin;
-  let paths = ['/', '/tasks', '/about', '/grade/visparigais', '/grade/matematika-1', '/grade/matematika-2'];
+  let paths = ['/', '/tasks', '/tags', '/about', '/grade/visparigais', '/grade/matematika-1', '/grade/matematika-2']
+    .concat(CROSS_TAG_SLUGS.map(slug => `/tag/${slug}`));
 
   if (env.SUPABASE_URL && supabaseKeyOf(env)) {
     try {
-      const [subjects, topics, tasks] = await Promise.all([
+      const [subjects, topics, tasks, tags] = await Promise.all([
         readSupabase(env, 'subjects?select=slug'),
         readSupabase(env, 'topics?select=slug,grade'),
         // Черновики в карту не попадают — их и на сайте не видно.
-        readSupabase(env, 'tasks?select=id,title&is_published=eq.true')
+        readSupabase(env, 'tasks?select=id,title&is_published=eq.true'),
+        readSupabase(env, 'tags?select=slug').catch(() => [])
       ]);
       const grades = [...new Set(topics.map(t => t.grade).filter(Boolean))].sort((a, b) => a - b);
+      const tagSlugs = (tags && tags.length > 0) ? tags.map(t => t.slug) : CROSS_TAG_SLUGS;
       paths = paths
         .concat(grades.map(g => `/grade/${g}`))
         .concat(subjects.map(s => `/subject/${s.slug}`))
         .concat(topics.map(t => `/topic/${t.slug}`))
+        .concat(tagSlugs.map(slug => `/tag/${slug}`))
         .concat(tasks.map(t => `/task/${t.id}-${slugify(t.title)}`));
     } catch (error) {
       // Каталог не прочитался — отдаём статические адреса, а не пустоту.

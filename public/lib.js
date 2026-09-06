@@ -271,10 +271,71 @@
   };
 
 
-  /* Смайлик темы подбирается по ключевым словам названия: у тем нет своей
-     колонки со значком, а расставлять его вручную для сотни тем каталога
-     Skola2030 нереально. Порядок важен — правила идут от частного к общему. */
-const api = {
+  /* Закрытый словарь кросс-тегов стандарта Skola2030 (23 тега) */
+  const CROSS_TAGS = [
+    { slug: 'algebriskie-parveidojumi', title: 'Алгебраические преобразования', title_lv: 'Algebriskie pārveidojumi', description: 'Тождественные преобразования выражений, формулы сокращённого умножения' },
+    { slug: 'vienadojumi', title: 'Уравнения', title_lv: 'Vienādojumi', description: 'Уравнения всех типов и их системы' },
+    { slug: 'nevienadibas', title: 'Неравенства', title_lv: 'Nevienādības', description: 'Неравенства всех типов и их системы' },
+    { slug: 'funkcijas', title: 'Функции', title_lv: 'Funkcijas', description: 'Функции, их свойства, область определения и значений' },
+    { slug: 'grafiki', title: 'Графики', title_lv: 'Grafiki', description: 'Построение и чтение графиков функций' },
+    { slug: 'koordinatu-metode', title: 'Координатный метод', title_lv: 'Koordinātu metode', description: 'Координатная прямая, плоскость, векторы в координатах' },
+    { slug: 'vektori', title: 'Векторы', title_lv: 'Vektori', description: 'Действия с векторами, скалярное произведение' },
+    { slug: 'trigonometrija', title: 'Тригонометрия', title_lv: 'Trigonometrija', description: 'Тригонометрические функции, тождества, уравнения и треугольники' },
+    { slug: 'planimetrija', title: 'Планиметрия', title_lv: 'Planimetrija', description: 'Фигуры на плоскости, углы, подобие, теорема Пифагора' },
+    { slug: 'stereometrija', title: 'Стереометрия', title_lv: 'Stereometrija', description: 'Пространственные тела, сечения, призмы, пирамиды, тела вращения' },
+    { slug: 'merijumi', title: 'Измерения', title_lv: 'Mērījumi', description: 'Длины, периметры, площади, объёмы и единицы измерения' },
+    { slug: 'dalas-procenti', title: 'Дроби и проценты', title_lv: 'Daļas un procenti', description: 'Обыкновенные и десятичные дроби, проценты, пропорции' },
+    { slug: 'dalamiba', title: 'Делимость', title_lv: 'Dalāmība', description: 'Простые числа, признаки делимости, НОД (LKD) и НОК (MKD)' },
+    { slug: 'pakapes-saknes', title: 'Степени и корни', title_lv: 'Pakāpes un saknes', description: 'Действия со степенями, свойства арифметических корней' },
+    { slug: 'logaritmi', title: 'Логарифмы', title_lv: 'Logaritmi', description: 'Свойства логарифмов, логарифмические уравнения и неравенства' },
+    { slug: 'virknes', title: 'Последовательности', title_lv: 'Virknes', description: 'Числовые последовательности, арифметическая и геометрическая прогрессии' },
+    { slug: 'kombinatorika', title: 'Комбинаторика', title_lv: 'Kombinatorika', description: 'Правила суммы и произведения, перестановки, размещения, сочетания' },
+    { slug: 'varbutiba', title: 'Вероятность', title_lv: 'Varbūtība', description: 'Классическая и геометрическая вероятность, независимые события' },
+    { slug: 'statistika', title: 'Статистика', title_lv: 'Statistika', description: 'Среднее, медиана, мода, размах, диаграммы и анализ данных' },
+    { slug: 'matematiska-analize', title: 'Математический анализ', title_lv: 'Matemātiskā analīze', description: 'Пределы, производная, исследование функций, интеграл и площади' },
+    { slug: 'modelesana', title: 'Моделирование', title_lv: 'Modelēšana', description: 'Математическое моделирование реальных процессов' },
+    { slug: 'teksta-uzdevumi', title: 'Текстовые задачи', title_lv: 'Teksta uzdevumi', description: 'Сюжетные задачи на движение, работу, смеси, покупки' },
+    { slug: 'pieradijumi', title: 'Доказательства', title_lv: 'Pierādījumi', description: 'Геометрические и алгебраические доказательства, метод индукции' }
+  ];
+
+  const getCrossTag = slug => CROSS_TAGS.find(t => t.slug === slug) || null;
+
+  const suggestTagsForTopic = text => {
+    if (!text || typeof text !== 'string') return [];
+    const t = text.toLowerCase();
+    const matches = [];
+    const check = (slug, words) => {
+      if (words.some(w => t.includes(w))) matches.push(slug);
+    };
+
+    check('trigonometrija', ['тригонометр', 'trigonometr', 'sin', 'cos', 'tg', 'ctg']);
+    check('matematiska-analize', ['производн', 'интеграл', 'дифференциал', 'предел', 'atvasinājum', 'integrāl', 'robež']);
+    check('logaritmi', ['логарифм', 'logaritm', 'ln', 'lg']);
+    check('pakapes-saknes', ['степен', 'корен', 'корн', 'pakāp', 'sakn', 'квадратн']);
+    check('nevienadibas', ['неравенств', 'nevienādīb']);
+    check('vienadojumi', ['уравнен', 'vienādojum', 'систем', 'sistēm']);
+    check('grafiki', ['график', 'grafik']);
+    check('funkcijas', ['функци', 'funkcij']);
+    check('koordinatu-metode', ['координат', 'koordināt']);
+    check('vektori', ['вектор', 'vektor']);
+    check('stereometrija', ['стереометр', 'пространствен', 'призм', 'пирамид', 'конус', 'цилиндр', 'шар', 'сфер', 'stereometr', 'telpisk']);
+    check('planimetrija', ['планиметр', 'треугольник', 'четырехугольник', 'многоугольник', 'окружност', 'круг', 'пифагор', 'planimetr', 'trīsstūr', 'četrstūr', 'riņķ', 'daudzstūr']);
+    check('merijumi', ['площад', 'объем', 'объём', 'периметр', 'длин', 'измерен', 'laukum', 'tilpum', 'perimetr', 'garum', 'mērījum']);
+    check('dalas-procenti', ['дроб', 'процент', 'пропорци', 'отношен', 'daļ', 'procent', 'proporcij']);
+    check('dalamiba', ['делимост', 'простые числа', 'нок', 'нод', 'dalāmīb', 'pirmskaitļ', 'lkd', 'mkd']);
+    check('virknes', ['прогресси', 'последовательност', 'virkn', 'progresij']);
+    check('kombinatorika', ['комбинаторик', 'сочетан', 'размещен', 'перестановк', 'kombinatorik']);
+    check('varbutiba', ['вероятност', 'varbūtīb']);
+    check('statistika', ['статистик', 'медиан', 'среднее', 'диаграмм', 'statistik']);
+    check('algebriskie-parveidojumi', ['тождеств', 'преобразован', 'выражен', 'сокращен', 'daudznar', 'izteiksm', 'pārveidojum']);
+    check('modelesana', ['моделирован', 'modelēšan']);
+    check('teksta-uzdevumi', ['текстов', 'движен', 'скорост', 'купл', 'стоимост', 'teksta', 'kustīb', 'ātrum']);
+    check('pieradijumi', ['доказательств', 'индукци', 'pierādījum', 'indukcij']);
+
+    return [...new Set(matches)].slice(0, 3);
+  };
+
+  const api = {
     makeSlug,
     sanitizeSearch,
     KATEX_DELIMITERS,
@@ -287,7 +348,10 @@ const api = {
     maskLatexForTranslation,
     unmaskLatexAfterTranslation,
     parseMultiTopicJson,
-    resolveDifficultyMix
+    resolveDifficultyMix,
+    CROSS_TAGS,
+    getCrossTag,
+    suggestTagsForTopic
   };
   if (typeof window !== 'undefined') window.MathTasksLib = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

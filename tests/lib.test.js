@@ -12,7 +12,10 @@ import {
   maskLatexForTranslation,
   unmaskLatexAfterTranslation,
   parseMultiTopicJson,
-  resolveDifficultyMix
+  resolveDifficultyMix,
+  CROSS_TAGS,
+  getCrossTag,
+  suggestTagsForTopic
 } from '../public/lib.js';
 
 describe('makeSlug', () => {
@@ -401,6 +404,51 @@ describe('Grade Name Resilience (Защита от вывода техничес
     expect(i18n.t('grade_matematika_2', {}, 'ru')).not.toBe('grade_matematika_2');
   });
 });
+
+describe('CROSS_TAGS (23 closed tags)', () => {
+  it('словарь содержит ровно 23 уникальных тега', () => {
+    expect(CROSS_TAGS).toHaveLength(23);
+    const slugs = CROSS_TAGS.map(t => t.slug);
+    expect(new Set(slugs).size).toBe(23);
+  });
+
+  it('каждый тег имеет валидный slug, title (RU), title_lv (LV) и описание', () => {
+    for (const tag of CROSS_TAGS) {
+      expect(tag.slug).toMatch(/^[a-z0-9-]+$/);
+      expect(tag.title).toBeTruthy();
+      expect(tag.title_lv).toBeTruthy();
+      expect(tag.description).toBeTruthy();
+    }
+  });
+
+  it('getCrossTag возвращает тег по слагу', () => {
+    const trig = getCrossTag('trigonometrija');
+    expect(trig).toBeTruthy();
+    expect(trig.title).toBe('Тригонометрия');
+    expect(trig.title_lv).toBe('Trigonometrija');
+    expect(getCrossTag('non-existent')).toBeNull();
+  });
+
+  it('suggestTagsForTopic предлагает релевантные теги по теме (до 3 тегов)', () => {
+    const trigTags = suggestTagsForTopic('Тригонометрические уравнения и неравенства');
+    expect(trigTags).toContain('trigonometrija');
+    expect(trigTags).toContain('vienadojumi');
+    expect(trigTags.length).toBeLessThanOrEqual(3);
+
+    const geomTags = suggestTagsForTopic('Теорема Пифагора и вычисление площадей треугольников');
+    expect(geomTags).toContain('planimetrija');
+    expect(geomTags).toContain('merijumi');
+    expect(geomTags.length).toBeLessThanOrEqual(3);
+
+    const lvTags = suggestTagsForTopic('Trijstūru laukumi un Pitagora teorēma');
+    expect(lvTags).toContain('merijumi');
+    expect(lvTags.length).toBeLessThanOrEqual(3);
+
+    const emptyTags = suggestTagsForTopic('');
+    expect(emptyTags).toEqual([]);
+  });
+});
+
 
 
 
