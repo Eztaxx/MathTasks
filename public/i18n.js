@@ -206,7 +206,7 @@
       tag_title: 'Uzdevumi ar birku «{tag}»',
       tag_empty: 'Šai birkai pagaidām nav pievienots neviens uzdevums.',
       tag_heading: 'Birka',
-      tags_label: 'Krustbirkas:',
+      tags_label: 'Krustbirkas',
 
       // Par vietni
       about_title: 'Par vietni',
@@ -412,7 +412,7 @@
       tag_title: 'Задачи с тегом «{tag}»',
       tag_empty: 'С этим тегом задач пока нет.',
       tag_heading: 'Тег',
-      tags_label: 'Кросс-теги:',
+      tags_label: 'Кросс-теги',
 
       // О сайте
       about_title: 'О сайте',
