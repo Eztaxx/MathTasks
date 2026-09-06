@@ -58,10 +58,45 @@
   const jsonSampleCard = document.querySelector('#json-sample-card');
   const jsonSampleCode = document.querySelector('#json-sample-code');
 
-  // Динамическое определение поддерживаемых колонок в БД Supabase
-  // (защищает от ошибок PGRST204, если миграция 007_multilingual_tasks ещё не выполнена в SQL Editor)
+  /* Белый список колонок защищает от PGRST204, если миграция 007 ещё не
+     выполнена. Латышские колонки добавляются в него на лету: без этого
+     миграцию можно было выполнить, а перевод из админки всё равно
+     не сохранялся бы — молча, потому что поле просто отбрасывалось. */
   const supportedTopicCols = new Set(['title', 'slug', 'subject_id', 'grade', 'position', 'description']);
   const supportedTaskCols = new Set(['topic_id', 'title', 'condition_latex', 'solution_latex', 'difficulty', 'is_published', 'grade', 'position', 'answer_latex', 'condition_image', 'solution_image']);
+  let multilingualReady = false;
+
+  async function detectMultilingualColumns() {
+    const { error } = await db.from('topics').select('title_lv').limit(1);
+    if (error) {
+      console.warn('Латышские колонки не найдены — выполните supabase/migrations/007_multilingual_tasks.sql. Поля LV пока не сохраняются.');
+      return;
+    }
+    multilingualReady = true;
+    ['title_lv', 'description_lv'].forEach(c => supportedTopicCols.add(c));
+    ['title_lv', 'condition_latex_lv', 'solution_latex_lv'].forEach(c => supportedTaskCols.add(c));
+  }
+
+  /* Пока миграции нет, поля LV выглядят рабочими, но введённое молча
+     отбрасывается санитайзером. Честнее сказать об этом прямо в форме. */
+  function markLatvianFieldsUnavailable() {
+    if (multilingualReady) return;
+    const ids = ['topic-title-lv', 'topic-desc-lv', 'title-input-lv', 'condition-input-lv', 'solution-input-lv'];
+    const hint = 'Недоступно: не выполнена миграция 007_multilingual_tasks.sql';
+    for (const id of ids) {
+      const field = document.querySelector('#' + id);
+      if (!field) continue;
+      field.disabled = true;
+      field.title = hint;
+      const label = field.closest('label');
+      if (label && !label.querySelector('.admin-warn')) {
+        const note = document.createElement('span');
+        note.className = 'admin-warn';
+        note.textContent = hint;
+        label.append(note);
+      }
+    }
+  }
 
   const sanitizeTopicPayload = payload => {
     const clean = {};
@@ -1859,6 +1894,8 @@
     setSubjectMode(null);
     setTopicMode(null);
     setTaskMode(null);
+    await detectMultilingualColumns();
+    markLatvianFieldsUnavailable();
     // Возвращаем режим сортировки, выбранный в прошлый раз.
     const savedSort = loadSort();
     if (taskFilterSort && savedSort.tasks) taskFilterSort.value = savedSort.tasks;

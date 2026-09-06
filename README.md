@@ -40,6 +40,10 @@ npm run dev
 | `supabase/migrations/003_task_position.sql` | Порядок задач внутри темы |
 | `supabase/migrations/004_answers_and_images.sql` | Отдельный ответ и чертежи у задач |
 | `supabase/migrations/005_storage.sql` | Бакет `task-images` и политики доступа к нему |
+| `supabase/migrations/006_allow_grade_12.sql` | Классы до 12 включительно |
+| `supabase/migrations/007_multilingual_tasks.sql` | Латышские колонки `_lv` у разделов, тем и задач |
+
+Базовый язык — русский, он лежит в основных колонках; латышский — в парных с суффиксом `_lv`. Английского на сайте нет.
 
 На чистом проекте достаточно `schema.sql` — он уже включает всё, что добавили миграции. Миграции нужны существующей базе.
 

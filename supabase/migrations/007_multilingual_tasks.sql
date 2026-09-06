@@ -1,9 +1,11 @@
--- Миграция 007: Мультиязычность для разделов, тем и задач (LV / RU / EN)
+-- Миграция 007: двуязычность разделов, тем и задач (LV / RU)
+-- Базовый язык — русский, он лежит в основных колонках.
+-- Латышский хранится в парных колонках с суффиксом _lv.
+-- Английский не предусмотрен: на сайте его не будет.
 -- Запускать в Supabase: SQL Editor -> New query -> Run
 
--- 1. Таблица subjects (разделы)
+-- 1. Разделы
 alter table public.subjects add column if not exists title_lv text;
-alter table public.subjects add column if not exists title_en text;
 
 update public.subjects set
   title_lv = case slug
@@ -11,25 +13,14 @@ update public.subjects set
     when 'geometry' then 'Ģeometrija'
     when 'statistics' then 'Statistika un varbūtība'
     else title_lv
-  end,
-  title_en = case slug
-    when 'algebra' then 'Algebra'
-    when 'geometry' then 'Geometry'
-    when 'statistics' then 'Statistics & Probability'
-    else title_en
   end
-where title_lv is null or title_en is null;
+where title_lv is null;
 
--- 2. Таблица topics (темы)
+-- 2. Темы
 alter table public.topics add column if not exists title_lv text;
-alter table public.topics add column if not exists title_en text;
 alter table public.topics add column if not exists description_lv text;
-alter table public.topics add column if not exists description_en text;
 
--- 3. Таблица tasks (задания)
+-- 3. Задания
 alter table public.tasks add column if not exists title_lv text;
-alter table public.tasks add column if not exists title_en text;
 alter table public.tasks add column if not exists condition_latex_lv text;
-alter table public.tasks add column if not exists condition_latex_en text;
 alter table public.tasks add column if not exists solution_latex_lv text;
-alter table public.tasks add column if not exists solution_latex_en text;
