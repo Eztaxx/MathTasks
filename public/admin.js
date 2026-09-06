@@ -61,6 +61,20 @@
      выполнена. Латышские колонки добавляются в него на лету: без этого
      миграцию можно было выполнить, а перевод из админки всё равно
      не сохранялся бы — молча, потому что поле просто отбрасывалось. */
+  /* Списки в панели показывают только заголовки, а условие и решение
+     занимают почти весь вес строки: 81 задача с полными текстами — это
+     108 КБ, без них — 17 КБ. Полную строку забираем по одной, когда
+     задачу открывают на правку. */
+  const TASK_LIST_COLS = 'id,title,topic_id,grade,difficulty,is_published,position';
+  const TOPIC_LIST_COLS = 'id,title,subject_id,grade,position,slug';
+  const TASK_INDEX_COLS = 'id,topic_id,position';
+
+  /* Указатель — три колонки на задачу (3 КБ на 81 задачу). Его хватает,
+     чтобы показать «задач: N» у темы и посчитать номер новой задачи,
+     поэтому сам список можно не грузить, пока его не попросят. */
+  let taskIndex = [];
+  let tasksLoaded = false;
+
   const supportedTopicCols = new Set(['title', 'slug', 'subject_id', 'grade', 'position', 'description']);
   const supportedTaskCols = new Set(['topic_id', 'title', 'condition_latex', 'solution_latex', 'difficulty', 'is_published', 'grade', 'position', 'answer_latex', 'condition_image', 'solution_image']);
   const supportedSubjectCols = new Set(['title', 'slug', 'icon', 'position']);
@@ -262,7 +276,7 @@
     }
 
     topicList.innerHTML = filtered.map(topic => {
-      const count = tasks.filter(task => task.topic_id === topic.id).length;
+      const count = taskIndex.filter(task => task.topic_id === topic.id).length;
       /* Класс — глобальный контекст сайта: тему без него посетитель увидит
          только в режиме «Все классы», поэтому предупреждаем прямо в списке. */
       const warning = topic.grade ? '' : '<span class="admin-warn">не видна в меню при выбранном классе</span>';
@@ -302,7 +316,12 @@
 
   topicList.addEventListener('click', async event => {
     const editId = event.target.closest('[data-edit-topic]')?.dataset.editTopic;
-    if (editId) { setTopicMode(topics.find(topic => String(topic.id) === editId)); return; }
+    if (editId) {
+      const full = await fetchFullRow('topics', editId);
+      if (!full) { topicSuccess.textContent = 'Не удалось загрузить тему для правки.'; return; }
+      setTopicMode(full);
+      return;
+    }
     const deleteId = event.target.closest('[data-delete-topic]')?.dataset.deleteTopic;
     if (!deleteId) return;
     const topic = topics.find(item => String(item.id) === deleteId);
@@ -627,6 +646,14 @@
     }
   });
 
+  /* В списках лежат укороченные строки, поэтому перед правкой добираем
+     полную запись. Одна строка по идентификатору — это быстро. */
+  async function fetchFullRow(table, id) {
+    const { data, error } = await db.from(table).select('*').eq('id', id).limit(1);
+    if (error || !data || !data[0]) return null;
+    return data[0];
+  }
+
   function setTaskMode(task) {
     editingTaskId = task?.id ?? null;
     document.querySelector('#task-form-title').textContent = task ? `Редактировать задачу: ${task.title}` : 'Добавить задание';
@@ -652,7 +679,7 @@
 
   /* Порядок задаётся внутри темы: соседи по списку — только задачи той же темы,
      иначе стрелка перекинула бы задачу через границу раздела. */
-  const siblingsOf = topicId => tasks.filter(task => (task.topic_id ?? null) === (topicId ?? null));
+  const siblingsOf = topicId => taskIndex.filter(task => (task.topic_id ?? null) === (topicId ?? null));
 
   // Новая задача без явно указанного номера встаёт в конец своей темы:
   // набивать номера руками при добавлении двадцати задач невыносимо.
@@ -722,7 +749,7 @@
 
   function sortTopics(list) {
     const mode = topicFilterSort?.value || 'grade';
-    const taskCount = topic => tasks.filter(t => t.topic_id === topic.id).length;
+    const taskCount = topic => taskIndex.filter(t => t.topic_id === topic.id).length;
     const copy = [...list];
     switch (mode) {
       case 'title':
@@ -801,6 +828,8 @@
   }
 
   function renderTaskList() {
+    // Список ещё не запрошен: на экране блок с кнопкой, рисовать нечего.
+    if (!tasksLoaded) return;
     if (!tasks.length) {
       taskList.innerHTML = '<p class="admin-empty">Задач пока нет.</p>';
       if (taskFilterCount) taskFilterCount.textContent = '0 задач';
@@ -864,7 +893,7 @@
      позиции совпадали (а у старых задач это ноль), простой обмен значениями
      ничего бы не изменил. */
   async function moveTask(taskId, direction) {
-    const task = tasks.find(item => String(item.id) === String(taskId));
+    const task = taskIndex.find(item => String(item.id) === String(taskId));
     if (!task) return;
     const siblings = [...siblingsOf(task.topic_id)];
     const from = siblings.findIndex(item => item.id === task.id);
@@ -880,7 +909,7 @@
       if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
     }
     taskSuccess.textContent = 'Порядок изменён.';
-    await loadTasks();
+    await refreshTasks();
   }
 
   taskForm.addEventListener('submit', async event => {
@@ -917,7 +946,7 @@
     taskSuccess.textContent = editingTaskId ? 'Задача сохранена.' : 'Задача добавлена.';
     taskForm.reset();
     setTaskMode(null);
-    await loadTasks();
+    await refreshTasks();
   });
 
   document.querySelector('#task-cancel').addEventListener('click', async () => {
@@ -930,13 +959,18 @@
     const move = event.target.closest('[data-move]');
     if (move) { await moveTask(move.dataset.move, move.dataset.dir); return; }
     const editId = event.target.closest('[data-edit-task]')?.dataset.editTask;
-    if (editId) { setTaskMode(tasks.find(task => String(task.id) === editId)); return; }
+    if (editId) {
+      const full = await fetchFullRow('tasks', editId);
+      if (!full) { taskSuccess.textContent = 'Не удалось загрузить задачу для правки.'; return; }
+      setTaskMode(full);
+      return;
+    }
 
     // 4.2: Клонирование задачи
     const cloneId = event.target.closest('[data-clone-task]')?.dataset.cloneTask;
     if (cloneId) {
-      const source = tasks.find(item => String(item.id) === cloneId);
-      if (!source) return;
+      const source = await fetchFullRow('tasks', cloneId);
+      if (!source) { taskSuccess.textContent = 'Не удалось загрузить задачу для копирования.'; return; }
       editingTaskId = null; // Гарантирует создание новой задачи при отправке
       taskForm.elements.title.value = `[Копия] ${source.title}`;
       if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = source.title_lv ? `[Kopija] ${source.title_lv}` : '';
@@ -963,7 +997,8 @@
     const deleteId = event.target.closest('[data-delete-task]')?.dataset.deleteTask;
     if (!deleteId) return;
     const task = tasks.find(item => String(item.id) === deleteId);
-    if (!confirm(`Удалить задачу «${task.title}»? Это действие необратимо.`)) return;
+    const label = task ? `«${task.title}»` : 'выбранную задачу';
+    if (!confirm(`Удалить ${label}? Это действие необратимо.`)) return;
     const { error } = await db.from('tasks').delete().eq('id', deleteId);
     if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
     // Задачи нет — её чертежам в бакете делать нечего.
@@ -971,7 +1006,7 @@
     await removeFile(task.solution_image);
     if (String(editingTaskId) === deleteId) { taskForm.reset(); setTaskMode(null); }
     taskSuccess.textContent = 'Задача удалена.';
-    await loadTasks();
+    await refreshTasks();
   });
 
   /* ── Фильтры и сортировка тем ─────────────────────────────────────
@@ -994,7 +1029,7 @@
   /* ── Массовый импорт и экспорт задач (4.3) ────────────────────────── */
   let bulkMode = 'export'; // 'export' | 'import'
 
-  function openBulkDialog(mode) {
+  async function openBulkDialog(mode) {
     if (!bulkDialog) return;
     bulkMode = mode;
     if (bulkDialogStatus) {
@@ -1002,8 +1037,27 @@
       bulkDialogStatus.textContent = '';
     }
     if (mode === 'export') {
+      /* Списки в панели укорочены до заголовков, поэтому перед выгрузкой
+         добираем полные строки: иначе резервная копия молча вышла бы
+         без условий, ответов и решений. */
+      if (!tasksLoaded) await loadTasks();
       const filtered = getFilteredTasks();
-      const exportData = filtered.map(task => {
+      const ids = filtered.map(t => t.id);
+      let fullById = {};
+      if (ids.length) {
+        const { data, error } = await db.from('tasks').select('*').in('id', ids);
+        if (error) {
+          bulkDialogTitle.textContent = 'Экспорт задач';
+          bulkDialogDesc.textContent = 'Не удалось получить полные тексты задач: ' + error.message;
+          bulkDialogTextarea.value = '';
+          bulkDialogSubmit.textContent = 'Закрыть';
+          bulkDialog?.showModal();
+          return;
+        }
+        fullById = Object.fromEntries((data || []).map(row => [row.id, row]));
+      }
+      const exportData = filtered.map(light => {
+        const task = fullById[light.id] || light;
         const topic = topics.find(t => t.id === task.topic_id);
         return {
           title: task.title,
@@ -1111,8 +1165,8 @@
     return { uniqueTopics, tasks: normalizedTasks };
   }
 
-  btnExportTasks?.addEventListener('click', () => openBulkDialog('export'));
-  btnImportTasks?.addEventListener('click', () => openBulkDialog('import'));
+  btnExportTasks?.addEventListener('click', () => { openBulkDialog('export').catch(e => console.error('экспорт:', e)); });
+  btnImportTasks?.addEventListener('click', () => { openBulkDialog('import').catch(e => console.error('импорт:', e)); });
   bulkDialogClose?.addEventListener('click', () => bulkDialog?.close());
   bulkDialogCancel?.addEventListener('click', () => bulkDialog?.close());
 
@@ -1450,7 +1504,7 @@
     }
 
     await loadCatalog();
-    await loadTasks();
+    await refreshTasks();
   });
 
   /* ── Skola2030 Помощник тем и AI Генератор задач ────────────────── */
@@ -1467,6 +1521,16 @@
   const aiGenType = document.querySelector('#ai-gen-type');
   const aiGenContext = document.querySelector('#ai-gen-context');
   const aiGenPrompt = document.querySelector('#ai-gen-prompt');
+  const taskListDefer = document.querySelector('#task-list-defer');
+  const btnLoadTasks = document.querySelector('#btn-load-tasks');
+  btnLoadTasks?.addEventListener('click', async () => {
+    btnLoadTasks.disabled = true;
+    btnLoadTasks.textContent = 'Загружаю…';
+    await loadTasks();
+    btnLoadTasks.disabled = false;
+    btnLoadTasks.textContent = 'Показать задачи';
+  });
+
   const btnRunAiGenerator = document.querySelector('#btn-run-ai-generator');
   const aiGenStatus = document.querySelector('#ai-gen-status');
   const btnToggleAiSettings = document.querySelector('#btn-toggle-ai-settings');
@@ -1825,7 +1889,7 @@
   async function loadCatalog() {
     const [subjectResult, topicResult] = await Promise.all([
       db.from('subjects').select('*').order('position').order('title'),
-      db.from('topics').select('*').order('position').order('title')
+      db.from('topics').select(TOPIC_LIST_COLS).order('position').order('title')
     ]);
     if (subjectResult.error || topicResult.error) {
       const message = (subjectResult.error || topicResult.error).message;
@@ -1881,10 +1945,27 @@
     checkSkolaTopicsSeeded();
   }
 
+  async function loadTaskIndex() {
+    const { data, error } = await db.from('tasks').select(TASK_INDEX_COLS);
+    if (error) { taskIndex = []; return; }
+    taskIndex = data || [];
+  }
+
+  /* После правки всегда обновляем указатель, а список — только если
+     администратор его уже открыл: иначе кнопка теряет смысл. */
+  async function refreshTasks() {
+    await loadTaskIndex();
+    if (tasksLoaded) await loadTasks();
+    else renderTopicList();
+  }
+
   async function loadTasks() {
-    const { data, error } = await db.from('tasks').select('*').order('topic_id').order('position').order('created_at', { ascending: true });
+    const { data, error } = await db.from('tasks').select(TASK_LIST_COLS).order('topic_id').order('position').order('created_at', { ascending: true });
     if (error) { taskList.innerHTML = `<p class="admin-empty">Не удалось загрузить задачи: ${escapeHtml(error.message)}</p>`; return; }
     tasks = data || [];
+    tasksLoaded = true;
+    if (taskListDefer) taskListDefer.hidden = true;
+    if (taskList) taskList.hidden = false;
     if (tasks.length > 0 && tasks[0]) {
       Object.keys(tasks[0]).forEach(k => supportedTaskCols.add(k));
     }
@@ -1916,8 +1997,15 @@
     const savedSort = loadSort();
     if (taskFilterSort && savedSort.tasks) taskFilterSort.value = savedSort.tasks;
     if (topicFilterSort && savedSort.topics) topicFilterSort.value = savedSort.topics;
-    await loadTasks();
-    await loadCatalog();
-    await loadSkola2030Catalog();
+    /* Раньше эти три вызова шли по очереди, и органы управления
+       генератором включались последними — после того как приезжали все
+       задачи и темы целиком. Теперь запросы идут параллельно, задачи
+       представлены лёгким указателем, а сам список ждёт кнопки. */
+    await Promise.all([
+      loadSkola2030Catalog(),
+      loadCatalog(),
+      loadTaskIndex()
+    ]);
+    renderTopicList();
   })();
 })();

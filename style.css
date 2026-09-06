@@ -853,7 +853,6 @@ body.dark .skola-preset-head strong{color:#edf2ff}
 }
 
 /* Смайлик темы в боковом меню — подбирается по названию, своей колонки у тем нет. */
-.subnav-emoji{display:inline-block;width:1.15em;margin-right:6px;text-align:center;font-size:12px;line-height:1}
 
 /* ── Генератор задач: приведение к общей системе ──────────────────
    Блок выбивался из остального интерфейса: сине-фиолетовые градиенты
@@ -927,3 +926,11 @@ body.dark .ai-translate-btn:hover:not(:disabled){background:#22355e}
   .ai-form-row .field-difficulty,.ai-form-row .field-type,.ai-form-row .field-count{grid-column:1 / -1}
   .ai-generator-actions{flex-direction:column;align-items:stretch}
 }
+
+/* Список задач грузится по кнопке: при сотнях задач полная выборка
+   заметно задерживает вход в панель. Парное правило для [hidden]
+   обязательно — авторский display иначе перебил бы атрибут. */
+.admin-list-defer{margin-top:18px;padding:16px;border:1px dashed var(--line);border-radius:10px;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.admin-list-defer p{margin:0;flex:1;min-width:220px;color:var(--muted);font-size:13px}
+.admin-list-defer[hidden]{display:none}
+.admin-list[hidden]{display:none}

@@ -84,6 +84,13 @@ const tagClass = subject => {
   return 'algebra';
 };
 const subjectById = id => subjects.find(item => item.id === id);
+/* Иконка раздела. В базе она заполнена не везде и местами содержит
+   невидимые символы, поэтому подчищаем и подставляем общий знак. */
+const subjectIcon = subject => {
+  const raw = String(subject?.icon || '').replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+  return raw || '📘';
+};
+
 const topicClass = index => ['lavender', 'green', 'orange', 'blue', 'pink', 'aqua', 'violet'][index % 7];
 
 const gradeLabel = grade => {
@@ -259,12 +266,11 @@ function renderTopicSidebar(topic) {
     if (!sTopics.length) return '';
     const links = sTopics.map(t => {
       const isCurrent = t.id === topic.id;
-      const emoji = window.MathTasksLib.topicEmoji(loc(t, 'title'), subj.slug);
-      return `<a class="${isCurrent ? 'active' : ''}" href="/topic/${encodeURIComponent(t.slug)}"><span class="subnav-emoji" aria-hidden="true">${emoji}</span>${escapeHtml(loc(t, 'title'))}</a>`;
+      return `<a class="${isCurrent ? 'active' : ''}" href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(loc(t, 'title'))}</a>`;
     }).join('');
     const sTitle = loc(subj, 'title');
     return `<section class="nav-group open" data-subject="${subj.id}">
-      <button class="group-title" title="${escapeHtml(sTitle)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subj.icon)}</span><span class="label">${escapeHtml(sTitle)}</span><span class="chevron">⌃</span></button>
+      <button class="group-title" title="${escapeHtml(sTitle)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(sTitle)}</span><span class="chevron">⌃</span></button>
       <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">Все темы раздела</a>${links}</div>
     </section>`;
   }).filter(Boolean).join('');
@@ -299,9 +305,9 @@ function renderClassSidebar(grade) {
   const groups = subjects.map((subj, index) => {
     const sTopics = gradeTopics.filter(t => t.subject_id === subj.id);
     if (!sTopics.length) return '';
-    const links = sTopics.map(t => `<a href="/topic/${encodeURIComponent(t.slug)}"><span class="subnav-emoji" aria-hidden="true">${window.MathTasksLib.topicEmoji(loc(t, 'title'), subj.slug)}</span>${escapeHtml(loc(t, 'title'))}</a>`).join('');
+    const links = sTopics.map(t => `<a href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(loc(t, 'title'))}</a>`).join('');
     return `<section class="nav-group open" data-subject="${subj.id}">
-      <button class="group-title" title="${escapeHtml(subj.title)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subj.icon)}</span><span class="label">${escapeHtml(subj.title)}</span><span class="chevron">⌃</span></button>
+      <button class="group-title" title="${escapeHtml(subj.title)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(subj.title)}</span><span class="chevron">⌃</span></button>
       <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">Все темы раздела</a>${links}</div>
     </section>`;
   }).filter(Boolean).join('');
@@ -915,7 +921,7 @@ function topicCard(topic, index, showGrade) {
   const topicDesc = loc(topic, 'description');
 
   return `<a class="topic-card" href="/topic/${encodeURIComponent(topic.slug)}">
-    <div class="topic-icon ${topicClass(index)}">${escapeHtml(window.MathTasksLib.topicEmoji(loc(topic, 'title'), subject?.slug))}</div>
+    <div class="topic-icon ${topicClass(index)}">${escapeHtml(subjectIcon(subject))}</div>
     <div class="topic-card-content">
       <h3>${escapeHtml(topicTitle)}</h3>
       <p>${escapeHtml(topicDesc || '')}</p>
@@ -934,7 +940,7 @@ function renderTopicGroups(container, groups) {
   container.hidden = !groups.length;
   container.innerHTML = groups.map(({ subject, topics }) => `<section class="topic-group">
     <div class="topic-group-head">
-      <h2><span class="topic-group-icon">${escapeHtml(subject.icon)}</span>${escapeHtml(loc(subject, 'title'))}</h2>
+      <h2><span class="topic-group-icon">${escapeHtml(subjectIcon(subject))}</span>${escapeHtml(loc(subject, 'title'))}</h2>
       <a href="/subject/${encodeURIComponent(subject.slug)}">Все темы →</a>
     </div>
     ${topics.length

@@ -431,7 +431,11 @@
           </div>
         </div>
 
-        <div class="admin-list" id="task-list"></div>
+        <div class="admin-list-defer" id="task-list-defer">
+          <p>Список задач не загружается при входе — так панель открывается сразу.</p>
+          <button class="secondary-button" type="button" id="btn-load-tasks">Показать задачи</button>
+        </div>
+        <div class="admin-list" id="task-list" hidden></div>
 
         <!-- Модальное окно массового импорта / экспорта (4.3) -->
         <dialog class="bulk-dialog" id="bulk-dialog">
