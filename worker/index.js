@@ -114,7 +114,7 @@ async function taskPreview(request, env, taskId) {
   let task;
   try {
     const rows = await readSupabase(env,
-      `tasks?id=eq.${taskId}&select=id,title,condition_latex,condition_image,topics(title,grade)&limit=1`);
+      `tasks?id=eq.${taskId}&select=id,title,title_lv,condition_latex,condition_latex_lv,condition_image,topics(title,title_lv,grade)&limit=1`);
     task = rows && rows[0];
   } catch (error) {
     console.error('og:', error.message);
@@ -124,11 +124,16 @@ async function taskPreview(request, env, taskId) {
 
   const origin = new URL(request.url).origin;
   const taskUrl = request.url;
-  const topicTitle = task.topics?.title ? ` • ${task.topics.title}` : '';
+  /* Превью читают боты мессенджеров: языка посетителя у них нет.
+     Аудитория сайта латышская, поэтому берём латышский, а русский
+     оставляем запасным — на случай, если перевода у записи нет. */
+  const pick = (lv, ru) => (lv && String(lv).trim()) || ru || '';
+  const topicName = pick(task.topics?.title_lv, task.topics?.title);
+  const topicTitle = topicName ? ` • ${topicName}` : '';
   const gradeLabel = task.topics?.grade ? ` [${task.topics.grade}. klase]` : '';
-  const pageTitle = `${task.title}${gradeLabel}${topicTitle} — MathTasks`;
-  const description = cleanLatexForPreview(task.condition_latex)
-    || 'Математическая задача с ответом, чертежом и пошаговым решением.';
+  const pageTitle = `${pick(task.title_lv, task.title)}${gradeLabel}${topicTitle} — MathTasks`;
+  const description = cleanLatexForPreview(pick(task.condition_latex_lv, task.condition_latex))
+    || 'Matemātikas uzdevums ar atbildi, zīmējumu un soli pa solim atrisinājumu.';
   const imageUrl = task.condition_image || `${origin}/favicon.svg`;
 
   const html = `<!DOCTYPE html>
@@ -150,7 +155,7 @@ async function taskPreview(request, env, taskId) {
   <link rel="canonical" href="${escapeHtml(taskUrl)}">
 </head>
 <body>
-  <h1>${escapeHtml(task.title)}</h1>
+  <h1>${escapeHtml(pick(task.title_lv, task.title))}</h1>
   <p>${escapeHtml(description)}</p>
   <p><a href="${escapeHtml(taskUrl)}">Skatīt uzdevumu MathTasks portālā</a></p>
 </body>
