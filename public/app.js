@@ -1801,7 +1801,11 @@ async function showTag(slug) {
      а если колонки description_lv там ещё нет — из словаря в lib.js,
      чтобы перевод работал и до применения миграции 015. */
   const tagDict = window.MathTasksLib?.getCrossTag ? window.MathTasksLib.getCrossTag(tag.slug) : null;
-  const tagDesc = loc(tag, 'description') || loc(tagDict || {}, 'description') || tag.description || '';
+  /* Порядок важен: loc() вернул бы русское описание как запасное, и до
+     словаря дело бы не дошло. Поэтому латышское поле проверяем явно. */
+  const wantLv = (window.MathTasks?.getLang ? window.MathTasks.getLang() : 'ru') === 'lv';
+  const tagDesc = (wantLv && (tag.description_lv || tagDict?.description_lv))
+    || tag.description || tagDict?.description || '';
   const crumbs = [
     [tr('nav_home'), '/'],
     [tagsListLabel, '/tags'],
