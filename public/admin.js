@@ -281,7 +281,7 @@
          только в режиме «Все классы», поэтому предупреждаем прямо в списке. */
       const warning = topic.grade ? '' : '<span class="admin-warn">не видна в меню при выбранном классе</span>';
       return `<div class="admin-row">
-        <span class="admin-row-main"><strong>${escapeHtml(topic.title)}</strong><small>${escapeHtml(subjectTitle(topic.subject_id))} · ${gradeText(topic.grade)} · задач: ${count}</small>${warning}</span>
+        <span class="admin-row-main"><strong><span class="admin-row-num">${topic.position ?? 0}.</span> ${escapeHtml(topic.title)}</strong><small>${escapeHtml(subjectTitle(topic.subject_id))} · ${gradeText(topic.grade)} · задач: ${count}</small>${warning}</span>
         <button class="text-button" type="button" data-edit-topic="${topic.id}">Изменить</button>
         <button class="text-button danger" type="button" data-delete-topic="${topic.id}">Удалить</button>
       </div>`;

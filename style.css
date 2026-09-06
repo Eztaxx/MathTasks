@@ -934,3 +934,7 @@ body.dark .ai-translate-btn:hover:not(:disabled){background:#22355e}
 .admin-list-defer p{margin:0;flex:1;min-width:220px;color:var(--muted);font-size:13px}
 .admin-list-defer[hidden]{display:none}
 .admin-list[hidden]{display:none}
+
+/* Номер темы внутри пары «класс + раздел»: помогает не терять место
+   в длинном списке и совпадает с порядком на сайте. */
+.admin-row-num{display:inline-block;min-width:1.6em;font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}
