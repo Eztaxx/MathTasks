@@ -2029,20 +2029,7 @@ body.dark .compact-drill-item.is-solved {
   font-size: 1.08em;
 }
 
-.compact-drill-eq {
-  font-size: 16px;
-  font-weight: 800;
-  color: #2563eb;
-  user-select: none;
-  flex-shrink: 0;
-  padding: 0 2px;
-}
-
-body.dark .compact-drill-eq {
-  color: #60a5fa;
-}
-
-.compact-drill-answer-wrap {
+body.dark .compact-drill-answer-wrap {
   position: relative;
   width: 105px;
   flex-shrink: 0;
@@ -2304,3 +2291,15 @@ body.dark .drill-hint-section .math {
   outline-offset: 2px;
   border-radius: 10px;
 }
+
+/* Подпись под полем ответа: первая попытка — мягкое «не сошлось»,
+   вторая — вердикт с верным ответом. */
+.compact-drill-note{margin:6px 0 0;font-size:12px;line-height:1.4}
+.compact-drill-note[hidden]{display:none}
+.compact-drill-note.warn{color:#8a5a00}
+.compact-drill-note.wrong{color:#cf2544}
+body.dark .compact-drill-note.warn{color:#ffcd7a}
+body.dark .compact-drill-note.wrong{color:#ff7d92}
+
+/* Карточка, на которую перешли стрелками. */
+.compact-drill-item.is-current{outline:2px solid var(--blue,#1764ff);outline-offset:2px}

@@ -1006,7 +1006,6 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
           <span class="compact-drill-num" title="${escapeHtml(taskTitle)}">${index + 1}.</span>
           <div class="compact-drill-body">
             <div class="compact-drill-expr math" data-drill-condition="${task.id}"></div>
-            <span class="compact-drill-eq" aria-hidden="true">=</span>
             <div class="compact-drill-answer-wrap">
               ${hasAnswer ? `
                 <input type="text" 
@@ -1022,6 +1021,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
                 <span class="compact-drill-no-ans">—</span>
               `}
             </div>
+            <p class="compact-drill-note" hidden></p>
           </div>
           <div class="compact-drill-actions">
             ${figureUrl ? `<button type="button" class="compact-drill-figure-btn" data-drill-figure="${escapeHtml(figureUrl)}" data-figure-alt="${escapeHtml(taskTitle)}" title="${escapeHtml(tr('drill_figure_btn'))}" aria-label="${escapeHtml(tr('drill_figure_btn'))}">🖼</button>` : ''}
@@ -2447,10 +2447,14 @@ function openDrillHintDialog(task) {
   if (typeof dialog.showModal === 'function') dialog.showModal();
 }
 
+/* Сколько раз ученик нажал Enter на этой задаче с неверным ответом. */
+const drillAttempts = new Map();
+
 // Обработка ввода и проверки ответов в компактном тренажёре
 document.addEventListener('keydown', event => {
   const input = event.target.closest('.compact-drill-input');
   if (!input) return;
+  const tr = window.MathTasks.t || (k => k);
 
   if (event.key === 'Enter') {
     event.preventDefault();
@@ -2475,6 +2479,9 @@ document.addEventListener('keydown', event => {
         statusEl.textContent = '✓';
       }
       if (item) item.classList.add('is-solved');
+      drillAttempts.delete(taskId);
+      const okNote = item?.querySelector('.compact-drill-note');
+      if (okNote) { okNote.textContent = ''; okNote.hidden = true; }
 
       updateTopicHeaderProgress();
       const statsEl = document.querySelector('#compact-drill-stats');
@@ -2494,11 +2501,28 @@ document.addEventListener('keydown', event => {
         }
       }
     } else {
+      /* Первое нажатие — мягкое: «не сошлось», ответ можно поправить.
+         Второе по той же задаче — окончательный вердикт с верным ответом:
+         иначе ученик перебирает варианты вслепую и застревает. */
+      const attempts = (drillAttempts.get(taskId) || 0) + 1;
+      drillAttempts.set(taskId, attempts);
       input.classList.remove('success');
       input.classList.add('error');
       if (statusEl) {
         statusEl.className = 'compact-drill-status error';
-        statusEl.textContent = '✗';
+        statusEl.textContent = attempts === 1 ? '?' : '✗';
+      }
+      const noteEl = item?.querySelector('.compact-drill-note');
+      if (noteEl) {
+        if (attempts === 1) {
+          noteEl.className = 'compact-drill-note warn';
+          noteEl.textContent = tr('drill_not_match');
+        } else {
+          const right = String(task.answer_latex || '').replace(/^\$+|\$+$/g, '');
+          noteEl.className = 'compact-drill-note wrong';
+          noteEl.textContent = tr('drill_wrong_answer') + ' ' + right;
+        }
+        noteEl.hidden = false;
       }
       input.select();
     }
@@ -2510,8 +2534,11 @@ document.addEventListener('input', event => {
   if (!input) return;
   if (input.classList.contains('error')) {
     input.classList.remove('error');
-    const statusEl = input.closest('.compact-drill-item')?.querySelector('.compact-drill-status');
+    const item = input.closest('.compact-drill-item');
+    const statusEl = item?.querySelector('.compact-drill-status');
     if (statusEl) statusEl.textContent = '';
+    const noteEl = item?.querySelector('.compact-drill-note');
+    if (noteEl) { noteEl.textContent = ''; noteEl.hidden = true; }
   }
 });
 
@@ -2885,52 +2912,82 @@ document.querySelector('#plotter-dialog')?.addEventListener('click', event => {
 });
 
 // Навигация стрелками на клавиатуре для режима вывода задач "По одной" (1)
-/* Индекс задачи, подсвеченной стрелками в режиме списка. Сбрасывается
-   при каждой перерисовке: список мог смениться целиком. */
+/* Навигация стрелками между задачами.
+
+   Раньше обработчик отступал, как только фокус был в поле ввода. В тренажёре
+   поле есть у каждой задачи, поэтому стрелки не работали там вообще. Теперь
+   внутри поля работают ↑ и ↓ — они переводят на соседнюю задачу и сразу
+   ставят курсор в её поле ответа; ← и → остаются полю, чтобы можно было
+   двигать курсор по набранному тексту. Вне поля работают все четыре. */
 let listCursor = -1;
 
-function moveListCursor(step) {
-  const cards = [...(lastRenderedContainer?.querySelectorAll('.task') || [])];
-  if (cards.length < 2) return false;
-  const next = listCursor < 0
-    ? (step > 0 ? 0 : cards.length - 1)
-    : Math.min(cards.length - 1, Math.max(0, listCursor + step));
-  if (next === listCursor) return false;
-  listCursor = next;
-  cards.forEach((c, i) => c.classList.toggle('is-current', i === listCursor));
-  cards[listCursor].scrollIntoView({ behavior: 'smooth', block: 'center' });
+/* Поля ответов в порядке их появления на странице: в тренажёре одно,
+   в списке — форма самопроверки внутри карточки. */
+function answerInputs() {
+  return [...document.querySelectorAll('.compact-drill-input, .self-check-input')]
+    .filter(el => !el.disabled);
+}
+
+function focusTaskAt(index) {
+  const cards = [...(lastRenderedContainer?.querySelectorAll('.task, .compact-drill-item') || [])];
+  if (!cards.length) return false;
+  const i = Math.min(cards.length - 1, Math.max(0, index));
+  listCursor = i;
+  cards.forEach((c, n) => c.classList.toggle('is-current', n === i));
+  cards[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  /* Переход сразу в поле ответа: ученик набирает, не трогая мышь. */
+  const field = cards[i].querySelector('.compact-drill-input:not([disabled]), .self-check-input:not([disabled])');
+  if (field) { field.focus(); field.select?.(); }
   return true;
 }
 
-window.addEventListener('keydown', event => {
-  const tagName = (event.target && event.target.tagName) ? event.target.tagName.toLowerCase() : '';
-  const typing = tagName === 'input' || tagName === 'textarea' || tagName === 'select' || event.target.isContentEditable;
-  if (typing || event.metaKey || event.ctrlKey || event.altKey) return;
+function currentTaskIndex() {
+  const cards = [...(lastRenderedContainer?.querySelectorAll('.task, .compact-drill-item') || [])];
+  const active = document.activeElement?.closest?.('.task, .compact-drill-item');
+  if (active) return cards.indexOf(active);
+  return listCursor;
+}
 
-  /* В списке стрелки ведут курсор по карточкам: вверх-вниз привычнее для
-     вертикального списка, влево-вправо оставлены для единообразия с «по одной». */
-  if (taskViewMode === 'list') {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
-      if (moveListCursor(1)) event.preventDefault();
-    } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
-      if (moveListCursor(-1)) event.preventDefault();
-    }
+window.addEventListener('keydown', event => {
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+  const key = event.key;
+  if (key !== 'ArrowUp' && key !== 'ArrowDown' && key !== 'ArrowLeft' && key !== 'ArrowRight') return;
+
+  const target = event.target;
+  const tagName = target?.tagName ? target.tagName.toLowerCase() : '';
+  const inField = tagName === 'input' || tagName === 'textarea' || tagName === 'select' || target?.isContentEditable;
+  const inAnswerField = Boolean(target?.closest?.('.compact-drill-input, .self-check-input'));
+
+  // В обычном поле (поиск, форма) стрелки не трогаем вовсе.
+  if (inField && !inAnswerField) return;
+  // В поле ответа горизонтальные стрелки нужны самому полю.
+  if (inAnswerField && (key === 'ArrowLeft' || key === 'ArrowRight')) return;
+
+  const forward = key === 'ArrowDown' || key === 'ArrowRight';
+
+  if (taskViewMode === 'single') {
+    if (!lastRenderedTasks || lastRenderedTasks.length <= 1) return;
+    const next = singleTaskIndex + (forward ? 1 : -1);
+    if (next < 0 || next > lastRenderedTasks.length - 1) return;
+    event.preventDefault();
+    singleTaskIndex = next;
+    renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
+    lastRenderedContainer?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    /* После перерисовки узлы новые, поэтому фокус ставим следующим кадром. */
+    requestAnimationFrame(() => {
+      const field = answerInputs()[0];
+      if (field) { field.focus(); field.select?.(); }
+    });
     return;
   }
 
-  if (taskViewMode !== 'single' || !lastRenderedTasks || lastRenderedTasks.length <= 1) return;
-
-  if (event.key === 'ArrowLeft' && singleTaskIndex > 0) {
-    event.preventDefault();
-    singleTaskIndex--;
-    renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
-    lastRenderedContainer?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } else if (event.key === 'ArrowRight' && singleTaskIndex < lastRenderedTasks.length - 1) {
-    event.preventDefault();
-    singleTaskIndex++;
-    renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
-    lastRenderedContainer?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  const cards = [...(lastRenderedContainer?.querySelectorAll('.task, .compact-drill-item') || [])];
+  if (cards.length < 2) return;
+  const cur = currentTaskIndex();
+  const next = cur < 0 ? (forward ? 0 : cards.length - 1) : cur + (forward ? 1 : -1);
+  if (next < 0 || next > cards.length - 1) return;
+  event.preventDefault();
+  focusTaskAt(next);
 });
 
 /* ── Загрузка справочников и сессия ───────────────────────────────── */
