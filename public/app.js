@@ -2993,6 +2993,14 @@ window.addEventListener('languagechange', async () => {
   }
 });
 
+// Адаптация открытых графиков при смене темы
+window.addEventListener('themechange', () => {
+  const dialog = document.querySelector('#plotter-dialog');
+  if (dialog && dialog.open && typeof drawFunctionPlot === 'function') {
+    drawFunctionPlot();
+  }
+});
+
 // Инициализация переводов при старте
 window.MathTasksI18n?.applyTranslations(document);
 window.MathTasksI18n?.updateSwitcherUI();

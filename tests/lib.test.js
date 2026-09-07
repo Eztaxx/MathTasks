@@ -508,3 +508,41 @@ describe('Educational stages (Pamatskola vs Vidusskola)', () => {
     expect(getTopicStage(null)).toBe('pamatskola');
   });
 });
+
+describe('Theme i18n and Support', () => {
+  it('i18n содержит ключи перевода темы для всех поддерживаемых языков (RU и LV)', () => {
+    const themeKeys = [
+      'theme_toggle',
+      'theme_light',
+      'theme_dark',
+      'theme_switch_light',
+      'theme_switch_dark'
+    ];
+    for (const key of themeKeys) {
+      const ru = i18n.t(key, {}, 'ru');
+      expect(ru).not.toBe(key);
+      expect(typeof ru).toBe('string');
+      expect(ru.length).toBeGreaterThan(0);
+
+      const lv = i18n.t(key, {}, 'lv');
+      expect(lv).not.toBe(key);
+      expect(typeof lv).toBe('string');
+      expect(lv.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('содержит корректные русские формулировки для светлой и тёмной темы', () => {
+    expect(i18n.t('theme_light', {}, 'ru')).toBe('Светлая тема');
+    expect(i18n.t('theme_dark', {}, 'ru')).toBe('Тёмная тема');
+    expect(i18n.t('theme_switch_light', {}, 'ru')).toContain('светл');
+    expect(i18n.t('theme_switch_dark', {}, 'ru')).toContain('тёмн');
+  });
+
+  it('содержит корректные латышские формулировки для светлой и тёмной темы', () => {
+    expect(i18n.t('theme_light', {}, 'lv')).toBe('Gaišais motīvs');
+    expect(i18n.t('theme_dark', {}, 'lv')).toBe('Tumšais motīvs');
+    expect(i18n.t('theme_switch_light', {}, 'lv')).toContain('gaišo');
+    expect(i18n.t('theme_switch_dark', {}, 'lv')).toContain('tumšo');
+  });
+});
+

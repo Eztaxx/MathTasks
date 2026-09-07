@@ -1493,6 +1493,8 @@ ${JSON.stringify(texts)}`;
           answer_latex: task.answer_latex || null,
           solution_latex: task.solution_latex || null,
           solution_latex_lv: task.solution_latex_lv || null,
+          hint_latex: task.hint_latex || null,
+          hint_latex_lv: task.hint_latex_lv || null,
           difficulty: task.difficulty || 'Средний',
           grade: task.grade ?? topic?.grade ?? null,
           topic_title: topic?.title || null,
@@ -1512,9 +1514,9 @@ ${JSON.stringify(texts)}`;
       bulkDialogCopy.hidden = false;
     } else {
       bulkDialogTitle.textContent = 'Массовый импорт задач (JSON)';
-      bulkDialogDesc.innerHTML = 'Загрузите <code>.json</code> файл или вставьте массив. Поддерживается структура с несколькими темами и задачами (недостающие темы создаются автоматически). Обязательные поля задачи: <code>title</code> и <code>condition_latex</code>.';
+      bulkDialogDesc.innerHTML = 'Загрузите <code>.json</code> файл или вставьте массив. Недостающие темы создаются автоматически. Обязательны только <code>title</code> и <code>condition_latex</code>, остальное — по желанию. Кнопка «Вставить образец» подставляет одну задачу со всеми полями сразу: латышские версии, подсказка, теги, сложность и порядок.';
       bulkDialogTextarea.value = '';
-      bulkDialogTextarea.placeholder = '[\n  {\n    "topic_title": "Квадратные уравнения",\n    "grade": 8,\n    "tasks": [\n      {\n        "title": "Неполное уравнение",\n        "condition_latex": "Решите $x^2 - 4 = 0$",\n        "answer_latex": "$x = \\\\pm 2$",\n        "difficulty": "Лёгкий"\n      }\n    ]\n  }\n]';
+      bulkDialogTextarea.placeholder = 'Вставьте сюда массив JSON или нажмите «Вставить образец».';
       bulkDialogSubmit.textContent = 'Импортировать в базу';
       bulkDialogCopy.hidden = true;
     }
@@ -1794,6 +1796,25 @@ ${JSON.stringify(texts)}`;
     }
   });
 
+  /* Образец лежит отдельным файлом, а не строкой в коде: его удобно
+     открыть, скачать и держать рядом как справку по полям. */
+  document.querySelector('#bulk-dialog-example')?.addEventListener('click', async () => {
+    const btn = document.querySelector('#bulk-dialog-example');
+    btn.disabled = true;
+    try {
+      const res = await fetch('/data/task-import-example.json');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      bulkDialogTextarea.value = JSON.stringify(await res.json(), null, 2);
+      bulkDialogStatus.className = 'bulk-dialog-status';
+      bulkDialogStatus.textContent = 'Образец вставлен. Замените содержимое своими данными и нажмите «Выполнить импорт».';
+    } catch (e) {
+      bulkDialogStatus.className = 'bulk-dialog-status error';
+      bulkDialogStatus.textContent = 'Не удалось загрузить образец: ' + e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
   bulkDialogCopy?.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(bulkDialogTextarea.value);
@@ -1915,6 +1936,8 @@ ${JSON.stringify(texts)}`;
         answer_latex: item.answer_latex ? String(item.answer_latex).trim() : null,
         solution_latex: item.solution_latex ? String(item.solution_latex).trim() : null,
         solution_latex_lv: item.solution_latex_lv ? String(item.solution_latex_lv).trim() : null,
+        hint_latex: item.hint_latex ? String(item.hint_latex).trim() : null,
+        hint_latex_lv: item.hint_latex_lv ? String(item.hint_latex_lv).trim() : null,
         difficulty: item.difficulty || 'Средний',
         grade: parseFormGrade(item.grade),
         topic_id: topicId,

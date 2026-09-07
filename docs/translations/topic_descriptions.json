@@ -1,0 +1,78 @@
+{
+ "168": {
+  "ru": "Обыкновенная дробь как часть величины: чтение и запись, сравнение дробей, основное свойство и сокращение, нахождение части от числа.",
+  "lv": "Parastā daļa kā lieluma daļa: lasīšana un pieraksts, daļu salīdzināšana, pamatīpašība un saīsināšana, daļas atrašana no skaitļa."
+ },
+ "175": {
+  "ru": "Признаки делимости, разложение на простые множители, наибольший общий делитель и наименьшее общее кратное в бытовых задачах.",
+  "lv": "Dalāmības pazīmes, sadalīšana pirmreizinātājos, lielākais kopīgais dalītājs un mazākais kopīgais dalāmais sadzīves uzdevumos."
+ },
+ "161": {
+  "ru": "Проценты как сотые доли: скидки и наценки, налог, простые расчёты покупок и вкладов, перевод между дробью, десятичной дробью и процентом.",
+  "lv": "Procenti kā simtdaļas: atlaides un uzcenojumi, nodoklis, vienkārši pirkumu un noguldījumu aprēķini, pāreja starp daļu, decimāldaļu un procentu."
+ },
+ "169": {
+  "ru": "Координатная плоскость, построение точек по координатам, прямая пропорциональность и её график, чтение зависимости по графику.",
+  "lv": "Koordinātu plakne, punktu attēlošana pēc koordinātām, tiešā proporcionalitāte un tās grafiks, sakarības lasīšana no grafika."
+ },
+ "176": {
+  "ru": "Положительные и отрицательные числа на числовой прямой, противоположные числа, модуль, сложение, вычитание, умножение и деление со знаками.",
+  "lv": "Pozitīvi un negatīvi skaitļi uz skaitļu taisnes, pretēji skaitļi, modulis, saskaitīšana, atņemšana, reizināšana un dalīšana ar zīmēm."
+ },
+ "162": {
+  "ru": "Линейное уравнение с одной переменной, равносильные преобразования, составление уравнения по условию текстовой задачи и проверка корня.",
+  "lv": "Lineārs vienādojums ar vienu mainīgo, ekvivalenti pārveidojumi, vienādojuma sastādīšana pēc tekstuāla uzdevuma nosacījuma un saknes pārbaude."
+ },
+ "170": {
+  "ru": "Системы двух линейных уравнений: способ подстановки, способ сложения и графическая интерпретация, случаи одного, ни одного и бесконечного числа решений.",
+  "lv": "Divu lineāru vienādojumu sistēmas: ievietošanas paņēmiens, saskaitīšanas paņēmiens un grafiskā interpretācija, viena, neviena un bezgalīgi daudzu atrisinājumu gadījumi."
+ },
+ "163": {
+  "ru": "Степень с натуральным и целым показателем, действия со степенями, одночлены и многочлены, приведение подобных слагаемых.",
+  "lv": "Pakāpe ar naturālu un veselu kāpinātāju, darbības ar pakāpēm, monomi un polinomi, līdzīgo saskaitāmo savilkšana."
+ },
+ "177": {
+  "ru": "Функция вида $y = kx + b$: угловой коэффициент и свободный член, построение и чтение графика, пересечения с осями, взаимное расположение прямых.",
+  "lv": "Funkcija $y = kx + b$: virziena koeficients un brīvais loceklis, grafika veidošana un lasīšana, krustpunkti ar asīm, taišņu savstarpējais novietojums."
+ },
+ "171": {
+  "ru": "Арифметический квадратный корень и его свойства, вынесение множителя из-под корня, внесение под корень, освобождение от иррациональности в знаменателе.",
+  "lv": "Aritmētiskā kvadrātsakne un tās īpašības, reizinātāja iznešana no saknes zīmes, ienešana zem saknes, atbrīvošanās no iracionalitātes saucējā."
+ },
+ "164": {
+  "ru": "Теорема Пифагора и обратная ей, высота прямоугольного треугольника, проекции катетов и метрические соотношения между сторонами.",
+  "lv": "Pitagora teorēma un tai apgrieztā, taisnleņķa trijstūra augstums, katešu projekcijas un metriskās sakarības starp malām."
+ },
+ "172": {
+  "ru": "Параллелограмм, ромб, прямоугольник и трапеция: свойства и признаки, формулы площадей, разбиение сложной фигуры на простые.",
+  "lv": "Paralelograms, rombs, taisnstūris un trapece: īpašības un pazīmes, laukumu formulas, saliktas figūras sadalīšana vienkāršās."
+ },
+ "301": {
+  "ru": "Признаки подобия треугольников, коэффициент подобия, отношение периметров и площадей подобных фигур, применение в измерительных задачах.",
+  "lv": "Trijstūru līdzības pazīmes, līdzības koeficients, līdzīgu figūru perimetru un laukumu attiecība, lietojums mērīšanas uzdevumos."
+ },
+ "165": {
+  "ru": "Дробно-рациональные уравнения и область допустимых значений, задачи на движение, совместную работу и концентрацию растворов.",
+  "lv": "Daļveida racionāli vienādojumi un pieļaujamo vērtību apgabals, uzdevumi par kustību, kopīgu darbu un šķīdumu koncentrāciju."
+ },
+ "167": {
+  "ru": "Приёмы олимпиадных задач: инварианты и полуинварианты, принцип Дирихле, чётность, уравнения в целых числах и оценки.",
+  "lv": "Olimpiāžu uzdevumu paņēmieni: invarianti un pusinvarianti, Dirihlē princips, pāra un nepāra skaitļi, vienādojumi veselos skaitļos un novērtējumi."
+ },
+ "173": {
+  "ru": "Квадратные неравенства, знак квадратного трёхчлена, метод интервалов и чтение решения по эскизу параболы.",
+  "lv": "Kvadrātnevienādības, kvadrāttrinoma zīme, intervālu metode un atrisinājuma nolasīšana no paraboles skices."
+ },
+ "166": {
+  "ru": "Синус, косинус и тангенс острого угла, основное тригонометрическое тождество, вычисление сторон и углов, задачи на высоту и расстояние.",
+  "lv": "Šaura leņķa sinuss, kosinuss un tangenss, trigonometrijas pamatidentitāte, malu un leņķu aprēķināšana, uzdevumi par augstumu un attālumu."
+ },
+ "174": {
+  "ru": "Подобие треугольников, теорема Фалеса и пропорциональные отрезки, произведение отрезков хорд, теорема о касательной и секущей.",
+  "lv": "Trijstūru līdzība, Talesa teorēma un proporcionāli nogriežņi, hordu nogriežņu reizinājums, teorēma par pieskari un sekanti."
+ },
+ "178": {
+  "ru": "Правила суммы и произведения, перебор вариантов, классическая вероятность, независимые и противоположные события.",
+  "lv": "Summas un reizinājuma likumi, variantu pārlase, klasiskā varbūtība, neatkarīgi un pretēji notikumi."
+ }
+}

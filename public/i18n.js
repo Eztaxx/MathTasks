@@ -49,6 +49,11 @@
       auth_logout: 'Iziet',
       auth_account: 'Profils',
       menu_toggle: 'Izvēlne',
+      theme_toggle: 'Pārslēgt motīvu',
+      theme_light: 'Gaišais motīvs',
+      theme_dark: 'Tumšais motīvs',
+      theme_switch_light: 'Pārslēgt uz gaišo motīvu',
+      theme_switch_dark: 'Pārslēgt uz tumšo motīvu',
 
       // Hero sadaļa
       hero_title: 'Matemātikas uzdevumu krātuve',
@@ -288,6 +293,11 @@
       auth_logout: 'Выйти',
       auth_account: 'Аккаунт',
       menu_toggle: 'Меню',
+      theme_toggle: 'Переключить тему',
+      theme_light: 'Светлая тема',
+      theme_dark: 'Тёмная тема',
+      theme_switch_light: 'Включить светлую тему',
+      theme_switch_dark: 'Включить тёмную тему',
 
       // Hero секция
       hero_title: 'Сборник задач по математике',

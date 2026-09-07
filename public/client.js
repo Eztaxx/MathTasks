@@ -159,30 +159,86 @@ window.MathTasks = window.MathTasks || {};
     }
   };
 
-  /* Тёмная тема временно выключена: переключатель убран из шапки, а код и стили
-     body.dark оставлены. Чтобы вернуть — поставьте true и верните в разметку кнопку
-     <button class="theme-toggle" type="button" aria-label="Переключить тему">
-       <span data-theme-icon>☼</span> <span data-theme-label>Светлая тема</span></button> */
-  const THEME_ENABLED = false;
+  // Тёмная тема: синхронизация состояния, запоминание и адаптация интерфейса
+  const THEME_STORAGE_KEY = 'math-tasks:theme';
+  const FALLBACK_THEME_KEY = 'theme';
 
-  // Тема запоминается и работает одинаково на всех страницах.
-  const applyTheme = theme => {
-    document.body.classList.toggle('dark', theme === 'dark');
-    document.querySelectorAll('.theme-toggle').forEach(button => {
-      button.querySelector('[data-theme-icon]').textContent = theme === 'dark' ? '☾' : '☼';
-      button.querySelector('[data-theme-label]').textContent = theme === 'dark' ? 'Тёмная тема' : 'Светлая тема';
-    });
+  const getSavedTheme = () => {
+    try {
+      const saved = localStorage.getItem(THEME_STORAGE_KEY) || localStorage.getItem(FALLBACK_THEME_KEY);
+      if (saved === 'dark' || saved === 'light') return saved;
+      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+    } catch {}
+    return 'light';
   };
-  let theme = 'light';
-  // Сохранённый выбор читаем только когда тема включена: иначе у тех, кто уже
-  // переключился на тёмную, она осталась бы навсегда — кнопки-то больше нет.
-  if (THEME_ENABLED) {
-    try { theme = localStorage.getItem('math-tasks:theme') || 'light'; } catch {}
-  }
-  applyTheme(theme);
-  document.querySelectorAll('.theme-toggle').forEach(button => button.addEventListener('click', () => {
-    theme = theme === 'dark' ? 'light' : 'dark';
-    try { localStorage.setItem('math-tasks:theme', theme); } catch {}
-    applyTheme(theme);
-  }));
+
+  let currentTheme = getSavedTheme();
+
+  const applyTheme = theme => {
+    currentTheme = theme === 'dark' ? 'dark' : 'light';
+    const isDark = currentTheme === 'dark';
+    if (document.body) {
+      document.body.classList.toggle('dark', isDark);
+    }
+    if (document.documentElement) {
+      document.documentElement.classList.toggle('dark', isDark);
+    }
+
+    const i18n = window.MathTasksI18n;
+    const labelKey = isDark ? 'theme_dark' : 'theme_light';
+    const switchKey = isDark ? 'theme_switch_light' : 'theme_switch_dark';
+    const defaultLabel = isDark ? 'Тёмная тема' : 'Светлая тема';
+    const defaultTitle = isDark ? 'Включить светлую тему' : 'Включить тёмную тему';
+
+    document.querySelectorAll('.theme-toggle').forEach(button => {
+      const icon = button.querySelector('[data-theme-icon]');
+      const label = button.querySelector('[data-theme-label]');
+      if (icon) icon.textContent = isDark ? '☾' : '☼';
+      if (label) {
+        label.dataset.i18n = labelKey;
+        label.textContent = i18n?.t ? i18n.t(labelKey) : defaultLabel;
+      }
+      const titleText = i18n?.t ? i18n.t(switchKey) : defaultTitle;
+      button.setAttribute('aria-label', titleText);
+      button.setAttribute('title', titleText);
+    });
+
+    try {
+      window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: currentTheme } }));
+    } catch {}
+  };
+
+  window.MathTasks.getTheme = () => currentTheme;
+  window.MathTasks.applyTheme = applyTheme;
+
+  applyTheme(currentTheme);
+
+  // Делегированный клик — работает для кнопок в шапке на главной и в админке
+  document.addEventListener('click', e => {
+    const button = e.target.closest('.theme-toggle');
+    if (!button) return;
+    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+      localStorage.setItem(FALLBACK_THEME_KEY, nextTheme);
+    } catch {}
+    applyTheme(nextTheme);
+  });
+
+  // При смене языка на лету обновляем подписи у кнопок темы
+  window.addEventListener('languagechange', () => {
+    applyTheme(currentTheme);
+  });
+
+  // Если пользователь не сохранил тему вручную, следуем системной
+  try {
+    window.matchMedia?.('(prefers-color-scheme: dark)')?.addEventListener('change', e => {
+      try {
+        const hasCustom = localStorage.getItem(THEME_STORAGE_KEY) || localStorage.getItem(FALLBACK_THEME_KEY);
+        if (!hasCustom) {
+          applyTheme(e.matches ? 'dark' : 'light');
+        }
+      } catch {}
+    });
+  } catch {}
 })();

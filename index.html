@@ -19,6 +19,27 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="/style.css" />
+  <script>
+    (() => {
+      try {
+        const saved = localStorage.getItem('math-tasks:theme') || localStorage.getItem('theme');
+        const isDark = saved ? saved === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+          if (document.body) {
+            document.body.classList.add('dark');
+          } else {
+            new MutationObserver((_, obs) => {
+              if (document.body) {
+                document.body.classList.add('dark');
+                obs.disconnect();
+              }
+            }).observe(document.documentElement, { childList: true });
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <noscript>
@@ -59,6 +80,10 @@
         <button type="button" class="lang-btn" data-lang="lv" title="Latviešu valoda">LV</button>
         <button type="button" class="lang-btn active" data-lang="ru" title="Русский язык">RU</button>
       </div>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Переключить тему" title="Переключить тему">
+        <span data-theme-icon aria-hidden="true">☼</span>
+        <span data-theme-label data-i18n="theme_light">Светлая тема</span>
+      </button>
       <button class="account-button" id="account-button" data-i18n="auth_login">Войти</button>
     </header>
 
