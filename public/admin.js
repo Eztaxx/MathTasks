@@ -1264,7 +1264,7 @@ ${JSON.stringify(texts)}`;
           : '<span class="admin-status-badge draft">🟡 Черновик</span>',
         !task.topic_id ? '<span class="admin-status-badge danger">Без темы</span>' : '',
         (!task.solution_latex && !task.solution_image) ? '<span class="admin-status-badge warning">Без решения</span>' : '',
-        (task.condition_image || task.solution_image) ? '<span class="admin-status-badge info">🖼️ С чертежом</span>' : '',
+        (task.condition_image || task.solution_image) ? `<span class="admin-status-badge info" title="${escapeHtml(task.condition_image || task.solution_image)}">🖼️ ${escapeHtml((task.condition_image || task.solution_image).split('/').pop())}</span>` : '',
         difficultyBadge(task.difficulty),
         tagBadges
       ].filter(Boolean).join('');
@@ -1272,7 +1272,7 @@ ${JSON.stringify(texts)}`;
       return `<div class="admin-row">
         ${arrows}
         <div class="admin-row-main">
-          <strong>${escapeHtml(task.title)}</strong>
+          <strong>${escapeHtml(task.title)} <span style="font-weight:600;opacity:0.6;font-size:12px;margin-left:4px;">#${task.id}</span></strong>
           <small>${escapeHtml(topic?.title || 'Без темы')} · ${escapeHtml(gradeText(grade))} · №${task.position ?? 0}</small>
           <div class="admin-badge-group">${badges}</div>
         </div>
@@ -1568,6 +1568,11 @@ ${JSON.stringify(texts)}`;
           title_lv: item.topic_title_lv || item.title_lv ? String(item.topic_title_lv || item.title_lv).trim() : null,
           grade: parseFormGrade(item.grade),
           subject_id: item.subject_id ? Number(item.subject_id) : null,
+          /* Раздел указывают слагом: числовой идентификатор снаружи никому
+             не известен, а без раздела новая тема молча уезжала в первый
+             по списку — в «Алгебру», даже если это стереометрия. */
+          subject_slug: item.subject_slug ? String(item.subject_slug).trim() : null,
+          subject_title: item.subject_title ? String(item.subject_title).trim() : null,
           description: item.description ? String(item.description).trim() : null,
           description_lv: item.description_lv ? String(item.description_lv).trim() : null
         };
@@ -1594,6 +1599,8 @@ ${JSON.stringify(texts)}`;
             title_lv: t.topic_title_lv ? String(t.topic_title_lv).trim() : null,
             grade: parseFormGrade(t.grade),
             subject_id: t.subject_id ? Number(t.subject_id) : null,
+            subject_slug: t.subject_slug ? String(t.subject_slug).trim() : null,
+            subject_title: t.subject_title ? String(t.subject_title).trim() : null,
             description: null,
             description_lv: null
           });
