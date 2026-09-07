@@ -190,17 +190,21 @@ window.MathTasks = window.MathTasks || {};
     const defaultLabel = isDark ? 'Тёмная тема' : 'Светлая тема';
     const defaultTitle = isDark ? 'Включить светлую тему' : 'Включить тёмную тему';
 
-    document.querySelectorAll('.theme-toggle').forEach(button => {
+    /* Переключатель показывает состояние сам, поэтому подпись ему не нужна;
+       у старой кнопки с текстом её по-прежнему обновляем. */
+    document.querySelectorAll('.theme-switch, .theme-toggle').forEach(button => {
+      const titleText = i18n?.t ? i18n.t(switchKey) : defaultTitle;
+      button.setAttribute('aria-label', titleText);
+      button.setAttribute('title', titleText);
+      if (button.hasAttribute('role')) button.setAttribute('aria-checked', String(isDark));
+
       const icon = button.querySelector('[data-theme-icon]');
-      const label = button.querySelector('[data-theme-label]');
       if (icon) icon.textContent = isDark ? '☾' : '☼';
+      const label = button.querySelector('[data-theme-label]');
       if (label) {
         label.dataset.i18n = labelKey;
         label.textContent = i18n?.t ? i18n.t(labelKey) : defaultLabel;
       }
-      const titleText = i18n?.t ? i18n.t(switchKey) : defaultTitle;
-      button.setAttribute('aria-label', titleText);
-      button.setAttribute('title', titleText);
     });
 
     try {
@@ -215,7 +219,7 @@ window.MathTasks = window.MathTasks || {};
 
   // Делегированный клик — работает для кнопок в шапке на главной и в админке
   document.addEventListener('click', e => {
-    const button = e.target.closest('.theme-toggle');
+    const button = e.target.closest('.theme-switch, .theme-toggle');
     if (!button) return;
     const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
     try {
