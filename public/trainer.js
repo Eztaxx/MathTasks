@@ -474,12 +474,37 @@
     } catch (e) {}
   }
 
+  function generateBatch(cat = 'addsub2', count = 20) {
+    const list = [];
+    const seen = new Set();
+    const maxAttempts = count * 4;
+    let attempts = 0;
+    while (list.length < count && attempts < maxAttempts) {
+      attempts++;
+      const q = api.generateQuestion(cat);
+      if (!seen.has(q.latex)) {
+        seen.add(q.latex);
+        q.id = list.length + 1;
+        q.index = list.length;
+        list.push(q);
+      }
+    }
+    while (list.length < count) {
+      const q = api.generateQuestion(cat);
+      q.id = list.length + 1;
+      q.index = list.length;
+      list.push(q);
+    }
+    return list;
+  }
+
   const api = {
     GENERATORS,
     generateQuestion: (cat = 'addsub2') => {
       const gen = GENERATORS[cat] || GENERATORS.addsub2;
       return gen();
     },
+    generateBatch,
     checkAnswer,
     playSound,
     reduceFraction,

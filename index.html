@@ -68,9 +68,135 @@
     </div>
     <nav id="sidebar-nav">
       <a class="nav-link" href="/" title="Главная" data-i18n-title="nav_home"><span class="nav-icon">⌂</span><span class="label" data-i18n="nav_home">Главная</span></a>
-      <a class="nav-link" href="/exams.html" title="Подготовка к экзаменам"><span class="nav-icon" style="color:#1764ff">🎯</span><span class="label">Экзамены Skola2030</span></a>
-      <a class="nav-link" href="/mock-exams.html" title="Пробные экзамены"><span class="nav-icon" style="color:#7029e9">📋</span><span class="label">Пробные экзамены</span></a>
-      <a class="nav-link" href="/trainer.html" title="Тренажёр устного счёта"><span class="nav-icon" style="color:#f59e0b">⚡</span><span class="label">Тренажёр счёта</span></a>
+
+      <div class="sidebar-track-header">
+        <span class="track-header-icon">⚡</span>
+        <span class="track-header-title" data-i18n="track_heading_prep">Тренажёры и экзамены</span>
+      </div>
+      <div class="sidebar-track-subgroup">
+        <a class="sidebar-track-card" href="/trainer.html" title="Тренажёр счёта">
+          <div class="track-card-badge gold">⚡</div>
+          <div class="track-card-body">
+            <strong data-i18n="nav_trainer">Тренажёр счёта</strong>
+            <span data-i18n="nav_trainer_desc">Устный счёт и дроби</span>
+          </div>
+        </a>
+        <a class="sidebar-track-card" href="/exams.html" title="Экзамены Skola2030">
+          <div class="track-card-badge blue">🎯</div>
+          <div class="track-card-body">
+            <strong data-i18n="nav_exams">Экзамены Skola2030</strong>
+            <span data-i18n="nav_exams_desc">Подготовка и стратегия</span>
+          </div>
+        </a>
+        <a class="sidebar-track-card" href="/mock-exams.html" title="Пробные экзамены">
+          <div class="track-card-badge purple">📋</div>
+          <div class="track-card-body">
+            <strong data-i18n="nav_mock_exams">Пробные экзамены</strong>
+            <span data-i18n="nav_mock_exams_desc">Структура и формулы</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="sidebar-track-header">
+        <span class="track-header-icon">🎓</span>
+        <span class="track-header-title" data-i18n="track_heading_pamat">Основная школа (1–9 классы)</span>
+      </div>
+      <div class="sidebar-track-subgroup">
+        <a class="sidebar-track-card" href="/grade/9" title="Экзамен 9 класс">
+          <div class="track-card-badge gold">9. kl.</div>
+          <div class="track-card-body">
+            <strong>Экзамен 9 класс 🎯</strong>
+            <span>Итоговая работа основной школы</span>
+          </div>
+        </a>
+      </div>
+      <div class="sidebar-track-subgroup">
+        <span class="track-subgroup-label" data-i18n="track_diag">Диагностические работы</span>
+        <a class="sidebar-track-card" href="/grade/3" title="3 класс">
+          <div class="track-card-badge orange">3. kl.</div>
+          <div class="track-card-body">
+            <strong>3 класс</strong>
+            <span data-i18n="track_diag">Диагностика</span>
+          </div>
+        </a>
+        <a class="sidebar-track-card" href="/grade/6" title="6 класс">
+          <div class="track-card-badge green">6. kl.</div>
+          <div class="track-card-body">
+            <strong>6 класс</strong>
+            <span data-i18n="track_diag">Диагностика</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="sidebar-track-header">
+        <span class="track-header-icon">🏛️</span>
+        <span class="track-header-title" data-i18n="track_heading_vidus">Старшая школа (Уровни)</span>
+      </div>
+      <div class="sidebar-track-subgroup">
+        <a class="sidebar-track-card" href="/grade/visparigais" title="Vispārīgais līmenis">
+          <div class="track-card-badge teal">Visp</div>
+          <div class="track-card-body">
+            <strong>Vispārīgais līmenis</strong>
+            <span>Базовый курс: старшая школа и техникум</span>
+          </div>
+        </a>
+        <a class="sidebar-track-card" href="/grade/matematika-1" title="Optimālais līmenis">
+          <div class="track-card-badge blue">Opt</div>
+          <div class="track-card-body">
+            <strong>Optimālais līmenis</strong>
+            <span>Стандартный курс, 10–11 классы</span>
+          </div>
+        </a>
+        <a class="sidebar-track-card" href="/grade/matematika-2" title="Augstākais līmenis">
+          <div class="track-card-badge purple">Aug</div>
+          <div class="track-card-body">
+            <strong>Augstākais līmenis</strong>
+            <span>Углублённый курс к экзамену</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="sidebar-track-header">
+        <span class="track-header-icon">🛠</span>
+        <span class="track-header-title" data-i18n="tools_heading">Инструменты и справка</span>
+      </div>
+      <div class="sidebar-track-subgroup">
+        <button class="sidebar-action-card" id="open-formulas-btn" type="button" title="Листы формул">
+          <div class="action-card-icon formula-icon">📐</div>
+          <div class="action-card-body">
+            <strong data-i18n="tool_formulas">Листы формул</strong>
+            <span data-i18n="tool_formulas_desc">Официальные буклеты экзаменов и KaTeX</span>
+          </div>
+        </button>
+        <button class="sidebar-action-card" id="open-plotter-btn" type="button" title="Графопостроитель">
+          <div class="action-card-icon plotter-icon">📈</div>
+          <div class="action-card-body">
+            <strong data-i18n="tool_plotter">Графопостроитель</strong>
+            <span data-i18n="tool_plotter_desc">Интерактивный 2D калькулятор</span>
+          </div>
+        </button>
+        <button class="sidebar-action-card" id="random-task-btn" type="button" title="Случайная задача">
+          <div class="action-card-icon dice-icon">🎲</div>
+          <div class="action-card-body">
+            <strong data-i18n="tool_random">Случайная задача</strong>
+            <span data-i18n="tool_random_desc">Для быстрой разминки</span>
+          </div>
+        </button>
+        <a class="sidebar-action-card" href="/favorites" title="Мои закладки">
+          <div class="action-card-icon star-icon">★</div>
+          <div class="action-card-body">
+            <strong data-i18n="nav_favorites">Мои закладки</strong>
+            <span id="fav-count-text">0</span>
+          </div>
+        </a>
+        <a class="sidebar-action-card" href="/tags" title="Кросс-теги">
+          <div class="action-card-icon tag-icon" style="background:#f0f7ff;color:#1764ff">🏷️</div>
+          <div class="action-card-body">
+            <strong data-i18n="tags_label">Кросс-теги</strong>
+            <span>23 тега по навыкам</span>
+          </div>
+        </a>
+      </div>
     </nav>
     <a class="about" href="/about" title="О сайте" data-i18n-title="nav_about"><span class="nav-icon">ⓘ</span><span class="label" data-i18n="nav_about">О сайте</span></a>
   </aside>

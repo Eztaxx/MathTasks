@@ -387,6 +387,37 @@ function renderHubSidebar() {
     return selectedGrade === val;
   };
 
+  // 0. Treniņi un sagatavošanās eksāmeniem
+  const prepTrack = `
+    <div class="sidebar-track-header">
+      <span class="track-header-icon">⚡</span>
+      <span class="track-header-title">${escapeHtml(tr('track_heading_prep'))}</span>
+    </div>
+    <div class="sidebar-track-subgroup">
+      <a class="sidebar-track-card${location.pathname === '/trainer.html' ? ' active' : ''}" href="/trainer.html" title="${escapeHtml(tr('nav_trainer'))}">
+        <div class="track-card-badge gold">⚡</div>
+        <div class="track-card-body">
+          <strong>${escapeHtml(tr('nav_trainer'))}</strong>
+          <span>${escapeHtml(tr('nav_trainer_desc'))}</span>
+        </div>
+      </a>
+      <a class="sidebar-track-card${location.pathname === '/exams.html' ? ' active' : ''}" href="/exams.html" title="${escapeHtml(tr('nav_exams'))}">
+        <div class="track-card-badge blue">🎯</div>
+        <div class="track-card-body">
+          <strong>${escapeHtml(tr('nav_exams'))}</strong>
+          <span>${escapeHtml(tr('nav_exams_desc'))}</span>
+        </div>
+      </a>
+      <a class="sidebar-track-card${location.pathname === '/mock-exams.html' ? ' active' : ''}" href="/mock-exams.html" title="${escapeHtml(tr('nav_mock_exams'))}">
+        <div class="track-card-badge purple">📋</div>
+        <div class="track-card-body">
+          <strong>${escapeHtml(tr('nav_mock_exams'))}</strong>
+          <span>${escapeHtml(tr('nav_mock_exams_desc'))}</span>
+        </div>
+      </a>
+    </div>
+  `;
+
   // 1. Pamatskola: 9. klases valsts eksāmens un diagnostikas darbi (3. un 6. klase)
   const pamatTrack = `
     <div class="sidebar-track-header">
@@ -503,7 +534,7 @@ function renderHubSidebar() {
     </div>
   `;
 
-  sidebarNav.innerHTML = home + pamatTrack + vidusTrack + toolsSection;
+  sidebarNav.innerHTML = home + prepTrack + pamatTrack + vidusTrack + toolsSection;
   markActiveNav();
 }
 
@@ -947,11 +978,90 @@ try {
 let singleTaskIndex = 0;
 let lastRenderedContainer = null;
 let lastRenderedTasks = [];
+
+/* Сколько задач показывать сразу.
+ *
+ * Замер на теме из 51 задачи: 19 725 узлов DOM, 875 КБ разметки, 431
+ * формула — то есть по 387 узлов на задачу. При полутора сотнях задач в
+ * теме это под шестьдесят тысяч узлов и почти три мегабайта разметки;
+ * телефон на такой странице начинает заикаться при прокрутке.
+ *
+ * Показываем частями. Прогрессивно, а не страницами: ученик листает тему
+ * сверху вниз, и разбиение на «страницу 3 из 6» ломало бы и это чтение,
+ * и переход по номеру задачи. */
+const TASKS_CHUNK = 25;
+
+/* Показываем окно из TASKS_CHUNK задач, а не наращиваем список.
+ *
+ * Накопительный вариант («показать ещё») выглядел естественнее, но у него
+ * два изъяна, и оба всплыли на проверке. Кнопка «показать все» заново
+ * собирала ту самую страницу на шестьдесят тысяч узлов, от которой мы и
+ * уходим. А переход к задаче из полосы номеров промахивался: страница
+ * высотой в девяносто тысяч пикселей продолжает расти, пока KaTeX
+ * досчитывает полтысячи формул, и прокрутка гонится за убегающей целью.
+ *
+ * С окном страница всегда одного размера, и оба изъяна исчезают. */
+let pageStart = 0;
+
+/* Набор задач сменился — показываем снова с начала. Сравниваем по первому
+   и последнему номеру: пересоздание того же списка (смена языка, отметка
+   решённой) не должно сбрасывать то, что человек уже раскрыл. */
+let visibleKey = '';
+function resetVisibleFor(tasks) {
+  const key = `${tasks.length}:${tasks[0]?.id ?? ''}:${tasks[tasks.length - 1]?.id ?? ''}`;
+  if (key !== visibleKey) { visibleKey = key; pageStart = 0; }
+  if (pageStart >= tasks.length) pageStart = 0;
+}
+
+/* Перевести окно на страницу с этой задачей. Возвращает true, если
+   пришлось перерисовывать. */
+function ensureVisible(index) {
+  const start = Math.floor(index / TASKS_CHUNK) * TASKS_CHUNK;
+  if (start === pageStart) return false;
+  pageStart = start;
+  return true;
+}
 let lastRenderedEmptyText = '';
 let lastRenderedOptions = {};
 
 /* Метку класса показываем только там, где она что-то добавляет: внутри
    выбранного класса она одинакова у всех карточек и превращается в шум. */
+/* Кнопка снизу: сколько показано, сколько всего, и два способа добрать. */
+/* Перерисовать текущий список, не меняя ни подборку, ни режим. */
+function rerenderCurrentList() {
+  if (!lastRenderedContainer) return;
+  renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
+}
+
+function moreButton(total) {
+  if (taskViewMode === 'single' || total <= TASKS_CHUNK) return '';
+  const tr = window.MathTasks.t || (k => k);
+  const pages = Math.ceil(total / TASKS_CHUNK);
+  const current = Math.floor(pageStart / TASKS_CHUNK);
+  const from = pageStart + 1;
+  const upto = Math.min(pageStart + TASKS_CHUNK, total);
+
+  /* Номера страниц показываем не все: при сорока страницах полоса из
+     сорока кнопок бесполезна. Края, соседи текущей и многоточия. */
+  const wanted = new Set([0, pages - 1, current - 1, current, current + 1]);
+  const nums = [...wanted].filter(n => n >= 0 && n < pages).sort((a, b) => a - b);
+  let numsHtml = '';
+  let prev = -1;
+  for (const n of nums) {
+    if (prev >= 0 && n - prev > 1) numsHtml += '<span class="tasks-page-gap">…</span>';
+    numsHtml += `<button type="button" class="tasks-page-num${n === current ? ' active' : ''}" data-task-page="${n}">${n + 1}</button>`;
+    prev = n;
+  }
+
+  return `
+    <nav class="tasks-more" aria-label="${escapeHtml(tr('tasks_pages'))}">
+      <button type="button" class="text-button" data-task-page="${current - 1}" ${current === 0 ? 'disabled' : ''}>${escapeHtml(tr('prev_page'))}</button>
+      <span class="tasks-page-nums">${numsHtml}</span>
+      <button type="button" class="text-button" data-task-page="${current + 1}" ${current === pages - 1 ? 'disabled' : ''}>${escapeHtml(tr('next_page'))}</button>
+      <span class="tasks-more-count">${tr('tasks_range', { from, upto, total })}</span>
+    </nav>`;
+}
+
 function renderTaskList(container, tasks, emptyText, options = {}) {
   listCursor = -1;
   /* Полосу номеров перерисовывает не эта функция, поэтому при смене режима
@@ -971,6 +1081,11 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     return;
   }
   tasks.forEach(task => currentTasksMap.set(task.id, task));
+  resetVisibleFor(tasks);
+
+  /* В режиме «по одной» на экране и так одна задача — резать нечего. */
+  const paged = taskViewMode !== 'single' && tasks.length > TASKS_CHUNK;
+  const shown = paged ? tasks.slice(pageStart, pageStart + TASKS_CHUNK) : tasks;
 
   if (taskViewMode === 'single' && tasks.length > 1) {
     if (singleTaskIndex < 0) singleTaskIndex = 0;
@@ -1014,7 +1129,8 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     const cleanFn = (window.MathTasksLib && window.MathTasksLib.cleanMathExample) || (s => s);
     const solvedTotal = tasks.filter(t => isTaskSolved(t.id)).length;
 
-    const itemsHtml = tasks.map((task, index) => {
+    const itemsHtml = shown.map((task, i) => {
+      const index = pageStart + i;
       const solved = isTaskSolved(task.id);
       const taskTitle = loc(task, 'title');
       const answerText = loc(task, 'answer_latex');
@@ -1064,7 +1180,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
       </div>
     `;
 
-    container.innerHTML = `<div class="task-compact-container">${bannerHtml}<div class="task-compact-grid">${itemsHtml}</div></div>`;
+    container.innerHTML = `<div class="task-compact-container">${bannerHtml}<div class="task-compact-grid">${itemsHtml}</div>${moreButton(tasks.length)}</div>`;
 
     // Рендерим формулы в примерах через KaTeX
     container.querySelectorAll('[data-drill-condition]').forEach(el => {
@@ -1076,8 +1192,9 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
       }
     });
   } else {
-    container.innerHTML = tasks.map((task, i) => taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number: taskNumber(task, i) })).join('');
-    fillTaskMath(container, tasks);
+    container.innerHTML = shown.map((task, i) => taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number: taskNumber(task, pageStart + i) })).join('')
+      + moreButton(tasks.length);
+    fillTaskMath(container, shown);
   }
 }
 
@@ -2885,6 +3002,22 @@ document.addEventListener('click', event => {
     return;
   }
 
+  /* «Показать ещё»: добавляем порцию и перерисовываем список на месте.
+     Прокрутку не трогаем — человек остаётся там, где читал. */
+  const pageBtn = event.target.closest('[data-task-page]');
+  if (pageBtn && !pageBtn.disabled) {
+    event.preventDefault();
+    const page = Number(pageBtn.dataset.taskPage);
+    const pages = Math.ceil(lastRenderedTasks.length / TASKS_CHUNK);
+    if (page < 0 || page >= pages) return;
+    pageStart = page * TASKS_CHUNK;
+    rerenderCurrentList();
+    /* Новая страница начинается сверху: оставлять человека на середине
+       предыдущей — значит показать ему середину незнакомого списка. */
+    lastRenderedContainer?.scrollIntoView({ behavior: 'instant', block: 'start' });
+    return;
+  }
+
   /* Переход по полосе номеров. Идентификатор карточки зависит от режима,
      поэтому ищем по data-task-id, а не по адресу с решёткой: так полоса
      работает и в списке, и в тренажёре, и не засоряет историю браузера. */
@@ -2892,7 +3025,24 @@ document.addEventListener('click', event => {
   if (anchorLink) {
     event.preventDefault();
     const id = anchorLink.dataset.anchorTask;
-    goToCard(document.querySelector(`[data-task-id="${id}"], #task-${id}`));
+    /* Задача может быть за пределами показанного: полоса номеров
+       перечисляет всю тему, а на экране пока первые двадцать пять.
+       Тогда сначала допоказываем, потом прокручиваем. */
+    const idx = lastRenderedTasks.findIndex(t => String(t.id) === String(id));
+    const flipped = idx >= 0 && ensureVisible(idx);
+    const jump = () => goToCard(document.querySelector(`[data-task-id="${id}"], #task-${id}`));
+
+    if (flipped) {
+      rerenderCurrentList();
+      /* Прыгать сразу нельзя: страница ещё имеет размеры прежней, и
+         прокрутка уезжает за её конец. Сначала возвращаемся к началу
+         списка — так промах невозможен в принципе, — а к самой задаче
+         переходим, когда KaTeX досчитает формулы. */
+      lastRenderedContainer?.scrollIntoView({ behavior: 'instant', block: 'start' });
+      setTimeout(jump, 200);
+    } else {
+      jump();
+    }
     return;
   }
 
@@ -3018,6 +3168,12 @@ function answerInputs() {
 }
 
 function focusTaskAt(index) {
+  /* Стрелка вниз на последней показанной задаче должна открывать
+     следующую, а не упираться в невидимую границу. */
+  /* Стрелка за край страницы перелистывает её, а не упирается. */
+  if (index >= 0 && index < lastRenderedTasks.length && ensureVisible(index)) {
+    rerenderCurrentList();
+  }
   const cards = [...(lastRenderedContainer?.querySelectorAll('.task, .compact-drill-item') || [])];
   if (!cards.length) return false;
   const i = Math.min(cards.length - 1, Math.max(0, index));

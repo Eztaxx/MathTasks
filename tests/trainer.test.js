@@ -80,4 +80,20 @@ describe('Mental Math Trainer Engine', () => {
     }
     expect(Object.keys(counts).length).toBeGreaterThanOrEqual(4);
   });
+
+  it('generateBatch генерирует корректную подборку заданного размера с id и индексами', () => {
+    const batch20 = trainer.generateBatch('addsub2', 20);
+    expect(batch20).toHaveLength(20);
+    expect(batch20[0].id).toBe(1);
+    expect(batch20[19].id).toBe(20);
+    expect(batch20[0].index).toBe(0);
+    expect(batch20[19].index).toBe(19);
+
+    const batch10 = trainer.generateBatch('fractions', 10);
+    expect(batch10).toHaveLength(10);
+    batch10.forEach(q => {
+      expect(q.type).toBe('fraction');
+      expect(q.latex).toContain('\\frac');
+    });
+  });
 });

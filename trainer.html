@@ -55,6 +55,9 @@
     <span class="admin-badge">⚡ Тренажёр устного счёта</span>
 
     <div class="trainer-top-actions">
+      <a class="nav-btn-link" href="/exams.html">🎯 Экзамены Skola2030</a>
+      <a class="nav-btn-link" href="/mock-exams.html">📋 Пробники</a>
+
       <button class="sound-toggle-btn" id="btn-sound-toggle" type="button" title="Включить / выключить звук" aria-label="Звук">
         <span id="sound-icon">🔊</span>
       </button>
@@ -79,6 +82,16 @@
       <p>Развивайте математическую скорость: рандомные примеры, дроби, умножение, деление и мгновенный разбор.</p>
     </div>
 
+    <!-- Переключение формата: Куча примеров (Тренажёр) vs По одной карточке -->
+    <div class="trainer-view-tabs" role="tablist" aria-label="Формат отображения">
+      <button type="button" class="trainer-view-tab active" id="tab-view-sheet" data-view="sheet" role="tab" aria-selected="true">
+        📋 Куча примеров на страницу (Тренажёр)
+      </button>
+      <button type="button" class="trainer-view-tab" id="tab-view-card" data-view="card" role="tab" aria-selected="false">
+        🗂️ По одной карточке (Спринт / Марафон)
+      </button>
+    </div>
+
     <!-- Панель выбора темы и режима -->
     <div class="trainer-panel">
       <div class="trainer-categories-row">
@@ -93,7 +106,7 @@
         </div>
       </div>
 
-      <div class="trainer-mode-row">
+      <div class="trainer-mode-row" id="trainer-mode-row" hidden>
         <span class="trainer-label">Режим игры:</span>
         <div class="trainer-chip-group" id="trainer-mode-group">
           <button type="button" class="trainer-mode-chip active" data-mode="zen">♾️ Марафон (без спешки)</button>
@@ -103,8 +116,60 @@
       </div>
     </div>
 
-    <!-- Арена решения -->
-    <div class="trainer-arena" id="trainer-arena">
+    <!-- Режим: Лист примеров (Куча примеров на страницу, в точности как «Тренажёр» в каталоге) -->
+    <div class="trainer-sheet-container" id="trainer-sheet-container">
+      <div class="sheet-controls-bar">
+        <div class="sheet-count-group">
+          <span class="trainer-label">Примеров на листе:</span>
+          <button type="button" class="sheet-count-chip" data-count="10">10</button>
+          <button type="button" class="sheet-count-chip active" data-count="20">20</button>
+          <button type="button" class="sheet-count-chip" data-count="30">30</button>
+        </div>
+
+        <div class="sheet-action-btns">
+          <button type="button" class="secondary-button" id="btn-sheet-refresh" title="Сгенерировать новые случайные примеры">
+            🔄 Новый лист
+          </button>
+          <button type="button" class="secondary-button" id="btn-sheet-check-all" title="Проверить все введённые ответы">
+            ✓ Проверить всё
+          </button>
+          <button type="button" class="secondary-button" id="btn-sheet-reveal-all" title="Показать правильные ответы">
+            👁️ Показать ответы
+          </button>
+          <button type="button" class="secondary-button" id="btn-sheet-clear" title="Очистить все ответы">
+            🧹 Очистить
+          </button>
+        </div>
+      </div>
+
+      <div class="compact-drill-banner">
+        <div class="sheet-banner-left">
+          <span>⚡ <strong>Тренажёр быстрого счёта:</strong> вводите ответы и жмите <kbd>Enter</kbd> для автоперехода к следующему примеру</span>
+        </div>
+        <div class="sheet-banner-right">
+          <div class="sheet-stopwatch" id="sheet-stopwatch">⏱️ 00:00</div>
+          <div class="compact-drill-stats" id="sheet-stats-badge">
+            <span id="sheet-solved-count">0</span> / <span id="sheet-total-count">20</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="task-compact-grid trainer-sheet-grid" id="trainer-sheet-grid"></div>
+
+      <div class="sheet-completion-card" id="sheet-completion-card" hidden>
+        <div class="completion-icon">🏆</div>
+        <h3>Отличная работа! Лист завершён!</h3>
+        <p id="sheet-completion-text">Все примеры решены верно!</p>
+        <div class="completion-actions">
+          <button type="button" class="primary-button" id="btn-sheet-next-pack">
+            🚀 Сгенерировать новый лист
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Арена решения (По одной карточке) -->
+    <div class="trainer-arena" id="trainer-arena" hidden>
       <!-- HUD / Статистика текущей сессии -->
       <div class="trainer-hud">
         <div class="trainer-stat-badge streak-badge" id="hud-streak" title="Текущая серия правильных ответов подряд">
@@ -258,8 +323,11 @@
         });
       }
 
+      const escapeHtml = str => String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+
       // Состояние тренажёра
       const state = {
+        view: 'sheet', // 'sheet' (куча примеров) или 'card' (по одной)
         category: 'addsub2',
         mode: 'zen',
         currentQuestion: null,
@@ -273,6 +341,16 @@
         timerInterval: null
       };
 
+      // Состояние режима «Куча примеров (Лист-тренажёр)»
+      const sheetState = {
+        count: 20,
+        questions: [],
+        solvedSet: new Set(),
+        elapsedSec: 0,
+        startTime: null,
+        timerInterval: null
+      };
+
       // Звук
       const soundToggleBtn = document.querySelector('#btn-sound-toggle');
       const soundIcon = document.querySelector('#sound-icon');
@@ -281,7 +359,7 @@
         if (soundIcon) soundIcon.textContent = state.soundEnabled ? '🔊' : '🔇';
       });
 
-      // Элементы UI
+      // Элементы UI для карточного режима
       const formulaDisplay = document.querySelector('#formula-display');
       const trainerInput = document.querySelector('#trainer-input');
       const trainerForm = document.querySelector('#trainer-form');
@@ -300,7 +378,335 @@
       const feedbackHintContent = document.querySelector('#feedback-hint-content');
       const sprintModal = document.querySelector('#sprint-modal');
       const trainerCard = document.querySelector('#trainer-card');
+      const trainerArena = document.querySelector('#trainer-arena');
+      const trainerModeRow = document.querySelector('#trainer-mode-row');
+      const trainerSheetContainer = document.querySelector('#trainer-sheet-container');
+      const trainerSheetGrid = document.querySelector('#trainer-sheet-grid');
+      const tabViewSheet = document.querySelector('#tab-view-sheet');
+      const tabViewCard = document.querySelector('#tab-view-card');
 
+      /* ── Логика режима «Куча примеров на страницу» ──────────────────── */
+      function formatTime(sec) {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }
+
+      function startSheetStopwatch() {
+        stopSheetStopwatch();
+        sheetState.elapsedSec = 0;
+        sheetState.startTime = Date.now();
+        const swEl = document.querySelector('#sheet-stopwatch');
+        if (swEl) swEl.textContent = '⏱️ 00:00';
+        sheetState.timerInterval = setInterval(() => {
+          sheetState.elapsedSec = Math.floor((Date.now() - sheetState.startTime) / 1000);
+          if (swEl) swEl.textContent = `⏱️ ${formatTime(sheetState.elapsedSec)}`;
+        }, 1000);
+      }
+
+      function stopSheetStopwatch() {
+        if (sheetState.timerInterval) {
+          clearInterval(sheetState.timerInterval);
+          sheetState.timerInterval = null;
+        }
+      }
+
+      function renderSheet() {
+        if (!window.MathTasksTrainer || !trainerSheetGrid) return;
+        const solvedCountEl = document.querySelector('#sheet-solved-count');
+        const totalCountEl = document.querySelector('#sheet-total-count');
+        const completionCard = document.querySelector('#sheet-completion-card');
+        if (completionCard) completionCard.hidden = true;
+
+        sheetState.questions = window.MathTasksTrainer.generateBatch(state.category, sheetState.count);
+        sheetState.solvedSet.clear();
+
+        if (totalCountEl) totalCountEl.textContent = sheetState.count;
+        if (solvedCountEl) solvedCountEl.textContent = '0';
+
+        trainerSheetGrid.innerHTML = sheetState.questions.map((q, idx) => `
+          <div class="compact-drill-item" data-sheet-item="${idx}" id="sheet-item-${idx}">
+            <span class="compact-drill-num">${idx + 1}.</span>
+            <div class="compact-drill-body">
+              <div class="compact-drill-expr math" id="sheet-expr-${idx}"></div>
+              <div class="compact-drill-answer-wrap">
+                <input type="text" 
+                       class="compact-drill-input" 
+                       data-sheet-idx="${idx}" 
+                       placeholder="?" 
+                       aria-label="Ответ к примеру ${idx + 1}"
+                       autocomplete="off" 
+                       autocorrect="off" 
+                       autocapitalize="off" 
+                       spellcheck="false" 
+                       inputmode="decimal" />
+                <span class="compact-drill-status">✓</span>
+              </div>
+              <p class="compact-drill-note" id="sheet-note-${idx}" hidden></p>
+            </div>
+            <div class="compact-drill-actions">
+              <button type="button" class="compact-drill-hint-btn" data-sheet-hint="${idx}" title="Лайфхак устного счёта" aria-label="Подсказка">💡</button>
+              <button type="button" class="compact-drill-hint-btn" data-sheet-reveal="${idx}" title="Показать ответ" aria-label="Показать ответ">👁️</button>
+            </div>
+          </div>
+        `).join('');
+
+        // Рендерим формулы через KaTeX
+        sheetState.questions.forEach((q, idx) => {
+          const exprEl = document.querySelector(`#sheet-expr-${idx}`);
+          if (exprEl && window.katex) {
+            try {
+              exprEl.innerHTML = window.katex.renderToString(
+                `${q.latex} =`,
+                { displayMode: false, throwOnError: false }
+              );
+            } catch (e) {
+              exprEl.textContent = `${q.latex} =`;
+            }
+          }
+        });
+
+        startSheetStopwatch();
+
+        // Фокусируем первое поле ввода
+        setTimeout(() => {
+          const firstInput = trainerSheetGrid.querySelector('.compact-drill-input');
+          if (firstInput) firstInput.focus();
+        }, 50);
+      }
+
+      function checkSheetInput(input) {
+        const idx = Number(input.dataset.sheetIdx);
+        const q = sheetState.questions[idx];
+        if (!q || !window.MathTasksTrainer) return;
+
+        const val = input.value.trim();
+        if (!val) return;
+
+        const item = document.querySelector(`#sheet-item-${idx}`);
+        const statusEl = item?.querySelector('.compact-drill-status');
+        const noteEl = document.querySelector(`#sheet-note-${idx}`);
+
+        const check = window.MathTasksTrainer.checkAnswer(q, val);
+        if (check.isCorrect) {
+          sheetState.solvedSet.add(idx);
+          input.classList.remove('error');
+          input.classList.add('success');
+          input.disabled = true;
+          input.value = check.expectedDisplay;
+          if (item) item.classList.add('is-solved');
+          if (statusEl) {
+            statusEl.className = 'compact-drill-status success';
+            statusEl.textContent = '✓';
+          }
+          if (noteEl) noteEl.hidden = true;
+          if (state.soundEnabled) window.MathTasksTrainer.playSound('correct');
+
+          const solvedCountEl = document.querySelector('#sheet-solved-count');
+          if (solvedCountEl) solvedCountEl.textContent = sheetState.solvedSet.size;
+
+          if (sheetState.solvedSet.size >= sheetState.questions.length) {
+            onSheetCompleted();
+            return;
+          }
+
+          // Автоматический переход к следующему нерешённому примеру
+          const allInputs = Array.from(document.querySelectorAll('.compact-drill-input:not([disabled])'));
+          if (allInputs.length > 0) {
+            const nextInput = allInputs.find(inp => Number(inp.dataset.sheetIdx) > idx) || allInputs[0];
+            if (nextInput) {
+              nextInput.focus();
+              nextInput.select();
+            }
+          }
+        } else {
+          input.classList.remove('success');
+          input.classList.add('error');
+          if (statusEl) {
+            statusEl.className = 'compact-drill-status error';
+            statusEl.textContent = '✕';
+          }
+          if (state.soundEnabled) window.MathTasksTrainer.playSound('wrong');
+
+          if (noteEl) {
+            noteEl.innerHTML = `💡 ${escapeHtml(q.hint || `Ответ: ${q.answer}`)}`;
+            noteEl.hidden = false;
+          }
+          input.select();
+        }
+      }
+
+      function toggleSheetHint(idx) {
+        const q = sheetState.questions[idx];
+        const noteEl = document.querySelector(`#sheet-note-${idx}`);
+        if (!q || !noteEl) return;
+        if (noteEl.hidden) {
+          noteEl.innerHTML = `💡 ${escapeHtml(q.hint || `Ответ: ${q.answer}`)}`;
+          noteEl.hidden = false;
+        } else {
+          noteEl.hidden = true;
+        }
+      }
+
+      function revealSheetItem(idx) {
+        const q = sheetState.questions[idx];
+        const input = document.querySelector(`.compact-drill-input[data-sheet-idx="${idx}"]`);
+        if (!q || !input) return;
+        input.value = q.answer;
+        checkSheetInput(input);
+      }
+
+      function checkAllSheetInputs() {
+        document.querySelectorAll('.compact-drill-input:not([disabled])').forEach(input => {
+          if (input.value.trim()) {
+            checkSheetInput(input);
+          }
+        });
+      }
+
+      function revealAllSheetAnswers() {
+        sheetState.questions.forEach((q, idx) => {
+          const input = document.querySelector(`.compact-drill-input[data-sheet-idx="${idx}"]`);
+          if (input && !input.disabled) {
+            input.value = q.answer;
+            checkSheetInput(input);
+          }
+        });
+      }
+
+      function clearSheet() {
+        sheetState.solvedSet.clear();
+        document.querySelectorAll('.compact-drill-item').forEach(item => {
+          item.classList.remove('is-solved');
+          const input = item.querySelector('.compact-drill-input');
+          const status = item.querySelector('.compact-drill-status');
+          const note = item.querySelector('.compact-drill-note');
+          if (input) {
+            input.disabled = false;
+            input.value = '';
+            input.classList.remove('success', 'error');
+          }
+          if (status) {
+            status.className = 'compact-drill-status';
+            status.textContent = '';
+          }
+          if (note) {
+            note.hidden = true;
+            note.innerHTML = '';
+          }
+        });
+        const solvedCountEl = document.querySelector('#sheet-solved-count');
+        if (solvedCountEl) solvedCountEl.textContent = '0';
+        const completionCard = document.querySelector('#sheet-completion-card');
+        if (completionCard) completionCard.hidden = true;
+        startSheetStopwatch();
+        const firstInput = trainerSheetGrid?.querySelector('.compact-drill-input');
+        if (firstInput) firstInput.focus();
+      }
+
+      function onSheetCompleted() {
+        stopSheetStopwatch();
+        if (state.soundEnabled) {
+          window.MathTasksTrainer.playSound('correct');
+          setTimeout(() => window.MathTasksTrainer.playSound('correct'), 180);
+        }
+        const completionCard = document.querySelector('#sheet-completion-card');
+        const textEl = document.querySelector('#sheet-completion-text');
+        if (textEl) {
+          const timeStr = formatTime(sheetState.elapsedSec);
+          textEl.innerHTML = `Вы решили все <strong>${sheetState.questions.length}</strong> примеров за <strong>${timeStr}</strong>! Точность: <strong>100%</strong> 🎯`;
+        }
+        if (completionCard) {
+          completionCard.hidden = false;
+          completionCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+
+      /* ── Переключение вида: Карточки vs Куча примеров ─────────────── */
+      function switchView(view) {
+        state.view = view;
+        const isSheet = view === 'sheet';
+
+        tabViewSheet?.classList.toggle('active', isSheet);
+        tabViewSheet?.setAttribute('aria-selected', isSheet ? 'true' : 'false');
+        tabViewCard?.classList.toggle('active', !isSheet);
+        tabViewCard?.setAttribute('aria-selected', !isSheet ? 'true' : 'false');
+
+        if (trainerSheetContainer) trainerSheetContainer.hidden = !isSheet;
+        if (trainerArena) trainerArena.hidden = isSheet;
+        if (trainerModeRow) trainerModeRow.hidden = isSheet;
+
+        if (isSheet) {
+          stopTimer();
+          if (!sheetState.questions.length) {
+            renderSheet();
+          } else {
+            startSheetStopwatch();
+          }
+        } else {
+          stopSheetStopwatch();
+          updateHUD();
+          nextQuestion();
+        }
+      }
+
+      tabViewSheet?.addEventListener('click', () => switchView('sheet'));
+      tabViewCard?.addEventListener('click', () => switchView('card'));
+
+      // Слушатели кнопок листа
+      document.querySelector('#btn-sheet-refresh')?.addEventListener('click', () => renderSheet());
+      document.querySelector('#btn-sheet-next-pack')?.addEventListener('click', () => renderSheet());
+      document.querySelector('#btn-sheet-check-all')?.addEventListener('click', () => checkAllSheetInputs());
+      document.querySelector('#btn-sheet-reveal-all')?.addEventListener('click', () => revealAllSheetAnswers());
+      document.querySelector('#btn-sheet-clear')?.addEventListener('click', () => clearSheet());
+
+      // Количество примеров на листе (10, 20, 30)
+      document.querySelectorAll('.sheet-count-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.sheet-count-chip').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          sheetState.count = Number(btn.dataset.count) || 20;
+          renderSheet();
+        });
+      });
+
+      // События ввода в сетке листа
+      trainerSheetGrid?.addEventListener('keydown', e => {
+        const input = e.target.closest('.compact-drill-input');
+        if (!input) return;
+
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          checkSheetInput(input);
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const all = Array.from(trainerSheetGrid.querySelectorAll('.compact-drill-input'));
+          const cur = all.indexOf(input);
+          if (cur >= 0 && cur < all.length - 1) all[cur + 1].focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const all = Array.from(trainerSheetGrid.querySelectorAll('.compact-drill-input'));
+          const cur = all.indexOf(input);
+          if (cur > 0) all[cur - 1].focus();
+        }
+      });
+
+      trainerSheetGrid?.addEventListener('click', e => {
+        const hintBtn = e.target.closest('.compact-drill-hint-btn[data-sheet-hint]');
+        if (hintBtn) {
+          const idx = Number(hintBtn.dataset.sheetHint);
+          toggleSheetHint(idx);
+          return;
+        }
+        const revealBtn = e.target.closest('.compact-drill-hint-btn[data-sheet-reveal]');
+        if (revealBtn) {
+          const idx = Number(revealBtn.dataset.sheetReveal);
+          revealSheetItem(idx);
+          return;
+        }
+      });
+
+      /* ── Логика режима карточек (Марафон и Спринт) ─────────────────── */
       function updateHUD() {
         if (valStreak) valStreak.textContent = state.streak;
         if (valScore) valScore.textContent = state.score;
@@ -308,7 +714,6 @@
         const acc = total > 0 ? Math.round((state.score / total) * 100) : 100;
         if (valAccuracy) valAccuracy.textContent = `${acc}%`;
 
-        // Огонёк при серии
         const streakBadge = document.querySelector('#hud-streak');
         if (streakBadge) {
           if (state.streak >= 5) streakBadge.classList.add('fire');
@@ -320,7 +725,6 @@
         if (!window.MathTasksTrainer) return;
         state.currentQuestion = window.MathTasksTrainer.generateQuestion(state.category);
 
-        // Рендерим формулу KaTeX
         if (formulaDisplay && window.katex) {
           try {
             formulaDisplay.innerHTML = window.katex.renderToString(
@@ -358,7 +762,6 @@
             trainerCard.classList.add('correct-flash');
           }
 
-          // Показываем короткий приятный отклик
           if (feedbackCard) {
             feedbackCard.className = 'trainer-feedback-card correct';
             if (feedbackIcon) feedbackIcon.textContent = '✓';
@@ -386,7 +789,6 @@
             if (feedbackIcon) feedbackIcon.textContent = '✕';
             if (feedbackText) feedbackText.innerHTML = `Неверно! Правильный ответ: <strong>${check.expectedDisplay}</strong>`;
 
-            // Показываем лайфхак устного счёта
             if (state.currentQuestion.hint && feedbackHintWrap && feedbackHintContent) {
               feedbackHintWrap.hidden = false;
               if (window.katex) {
@@ -408,7 +810,6 @@
           }
 
           updateHUD();
-          // При ошибке даём посмотреть разбор 1.5 секунды
           setTimeout(() => {
             nextQuestion();
           }, 1600);
@@ -434,12 +835,16 @@
           btn.classList.add('active');
           state.category = btn.dataset.cat || 'addsub2';
           state.streak = 0;
-          updateHUD();
-          nextQuestion();
+          if (state.view === 'sheet') {
+            renderSheet();
+          } else {
+            updateHUD();
+            nextQuestion();
+          }
         });
       });
 
-      // Переключение режимов
+      // Переключение режимов спринта
       document.querySelectorAll('.trainer-mode-chip').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.trainer-mode-chip').forEach(b => b.classList.remove('active'));
@@ -469,7 +874,7 @@
         });
       });
 
-      // Таймер
+      // Таймер спринта
       function startTimer() {
         stopTimer();
         updateTimerDisplay();
@@ -569,9 +974,8 @@
         });
       });
 
-      // Запуск
-      updateHUD();
-      nextQuestion();
+      // Запуск по умолчанию: открываем лист примеров (режим «Тренажёр»)
+      renderSheet();
     })();
   </script>
 </body>
