@@ -44,71 +44,25 @@ body.dark .hero-badge-icon.badge-amber{background:linear-gradient(135deg,#3a2908
 @media(max-width:720px){.hero-badges{gap:8px}.hero-badge{padding:7px 12px}}
 
 /* ── Переключатель темы ──────────────────────────────────────────── */
-/* Ползунок вместо кнопки с подписью: состояние видно, читать нечего,
-   и в шапке он занимает втрое меньше места. */
-.theme-switch {
-  flex: none;
-  display: inline-grid;
-  place-items: center;
-  width: 52px;
-  height: 30px;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.theme-switch-track {
-  position: relative;
-  display: block;
-  width: 52px;
-  height: 30px;
-  border-radius: 999px;
-  border: 1px solid #dfe6f1;
-  background: #eef2f9;
-  transition: background .18s ease, border-color .18s ease;
-}
-.theme-switch-track svg {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  transition: color .18s ease, opacity .18s ease;
-}
-.theme-switch-sun  { left: 7px;  color: #d9860a; }
-.theme-switch-moon { right: 7px; color: #9aa6bd; }
-.theme-switch-thumb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 3px rgba(11, 25, 53, .22);
-  transition: transform .18s ease, background .18s ease;
-}
-.theme-switch:hover .theme-switch-track { border-color: #c3d2ea; }
-.theme-switch:focus-visible { outline: none; }
-.theme-switch:focus-visible .theme-switch-track {
-  outline: 2px solid var(--blue, #1764ff);
-  outline-offset: 2px;
-}
+/* Иконка живёт внутри бегунка и показывает текущую тему. Класть значки
+   на дорожку нельзя: бегунок в крайнем положении закрывает собой ровно
+   тот значок, на который указывает. */
+.theme-switch{flex:none;display:inline-grid;place-items:center;width:52px;height:30px;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.theme-switch-track{position:relative;display:block;width:52px;height:30px;border-radius:999px;border:1px solid #dfe6f1;background:#eef2f9;transition:background .18s ease,border-color .18s ease}
+.theme-switch-thumb{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(11,25,53,.22);display:grid;place-items:center;color:#d9860a;transition:transform .18s ease,background .18s ease,color .18s ease}
+.theme-switch-thumb svg{grid-area:1/1;transition:opacity .14s ease}
+.theme-switch-moon{opacity:0}
+.theme-switch:hover .theme-switch-track{border-color:#c3d2ea}
+.theme-switch:focus-visible{outline:none}
+.theme-switch:focus-visible .theme-switch-track{outline:2px solid var(--blue,#1764ff);outline-offset:2px}
 
 /* Включённое состояние — тёмная тема. */
-.theme-switch[aria-checked="true"] .theme-switch-track {
-  background: #26344f;
-  border-color: #3b5278;
-}
-.theme-switch[aria-checked="true"] .theme-switch-thumb {
-  transform: translateX(22px);
-  background: #e9eefb;
-}
-.theme-switch[aria-checked="true"] .theme-switch-sun  { color: #6a7794; }
-.theme-switch[aria-checked="true"] .theme-switch-moon { color: #ffd27d; }
+.theme-switch[aria-checked="true"] .theme-switch-track{background:#26344f;border-color:#3b5278}
+.theme-switch[aria-checked="true"] .theme-switch-thumb{transform:translateX(22px);background:#1b2740;color:#ffd27d}
+.theme-switch[aria-checked="true"] .theme-switch-sun{opacity:0}
+.theme-switch[aria-checked="true"] .theme-switch-moon{opacity:1}
 
-@media (prefers-reduced-motion: reduce) {
-  .theme-switch-track, .theme-switch-thumb, .theme-switch-track svg { transition: none; }
-}
+@media (prefers-reduced-motion:reduce){.theme-switch-track,.theme-switch-thumb,.theme-switch-thumb svg{transition:none}}
 
 .sidebar-toggle{flex:none;width:40px;height:40px;display:grid;place-items:center;border:1px solid #dfe6f1;border-radius:9px;background:transparent;color:#455471;font-size:19px;line-height:1;cursor:pointer}
 .sidebar-toggle:hover{border-color:#c3d2ea;background:#f2f6fd}
