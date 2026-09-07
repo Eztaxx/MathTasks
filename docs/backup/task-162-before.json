@@ -1,0 +1,22 @@
+{
+  "id": 162,
+  "topic_id": 257,
+  "title": "Логарифмическое неравенство с переменным основанием",
+  "condition_latex": "Решите неравенство: $\\log_x(3x - 2) \\le 2$.",
+  "solution_latex": "1) ОДЗ: $x > 0$, $x \\ne 1$, $3x - 2 > 0 \\implies x > \\frac{2}{3}$ и $x \\ne 1$.\r\n2) Случай 1: $0 < x < 1$ (то есть $\\frac{2}{3} < x < 1$). Знак меняется: $3x - 2 \\ge x^2 \\implies x^2 - 3x + 2 \\le 0 \\implies (x - 1)(x - 2) \\le 0 \\implies x \\in [1; 2]$. Пересечение со случаем 1 пусто: решений нет, но граничные условия показывают при $x \\in (\\frac{2}{3}; 1)$ неравенство верно.\r\n3) Метод рационализации: $(x - 1)(3x - 2 - x^2) \\le 0 \\implies (x - 1)(x^2 - 3x + 2) \\ge 0 \\implies (x - 1)^2(x - 2) \\ge 0$.\r\nТак как $(x - 1)^2 > 0$ при $x \\ne 1$, остаётся $x - 2 \\ge 0 \\implies x \\ge 2$.\r\nА при $x \\in (\\frac{2}{3}; 1)$ множитель $(x-1)$ отрицателен, поэтому исходное отношение выполнено.\r\nОтвет: $x \\in (\\frac{2}{3}; 1) \\cup [2; +\\infty)$.",
+  "difficulty": "Сложный",
+  "is_published": true,
+  "created_at": "2026-09-06T20:28:12.514253+00:00",
+  "updated_at": "2026-09-06T20:28:12.514253+00:00",
+  "grade": 12,
+  "position": 1,
+  "answer_latex": "(2/3; 1) U [2; +inf)",
+  "condition_image": null,
+  "solution_image": null,
+  "title_lv": "Logaritmiskā nevienādība ar mainīgu bāzi",
+  "condition_latex_lv": "Atrisiniet nevienādību: $\\log_x(3x - 2) \\le 2$.",
+  "solution_latex_lv": "1) Definīcijas kopa: $x > 0, x \\ne 1, 3x - 2 > 0 \\implies x \\in (\\frac{2}{3}; 1) \\cup (1; +\\infty)$.\r\n2) Racionalizācijas metode: $(x - 1)(3x - 2 - x^2) \\le 0 \\implies (x - 1)(x^2 - 3x + 2) \\ge 0 \\implies (x - 1)^2(x - 2) \\ge 0$.\r\n3) Tā kā $(x - 1)^2 \\ge 0$, tad $x - 2 \\ge 0 \\implies x \\ge 2$. Pārbaudot intervālu $(\\frac{2}{3}; 1)$, iegūst, ka tas arī ir atrisinājums.\r\nAtbilde: $x \\in (\\frac{2}{3}; 1) \\cup [2; +\\infty)$.",
+  "hint_latex": null,
+  "hint_latex_lv": null,
+  "answer_latex_lv": "(2/3; 1) U [2; +inf)"
+}

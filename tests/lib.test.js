@@ -634,3 +634,42 @@ describe('Theme i18n and Support', () => {
   });
 });
 
+describe('compareAnswers: десятичная запятая', () => {
+  it('LaTeX-запись 0{,}6 сходится с введённым 0,6 и 0.6', () => {
+    expect(compareAnswers('0,6', '$0{,}6$')).toBe(true);
+    expect(compareAnswers('0.6', '$0{,}6$')).toBe(true);
+    expect(compareAnswers('0,6', '0.6')).toBe(true);
+  });
+
+  it('единицы измерения рядом с числом не мешают', () => {
+    expect(compareAnswers('10,5', '$10{,}5\\text{ см}$')).toBe(true);
+  });
+
+  it('разные числа по-прежнему не сходятся', () => {
+    expect(compareAnswers('0,7', '$0{,}6$')).toBe(false);
+    expect(compareAnswers('16', '$1{,}6$')).toBe(false);
+  });
+});
+
+
+
+describe('compareAnswers: единицы измерения в ответе', () => {
+  it('ученик пишет только число — эталон с единицей засчитывается', () => {
+    expect(compareAnswers('6', '$6\\text{ см}$')).toBe(true);
+    expect(compareAnswers('25', '$25\\text{ см}^2$')).toBe(true);
+    expect(compareAnswers('10,5', '$10{,}5\\text{ см}$')).toBe(true);
+  });
+
+  it('ученик пишет ту же единицу — тоже засчитывается', () => {
+    expect(compareAnswers('6 см', '$6\\text{ см}$')).toBe(true);
+  });
+
+  it('чужая единица не засчитывается', () => {
+    expect(compareAnswers('6 кг', '$6\\text{ см}$')).toBe(false);
+    expect(compareAnswers('6 km', '$6\\text{ м}$')).toBe(false);
+  });
+
+  it('неверное число не спасает отсутствие единицы', () => {
+    expect(compareAnswers('7', '$6\\text{ см}$')).toBe(false);
+  });
+});

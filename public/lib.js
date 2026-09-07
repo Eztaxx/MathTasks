@@ -49,6 +49,7 @@
     if (val == null) return '';
     let s = String(val).trim();
     s = s.replace(/^\$+|\$+$/g, '').trim();
+    s = s.replace(/(\d+)\{,\}(\d+)/g, '$1.$2');
     s = s.replace(/(\d+),(\d+)/g, '$1.$2');
     s = s.replace(/\s*:\s*/g, ';');
     s = s.replace(/\\(text|mathbf|mathrm|quad|qquad)\s*\{([^}]*)\}/g, '$2');
@@ -86,6 +87,15 @@
     return s.toLowerCase();
   };
 
+  /* Единицы и валюты, которые пишут в ответе после числа. Степень
+     (^2, ^3) снимаем вместе с ними: «см^2» — та же единица. */
+  const UNIT_WORDS = /(?:см|мм|дм|км|м|га|кг|мг|г|тонн[аы]?|л|мл|ч|мин|сек|с|руб|евро|cm|mm|dm|km|ha|kg|mg|g|t|ml|min|sec|h|s|eur|€|%)(?:\^\d)?/gi;
+
+  const stripUnits = str => String(str)
+    .replace(UNIT_WORDS, '')
+    .replace(/[\s;,]+$/, '')
+    .trim();
+
   const parseFractionOrNumber = str => {
     if (/^-?\d+(\.\d+)?$/.test(str)) return parseFloat(str);
     const frac = str.match(/^(-?\d+)\/(\d+)$/);
@@ -105,6 +115,24 @@
 
     const cleanC = c.replace(/\\sqrt\{([^}]+)\}/g, 'sqrt($1)').replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1/$2)');
     if (u === cleanC) return true;
+
+    /* Единицу измерения ученик обычно не набирает: в поле ответа он пишет
+       «6», а не «6см» — какая это величина, сказано в условии. Эталон же
+       хранится вместе с единицей у 124 задач из 435, и без этой поблажки
+       верный ответ отмечался как ошибка. Сравниваем ещё раз, сняв единицы
+       с обеих сторон; если после этого не осталось чисел, поблажка не
+       применяется, чтобы «см» не совпало с «кг». */
+    const uBare = stripUnits(u);
+    const cBare = stripUnits(c);
+    /* Поблажка только тогда, когда ученик единицу вовсе не писал. Если
+       написал — она должна совпасть: «6 кг» не тот же ответ, что «6 см». */
+    const userWroteUnit = uBare !== u;
+    if (!userWroteUnit && uBare && cBare && /\d/.test(cBare)) {
+      if (uBare === cBare) return true;
+      const nU = parseFractionOrNumber(uBare);
+      const nC = parseFractionOrNumber(cBare);
+      if (nU !== null && nC !== null && Math.abs(nU - nC) < 1e-6) return true;
+    }
 
     return false;
   };
