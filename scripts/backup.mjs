@@ -7,8 +7,12 @@
  * латышский, кросс-теги и порядок задач внутри тем. Одно неосторожное
  * «удалить тему» — и восстанавливать неоткуда.
  *
- * Скрипт выгружает все таблицы в один JSON, проверяет выгруженное и
- * убирает старые копии, оставляя последние N.
+ * Копии Supabase на тарифе Pro не включают файлы Storage — только записи
+ * о них в базе. Чертежи лежат именно там, поэтому скрипт забирает и их:
+ * иначе у картинок не было бы копии вовсе.
+ *
+ * Скрипт выгружает все таблицы и файлы бакета в один JSON, проверяет
+ * выгруженное и убирает старые копии, оставляя последние N.
  *
  * Запуск:   node scripts/backup.mjs [--dir <папка>] [--keep 30] [--quiet]
  * Проверка: node scripts/backup.mjs --check <файл>
@@ -58,7 +62,20 @@ if (argv.includes('--check')) {
   const noLv = tasks.filter(t => t.condition_latex && !t.condition_latex_lv).length;
   console.log(`  ${noCond ? '✗' : '✓'} задач без условия: ${noCond}`);
   console.log(`  ${noLv ? '⚠' : '✓'} задач без латышского условия: ${noLv}`);
-  process.exit(bad || noCond ? 1 : 0);
+
+  /* Файлы проверяем не по числу, а по содержимому: пустая строка base64
+     выглядит как файл, но восстановит ничто. */
+  const files = dump.storage?.files || [];
+  const empty = files.filter(f => !f.base64);
+  console.log(`  ${empty.length ? '✗' : '✓'} файлов в копии: ${files.length}${empty.length ? `, пустых: ${empty.length}` : ''}`);
+
+  /* Каждая картинка, на которую ссылается задача, обязана быть в копии. */
+  const inBackup = new Set(files.map(f => f.path));
+  const referenced = new Set(tasks.flatMap(t => [t.condition_image, t.solution_image].filter(Boolean)));
+  const missing = [...referenced].filter(p => !inBackup.has(p));
+  console.log(`  ${missing.length ? '✗' : '✓'} чертежей, на которые ссылаются задачи: ${referenced.size}${missing.length ? `, нет в копии: ${missing.join(', ')}` : ''}`);
+
+  process.exit(bad || noCond || empty.length || missing.length ? 1 : 0);
 }
 
 /* ── Выгрузка ─────────────────────────────────────────────────────── */
@@ -116,13 +133,68 @@ if (!tables.tasks?.length || !tables.topics?.length) {
   process.exit(1);
 }
 
+/* ── Файлы бакета ─────────────────────────────────────────────────── */
+/* Список выдаётся по одной папке за раз: рекурсивного обхода у Storage
+   API нет, приходится обходить префиксы самим. */
+async function listFolder(bucket, prefix) {
+  const out = [];
+  for (let offset = 0; ; offset += 100) {
+    const r = await fetch(`${URL_}/storage/v1/object/list/${bucket}`, {
+      method: 'POST',
+      headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prefix, limit: 100, offset })
+    });
+    if (!r.ok) throw new Error(`список ${bucket}/${prefix}: ${r.status}`);
+    const chunk = await r.json();
+    out.push(...chunk);
+    if (chunk.length < 100) break;
+  }
+  return out;
+}
+
+async function walk(bucket, prefix = '', depth = 0) {
+  if (depth > 4) return [];
+  const entries = await listFolder(bucket, prefix);
+  const files = [];
+  for (const e of entries) {
+    const path = prefix ? `${prefix}/${e.name}` : e.name;
+    /* У папки нет metadata — по этому её и отличаем от файла. */
+    if (e.metadata) files.push({ path, size: e.metadata.size, type: e.metadata.mimetype });
+    else files.push(...await walk(bucket, path, depth + 1));
+  }
+  return files;
+}
+
+const storage = { buckets: [], files: [] };
+try {
+  const bucketsRes = await fetch(`${URL_}/storage/v1/bucket`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } });
+  const buckets = bucketsRes.ok ? await bucketsRes.json() : [];
+  for (const b of buckets) {
+    storage.buckets.push({ name: b.name, public: b.public });
+    const files = await walk(b.name);
+    for (const f of files) {
+      const r = await fetch(`${URL_}/storage/v1/object/${b.name}/${f.path}`,
+        { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } });
+      if (!r.ok) { say(`  ⚠ не забрался ${b.name}/${f.path}: ${r.status}`); continue; }
+      const buf = Buffer.from(await r.arrayBuffer());
+      storage.files.push({ bucket: b.name, path: f.path, type: f.type, size: buf.length, base64: buf.toString('base64') });
+    }
+    say(`  ${('файлы ' + b.name).padEnd(10)} ${files.length}`);
+  }
+} catch (e) {
+  console.error(`✗ файлы не выгрузились: ${e.message}`);
+  console.error('  Копия не записана: без чертежей она неполная.');
+  process.exit(1);
+}
+
 const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
 const file = join(dir, `mathtasks-${stamp}.json`);
 const dump = {
   takenAt: new Date().toISOString(),
   project: URL_.replace(/^https?:\/\//, '').split('.')[0],
   counts,
-  tables
+  tables,
+  storage
 };
 writeFileSync(file, JSON.stringify(dump, null, 1), 'utf8');
 const mb = (statSync(file).size / 1048576).toFixed(2);

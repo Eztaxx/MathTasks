@@ -8,7 +8,10 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        admin: resolve(__dirname, 'admin.html')
+        admin: resolve(__dirname, 'admin.html'),
+        trainer: resolve(__dirname, 'trainer.html'),
+        exams: resolve(__dirname, 'exams.html'),
+        mockExams: resolve(__dirname, 'mock-exams.html')
       }
     }
   }

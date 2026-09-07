@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Тренажёр быстрого устного счёта — MathTasks</title>
+  <meta name="description" content="Бесплатный тренажёр быстрого устного счёта: сложение, вычитание, умножение, деление, обыкновенные и десятичные дроби." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="/style.css" />
+  <script>
+    (() => {
+      try {
+        const saved = localStorage.getItem('math-tasks:theme') || localStorage.getItem('theme');
+        const isDark = saved ? saved === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+          if (document.body) document.body.classList.add('dark');
+          else {
+            new MutationObserver((_, obs) => {
+              if (document.body) {
+                document.body.classList.add('dark');
+                obs.disconnect();
+              }
+            }).observe(document.documentElement, { childList: true });
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body class="trainer-page">
+  <header class="admin-topbar">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+          <path d="M1.6 29.8C9.4 27.2 17.4 26.2 24 27.2V43.4C17.4 42.4 9.4 43.4 1.6 46Z" fill="#12306e"/>
+          <path d="M46.4 29.8C38.6 27.2 30.6 26.2 24 27.2V43.4C30.6 42.4 38.6 43.4 46.4 46Z" fill="#1a3f8f"/>
+          <path d="M4 31C10.4 29 17 28.2 22.8 29V40.8C17 40 10.4 40.8 4 42.8Z" fill="#eaf1ff"/>
+          <path d="M44 31C37.6 29 31 28.2 25.2 29V40.8C31 40 37.6 40.8 44 42.8Z" fill="#d7e5ff"/>
+          <path d="M7.4 33.9 19 32.9M7.4 36.7 19 35.7M40.6 33.9 29 32.9M40.6 36.7 29 35.7" stroke="#5a92ff" stroke-width="1.15" stroke-linecap="round"/>
+          <path d="M10 28.5v11.2l2.4-2.4 2.4 2.4V28.1Z" fill="#7fb0ff"/>
+          <path d="M15 15v9.6c0 4 18 4 18 0V15Z" fill="#12306e"/>
+          <path d="M24 5 45.5 13.4 24 21.8 2.5 13.4Z" fill="#1a3f8f"/>
+          <path d="M24 5 45.5 13.4 24 21.8Z" fill="#27529f"/>
+          <path d="M24 13.4 39.8 15.5v5.9" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M39.8 20.8c-2 0-2.3 2.5-1.9 5.4.6.7 3.2.7 3.8 0 .4-2.9.1-5.4-1.9-5.4Z" fill="#7fb0ff"/>
+        </svg>
+      </span>
+      <span class="label"><span class="brand-math">Math</span><span class="brand-tasks">Tasks</span></span>
+    </a>
+    <span class="admin-badge">⚡ Тренажёр устного счёта</span>
+
+    <div class="trainer-top-actions">
+      <button class="sound-toggle-btn" id="btn-sound-toggle" type="button" title="Включить / выключить звук" aria-label="Звук">
+        <span id="sound-icon">🔊</span>
+      </button>
+
+      <button class="theme-switch" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Переключить тему" title="Переключить тему">
+        <span class="theme-switch-track" aria-hidden="true">
+          <span class="theme-switch-thumb">
+            <svg class="theme-switch-sun" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            <svg class="theme-switch-moon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          </span>
+        </span>
+      </button>
+
+      <a class="text-button" href="/">← На сайт</a>
+      <a class="text-button" href="/admin.html">Админка</a>
+    </div>
+  </header>
+
+  <main class="trainer-container">
+    <div class="trainer-header">
+      <h1>⚡ Тренажёр быстрого устного счёта</h1>
+      <p>Развивайте математическую скорость: рандомные примеры, дроби, умножение, деление и мгновенный разбор.</p>
+    </div>
+
+    <!-- Панель выбора темы и режима -->
+    <div class="trainer-panel">
+      <div class="trainer-categories-row">
+        <span class="trainer-label">Категория вычислений:</span>
+        <div class="trainer-chip-group" id="trainer-category-group">
+          <button type="button" class="trainer-cat-chip active" data-cat="addsub2">➕ Двузначные $\pm$</button>
+          <button type="button" class="trainer-cat-chip" data-cat="addsub3">➕ Трёхзначные $\pm$</button>
+          <button type="button" class="trainer-cat-chip" data-cat="multdiv">✖️ Умножение и деление</button>
+          <button type="button" class="trainer-cat-chip" data-cat="fractions">🍰 Обыкновенные дроби</button>
+          <button type="button" class="trainer-cat-chip" data-cat="decimals">🎯 Десятичные дроби</button>
+          <button type="button" class="trainer-cat-chip" data-cat="mix">🎲 Микс (всё подряд)</button>
+        </div>
+      </div>
+
+      <div class="trainer-mode-row">
+        <span class="trainer-label">Режим игры:</span>
+        <div class="trainer-chip-group" id="trainer-mode-group">
+          <button type="button" class="trainer-mode-chip active" data-mode="zen">♾️ Марафон (без спешки)</button>
+          <button type="button" class="trainer-mode-chip" data-mode="sprint60">⏱️ Спринт 60 сек</button>
+          <button type="button" class="trainer-mode-chip" data-mode="sprint120">⏱️ Спринт 120 сек</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Арена решения -->
+    <div class="trainer-arena" id="trainer-arena">
+      <!-- HUD / Статистика текущей сессии -->
+      <div class="trainer-hud">
+        <div class="trainer-stat-badge streak-badge" id="hud-streak" title="Текущая серия правильных ответов подряд">
+          <span class="streak-icon">🔥</span>
+          <span class="streak-val" id="val-streak">0</span>
+          <span class="stat-caption">серия</span>
+        </div>
+
+        <div class="trainer-stat-badge" id="hud-score">
+          <span class="stat-icon">⭐</span>
+          <span class="stat-val" id="val-score">0</span>
+          <span class="stat-caption">решено</span>
+        </div>
+
+        <div class="trainer-stat-badge" id="hud-accuracy">
+          <span class="stat-icon">🎯</span>
+          <span class="stat-val" id="val-accuracy">100%</span>
+          <span class="stat-caption">точность</span>
+        </div>
+
+        <div class="trainer-stat-badge timer-badge" id="hud-timer" hidden>
+          <span class="timer-icon">⏱️</span>
+          <span class="timer-val" id="val-timer">60s</span>
+          <span class="stat-caption">время</span>
+        </div>
+      </div>
+
+      <div class="trainer-timer-progress-wrap" id="timer-progress-wrap" hidden>
+        <div class="trainer-timer-progress-bar" id="timer-progress-bar"></div>
+      </div>
+
+      <!-- Карточка с примером -->
+      <div class="trainer-card" id="trainer-card">
+        <div class="trainer-question-box" id="question-box">
+          <div class="trainer-formula" id="formula-display">
+            <!-- KaTeX formula rendered here -->
+          </div>
+        </div>
+
+        <!-- Поле ввода ответа -->
+        <form class="trainer-answer-form" id="trainer-form" autocomplete="off">
+          <div class="trainer-input-wrap">
+            <input 
+              type="text" 
+              id="trainer-input" 
+              class="trainer-input" 
+              placeholder="Ответ..." 
+              autocomplete="off" 
+              autocorrect="off" 
+              autocapitalize="off" 
+              spellcheck="false"
+              inputmode="decimal"
+              autofocus
+            />
+            <button type="submit" class="primary-button trainer-submit-btn" id="btn-submit-answer">
+              ↵ Проверить
+            </button>
+            <button type="button" class="text-button trainer-skip-btn" id="btn-skip-question" title="Пропустить пример">
+              Пропустить →
+            </button>
+          </div>
+          <p class="trainer-input-hint" id="trainer-input-hint">
+            Подсказка: для обыкновенных дробей пишите <code>3/4</code>, для десятичных — через точку или запятую (<code>2.5</code> или <code>2,5</code>).
+          </p>
+        </form>
+
+        <!-- Виртуальная клавиатура для смартфонов и планшетов -->
+        <div class="trainer-numpad" id="trainer-numpad">
+          <button type="button" class="numpad-key" data-key="7">7</button>
+          <button type="button" class="numpad-key" data-key="8">8</button>
+          <button type="button" class="numpad-key" data-key="9">9</button>
+          <button type="button" class="numpad-key action" data-key="backspace">⌫</button>
+
+          <button type="button" class="numpad-key" data-key="4">4</button>
+          <button type="button" class="numpad-key" data-key="5">5</button>
+          <button type="button" class="numpad-key" data-key="6">6</button>
+          <button type="button" class="numpad-key op" data-key="/">/</button>
+
+          <button type="button" class="numpad-key" data-key="1">1</button>
+          <button type="button" class="numpad-key" data-key="2">2</button>
+          <button type="button" class="numpad-key" data-key="3">3</button>
+          <button type="button" class="numpad-key op" data-key="-">-</button>
+
+          <button type="button" class="numpad-key" data-key="0">0</button>
+          <button type="button" class="numpad-key" data-key=",">,</button>
+          <button type="button" class="numpad-key" data-key=".">.</button>
+          <button type="button" class="numpad-key enter" data-key="enter">↵</button>
+        </div>
+
+        <!-- Карточка обратной связи и разбора устного счёта -->
+        <div class="trainer-feedback-card" id="feedback-card" hidden>
+          <div class="feedback-status-row">
+            <span class="feedback-icon" id="feedback-icon">✓</span>
+            <span class="feedback-text" id="feedback-text">Правильно!</span>
+          </div>
+          <div class="feedback-hint-wrap" id="feedback-hint-wrap">
+            <strong class="feedback-hint-title">💡 Лайфхак для счёта в уме:</strong>
+            <div class="feedback-hint-content" id="feedback-hint-content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно завершения спринта -->
+    <dialog class="auth-dialog trainer-modal" id="sprint-modal">
+      <div class="trainer-modal-head">
+        <h2>⏱️ Спринт завершён!</h2>
+      </div>
+      <p class="trainer-modal-subtitle" id="sprint-subtitle">Отличный результат тренировки устного счёта!</p>
+
+      <div class="sprint-stats-grid">
+        <div class="sprint-stat-item highlight">
+          <span class="sprint-stat-num" id="res-score">0</span>
+          <span class="sprint-stat-label">Решено правильно</span>
+        </div>
+        <div class="sprint-stat-item">
+          <span class="sprint-stat-num" id="res-accuracy">100%</span>
+          <span class="sprint-stat-label">Точность</span>
+        </div>
+        <div class="sprint-stat-item">
+          <span class="sprint-stat-num" id="res-max-streak">0</span>
+          <span class="sprint-stat-label">Лучшая серия 🔥</span>
+        </div>
+        <div class="sprint-stat-item">
+          <span class="sprint-stat-num" id="res-best-score">0</span>
+          <span class="sprint-stat-label">Личный рекорд 🏆</span>
+        </div>
+      </div>
+
+      <div class="form-actions" style="margin-top: 24px; justify-content: center; gap: 12px;">
+        <button type="button" class="primary-button" id="btn-restart-sprint">⚡ Попробовать снова</button>
+        <button type="button" class="secondary-button" id="btn-close-sprint">Вернуться к тренировке</button>
+      </div>
+    </dialog>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="/trainer.js?v=20260907-5"></script>
+  <script>
+    (() => {
+      // Инициализация темы
+      const themeToggle = document.querySelector('#theme-toggle');
+      if (themeToggle) {
+        const isDarkNow = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
+        themeToggle.setAttribute('aria-checked', isDarkNow ? 'true' : 'false');
+        themeToggle.addEventListener('click', () => {
+          const isDark = document.documentElement.classList.toggle('dark');
+          document.body.classList.toggle('dark', isDark);
+          localStorage.setItem('math-tasks:theme', isDark ? 'dark' : 'light');
+          themeToggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
+        });
+      }
+
+      // Состояние тренажёра
+      const state = {
+        category: 'addsub2',
+        mode: 'zen',
+        currentQuestion: null,
+        streak: 0,
+        maxStreak: 0,
+        score: 0,
+        errors: 0,
+        soundEnabled: true,
+        timerSec: 60,
+        totalSec: 60,
+        timerInterval: null
+      };
+
+      // Звук
+      const soundToggleBtn = document.querySelector('#btn-sound-toggle');
+      const soundIcon = document.querySelector('#sound-icon');
+      soundToggleBtn?.addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        if (soundIcon) soundIcon.textContent = state.soundEnabled ? '🔊' : '🔇';
+      });
+
+      // Элементы UI
+      const formulaDisplay = document.querySelector('#formula-display');
+      const trainerInput = document.querySelector('#trainer-input');
+      const trainerForm = document.querySelector('#trainer-form');
+      const btnSkip = document.querySelector('#btn-skip-question');
+      const valStreak = document.querySelector('#val-streak');
+      const valScore = document.querySelector('#val-score');
+      const valAccuracy = document.querySelector('#val-accuracy');
+      const hudTimer = document.querySelector('#hud-timer');
+      const valTimer = document.querySelector('#val-timer');
+      const timerProgressWrap = document.querySelector('#timer-progress-wrap');
+      const timerProgressBar = document.querySelector('#timer-progress-bar');
+      const feedbackCard = document.querySelector('#feedback-card');
+      const feedbackIcon = document.querySelector('#feedback-icon');
+      const feedbackText = document.querySelector('#feedback-text');
+      const feedbackHintWrap = document.querySelector('#feedback-hint-wrap');
+      const feedbackHintContent = document.querySelector('#feedback-hint-content');
+      const sprintModal = document.querySelector('#sprint-modal');
+      const trainerCard = document.querySelector('#trainer-card');
+
+      function updateHUD() {
+        if (valStreak) valStreak.textContent = state.streak;
+        if (valScore) valScore.textContent = state.score;
+        const total = state.score + state.errors;
+        const acc = total > 0 ? Math.round((state.score / total) * 100) : 100;
+        if (valAccuracy) valAccuracy.textContent = `${acc}%`;
+
+        // Огонёк при серии
+        const streakBadge = document.querySelector('#hud-streak');
+        if (streakBadge) {
+          if (state.streak >= 5) streakBadge.classList.add('fire');
+          else streakBadge.classList.remove('fire');
+        }
+      }
+
+      function nextQuestion() {
+        if (!window.MathTasksTrainer) return;
+        state.currentQuestion = window.MathTasksTrainer.generateQuestion(state.category);
+
+        // Рендерим формулу KaTeX
+        if (formulaDisplay && window.katex) {
+          try {
+            formulaDisplay.innerHTML = window.katex.renderToString(
+              `${state.currentQuestion.latex} = ?`,
+              { displayMode: true, throwOnError: false }
+            );
+          } catch (e) {
+            formulaDisplay.textContent = `${state.currentQuestion.latex} = ?`;
+          }
+        }
+
+        if (trainerInput) {
+          trainerInput.value = '';
+          trainerInput.focus();
+        }
+        if (feedbackCard) feedbackCard.hidden = true;
+        if (trainerCard) {
+          trainerCard.classList.remove('correct-flash', 'wrong-flash');
+        }
+      }
+
+      function checkCurrentAnswer() {
+        if (!state.currentQuestion || !window.MathTasksTrainer) return;
+        const val = trainerInput ? trainerInput.value : '';
+        const check = window.MathTasksTrainer.checkAnswer(state.currentQuestion, val);
+
+        if (check.isCorrect) {
+          state.score++;
+          state.streak++;
+          if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+          if (state.soundEnabled) window.MathTasksTrainer.playSound('correct');
+
+          if (trainerCard) {
+            trainerCard.classList.remove('wrong-flash');
+            trainerCard.classList.add('correct-flash');
+          }
+
+          // Показываем короткий приятный отклик
+          if (feedbackCard) {
+            feedbackCard.className = 'trainer-feedback-card correct';
+            if (feedbackIcon) feedbackIcon.textContent = '✓';
+            if (feedbackText) feedbackText.textContent = `Правильно! (${check.expectedDisplay})`;
+            if (feedbackHintWrap) feedbackHintWrap.hidden = true;
+            feedbackCard.hidden = false;
+          }
+
+          updateHUD();
+          setTimeout(() => {
+            nextQuestion();
+          }, 350);
+        } else {
+          state.errors++;
+          state.streak = 0;
+          if (state.soundEnabled) window.MathTasksTrainer.playSound('wrong');
+
+          if (trainerCard) {
+            trainerCard.classList.remove('correct-flash');
+            trainerCard.classList.add('wrong-flash');
+          }
+
+          if (feedbackCard) {
+            feedbackCard.className = 'trainer-feedback-card wrong';
+            if (feedbackIcon) feedbackIcon.textContent = '✕';
+            if (feedbackText) feedbackText.innerHTML = `Неверно! Правильный ответ: <strong>${check.expectedDisplay}</strong>`;
+
+            // Показываем лайфхак устного счёта
+            if (state.currentQuestion.hint && feedbackHintWrap && feedbackHintContent) {
+              feedbackHintWrap.hidden = false;
+              if (window.katex) {
+                try {
+                  feedbackHintContent.innerHTML = window.katex.renderToString(
+                    state.currentQuestion.hint,
+                    { displayMode: false, throwOnError: false }
+                  );
+                } catch (e) {
+                  feedbackHintContent.textContent = state.currentQuestion.hint;
+                }
+              } else {
+                feedbackHintContent.textContent = state.currentQuestion.hint;
+              }
+            } else if (feedbackHintWrap) {
+              feedbackHintWrap.hidden = true;
+            }
+            feedbackCard.hidden = false;
+          }
+
+          updateHUD();
+          // При ошибке даём посмотреть разбор 1.5 секунды
+          setTimeout(() => {
+            nextQuestion();
+          }, 1600);
+        }
+      }
+
+      trainerForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        checkCurrentAnswer();
+      });
+
+      btnSkip?.addEventListener('click', () => {
+        state.errors++;
+        state.streak = 0;
+        updateHUD();
+        nextQuestion();
+      });
+
+      // Переключение категорий
+      document.querySelectorAll('.trainer-cat-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.trainer-cat-chip').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.category = btn.dataset.cat || 'addsub2';
+          state.streak = 0;
+          updateHUD();
+          nextQuestion();
+        });
+      });
+
+      // Переключение режимов
+      document.querySelectorAll('.trainer-mode-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.trainer-mode-chip').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const mode = btn.dataset.mode || 'zen';
+          state.mode = mode;
+          stopTimer();
+
+          if (mode === 'sprint60' || mode === 'sprint120') {
+            const sec = mode === 'sprint60' ? 60 : 120;
+            state.timerSec = sec;
+            state.totalSec = sec;
+            if (hudTimer) hudTimer.hidden = false;
+            if (timerProgressWrap) timerProgressWrap.hidden = false;
+            startTimer();
+          } else {
+            if (hudTimer) hudTimer.hidden = true;
+            if (timerProgressWrap) timerProgressWrap.hidden = true;
+          }
+
+          state.score = 0;
+          state.errors = 0;
+          state.streak = 0;
+          state.maxStreak = 0;
+          updateHUD();
+          nextQuestion();
+        });
+      });
+
+      // Таймер
+      function startTimer() {
+        stopTimer();
+        updateTimerDisplay();
+        state.timerInterval = setInterval(() => {
+          state.timerSec--;
+          updateTimerDisplay();
+          if (state.timerSec <= 0) {
+            stopTimer();
+            finishSprint();
+          }
+        }, 1000);
+      }
+
+      function stopTimer() {
+        if (state.timerInterval) {
+          clearInterval(state.timerInterval);
+          state.timerInterval = null;
+        }
+      }
+
+      function updateTimerDisplay() {
+        if (valTimer) valTimer.textContent = `${state.timerSec}s`;
+        if (timerProgressBar && state.totalSec > 0) {
+          const pct = Math.max(0, Math.min(100, (state.timerSec / state.totalSec) * 100));
+          timerProgressBar.style.width = `${pct}%`;
+        }
+      }
+
+      function finishSprint() {
+        const key = `math-tasks:trainer-record:${state.category}:${state.mode}`;
+        const prevBest = Number(localStorage.getItem(key)) || 0;
+        const isNewRecord = state.score > prevBest;
+        if (isNewRecord) {
+          localStorage.setItem(key, String(state.score));
+        }
+
+        const resScore = document.querySelector('#res-score');
+        const resAccuracy = document.querySelector('#res-accuracy');
+        const resMaxStreak = document.querySelector('#res-max-streak');
+        const resBestScore = document.querySelector('#res-best-score');
+        const sprintSubtitle = document.querySelector('#sprint-subtitle');
+
+        if (resScore) resScore.textContent = state.score;
+        const total = state.score + state.errors;
+        const acc = total > 0 ? Math.round((state.score / total) * 100) : 100;
+        if (resAccuracy) resAccuracy.textContent = `${acc}%`;
+        if (resMaxStreak) resMaxStreak.textContent = state.maxStreak;
+        if (resBestScore) resBestScore.textContent = Math.max(state.score, prevBest);
+
+        if (sprintSubtitle) {
+          sprintSubtitle.textContent = isNewRecord
+            ? '🏆 Поздравляем! Вы установили новый личный рекорд!'
+            : 'Отличная скорость и концентрация!';
+        }
+
+        if (sprintModal && typeof sprintModal.showModal === 'function') {
+          sprintModal.showModal();
+        }
+      }
+
+      document.querySelector('#btn-restart-sprint')?.addEventListener('click', () => {
+        if (sprintModal) sprintModal.close();
+        state.score = 0;
+        state.errors = 0;
+        state.streak = 0;
+        state.maxStreak = 0;
+        state.timerSec = state.totalSec;
+        updateHUD();
+        startTimer();
+        nextQuestion();
+      });
+
+      document.querySelector('#btn-close-sprint')?.addEventListener('click', () => {
+        if (sprintModal) sprintModal.close();
+        state.mode = 'zen';
+        document.querySelectorAll('.trainer-mode-chip').forEach(b => {
+          b.classList.toggle('active', b.dataset.mode === 'zen');
+        });
+        if (hudTimer) hudTimer.hidden = true;
+        if (timerProgressWrap) timerProgressWrap.hidden = true;
+        nextQuestion();
+      });
+
+      // Виртуальный Numpad
+      document.querySelectorAll('.numpad-key').forEach(keyBtn => {
+        keyBtn.addEventListener('click', () => {
+          const key = keyBtn.dataset.key;
+          if (!trainerInput) return;
+          if (key === 'backspace') {
+            trainerInput.value = trainerInput.value.slice(0, -1);
+          } else if (key === 'enter') {
+            checkCurrentAnswer();
+          } else if (key) {
+            trainerInput.value += key;
+          }
+          trainerInput.focus();
+        });
+      });
+
+      // Запуск
+      updateHUD();
+      nextQuestion();
+    })();
+  </script>
+</body>
+</html>

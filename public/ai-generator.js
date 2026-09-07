@@ -476,6 +476,13 @@ ${customPrompt ? `Дополнительные математические тр
     const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!candidateText) throw new Error('Пустой ответ от Gemini API');
 
+    /* Модель сама сообщает, что упёрлась в потолок. Без этой проверки
+       обрыв выглядит как «сломанный JSON», и причину не найти. */
+    const finish = data?.candidates?.[0]?.finishReason;
+    if (finish === 'MAX_TOKENS') {
+      throw new Error(`ответ модели оборван по длине (просили ${count} задач — попробуйте меньше за раз)`);
+    }
+
     const parsed = safeParseJson(candidateText);
     return {
       ...parsed,
@@ -581,7 +588,11 @@ ${customPrompt ? `Дополнительные математические тр
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.3,
-        maxOutputTokens: 8192
+        /* Десять задач с решениями на двух языках — это около пяти тысяч
+           токенов, а с длинными разборами и все восемь. При потолке в
+           8192 ответ обрывался на середине JSON, разбор падал, и пачка
+           терялась целиком — десять задач за раз. Запас нужен кратный. */
+        maxOutputTokens: 32768
       }
     });
 
@@ -642,6 +653,13 @@ ${customPrompt ? `Дополнительные математические тр
     const data = await res.json();
     const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!candidateText) throw new Error('Пустой ответ от Gemini API');
+
+    /* Модель сама сообщает, что упёрлась в потолок. Без этой проверки
+       обрыв выглядит как «сломанный JSON», и причину не найти. */
+    const finish = data?.candidates?.[0]?.finishReason;
+    if (finish === 'MAX_TOKENS') {
+      throw new Error(`ответ модели оборван по длине (просили ${count} задач — попробуйте меньше за раз)`);
+    }
 
     const parsed = safeParseJson(candidateText);
     const list = Array.isArray(parsed)

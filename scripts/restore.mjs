@@ -9,6 +9,7 @@
  *   node scripts/restore.mjs <файл>                    вхолостую
  *   node scripts/restore.mjs <файл> --apply            записать
  *   node scripts/restore.mjs <файл> --only tasks       одну таблицу
+ *   node scripts/restore.mjs <файл> --only storage     только чертежи
  *
  * Что делает: дописывает недостающие строки и приводит существующие к
  * тому, что в копии. Строк, которых в копии нет, НЕ удаляет — иначе
@@ -116,6 +117,47 @@ for (const table of ORDER) {
     if (!res.ok) console.log(`   ✗ правка ${table} ${idOf(row)}: ${res.status} ${(await res.text()).slice(0, 120)}`);
   }
   console.log(`   записано`);
+}
+
+/* ── Чертежи ──────────────────────────────────────────────────────── */
+/* Копии Supabase файлы Storage не включают вовсе, так что это
+   единственный способ вернуть пропавший чертёж. */
+if (!only || only === 'storage') {
+  const files = dump.storage?.files || [];
+  if (files.length) {
+    const byBucket = {};
+    for (const f of files) (byBucket[f.bucket] ||= []).push(f);
+
+    for (const [bucket, list] of Object.entries(byBucket)) {
+      /* Что уже лежит в бакете — узнаём запросом, а не гадаем. */
+      const present = new Set();
+      for (const prefix of [...new Set(list.map(f => f.path.includes('/') ? f.path.split('/')[0] : ''))]) {
+        const r = await fetch(`${URL_}/storage/v1/object/list/${bucket}`, {
+          method: 'POST',
+          headers: { ...H, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prefix, limit: 1000 })
+        });
+        if (!r.ok) continue;
+        for (const e of await r.json()) if (e.metadata) present.add(prefix ? `${prefix}/${e.name}` : e.name);
+      }
+
+      const missing = list.filter(f => !present.has(f.path));
+      console.log(`${('файлы ' + bucket).padEnd(10)} в бакете ${String(present.size).padStart(4)} · в копии ${String(list.length).padStart(4)} · вернуть ${missing.length}`);
+      totalNew += missing.length;
+
+      if (!APPLY || !missing.length) continue;
+      for (const f of missing) {
+        const body = Buffer.from(f.base64, 'base64');
+        const res = await fetch(`${URL_}/storage/v1/object/${bucket}/${f.path}`, {
+          method: 'POST',
+          headers: { ...H, 'Content-Type': f.type || 'application/octet-stream' },
+          body
+        });
+        if (!res.ok) console.log(`   ✗ ${f.path}: ${res.status} ${(await res.text()).slice(0, 100)}`);
+      }
+      console.log('   записано');
+    }
+  }
 }
 
 console.log(`\nИтого: вернуть ${totalNew}, поправить ${totalChanged}`);

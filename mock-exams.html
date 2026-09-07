@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Пробные экзамены по математике — Структура и формулы | MathTasks</title>
+  <meta name="description" content="Структура пробных государственных экзаменов по математике (9 класс, Vispārīgais, Optimālais, Augstākais līmenis). Разбор частей экзамена, критерии оценивания и правила работы с формульными листами." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="/style.css" />
+  <script>
+    (() => {
+      try {
+        const saved = localStorage.getItem('math-tasks:theme') || localStorage.getItem('theme');
+        const isDark = saved ? saved === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+          if (document.body) document.body.classList.add('dark');
+          else {
+            new MutationObserver((_, obs) => {
+              if (document.body) {
+                document.body.classList.add('dark');
+                obs.disconnect();
+              }
+            }).observe(document.documentElement, { childList: true });
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body class="exams-page">
+  <header class="admin-topbar">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+          <path d="M1.6 29.8C9.4 27.2 17.4 26.2 24 27.2V43.4C17.4 42.4 9.4 43.4 1.6 46Z" fill="#12306e"/>
+          <path d="M46.4 29.8C38.6 27.2 30.6 26.2 24 27.2V43.4C30.6 42.4 38.6 43.4 46.4 46Z" fill="#1a3f8f"/>
+          <path d="M4 31C10.4 29 17 28.2 22.8 29V40.8C17 40 10.4 40.8 4 42.8Z" fill="#eaf1ff"/>
+          <path d="M44 31C37.6 29 31 28.2 25.2 29V40.8C31 40 37.6 40.8 44 42.8Z" fill="#d7e5ff"/>
+          <path d="M7.4 33.9 19 32.9M7.4 36.7 19 35.7M40.6 33.9 29 32.9M40.6 36.7 29 35.7" stroke="#5a92ff" stroke-width="1.15" stroke-linecap="round"/>
+          <path d="M10 28.5v11.2l2.4-2.4 2.4 2.4V28.1Z" fill="#7fb0ff"/>
+          <path d="M15 15v9.6c0 4 18 4 18 0V15Z" fill="#12306e"/>
+          <path d="M24 5 45.5 13.4 24 21.8 2.5 13.4Z" fill="#1a3f8f"/>
+          <path d="M24 5 45.5 13.4 24 21.8Z" fill="#27529f"/>
+          <path d="M24 13.4 39.8 15.5v5.9" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M39.8 20.8c-2 0-2.3 2.5-1.9 5.4.6.7 3.2.7 3.8 0 .4-2.9.1-5.4-1.9-5.4Z" fill="#7fb0ff"/>
+        </svg>
+      </span>
+      <span class="label"><span class="brand-math">Math</span><span class="brand-tasks">Tasks</span></span>
+    </a>
+    <span class="admin-badge">📋 Пробные экзамены</span>
+
+    <div class="trainer-top-actions">
+      <a class="nav-btn-link" href="/exams.html">🎯 Подготовка к экзаменам</a>
+      <a class="nav-btn-link" href="/trainer.html">⚡ Тренажёр счёта</a>
+
+      <button class="theme-switch" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Переключить тему" title="Переключить тему">
+        <span class="theme-switch-track" aria-hidden="true">
+          <span class="theme-switch-thumb">
+            <svg class="theme-switch-sun" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            <svg class="theme-switch-moon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          </span>
+        </span>
+      </button>
+
+      <a class="text-button" href="/">← На сайт</a>
+    </div>
+  </header>
+
+  <main class="exams-main">
+    <!-- Hero раздел пробников -->
+    <section class="exams-hero">
+      <div class="exams-hero-content">
+        <span class="exams-tag">Eksāmenu paraugi • Skola2030</span>
+        <h1>Пробные государственные экзамены (Paraugi)</h1>
+        <p>
+          Официальная структура экзаменационных вариантов VISC: спецификация заданий, 
+          распределение баллов, правила работы с калькулятором и руководство по формульным листам.
+        </p>
+
+        <div class="exams-hero-actions">
+          <a href="#formulas-guide" class="primary-button">📖 Руководство по формульным листам</a>
+          <a href="#mock-variants" class="secondary-button">Смотреть структуру вариантов ↓</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- КРИТИЧЕСКИЙ РАЗДЕЛ: Пользование формульными листами -->
+    <section class="formula-guide-section" id="formulas-guide">
+      <div class="section-title-wrap">
+        <h2>📑 Как правильно пользоваться формульным листом на экзамене</h2>
+        <p>Настоящий чит-код государственного экзамена — если знать, как он устроен и что в нём искать.</p>
+      </div>
+
+      <div class="formula-guide-card">
+        <div class="formula-guide-banner">
+          <div class="guide-badge-big">ВАЖНО ДЛЯ КАЖДОГО ЭКЗАМЕНУЕМОГО</div>
+          <p>
+            Официальный формульный лист (<em>Formulu lapa</em>) выдаётся в бумажном виде каждому ученику 
+            вместе с экзаменационным буклетом. <strong>Пользоваться им разрешено на протяжении всего экзамена</strong> 
+            (и в Части 1, и в Части 2).
+          </p>
+        </div>
+
+        <div class="formula-comparison-grid">
+          <!-- Что ЕСТЬ -->
+          <div class="formula-column has-formulas">
+            <div class="column-header">
+              <span class="col-icon">✓</span>
+              <h4>Что ЕСТЬ в формульном листе (не учите наизусть)</h4>
+            </div>
+            <p class="col-desc">Эти формулы не нужно зубрить — нужно лишь уметь быстро их находить и подставлять числа:</p>
+            <ul class="formula-check-list">
+              <li><strong>Формулы сокр. умножения:</strong> $(a \pm b)^2 = a^2 \pm 2ab + b^2$, $a^2 - b^2 = (a-b)(a+b)$.</li>
+              <li><strong>Свойства степеней и корней:</strong> $a^m \cdot a^n$, $(a^m)^n$, $\sqrt{a \cdot b}$, $\sqrt[n]{a}$.</li>
+              <li><strong>Квадратное уравнение:</strong> формула дискриминанта $D = b^2 - 4ac$ и корней $x_{1,2} = \frac{-b \pm \sqrt{D}}{2a}$.</li>
+              <li><strong>Тригонометрия в треугольнике:</strong> $\sin \alpha, \cos \alpha, \tan \alpha$, значения для 30°, 45°, 60°.</li>
+              <li><strong>Планиметрия (Площади):</strong> треугольник ($S = \frac{1}{2}ah$, формула Герона), трапеция, параллелограмм, круг ($S = \pi R^2, C = 2\pi R$).</li>
+              <li><strong>Стереометрия (Объёмы и площади):</strong> призма, цилиндр, пирамида, конус, шар ($V = \frac{4}{3}\pi R^3$).</li>
+              <li><strong>Для Optimālais (11 кл):</strong> единичный круг, теоремы синусов и косинусов, комбинаторика ($n!, C_n^k, A_n^k$), тригонометрические тождества.</li>
+              <li><strong>Для Augstākais (12 кл):</strong> таблица производных и первообразных, бином Ньютона, объёмы тел вращения.</li>
+            </ul>
+          </div>
+
+          <!-- Чего НЕТ -->
+          <div class="formula-column missing-formulas">
+            <div class="column-header">
+              <span class="col-icon">✕</span>
+              <h4>Чего НЕТ в формульном листе (обязательно помнить!)</h4>
+            </div>
+            <p class="col-desc">Эти правила составители экзамена считают базовыми, их в листе <strong>нет</strong>:</p>
+            <ul class="formula-cross-list">
+              <li><strong>Теорема Виета:</strong> $x_1 + x_2 = -\frac{b}{a}$, $x_1 \cdot x_2 = \frac{c}{a}$ (для быстрого счёта корней).</li>
+              <li><strong>Смена знака в неравенствах:</strong> при умножении или делении обеих частей на <em>отрицательное</em> число знак строго переворачивается!</li>
+              <li><strong>Правила работы с дробями:</strong> приведение к общему знаменателю, сокращение дробей, деление через умножение на обратную дробь.</li>
+              <li><strong>Свойства логарифмов (базовые):</strong> определение $\log_a b = c \iff a^c = b$, ограничение ОДЗ ($b > 0, a > 0, a \neq 1$).</li>
+              <li><strong>Теорема о внешнем угле:</strong> внешний угол треугольника равен сумме двух внутренних, не смежных с ним.</li>
+              <li><strong>Вписанные и центральные углы:</strong> вписанный угол равен половине центрального, опирающегося на ту же дугу.</li>
+              <li><strong>Вероятность противоположного события:</strong> $P(\bar{A}) = 1 - P(A)$.</li>
+              <li><strong>Линейная функция:</strong> угловой коэффициент $k = \tan \alpha$, условие параллельности прямых ($k_1 = k_2$).</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="formula-sheet-downloads-bar">
+          <span class="downloads-label">Скачать официальные листы VISC для тренировки:</span>
+          <div class="downloads-buttons">
+            <a class="download-pill" href="/formulas/eksamens-matematika-9-klase-2026.pdf" target="_blank">📄 9 класс (PDF)</a>
+            <a class="download-pill" href="/formulas/eksamens-matematika-visparigais-2026.pdf" target="_blank">📄 Vispārīgais (PDF)</a>
+            <a class="download-pill" href="/formulas/eksamens-matematika-optimalais-2026.pdf" target="_blank">📄 Optimālais / Mat I (PDF)</a>
+            <a class="download-pill" href="/formulas/eksamens-matematika-augstakais-2026.pdf" target="_blank">📄 Augstākais / Mat II (PDF)</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Структура пробных вариантов -->
+    <section class="mock-variants-section" id="mock-variants">
+      <div class="section-title-wrap">
+        <h2>Структура пробных вариантов по уровням</h2>
+        <p>Официальная модель построения контрольно-измерительных материалов Skola2030.</p>
+      </div>
+
+      <div class="mock-cards-stack">
+        <!-- 9. klase -->
+        <div class="mock-exam-card">
+          <div class="mock-card-top">
+            <div class="mock-meta">
+              <span class="exam-badge badge-gold">9. klase</span>
+              <span class="mock-time">⏱️ 120 минут (2 часа)</span>
+              <span class="mock-points">⭐ 50 баллов суммарно</span>
+            </div>
+            <span class="mock-status-pill">Заготовка структуры</span>
+          </div>
+
+          <h3>Государственный экзамен по математике за 9 класс (Pamatskola)</h3>
+          <p class="mock-summary">
+            Проверяет базовые математические навыки за весь курс основной школы. Обязателен для получения аттестата.
+          </p>
+
+          <div class="mock-parts-grid">
+            <div class="mock-part">
+              <div class="mock-part-head">
+                <span class="part-tag">1. daļa • Часть 1</span>
+                <span class="part-calc-badge no-calc">🚫 Без калькулятора</span>
+              </div>
+              <ul class="part-points">
+                <li><strong>Формат:</strong> 25 заданий с кратким ответом или выбором варианта (1 балл за задание).</li>
+                <li><strong>Время:</strong> ~40 минут.</li>
+                <li><strong>Темы:</strong> арифметика целых чисел и дробей, проценты, действия со степенями, преобразование одночленов и многочленов, чтение линейных графиков, простейшая вероятность.</li>
+              </ul>
+            </div>
+
+            <div class="mock-part">
+              <div class="mock-part-head">
+                <span class="part-tag">2. daļa • Часть 2</span>
+                <span class="part-calc-badge has-calc">📱 С калькулятором</span>
+              </div>
+              <ul class="part-points">
+                <li><strong>Формат:</strong> 8–10 развёрнутых задач с полным пошаговым решением (2–5 баллов за задачу).</li>
+                <li><strong>Время:</strong> ~80 минут.</li>
+                <li><strong>Темы:</strong> текстовые прикладные задачи (движение, смеси, работа), системы уравнений, планиметрия (подобие, прямоугольные треугольники), многогранники.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Optimālais līmenis -->
+        <div class="mock-exam-card">
+          <div class="mock-card-top">
+            <div class="mock-meta">
+              <span class="exam-badge badge-blue">Optimālais (Mat I)</span>
+              <span class="mock-time">⏱️ 180 минут (3 часа)</span>
+              <span class="mock-points">⭐ 70 баллов суммарно</span>
+            </div>
+            <span class="mock-status-pill">Заготовка структуры</span>
+          </div>
+
+          <h3>Оптимальный уровень — Matemātika I (11 класс)</h3>
+          <p class="mock-summary">
+            Централизованный экзамен среднего образования для поступления в латвийские и европейские университеты.
+          </p>
+
+          <div class="mock-parts-grid">
+            <div class="mock-part">
+              <div class="mock-part-head">
+                <span class="part-tag">1. daļa • 30 баллов</span>
+                <span class="part-calc-badge no-calc">🚫 Без калькулятора</span>
+              </div>
+              <ul class="part-points">
+                <li><strong>Задания:</strong> преобразование выражений с корнями и логарифмами, тригонометрические значения на круге, геометрические свойства векторов.</li>
+                <li><strong>Навык:</strong> математическая строгость, понимание определений и свойств функций без подсказок техники.</li>
+              </ul>
+            </div>
+
+            <div class="mock-part">
+              <div class="mock-part-head">
+                <span class="part-tag">2. daļa • 40 баллов</span>
+                <span class="part-calc-badge has-calc">📱 С калькулятором</span>
+              </div>
+              <ul class="part-points">
+                <li><strong>Задания:</strong> комплексные задачи на стереометрию (сечения призм и пирамид), тригонометрические уравнения, реальные модели (экспоненциальный рост, сложные проценты), комбинаторика.</li>
+                <li><strong>Критерии:</strong> оценивается логика рассуждений, обоснование формул и точность округления.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Augstākais līmenis -->
+        <div class="mock-exam-card">
+          <div class="mock-card-top">
+            <div class="mock-meta">
+              <span class="exam-badge badge-purple">Augstākais (Mat II)</span>
+              <span class="mock-time">⏱️ 210 минут (3.5 часа)</span>
+              <span class="mock-points">⭐ 80 баллов суммарно</span>
+            </div>
+            <span class="mock-status-pill">Заготовка структуры</span>
+          </div>
+
+          <h3>Высший уровень — Matemātika II (12 класс / Padziļinātais)</h3>
+          <p class="mock-summary">
+            Углублённый профильный экзамен по высшей математике для технических и естественных специальностей (RTU, LU DF, RSU).
+          </p>
+
+          <div class="mock-parts-grid">
+            <div class="mock-part">
+              <div class="mock-part-head">
+                <span class="part-tag">1. daļa • 25 баллов</span>
+                <span class="part-calc-badge no-calc">🚫 Без калькулятора</span>
+              </div>
+              <ul class="part-points">
+                <li><strong>Темы:</strong> вычисление пределов последовательностей и функций, производные элементарных и сложных функций, геометрия векторов в $\mathbb{R}^3$.</li>
+              </ul>
+            </div>
+
+            <div class="mock-part">
+              <div class="mock-part-head">
+                <span class="part-tag">2. daļa • 55 баллов</span>
+                <span class="part-calc-badge has-calc">📱 С калькулятором</span>
+              </div>
+              <ul class="part-points">
+                <li><strong>Темы:</strong> интегральное исчисление (определённый интеграл, площади криволинейных трапеций, объёмы тел вращения), метод математической индукции, бином Ньютона, стереометрические доказательства.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Шкала оценивания -->
+    <section class="mock-grading-section">
+      <div class="section-title-wrap">
+        <h2>📊 Шкала оценивания и пороги сдачи (VISC)</h2>
+        <p>Согласно государственному регламенту Министерства образования Латвии.</p>
+      </div>
+
+      <div class="grading-card">
+        <div class="grading-table-wrap">
+          <table class="grading-table">
+            <thead>
+              <tr>
+                <th>Процент выполнения</th>
+                <th>Уровень освоения</th>
+                <th>Характеристика результата</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="fail-row">
+                <td>0% — 14%</td>
+                <td>Не сдано (Zem sliekšņa)</td>
+                <td>Минимальный порог сдачи не достигнут. Сертификат не выдаётся.</td>
+              </tr>
+              <tr>
+                <td>15% — 39%</td>
+                <td>Базовый (Pamata līmenis)</td>
+                <td>Удовлетворительное владение стандартными алгоритмами и правилами.</td>
+              </tr>
+              <tr>
+                <td>40% — 69%</td>
+                <td>Оптимальный (Optimālais līmenis)</td>
+                <td>Уверенное решение типовых и комбинированных задач с полным разбором.</td>
+              </tr>
+              <tr class="success-row">
+                <td>70% — 100%</td>
+                <td>Высокий / Высший (Augstākais līmenis)</td>
+                <td>Глубокое понимание теории, математическое моделирование и строгие доказательства.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="admin-footer" style="margin-top: 50px; text-align: center; padding: 24px 16px; color: var(--muted); border-top: 1px solid var(--line);">
+    <p>MathTasks — справочно-тренировочная платформа по стандарту Skola2030 (Латвия).</p>
+  </footer>
+
+  <script>
+    (() => {
+      const themeToggle = document.querySelector('#theme-toggle');
+      if (themeToggle) {
+        const isDarkNow = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
+        themeToggle.setAttribute('aria-checked', isDarkNow ? 'true' : 'false');
+        themeToggle.addEventListener('click', () => {
+          const isDark = document.documentElement.classList.toggle('dark');
+          document.body.classList.toggle('dark', isDark);
+          localStorage.setItem('math-tasks:theme', isDark ? 'dark' : 'light');
+          themeToggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

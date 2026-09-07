@@ -2894,9 +2894,19 @@ ${JSON.stringify(texts)}`;
               else if (diff === 'Средний') medCount++;
               else hardCount++;
             }
+            /* Недостача без ошибки — обычное дело: модель решила, что
+               хватит. Молчать нельзя, иначе «50 из 50» окажется неправдой. */
+            for (let k = batchTasks.length; k < batchCount; k++) {
+              failures.push({ index: generatedResults.length + k + 1, message: 'модель вернула меньше задач, чем просили' });
+            }
           } catch (batchErr) {
             console.warn(`Ошибка в пакете ${batchIdx + 1}:`, batchErr);
-            failures.push({ batch: batchIdx + 1, message: batchErr.message });
+            /* Считаем потерянные задачи, а не пачки: иначе сорванный
+               пакет из десяти показывался как «не вышло: 1», и итог
+               «40 из 50» выглядел необъяснимо. */
+            for (let k = 0; k < batchCount; k++) {
+              failures.push({ index: generatedResults.length + k + 1, message: batchErr.message });
+            }
           }
 
           if (PACE_MS && batchIdx < totalBatches - 1 && !aiGenCancelled) {
@@ -2952,21 +2962,27 @@ ${JSON.stringify(texts)}`;
           }, 300);
         } else {
           // Формируем пакет задач для массового окна
-          const tasksForBulk = generatedResults.map(({ result: r, difficulty: diff }, idx) => ({
-            title: r.title_ru || r.title || `${topicTitle} #${idx + 1}`,
-            title_lv: r.title_lv || null,
-            condition_latex: r.condition_latex_ru || r.condition_latex || '',
-            condition_latex_lv: r.condition_latex_lv || null,
-            answer_latex: r.answer_latex || null,
-            answer_latex_lv: r.answer_latex_lv || null,
-            solution_latex: r.solution_latex_ru || r.solution_latex || null,
-            solution_latex_lv: r.solution_latex_lv || null,
-            difficulty: diff,
-            grade: g,
-            topic_id: dbMatchingTopic ? dbMatchingTopic.id : null,
-            topic_title: topicTitle,
-            is_published: true
-          }));
+          const tasksForBulk = generatedResults.map(({ result: r, difficulty: diff }, idx) => {
+            const taskTopicTitle = r.topic_title || topicTitle;
+            const taskTopicItem = skola2030Catalog.find(t => t.title_ru === taskTopicTitle || t.slug === r.topic_slug) ||
+              topics.find(t => t.title === taskTopicTitle || (dbMatchingTopic && t.id === dbMatchingTopic.id));
+            const topicId = taskTopicItem?.id || (dbMatchingTopic ? dbMatchingTopic.id : null);
+            return {
+              title: r.title_ru || r.title || `${taskTopicTitle} #${idx + 1}`,
+              title_lv: r.title_lv || null,
+              condition_latex: r.condition_latex_ru || r.condition_latex || '',
+              condition_latex_lv: r.condition_latex_lv || null,
+              answer_latex: r.answer_latex || null,
+              answer_latex_lv: r.answer_latex_lv || null,
+              solution_latex: r.solution_latex_ru || r.solution_latex || null,
+              solution_latex_lv: r.solution_latex_lv || null,
+              difficulty: diff,
+              grade: g,
+              topic_id: topicId,
+              topic_title: taskTopicTitle,
+              is_published: true
+            };
+          });
 
           openBulkDialog('import');
           const madeCount = generatedResults.length;
