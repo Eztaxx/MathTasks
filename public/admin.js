@@ -75,6 +75,7 @@
      поэтому сам список можно не грузить, пока его не попросят. */
   let taskIndex = [];
   let tasksLoaded = false;
+  let aiGenCancelled = false;
   /* Темы всё равно нужны в памяти — из них собираются выпадающие списки
      в формах. Откладываем не загрузку, а отрисовку: на трёх сотнях тем
      построение разметки заметно дороже самого запроса. */
@@ -560,6 +561,61 @@
     return modified ? window.MathTasksLib.unmaskLatexAfterTranslation(translated, tokens) : null;
   }
 
+  function extractCleanJson(raw) {
+    if (!raw) return '';
+    let str = String(raw).trim();
+
+    const fenceMatch = str.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (fenceMatch && fenceMatch[1]) {
+      str = fenceMatch[1].trim();
+    }
+
+    const firstBrace = str.indexOf('{');
+    const firstBracket = str.indexOf('[');
+    let startIdx = -1;
+    let endChar = '';
+
+    if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+      startIdx = firstBrace;
+      endChar = '}';
+    } else if (firstBracket !== -1) {
+      startIdx = firstBracket;
+      endChar = ']';
+    }
+
+    if (startIdx !== -1) {
+      const lastEnd = str.lastIndexOf(endChar);
+      if (lastEnd > startIdx) {
+        str = str.slice(startIdx, lastEnd + 1);
+      }
+    }
+
+    return str;
+  }
+
+  function safeParseJson(raw) {
+    if (window.MathTasksLib?.safeParseJson) {
+      return window.MathTasksLib.safeParseJson(raw);
+    }
+    const clean = extractCleanJson(raw);
+    try {
+      return JSON.parse(clean);
+    } catch (initialErr) {
+      try {
+        let sanitized = clean.replace(/\\([bfrtn])([a-zA-Z]{2,})/g, '\\\\$1$2');
+        sanitized = sanitized.replace(/\\(?!["\\/bfnrtu]|u[0-9a-fA-F]{4})/g, '\\\\');
+        return JSON.parse(sanitized);
+      } catch (secondErr) {
+        try {
+          let sanitized2 = clean.replace(/\\([^"\\])/g, '\\\\$1');
+          return JSON.parse(sanitized2);
+        } catch (thirdErr) {
+          throw initialErr;
+        }
+      }
+    }
+  }
+
   async function translateWithGemini(texts, direction, apiKey) {
     const toLv = direction === 'ru2lv';
     const prompt = `Ты эксперт по латвийской школьной математике и стандартам Skola2030.
@@ -581,7 +637,7 @@ ${JSON.stringify(texts)}`;
       }
     });
 
-    const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+    const candidateModels = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest'];
     let lastError = null;
     for (const model of candidateModels) {
       try {
@@ -595,10 +651,13 @@ ${JSON.stringify(texts)}`;
           const data = await r.json();
           const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (candidateText) {
-            const cleanJson = candidateText.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
-            const parsed = JSON.parse(cleanJson);
-            if (Array.isArray(parsed) && parsed.length === texts.length) {
-              return parsed;
+            try {
+              const parsed = (window.MathTasksLib?.safeParseJson || safeParseJson)(candidateText);
+              if (Array.isArray(parsed) && parsed.length === texts.length) {
+                return parsed;
+              }
+            } catch (err) {
+              console.warn('Ошибка парсинга перевода:', err);
             }
           }
         }
@@ -616,10 +675,14 @@ ${JSON.stringify(texts)}`;
     const fields = toLv
       ? [[taskForm.elements.title, taskForm.elements.title_lv],
          [conditionInput, conditionInputLv],
-         [solutionInput, solutionInputLv]]
+         [solutionInput, solutionInputLv],
+         [answerInput, answerInputLv],
+         [hintInput, hintInputLv]]
       : [[taskForm.elements.title_lv, taskForm.elements.title],
          [conditionInputLv, conditionInput],
-         [solutionInputLv, solutionInput]];
+         [solutionInputLv, solutionInput],
+         [answerInputLv, answerInput],
+         [hintInputLv, hintInput]];
 
     const [titleField, conditionField] = [fields[0][0], fields[1][0]];
     if (!titleField?.value.trim() && !conditionField?.value.trim()) {
@@ -1548,6 +1611,46 @@ ${JSON.stringify(texts)}`;
     }
   }
 
+  /* ── Умное сопоставление разделов (Subject Resolver) ───────────── */
+  function resolveSubject(slugOrTitle, subjectsList) {
+    if (window.MathTasksLib?.resolveSubject) {
+      return window.MathTasksLib.resolveSubject(slugOrTitle, subjectsList);
+    }
+    if (!slugOrTitle || !Array.isArray(subjectsList) || !subjectsList.length) return null;
+    const raw = String(slugOrTitle).trim().toLowerCase();
+    const clean = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9а-яё]/gi, '');
+    if (!clean) return null;
+
+    const directSlug = subjectsList.find(s => s.slug?.toLowerCase() === raw);
+    if (directSlug) return directSlug;
+
+    const directTitle = subjectsList.find(s => s.title?.toLowerCase() === raw || s.title_lv?.toLowerCase() === raw);
+    if (directTitle) return directTitle;
+
+    const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9а-яё]/gi, '');
+    const normMatch = subjectsList.find(s => norm(s.slug) === clean || norm(s.title) === clean || norm(s.title_lv) === clean);
+    if (normMatch) return normMatch;
+
+    const ALIAS_RULES = [
+      { keys: ['algebra', 'skaitli', 'chisla', 'алгебр', 'числа'], slug: 'algebra' },
+      { keys: ['geometr', 'geometry', 'figuras', 'геометр', 'фигур'], slug: 'geometry' },
+      { keys: ['planimetr', 'планиметр'], slug: 'planimetrija' },
+      { keys: ['stereometr', 'стереометр'], slug: 'stereometrija' },
+      { keys: ['trigonometr', 'тригонометр'], slug: 'trigonometrija' },
+      { keys: ['funkcij', 'function', 'функци'], slug: 'funkcijas' },
+      { keys: ['statist', 'статист'], slug: 'statistics' },
+      { keys: ['kombinatorik', 'varbutib', 'комбинаторик', 'вероятност'], slug: 'kombinatorika-un-varbutibas' },
+      { keys: ['analiz', 'calculus', 'анализ'], slug: 'matematiskais-analizs' }
+    ];
+    for (const rule of ALIAS_RULES) {
+      if (rule.keys.some(k => clean.includes(k) || raw.includes(k))) {
+        const found = subjectsList.find(s => s.slug === rule.slug);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
   /* ── Парсер JSON с поддержкой нескольких тем и задач ────────────── */
   function parseMultiTopicJson(raw) {
     let parsed = JSON.parse(raw);
@@ -1914,15 +2017,18 @@ ${JSON.stringify(texts)}`;
 
     // 1. Создаём недостающие темы в Supabase
     for (const top of uniqueTopics) {
-      const titleKey = top.title.toLowerCase();
-      let existing = topics.find(t => t.title.toLowerCase() === titleKey);
+      const titleKey = top.title?.toLowerCase().trim();
+      const titleLvKey = top.title_lv?.toLowerCase().trim();
+      let existing = topics.find(t =>
+        (titleKey && t.title?.toLowerCase().trim() === titleKey) ||
+        (titleLvKey && t.title_lv?.toLowerCase().trim() === titleLvKey) ||
+        (titleKey && t.title_lv?.toLowerCase().trim() === titleKey) ||
+        (titleLvKey && t.title?.toLowerCase().trim() === titleLvKey)
+      );
       if (!existing) {
         let targetSubjectId = top.subject_id;
         if (!targetSubjectId && (top.subject_slug || top.subject_title)) {
-          const foundSubj = subjects.find(s =>
-            (top.subject_slug && s.slug?.toLowerCase() === top.subject_slug.toLowerCase()) ||
-            (top.subject_title && s.title?.toLowerCase() === top.subject_title.toLowerCase())
-          );
+          const foundSubj = resolveSubject(top.subject_slug || top.subject_title, subjects);
           if (foundSubj) targetSubjectId = foundSubj.id;
         }
         if (!targetSubjectId) targetSubjectId = subjects[0]?.id || null;
@@ -1957,8 +2063,15 @@ ${JSON.stringify(texts)}`;
         continue;
       }
       let topicId = item.topic_id || null;
-      if (!topicId && item.topic_title) {
-        const foundTopic = topics.find(t => t.title.toLowerCase() === String(item.topic_title).trim().toLowerCase());
+      if (!topicId && (item.topic_title || item.topic_title_lv)) {
+        const needle = String(item.topic_title || '').trim().toLowerCase();
+        const needleLv = String(item.topic_title_lv || '').trim().toLowerCase();
+        const foundTopic = topics.find(t =>
+          (needle && t.title?.toLowerCase().trim() === needle) ||
+          (needleLv && t.title_lv?.toLowerCase().trim() === needleLv) ||
+          (needle && t.title_lv?.toLowerCase().trim() === needle) ||
+          (needleLv && t.title?.toLowerCase().trim() === needleLv)
+        );
         if (foundTopic) topicId = foundTopic.id;
       }
 
@@ -2105,6 +2218,7 @@ ${JSON.stringify(texts)}`;
   });
 
   const btnRunAiGenerator = document.querySelector('#btn-run-ai-generator');
+  const btnCancelAiGenerator = document.querySelector('#btn-cancel-ai-generator');
   const aiGenStatus = document.querySelector('#ai-gen-status');
   const btnToggleAiSettings = document.querySelector('#btn-toggle-ai-settings');
   const aiSettingsCard = document.querySelector('#ai-settings-card');
@@ -2112,6 +2226,31 @@ ${JSON.stringify(texts)}`;
   const geminiKeyWrap = document.querySelector('#gemini-key-wrap');
   const aiGeminiKey = document.querySelector('#ai-gemini-key');
   const btnSaveGeminiKey = document.querySelector('#btn-save-gemini-key');
+
+  function updateAiFieldsVisibility() {
+    const isGemini = aiEngineSelect?.value === 'gemini';
+    if (geminiKeyWrap) geminiKeyWrap.hidden = !isGemini;
+    const keyHint = document.querySelector('#ai-key-hint');
+    if (keyHint) {
+      keyHint.textContent = isGemini
+        ? 'Введите API-ключ Google Gemini для генерации задач через нейросеть. Получить ключ: aistudio.google.com'
+        : 'Встроенный генератор создаёт аутентичные задачи Skola2030 без API-ключа. Переключитесь на Google Gemini для использования нейросети.';
+    }
+    // Show/hide Gemini-only fields (context, custom prompt, subtopic, task type)
+    document.querySelectorAll('.ai-custom-card').forEach(card => {
+      card.style.display = isGemini ? '' : 'none';
+    });
+    const subtopicField = document.querySelector('#ai-gen-subtopic');
+    if (subtopicField) {
+      const subtopicLabel = subtopicField.closest('label') || subtopicField.parentElement;
+      if (subtopicLabel) subtopicLabel.style.display = isGemini ? '' : 'none';
+    }
+    const typeField = document.querySelector('#ai-gen-type');
+    if (typeField) {
+      const typeLabel = typeField.closest('label') || typeField.parentElement;
+      if (typeLabel) typeLabel.style.display = isGemini ? '' : 'none';
+    }
+  }
 
   function initAiSettings() {
     const savedKey = localStorage.getItem('math_tasks_gemini_api_key') || '';
@@ -2123,6 +2262,7 @@ ${JSON.stringify(texts)}`;
       aiEngineSelect.value = savedEngine;
       aiEngineSelect.addEventListener('change', () => {
         localStorage.setItem('math_tasks_ai_engine', aiEngineSelect.value);
+        updateAiFieldsVisibility();
       });
     }
 
@@ -2140,6 +2280,7 @@ ${JSON.stringify(texts)}`;
       if (k) {
         localStorage.setItem('math_tasks_ai_engine', 'gemini');
         if (aiEngineSelect) aiEngineSelect.value = 'gemini';
+        updateAiFieldsVisibility();
       }
       if (btnSaveGeminiKey) {
         btnSaveGeminiKey.textContent = '✓ Сохранено';
@@ -2154,6 +2295,8 @@ ${JSON.stringify(texts)}`;
         saveKey();
       }
     });
+    
+    updateAiFieldsVisibility();
   }
 
   initAiSettings();
@@ -2400,7 +2543,7 @@ ${JSON.stringify(texts)}`;
       if (topicForm.elements.title_lv) topicForm.elements.title_lv.value = topicData.title_lv;
       topicForm.elements.grade.value = String(topicData.grade);
 
-      const matchingSubj = subjects.find(s => s.slug === topicData.subject_slug) || subjects[0];
+      const matchingSubj = resolveSubject(topicData.subject_slug, subjects) || subjects[0];
       if (matchingSubj) topicForm.elements.subject_id.value = String(matchingSubj.id);
 
       topicForm.elements.position.value = topicData.position || 0;
@@ -2431,7 +2574,7 @@ ${JSON.stringify(texts)}`;
 
       for (let i = 0; i < skola2030Catalog.length; i++) {
         const item = skola2030Catalog[i];
-        const matchingSubj = subjects.find(s => s.slug === item.subject_slug) || subjects[0];
+        const matchingSubj = resolveSubject(item.subject_slug, subjects) || subjects[0];
         const payload = sanitizeTopicPayload({
           title: item.title_ru,
           title_lv: item.title_lv,
@@ -2629,6 +2772,15 @@ ${JSON.stringify(texts)}`;
       return 'Сложный';
     }
 
+    /* Отмену держим снаружи обработчика: кнопка «Остановить» живёт
+       в другом обработчике и должна дотянуться до идущего цикла. */
+    btnCancelAiGenerator?.addEventListener('click', () => {
+      aiGenCancelled = true;
+      btnCancelAiGenerator.hidden = true;
+      aiGenStatus.className = 'ai-gen-status';
+      aiGenStatus.innerHTML = '⏹ Останавливаем после текущей задачи…';
+    });
+
     btnRunAiGenerator?.addEventListener('click', async () => {
       const g = parseFormGrade(aiGenGrade.value) || 7;
       const topicSlugOrId = aiGenTopic.value;
@@ -2642,43 +2794,84 @@ ${JSON.stringify(texts)}`;
       const engine = aiEngineSelect?.value || 'builtin';
       const apiKey = (aiGeminiKey?.value || '').trim() || localStorage.getItem('math_tasks_gemini_api_key') || '';
       const rawCount = Number(aiGenCount?.value) || 1;
-      const count = Math.min(Math.max(1, rawCount), 25);
+      const count = Math.min(Math.max(1, rawCount), 50);
 
       btnRunAiGenerator.disabled = true;
       aiGenStatus.className = 'ai-gen-status';
       aiGenStatus.innerHTML = `<span>⏳</span> Генерация ${count === 1 ? 'задачи' : `задач (${count} шт.)`}…`;
 
+      /* Объявляем до try: блок catch читает эти же накопители, чтобы
+         предложить уже сделанные задачи, а не выбросить их. */
+      const generatedResults = [];
+      const failures = [];
+      let easyCount = 0;
+      let medCount = 0;
+      let hardCount = 0;
+
       try {
         const generator = window.MathTasks.aiGenerator;
         if (!generator) throw new Error('Модуль ai-generator.js не загружен');
 
-        const generatedResults = [];
-        let easyCount = 0;
-        let medCount = 0;
-        let hardCount = 0;
+        /* Бесплатный тариф Gemini ограничивает число запросов в минуту.
+           Полсотни обращений подряд без паузы упираются в этот предел
+           примерно на пятнадцатой задаче — поэтому между задачами ждём.
+           Встроенный генератор работает на месте, ему пауза не нужна. */
+        const usingGemini = engine === 'gemini';
+        const PACE_MS = usingGemini ? 1500 : 0;
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        aiGenCancelled = false;
+        if (btnCancelAiGenerator) btnCancelAiGenerator.hidden = false;
+
+        const progress = i => {
+          const doneLine = failures.length ? ` · не вышло: ${failures.length}` : '';
+          return `из ${count}${doneLine}`;
+        };
 
         for (let i = 0; i < count; i++) {
+          if (aiGenCancelled) break;
+
           const currentDiff = getDifficultyForTask(selectedDifficulty, i, count);
-          if (currentDiff === 'Лёгкий') easyCount++;
-          else if (currentDiff === 'Средний') medCount++;
-          else hardCount++;
 
           aiGenStatus.className = 'ai-gen-status';
-          aiGenStatus.innerHTML = `<span>⏳</span> Генерация задачи ${i + 1} из ${count} [уровень: ${currentDiff}]…`;
+          aiGenStatus.innerHTML = `<span>⏳</span> Генерация задачи ${i + 1} ${progress(i)} [уровень: ${currentDiff}]…`;
 
-          const result = await generator.generateTask({
-            grade: g,
-            topicTitle,
-            subtopic,
-            difficulty: currentDiff,
-            taskType,
-            context,
-            customPrompt,
-            apiKey,
-            useGemini: engine === 'gemini'
-          });
+          try {
+            const result = await generator.generateTask({
+              grade: g,
+              topicTitle,
+              subtopic,
+              difficulty: currentDiff,
+              taskType,
+              context,
+              customPrompt,
+              apiKey,
+              useGemini: usingGemini,
+              /* Модель попросила подождать — говорим об этом вслух, иначе
+                 пауза выглядит как зависание. */
+              onRetry: ({ status, attempt, waitMs }) => {
+                aiGenStatus.innerHTML = `<span>⏳</span> Задача ${i + 1} ${progress(i)}: модель занята${status ? ` (${status})` : ''}, ждём ${Math.round(waitMs / 1000)} с — попытка ${attempt + 1}…`;
+              }
+            });
 
-          generatedResults.push({ result, difficulty: currentDiff });
+            generatedResults.push({ result, difficulty: currentDiff });
+            if (currentDiff === 'Лёгкий') easyCount++;
+            else if (currentDiff === 'Средний') medCount++;
+            else hardCount++;
+          } catch (taskErr) {
+            /* Одна неудачная задача из полусотни — не повод выбрасывать
+               сорок девять удачных. Запоминаем и идём дальше. */
+            failures.push({ index: i + 1, difficulty: currentDiff, message: taskErr.message });
+          }
+
+          if (PACE_MS && i < count - 1 && !aiGenCancelled) await sleep(PACE_MS);
+        }
+
+        if (btnCancelAiGenerator) btnCancelAiGenerator.hidden = true;
+
+        if (!generatedResults.length) {
+          const why = failures.length ? failures[failures.length - 1].message : 'генерация остановлена';
+          throw new Error(why);
         }
 
         const first = generatedResults[0];
@@ -2739,23 +2932,84 @@ ${JSON.stringify(texts)}`;
           }));
 
           openBulkDialog('import');
-          bulkDialogTitle.textContent = `Сгенерировано задач: ${count}`;
-          bulkDialogDesc.innerHTML = `Сгенерировано <strong>${count}</strong> задач по теме «${escapeHtml(topicTitle)}» (${easyCount} лёгких, ${medCount} средних, ${hardCount} сложных). Вы можете проверить JSON и нажать <strong>«Импортировать в базу»</strong>. Первая задача также перенесена в форму.`;
+          const madeCount = generatedResults.length;
+          const failLine = failures.length
+            ? ` Не удалось получить ${failures.length}: ${failures.slice(0, 3).map(f => `#${f.index} — ${f.message.slice(0, 80)}`).join('; ')}${failures.length > 3 ? '…' : ''}`
+            : '';
+          bulkDialogTitle.textContent = `Сгенерировано задач: ${madeCount} из ${count}`;
+          bulkDialogDesc.innerHTML = `Сгенерировано <strong>${madeCount}</strong> задач из ${count} по теме «${escapeHtml(topicTitle)}» (${easyCount} лёгких, ${medCount} средних, ${hardCount} сложных). Вы можете проверить JSON и нажать <strong>«Импортировать в базу»</strong>. Первая задача также перенесена в форму.${escapeHtml(failLine)}`;
           bulkDialogTextarea.value = JSON.stringify(tasksForBulk, null, 2);
-          bulkDialogSubmit.textContent = `Импортировать все ${count} задач в базу`;
+          bulkDialogSubmit.textContent = `Импортировать все ${madeCount} задач в базу`;
           bulkDialogCopy.hidden = false;
           bulkDialogStatus.className = 'bulk-dialog-status success';
-          bulkDialogStatus.innerHTML = `🎉 Сгенерировано: <strong>${count}</strong> задач (${easyCount} лёгких ~45%, ${medCount} средних ~35%, ${hardCount} сложных ~20%).`;
+          bulkDialogStatus.className = failures.length ? 'bulk-dialog-status' : 'bulk-dialog-status success';
+          bulkDialogStatus.innerHTML = `🎉 Сгенерировано: <strong>${madeCount}</strong> из ${count} (${easyCount} лёгких, ${medCount} средних, ${hardCount} сложных).${escapeHtml(failLine)}`;
           bulkDialogStatus.hidden = false;
 
           aiGenStatus.className = 'ai-gen-status success';
-          aiGenStatus.innerHTML = `🎉 Сгенерировано ${count} задач (${easyCount} лёгких, ${medCount} средних, ${hardCount} сложных)! Открыто окно массового импорта.`;
+          aiGenStatus.className = failures.length ? 'ai-gen-status' : 'ai-gen-status success';
+          aiGenStatus.innerHTML = `🎉 Готово: ${madeCount} из ${count} (${easyCount} лёгких, ${medCount} средних, ${hardCount} сложных). Открыто окно массового импорта.${escapeHtml(failLine)}`;
         }
       } catch (err) {
-        aiGenStatus.className = 'ai-gen-status error';
-        aiGenStatus.textContent = 'Ошибка генерации: ' + err.message;
+        if (generatedResults.length > 0) {
+          // Partial results available — offer them
+          aiGenStatus.className = 'ai-gen-status error';
+          aiGenStatus.innerHTML = `⚠️ Ошибка на задаче ${generatedResults.length + 1}: ${err.message}. Но ${generatedResults.length} задач(а) уже готовы!`;
+
+          const first = generatedResults[0];
+          taskForm.elements.title.value = first.result.title_ru || first.result.title || '';
+          if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = first.result.title_lv || '';
+          taskGradeSelect.value = String(g);
+          updateTaskTopicDropdown();
+          const dbMatchingTopic = topics.find(t => t.grade === g && (
+            (t.slug && topicItem?.slug && t.slug === topicItem.slug) ||
+            t.title.toLowerCase().includes(topicTitle.toLowerCase()) ||
+            topicTitle.toLowerCase().includes(t.title.toLowerCase())
+          ));
+          if (dbMatchingTopic) topicSelect.value = String(dbMatchingTopic.id);
+          taskForm.elements.difficulty.value = first.difficulty;
+          conditionInput.value = first.result.condition_latex_ru || first.result.condition_latex || '';
+          if (conditionInputLv) conditionInputLv.value = first.result.condition_latex_lv || '';
+          answerInput.value = first.result.answer_latex || '';
+          if (answerInputLv) answerInputLv.value = first.result.answer_latex_lv || '';
+          solutionInput.value = first.result.solution_latex_ru || first.result.solution_latex || '';
+          if (solutionInputLv) solutionInputLv.value = first.result.solution_latex_lv || '';
+          updatePreviews();
+
+          if (generatedResults.length > 1) {
+            const tasksForBulk = generatedResults.map(({ result: r, difficulty: diff }, idx) => ({
+              title: r.title_ru || r.title || `${topicTitle} #${idx + 1}`,
+              title_lv: r.title_lv || null,
+              condition_latex: r.condition_latex_ru || r.condition_latex || '',
+              condition_latex_lv: r.condition_latex_lv || null,
+              answer_latex: r.answer_latex || null,
+              answer_latex_lv: r.answer_latex_lv || null,
+              solution_latex: r.solution_latex_ru || r.solution_latex || null,
+              solution_latex_lv: r.solution_latex_lv || null,
+              difficulty: diff,
+              grade: g,
+              topic_id: dbMatchingTopic ? dbMatchingTopic.id : null,
+              topic_title: topicTitle,
+              is_published: true
+            }));
+            openBulkDialog('import');
+            bulkDialogTitle.textContent = `Частично сгенерировано: ${generatedResults.length} из ${count}`;
+            bulkDialogDesc.innerHTML = `Сгенерировано <strong>${generatedResults.length}</strong> задач до ошибки. Вы можете импортировать то, что получилось.`;
+            bulkDialogTextarea.value = JSON.stringify(tasksForBulk, null, 2);
+            bulkDialogSubmit.textContent = `Импортировать ${generatedResults.length} задач в базу`;
+            bulkDialogCopy.hidden = false;
+            bulkDialogStatus.className = 'bulk-dialog-status';
+            bulkDialogStatus.innerHTML = `⚠️ Генерация прервана: ${err.message}`;
+            bulkDialogStatus.hidden = false;
+          }
+        } else {
+          aiGenStatus.className = 'ai-gen-status error';
+          aiGenStatus.textContent = 'Ошибка генерации: ' + err.message;
+        }
       } finally {
         btnRunAiGenerator.disabled = false;
+        if (btnCancelAiGenerator) btnCancelAiGenerator.hidden = true;
+        aiGenCancelled = false;
       }
     });
   }

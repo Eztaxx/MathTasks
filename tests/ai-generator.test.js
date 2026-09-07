@@ -101,4 +101,21 @@ describe('AI Task Generator (Skola2030 Autonomous Engine)', () => {
     expect(lv).toContain('Atrisiniet vienādojumu');
     expect(lv).toContain('Atbilde:');
   });
+
+  it('все встроенные генераторы (1–12 классы) возвращают корректный answer_latex_lv', async () => {
+    for (let g = 1; g <= 12; g++) {
+      const task = await aiGen.generateTask({ grade: g });
+      expect(task.answer_latex_lv).toBeTruthy();
+      expect(typeof task.answer_latex_lv).toBe('string');
+      expect(task.answer_latex_lv).toContain('$');
+    }
+  });
+
+  it('генератор 6 класса корректно объясняет знак суммы чисел с разными знаками', async () => {
+    for (let i = 0; i < 20; i++) {
+      const task = await aiGen.generateTask({ grade: 6 });
+      expect(task.solution_latex_ru).not.toContain('| > |-');
+      expect(task.solution_latex_ru).toMatch(/больше|равен/i);
+    }
+  });
 });

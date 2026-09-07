@@ -244,8 +244,28 @@ ${customPrompt ? `Дополнительные пожелания: "${customProm
     const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!candidateText) return json({ error: 'Пустой ответ от модели' }, 502);
 
-    const cleanJson = candidateText.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
-    const parsed = JSON.parse(cleanJson);
+    let cleanJson = candidateText.trim();
+    const fenceMatch = cleanJson.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (fenceMatch && fenceMatch[1]) cleanJson = fenceMatch[1].trim();
+    const firstBrace = cleanJson.indexOf('{');
+    const lastBrace = cleanJson.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      cleanJson = cleanJson.slice(firstBrace, lastBrace + 1);
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(cleanJson);
+    } catch (err1) {
+      try {
+        let sanitized = cleanJson.replace(/\\([bfrtn])([a-zA-Z]{2,})/g, '\\\\$1$2');
+        sanitized = sanitized.replace(/\\(?!["\\/bfnrtu]|u[0-9a-fA-F]{4})/g, '\\\\');
+        parsed = JSON.parse(sanitized);
+      } catch (err2) {
+        let sanitized2 = cleanJson.replace(/\\([^"\\])/g, '\\\\$1');
+        parsed = JSON.parse(sanitized2);
+      }
+    }
 
     return json({
       success: true,

@@ -19,7 +19,11 @@ import {
   suggestTagsForTopic,
   isGradePamatskola,
   isGradeVidusskola,
-  getTopicStage
+  getTopicStage,
+  resolveSubject,
+  normalizeTextKey,
+  extractCleanJson,
+  safeParseJson
 } from '../public/lib.js';
 
 describe('makeSlug', () => {
@@ -367,9 +371,93 @@ describe('parseMultiTopicJson (Массовый импорт файла JSON с 
     expect(tasks[1].topic_title).toBe('Проценты');
   });
 
+  it('сохраняет subject_slug и subject_title при парсинге', () => {
+    const raw = JSON.stringify([
+      {
+        topic_title: 'Уравнения',
+        subject_slug: 'algebra',
+        subject_title: 'Алгебра и числа',
+        tasks: [{ title: 'Задача', condition_latex: '$x=1$' }]
+      }
+    ]);
+    const { uniqueTopics } = parseMultiTopicJson(raw);
+    expect(uniqueTopics[0].subject_slug).toBe('algebra');
+    expect(uniqueTopics[0].subject_title).toBe('Алгебра и числа');
+  });
+
   it('выбрасывает ошибку при невалидном или пустом вводе', () => {
     expect(() => parseMultiTopicJson('')).toThrow();
     expect(() => parseMultiTopicJson('{ broken json ')).toThrow();
+  });
+});
+
+describe('resolveSubject (Умное распознавание разделов каталога)', () => {
+  const sampleSubjects = [
+    { id: 1, title: 'Алгебра и числа', slug: 'algebra', title_lv: 'Algebra un skaitļi' },
+    { id: 2, title: 'Геометрия', slug: 'geometry', title_lv: 'Ģeometrija' },
+    { id: 27, title: 'Комбинаторика и вероятности', slug: 'kombinatorika-un-varbutibas', title_lv: 'Kombinatorika un varbūtības' },
+    { id: 3, title: 'Комбинаторика, вероятности и статистика', slug: 'statistics', title_lv: 'Kombinatorika, varbūtības un statistika' },
+    { id: 15, title: 'Функции', slug: 'funkcijas', title_lv: 'Funkcijas' },
+    { id: 16, title: 'Тригонометрия', slug: 'trigonometrija', title_lv: 'Trigonometrija' },
+    { id: 17, title: 'Стереометрия', slug: 'stereometrija', title_lv: 'Stereometrija' },
+    { id: 19, title: 'Математический анализ', slug: 'matematiskais-analizs', title_lv: 'Matemātiskā analīze' },
+    { id: 28, title: 'Планиметрия', slug: 'planimetrija', title_lv: 'Planimetrija' }
+  ];
+
+  it('находит раздел по точному slug', () => {
+    expect(resolveSubject('algebra', sampleSubjects)?.id).toBe(1);
+    expect(resolveSubject('geometry', sampleSubjects)?.id).toBe(2);
+    expect(resolveSubject('trigonometrija', sampleSubjects)?.id).toBe(16);
+  });
+
+  it('находит раздел при передаче латышских названий или слагов (algebra_un_skaitli, geometrija)', () => {
+    expect(resolveSubject('algebra_un_skaitli', sampleSubjects)?.id).toBe(1);
+    expect(resolveSubject('algebra-un-skaitli', sampleSubjects)?.id).toBe(1);
+    expect(resolveSubject('Algebra un skaitļi', sampleSubjects)?.id).toBe(1);
+    expect(resolveSubject('geometrija', sampleSubjects)?.id).toBe(2);
+    expect(resolveSubject('Ģeometrija', sampleSubjects)?.id).toBe(2);
+  });
+
+  it('находит раздел при передаче русских названий (Алгебра, Геометрия)', () => {
+    expect(resolveSubject('Алгебра и числа', sampleSubjects)?.id).toBe(1);
+    expect(resolveSubject('алгебра', sampleSubjects)?.id).toBe(1);
+    expect(resolveSubject('геометрия', sampleSubjects)?.id).toBe(2);
+    expect(resolveSubject('математический анализ', sampleSubjects)?.id).toBe(19);
+  });
+
+  it('возвращает null для несуществующего раздела', () => {
+    expect(resolveSubject('astronomy', sampleSubjects)).toBeNull();
+    expect(resolveSubject('', sampleSubjects)).toBeNull();
+  });
+});
+
+describe('safeParseJson & extractCleanJson (Устойчивый парсинг ответов нейросетей)', () => {
+  it('извлекает JSON из markdown блока с лишним текстом до и после', () => {
+    const raw = 'Вот сгенерированная задача:\n```json\n{\n  "title_ru": "Тест"\n}\n```\nНадеюсь, вам понравилось!';
+    const result = safeParseJson(raw);
+    expect(result.title_ru).toBe('Тест');
+  });
+
+  it('успешно парсит JSON с текстом после закрывающей скобки (ошибка position 1358)', () => {
+    const raw = '{"title_ru": "Задача 1", "answer_latex": "$42$"}\n\nПримечание от ИИ: задача создана по стандарту Skola2030.';
+    const result = safeParseJson(raw);
+    expect(result.title_ru).toBe('Задача 1');
+    expect(result.answer_latex).toBe('$42$');
+  });
+
+  it('автоматически чинит неэкранированные LaTeX-слэши (\\sqrt, \\frac, \\pm)', () => {
+    const raw = '{\n  "condition_latex_ru": "Решите $\\sqrt{x} = 2$",\n  "answer_latex": "$\\pm 4$"\n}';
+    // Допустим, в строке одинарные слэши:
+    const rawUnescaped = '{\n  "condition": "$\\sqrt{x} + \\frac{1}{2}$",\n  "answer": "$\\pm 5$"\n}';
+    const result = safeParseJson(rawUnescaped);
+    expect(result.condition).toContain('sqrt');
+    expect(result.answer).toContain('pm');
+  });
+
+  it('парсит JSON-массив с комментариями вокруг', () => {
+    const raw = 'Ответ модели:\n["Atrisināt vienādojumu", "$x = 5$"]\nГотово!';
+    const result = safeParseJson(raw);
+    expect(result).toEqual(['Atrisināt vienādojumu', '$x = 5$']);
   });
 });
 

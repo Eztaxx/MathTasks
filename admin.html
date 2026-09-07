@@ -232,7 +232,7 @@
               </select>
             </label>
             <label class="field-count">Количество задач
-              <input type="number" id="ai-gen-count" value="1" min="1" max="25" />
+              <input type="number" id="ai-gen-count" value="1" min="1" max="50" />
             </label>
           </div>
 
@@ -292,6 +292,7 @@
           <button type="button" class="primary-button ai-primary-btn" id="btn-run-ai-generator">
             <span class="ai-icon">✨</span> Сгенерировать задачу Skola2030
           </button>
+          <button type="button" class="text-button ai-cancel-btn" id="btn-cancel-ai-generator" hidden>Остановить</button>
           <span class="ai-gen-status" id="ai-gen-status"></span>
         </div>
       </div>
@@ -633,10 +634,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/lib.js"></script>
-  <script src="/i18n.js"></script>
-  <script src="/client.js"></script>
-  <script src="/ai-generator.js"></script>
-  <script src="/admin.js"></script>
+  <script src="/lib.js?v=20260907-4"></script>
+  <script src="/i18n.js?v=20260907-4"></script>
+  <script src="/client.js?v=20260907-4"></script>
+  <script src="/ai-generator.js?v=20260907-4"></script>
+  <script src="/admin.js?v=20260907-4"></script>
 </body>
 </html>

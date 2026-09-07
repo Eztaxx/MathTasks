@@ -231,6 +231,8 @@
           title_lv: item.topic_title_lv || item.title_lv ? String(item.topic_title_lv || item.title_lv).trim() : null,
           grade: parseFormGrade(item.grade),
           subject_id: item.subject_id ? Number(item.subject_id) : null,
+          subject_slug: item.subject_slug ? String(item.subject_slug).trim() : null,
+          subject_title: item.subject_title ? String(item.subject_title).trim() : null,
           description: item.description ? String(item.description).trim() : null,
           description_lv: item.description_lv ? String(item.description_lv).trim() : null
         };
@@ -257,6 +259,8 @@
             title_lv: t.topic_title_lv ? String(t.topic_title_lv).trim() : null,
             grade: parseFormGrade(t.grade),
             subject_id: t.subject_id ? Number(t.subject_id) : null,
+            subject_slug: t.subject_slug ? String(t.subject_slug).trim() : null,
+            subject_title: t.subject_title ? String(t.subject_title).trim() : null,
             description: null,
             description_lv: null
           });
@@ -367,6 +371,117 @@
     return 'pamatskola';
   };
 
+  const normalizeTextKey = str => {
+    if (!str) return '';
+    return String(str)
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9а-яё]/gi, '');
+  };
+
+  const resolveSubject = (slugOrTitle, subjectsList) => {
+    if (!slugOrTitle || !Array.isArray(subjectsList) || !subjectsList.length) return null;
+    const raw = String(slugOrTitle).trim().toLowerCase();
+    const clean = normalizeTextKey(raw);
+    if (!clean) return null;
+
+    // 1. Прямое совпадение по slug
+    const directSlug = subjectsList.find(s => s.slug?.toLowerCase() === raw);
+    if (directSlug) return directSlug;
+
+    // 2. Прямое совпадение по названию RU или LV
+    const directTitle = subjectsList.find(s =>
+      s.title?.toLowerCase() === raw ||
+      s.title_lv?.toLowerCase() === raw
+    );
+    if (directTitle) return directTitle;
+
+    // 3. Совпадение по нормализованному ключу (без пробелов, подчёркиваний, дефисов и диакритики)
+    const normalizedMatch = subjectsList.find(s =>
+      normalizeTextKey(s.slug) === clean ||
+      normalizeTextKey(s.title) === clean ||
+      normalizeTextKey(s.title_lv) === clean
+    );
+    if (normalizedMatch) return normalizedMatch;
+
+    // 4. Поиск по алиасам / корням слов
+    const ALIAS_RULES = [
+      { keys: ['algebra', 'skaitli', 'chisla', 'алгебр', 'числа'], slug: 'algebra' },
+      { keys: ['geometr', 'geometry', 'figuras', 'геометр', 'фигур'], slug: 'geometry' },
+      { keys: ['planimetr', 'планиметр'], slug: 'planimetrija' },
+      { keys: ['stereometr', 'стереометр'], slug: 'stereometrija' },
+      { keys: ['trigonometr', 'тригонометр'], slug: 'trigonometrija' },
+      { keys: ['funkcij', 'function', 'функци'], slug: 'funkcijas' },
+      { keys: ['statist', 'статист'], slug: 'statistics' },
+      { keys: ['kombinatorik', 'varbutib', 'комбинаторик', 'вероятност'], slug: 'kombinatorika-un-varbutibas' },
+      { keys: ['analiz', 'calculus', 'анализ'], slug: 'matematiskais-analizs' }
+    ];
+
+    for (const rule of ALIAS_RULES) {
+      if (rule.keys.some(k => clean.includes(k) || raw.includes(k))) {
+        const found = subjectsList.find(s => s.slug === rule.slug);
+        if (found) return found;
+      }
+    }
+
+    return null;
+  };
+
+  const extractCleanJson = raw => {
+    if (!raw) return '';
+    let str = String(raw).trim();
+
+    // 1. Извлекаем содержимое из markdown блоков ```json ... ``` или ``` ... ```
+    const fenceMatch = str.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (fenceMatch && fenceMatch[1]) {
+      str = fenceMatch[1].trim();
+    }
+
+    // 2. Находим границы внешнего JSON-объекта {...} или массива [...]
+    const firstBrace = str.indexOf('{');
+    const firstBracket = str.indexOf('[');
+    let startIdx = -1;
+    let endChar = '';
+
+    if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+      startIdx = firstBrace;
+      endChar = '}';
+    } else if (firstBracket !== -1) {
+      startIdx = firstBracket;
+      endChar = ']';
+    }
+
+    if (startIdx !== -1) {
+      const lastEnd = str.lastIndexOf(endChar);
+      if (lastEnd > startIdx) {
+        str = str.slice(startIdx, lastEnd + 1);
+      }
+    }
+
+    return str;
+  };
+
+  const safeParseJson = raw => {
+    const clean = extractCleanJson(raw);
+    try {
+      return JSON.parse(clean);
+    } catch (initialErr) {
+      try {
+        let sanitized = clean.replace(/\\([bfrtn])([a-zA-Z]{2,})/g, '\\\\$1$2');
+        sanitized = sanitized.replace(/\\(?!["\\/bfnrtu]|u[0-9a-fA-F]{4})/g, '\\\\');
+        return JSON.parse(sanitized);
+      } catch (secondErr) {
+        try {
+          let sanitized2 = clean.replace(/\\([^"\\])/g, '\\\\$1');
+          return JSON.parse(sanitized2);
+        } catch (thirdErr) {
+          throw initialErr;
+        }
+      }
+    }
+  };
+
   const api = {
     makeSlug,
     sanitizeSearch,
@@ -387,7 +502,11 @@
     suggestTagsForTopic,
     isGradePamatskola,
     isGradeVidusskola,
-    getTopicStage
+    getTopicStage,
+    normalizeTextKey,
+    resolveSubject,
+    extractCleanJson,
+    safeParseJson
   };
   if (typeof globalThis !== 'undefined' && typeof globalThis.window !== 'undefined') {
     globalThis.window.MathTasksLib = api;

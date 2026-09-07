@@ -2354,3 +2354,8 @@ dialog[open]{position:fixed;inset:0;margin:auto}
 /* Номер в тренажёре держит те же отступы, что и подсвеченный: иначе
    при снятии подсветки строка дёргается на ширину фона. */
 .compact-drill-num{padding:1px 5px;border-radius:6px;text-align:center}
+
+/* Остановить генерацию пачки. Пока идёт работа — это единственный выход,
+   кроме перезагрузки страницы, а перезагрузка теряет всё сделанное. */
+.ai-cancel-btn{font-size:13px;font-weight:600;color:#dc2626}
+.ai-cancel-btn:hover{text-decoration:underline}
