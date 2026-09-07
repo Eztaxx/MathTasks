@@ -937,6 +937,7 @@ let lastRenderedOptions = {};
 /* Метку класса показываем только там, где она что-то добавляет: внутри
    выбранного класса она одинакова у всех карточек и превращается в шум. */
 function renderTaskList(container, tasks, emptyText, options = {}) {
+  listCursor = -1;
   const { showTopicLink = true, showGrade = !selectedGrade, linkTitle = true, highlightQuery = '' } = options;
   lastRenderedContainer = container;
   lastRenderedTasks = tasks || [];
@@ -2884,10 +2885,40 @@ document.querySelector('#plotter-dialog')?.addEventListener('click', event => {
 });
 
 // Навигация стрелками на клавиатуре для режима вывода задач "По одной" (1)
+/* Индекс задачи, подсвеченной стрелками в режиме списка. Сбрасывается
+   при каждой перерисовке: список мог смениться целиком. */
+let listCursor = -1;
+
+function moveListCursor(step) {
+  const cards = [...(lastRenderedContainer?.querySelectorAll('.task') || [])];
+  if (cards.length < 2) return false;
+  const next = listCursor < 0
+    ? (step > 0 ? 0 : cards.length - 1)
+    : Math.min(cards.length - 1, Math.max(0, listCursor + step));
+  if (next === listCursor) return false;
+  listCursor = next;
+  cards.forEach((c, i) => c.classList.toggle('is-current', i === listCursor));
+  cards[listCursor].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  return true;
+}
+
 window.addEventListener('keydown', event => {
+  const tagName = (event.target && event.target.tagName) ? event.target.tagName.toLowerCase() : '';
+  const typing = tagName === 'input' || tagName === 'textarea' || tagName === 'select' || event.target.isContentEditable;
+  if (typing || event.metaKey || event.ctrlKey || event.altKey) return;
+
+  /* В списке стрелки ведут курсор по карточкам: вверх-вниз привычнее для
+     вертикального списка, влево-вправо оставлены для единообразия с «по одной». */
+  if (taskViewMode === 'list') {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+      if (moveListCursor(1)) event.preventDefault();
+    } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+      if (moveListCursor(-1)) event.preventDefault();
+    }
+    return;
+  }
+
   if (taskViewMode !== 'single' || !lastRenderedTasks || lastRenderedTasks.length <= 1) return;
-  const tag = (event.target && event.target.tagName) ? event.target.tagName.toLowerCase() : '';
-  if (tag === 'input' || tag === 'textarea' || tag === 'select' || event.target.isContentEditable) return;
 
   if (event.key === 'ArrowLeft' && singleTaskIndex > 0) {
     event.preventDefault();

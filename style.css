@@ -1937,10 +1937,13 @@ body.dark .compact-drill-stats {
   color: #60a5fa;
 }
 
+/* Все карточки одной высоты — по самой длинной: grid-auto-rows: 1fr
+   выравнивает все ряды сетки между собой, а не только внутри ряда. */
 .task-compact-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  align-items: start;
+  grid-auto-rows: 1fr;
+  align-items: stretch;
   gap: 10px;
 }
 
@@ -2287,3 +2290,17 @@ body.dark .drill-hint-section .math {
 .compact-drill-figure-btn{flex:none;width:26px;height:26px;display:grid;place-items:center;padding:0;border:1px solid transparent;border-radius:7px;background:transparent;font-size:14px;line-height:1;cursor:pointer;opacity:.75}
 .compact-drill-figure-btn:hover{opacity:1;background:var(--chip-hover,#f1f5f9);border-color:var(--line)}
 .compact-drill-figure-btn:focus-visible{outline:2px solid var(--blue,#1764ff);outline-offset:1px}
+
+/* В карточке одной высоты содержимое короткого условия не должно
+   растягиваться: номер и кнопки остаются наверху, ответ — под условием. */
+.compact-drill-item > .compact-drill-num,
+.compact-drill-item > .compact-drill-actions { align-self: flex-start; }
+.compact-drill-body { align-self: stretch; }
+.compact-drill-answer-wrap { align-self: flex-end; }
+
+/* Подсвеченная стрелками задача в режиме списка. */
+.task.is-current {
+  outline: 2px solid var(--blue, #1764ff);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
