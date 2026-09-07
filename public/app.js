@@ -797,6 +797,14 @@ function difficultyBadge(diff) {
   return `<span class="task-diff ${cls}" title="${escapeHtml(label)}"><span class="diff-dot" aria-hidden="true">${dot}</span>${escapeHtml(label)}</span>`;
 }
 
+/* Номер задачи — её место внутри своей темы, как в школьном задачнике:
+   «задача 7» означает одно и то же на странице темы, в поиске и в закладках.
+   Если позиция почему-то не задана, показываем порядок в списке. */
+function taskNumber(task, index) {
+  const pos = Number(task.position);
+  return Number.isFinite(pos) && pos > 0 ? pos : index + 1;
+}
+
 function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number } = {}) {
   const tr = window.MathTasks.t || (k => k);
   currentTasksMap.set(task.id, task);
@@ -964,7 +972,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     if (singleTaskIndex < 0) singleTaskIndex = 0;
     if (singleTaskIndex >= tasks.length) singleTaskIndex = 0;
     const task = tasks[singleTaskIndex];
-    const currentNum = singleTaskIndex + 1;
+    const currentNum = taskNumber(tasks[singleTaskIndex], singleTaskIndex);
     const totalNum = tasks.length;
 
     const tr = window.MathTasks.t || (k => k);
@@ -979,7 +987,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
         </div>
         <div class="pager-dots" role="tablist" aria-label="Tabs">
           ${tasks.map((_, i) => `
-            <button type="button" class="pager-dot${i === singleTaskIndex ? ' active' : ''}" data-pager-idx="${i}" title="${i + 1}" aria-label="${i + 1}">${i + 1}</button>
+            <button type="button" class="pager-dot${i === singleTaskIndex ? ' active' : ''}" data-pager-idx="${i}" title="${taskNumber(tasks[i], i)}" aria-label="${taskNumber(tasks[i], i)}">${taskNumber(tasks[i], i)}</button>
           `).join('')}
         </div>
       </div>
@@ -1013,7 +1021,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
 
       return `
         <div class="compact-drill-item${solved ? ' is-solved' : ''}" data-task-id="${task.id}" id="drill-task-${task.id}">
-          <span class="compact-drill-num" title="${escapeHtml(taskTitle)}">${index + 1}.</span>
+          <span class="compact-drill-num" title="${escapeHtml(taskTitle)}">${taskNumber(task, index)}.</span>
           <div class="compact-drill-body">
             <div class="compact-drill-expr math" data-drill-condition="${task.id}"></div>
             <div class="compact-drill-answer-wrap">
@@ -1063,7 +1071,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
       }
     });
   } else {
-    container.innerHTML = tasks.map((task, i) => taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number: i + 1 })).join('');
+    container.innerHTML = tasks.map((task, i) => taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number: taskNumber(task, i) })).join('');
     fillTaskMath(container, tasks);
   }
 }
@@ -1419,7 +1427,7 @@ function renderTopicAnchors(tasks) {
   listAnchors.hidden = !enough;
   if (!enough) { listAnchors.innerHTML = ''; return; }
   listAnchors.innerHTML = `<span class="topic-anchors-label">${(window.MathTasks.t || (k => k))('anchors_label')}</span>` + tasks
-    .map((task, index) => `<a class="topic-anchor" href="#task-${task.id}" data-anchor-task="${task.id}" title="${escapeHtml(loc(task, 'title'))}">${index + 1}</a>`)
+    .map((task, index) => `<a class="topic-anchor" href="#task-${task.id}" data-anchor-task="${task.id}" title="${escapeHtml(loc(task, 'title'))}">${taskNumber(task, index)}</a>`)
     .join('');
 }
 

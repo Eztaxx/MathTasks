@@ -1962,7 +1962,10 @@ ${JSON.stringify(texts)}`;
         difficulty: item.difficulty || 'Средний',
         grade: parseFormGrade(item.grade),
         topic_id: topicId,
-        position: item.position !== undefined ? Number(item.position) : nextPosition(topicId, null),
+        /* Позицию из файла не берём: в наборах она у каждой задачи была
+           единицей, и все задачи темы слипались в один номер. Номер внутри
+           темы назначаем сами, по порядку добавления. */
+        position: nextPosition(topicId, null),
         is_published: item.is_published !== undefined ? Boolean(item.is_published) : true
       });
 
