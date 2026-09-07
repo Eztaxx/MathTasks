@@ -64,7 +64,7 @@
     </a>
     <div class="grade-context">
       <label class="grade-select-label" for="grade-select"><span data-i18n="grade_label">Класс</span><select id="grade-select"></select></label>
-      <button class="grade-pill" id="grade-pill" type="button" aria-label="Выбрать класс">Все</button>
+      <button data-i18n="grade_all_short" class="grade-pill" id="grade-pill" type="button" aria-label="Выбрать класс" data-i18n-aria="grade_pick">Все</button>
     </div>
     <nav id="sidebar-nav">
       <a class="nav-link" href="/" title="Главная" data-i18n-title="nav_home"><span class="nav-icon">⌂</span><span class="label" data-i18n="nav_home">Главная</span></a>
@@ -76,11 +76,11 @@
     <header class="topbar">
       <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="Свернуть меню" data-i18n-aria="menu_toggle"><span aria-hidden="true">☰</span></button>
       <label class="search"><span>⌕</span><input id="search-input" type="search" aria-label="Поиск задач" placeholder="Поиск задач по теме или ключевому слову..." data-i18n-placeholder="search_placeholder" data-i18n-aria="search_placeholder" /></label>
-      <div class="lang-switcher" id="lang-switcher" role="group" aria-label="Valodas izvēle / Выбор языка">
-        <button type="button" class="lang-btn" data-lang="lv" title="Latviešu valoda">LV</button>
-        <button type="button" class="lang-btn active" data-lang="ru" title="Русский язык">RU</button>
+      <div class="lang-switcher" id="lang-switcher" role="group" aria-label="Valodas izvēle / Выбор языка" data-i18n-aria="lang_switcher">
+        <button type="button" class="lang-btn" data-lang="lv" title="Latviešu valoda" data-i18n-title="lang_lv">LV</button>
+        <button type="button" class="lang-btn active" data-lang="ru" title="Русский язык" data-i18n-title="lang_ru">RU</button>
       </div>
-      <button class="theme-switch" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Переключить тему" title="Переключить тему">
+      <button class="theme-switch" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Переключить тему" data-i18n-aria="theme_toggle" title="Переключить тему" data-i18n-title="theme_toggle">
         <span class="theme-switch-track" aria-hidden="true">
           <span class="theme-switch-thumb">
             <svg class="theme-switch-sun" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -128,7 +128,7 @@
 
       <section class="grades">
         <h2 data-i18n="section_grades">Классы</h2>
-        <div class="grade-filter" id="grade-filter" role="group" aria-label="Фильтр по классу"></div>
+        <div class="grade-filter" id="grade-filter" role="group" aria-label="Фильтр по классу" data-i18n-aria="grade_filter"></div>
       </section>
 
       <section class="topics"><h2 id="topics-heading" data-i18n="popular_topics">Популярные темы</h2><div class="topic-grid" id="topics"></div></section>
@@ -136,7 +136,7 @@
     </div>
 
     <div id="view-list" hidden>
-      <nav class="breadcrumb" id="list-breadcrumb" aria-label="Хлебные крошки"></nav>
+      <nav class="breadcrumb" id="list-breadcrumb" aria-label="Хлебные крошки" data-i18n-aria="breadcrumbs"></nav>
       <header class="list-header">
         <h1 id="list-title"></h1>
         <p id="list-description"></p>
@@ -145,12 +145,12 @@
       </header>
       <div id="list-groups" hidden></div>
       <div class="topic-grid" id="list-topics" hidden></div>
-      <nav class="topic-anchors" id="list-anchors" hidden aria-label="Задачи темы"></nav>
+      <nav class="topic-anchors" id="list-anchors" hidden aria-label="Задачи темы" data-i18n-aria="topic_tasks_nav"></nav>
       <div class="task-list" id="list-tasks"></div>
     </div>
 
     <div id="view-about" hidden>
-      <nav class="breadcrumb" aria-label="Хлебные крошки"><a href="/" data-i18n="nav_home">Главная</a><span class="crumb-sep">/</span><span data-i18n="nav_about">О сайте</span></nav>
+      <nav class="breadcrumb" aria-label="Хлебные крошки" data-i18n-aria="breadcrumbs"><a href="/" data-i18n="nav_home">Главная</a><span class="crumb-sep">/</span><span data-i18n="nav_about">О сайте</span></nav>
       <header class="list-header"><h1 data-i18n="about_title">О сайте</h1></header>
       <div class="about-page" data-i18n-html="about_body">
       </div>
@@ -158,7 +158,7 @@
   </main>
 
   <dialog class="auth-dialog" id="auth-dialog" aria-labelledby="auth-dialog-title">
-    <button class="dialog-close" type="button" aria-label="Закрыть">×</button>
+    <button class="dialog-close" type="button" aria-label="Закрыть" data-i18n-aria="dialog_close">×</button>
     <form id="login-form">
       <h2 id="auth-dialog-title" data-i18n="auth_title">Вход для администратора</h2><p data-i18n="auth_hint">Войдите с email и паролем администратора.</p>
       <label>Email<input id="login-email" type="email" required autocomplete="email" /></label>
@@ -168,16 +168,16 @@
   </dialog>
 
   <dialog class="auth-dialog account-dialog" id="account-dialog" aria-labelledby="account-dialog-title">
-    <button class="dialog-close" id="account-dialog-close" type="button" aria-label="Закрыть">×</button>
-    <h2 id="account-dialog-title">Аккаунт</h2>
+    <button class="dialog-close" id="account-dialog-close" type="button" aria-label="Закрыть" data-i18n-aria="dialog_close">×</button>
+    <h2 data-i18n="account_plain" id="account-dialog-title">Аккаунт</h2>
     <p id="account-status"></p>
-    <div class="account-details"><span>Аккаунт</span><strong id="account-email"></strong></div>
+    <div class="account-details"><span data-i18n="account_email">Аккаунт</span><strong id="account-email"></strong></div>
     <div id="admin-panel-slot"></div>
-    <button data-sign-out class="text-button" type="button">Выйти из аккаунта</button>
+    <button data-i18n="account_signout" data-sign-out class="text-button" type="button">Выйти из аккаунта</button>
   </dialog>
 
-  <dialog class="lightbox-dialog" id="lightbox-dialog" aria-label="Просмотр чертежа">
-    <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Закрыть" title="Закрыть"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <dialog class="lightbox-dialog" id="lightbox-dialog" aria-label="Просмотр чертежа" data-i18n-aria="lightbox_label">
+    <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Закрыть" data-i18n-aria="dialog_close" title="Закрыть" data-i18n-title="dialog_close"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="lightbox-content">
       <img class="lightbox-img" id="lightbox-img" alt="" hidden />
       <p class="lightbox-caption" id="lightbox-caption"></p>
@@ -185,22 +185,22 @@
   </dialog>
 
   <dialog class="auth-dialog drill-hint-dialog" id="drill-hint-dialog" aria-labelledby="drill-hint-title">
-    <button class="dialog-close" id="drill-hint-close" type="button" aria-label="Закрыть">×</button>
+    <button class="dialog-close" id="drill-hint-close" type="button" aria-label="Закрыть" data-i18n-aria="dialog_close">×</button>
     <div class="drill-hint-head">
-      <span class="drill-hint-badge">💡 Разбор</span>
+      <span data-i18n="drill_hint_badge" class="drill-hint-badge">💡 Разбор</span>
       <h3 id="drill-hint-title"></h3>
     </div>
     <div class="drill-hint-content">
       <div class="drill-hint-section">
-        <strong>Условие:</strong>
+        <strong data-i18n="label_condition">Условие:</strong>
         <div class="math" id="drill-hint-condition"></div>
       </div>
       <div class="drill-hint-section" id="drill-hint-ans-section">
-        <strong>Ответ:</strong>
+        <strong data-i18n="label_answer">Ответ:</strong>
         <div class="math" id="drill-hint-answer"></div>
       </div>
       <div class="drill-hint-section" id="drill-hint-sol-section">
-        <strong>Решение:</strong>
+        <strong data-i18n="label_solution">Решение:</strong>
         <div class="math" id="drill-hint-solution"></div>
       </div>
     </div>
@@ -208,7 +208,7 @@
 
 
   <dialog class="plotter-dialog" id="plotter-dialog" aria-labelledby="plotter-dialog-title">
-    <button class="dialog-close" id="plotter-close" type="button" aria-label="Закрыть">×</button>
+    <button class="dialog-close" id="plotter-close" type="button" aria-label="Закрыть" data-i18n-aria="dialog_close">×</button>
     <div class="plotter-head">
       <h2 data-i18n="plotter_title" id="plotter-dialog-title">📈 Графопостроитель функций</h2>
       <p data-i18n="plotter_subtitle">Интерактивное исследование функций: введите формулу или выберите готовую.</p>
@@ -216,27 +216,27 @@
     <div class="plotter-controls">
       <div class="plotter-input-wrap">
         <span class="plotter-prefix">y =</span>
-        <input type="text" id="plotter-expr" value="x^2 - 4" placeholder="x^2 - 4, 2*x + 1, sin(x)..." aria-label="Формула функции" />
+        <input type="text" id="plotter-expr" value="x^2 - 4" placeholder="x^2 - 4, 2*x + 1, sin(x)..." aria-label="Формула функции" data-i18n-aria="formula_input" />
         <button type="button" id="plotter-draw-btn" class="primary-button" data-i18n="plotter_draw">Построить</button>
       </div>
-      <div class="quick-math-bar plotter-math-bar" aria-label="Быстрый ввод математических символов">
+      <div class="quick-math-bar plotter-math-bar" aria-label="Быстрый ввод математических символов" data-i18n-aria="symbol_pad">
         <span class="quick-math-bar-label" data-i18n="quick_math_label">Вставка:</span>
-        <button type="button" class="quick-math-btn" data-plotter-insert="x" title="Переменная x">x</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="²" title="Квадрат (²)">x²</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="^" title="Степень (^)">xⁿ</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="√(" title="Квадратный корень (√)">√x</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="/" title="Дробь / Деление">/</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="sin(" title="Синус">sin</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="cos(" title="Косинус">cos</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="tan(" title="Тангенс">tan</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="ln(" title="Натуральный логарифм">ln</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="|" title="Модуль">|x|</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="(" title="Скобки">( )</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="π" title="Число Пи">π</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="e" title="Экспонента e">e</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="+" title="Плюс">+</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="-" title="Минус">−</button>
-        <button type="button" class="quick-math-btn" data-plotter-insert="*" title="Умножение">*</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="x" title="Переменная x" data-i18n-title="sym_var_x">x</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="²" title="Квадрат (²)" data-i18n-title="sym_square">x²</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="^" title="Степень (^)" data-i18n-title="sym_power">xⁿ</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="√(" title="Квадратный корень (√)" data-i18n-title="sym_sqrt">√x</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="/" title="Дробь / Деление" data-i18n-title="sym_frac">/</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="sin(" title="Синус" data-i18n-title="sym_sin">sin</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="cos(" title="Косинус" data-i18n-title="sym_cos">cos</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="tan(" title="Тангенс" data-i18n-title="sym_tan">tan</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="ln(" title="Натуральный логарифм" data-i18n-title="sym_ln">ln</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="|" title="Модуль" data-i18n-title="sym_abs">|x|</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="(" title="Скобки" data-i18n-title="sym_paren">( )</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="π" title="Число Пи" data-i18n-title="sym_pi">π</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="e" title="Экспонента e" data-i18n-title="sym_exp">e</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="+" title="Плюс" data-i18n-title="sym_plus">+</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="-" title="Минус" data-i18n-title="sym_minus">−</button>
+        <button type="button" class="quick-math-btn" data-plotter-insert="*" title="Умножение" data-i18n-title="sym_times">*</button>
       </div>
       <div class="plotter-presets">
         <span class="plotter-presets-label" data-i18n="plotter_presets">Примеры:</span>
@@ -249,12 +249,12 @@
       </div>
     </div>
     <div class="plotter-canvas-container">
-      <canvas id="plotter-canvas" role="img" aria-label="График функции"></canvas>
+      <canvas id="plotter-canvas" role="img" aria-label="График функции" data-i18n-aria="graph_canvas"></canvas>
       <div class="plotter-coords" id="plotter-coords">x: 0.0, y: 0.0</div>
       <div class="plotter-zoom">
-        <button type="button" id="plotter-zoom-in" title="Увеличить">+</button>
-        <button type="button" id="plotter-zoom-out" title="Уменьшить">−</button>
-        <button type="button" id="plotter-zoom-reset" title="Сброс масштаба">1:1</button>
+        <button type="button" id="plotter-zoom-in" title="Увеличить" data-i18n-title="zoom_in">+</button>
+        <button type="button" id="plotter-zoom-out" title="Уменьшить" data-i18n-title="zoom_out">−</button>
+        <button type="button" id="plotter-zoom-reset" title="Сброс масштаба" data-i18n-title="zoom_reset">1:1</button>
       </div>
     </div>
     <div class="plotter-info" id="plotter-info">
@@ -269,7 +269,7 @@
         <h2 data-i18n="formulas_title" id="formulas-dialog-title">Справочник формул Skola2030</h2>
         <p data-i18n="formulas_subtitle">Официальные формульные листы экзаменов и интерактивная шпаргалка</p>
       </div>
-      <button class="dialog-close" id="formulas-close" type="button" aria-label="Закрыть">×</button>
+      <button class="dialog-close" id="formulas-close" type="button" aria-label="Закрыть" data-i18n-aria="dialog_close">×</button>
     </div>
 
     <div class="formulas-main-tabs">

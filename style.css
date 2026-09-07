@@ -2332,7 +2332,13 @@ dialog[open]{position:fixed;inset:0;margin:auto}
 
 /* Номер задачи в подборке — перед названием, приглушённый: он помогает
    найти строку, но не должен спорить с самим названием. */
-.task-number{display:inline-block;min-width:1.9em;margin-right:6px;padding:1px 5px;border-radius:6px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums;text-align:center}
+/* Строка заголовка: номер прижат к тексту названия, как в тренажёре.
+   align-items:baseline сажает цифру на ту же линию, что и буквы, а
+   min-width:0 у заголовка позволяет длинному названию переноситься,
+   а не распирать строку. */
+.task-head{display:flex;align-items:baseline;gap:7px}
+.task-head .task-title{min-width:0}
+.task-number{flex:none;align-self:flex-start;padding:1px 5px;border-radius:6px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums;text-align:center}
 
 /* Выбранная задача */
 /* Обводка вокруг всей карточки спорила с её собственными границами

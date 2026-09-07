@@ -297,7 +297,7 @@ function renderTopicSidebar(topic) {
   const backHref = grade ? `/grade/${gradeSlug}` : '/';
 
   // Кнопка возврата к общему списку / экзаменам
-  const backBtn = `<a class="sidebar-back-button" href="${backHref}" title="Вернуться к экзаменам и каталогу">
+  const backBtn = `<a class="sidebar-back-button" href="${backHref}" title="${escapeHtml((window.MathTasks.t || (k => k))('back_to_catalog'))}">
     <span class="back-icon">←</span>
     <span class="label">${escapeHtml((window.MathTasks.t || (k => k))('all_exams_tracks'))}</span>
   </a>`;
@@ -317,7 +317,7 @@ function renderTopicSidebar(topic) {
   // Темы текущего класса по разделам
   const gradeTopics = topicsForGrade(allTopics);
   const heading = `<div class="sidebar-focus-heading">
-    <span>Темы (${gradeLabel(grade)})</span>
+    <span>${(window.MathTasks.t || (k => k))('topics_heading')} (${gradeLabel(grade)})</span>
     <span class="focus-count">${gradeTopics.length}</span>
   </div>`;
 
@@ -343,7 +343,7 @@ function renderClassSidebar(grade) {
   const label = gradeLabel(grade);
   const backHref = '/';
 
-  const backBtn = `<a class="sidebar-back-button" href="${backHref}" title="Вернуться к экзаменам и каталогу">
+  const backBtn = `<a class="sidebar-back-button" href="${backHref}" title="${escapeHtml((window.MathTasks.t || (k => k))('back_to_catalog'))}">
     <span class="back-icon">←</span>
     <span class="label">${escapeHtml((window.MathTasks.t || (k => k))('all_exams_tracks'))}</span>
   </a>`;
@@ -351,14 +351,14 @@ function renderClassSidebar(grade) {
   const banner = `<div class="sidebar-topic-banner">
     <div class="topic-banner-top">
       <span class="topic-banner-pill">${escapeHtml(label)}</span>
-      <span class="topic-banner-subject">Каталог задач</span>
+      <span class="topic-banner-subject">${escapeHtml((window.MathTasks.t || (k => k))('catalog_of_tasks'))}</span>
     </div>
-    <div class="topic-banner-title">Все задачи курса</div>
+    <div class="topic-banner-title">${escapeHtml((window.MathTasks.t || (k => k))('course_all_tasks'))}</div>
   </div>`;
 
   const gradeTopics = topicsForGrade(allTopics);
   const heading = `<div class="sidebar-focus-heading">
-    <span>Темы (${label})</span>
+    <span>${(window.MathTasks.t || (k => k))('topics_heading')} (${label})</span>
     <span class="focus-count">${gradeTopics.length}</span>
   </div>`;
 
@@ -672,8 +672,8 @@ function taskFigure(path, title, kind) {
   const url = imageUrl(path);
   if (!url) return '';
   // Без alt чертёж для незрячего читателя означает потерянное условие.
-  const alt = `${kind} к задаче «${title}» (нажмите для увеличения)`;
-  return `<img class="task-figure" src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" title="Нажмите для увеличения чертежа" loading="lazy" />`;
+  const alt = (window.MathTasks.t || (k => k))('figure_alt').replace('{kind}', kind).replace('{title}', title);
+  return `<img class="task-figure" src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" title="${escapeHtml((window.MathTasks.t || (k => k))('figure_zoom_title'))}" loading="lazy" />`;
 }
 
 /* Раскрываемая ступень: кнопка и панель идут парой, обработчик один на документ.
@@ -883,9 +883,13 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
      ему говорят «посмотри задачу 17», и по нему же работает переход
      из полосы номеров наверху. */
   const numBadge = number ? `<span class="task-number">${number}.</span>` : '';
-  const title = linkTitle
-    ? `${numBadge}<a class="task-title" href="${taskPath(task)}">${titleText}</a>`
-    : `${numBadge}<strong class="task-title">${titleText}</strong>`;
+  /* Номер и заголовок — одна строка. Без обёртки оба были прямыми детьми
+     колоночного флексбокса карточки и растягивались во всю её ширину:
+     номер превращался в полосу, а подсветка — в полосу цветную. */
+  const titleTag = linkTitle
+    ? `<a class="task-title" href="${taskPath(task)}">${titleText}</a>`
+    : `<strong class="task-title">${titleText}</strong>`;
+  const title = `<div class="task-head">${numBadge}${titleTag}</div>`;
 
   // Кросс-теги задачи
   const rawTaskTags = Array.isArray(task.task_tags)
@@ -893,10 +897,10 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
     : (Array.isArray(task.tags) ? task.tags : []);
 
   const tagsRowHtml = rawTaskTags.length > 0 ? `
-    <div class="task-tags-row" aria-label="Теги">
+    <div class="task-tags-row" aria-label="${escapeHtml((window.MathTasks.t || (k => k))('tags_label'))}">
       ${rawTaskTags.map(tg => {
         const tgTitle = loc(tg, 'title') || tg.title || tg.slug;
-        const tgDesc = tg.description || '';
+        const tgDesc = loc(tg, 'description') || '';
         return `<a class="task-tag-chip" href="/tag/${encodeURIComponent(tg.slug)}"${tgDesc ? ` title="${escapeHtml(tgDesc)}"` : ''}>#${escapeHtml(tgTitle)}</a>`;
       }).join('')}
     </div>` : '';
@@ -1044,7 +1048,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
           <div class="compact-drill-actions">
             ${figureUrl ? `<button type="button" class="compact-drill-figure-btn" data-drill-figure="${escapeHtml(figureUrl)}" data-figure-alt="${escapeHtml(taskTitle)}" title="${escapeHtml(tr('drill_figure_btn'))}" aria-label="${escapeHtml(tr('drill_figure_btn'))}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="9" cy="9" r="1.4"/></svg></button>` : ''}
             <button type="button" class="compact-drill-hint-btn" data-drill-hint="${task.id}" title="${escapeHtml(tr('drill_hint_btn'))}" aria-label="${escapeHtml(tr('drill_hint_btn'))}">💡</button>
-            <a href="${taskPath(task)}" class="compact-drill-link-btn" title="${escapeHtml(taskTitle)}" target="_blank" aria-label="Открыть задачу">↗</a>
+            <a href="${taskPath(task)}" class="compact-drill-link-btn" title="${escapeHtml(taskTitle)}" target="_blank" aria-label="${escapeHtml((window.MathTasks.t || (k => k))('open_task'))}">↗</a>
           </div>
         </div>
       `;
@@ -1105,7 +1109,7 @@ function openLightbox(src, alt) {
   };
   img.onerror = () => {
     content?.classList.remove('is-loading');
-    if (caption) caption.textContent = 'Не удалось загрузить чертёж.';
+    if (caption) caption.textContent = (window.MathTasks.t || (k => k))('figure_load_error');
   };
   img.src = src;
 
@@ -1182,7 +1186,7 @@ function renderTopicGroups(container, groups) {
   container.innerHTML = groups.map(({ subject, topics }) => `<section class="topic-group">
     <div class="topic-group-head">
       <h2><span class="topic-group-icon">${escapeHtml(subjectIcon(subject))}</span>${escapeHtml(loc(subject, 'title'))}</h2>
-      <a href="/subject/${encodeURIComponent(subject.slug)}">Все темы →</a>
+      <a href="/subject/${encodeURIComponent(subject.slug)}">${escapeHtml((window.MathTasks.t || (k => k))('subject_all_topics_arrow'))}</a>
     </div>
     ${topics.length
       ? `<div class="topic-grid">${topics.map((topic, index) => topicCard(topic, index, false)).join('')}</div>`
@@ -1740,13 +1744,13 @@ async function showSearch(rawQuery, acrossGrades) {
   const where = scoped ? (window.MathTasks.t || (k => k))('search_scope_grade', { grade: selectedGrade }) : (window.MathTasks.t || (k => k))('search_scope_all');
   // Из класса всегда есть выход: иначе человек решит, что задачи просто нет.
   const escape = scoped
-    ? `<a class="search-escape" href="/search?q=${encodeURIComponent(query)}&all=1">Искать во всех классах →</a>`
+    ? `<a class="search-escape" href="/search?q=${encodeURIComponent(query)}&all=1">${escapeHtml((window.MathTasks.t || (k => k))('search_all_grades'))}</a>`
     : '';
 
   const matchedTagsHtml = matchedTags.length > 0 ? `
     <div class="search-matched-tags">
       <span class="search-matched-tags-label">${loc({ title: 'Кросс-теги', title_lv: 'Krustbirkas' }, 'title')}:</span>
-      ${matchedTags.map(t => `<a class="task-tag-chip" href="/tag/${encodeURIComponent(t.slug)}" title="${escapeHtml(t.description || '')}">#${escapeHtml(loc(t, 'title'))}</a>`).join('')}
+      ${matchedTags.map(t => `<a class="task-tag-chip" href="/tag/${encodeURIComponent(t.slug)}" title="${escapeHtml(loc(t, 'description') || '')}">#${escapeHtml(loc(t, 'title'))}</a>`).join('')}
     </div>
   ` : '';
 
@@ -1943,7 +1947,7 @@ async function showTagsList() {
       ${list.map(tag => {
         const title = loc(tag, 'title') || tag.title || tag.slug;
         const titleOther = currentLang === 'lv' ? tag.title : tag.title_lv;
-        const desc = tag.description || '';
+        const desc = loc(tag, 'description') || '';
         return `
           <a class="tag-catalog-card" href="/tag/${encodeURIComponent(tag.slug)}">
             <div class="tag-catalog-header">
