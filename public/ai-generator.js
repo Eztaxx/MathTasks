@@ -406,7 +406,7 @@ ${customPrompt ? `Дополнительные математические тр
       }
     });
 
-    const candidateModels = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest'];
+    const candidateModels = ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest', 'gemini-3.5-flash'];
 
     /* Запрос без тайм-аута может не вернуться никогда: fetch сам по себе
        не сдаётся, и генерация пачки замирает на середине без единой
