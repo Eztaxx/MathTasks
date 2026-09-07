@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 250">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="118.7,189 338.9,189 206.1,91 156.3,91"/>
+    <circle cx="190" cy="140" r="49"/>
+    <circle cx="190" cy="140" r="3" fill="#4a6fa5"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="100" y="202">A</text>
+    <text x="348" y="202">D</text>
+    <text x="145" y="80">B</text>
+    <text x="210" y="80">C</text>
+    <text x="110" y="135">7 cm</text>
+    <text x="285" y="135">11 cm</text>
+    <text x="215" y="210">P = ?</text>
+  </g>
+</svg>

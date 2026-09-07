@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 250">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="70,200 310,200 270,80 110,80"/>
+    <line x1="70" y1="200" x2="270" y2="80"/>
+    <line x1="310" y1="200" x2="110" y2="80"/>
+    <!-- Затенение площадей S1 и S2 -->
+    <polygon points="110,80 270,80 190,128" fill="#4a6fa5" fill-opacity="0.12"/>
+    <polygon points="70,200 310,200 190,128" fill="#4a6fa5" fill-opacity="0.12"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="50" y="212">A</text>
+    <text x="320" y="212">D</text>
+    <text x="95" y="75">B</text>
+    <text x="275" y="75">C</text>
+    <text x="195" y="132">O</text>
+    <text x="172" y="105">4 cm²</text>
+    <text x="172" y="180">9 cm²</text>
+    <text x="155" y="225">S(ABCD) = ?</text>
+  </g>
+</svg>

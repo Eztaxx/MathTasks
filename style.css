@@ -2332,7 +2332,7 @@ dialog[open]{position:fixed;inset:0;margin:auto}
 
 /* Номер задачи в подборке — перед названием, приглушённый: он помогает
    найти строку, но не должен спорить с самим названием. */
-.task-number{display:inline-block;min-width:1.6em;margin-right:6px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.task-number{display:inline-block;min-width:1.9em;margin-right:6px;padding:1px 5px;border-radius:6px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums;text-align:center}
 
 /* Выбранная задача */
 /* Обводка вокруг всей карточки спорила с её собственными границами
@@ -2343,7 +2343,8 @@ dialog[open]{position:fixed;inset:0;margin:auto}
 .compact-drill-item.is-current .compact-drill-num {
   background: var(--blue, #1764ff);
   color: #fff;
-  border-radius: 6px;
-  padding: 1px 5px;
-  min-width: 0;
 }
+
+/* Номер в тренажёре держит те же отступы, что и подсвеченный: иначе
+   при снятии подсветки строка дёргается на ширину фона. */
+.compact-drill-num{padding:1px 5px;border-radius:6px;text-align:center}

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <line x1="40" y1="210" x2="380" y2="210"/>
+    <!-- Столб -->
+    <line x1="80" y1="210" x2="80" y2="30" stroke-width="3"/>
+    <!-- Человек -->
+    <line x1="260" y1="210" x2="260" y2="156" stroke-width="2.5"/>
+    <circle cx="260" cy="150" r="6"/>
+    <!-- Строго параллельные лучи солнца (наклон 1.5) -->
+    <line x1="80" y1="30" x2="200" y2="210" stroke-dasharray="4 3"/>
+    <line x1="260" y1="156" x2="296" y2="210" stroke-dasharray="4 3"/>
+    <polyline points="80,198 92,198 92,210"/>
+    <polyline points="260,198 272,198 272,210"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="40" y="125">H = ?</text>
+    <text x="125" y="230">4 m</text>
+    <text x="270" y="175">1,8 m</text>
+    <text x="265" y="230">1,2 m</text>
+  </g>
+</svg>

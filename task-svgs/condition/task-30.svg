@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="79,180 321,180 255,92 145,92"/>
+    <!-- Высоты пунктиром -->
+    <line x1="145" y1="92" x2="145" y2="180" stroke-dasharray="4 3"/>
+    <line x1="255" y1="92" x2="255" y2="180" stroke-dasharray="4 3"/>
+    <!-- Прямые углы при основаниях высот -->
+    <polyline points="145,168 157,168 157,180"/>
+    <polyline points="255,168 243,168 243,180"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="60" y="195">A</text>
+    <text x="330" y="195">D</text>
+    <text x="135" y="80">B</text>
+    <text x="260" y="80">C</text>
+    <text x="185" y="80">10 cm</text>
+    <text x="185" y="205">22 cm</text>
+    <text x="85" y="132">10 cm</text>
+    <text x="295" y="132">10 cm</text>
+    <text x="153" y="140">h</text>
+  </g>
+</svg>

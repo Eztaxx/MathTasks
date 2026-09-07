@@ -1975,6 +1975,11 @@ ${JSON.stringify(texts)}`;
       } else {
         successCount++;
         const newTaskId = insertedTask?.id;
+        /* Указатель пополняем сразу, не дожидаясь конца импорта: следующая
+           задача считает свой номер по нему, и без этой строки все задачи
+           одной темы получили бы одну и ту же позицию — ровно то, из-за чего
+           пришлось перенумеровывать весь каталог. */
+        taskIndex.push({ id: newTaskId, topic_id: payload.topic_id ?? null, position: payload.position });
         // Привязываем кросс-теги Skola2030 если они переданы в массиве tags
         if (newTaskId && Array.isArray(item.tags) && item.tags.length) {
           if (!tagsReady) {

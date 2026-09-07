@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 250">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <circle cx="210" cy="150" r="84"/>
+    <line x1="70" y1="150" x2="159.6" y2="82.8"/>
+    <line x1="70" y1="150" x2="294" y2="150"/>
+    <line x1="210" y1="150" x2="159.6" y2="82.8" stroke-dasharray="4 3"/>
+    <!-- Прямой угол AKO -->
+    <polyline points="167.7,93.6 156.9,87.2 150.5,76.4"/>
+    <circle cx="70" cy="150" r="3" fill="#4a6fa5"/>
+    <circle cx="159.6" cy="82.8" r="3" fill="#4a6fa5"/>
+    <circle cx="126" cy="150" r="3" fill="#4a6fa5"/>
+    <circle cx="294" cy="150" r="3" fill="#4a6fa5"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="52" y="155">A</text>
+    <text x="155" y="70">K</text>
+    <text x="120" y="140">B</text>
+    <text x="300" y="155">C</text>
+    <text x="95" y="105">AK = ?</text>
+    <text x="85" y="172">4 cm</text>
+    <text x="200" y="172">12 cm</text>
+  </g>
+</svg>

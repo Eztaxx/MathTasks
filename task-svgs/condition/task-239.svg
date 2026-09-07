@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 280">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <circle cx="190" cy="150" r="92.2"/>
+    <line x1="98.3" y1="140.2" x2="199.2" y2="58.2"/>
+    <line x1="124.2" y1="85.4" x2="150.2" y2="233.1"/>
+    <!-- Вспомогательные отрезки подобия -->
+    <line x1="98.3" y1="140.2" x2="124.2" y2="85.4" stroke-dasharray="4 3"/>
+    <line x1="199.2" y1="58.2" x2="150.2" y2="233.1" stroke-dasharray="4 3"/>
+    <circle cx="129.4" cy="115" r="3" fill="#4a6fa5"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="75" y="148">A</text>
+    <text x="206" y="55">B</text>
+    <text x="115" y="74">C</text>
+    <text x="152" y="250">D</text>
+    <text x="135" y="112">P</text>
+    <text x="95" y="122">4 cm</text>
+    <text x="165" y="80">9 cm</text>
+    <text x="105" y="100">3 cm</text>
+    <text x="140" y="185">PD = ?</text>
+  </g>
+</svg>

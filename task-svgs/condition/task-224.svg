@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="80,190 340,190 160,70"/>
+    <line x1="160" y1="70" x2="160" y2="190" stroke-dasharray="4 3"/>
+    <!-- Точный квадрат прямого угла при D -->
+    <polyline points="160,175 175,175 175,190"/>
+    <!-- Точный повернутый квадрат прямого угла при C -->
+    <polyline points="152,82 164,90 172,78"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="60" y="202">A</text>
+    <text x="348" y="202">B</text>
+    <text x="155" y="55">C</text>
+    <text x="155" y="210">D</text>
+    <text x="110" y="210">4 cm</text>
+    <text x="235" y="210">9 cm</text>
+    <text x="168" y="135">CD = ?</text>
+  </g>
+</svg>

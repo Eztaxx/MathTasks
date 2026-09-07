@@ -2980,13 +2980,16 @@ let highlightTimer = 0;
 function goToCard(card, { smooth = false } = {}) {
   if (!card) return false;
   const distance = Math.abs(card.getBoundingClientRect().top - window.innerHeight / 2);
-  const behavior = smooth && distance < window.innerHeight * 2 ? 'smooth' : 'auto';
+  /* 'auto' значит «взять поведение из CSS», а там стоит scroll-behavior: smooth —
+     поэтому дальний переход оставался плавным и не доводился до конца.
+     Мгновенную прокрутку даёт только 'instant'. */
+  const behavior = smooth && distance < window.innerHeight * 2 ? 'smooth' : 'instant';
   card.scrollIntoView({ behavior, block: 'center' });
 
   document.querySelectorAll('.is-current').forEach(el => el.classList.remove('is-current'));
   card.classList.add('is-current');
   clearTimeout(highlightTimer);
-  highlightTimer = setTimeout(() => card.classList.remove('is-current'), 3000);
+  highlightTimer = setTimeout(() => card.classList.remove('is-current'), 1500);
 
   const field = card.querySelector('.compact-drill-input:not([disabled]), .self-check-input:not([disabled])');
   if (field) { field.focus({ preventScroll: true }); field.select?.(); }

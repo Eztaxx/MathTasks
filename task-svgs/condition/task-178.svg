@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 250">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="60,200 340,200 156.3,98.3"/>
+    <!-- Биссектриса AD -->
+    <line x1="156.3" y1="98.3" x2="172" y2="200"/>
+    <!-- Дуги равных углов при A -->
+    <path d="M 143,112 A 25 25 0 0 0 159,122"/>
+    <path d="M 160,122 A 25 25 0 0 0 176,110"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="42" y="212">B</text>
+    <text x="348" y="212">C</text>
+    <text x="150" y="85">A</text>
+    <text x="175" y="218">D</text>
+    <text x="85" y="145">10 cm</text>
+    <text x="260" y="145">15 cm</text>
+    <text x="105" y="220">BD = ?</text>
+    <text x="235" y="220">BC = 20 cm</text>
+  </g>
+</svg>

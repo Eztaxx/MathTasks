@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 270">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Нижнее основание -->
+    <polygon points="70,200 200,200 260,150 130,150" stroke-dasharray="4 3"/>
+    <!-- Верхнее основание -->
+    <polygon points="70,110 200,110 260,60 130,60"/>
+    <!-- Ребра -->
+    <line x1="70" y1="110" x2="70" y2="200"/>
+    <line x1="200" y1="110" x2="200" y2="200"/>
+    <line x1="260" y1="60" x2="260" y2="150"/>
+    <line x1="130" y1="60" x2="130" y2="150" stroke-dasharray="4 3"/>
+    <!-- Скрещивающиеся прямые -->
+    <line x1="70" y1="110" x2="200" y2="200" stroke-width="2.5"/>
+    <line x1="200" y1="110" x2="260" y2="150" stroke-width="2.5"/>
+    <!-- Параллельный перенос D1C || A1B -->
+    <line x1="130" y1="60" x2="260" y2="150" stroke-dasharray="4 3"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="52" y="212">A</text>
+    <text x="205" y="212">B</text>
+    <text x="268" y="158">C</text>
+    <text x="115" y="158">D</text>
+    <text x="52" y="105">A₁</text>
+    <text x="205" y="105">B₁</text>
+    <text x="268" y="55">C₁</text>
+    <text x="115" y="55">D₁</text>
+  </g>
+</svg>

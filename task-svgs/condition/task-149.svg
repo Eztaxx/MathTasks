@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 270">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <line x1="70" y1="200" x2="230" y2="200"/>
+    <line x1="230" y1="200" x2="290" y2="150"/>
+    <line x1="70" y1="200" x2="130" y2="150" stroke-dasharray="4 3"/>
+    <line x1="130" y1="150" x2="290" y2="150" stroke-dasharray="4 3"/>
+    <line x1="180" y1="50" x2="70" y2="200"/>
+    <line x1="180" y1="50" x2="230" y2="200"/>
+    <line x1="180" y1="50" x2="290" y2="150"/>
+    <line x1="180" y1="50" x2="130" y2="150" stroke-dasharray="4 3"/>
+    <line x1="180" y1="50" x2="180" y2="175" stroke-dasharray="4 3"/>
+    <circle cx="180" cy="175" r="3" fill="#4a6fa5"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="175" y="40">S</text>
+    <text x="52" y="212">A</text>
+    <text x="238" y="212">B</text>
+    <text x="298" y="155">C</text>
+    <text x="115" y="155">D</text>
+    <text x="185" y="188">O</text>
+    <text x="140" y="218">a = 6 cm</text>
+    <text x="220" y="115">b = 5 cm</text>
+  </g>
+</svg>

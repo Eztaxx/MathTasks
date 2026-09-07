@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 260">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="60,210 320,210 190,50"/>
+    <line x1="146.7" y1="103.3" x2="233.3" y2="103.3"/>
+    <line x1="103.3" y1="156.7" x2="276.7" y2="156.7"/>
+    <polygon points="146.7,103.3 233.3,103.3 190,50" fill="#4a6fa5" fill-opacity="0.12"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="42" y="222">A</text>
+    <text x="328" y="222">C</text>
+    <text x="185" y="40">B</text>
+    <text x="165" y="88">4 cm²</text>
+    <text x="150" y="185">S(ABC) = ?</text>
+  </g>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 270">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <line x1="60" y1="210" x2="270" y2="210"/>
+    <line x1="60" y1="210" x2="170" y2="155" stroke-dasharray="4 3"/>
+    <line x1="270" y1="210" x2="170" y2="155" stroke-dasharray="4 3"/>
+    <line x1="165" y1="45" x2="60" y2="210"/>
+    <line x1="165" y1="45" x2="270" y2="210"/>
+    <line x1="165" y1="45" x2="170" y2="155" stroke-dasharray="4 3"/>
+    <circle cx="220" cy="182.5" r="3" fill="#4a6fa5"/>
+    <!-- Заштрихованное сечение SAM -->
+    <polygon points="165,45 60,210 220,182.5" fill="#4a6fa5" fill-opacity="0.12"/>
+    <line x1="165" y1="45" x2="220" y2="182.5" stroke-width="2.5"/>
+    <line x1="60" y1="210" x2="220" y2="182.5" stroke-dasharray="4 3"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="160" y="35">S</text>
+    <text x="42" y="222">A</text>
+    <text x="280" y="215">C</text>
+    <text x="155" y="150">B</text>
+    <text x="228" y="190">M</text>
+    <text x="95" y="130">a = 6 cm</text>
+    <text x="120" y="245">S(SAM) = ?</text>
+  </g>
+</svg>

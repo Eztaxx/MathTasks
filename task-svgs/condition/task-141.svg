@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 250">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="80,195 224,195 80,87"/>
+    <!-- Вписанная окружность r=36, центр (116, 159) -->
+    <circle cx="116" cy="159" r="36"/>
+    <line x1="116" y1="159" x2="80" y2="159" stroke-dasharray="4 3"/>
+    <line x1="116" y1="159" x2="116" y2="195" stroke-dasharray="4 3"/>
+    <circle cx="116" cy="159" r="3" fill="#4a6fa5"/>
+    <polyline points="80,180 95,180 95,195"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="62" y="208">C</text>
+    <text x="232" y="200">B</text>
+    <text x="75" y="75">A</text>
+    <text x="122" y="155">I</text>
+    <text x="92" y="152">r</text>
+    <text x="50" y="145">6 cm</text>
+    <text x="145" y="215">8 cm</text>
+    <text x="135" y="120">r = ?</text>
+  </g>
+</svg>

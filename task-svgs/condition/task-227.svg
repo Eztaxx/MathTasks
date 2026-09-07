@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 260">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="60,210 320,210 190,50"/>
+    <!-- Отрезок DE -->
+    <line x1="103.3" y1="156.7" x2="276.7" y2="156.7"/>
+    <!-- Заштрихованная трапеция ADEC -->
+    <polygon points="60,210 320,210 276.7,156.7 103.3,156.7" fill="#4a6fa5" fill-opacity="0.12"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="42" y="222">A</text>
+    <text x="328" y="222">C</text>
+    <text x="185" y="40">B</text>
+    <text x="82" y="158">D</text>
+    <text x="286" y="158">E</text>
+    <text x="135" y="105">BD : DA = 2 : 1</text>
+    <text x="145" y="190">S(ADEC) = ?</text>
+  </g>
+</svg>

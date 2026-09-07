@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 260">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="70,200 310,200 200,60"/>
+    <!-- Высоты AA1 и CC1 со строгими перпендикулярами -->
+    <line x1="70" y1="200" x2="218.4" y2="83.4"/>
+    <line x1="310" y1="200" x2="181.1" y2="80.3"/>
+    <!-- Подобный треугольник A1 B C1 -->
+    <polygon points="200,60 181.1,80.3 218.4,83.4" fill="#4a6fa5" fill-opacity="0.12"/>
+    <line x1="181.1" y1="80.3" x2="218.4" y2="83.4" stroke-width="2.5"/>
+    <!-- Маркеры прямого угла при основаниях высот -->
+    <polyline points="206.5,92.7 215.8,104.6 227.7,95.3"/>
+    <polyline points="193.3,93.4 182.8,103.1 170.6,91.6"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="50" y="212">A</text>
+    <text x="320" y="212">C</text>
+    <text x="195" y="48">B</text>
+    <text x="155" y="80">C₁</text>
+    <text x="228" y="82">A₁</text>
+  </g>
+</svg>

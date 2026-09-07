@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 270">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <line x1="80" y1="210" x2="260" y2="210"/>
+    <line x1="80" y1="210" x2="160" y2="160" stroke-dasharray="4 3"/>
+    <line x1="260" y1="210" x2="160" y2="160" stroke-dasharray="4 3"/>
+    <polygon points="80,90 260,90 160,40"/>
+    <line x1="80" y1="90" x2="80" y2="210"/>
+    <line x1="260" y1="90" x2="260" y2="210"/>
+    <line x1="160" y1="40" x2="160" y2="160" stroke-dasharray="4 3"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="62" y="222">A</text>
+    <text x="270" y="222">B</text>
+    <text x="165" y="172">C</text>
+    <text x="62" y="85">A₁</text>
+    <text x="270" y="85">B₁</text>
+    <text x="165" y="35">C₁</text>
+    <text x="160" y="230">a = 4 cm</text>
+    <text x="270" y="155">H = 6√3 cm</text>
+  </g>
+</svg>

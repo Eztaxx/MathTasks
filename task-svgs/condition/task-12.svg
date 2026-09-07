@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 250">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="60,190 270,190 195,60"/>
+    <!-- Точная дуга угла 60° при вершине C -->
+    <path d="M 235,190 A 35 35 0 0 1 252.5,159.7"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="42" y="198">A</text>
+    <text x="280" y="198">C</text>
+    <text x="195" y="48">B</text>
+    <text x="215" y="172">60°</text>
+    <text x="155" y="212">b = 7</text>
+    <text x="245" y="120">a = 5</text>
+    <text x="105" y="120">c = ?</text>
+  </g>
+</svg>

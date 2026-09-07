@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 260">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <line x1="40" y1="210" x2="390" y2="210"/>
+    <!-- Здание -->
+    <line x1="350" y1="210" x2="350" y2="100" stroke-width="3"/>
+    <!-- Человек -->
+    <line x1="90" y1="210" x2="90" y2="177" stroke-width="2.5"/>
+    <circle cx="90" cy="171" r="5"/>
+    <!-- Зеркало на земле -->
+    <line x1="140" y1="210" x2="160" y2="210" stroke-width="5"/>
+    <!-- Лучи падения и отражения со строго равными углами (наклон 0.55) -->
+    <line x1="90" y1="177" x2="150" y2="210"/>
+    <line x1="150" y1="210" x2="350" y2="100"/>
+    <polyline points="90,200 100,200 100,210"/>
+    <polyline points="350,200 340,200 340,210"/>
+    <!-- Дуги равных углов alpha -->
+    <path d="M 132,210 A 20 20 0 0 1 139,202"/>
+    <path d="M 161,202 A 20 20 0 0 1 168,210"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="35" y="185">1,65 m</text>
+    <text x="360" y="105">H = ?</text>
+    <text x="105" y="230">1,5 m</text>
+    <text x="235" y="230">10 m</text>
+    <text x="122" y="200">α</text>
+    <text x="172" y="200">α</text>
+  </g>
+</svg>

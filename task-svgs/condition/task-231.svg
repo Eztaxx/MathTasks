@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 260">
+  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Берега реки -->
+    <path d="M 30,105 Q 200,95 360,105" stroke-dasharray="6 4" stroke-width="1.5"/>
+    <path d="M 30,150 Q 200,140 360,150" stroke-dasharray="6 4" stroke-width="1.5"/>
+    <!-- Отрезки геометрического построения -->
+    <line x1="110" y1="60" x2="290" y2="220"/>
+    <line x1="110" y1="180" x2="290" y2="180"/>
+    <line x1="110" y1="60" x2="110" y2="180" stroke-width="2.5"/>
+    <line x1="290" y1="180" x2="290" y2="220" stroke-width="2.5"/>
+    <polyline points="110,168 122,168 122,180"/>
+    <polyline points="290,192 278,192 278,180"/>
+    <circle cx="110" cy="60" r="3" fill="#4a6fa5"/>
+    <circle cx="110" cy="180" r="3" fill="#4a6fa5"/>
+    <circle cx="245" cy="180" r="3" fill="#4a6fa5"/>
+    <circle cx="290" cy="180" r="3" fill="#4a6fa5"/>
+    <circle cx="290" cy="220" r="3" fill="#4a6fa5"/>
+  </g>
+  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+    <text x="95" y="55">A</text>
+    <text x="95" y="198">B</text>
+    <text x="240" y="170">C</text>
+    <text x="295" y="175">D</text>
+    <text x="295" y="235">E</text>
+    <text x="50" y="125">AB = ?</text>
+    <text x="160" y="200">45 m</text>
+    <text x="255" y="200">15 m</text>
+    <text x="300" y="205">12 m</text>
+  </g>
+</svg>
