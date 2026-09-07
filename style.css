@@ -3560,12 +3560,33 @@ body.dark .grading-table td {
 }
 
 
-/* Кнопка «показать ещё». Стоит после последней карточки и говорит,
-   сколько задач в теме всего: иначе непонятно, кончился список или
-   просто не догружен. */
-.tasks-more{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;padding:22px 0 8px;margin-top:6px;border-top:1px solid var(--line)}
-.tasks-more-count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+/* Переход по страницам задач. Стоит после последней карточки и всегда
+   говорит, какие номера показаны и сколько их в теме всего: без этого
+   непонятно, кончился список или просто не долистан. */
+.tasks-more{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;padding:22px 0 10px;margin-top:10px;border-top:1px solid var(--line)}
+.tasks-more-count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;flex-basis:100%;text-align:center}
 .task-compact-container .tasks-more{border-top:0;padding-top:16px}
+
+.tasks-page-nums{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.tasks-page-num{min-width:34px;height:34px;padding:0 9px;border:1px solid var(--line);border-radius:9px;background:var(--card,#fff);color:var(--ink);font:inherit;font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;transition:background-color .15s ease,border-color .15s ease,color .15s ease}
+.tasks-page-num:hover{border-color:var(--blue,#1764ff);color:var(--blue,#1764ff)}
+.tasks-page-num.active{background:var(--blue,#1764ff);border-color:var(--blue,#1764ff);color:#fff}
+.tasks-page-num:focus-visible{outline:2px solid var(--blue,#1764ff);outline-offset:2px}
+.tasks-page-gap{color:var(--muted);padding:0 2px;user-select:none}
+
+/* Стрелки «назад» и «вперёд» — текстовые кнопки, но с рамкой: без неё
+   они теряются рядом с номерами и не читаются как управление. */
+.tasks-more .text-button{padding:7px 14px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;font-weight:600}
+.tasks-more .text-button:hover:not(:disabled){border-color:var(--blue,#1764ff);color:var(--blue,#1764ff)}
+.tasks-more .text-button:disabled{opacity:.4;cursor:default}
+
+body.dark .tasks-page-num{background:transparent}
+
+@media(max-width:560px){
+  .tasks-more{gap:6px}
+  .tasks-page-num{min-width:30px;height:30px;padding:0 6px;font-size:12.5px}
+  .tasks-more .text-button{padding:6px 10px;font-size:12.5px}
+}
 
 /* ── Тренажёр устного счёта: переключатель режимов и лист примеров ── */
 .trainer-view-tabs {

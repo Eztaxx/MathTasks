@@ -1068,7 +1068,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
      она оставалась на экране. В режиме «по одной» у пагинатора своя такая
      же полоса, и две подряд сбивали с толку. */
   if (listAnchors && listAnchors.innerHTML) {
-    listAnchors.hidden = taskViewMode === 'single';
+    listAnchors.hidden = taskViewMode !== 'list';
   }
   const { showTopicLink = true, showGrade = !selectedGrade, linkTitle = true, highlightQuery = '' } = options;
   lastRenderedContainer = container;
@@ -1543,9 +1543,11 @@ function showSubject(slug) {
 /* Разбор темы читают подряд и возвращаются к нужному номеру, поэтому список
    номеров сверху экономит прокрутку. При двух задачах он бесполезен. */
 function renderTopicAnchors(tasks) {
-  /* В режиме «по одной» у пагинатора есть собственная полоса номеров,
-     и вторая такая же наверху только сбивала с толку. */
-  const enough = tasks.length >= 3 && taskViewMode !== 'single';
+  /* Полоса нужна только в списке. В режиме «по одной» у пагинатора есть
+     своя такая же, и две подряд сбивали с толку. В тренажёре номер стоит
+     на каждой карточке, карточки мелкие и лежат плиткой — полоса сверху
+     повторяет то, что и так перед глазами. */
+  const enough = tasks.length >= 3 && taskViewMode === 'list';
   listAnchors.hidden = !enough;
   if (!enough) { listAnchors.innerHTML = ''; return; }
   listAnchors.innerHTML = `<span class="topic-anchors-label">${(window.MathTasks.t || (k => k))('anchors_label')}</span>` + tasks
