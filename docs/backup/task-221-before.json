@@ -1,0 +1,22 @@
+{
+  "id": 221,
+  "topic_id": 301,
+  "title": "Определение коэффициента по площадям",
+  "condition_latex": "На карте масштаба $1 : 100\\,000$ длина участка дороги равна $7{,}5\\text{ см}$. Какова реальная длина этого участка на местности в километрах?",
+  "solution_latex": "Реальное расстояние на местности:\n$$7{,}5 \\cdot 100\\,000 = 750\\,000\\text{ см} = 7\\,500\\text{ м} = 7{,}5\\text{ км}$$",
+  "difficulty": "Лёгкий",
+  "is_published": true,
+  "created_at": "2026-09-06T23:27:33.774572+00:00",
+  "updated_at": "2026-09-07T11:21:47.266+00:00",
+  "grade": 9,
+  "position": 13,
+  "answer_latex": "$7{,}5\\text{ км}$",
+  "condition_image": null,
+  "solution_image": null,
+  "title_lv": "Līdzības koeficienta noteikšana pēc laukumiem",
+  "condition_latex_lv": "Divu līdzīgu trijstūru laukumi ir $18\\text{ cm}^2$ un $72\\text{ cm}^2$. Aprēķiniet šo trijstūru līdzības koeficientu $k$ ($k > 1$).",
+  "solution_latex_lv": "Tā kā $\\frac{S_2}{S_1} = k^2$:\n$$k^2 = \\frac{72}{18} = 4 \\implies k = \\sqrt{4} = 2$$",
+  "hint_latex": null,
+  "hint_latex_lv": null,
+  "answer_latex_lv": "$k = 2$"
+}

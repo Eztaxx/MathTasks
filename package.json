@@ -9,7 +9,12 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "sync:svgs": "node scripts/sync-svgs.js"
+    "sync:svgs": "node scripts/sync-svgs.js",
+    "verify:answers": "node scripts/verify-answers.mjs",
+    "verify:consistency": "node scripts/verify-consistency.mjs",
+    "verify:parity": "node scripts/verify-formula-parity.mjs",
+    "verify": "npm run verify:answers && npm run verify:consistency && npm run verify:pairing && npm run verify:parity",
+    "verify:pairing": "node scripts/verify-language-pairing.mjs"
   },
   "devDependencies": {
     "vite": "^7.1.3",

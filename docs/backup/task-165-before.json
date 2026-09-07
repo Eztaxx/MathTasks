@@ -1,0 +1,22 @@
+{
+  "id": 165,
+  "topic_id": 260,
+  "title": "Число решений квадратного уравнения с параметром",
+  "condition_latex": "При каких значениях параметра $a$ уравнение $(a - 1)x^2 + 2(a - 1)x + 3 = 0$ имеет ровно одно действительное решение?",
+  "solution_latex": "1) Случай 1 (линейный): если $a - 1 = 0 \\implies a = 1$, то уравнение принимает вид $0 \\cdot x^2 + 0 \\cdot x + 3 = 0$ ($3 = 0$ — решений нет). Значит, $a = 1$ не подходит для одного решения.\r\n2) Случай 2 (квадратный): $a \\ne 1$. Уравнение имеет одно решение, когда дискриминант равен нулю ($D = 0$).\r\n$D = (2(a - 1))^2 - 4(a - 1) \\cdot 3 = 4(a - 1)^2 - 12(a - 1) = 4(a - 1)((a - 1) - 3) = 4(a - 1)(a - 4)$.\r\n3) $D = 0 \\implies a = 1$ (исключено условием $a \\ne 1$) или $a = 4$.\r\nПри $a = 4$: $3x^2 + 6x + 3 = 0 \\implies 3(x + 1)^2 = 0 \\implies x = -1$ (ровно одно решение).\r\nОтвет: $a = 4$.",
+  "difficulty": "Сложный",
+  "is_published": true,
+  "created_at": "2026-09-06T20:28:12.514253+00:00",
+  "updated_at": "2026-09-06T20:28:12.514253+00:00",
+  "grade": 12,
+  "position": 1,
+  "answer_latex": "$a = 1$; $a = 4$",
+  "condition_image": null,
+  "solution_image": null,
+  "title_lv": "Kvadrātvienādojuma sakņu skaits atkarībā no parametra",
+  "condition_latex_lv": "Kādām parametra $a$ vērtībām vienādojumam $(a - 1)x^2 + 2(a - 1)x + 3 = 0$ ir tieši viena reāla sakne?",
+  "solution_latex_lv": "1) Ja $a = 1$, vienādojums ir $3 = 0$ (atrisinājuma nav).\r\n2) Ja $a \\ne 1$, vienādojumam ir tieši viena sakne, ja diskriminants $D = 0$.\r\n$D = 4(a - 1)^2 - 12(a - 1) = 4(a - 1)(a - 4) = 0$.\r\n3) Tā kā $a \\ne 1$, tad $a - 4 = 0 \\implies a = 4$.\r\nAtbilde: $a = 4$.",
+  "hint_latex": null,
+  "hint_latex_lv": null,
+  "answer_latex_lv": "$a = 1$; $a = 4$"
+}
