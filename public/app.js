@@ -2518,9 +2518,10 @@ document.addEventListener('keydown', event => {
           noteEl.className = 'compact-drill-note warn';
           noteEl.textContent = tr('drill_not_match');
         } else {
-          const right = String(task.answer_latex || '').replace(/^\$+|\$+$/g, '');
           noteEl.className = 'compact-drill-note wrong';
-          noteEl.textContent = tr('drill_wrong_answer') + ' ' + right;
+          noteEl.innerHTML = '<span></span> <span class="math" data-note-answer></span>';
+          noteEl.firstElementChild.textContent = tr('drill_wrong_answer');
+          renderMath(noteEl.querySelector('[data-note-answer]'), task.answer_latex || '');
         }
         noteEl.hidden = false;
       }
