@@ -14,7 +14,10 @@
     "verify:consistency": "node scripts/verify-consistency.mjs",
     "verify:parity": "node scripts/verify-formula-parity.mjs",
     "verify": "npm run verify:answers && npm run verify:consistency && npm run verify:pairing && npm run verify:parity",
-    "verify:pairing": "node scripts/verify-language-pairing.mjs"
+    "verify:pairing": "node scripts/verify-language-pairing.mjs",
+    "backup": "node scripts/backup.mjs",
+    "backup:check": "node scripts/backup.mjs --check",
+    "restore": "node scripts/restore.mjs"
   },
   "devDependencies": {
     "vite": "^7.1.3",

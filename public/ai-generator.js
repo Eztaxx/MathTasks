@@ -531,9 +531,189 @@ ${customPrompt ? `Дополнительные математические тр
     };
   }
 
+  /**
+   * Пакетный вызов Google Gemini API
+   * За один сетевой запрос генерирует массив из нескольких задач (до 10-12 шт.),
+   * что в 10 раз быстрее и предотвращает ошибки превышения лимитов 15 RPM.
+   */
+  async function callGeminiBatchApi({ onRetry, apiKey, grade, topicTitle, topicsList, count = 10, difficulty = 'mix', taskType, context, customPrompt }) {
+    const isMultiTopic = Array.isArray(topicsList) && topicsList.length > 0;
+    const topicsInstruction = isMultiTopic
+      ? `Темы Skola2030 (распредели ${count} задач равномерно по этим темам): ${topicsList.map(t => `"${t}"`).join(', ')}.`
+      : `Тема Skola2030: "${topicTitle}".`;
+
+    const diffInstruction = difficulty === 'mix'
+      ? `Сложность задач распредели сбалансированно: ~40% "Лёгкий" (pamata līmenis), ~40% "Средний" (optimālais līmenis), ~20% "Сложный" (padziļinātais līmenis).`
+      : `Сложность для всех задач: "${difficulty}".`;
+
+    const prompt = `Ты — ведущий методист и составитель экзаменационных материалов по математике в Латвии строго по государственному стандарту Skola2030.
+Создай ровно ${count} уникальных и качественных математических задач для ${grade} класса.
+${topicsInstruction}
+${diffInstruction}
+${taskType ? `Тип задач: ${taskType}.` : ''}
+${context ? `Сюжетный контекст задач (жизненные ситуации, Латвия, покупки, транспорт, ремонт, рецепты, пропорции): "${context}".` : ''}
+${customPrompt ? `Дополнительные математические требования: "${customPrompt}".` : ''}
+
+Требования:
+1. Каждая задача должна быть уникальной, иметь строго выверенное математическое решение и однозначный ответ.
+2. Формулы: оформляй все переменные, числа в вычислениях и формулы в KaTeX-разметке: внутри $...$ для инлайн и $$...$$ для выключных формул.
+3. Локализация: создай версии на русском (RU) и латышском (LV) языках. Терминология Skola2030 на латышском должна быть безупречной (vienādojums, taisnleņķa, laukums, perimetrs, procenti, daļas).
+4. Ответ верни СТРОГО в формате валидного JSON-массива из ${count} объектов без обёрток \`\`\`json:
+5. ВАЖНО: Все обратные слэши в формулах LaTeX внутри JSON экранируй ДВОЙНЫМ слэшем (пиши \\\\frac, \\\\cdot, \\\\sqrt, \\\\pm, \\\\text).
+
+[
+  {
+    "title_ru": "Краткое название задачи",
+    "title_lv": "Nosaukums latviski",
+    "topic_title": "Конкретная тема",
+    "difficulty": "Лёгкий | Средний | Сложный",
+    "condition_latex_ru": "Условие задачи с формулами $...$",
+    "condition_latex_lv": "Nosacījums ar formulām $...$",
+    "answer_latex": "Ответ на русском, например: $x = 4$ или $c = 10\\\\text{ см}$",
+    "answer_latex_lv": "Ответ на латышском, например: $x = 4$ или $c = 10\\\\text{ cm}$",
+    "solution_latex_ru": "Пошаговое понятное решение с формулами",
+    "solution_latex_lv": "Soli pa solim atrisinājums latviski"
+  }
+]`;
+
+    const requestBody = JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.3,
+        maxOutputTokens: 8192
+      }
+    });
+
+    const candidateModels = ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest', 'gemini-3.5-flash'];
+    const REQUEST_TIMEOUT_MS = 90000;
+    const RETRYABLE = new Set([408, 429, 500, 502, 503, 504]);
+    const MAX_ATTEMPTS = 4;
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    let lastError = null;
+    let res = null;
+
+    outer:
+    for (const model of candidateModels) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        const control = new AbortController();
+        const timer = setTimeout(() => control.abort(), REQUEST_TIMEOUT_MS);
+        try {
+          const r = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: requestBody,
+            signal: control.signal
+          });
+
+          if (r.ok) { res = r; break outer; }
+
+          const errText = await r.text();
+          lastError = new Error(`Ошибка модели ${model} (${r.status}): ${errText.slice(0, 300)}`);
+          if (!RETRYABLE.has(r.status) || attempt === MAX_ATTEMPTS) break;
+
+          const retryAfter = Number(r.headers.get('retry-after'));
+          const waitMs = Number.isFinite(retryAfter) && retryAfter > 0
+            ? Math.min(retryAfter * 1000, 30000)
+            : 2000 * Math.pow(2, attempt - 1);
+          onRetry?.({ model, status: r.status, attempt, waitMs });
+          await sleep(waitMs);
+        } catch (e) {
+          lastError = e.name === 'AbortError'
+            ? new Error(`Модель ${model} не ответила за ${REQUEST_TIMEOUT_MS / 1000} с`)
+            : e;
+          if (attempt === MAX_ATTEMPTS) break;
+          const waitMs = 2000 * Math.pow(2, attempt - 1);
+          onRetry?.({ model, status: 0, attempt, waitMs });
+          await sleep(waitMs);
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+    }
+
+    if (!res || !res.ok) {
+      throw lastError || new Error('Не удалось получить ответ от Google Gemini API.');
+    }
+
+    const data = await res.json();
+    const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!candidateText) throw new Error('Пустой ответ от Gemini API');
+
+    const parsed = safeParseJson(candidateText);
+    const list = Array.isArray(parsed)
+      ? parsed
+      : (Array.isArray(parsed?.tasks) ? parsed.tasks : [parsed]);
+
+    return list.map(item => ({
+      ...item,
+      grade: Number(grade) || 7,
+      difficulty: item.difficulty || difficulty || 'Средний',
+      topic_title: item.topic_title || topicTitle || 'Математика'
+    }));
+  }
+
+  /**
+   * Главная функция пакетной генерации задач
+   */
+  async function generateTasksBatch(options = {}) {
+    const {
+      grade = 7,
+      topicTitle = 'Математика',
+      topicsList = [],
+      count = 10,
+      subtopic = '',
+      difficulty = 'mix',
+      taskType = 'Уравнение',
+      context = '',
+      customPrompt = '',
+      apiKey = '',
+      useGemini = false,
+      onRetry
+    } = options;
+
+    if (useGemini) {
+      if (!apiKey) {
+        throw new Error('API-ключ Google Gemini не указан. Нажмите «⚙️ Настройки AI» в генераторе задач и сохраните ваш ключ.');
+      }
+      return await callGeminiBatchApi({
+        onRetry,
+        apiKey,
+        grade,
+        topicTitle,
+        topicsList,
+        count,
+        difficulty,
+        taskType,
+        context,
+        customPrompt
+      });
+    }
+
+    // Автономный генератор для count задач
+    const gradeKey = `g${grade}`;
+    const gen = GENERATORS[gradeKey] || GENERATORS.g7;
+    const results = [];
+    for (let i = 0; i < count; i++) {
+      const task = gen(difficulty, topicTitle);
+      results.push({
+        ...task,
+        grade: Number(grade) || 7,
+        difficulty: difficulty === 'mix' ? (i % 3 === 0 ? 'Лёгкий' : (i % 3 === 1 ? 'Средний' : 'Сложный')) : difficulty,
+        topic_title: topicTitle
+      });
+    }
+    return results;
+  }
+
   const api = {
     generateTask,
+    generateTasksBatch,
     callGeminiApi,
+    callGeminiBatchApi,
     translateMathText,
     GENERATORS
   };

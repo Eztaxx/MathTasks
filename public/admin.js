@@ -2660,17 +2660,27 @@ ${JSON.stringify(texts)}`;
       const g = parseFormGrade(aiGenGrade.value);
       const catalogTopics = g !== null ? skola2030Catalog.filter(t => t.grade === g) : skola2030Catalog;
       if (catalogTopics.length) {
-        aiGenTopic.innerHTML = catalogTopics.map(t => `<option value="${t.slug}">${escapeHtml(t.title_ru)} (${escapeHtml(t.title_lv)})</option>`).join('');
+        aiGenTopic.innerHTML = `<option value="__ALL__">🌐 Все темы класса (Skola2030, равномерно)</option>` +
+          catalogTopics.map(t => `<option value="${t.slug}">${escapeHtml(t.title_ru)} (${escapeHtml(t.title_lv)})</option>`).join('');
       } else {
         const dbTopics = g !== null ? topics.filter(t => t.grade === g) : topics;
         aiGenTopic.innerHTML = dbTopics.length
-          ? dbTopics.map(t => `<option value="${t.id}">${escapeHtml(t.title)}</option>`).join('')
+          ? (dbTopics.length > 1 ? `<option value="__ALL__">🌐 Все темы класса (равномерно)</option>` : '') +
+            dbTopics.map(t => `<option value="${t.id}">${escapeHtml(t.title)}</option>`).join('')
           : '<option value="">Нет тем</option>';
       }
 
       createRichSelect(aiGenTopic, {
         searchable: true,
         renderItem(value, text) {
+          if (value === '__ALL__') {
+            const countTopics = catalogTopics.length || (g !== null ? topics.filter(t => t.grade === g).length : 0);
+            return {
+              main: '🌐 Все темы класса (Skola2030)',
+              sub: `Равномерно распределить по всем ${countTopics} темам`,
+              triggerHtml: '<strong>🌐 Все темы класса (Skola2030)</strong>'
+            };
+          }
           const t = skola2030Catalog.find(c => c.slug === value);
           if (t) {
             return {
@@ -2693,6 +2703,11 @@ ${JSON.stringify(texts)}`;
     function refreshAiSubtopics() {
       if (!aiGenSubtopic) return;
       const slugOrId = aiGenTopic.value;
+      if (slugOrId === '__ALL__') {
+        aiGenSubtopic.innerHTML = '<option value="">Все темы и навыки класса</option>';
+        createRichSelect(aiGenSubtopic, { searchable: false });
+        return;
+      }
       const topicItem = skola2030Catalog.find(t => t.slug === slugOrId) || topics.find(t => String(t.id) === slugOrId);
       const subtopics = topicItem?.subtopics || [];
       if (subtopics.length) {
@@ -2784,9 +2799,23 @@ ${JSON.stringify(texts)}`;
     btnRunAiGenerator?.addEventListener('click', async () => {
       const g = parseFormGrade(aiGenGrade.value) || 7;
       const topicSlugOrId = aiGenTopic.value;
-      const topicItem = skola2030Catalog.find(t => t.slug === topicSlugOrId) || topics.find(t => String(t.id) === topicSlugOrId);
-      const topicTitle = topicItem ? (topicItem.title_ru || topicItem.title) : 'Математика';
-      const subtopic = aiGenSubtopic?.value || '';
+      const isAllTopics = topicSlugOrId === '__ALL__';
+      const gradeCatalogTopics = skola2030Catalog.filter(t => t.grade === g);
+      const gradeDbTopics = topics.filter(t => t.grade === g);
+
+      const topicItem = !isAllTopics
+        ? (skola2030Catalog.find(t => t.slug === topicSlugOrId) || topics.find(t => String(t.id) === topicSlugOrId))
+        : null;
+
+      const topicTitle = isAllTopics
+        ? `Все темы ${g} класса`
+        : (topicItem ? (topicItem.title_ru || topicItem.title) : 'Математика');
+
+      const allTopicTitles = isAllTopics
+        ? (gradeCatalogTopics.length ? gradeCatalogTopics.map(t => t.title_ru) : gradeDbTopics.map(t => t.title))
+        : [topicTitle];
+
+      const subtopic = isAllTopics ? '' : (aiGenSubtopic?.value || '');
       const selectedDifficulty = aiGenDifficulty?.value || 'mix';
       const taskType = aiGenType?.value || 'Уравнение';
       const context = (aiGenContext?.value || '').trim();
@@ -2794,14 +2823,12 @@ ${JSON.stringify(texts)}`;
       const engine = aiEngineSelect?.value || 'builtin';
       const apiKey = (aiGeminiKey?.value || '').trim() || localStorage.getItem('math_tasks_gemini_api_key') || '';
       const rawCount = Number(aiGenCount?.value) || 1;
-      const count = Math.min(Math.max(1, rawCount), 50);
+      const count = Math.min(Math.max(1, rawCount), 100);
 
       btnRunAiGenerator.disabled = true;
       aiGenStatus.className = 'ai-gen-status';
       aiGenStatus.innerHTML = `<span>⏳</span> Генерация ${count === 1 ? 'задачи' : `задач (${count} шт.)`}…`;
 
-      /* Объявляем до try: блок catch читает эти же накопители, чтобы
-         предложить уже сделанные задачи, а не выбросить их. */
       const generatedResults = [];
       const failures = [];
       let easyCount = 0;
@@ -2812,10 +2839,6 @@ ${JSON.stringify(texts)}`;
         const generator = window.MathTasks.aiGenerator;
         if (!generator) throw new Error('Модуль ai-generator.js не загружен');
 
-        /* Бесплатный тариф Gemini ограничивает число запросов в минуту.
-           Полсотни обращений подряд без паузы упираются в этот предел
-           примерно на пятнадцатой задаче — поэтому между задачами ждём.
-           Встроенный генератор работает на месте, ему пауза не нужна. */
         const usingGemini = engine === 'gemini';
         const PACE_MS = usingGemini ? 1500 : 0;
         const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -2823,48 +2846,62 @@ ${JSON.stringify(texts)}`;
         aiGenCancelled = false;
         if (btnCancelAiGenerator) btnCancelAiGenerator.hidden = false;
 
-        const progress = i => {
-          const doneLine = failures.length ? ` · не вышло: ${failures.length}` : '';
-          return `из ${count}${doneLine}`;
-        };
+        // Определяем размер пакета (для Gemini: до 10 задач за 1 запрос)
+        const BATCH_SIZE = usingGemini ? 10 : 10;
+        const totalBatches = Math.ceil(count / BATCH_SIZE);
 
-        for (let i = 0; i < count; i++) {
+        for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
           if (aiGenCancelled) break;
 
-          const currentDiff = getDifficultyForTask(selectedDifficulty, i, count);
+          const batchCount = Math.min(BATCH_SIZE, count - generatedResults.length);
+          if (batchCount <= 0) break;
+
+          // Подбираем темы для этого пакета (если выбраны «Все темы»)
+          let batchTopics = allTopicTitles;
+          if (isAllTopics && allTopicTitles.length > 2) {
+            const startIdx = (batchIdx * 2) % allTopicTitles.length;
+            batchTopics = [
+              allTopicTitles[startIdx],
+              allTopicTitles[(startIdx + 1) % allTopicTitles.length]
+            ];
+          }
 
           aiGenStatus.className = 'ai-gen-status';
-          aiGenStatus.innerHTML = `<span>⏳</span> Генерация задачи ${i + 1} ${progress(i)} [уровень: ${currentDiff}]…`;
+          aiGenStatus.innerHTML = `<span>⏳</span> Пакет ${batchIdx + 1} из ${totalBatches}: генерация ${generatedResults.length + 1}–${generatedResults.length + batchCount} из ${count} задач…`;
 
           try {
-            const result = await generator.generateTask({
+            const batchTasks = await generator.generateTasksBatch({
               grade: g,
-              topicTitle,
+              topicTitle: batchTopics[0] || topicTitle,
+              topicsList: batchTopics,
+              count: batchCount,
               subtopic,
-              difficulty: currentDiff,
+              difficulty: selectedDifficulty,
               taskType,
               context,
               customPrompt,
               apiKey,
               useGemini: usingGemini,
-              /* Модель попросила подождать — говорим об этом вслух, иначе
-                 пауза выглядит как зависание. */
               onRetry: ({ status, attempt, waitMs }) => {
-                aiGenStatus.innerHTML = `<span>⏳</span> Задача ${i + 1} ${progress(i)}: модель занята${status ? ` (${status})` : ''}, ждём ${Math.round(waitMs / 1000)} с — попытка ${attempt + 1}…`;
+                aiGenStatus.innerHTML = `<span>⏳</span> Пакет ${batchIdx + 1}: модель занята${status ? ` (${status})` : ''}, ждём ${Math.round(waitMs / 1000)} с — попытка ${attempt + 1}…`;
               }
             });
 
-            generatedResults.push({ result, difficulty: currentDiff });
-            if (currentDiff === 'Лёгкий') easyCount++;
-            else if (currentDiff === 'Средний') medCount++;
-            else hardCount++;
-          } catch (taskErr) {
-            /* Одна неудачная задача из полусотни — не повод выбрасывать
-               сорок девять удачных. Запоминаем и идём дальше. */
-            failures.push({ index: i + 1, difficulty: currentDiff, message: taskErr.message });
+            for (const task of batchTasks) {
+              const diff = task.difficulty || 'Средний';
+              generatedResults.push({ result: task, difficulty: diff });
+              if (diff === 'Лёгкий') easyCount++;
+              else if (diff === 'Средний') medCount++;
+              else hardCount++;
+            }
+          } catch (batchErr) {
+            console.warn(`Ошибка в пакете ${batchIdx + 1}:`, batchErr);
+            failures.push({ batch: batchIdx + 1, message: batchErr.message });
           }
 
-          if (PACE_MS && i < count - 1 && !aiGenCancelled) await sleep(PACE_MS);
+          if (PACE_MS && batchIdx < totalBatches - 1 && !aiGenCancelled) {
+            await sleep(PACE_MS);
+          }
         }
 
         if (btnCancelAiGenerator) btnCancelAiGenerator.hidden = true;
