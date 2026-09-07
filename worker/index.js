@@ -35,13 +35,30 @@ const json = (data, status = 200, extraHeaders = {}) => new Response(JSON.string
 
 const supabaseKeyOf = env => env.SUPABASE_KEY || env.SUPABASE_ANON_KEY;
 
+const PAGE = 1000;
+
 async function readSupabase(env, path) {
   const key = supabaseKeyOf(env);
-  const response = await fetch(`${env.SUPABASE_URL}/rest/v1/${path}`, {
-    headers: { apikey: key, Authorization: `Bearer ${key}` }
-  });
-  if (!response.ok) throw new Error(`supabase ${response.status}`);
-  return response.json();
+  const headers = { apikey: key, Authorization: `Bearer ${key}` };
+  const rows = [];
+
+  /* Читаем страницами. Предел выдачи задан на стороне Supabase и
+     срабатывает молча: ни ошибки, ни признака обрезки в теле. Один
+     запрос на всю таблицу означал бы, что после какого-то числа задач
+     карта сайта перестанет их упоминать, и заметить это будет негде. */
+  for (let from = 0; ; from += PAGE) {
+    const response = await fetch(`${env.SUPABASE_URL}/rest/v1/${path}`, {
+      headers: { ...headers, Range: `${from}-${from + PAGE - 1}`, 'Range-Unit': 'items' }
+    });
+    if (!response.ok) throw new Error(`supabase ${response.status}`);
+    const chunk = await response.json();
+    rows.push(...chunk);
+    if (chunk.length < PAGE) break;
+    /* Страховка от бесконечного цикла, если сервер перестанет сокращать
+       выдачу: карта сайта всё равно ограничена пятьюдесятью тысячами. */
+    if (rows.length >= 60000) break;
+  }
+  return rows;
 }
 
 /* ── Карта сайта ─────────────────────────────────────────────────── */
