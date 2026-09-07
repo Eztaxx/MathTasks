@@ -687,7 +687,7 @@ body.dark .task-fav-button.active{background:#382d09;border-color:#d69e2e;color:
 /* ── Зум чертежей (LightBox) ─────────────────────────────────────── */
 .task-figure{cursor:zoom-in;transition:transform .15s,box-shadow .15s}
 .task-figure:hover{box-shadow:0 6px 18px #0b19351a}
-.lightbox-dialog{width:min(90vw,850px);max-height:90vh;border:0;border-radius:14px;padding:24px;background:#fff;box-shadow:0 24px 70px #07142d55;color:var(--ink);overflow:hidden;position:relative}
+.lightbox-dialog{width:min(92vw,900px);max-height:92vh;border:0;border-radius:16px;padding:18px 18px 14px;background:#fff;box-shadow:0 30px 80px #07142d59;color:var(--ink);overflow:hidden;position:relative}
 .lightbox-dialog::backdrop{background:#07142de0;backdrop-filter:blur(4px)}
 .lightbox-content{display:flex;flex-direction:column;align-items:center;gap:12px}
 .lightbox-img{max-width:100%;max-height:75vh;object-fit:contain;border-radius:8px}
@@ -1995,7 +1995,8 @@ body.dark .compact-drill-item.is-solved {
 
 .compact-drill-body {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: stretch;
   gap: 8px;
   flex: 1;
   min-width: 0;
@@ -2283,7 +2284,7 @@ body.dark .drill-hint-section .math {
 .compact-drill-item > .compact-drill-num,
 .compact-drill-item > .compact-drill-actions { align-self: flex-start; }
 .compact-drill-body { align-self: stretch; }
-.compact-drill-answer-wrap { align-self: flex-end; }
+.compact-drill-answer-wrap { align-self: flex-end; margin-top: auto; }
 
 /* Подсвеченная стрелками задача в режиме списка. */
 .task.is-current {
@@ -2303,3 +2304,20 @@ body.dark .compact-drill-note.wrong{color:#ff7d92}
 
 /* Карточка, на которую перешли стрелками. */
 .compact-drill-item.is-current{outline:2px solid var(--blue,#1764ff);outline-offset:2px}
+
+/* Просмотрщик чертежа. Кнопка закрытия своих стилей не имела и рисовалась
+   браузерной серой кнопкой поверх рисунка. */
+.lightbox-close{position:absolute;top:12px;right:12px;z-index:2;width:34px;height:34px;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:50%;background:#fff;color:var(--muted);cursor:pointer;transition:background .15s ease,color .15s ease,border-color .15s ease}
+.lightbox-close:hover{background:#f1f5f9;color:var(--ink);border-color:#c3d2ea}
+.lightbox-close:focus-visible{outline:2px solid var(--blue,#1764ff);outline-offset:2px}
+body.dark .lightbox-close{background:#1b2740;border-color:#2b3a58;color:#c4cce0}
+body.dark .lightbox-close:hover{background:#26344f;color:#edf2ff}
+.lightbox-content{padding-top:6px}
+.lightbox-img{background:#fff;border:1px solid var(--line);padding:8px}
+body.dark .lightbox-img{background:#f7f9ff}
+
+/* Потолок высоты условия в тренажёре: без него одна длинная задача
+   задаёт высоту всем карточкам сетки. Что не поместилось — прокручивается. */
+:root{--drill-expr-max:150px}
+.compact-drill-expr{max-height:var(--drill-expr-max);overflow-y:auto;overscroll-behavior:contain}
+@media (max-width:720px){:root{--drill-expr-max:200px}}

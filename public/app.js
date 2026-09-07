@@ -1024,7 +1024,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
             <p class="compact-drill-note" hidden></p>
           </div>
           <div class="compact-drill-actions">
-            ${figureUrl ? `<button type="button" class="compact-drill-figure-btn" data-drill-figure="${escapeHtml(figureUrl)}" data-figure-alt="${escapeHtml(taskTitle)}" title="${escapeHtml(tr('drill_figure_btn'))}" aria-label="${escapeHtml(tr('drill_figure_btn'))}">🖼</button>` : ''}
+            ${figureUrl ? `<button type="button" class="compact-drill-figure-btn" data-drill-figure="${escapeHtml(figureUrl)}" data-figure-alt="${escapeHtml(taskTitle)}" title="${escapeHtml(tr('drill_figure_btn'))}" aria-label="${escapeHtml(tr('drill_figure_btn'))}"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="9" cy="9" r="1.4"/></svg></button>` : ''}
             <button type="button" class="compact-drill-hint-btn" data-drill-hint="${task.id}" title="${escapeHtml(tr('drill_hint_btn'))}" aria-label="${escapeHtml(tr('drill_hint_btn'))}">💡</button>
             <a href="${taskPath(task)}" class="compact-drill-link-btn" title="${escapeHtml(taskTitle)}" target="_blank" aria-label="Открыть задачу">↗</a>
           </div>
@@ -1057,6 +1057,32 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     fillTaskMath(container, tasks);
   }
 }
+
+/* Позиция прокрутки запоминается до открытия и возвращается после закрытия:
+   модальное окно уводило страницу наверх, и после просмотра чертежа ученик
+   терял место в длинном списке. */
+let scrollBeforeLightbox = 0;
+
+function openLightbox(src, alt) {
+  const dialog = document.querySelector('#lightbox-dialog');
+  const img = document.querySelector('#lightbox-img');
+  const caption = document.querySelector('#lightbox-caption');
+  if (!dialog || !img) return;
+  scrollBeforeLightbox = window.scrollY;
+  img.src = src;
+  img.alt = alt || '';
+  // До открытия картинка скрыта: img без src невалиден и скринридер
+  // объявляет его как «пустое изображение».
+  img.hidden = false;
+  if (caption) caption.textContent = alt || '';
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+  else dialog.setAttribute('open', '');
+  requestAnimationFrame(() => window.scrollTo({ top: scrollBeforeLightbox }));
+}
+
+document.querySelector('#lightbox-dialog')?.addEventListener('close', () => {
+  window.scrollTo({ top: scrollBeforeLightbox });
+});
 
 // Одно делегирование на документ — карточки перерисовываются при каждом переходе.
 document.addEventListener('click', event => {
@@ -2819,36 +2845,14 @@ document.addEventListener('click', event => {
   // Чертёж поверх карточки тренажёра: там самой картинки нет, только кнопка.
   const drillFigure = event.target.closest('[data-drill-figure]');
   if (drillFigure) {
-    const dialog = document.querySelector('#lightbox-dialog');
-    const img = document.querySelector('#lightbox-img');
-    const caption = document.querySelector('#lightbox-caption');
-    if (dialog && img) {
-      img.src = drillFigure.dataset.drillFigure;
-      img.alt = drillFigure.dataset.figureAlt || '';
-      img.hidden = false;
-      if (caption) caption.textContent = drillFigure.dataset.figureAlt || '';
-      if (typeof dialog.showModal === 'function') dialog.showModal();
-      else dialog.setAttribute('open', '');
-    }
+    openLightbox(drillFigure.dataset.drillFigure, drillFigure.dataset.figureAlt);
     return;
   }
 
   // Зум чертежей (LightBox 2.3)
   const figure = event.target.closest('.task-figure');
   if (figure) {
-    const dialog = document.querySelector('#lightbox-dialog');
-    const img = document.querySelector('#lightbox-img');
-    const caption = document.querySelector('#lightbox-caption');
-    if (dialog && img) {
-      img.src = figure.src;
-      img.alt = figure.alt || '';
-      // До открытия просмотра картинка скрыта: img без src невалиден
-      // и скринридер объявляет его как «пустое изображение».
-      img.hidden = false;
-      if (caption) caption.textContent = figure.alt || '';
-      if (typeof dialog.showModal === 'function') dialog.showModal();
-      else dialog.setAttribute('open', '');
-    }
+    openLightbox(figure.src, figure.alt);
     return;
   }
 
