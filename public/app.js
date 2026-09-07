@@ -666,11 +666,10 @@ function highlightText(text, query) {
 /* ── Карточка задачи с раскрывающимся решением ────────────────────── */
 
 function taskFigure(path, title, kind) {
-  // Для наглядности и тестирования LightBox: если чертёж ещё не загружен в базу,
-  // для геометрических задач подключаем векторный чертёж
-  const isGeometry = /пифагор|треугольник|синус|косинус|угол|окружност|площад/i.test(title);
-  const effectivePath = path || (isGeometry && kind === 'Чертёж' ? '/demo-geometry.svg' : null);
-  const url = imageUrl(effectivePath);
+  /* Раньше геометрическим задачам без чертежа подставлялся демонстрационный
+     файл. Ученик видел рисунок, не имеющий отношения к условию, и это хуже,
+     чем отсутствие рисунка: по нему можно решать и получить не тот ответ. */
+  const url = imageUrl(path);
   if (!url) return '';
   // Без alt чертёж для незрячего читателя означает потерянное условие.
   const alt = `${kind} к задаче «${title}» (нажмите для увеличения)`;
@@ -997,6 +996,9 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
       const taskTitle = loc(task, 'title');
       const hasAnswer = Boolean(task.answer_latex);
       const cleanAnswer = task.answer_latex ? task.answer_latex.replace(/^\$+|\$+$/g, '') : '';
+      /* Кнопка чертежа появляется только у задач, к которым чертёж
+         действительно загружен: подставного показывать нельзя. */
+      const figureUrl = task.condition_image ? imageUrl(task.condition_image) : '';
 
       return `
         <div class="compact-drill-item${solved ? ' is-solved' : ''}" data-task-id="${task.id}" id="drill-task-${task.id}">
@@ -1021,6 +1023,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
             </div>
           </div>
           <div class="compact-drill-actions">
+            ${figureUrl ? `<button type="button" class="compact-drill-figure-btn" data-drill-figure="${escapeHtml(figureUrl)}" data-figure-alt="${escapeHtml(taskTitle)}" title="${escapeHtml(tr('drill_figure_btn'))}" aria-label="${escapeHtml(tr('drill_figure_btn'))}">🖼</button>` : ''}
             <button type="button" class="compact-drill-hint-btn" data-drill-hint="${task.id}" title="${escapeHtml(tr('drill_hint_btn'))}" aria-label="${escapeHtml(tr('drill_hint_btn'))}">💡</button>
             <a href="${taskPath(task)}" class="compact-drill-link-btn" title="${escapeHtml(taskTitle)}" target="_blank" aria-label="Открыть задачу">↗</a>
           </div>
@@ -2781,6 +2784,23 @@ document.addEventListener('click', event => {
   if (randomBtn) {
     event.preventDefault();
     openRandomTask();
+    return;
+  }
+
+  // Чертёж поверх карточки тренажёра: там самой картинки нет, только кнопка.
+  const drillFigure = event.target.closest('[data-drill-figure]');
+  if (drillFigure) {
+    const dialog = document.querySelector('#lightbox-dialog');
+    const img = document.querySelector('#lightbox-img');
+    const caption = document.querySelector('#lightbox-caption');
+    if (dialog && img) {
+      img.src = drillFigure.dataset.drillFigure;
+      img.alt = drillFigure.dataset.figureAlt || '';
+      img.hidden = false;
+      if (caption) caption.textContent = drillFigure.dataset.figureAlt || '';
+      if (typeof dialog.showModal === 'function') dialog.showModal();
+      else dialog.setAttribute('open', '');
+    }
     return;
   }
 
