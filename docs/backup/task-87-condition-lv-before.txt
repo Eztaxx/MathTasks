@@ -1,0 +1,1 @@
+Taisnstūrveida zemesgabala garums ir par $5\text{ m}$ lielāks nekā tā platums. Zemesgabala laukums ir $300\text{ м}^2$. Aprēķiniet zemesgabala platumu metros.
