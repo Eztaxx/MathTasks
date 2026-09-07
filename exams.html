@@ -3,34 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Подготовка к государственным экзаменам по математике — Skola2030 | MathTasks</title>
-  <meta name="description" content="Полный гид и план подготовки к государственным экзаменам по математике в Латвии: 9 класс, Vispārīgais, Optimālais (Matemātika I), Augstākais (Matemātika II). Темы, формулы, разбор." />
+  <title>Государственные экзамены по математике — Skola2030 | MathTasks</title>
+  <meta name="description" content="Государственные экзамены по математике в Латвии: основная школа, Vispārīgais, Optimālais (Matemātika I), Augstākais (Matemātika II). Уровни, темы, формульные листы и стратегия подготовки." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="/style.css" />
-  <script>
-    (() => {
-      try {
-        const saved = localStorage.getItem('math-tasks:theme') || localStorage.getItem('theme');
-        const isDark = saved ? saved === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        if (isDark) {
-          document.documentElement.classList.add('dark');
-          if (document.body) document.body.classList.add('dark');
-          else {
-            new MutationObserver((_, obs) => {
-              if (document.body) {
-                document.body.classList.add('dark');
-                obs.disconnect();
-              }
-            }).observe(document.documentElement, { childList: true });
-          }
-        }
-      } catch (e) {}
-    })();
-  </script>
+  <script src="/theme-init.js"></script>
 </head>
 <body class="exams-page">
   <header class="admin-topbar">
@@ -76,7 +57,7 @@
     <section class="exams-hero">
       <div class="exams-hero-content">
         <span class="exams-tag">Valsts pārbaudījumi • Skola2030</span>
-        <h1>Подготовка к государственным экзаменам по математике</h1>
+        <h1>Государственные экзамены по математике</h1>
         <p>
           Всё необходимое для успешной сдачи экзаменов в Латвии: официальные формульные листы VISC, 
           структура заданий, разбор критериев оценивания и подборки задач по темам.
@@ -97,15 +78,15 @@
       </div>
 
       <div class="exams-levels-grid">
-        <!-- 9. klase -->
+        <!-- Экзамен основной школы -->
         <div class="exam-level-card card-gold">
           <div class="exam-level-header">
-            <span class="exam-badge badge-gold">9. klase</span>
-            <span class="exam-level-type">Pamatskola</span>
+            <span class="exam-badge badge-gold">Pamatskola</span>
+            <span class="exam-level-type">Valsts eksāmens</span>
           </div>
-          <h3>Экзамен 9 класса (Окончание основной школы)</h3>
+          <h3>Экзамен за курс основной школы</h3>
           <p class="exam-desc">
-            Обязательный централизованный экзамен по математике за курс 1–9 классов. 
+            Обязательный централизованный экзамен по математике за курс основной школы. 
             Проверяет базовые математические навыки, работу с формулами, текстовые задачи и основы геометрии.
           </p>
 
@@ -117,9 +98,9 @@
 
           <div class="exam-card-footer">
             <a href="/formulas/eksamens-matematika-9-klase-2026.pdf" target="_blank" rel="noopener noreferrer" class="exam-doc-link">
-              📄 Формульный лист 9 класса (PDF)
+              📄 Формульный лист основной школы (PDF)
             </a>
-            <a href="/?grade=9" class="primary-button small">Решать задачи 9 класса →</a>
+            <a href="/?grade=9" class="primary-button small">Решать задачи основной школы →</a>
           </div>
         </div>
 
@@ -127,7 +108,7 @@
         <div class="exam-level-card card-teal">
           <div class="exam-level-header">
             <span class="exam-badge badge-teal">Vispārīgais</span>
-            <span class="exam-level-type">Vidusskola (10. klase)</span>
+            <span class="exam-level-type">Vidusskola</span>
           </div>
           <h3>Общий уровень (Vispārīgais līmenis)</h3>
           <p class="exam-desc">
@@ -144,7 +125,7 @@
             <a href="/formulas/eksamens-matematika-visparigais-2026.pdf" target="_blank" rel="noopener noreferrer" class="exam-doc-link">
               📄 Формульный лист Vispārīgais (PDF)
             </a>
-            <a href="/?grade=10" class="primary-button small">Решать задачи 10 класса →</a>
+            <a href="/?grade=10" class="primary-button small">Решать задачи уровня Vispārīgais →</a>
           </div>
         </div>
 
@@ -152,7 +133,7 @@
         <div class="exam-level-card card-blue">
           <div class="exam-level-header">
             <span class="exam-badge badge-blue">Optimālais (Mat I)</span>
-            <span class="exam-level-type">Vidusskola (11. klase)</span>
+            <span class="exam-level-type">Vidusskola</span>
           </div>
           <h3>Оптимальный уровень — Matemātika I</h3>
           <p class="exam-desc">
@@ -178,7 +159,7 @@
         <div class="exam-level-card card-purple">
           <div class="exam-level-header">
             <span class="exam-badge badge-purple">Augstākais (Mat II)</span>
-            <span class="exam-level-type">Padziļinātais kurss (12. klase)</span>
+            <span class="exam-level-type">Padziļinātais kurss</span>
           </div>
           <h3>Высший уровень — Matemātika II</h3>
           <p class="exam-desc">
@@ -261,7 +242,7 @@
             стереометрии и тригонометрии.
           </p>
           <div class="callout-links">
-            <a class="secondary-button" href="/formulas/eksamens-matematika-9-klase-2026.pdf" target="_blank">Лист 9 класса</a>
+            <a class="secondary-button" href="/formulas/eksamens-matematika-9-klase-2026.pdf" target="_blank">Лист основной школы</a>
             <a class="secondary-button" href="/formulas/eksamens-matematika-visparigais-2026.pdf" target="_blank">Лист Vispārīgais</a>
             <a class="secondary-button" href="/formulas/eksamens-matematika-optimalais-2026.pdf" target="_blank">Лист Optimālais (Mat I)</a>
             <a class="secondary-button" href="/formulas/eksamens-matematika-augstakais-2026.pdf" target="_blank">Лист Augstākais (Mat II)</a>
@@ -274,21 +255,7 @@
   <footer class="admin-footer" style="margin-top: 50px; text-align: center; padding: 24px 16px; color: var(--muted); border-top: 1px solid var(--line);">
     <p>MathTasks — платформа подготовки к математическим экзаменам по стандарту Skola2030 (Латвия).</p>
   </footer>
+  <script src="/exams-page.js"></script>
 
-  <script>
-    (() => {
-      const themeToggle = document.querySelector('#theme-toggle');
-      if (themeToggle) {
-        const isDarkNow = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
-        themeToggle.setAttribute('aria-checked', isDarkNow ? 'true' : 'false');
-        themeToggle.addEventListener('click', () => {
-          const isDark = document.documentElement.classList.toggle('dark');
-          document.body.classList.toggle('dark', isDark);
-          localStorage.setItem('math-tasks:theme', isDark ? 'dark' : 'light');
-          themeToggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
-        });
-      }
-    })();
-  </script>
 </body>
 </html>

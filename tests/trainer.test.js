@@ -81,15 +81,46 @@ describe('Mental Math Trainer Engine', () => {
     expect(Object.keys(counts).length).toBeGreaterThanOrEqual(4);
   });
 
+  it('генератор powers создаёт степени и корни', () => {
+    for (let i = 0; i < 50; i++) {
+      const q = trainer.generateQuestion('powers');
+      expect(q.category).toBe('powers');
+      const check = trainer.checkAnswer(q, q.answer);
+      expect(check.isCorrect).toBe(true);
+    }
+  });
+
+  it('генератор negatives создаёт примеры с отрицательными числами', () => {
+    for (let i = 0; i < 50; i++) {
+      const q = trainer.generateQuestion('negatives');
+      expect(q.category).toBe('negatives');
+      const check = trainer.checkAnswer(q, q.answer);
+      expect(check.isCorrect).toBe(true);
+    }
+  });
+
+  it('генераторы поддерживают различные уровни сложности (normal, hard, expert)', () => {
+    ['addsub2', 'addsub3', 'multdiv', 'fractions', 'decimals', 'powers', 'negatives', 'mix'].forEach(cat => {
+      ['normal', 'hard', 'expert'].forEach(diff => {
+        const q = trainer.generateQuestion(cat, diff);
+        expect(q).toBeDefined();
+        expect(q.latex).toBeTruthy();
+        expect(q.answer).toBeDefined();
+        const check = trainer.checkAnswer(q, q.answer);
+        expect(check.isCorrect).toBe(true);
+      });
+    });
+  });
+
   it('generateBatch генерирует корректную подборку заданного размера с id и индексами', () => {
-    const batch20 = trainer.generateBatch('addsub2', 20);
+    const batch20 = trainer.generateBatch('addsub2', 20, 'hard');
     expect(batch20).toHaveLength(20);
     expect(batch20[0].id).toBe(1);
     expect(batch20[19].id).toBe(20);
     expect(batch20[0].index).toBe(0);
     expect(batch20[19].index).toBe(19);
 
-    const batch10 = trainer.generateBatch('fractions', 10);
+    const batch10 = trainer.generateBatch('fractions', 10, 'expert');
     expect(batch10).toHaveLength(10);
     batch10.forEach(q => {
       expect(q.type).toBe('fraction');
@@ -97,3 +128,4 @@ describe('Mental Math Trainer Engine', () => {
     });
   });
 });
+

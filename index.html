@@ -19,27 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="/style.css" />
-  <script>
-    (() => {
-      try {
-        const saved = localStorage.getItem('math-tasks:theme') || localStorage.getItem('theme');
-        const isDark = saved ? saved === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        if (isDark) {
-          document.documentElement.classList.add('dark');
-          if (document.body) {
-            document.body.classList.add('dark');
-          } else {
-            new MutationObserver((_, obs) => {
-              if (document.body) {
-                document.body.classList.add('dark');
-                obs.disconnect();
-              }
-            }).observe(document.documentElement, { childList: true });
-          }
-        }
-      } catch (e) {}
-    })();
-  </script>
+  <script src="/theme-init.js"></script>
 </head>
 <body>
   <noscript>
@@ -81,11 +61,11 @@
             <span data-i18n="nav_trainer_desc">Устный счёт и дроби</span>
           </div>
         </a>
-        <a class="sidebar-track-card" href="/exams.html" title="Экзамены Skola2030">
+        <a class="sidebar-track-card" href="/exams.html" title="Государственные экзамены по математике">
           <div class="track-card-badge blue">🎯</div>
           <div class="track-card-body">
-            <strong data-i18n="nav_exams">Экзамены Skola2030</strong>
-            <span data-i18n="nav_exams_desc">Подготовка и стратегия</span>
+            <strong data-i18n="nav_exams">Государственные экзамены</strong>
+            <span data-i18n="nav_exams_desc">Уровни, формулы, стратегия</span>
           </div>
         </a>
         <a class="sidebar-track-card" href="/mock-exams.html" title="Пробные экзамены">

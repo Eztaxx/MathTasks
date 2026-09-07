@@ -2435,7 +2435,7 @@ body.dark .trainer-panel {
   border-color: #253554;
 }
 
-.trainer-categories-row, .trainer-mode-row {
+.trainer-categories-row, .trainer-diff-row, .trainer-mode-row {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -2455,7 +2455,7 @@ body.dark .trainer-panel {
   gap: 8px;
 }
 
-.trainer-cat-chip, .trainer-mode-chip {
+.trainer-cat-chip, .trainer-mode-chip, .trainer-diff-chip, .sheet-count-chip {
   border: 1.5px solid var(--line, #e2e8f0);
   background: #f8fafc;
   color: var(--ink);
@@ -2465,27 +2465,27 @@ body.dark .trainer-panel {
   cursor: pointer;
   transition: all 0.18s ease;
 }
-.trainer-cat-chip:hover, .trainer-mode-chip:hover {
+.trainer-cat-chip:hover, .trainer-mode-chip:hover, .trainer-diff-chip:hover, .sheet-count-chip:hover {
   border-color: #93c5fd;
   background: #eff6ff;
   transform: translateY(-1px);
 }
-.trainer-cat-chip.active, .trainer-mode-chip.active {
+.trainer-cat-chip.active, .trainer-mode-chip.active, .trainer-diff-chip.active, .sheet-count-chip.active {
   background: #1764ff;
   border-color: #1764ff;
   color: #fff;
   box-shadow: 0 3px 12px rgba(23, 100, 255, 0.25);
 }
-body.dark .trainer-cat-chip, body.dark .trainer-mode-chip {
+body.dark .trainer-cat-chip, body.dark .trainer-mode-chip, body.dark .trainer-diff-chip, body.dark .sheet-count-chip {
   background: #1b2944;
   border-color: #2a3d63;
   color: #e2e8f0;
 }
-body.dark .trainer-cat-chip:hover, body.dark .trainer-mode-chip:hover {
+body.dark .trainer-cat-chip:hover, body.dark .trainer-mode-chip:hover, body.dark .trainer-diff-chip:hover, body.dark .sheet-count-chip:hover {
   background: #233557;
   border-color: #3b82f6;
 }
-body.dark .trainer-cat-chip.active, body.dark .trainer-mode-chip.active {
+body.dark .trainer-cat-chip.active, body.dark .trainer-mode-chip.active, body.dark .trainer-diff-chip.active, body.dark .sheet-count-chip.active {
   background: #2563eb;
   border-color: #2563eb;
   color: #fff;
@@ -2873,6 +2873,295 @@ body.dark .sprint-stat-item.highlight {
   .trainer-hud {
     flex-wrap: wrap;
   }
+}
+
+/* ── Вкладки выбора формата (Куча примеров vs По одной) ────────── */
+.trainer-view-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  background: #f1f5f9;
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid var(--line, #e2e8f0);
+}
+body.dark .trainer-view-tabs {
+  background: #10192d;
+  border-color: #243550;
+}
+.trainer-view-tab {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: 700 13.5px Manrope, sans-serif;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+.trainer-view-tab:hover {
+  color: var(--ink);
+}
+.trainer-view-tab.active {
+  background: #fff;
+  color: #1764ff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+body.dark .trainer-view-tab.active {
+  background: #1c2b48;
+  color: #60a5fa;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Режим листа примеров: увеличенный размер, никаких ползунков ── */
+.trainer-sheet-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.sheet-controls-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: 14px;
+  padding: 12px 18px;
+}
+body.dark .sheet-controls-bar {
+  background: #141f36;
+  border-color: #253554;
+}
+.sheet-count-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sheet-action-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sheet-stopwatch {
+  font: 700 14px ui-monospace, monospace;
+  color: #1764ff;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+body.dark .sheet-stopwatch {
+  background: #0f2347;
+  border-color: #1d4ed8;
+  color: #93c5fd;
+}
+
+.trainer-sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+.trainer-sheet-grid .compact-drill-item {
+  min-height: 74px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line, #e2e8f0);
+  background: #fff;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
+  transition: all 0.18s ease;
+  overflow: visible !important;
+}
+
+body.dark .trainer-sheet-grid .compact-drill-item {
+  background: #141f36;
+  border-color: #253554;
+  box-shadow: none;
+}
+
+.trainer-sheet-grid .compact-drill-item:hover {
+  border-color: #93c5fd;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(23, 100, 255, 0.08);
+}
+
+body.dark .trainer-sheet-grid .compact-drill-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.trainer-sheet-grid .compact-drill-item.is-solved {
+  background: #f0fdf4 !important;
+  border-color: #86efac !important;
+}
+
+body.dark .trainer-sheet-grid .compact-drill-item.is-solved {
+  background: #092615 !important;
+  border-color: #166534 !important;
+}
+
+.trainer-sheet-grid .compact-drill-num {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--muted);
+  min-width: 28px;
+  flex-shrink: 0;
+}
+
+.trainer-sheet-grid .compact-drill-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+  overflow: visible !important;
+}
+
+.trainer-sheet-grid .compact-drill-expr {
+  flex: 1;
+  min-width: 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.35;
+  overflow: visible !important;
+}
+
+.trainer-sheet-grid .compact-drill-expr * {
+  overflow: visible !important;
+}
+
+.trainer-sheet-grid .compact-drill-expr .katex {
+  font-size: 1.15em;
+}
+
+.trainer-sheet-grid .compact-drill-answer-wrap {
+  width: 120px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.trainer-sheet-grid .compact-drill-input {
+  width: 100%;
+  height: 44px;
+  padding: 4px 28px 4px 8px;
+  font: 800 17px Manrope, ui-monospace, sans-serif;
+  text-align: center;
+  color: var(--ink);
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.trainer-sheet-grid .compact-drill-input:focus {
+  border-color: #1764ff;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(23, 100, 255, 0.18);
+}
+
+.trainer-sheet-grid .compact-drill-input[readonly] {
+  cursor: default;
+}
+
+.trainer-sheet-grid .compact-drill-input.success {
+  border-color: #22c55e !important;
+  background: #dcfce7 !important;
+  color: #15803d !important;
+}
+
+.trainer-sheet-grid .compact-drill-input.error {
+  border-color: #ef4444 !important;
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  animation: shake 0.3s ease;
+}
+
+body.dark .trainer-sheet-grid .compact-drill-input {
+  background: #0f192b;
+  border-color: #2d4160;
+  color: #edf2ff;
+}
+
+body.dark .trainer-sheet-grid .compact-drill-input:focus {
+  background: #13223a;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+body.dark .trainer-sheet-grid .compact-drill-input.success {
+  background: #064e28 !important;
+  border-color: #22c55e !important;
+  color: #86efac !important;
+}
+
+body.dark .trainer-sheet-grid .compact-drill-input.error {
+  background: #450a0a !important;
+  border-color: #ef4444 !important;
+  color: #fca5a5 !important;
+}
+
+.trainer-sheet-grid .compact-drill-status {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  font-weight: 800;
+  pointer-events: none;
+}
+.trainer-sheet-grid .compact-drill-status.success {
+  color: #16a34a;
+}
+.trainer-sheet-grid .compact-drill-status.error {
+  color: #dc2626;
+}
+body.dark .trainer-sheet-grid .compact-drill-status.success {
+  color: #4ade80;
+}
+body.dark .trainer-sheet-grid .compact-drill-status.error {
+  color: #f87171;
+}
+
+.sheet-completion-card {
+  text-align: center;
+  padding: 32px 20px;
+  background: #f0fdf4;
+  border: 2px dashed #86efac;
+  border-radius: 16px;
+  margin-top: 10px;
+}
+body.dark .sheet-completion-card {
+  background: #072314;
+  border-color: #166534;
+}
+.completion-icon {
+  font-size: 44px;
+  margin-bottom: 8px;
+}
+.sheet-completion-card h3 {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+.sheet-completion-card p {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 18px;
 }
 
 /* ── Центр подготовки к экзаменам и пробные варианты ──────────── */
