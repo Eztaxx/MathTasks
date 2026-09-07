@@ -4,4 +4,4 @@
 -- от 📐 у геометрии основной школы.
 -- Уже применена на боевой базе; здесь — чтобы её можно было повторить.
 
-update public.subjects set icon = '🔺' where slug = 'planimetrija';
+update public.subjects set icon = '🔷' where slug = 'planimetrija';

@@ -679,8 +679,12 @@ ${JSON.stringify(texts)}`;
      записано в задаче, current — то, что показано сейчас. Всё, что
      оказалось лишним, удаляем из бакета: иначе он зарастёт сиротами. */
   const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
-  const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
-  const EXTENSIONS = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' };
+  /* SVG нужен для чертежей: нейросеть выдаёт их разметкой, а не картинкой,
+     и такой чертёж остаётся чётким при любом увеличении и весит килобайты.
+     Скрипты внутри SVG при загрузке через тег img не выполняются, поэтому
+     показывать такой файл безопасно — но только через img, не через iframe. */
+  const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+  const EXTENSIONS = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/svg+xml': 'svg' };
   const storage = () => db.storage.from(window.MathTasks.IMAGE_BUCKET);
   const images = {
     condition: { saved: null, current: null },
@@ -729,7 +733,7 @@ ${JSON.stringify(texts)}`;
       errorElement.textContent = '';
       if (!file) return;
       if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-        errorElement.textContent = 'Нужен файл png, jpg или webp.';
+        errorElement.textContent = 'Нужен файл png, jpg, webp или svg.';
         input.value = '';
         return;
       }
