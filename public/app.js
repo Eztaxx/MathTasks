@@ -2887,15 +2887,7 @@ document.addEventListener('click', event => {
   if (anchorLink) {
     event.preventDefault();
     const id = anchorLink.dataset.anchorTask;
-    const card = document.querySelector(`[data-task-id="${id}"], #task-${id}`);
-    if (card) {
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      document.querySelectorAll('.task.is-current, .compact-drill-item.is-current')
-        .forEach(el => el.classList.remove('is-current'));
-      card.classList.add('is-current');
-      const field = card.querySelector('.compact-drill-input:not([disabled]), .self-check-input:not([disabled])');
-      if (field) { field.focus(); field.select?.(); }
-    }
+    goToCard(document.querySelector(`[data-task-id="${id}"], #task-${id}`));
     return;
   }
 
@@ -2974,6 +2966,33 @@ document.querySelector('#plotter-dialog')?.addEventListener('click', event => {
 });
 
 // Навигация стрелками на клавиатуре для режима вывода задач "По одной" (1)
+/* Переход к карточке.
+
+   Плавная прокрутка на большое расстояние обрывается на полпути: прыжок
+   к пятидесятой задаче — это больше двадцати тысяч пикселей, и браузер
+   не доводит анимацию до конца. Поэтому дальние переходы делаем мгновенно,
+   а плавность оставляем шагам стрелками, где расстояние в один экран.
+
+   Подсветка снимается сама: постоянная рамка на карточке остаётся висеть
+   и мешает читать следующую задачу. */
+let highlightTimer = 0;
+
+function goToCard(card, { smooth = false } = {}) {
+  if (!card) return false;
+  const distance = Math.abs(card.getBoundingClientRect().top - window.innerHeight / 2);
+  const behavior = smooth && distance < window.innerHeight * 2 ? 'smooth' : 'auto';
+  card.scrollIntoView({ behavior, block: 'center' });
+
+  document.querySelectorAll('.is-current').forEach(el => el.classList.remove('is-current'));
+  card.classList.add('is-current');
+  clearTimeout(highlightTimer);
+  highlightTimer = setTimeout(() => card.classList.remove('is-current'), 3000);
+
+  const field = card.querySelector('.compact-drill-input:not([disabled]), .self-check-input:not([disabled])');
+  if (field) { field.focus({ preventScroll: true }); field.select?.(); }
+  return true;
+}
+
 /* Навигация стрелками между задачами.
 
    Раньше обработчик отступал, как только фокус был в поле ввода. В тренажёре
@@ -2995,12 +3014,7 @@ function focusTaskAt(index) {
   if (!cards.length) return false;
   const i = Math.min(cards.length - 1, Math.max(0, index));
   listCursor = i;
-  cards.forEach((c, n) => c.classList.toggle('is-current', n === i));
-  cards[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
-  /* Переход сразу в поле ответа: ученик набирает, не трогая мышь. */
-  const field = cards[i].querySelector('.compact-drill-input:not([disabled]), .self-check-input:not([disabled])');
-  if (field) { field.focus(); field.select?.(); }
-  return true;
+  return goToCard(cards[i], { smooth: true });
 }
 
 function currentTaskIndex() {
@@ -3038,7 +3052,7 @@ window.addEventListener('keydown', event => {
     /* После перерисовки узлы новые, поэтому фокус ставим следующим кадром. */
     requestAnimationFrame(() => {
       const field = answerInputs()[0];
-      if (field) { field.focus(); field.select?.(); }
+      if (field) { field.focus({ preventScroll: true }); field.select?.(); }
     });
     return;
   }

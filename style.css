@@ -2338,6 +2338,7 @@ dialog[open]{position:fixed;inset:0;margin:auto}
 /* Обводка вокруг всей карточки спорила с её собственными границами
    и выглядела как ошибка вёрстки. Отмечаем только номер — этого хватает,
    чтобы взгляд нашёл строку. */
+.task-number, .compact-drill-num { transition: background-color .4s ease, color .4s ease; }
 .task.is-current .task-number,
 .compact-drill-item.is-current .compact-drill-num {
   background: var(--blue, #1764ff);
