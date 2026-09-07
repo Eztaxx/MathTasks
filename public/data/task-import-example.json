@@ -15,6 +15,7 @@
         "condition_latex": "Решите уравнение $x^2 - 5x + 6 = 0$. Ответ запишите в порядке возрастания корней.",
         "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 5x + 6 = 0$. Atbildi pierakstiet sakņu augošā secībā.",
         "answer_latex": "$x_1 = 2$, $x_2 = 3$",
+        "answer_latex_lv": "$x_1 = 2$, $x_2 = 3$",
         "hint_latex": "Уравнение приведённое, поэтому проще подобрать корни по теореме Виета: их сумма равна $5$, а произведение $6$. Дискриминант считать не обязательно.",
         "hint_latex_lv": "Vienādojums ir reducēts, tāpēc saknes vieglāk atlasīt pēc Vjeta teorēmas: to summa ir $5$, bet reizinājums $6$. Diskriminants nav obligāti jāaprēķina.",
         "_pro_chertezhi": "condition_image и solution_image — путь к файлу в бакете task-images, а не адрес картинки. Проще загрузить чертёж кнопкой в форме задачи: путь подставится сам. В импорте это поле нужно только при восстановлении из резервной копии.",
@@ -24,12 +25,13 @@
         "solution_latex_lv": "Vienādojums ir reducēts, tāpēc lietosim Vjeta teorēmu:\n$$x_1 + x_2 = 5, \\quad x_1 \\cdot x_2 = 6$$\nAtlasām veselu skaitļu pāri, kas apmierina abus nosacījumus: tie ir $2$ un $3$.\n\nPārbaude ar diskriminantu:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x_{1,2} = \\frac{5 \\pm 1}{2} \\implies x_1 = 2, \\; x_2 = 3$$",
         "difficulty": "Лёгкий",
         "grade": 9,
-        "position": 1,
         "is_published": true,
         "tags": [
           "vienadojumi",
           "algebriskie-parveidojumi"
-        ]
+        ],
+        "_pro_otvet": "answer_latex_lv — тот же ответ по-латышски. Если в ответе нет слов, строка совпадает дословно; если есть единицы или текст, их надо перевести: $12\\text{ см}$ → $12\\text{ cm}$.",
+        "_pro_nomer": "position и id не указывайте: номер внутри темы админка назначает сама, по порядку задач в файле."
       }
     ]
   }

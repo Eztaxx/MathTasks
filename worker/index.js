@@ -219,6 +219,7 @@ ${customPrompt ? `Дополнительные пожелания: "${customProm
   "condition_latex_ru": "Условие задачи с формулами $...$",
   "condition_latex_lv": "Nosacījums ar formūlām $...$",
   "answer_latex": "Короткий математический ответ",
+  "answer_latex_lv": "Tā pati atbilde latviski",
   "solution_latex_ru": "Пошаговое понятное решение с формулами",
   "solution_latex_lv": "Soli pa solim atrisinājums latviski"
 }`;

@@ -862,7 +862,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
       </div>
     </div>` : '';
 
-  const answer = task.answer_latex
+  const answer = loc(task, 'answer_latex')
     ? revealBlock('answer', 'atbilde', '<div class="math" data-answer></div>')
     : '';
   /* Подсказка — вторая ступень: называет приём, не выдавая ответа.
@@ -924,9 +924,9 @@ function fillTaskMath(container, tasks) {
   container.querySelectorAll('[data-condition]').forEach((element, index) => {
     renderMath(element, loc(tasks[index], 'condition_latex'));
   });
-  const answerSource = tasks.filter(task => task.answer_latex);
+  const answerSource = tasks.filter(task => loc(task, 'answer_latex'));
   container.querySelectorAll('[data-answer]').forEach((element, index) => {
-    renderMath(element, answerSource[index].answer_latex);
+    renderMath(element, loc(answerSource[index], 'answer_latex'));
   });
   const hintSource = tasks.filter(task => loc(task, 'hint_latex'));
   container.querySelectorAll('[data-hint]').forEach((element, index) => {
@@ -1017,8 +1017,9 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     const itemsHtml = tasks.map((task, index) => {
       const solved = isTaskSolved(task.id);
       const taskTitle = loc(task, 'title');
-      const hasAnswer = Boolean(task.answer_latex);
-      const cleanAnswer = task.answer_latex ? task.answer_latex.replace(/^\$+|\$+$/g, '') : '';
+      const answerText = loc(task, 'answer_latex');
+      const hasAnswer = Boolean(answerText);
+      const cleanAnswer = answerText ? answerText.replace(/^\$+|\$+$/g, '') : '';
       /* Кнопка чертежа появляется только у задач, к которым чертёж
          действительно загружен: подставного показывать нельзя. */
       const figureUrl = task.condition_image ? imageUrl(task.condition_image) : '';
@@ -1719,7 +1720,7 @@ async function showSearch(rawQuery, acrossGrades) {
 
   const orClauses = [];
   if (safe) {
-    orClauses.push(`title.ilike.*${safe}*,condition_latex.ilike.*${safe}*,answer_latex.ilike.*${safe}*,solution_latex.ilike.*${safe}*`);
+    orClauses.push(`title.ilike.*${safe}*,condition_latex.ilike.*${safe}*,answer_latex.ilike.*${safe}*,answer_latex_lv.ilike.*${safe}*,solution_latex.ilike.*${safe}*`);
   }
   if (taggedTaskIds.length > 0) {
     orClauses.push(`id.in.(${taggedTaskIds.slice(0, 100).join(',')})`);
@@ -2447,7 +2448,7 @@ document.addEventListener('submit', event => {
   const userAns = input ? input.value.trim() : '';
   if (!userAns) return;
   const resultDiv = form.nextElementSibling;
-  const isCorrect = compareAnswers(userAns, task.answer_latex);
+  const isCorrect = compareAnswers(userAns, loc(task, 'answer_latex'));
   if (isCorrect) {
     setTaskSolved(taskId, true);
     resultDiv.className = 'self-check-result success';
@@ -2493,10 +2494,10 @@ function openDrillHintDialog(task) {
     renderMath(condEl, loc(task, 'condition_latex'));
   }
   if (ansEl && ansSec) {
-    if (task.answer_latex) {
+    if (loc(task, 'answer_latex')) {
       ansSec.hidden = false;
       ansEl.innerHTML = '';
-      renderMath(ansEl, task.answer_latex);
+      renderMath(ansEl, loc(task, 'answer_latex'));
     } else {
       ansSec.hidden = true;
     }
@@ -2533,7 +2534,7 @@ document.addEventListener('keydown', event => {
     const userAns = input.value.trim();
     if (!userAns) return;
 
-    const isCorrect = compareAnswers(userAns, task.answer_latex);
+    const isCorrect = compareAnswers(userAns, loc(task, 'answer_latex'));
     const item = input.closest('.compact-drill-item');
     const statusEl = item?.querySelector('.compact-drill-status');
 
@@ -2589,7 +2590,7 @@ document.addEventListener('keydown', event => {
           noteEl.className = 'compact-drill-note wrong';
           noteEl.innerHTML = '<span></span> <span class="math" data-note-answer></span>';
           noteEl.firstElementChild.textContent = tr('drill_wrong_answer');
-          renderMath(noteEl.querySelector('[data-note-answer]'), task.answer_latex || '');
+          renderMath(noteEl.querySelector('[data-note-answer]'), loc(task, 'answer_latex') || '');
         }
         noteEl.hidden = false;
       }

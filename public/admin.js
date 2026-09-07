@@ -113,7 +113,7 @@
     }
     multilingualReady = true;
     ['title_lv', 'description_lv'].forEach(c => supportedTopicCols.add(c));
-    ['title_lv', 'condition_latex_lv', 'solution_latex_lv'].forEach(c => supportedTaskCols.add(c));
+    ['title_lv', 'condition_latex_lv', 'solution_latex_lv', 'answer_latex_lv'].forEach(c => supportedTaskCols.add(c));
     supportedSubjectCols.add('title_lv');
   }
 
@@ -121,7 +121,7 @@
      отбрасывается санитайзером. Честнее сказать об этом прямо в форме. */
   function markLatvianFieldsUnavailable() {
     if (multilingualReady) return;
-    const ids = ['subject-title-lv', 'topic-title-lv', 'topic-desc-lv', 'title-input-lv', 'condition-input-lv', 'solution-input-lv'];
+    const ids = ['subject-title-lv', 'topic-title-lv', 'topic-desc-lv', 'title-input-lv', 'condition-input-lv', 'solution-input-lv', 'answer-input-lv'];
     const hint = 'Недоступно: не выполнена миграция 007_multilingual_tasks.sql';
     for (const id of ids) {
       const field = document.querySelector('#' + id);
@@ -430,6 +430,7 @@
   const solutionPreview = document.querySelector('#solution-preview');
 
   const conditionInputLv = document.querySelector('#condition-input-lv');
+  const answerInputLv = document.querySelector('#answer-input-lv');
   const solutionInputLv = document.querySelector('#solution-input-lv');
   const conditionPreviewLv = document.querySelector('#condition-preview-lv');
   const solutionPreviewLv = document.querySelector('#solution-preview-lv');
@@ -442,7 +443,7 @@
     if (conditionPreviewLv && conditionInputLv) renderMath(conditionPreviewLv, conditionInputLv.value);
     if (solutionPreviewLv && solutionInputLv) renderMath(solutionPreviewLv, solutionInputLv.value);
   };
-  [conditionInput, answerInput, solutionInput, conditionInputLv, solutionInputLv, hintInput, hintInputLv]
+  [conditionInput, answerInput, answerInputLv, solutionInput, conditionInputLv, solutionInputLv, hintInput, hintInputLv]
     .filter(Boolean)
     .forEach(input => input.addEventListener('input', updatePreviews));
 
@@ -1045,6 +1046,7 @@ ${JSON.stringify(texts)}`;
     conditionInput.value = task?.condition_latex || '';
     if (conditionInputLv) conditionInputLv.value = task?.condition_latex_lv || '';
     answerInput.value = task?.answer_latex || '';
+    if (answerInputLv) answerInputLv.value = task?.answer_latex_lv || '';
     if (hintInput) hintInput.value = task?.hint_latex || '';
     if (hintInputLv) hintInputLv.value = task?.hint_latex_lv || '';
     solutionInput.value = task?.solution_latex || '';
@@ -1317,6 +1319,7 @@ ${JSON.stringify(texts)}`;
       condition_latex: conditionInput.value.trim(),
       condition_latex_lv: conditionInputLv?.value.trim() || null,
       answer_latex: answerInput.value.trim() || null,
+      answer_latex_lv: answerInputLv?.value.trim() || null,
       hint_latex: hintInput?.value.trim() || null,
       hint_latex_lv: hintInputLv?.value.trim() || null,
       solution_latex: solutionInput.value.trim() || null,
@@ -1398,6 +1401,7 @@ ${JSON.stringify(texts)}`;
       conditionInput.value = source.condition_latex || '';
       if (conditionInputLv) conditionInputLv.value = source.condition_latex_lv || '';
       answerInput.value = source.answer_latex || '';
+      if (answerInputLv) answerInputLv.value = source.answer_latex_lv || '';
       solutionInput.value = source.solution_latex || '';
       if (solutionInputLv) solutionInputLv.value = source.solution_latex_lv || '';
       taskForm.elements.is_published.checked = false; // Копия по умолчанию создаётся черновиком
@@ -1496,6 +1500,7 @@ ${JSON.stringify(texts)}`;
           condition_latex: task.condition_latex,
           condition_latex_lv: task.condition_latex_lv || null,
           answer_latex: task.answer_latex || null,
+          answer_latex_lv: task.answer_latex_lv || null,
           solution_latex: task.solution_latex || null,
           solution_latex_lv: task.solution_latex_lv || null,
           hint_latex: task.hint_latex || null,
@@ -1753,6 +1758,7 @@ ${JSON.stringify(texts)}`;
             "condition_latex": "Решите уравнение $x^2 - 9 = 0$.",
             "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 9 = 0$.",
             "answer_latex": "$x = \\pm 3$",
+            "answer_latex_lv": "$x = \\pm 3$",
             "solution_latex": "Разложим на множители разность квадратов:\n$$(x - 3)(x + 3) = 0$$\nОткуда $x_1 = 3,\\; x_2 = -3$.",
             "solution_latex_lv": "Sadalām reizinātājos kvadrātu starpību:\n$$(x - 3)(x + 3) = 0$$\nTātad $x_1 = 3,\\; x_2 = -3$.",
             "tags": ["vienadojumi", "algebriskie-parveidojumi"],
@@ -1765,6 +1771,7 @@ ${JSON.stringify(texts)}`;
             "condition_latex": "Решите уравнение $x^2 - 5x + 6 = 0$.",
             "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 5x + 6 = 0$.",
             "answer_latex": "$x_1 = 2,\\; x_2 = 3$",
+            "answer_latex_lv": "$x_1 = 2,\\; x_2 = 3$",
             "solution_latex": "По формуле корней через дискриминант:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
             "solution_latex_lv": "Pēc sakņu formulas ar diskriminantu:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
             "tags": ["vienadojumi"],
@@ -1784,6 +1791,7 @@ ${JSON.stringify(texts)}`;
             "condition_latex": "В прямоугольном треугольнике катеты равны $a = 3\\text{ см}$ и $b = 4\\text{ см}$. Найдите длину гипотенузы $c$.",
             "condition_latex_lv": "Taisnleņķa trijstūrī katetes ir $a = 3\\text{ cm}$ un $b = 4\\text{ cm}$. Aprēķiniet hipotenūzas $c$ garumu.",
             "answer_latex": "$c = 5\\text{ см}$",
+            "answer_latex_lv": "$c = 5\\text{ cm}$",
             "solution_latex": "По теореме Пифагора:\n$$c = \\sqrt{a^2 + b^2} = \\sqrt{3^2 + 4^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ см}$$",
             "solution_latex_lv": "Pēc Pitagora teorēmas:\n$$c = \\sqrt{a^2 + b^2} = \\sqrt{3^2 + 4^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ cm}$$",
             "tags": ["planimetrija", "merijumi"],
@@ -1960,6 +1968,7 @@ ${JSON.stringify(texts)}`;
         condition_latex: String(item.condition_latex).trim(),
         condition_latex_lv: item.condition_latex_lv ? String(item.condition_latex_lv).trim() : null,
         answer_latex: item.answer_latex ? String(item.answer_latex).trim() : null,
+        answer_latex_lv: item.answer_latex_lv ? String(item.answer_latex_lv).trim() : null,
         solution_latex: item.solution_latex ? String(item.solution_latex).trim() : null,
         solution_latex_lv: item.solution_latex_lv ? String(item.solution_latex_lv).trim() : null,
         hint_latex: item.hint_latex ? String(item.hint_latex).trim() : null,
@@ -2697,6 +2706,7 @@ ${JSON.stringify(texts)}`;
         if (conditionInputLv) conditionInputLv.value = first.result.condition_latex_lv || '';
 
         answerInput.value = first.result.answer_latex || '';
+        if (answerInputLv) answerInputLv.value = first.result.answer_latex_lv || '';
 
         solutionInput.value = first.result.solution_latex_ru || first.result.solution_latex || '';
         if (solutionInputLv) solutionInputLv.value = first.result.solution_latex_lv || '';
@@ -2718,6 +2728,7 @@ ${JSON.stringify(texts)}`;
             condition_latex: r.condition_latex_ru || r.condition_latex || '',
             condition_latex_lv: r.condition_latex_lv || null,
             answer_latex: r.answer_latex || null,
+            answer_latex_lv: r.answer_latex_lv || null,
             solution_latex: r.solution_latex_ru || r.solution_latex || null,
             solution_latex_lv: r.solution_latex_lv || null,
             difficulty: diff,
