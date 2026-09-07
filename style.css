@@ -687,7 +687,7 @@ body.dark .task-fav-button.active{background:#382d09;border-color:#d69e2e;color:
 /* ── Зум чертежей (LightBox) ─────────────────────────────────────── */
 .task-figure{cursor:zoom-in;transition:transform .15s,box-shadow .15s}
 .task-figure:hover{box-shadow:0 6px 18px #0b19351a}
-.lightbox-dialog{width:min(92vw,900px);max-height:92vh;border:0;border-radius:16px;padding:18px 18px 14px;background:#fff;box-shadow:0 30px 80px #07142d59;color:var(--ink);overflow:hidden;position:relative}
+.lightbox-dialog{width:min(92vw,900px);max-height:92vh;border:0;border-radius:16px;padding:18px 18px 14px;background:#fff;box-shadow:0 30px 80px #07142d59;color:var(--ink);overflow:hidden;position:fixed;inset:0;margin:auto}
 .lightbox-dialog::backdrop{background:#07142de0;backdrop-filter:blur(4px)}
 .lightbox-content{display:flex;flex-direction:column;align-items:center;gap:12px}
 .lightbox-img{max-width:100%;max-height:75vh;object-fit:contain;border-radius:8px}
@@ -704,7 +704,7 @@ dialog:not([open]){display:none!important}
 body.dark .track-card-badge.teal{background:#0c314b;color:#38bdf8}
 
 /* ── Справочник формул и официальные формульные листы (3) ────────── */
-.formulas-dialog{width:min(94vw,880px);max-height:88vh;border:1px solid var(--line);border-radius:16px;padding:26px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,0.25);color:var(--ink);overflow:hidden;position:relative}
+.formulas-dialog{width:min(94vw,880px);max-height:88vh;border:1px solid var(--line);border-radius:16px;padding:26px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,0.25);color:var(--ink);overflow:hidden;position:fixed;inset:0;margin:auto}
 .formulas-dialog[open]{display:flex;flex-direction:column}
 .formulas-dialog-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
 .formulas-dialog-title-wrap h2{font-size:20px;margin:0 0 4px}
@@ -791,7 +791,7 @@ body.dark .quick-math-btn:hover{background:#1d3257;border-color:#5a92ff;color:#5
 body.dark .quick-math-btn:active{background:#233c69}
 
 /* ── Построитель графиков функций (3.4) ──────────────────────────── */
-.plotter-dialog{width:min(92vw,740px);max-height:90vh;border:0;border-radius:14px;padding:24px;background:#fff;box-shadow:0 24px 70px #07142d55;color:var(--ink);overflow-y:auto;position:relative}
+.plotter-dialog{width:min(92vw,740px);max-height:90vh;border:0;border-radius:14px;padding:24px;background:#fff;box-shadow:0 24px 70px #07142d55;color:var(--ink);overflow-y:auto;position:fixed;inset:0;margin:auto}
 .plotter-dialog[open]{display:flex;flex-direction:column}
 .plotter-head h2{font-size:20px;margin:0 0 4px}
 .plotter-head p{margin:0 0 14px;color:var(--muted);font-size:13px}
@@ -2319,5 +2319,10 @@ body.dark .lightbox-img{background:#f7f9ff}
 /* Потолок высоты условия в тренажёре: без него одна длинная задача
    задаёт высоту всем карточкам сетки. Что не поместилось — прокручивается. */
 :root{--drill-expr-max:150px}
-.compact-drill-expr{max-height:var(--drill-expr-max);overflow-y:auto;overscroll-behavior:contain}
+.compact-drill-expr{max-height:var(--drill-expr-max);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;scrollbar-gutter:stable}
 @media (max-width:720px){:root{--drill-expr-max:200px}}
+
+/* Любое модальное окно центрируется в окне просмотра. Без этого диалог
+   с собственным position:relative верстается в потоке и «уезжает» вниз
+   документа: открыв чертёж внизу списка, до окна приходилось листать. */
+dialog[open]{position:fixed;inset:0;margin:auto}
