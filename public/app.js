@@ -797,7 +797,7 @@ function difficultyBadge(diff) {
   return `<span class="task-diff ${cls}" title="${escapeHtml(label)}"><span class="diff-dot" aria-hidden="true">${dot}</span>${escapeHtml(label)}</span>`;
 }
 
-function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } = {}) {
+function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number } = {}) {
   const tr = window.MathTasks.t || (k => k);
   currentTasksMap.set(task.id, task);
   const subject = subjectOf(task);
@@ -871,9 +871,13 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
     : `<p class="solution-missing">${escapeHtml(tr('solution_missing'))}</p>`;
 
   const titleText = highlightQuery ? highlightText(taskTitle, highlightQuery) : escapeHtml(taskTitle);
+  /* Номер задачи в подборке: по нему ученик находит нужную строку, когда
+     ему говорят «посмотри задачу 17», и по нему же работает переход
+     из полосы номеров наверху. */
+  const numBadge = number ? `<span class="task-number">${number}.</span>` : '';
   const title = linkTitle
-    ? `<a class="task-title" href="${taskPath(task)}">${titleText}</a>`
-    : `<strong class="task-title">${titleText}</strong>`;
+    ? `${numBadge}<a class="task-title" href="${taskPath(task)}">${titleText}</a>`
+    : `${numBadge}<strong class="task-title">${titleText}</strong>`;
 
   // Кросс-теги задачи
   const rawTaskTags = Array.isArray(task.task_tags)
@@ -889,7 +893,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
       }).join('')}
     </div>` : '';
 
-  return `<article class="task" id="task-${task.id}" data-task="${task.id}">
+  return `<article class="task" id="task-${task.id}" data-task="${task.id}" data-task-id="${task.id}">
     <div class="task-meta">${meta}</div>
     ${title}
     ${tagsRowHtml}
@@ -938,6 +942,12 @@ let lastRenderedOptions = {};
    выбранного класса она одинакова у всех карточек и превращается в шум. */
 function renderTaskList(container, tasks, emptyText, options = {}) {
   listCursor = -1;
+  /* Полосу номеров перерисовывает не эта функция, поэтому при смене режима
+     она оставалась на экране. В режиме «по одной» у пагинатора своя такая
+     же полоса, и две подряд сбивали с толку. */
+  if (listAnchors && listAnchors.innerHTML) {
+    listAnchors.hidden = taskViewMode === 'single';
+  }
   const { showTopicLink = true, showGrade = !selectedGrade, linkTitle = true, highlightQuery = '' } = options;
   lastRenderedContainer = container;
   lastRenderedTasks = tasks || [];
@@ -1053,7 +1063,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
       }
     });
   } else {
-    container.innerHTML = tasks.map(task => taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery })).join('');
+    container.innerHTML = tasks.map((task, i) => taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number: i + 1 })).join('');
     fillTaskMath(container, tasks);
   }
 }
@@ -1403,11 +1413,13 @@ function showSubject(slug) {
 /* Разбор темы читают подряд и возвращаются к нужному номеру, поэтому список
    номеров сверху экономит прокрутку. При двух задачах он бесполезен. */
 function renderTopicAnchors(tasks) {
-  const enough = tasks.length >= 3;
+  /* В режиме «по одной» у пагинатора есть собственная полоса номеров,
+     и вторая такая же наверху только сбивала с толку. */
+  const enough = tasks.length >= 3 && taskViewMode !== 'single';
   listAnchors.hidden = !enough;
   if (!enough) { listAnchors.innerHTML = ''; return; }
   listAnchors.innerHTML = `<span class="topic-anchors-label">${(window.MathTasks.t || (k => k))('anchors_label')}</span>` + tasks
-    .map((task, index) => `<a class="topic-anchor" href="#task-${task.id}" title="${escapeHtml(task.title)}">${index + 1}</a>`)
+    .map((task, index) => `<a class="topic-anchor" href="#task-${task.id}" data-anchor-task="${task.id}" title="${escapeHtml(loc(task, 'title'))}">${index + 1}</a>`)
     .join('');
 }
 
@@ -2857,6 +2869,25 @@ document.addEventListener('click', event => {
   if (randomBtn) {
     event.preventDefault();
     openRandomTask();
+    return;
+  }
+
+  /* Переход по полосе номеров. Идентификатор карточки зависит от режима,
+     поэтому ищем по data-task-id, а не по адресу с решёткой: так полоса
+     работает и в списке, и в тренажёре, и не засоряет историю браузера. */
+  const anchorLink = event.target.closest('[data-anchor-task]');
+  if (anchorLink) {
+    event.preventDefault();
+    const id = anchorLink.dataset.anchorTask;
+    const card = document.querySelector(`[data-task-id="${id}"], #task-${id}`);
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.querySelectorAll('.task.is-current, .compact-drill-item.is-current')
+        .forEach(el => el.classList.remove('is-current'));
+      card.classList.add('is-current');
+      const field = card.querySelector('.compact-drill-input:not([disabled]), .self-check-input:not([disabled])');
+      if (field) { field.focus(); field.select?.(); }
+    }
     return;
   }
 
