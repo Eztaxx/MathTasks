@@ -1874,3 +1874,377 @@ body.dark .admin-list-close .text-button:hover{
   color:#edf2ff;
 }
 
+/* ── Экспресс-тренажёр (режим «Примеры») ─────────────────────── */
+.task-compact-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.compact-drill-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+body.dark .compact-drill-banner {
+  background: linear-gradient(135deg, #13233f, #152c48);
+  border-color: #1e3a8a;
+  color: #93c5fd;
+}
+
+.compact-drill-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1d4ed8;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+body.dark .compact-drill-stats {
+  background: #1e293b;
+  color: #60a5fa;
+}
+
+.task-compact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 10px;
+}
+
+.compact-drill-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+  min-height: 52px;
+  box-sizing: border-box;
+}
+
+.compact-drill-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+body.dark .compact-drill-item {
+  background: #152238;
+  border-color: #243550;
+}
+
+body.dark .compact-drill-item:hover {
+  border-color: #3b5072;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.compact-drill-item.is-solved {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+body.dark .compact-drill-item.is-solved {
+  background: #0d2818;
+  border-color: #166534;
+}
+
+.compact-drill-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  min-width: 24px;
+  flex-shrink: 0;
+}
+
+.compact-drill-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.compact-drill-expr {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  line-height: 1.3;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+  display: flex;
+  align-items: center;
+  white-space: normal;
+}
+
+.compact-drill-expr .katex-display {
+  margin: 2px 0 !important;
+  font-size: 1.05em;
+}
+
+.compact-drill-expr .katex {
+  font-size: 1.08em;
+}
+
+.compact-drill-eq {
+  font-size: 16px;
+  font-weight: 800;
+  color: #2563eb;
+  user-select: none;
+  flex-shrink: 0;
+  padding: 0 2px;
+}
+
+body.dark .compact-drill-eq {
+  color: #60a5fa;
+}
+
+.compact-drill-answer-wrap {
+  position: relative;
+  width: 105px;
+  flex-shrink: 0;
+}
+
+.compact-drill-input {
+  width: 100%;
+  height: 36px;
+  padding: 4px 26px 4px 8px;
+  font: 700 13.5px Manrope, sans-serif;
+  color: var(--ink);
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 7px;
+  box-sizing: border-box;
+  text-align: center;
+  transition: all .15s ease;
+}
+
+.compact-drill-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+body.dark .compact-drill-input {
+  background: #0f192b;
+  border-color: #2d4160;
+  color: #edf2ff;
+}
+
+body.dark .compact-drill-input:focus {
+  background: #13223a;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.compact-drill-input.success,
+.compact-drill-input:disabled {
+  border-color: #10b981 !important;
+  background: #ecfdf5 !important;
+  color: #065f46 !important;
+  cursor: default;
+}
+
+body.dark .compact-drill-input.success,
+body.dark .compact-drill-input:disabled {
+  background: #064e3b !important;
+  border-color: #059669 !important;
+  color: #a7f3d0 !important;
+}
+
+.compact-drill-input.error {
+  border-color: #ef4444 !important;
+  background: #fef2f2 !important;
+  color: #991b1b !important;
+  animation: drill-shake .25s ease;
+}
+
+body.dark .compact-drill-input.error {
+  background: #450a0a !important;
+  border-color: #dc2626 !important;
+  color: #fecaca !important;
+}
+
+@keyframes drill-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.compact-drill-status {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  font-weight: 800;
+  pointer-events: none;
+  display: none;
+}
+
+.compact-drill-status.success {
+  display: block;
+  color: #10b981;
+}
+
+.compact-drill-status.error {
+  display: block;
+  color: #ef4444;
+}
+
+.compact-drill-no-ans {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  display: block;
+}
+
+.compact-drill-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.compact-drill-hint-btn,
+.compact-drill-link-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .15s ease;
+}
+
+.compact-drill-hint-btn:hover,
+.compact-drill-link-btn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+body.dark .compact-drill-hint-btn:hover,
+body.dark .compact-drill-link-btn:hover {
+  background: #1e2e47;
+  color: #f1f5f9;
+}
+
+/* Диалог подсказки / решения в режиме тренажёра */
+.drill-hint-dialog {
+  width: min(560px, calc(100% - 32px));
+  padding: 24px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  background: #fff;
+  color: var(--ink);
+}
+
+body.dark .drill-hint-dialog {
+  background: #131d2e;
+  border-color: #243550;
+  color: #edf2ff;
+}
+
+.drill-hint-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.drill-hint-badge {
+  padding: 4px 10px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 11.5px;
+  font-weight: 700;
+  border-radius: 6px;
+}
+
+body.dark .drill-hint-badge {
+  background: #3c2a05;
+  color: #fde68a;
+}
+
+.drill-hint-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.drill-hint-section {
+  margin-bottom: 14px;
+}
+
+.drill-hint-section strong {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 6px;
+}
+
+.drill-hint-section .math {
+  background: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+body.dark .drill-hint-section .math {
+  background: #18263e;
+  border-color: #243550;
+}
+
+@media (max-width: 860px) {
+  .task-compact-grid {
+    grid-template-columns: 1fr;
+  }
+  .compact-drill-item {
+    padding: 10px;
+  }
+}
+
+
+
+/* Подсказка — вторая ступень раскрытия, поэтому она мягче решения:
+   тот же механизм, но спокойнее по цвету. */
+.reveal.hint{border-left:3px solid var(--accent,#1764ff);background:rgba(23,100,255,.05)}
+.reveal.hint[hidden]{display:none}
+
+/* Похожие задачи под разбором: список, а не карточки — это навигация,
+   а не содержимое, и оно не должно спорить с самой задачей. */
+.similar-tasks{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.similar-title{margin:0 0 10px;font-size:15px;font-weight:600}
+.similar-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px}
+.similar-list a{display:flex;align-items:baseline;gap:10px;padding:8px 10px;border-radius:8px;text-decoration:none;color:inherit}
+.similar-list a:hover{background:var(--chip-hover,#f1f5f9)}
+.similar-name{flex:1;min-width:0}
+.similar-diff{flex:none;font-size:11.5px;color:var(--muted)}

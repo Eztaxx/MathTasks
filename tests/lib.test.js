@@ -4,6 +4,7 @@ import {
   makeSlug,
   sanitizeSearch,
   KATEX_DELIMITERS,
+  cleanMathExample,
   compareAnswers,
   normalizeMathAnswer,
   calcTopicProgress,
@@ -78,6 +79,28 @@ describe('KATEX_DELIMITERS', () => {
   it('display выставлен только у выключных разделителей', () => {
     expect(KATEX_DELIMITERS.find(d => d.left === '$$').display).toBe(true);
     expect(KATEX_DELIMITERS.find(d => d.left === '$').display).toBe(false);
+  });
+});
+
+describe('cleanMathExample', () => {
+  it('удаляет латышские вводные шаблонные фразы', () => {
+    expect(cleanMathExample('Atrisiniet vienādojumu:\n$$3(2x - 5) + 4 = 5x - 7$$')).toBe('$$3(2x - 5) + 4 = 5x - 7$$');
+    expect(cleanMathExample('Aprēķiniet skaitliskās izteiksmes vērtību: $$\\frac{2^7 \\cdot 4^3}{8^4}$$')).toBe('$$\\frac{2^7 \\cdot 4^3}{8^4}$$');
+    expect(cleanMathExample('Atrisiniet kvadrātvienādojumu: $$2x^2 - 7x + 3 = 0$$')).toBe('$$2x^2 - 7x + 3 = 0$$');
+    expect(cleanMathExample('Vienkāršojiet izteiksmi: $$(a+b)^2$$')).toBe('$$(a+b)^2$$');
+  });
+
+  it('удаляет русские вводные шаблонные фразы', () => {
+    expect(cleanMathExample('Решите уравнение:\n$$2x + 5 = 11$$')).toBe('$$2x + 5 = 11$$');
+    expect(cleanMathExample('Вычислите значение выражения: $$\\sqrt{16} + 9$$')).toBe('$$\\sqrt{16} + 9$$');
+    expect(cleanMathExample('Упростите: $$x^2 - 4$$')).toBe('$$x^2 - 4$$');
+  });
+
+  it('сохраняет формулы и условия с важным контекстом и текстовые задачи', () => {
+    const wordProblem = 'Viens no blakusleņķiem ir par $40^\\circ$ lielāks nekā otrs.';
+    expect(cleanMathExample(wordProblem)).toBe(wordProblem);
+    expect(cleanMathExample('')).toBe('');
+    expect(cleanMathExample(null)).toBe('');
   });
 });
 

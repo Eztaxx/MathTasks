@@ -84,6 +84,26 @@
   const supportedSubjectCols = new Set(['title', 'slug', 'icon', 'position']);
   let multilingualReady = false;
 
+  /* Колонка подсказки появляется миграцией 016. Пока её нет, поле в форме
+     блокируем: иначе введённое молча пропадало бы, а то и роняло сохранение. */
+  let hintReady = false;
+  async function detectHintColumn() {
+    const { error } = await db.from('tasks').select('hint_latex').limit(1);
+    if (error) {
+      console.warn('Колонка hint_latex не найдена — выполните supabase/migrations/016_task_hint.sql.');
+      for (const el of [hintInput, hintInputLv]) {
+        if (!el) continue;
+        el.disabled = true;
+        el.title = 'Недоступно: не выполнена миграция 016_task_hint.sql';
+        el.placeholder = 'Недоступно до применения миграции 016';
+      }
+      return;
+    }
+    hintReady = true;
+    supportedTaskCols.add('hint_latex');
+    if (multilingualReady) supportedTaskCols.add('hint_latex_lv');
+  }
+
   async function detectMultilingualColumns() {
     const { error } = await db.from('topics').select('title_lv').limit(1);
     if (error) {
@@ -256,7 +276,7 @@
     // Тема без раздела не попадёт в меню сайта, поэтому для новой подставляем первый раздел.
     topicForm.elements.subject_id.value = String(topic?.subject_id ?? subjects[0]?.id ?? '');
     topicForm.elements.grade.value = toAdminGradeVal(topic?.grade);
-    topicForm.elements.position.value = topic?.position ?? 0;
+    topicForm.elements.position.value = Math.max(1, topic?.position ?? 1);
     topicForm.elements.description.value = topic?.description || '';
     if (topicForm.elements.description_lv) topicForm.elements.description_lv.value = topic?.description_lv || '';
     if (topic) topicForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -294,10 +314,11 @@
   /* Новая тема встаёт в конец своей группы, а не в начало: иначе
      каждая добавленная тема оказывалась бы выше всех уже расставленных. */
   function nextTopicPosition(grade, subjectId, rawValue) {
-    const typed = Number(rawValue) || 0;
-    if (editingTopicId || typed) return typed;
+    const typed = Number(rawValue);
+    if (editingTopicId && Number.isFinite(typed) && typed >= 1) return typed;
+    if (Number.isFinite(typed) && typed >= 1) return typed;
     const siblings = topicSiblingsOf({ grade, subject_id: subjectId });
-    return siblings.length ? Math.max(...siblings.map(t => t.position ?? 0)) + 1 : 1;
+    return siblings.length ? Math.max(...siblings.map(t => t.position ?? 1)) + 1 : 1;
   }
 
   function topicArrows(topic) {
@@ -340,7 +361,7 @@
          только в режиме «Все классы», поэтому предупреждаем прямо в списке. */
       const warning = topic.grade ? '' : '<span class="admin-warn">не видна в меню при выбранном классе</span>';
       return `<div class="admin-row">
-        <span class="admin-row-main"><strong><span class="admin-row-num">${topic.position ?? 0}.</span> ${escapeHtml(topic.title)}</strong><small>${escapeHtml(subjectTitle(topic.subject_id))} · ${gradeText(topic.grade)} · задач: ${count}</small>${warning}</span>
+        <span class="admin-row-main"><strong><span class="admin-row-num">${Math.max(1, topic.position ?? 1)}.</span> ${escapeHtml(topic.title)}</strong><small>${escapeHtml(subjectTitle(topic.subject_id))} · ${gradeText(topic.grade)} · задач: ${count}</small>${warning}</span>
         ${topicArrows(topic)}
         <button class="text-button" type="button" data-edit-topic="${topic.id}">Изменить</button>
         <button class="text-button danger" type="button" data-delete-topic="${topic.id}">Удалить</button>
@@ -400,6 +421,8 @@
 
   const conditionInput = document.querySelector('#condition-input');
   const answerInput = document.querySelector('#answer-input');
+  const hintInput = document.querySelector('#hint-input');
+  const hintInputLv = document.querySelector('#hint-input-lv');
   const solutionInput = document.querySelector('#solution-input');
   const conditionPreview = document.querySelector('#condition-preview');
   const answerPreview = document.querySelector('#answer-preview');
@@ -418,7 +441,7 @@
     if (conditionPreviewLv && conditionInputLv) renderMath(conditionPreviewLv, conditionInputLv.value);
     if (solutionPreviewLv && solutionInputLv) renderMath(solutionPreviewLv, solutionInputLv.value);
   };
-  [conditionInput, answerInput, solutionInput, conditionInputLv, solutionInputLv]
+  [conditionInput, answerInput, solutionInput, conditionInputLv, solutionInputLv, hintInput, hintInputLv]
     .filter(Boolean)
     .forEach(input => input.addEventListener('input', updatePreviews));
 
@@ -1017,6 +1040,8 @@ ${JSON.stringify(texts)}`;
     conditionInput.value = task?.condition_latex || '';
     if (conditionInputLv) conditionInputLv.value = task?.condition_latex_lv || '';
     answerInput.value = task?.answer_latex || '';
+    if (hintInput) hintInput.value = task?.hint_latex || '';
+    if (hintInputLv) hintInputLv.value = task?.hint_latex_lv || '';
     solutionInput.value = task?.solution_latex || '';
     if (solutionInputLv) solutionInputLv.value = task?.solution_latex_lv || '';
     taskForm.elements.is_published.checked = task ? task.is_published : true;
@@ -1287,6 +1312,8 @@ ${JSON.stringify(texts)}`;
       condition_latex: conditionInput.value.trim(),
       condition_latex_lv: conditionInputLv?.value.trim() || null,
       answer_latex: answerInput.value.trim() || null,
+      hint_latex: hintInput?.value.trim() || null,
+      hint_latex_lv: hintInputLv?.value.trim() || null,
       solution_latex: solutionInput.value.trim() || null,
       solution_latex_lv: solutionInputLv?.value.trim() || null,
       condition_image: images.condition.current,
@@ -2752,6 +2779,7 @@ ${JSON.stringify(texts)}`;
     setTopicMode(null);
     setTaskMode(null);
     await detectMultilingualColumns();
+    await detectHintColumn();
     markLatvianFieldsUnavailable();
     // Возвращаем режим сортировки, выбранный в прошлый раз.
     const savedSort = loadSort();

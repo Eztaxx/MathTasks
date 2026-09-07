@@ -35,6 +35,15 @@
     { left: '\\(', right: '\\)', display: false }
   ];
 
+  /* Очистка условия задачи от шаблонных вводных фраз для компактного тренажёра */
+  const cleanMathExample = val => {
+    if (!val) return '';
+    let s = String(val).trim();
+    const prefixRegex = /^(?:atrisiniet(?:\s+(?:vienādojumu|kvadrātvienādojumu|nevienādību(?:\s+ar\s+intervālu\s+metodi)?|sistēmu))?|aprēķiniet(?:\s+(?:skaitliskās\s+)?izteiksmes\s+vērtību)?|vienkāršojiet(?:\s+izteiksmi)?|atrodiet(?:\s+izteiksmes\s+vērtību)?|решите(?:\s+(?:уравнение|квадратное\s+уравнение|неравенство(?:\s+методом\s+интервалов)?|систему(?:\s+уравнений)?))?|вычислите(?:\s+(?:значение\s+(?:числового\s+)?выражения)?)?|найдите(?:\s+значение\s+выражения)?|упростите(?:\s+выражение)?)\s*[:—–-]?\s*/i;
+    const cleaned = s.replace(prefixRegex, '').trim();
+    return cleaned || s;
+  };
+
   /* Нормализация и сравнение математических ответов ученика с эталоном из базы */
   const normalizeMathAnswer = val => {
     if (val == null) return '';
@@ -362,6 +371,7 @@
     makeSlug,
     sanitizeSearch,
     KATEX_DELIMITERS,
+    cleanMathExample,
     normalizeMathAnswer,
     parseFractionOrNumber,
     compareAnswers,

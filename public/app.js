@@ -682,10 +682,17 @@ function taskFigure(path, title, kind) {
    в этом проекте уже дважды перебивало атрибут. */
 function revealBlock(kind, label, body) {
   const tr = window.MathTasks.t || (k => k);
-  const isAns = kind === 'answer';
-  const showText = isAns ? tr('reveal_answer') : tr('reveal_solution');
-  const hideText = isAns ? tr('hide_answer') : tr('hide_solution');
-  const labelText = isAns ? (tr('reveal_answer').replace(/^(Rādīt|Показать|Show)\s*/i, '')) : (tr('reveal_solution').replace(/^(Rādīt|Показать|Show)\s*/i, ''));
+  /* Ступеней раскрытия три: ответ, подсказка, решение. Подписи берём
+     по виду блока, а метку внутри — из той же строки без глагола. */
+  const KEYS = {
+    answer: ['reveal_answer', 'hide_answer'],
+    hint: ['reveal_hint', 'hide_hint'],
+    solution: ['reveal_solution', 'hide_solution']
+  };
+  const [showKey, hideKey] = KEYS[kind] || KEYS.solution;
+  const showText = tr(showKey);
+  const hideText = tr(hideKey);
+  const labelText = showText.replace(/^(Rādīt|Показать|Show)\s*/i, '');
   return `<button class="solution-toggle" type="button" data-reveal aria-expanded="false"
        data-show-label="${escapeHtml(showText)}" data-hide-label="${escapeHtml(hideText)}">${escapeHtml(showText)}</button>
      <div class="reveal ${kind}" hidden><span class="reveal-label">${escapeHtml(labelText)}</span>${body}</div>`;
@@ -851,6 +858,12 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
   const answer = task.answer_latex
     ? revealBlock('answer', 'atbilde', '<div class="math" data-answer></div>')
     : '';
+  /* Подсказка — вторая ступень: называет приём, не выдавая ответа.
+     Колонка появляется миграцией 016, до неё блок просто не рисуется. */
+  const taskHint = loc(task, 'hint_latex');
+  const hint = taskHint
+    ? revealBlock('hint', 'norāde', '<div class="math" data-hint></div>')
+    : '';
   const taskTitle = loc(task, 'title');
   const taskSolution = loc(task, 'solution_latex');
   const solutionBody = `<div class="math" data-solution></div>${taskFigure(task.solution_image, taskTitle, 'Attēls pie atrisinājuma')}`;
@@ -885,6 +898,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery } 
     ${taskFigure(task.condition_image, taskTitle, 'Zīmējums')}
     ${selfCheck}
     ${answer}
+    ${hint}
     ${solution}
   </article>`;
 }
@@ -899,16 +913,20 @@ function fillTaskMath(container, tasks) {
   container.querySelectorAll('[data-answer]').forEach((element, index) => {
     renderMath(element, answerSource[index].answer_latex);
   });
+  const hintSource = tasks.filter(task => loc(task, 'hint_latex'));
+  container.querySelectorAll('[data-hint]').forEach((element, index) => {
+    renderMath(element, loc(hintSource[index], 'hint_latex'));
+  });
   const solutionSource = tasks.filter(task => loc(task, 'solution_latex'));
   container.querySelectorAll('[data-solution]').forEach((element, index) => {
     renderMath(element, loc(solutionSource[index], 'solution_latex'));
   });
 }
 
-let taskViewMode = 'list'; // 'list' | 'single'
+let taskViewMode = 'list'; // 'list' | 'single' | 'compact'
 try {
   const saved = localStorage.getItem('math-tasks:view-mode');
-  if (saved === 'single' || saved === 'list') taskViewMode = saved;
+  if (saved === 'single' || saved === 'list' || saved === 'compact') taskViewMode = saved;
 } catch {}
 
 let singleTaskIndex = 0;
@@ -969,6 +987,67 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
 
     container.innerHTML = pagerTop + cardHtml + pagerBottom;
     fillTaskMath(container, [task]);
+  } else if (taskViewMode === 'compact') {
+    const tr = window.MathTasks.t || (k => k);
+    const cleanFn = (window.MathTasksLib && window.MathTasksLib.cleanMathExample) || (s => s);
+    const solvedTotal = tasks.filter(t => isTaskSolved(t.id)).length;
+
+    const itemsHtml = tasks.map((task, index) => {
+      const solved = isTaskSolved(task.id);
+      const taskTitle = loc(task, 'title');
+      const hasAnswer = Boolean(task.answer_latex);
+      const cleanAnswer = task.answer_latex ? task.answer_latex.replace(/^\$+|\$+$/g, '') : '';
+
+      return `
+        <div class="compact-drill-item${solved ? ' is-solved' : ''}" data-task-id="${task.id}" id="drill-task-${task.id}">
+          <span class="compact-drill-num" title="${escapeHtml(taskTitle)}">${index + 1}.</span>
+          <div class="compact-drill-body">
+            <div class="compact-drill-expr math" data-drill-condition="${task.id}"></div>
+            <span class="compact-drill-eq" aria-hidden="true">=</span>
+            <div class="compact-drill-answer-wrap">
+              ${hasAnswer ? `
+                <input type="text" 
+                       class="compact-drill-input${solved ? ' success' : ''}" 
+                       data-drill-id="${task.id}" 
+                       data-drill-index="${index}"
+                       placeholder="${escapeHtml(tr('drill_placeholder'))}" 
+                       aria-label="Ответ к примеру ${index + 1}"
+                       autocomplete="off" 
+                       ${solved ? `disabled value="${escapeHtml(cleanAnswer) || '✓'}"` : ''} />
+                <span class="compact-drill-status${solved ? ' success' : ''}">${solved ? '✓' : ''}</span>
+              ` : `
+                <span class="compact-drill-no-ans">—</span>
+              `}
+            </div>
+          </div>
+          <div class="compact-drill-actions">
+            <button type="button" class="compact-drill-hint-btn" data-drill-hint="${task.id}" title="${escapeHtml(tr('drill_hint_btn'))}" aria-label="${escapeHtml(tr('drill_hint_btn'))}">💡</button>
+            <a href="${taskPath(task)}" class="compact-drill-link-btn" title="${escapeHtml(taskTitle)}" target="_blank" aria-label="Открыть задачу">↗</a>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const bannerHtml = `
+      <div class="compact-drill-banner">
+        <span>⚡ ${escapeHtml(tr('view_mode_compact'))}: ${escapeHtml(tr('drill_next_hint'))}</span>
+        <div class="compact-drill-stats" id="compact-drill-stats">
+          ${solvedTotal} / ${tasks.length}
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = `<div class="task-compact-container">${bannerHtml}<div class="task-compact-grid">${itemsHtml}</div></div>`;
+
+    // Рендерим формулы в примерах через KaTeX
+    container.querySelectorAll('[data-drill-condition]').forEach(el => {
+      const taskId = Number(el.dataset.drillCondition);
+      const task = currentTasksMap.get(taskId);
+      if (task) {
+        const cleanedExpr = cleanFn(loc(task, 'condition_latex'));
+        renderMath(el, cleanedExpr);
+      }
+    });
   } else {
     container.innerHTML = tasks.map(task => taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery })).join('');
     fillTaskMath(container, tasks);
@@ -1098,6 +1177,7 @@ function fillListHeader({ crumbs, title, description = '', meta = '' }) {
 
 // Каждый список сам решает, что ему нужно; остальные контейнеры гасим.
 function resetListBlocks() {
+  document.querySelector('#similar-tasks')?.remove();
   renderTopicCards(listTopics, []);
   renderTopicGroups(listGroups, []);
   listTasks.innerHTML = '';
@@ -1340,6 +1420,9 @@ function renderPrintActions(tasks) {
       <button class="view-mode-btn${taskViewMode === 'list' ? ' active' : ''}" type="button" data-view-mode="list" title="${escapeHtml(tr('view_mode_list'))}">
         <span class="view-mode-icon">☰</span> ${escapeHtml(tr('view_mode_list'))}
       </button>
+      <button class="view-mode-btn${taskViewMode === 'compact' ? ' active' : ''}" type="button" data-view-mode="compact" title="${escapeHtml(tr('view_mode_compact'))}">
+        <span class="view-mode-icon">⚡</span> ${escapeHtml(tr('view_mode_compact'))}
+      </button>
       <button class="view-mode-btn${taskViewMode === 'single' ? ' active' : ''}" type="button" data-view-mode="single" title="${escapeHtml(tr('view_mode_single'))}">
         <span class="view-mode-icon">📄</span> ${escapeHtml(tr('view_mode_single'))} (${tasks.length})
       </button>
@@ -1470,6 +1553,7 @@ async function showAllTasks() {
   }
   const { data, error } = await query;
   if (error) { listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('err_load_tasks')}</p>`; return; }
+  renderPrintActions(data || []);
   renderTaskList(listTasks, data || [], 'Задач пока нет.');
 }
 
@@ -1499,6 +1583,7 @@ async function showFavorites() {
     return;
   }
 
+  renderPrintActions(data || []);
   renderTaskList(listTasks, data, 'Закладок нет.', { showTopicLink: true, showGrade: true });
 }
 
@@ -1700,6 +1785,38 @@ async function showTask(rawId) {
   );
   renderTaskList(listTasks, [task], '', { showTopicLink: false, showGrade: false, linkTitle: false });
   await renderTaskNeighbours(task);
+  await renderSimilarTasks(task);
+}
+
+/* Ученик, решивший одну задачу, обычно готов решить вторую — поэтому под
+   разбором показываем несколько задач той же темы. Сначала того же уровня
+   сложности, потом остальные: подборка «ещё такие же» полезнее случайной. */
+async function renderSimilarTasks(task) {
+  document.querySelector('#similar-tasks')?.remove();
+  if (!task.topic_id || !db) return;
+  const tr = window.MathTasks.t || (k => k);
+
+  const cols = multilingualColumns ? 'id, title, title_lv, difficulty, position' : 'id, title, difficulty, position';
+  const { data, error } = await db.from('tasks').select(cols)
+    .eq('is_published', true).eq('topic_id', task.topic_id).neq('id', task.id)
+    .order('position').order('created_at', { ascending: true });
+  if (error || !data || !data.length) return;
+
+  const sameLevel = data.filter(t => t.difficulty === task.difficulty);
+  const rest = data.filter(t => t.difficulty !== task.difficulty);
+  const picked = sameLevel.concat(rest).slice(0, 4);
+  if (!picked.length) return;
+
+  const box = document.createElement('section');
+  box.id = 'similar-tasks';
+  box.className = 'similar-tasks';
+  box.innerHTML = `<h2 class="similar-title">${escapeHtml(tr('similar_tasks'))}</h2>
+    <ul class="similar-list">${picked.map(t => `<li>
+      <a href="${taskPath(t)}">
+        <span class="similar-name">${escapeHtml(loc(t, 'title'))}</span>
+        ${t.difficulty ? `<span class="similar-diff">${escapeHtml(t.difficulty)}</span>` : ''}
+      </a></li>`).join('')}</ul>`;
+  (document.querySelector('#task-nav') || listTasks).after(box);
 }
 
 // Разбор темы читают подряд, поэтому переход к соседней задаче важнее поиска.
@@ -1880,6 +1997,7 @@ async function showTag(slug) {
     metaEl.innerHTML = `<span class="search-count">${tasksCountLabel}</span>${showAllLink} <a class="search-escape" href="/tags">${allTagsLabel}</a>`;
   }
 
+  renderPrintActions(tasks);
   renderTaskList(listTasks, tasks, tr('tag_empty') || (currentLang === 'lv' ? 'Šai birkai pagaidām nav pievienots neviens uzdevums.' : 'Задач с этим тегом пока нет.'), { showTopicLink: true, showGrade: true });
 }
 
@@ -2285,7 +2403,132 @@ document.addEventListener('submit', event => {
   }
 });
 
+/* ── Экспресс-тренажёр (режим «Примеры») ─────────────────────── */
+
+function openDrillHintDialog(task) {
+  const dialog = document.querySelector('#drill-hint-dialog');
+  if (!dialog) return;
+  const titleEl = dialog.querySelector('#drill-hint-title');
+  const condEl = dialog.querySelector('#drill-hint-condition');
+  const ansEl = dialog.querySelector('#drill-hint-answer');
+  const solEl = dialog.querySelector('#drill-hint-solution');
+  const ansSec = dialog.querySelector('#drill-hint-ans-section');
+  const solSec = dialog.querySelector('#drill-hint-sol-section');
+
+  if (titleEl) titleEl.textContent = loc(task, 'title');
+  if (condEl) {
+    condEl.innerHTML = '';
+    renderMath(condEl, loc(task, 'condition_latex'));
+  }
+  if (ansEl && ansSec) {
+    if (task.answer_latex) {
+      ansSec.hidden = false;
+      ansEl.innerHTML = '';
+      renderMath(ansEl, task.answer_latex);
+    } else {
+      ansSec.hidden = true;
+    }
+  }
+  if (solEl && solSec) {
+    const sol = loc(task, 'solution_latex');
+    if (sol) {
+      solSec.hidden = false;
+      solEl.innerHTML = '';
+      renderMath(solEl, sol);
+    } else {
+      solSec.hidden = true;
+    }
+  }
+
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+}
+
+// Обработка ввода и проверки ответов в компактном тренажёре
+document.addEventListener('keydown', event => {
+  const input = event.target.closest('.compact-drill-input');
+  if (!input) return;
+
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    const taskId = Number(input.dataset.drillId);
+    const task = currentTasksMap.get(taskId);
+    if (!task) return;
+
+    const userAns = input.value.trim();
+    if (!userAns) return;
+
+    const isCorrect = compareAnswers(userAns, task.answer_latex);
+    const item = input.closest('.compact-drill-item');
+    const statusEl = item?.querySelector('.compact-drill-status');
+
+    if (isCorrect) {
+      setTaskSolved(taskId, true);
+      input.classList.remove('error');
+      input.classList.add('success');
+      input.disabled = true;
+      if (statusEl) {
+        statusEl.className = 'compact-drill-status success';
+        statusEl.textContent = '✓';
+      }
+      if (item) item.classList.add('is-solved');
+
+      updateTopicHeaderProgress();
+      const statsEl = document.querySelector('#compact-drill-stats');
+      if (statsEl && lastRenderedTasks.length) {
+        const solvedCount = lastRenderedTasks.filter(t => isTaskSolved(t.id)).length;
+        statsEl.textContent = `${solvedCount} / ${lastRenderedTasks.length}`;
+      }
+
+      // Автоматический переход к следующему нерешённому примеру
+      const allInputs = Array.from(document.querySelectorAll('.compact-drill-input:not([disabled])'));
+      if (allInputs.length > 0) {
+        const curIdx = Number(input.dataset.drillIndex);
+        const nextInput = allInputs.find(inp => Number(inp.dataset.drillIndex) > curIdx) || allInputs[0];
+        if (nextInput) {
+          nextInput.focus();
+          nextInput.select();
+        }
+      }
+    } else {
+      input.classList.remove('success');
+      input.classList.add('error');
+      if (statusEl) {
+        statusEl.className = 'compact-drill-status error';
+        statusEl.textContent = '✗';
+      }
+      input.select();
+    }
+  }
+});
+
+document.addEventListener('input', event => {
+  const input = event.target.closest('.compact-drill-input');
+  if (!input) return;
+  if (input.classList.contains('error')) {
+    input.classList.remove('error');
+    const statusEl = input.closest('.compact-drill-item')?.querySelector('.compact-drill-status');
+    if (statusEl) statusEl.textContent = '';
+  }
+});
+
 document.addEventListener('click', event => {
+  // Подсказка / решение в режиме экспресс-тренажёра
+  const drillHintBtn = event.target.closest('[data-drill-hint]');
+  if (drillHintBtn) {
+    event.preventDefault();
+    const taskId = Number(drillHintBtn.dataset.drillHint);
+    const task = currentTasksMap.get(taskId);
+    if (task) openDrillHintDialog(task);
+    return;
+  }
+
+  // Закрытие диалога подсказки тренажёра
+  if (event.target.closest('#drill-hint-close') || event.target.matches('#drill-hint-dialog')) {
+    event.preventDefault();
+    document.querySelector('#drill-hint-dialog')?.close();
+    return;
+  }
+
   // Быстрая виртуальная математическая клавиатура (Quick Math Bar)
   const mathBtn = event.target.closest('.quick-math-btn');
   if (mathBtn) {
@@ -2412,12 +2655,12 @@ document.addEventListener('click', event => {
     return;
   }
 
-  // Переключение режима вывода задач: списком или по одной (1)
+  // Переключение режима вывода задач: списком, компактно или по одной
   const viewModeBtn = event.target.closest('[data-view-mode]');
   if (viewModeBtn) {
     event.preventDefault();
     const mode = viewModeBtn.dataset.viewMode;
-    if (mode === 'list' || mode === 'single') {
+    if (mode === 'list' || mode === 'single' || mode === 'compact') {
       taskViewMode = mode;
       try { localStorage.setItem('math-tasks:view-mode', mode); } catch {}
       document.querySelectorAll('[data-view-mode]').forEach(b => b.classList.toggle('active', b.dataset.viewMode === mode));

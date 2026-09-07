@@ -81,6 +81,7 @@ window.MathTasks = window.MathTasks || {};
   // Чистые функции живут в lib.js — их же покрывают тесты.
   const lib = window.MathTasksLib;
   window.MathTasks.makeSlug = lib.makeSlug;
+  window.MathTasks.cleanMathExample = lib.cleanMathExample;
   window.MathTasks.normalizeMathAnswer = lib.normalizeMathAnswer;
   window.MathTasks.compareAnswers = lib.compareAnswers;
 

@@ -89,7 +89,7 @@
           <label>Nosaukums (LV)<input name="title_lv" id="topic-title-lv" placeholder="Piemēram: Kvadrātvienādojumi" /></label>
           <label>Раздел<select name="subject_id" id="subject-select"></select></label>
           <label>Класс<select name="grade" id="topic-grade"></select></label>
-          <label>Порядок <span>можно не трогать — есть стрелки в списке</span><input name="position" type="number" value="0" /></label>
+          <label>Порядок <span>можно не трогать — есть стрелки в списке</span><input name="position" type="number" value="1" min="1" /></label>
           <label class="wide">Краткое описание / компетенции (RU) <span>необязательно</span><input name="description" id="topic-desc-ru" placeholder="Что изучается в этой теме" /></label>
           <label class="wide">Apraksts / prasmes (LV) <span>neobligāti</span><input name="description_lv" id="topic-desc-lv" placeholder="Ko apgūst šajā tēmā" /></label>
           <button class="primary-button" type="submit" id="topic-submit">Добавить тему</button>
@@ -406,6 +406,8 @@
             <span class="form-error" id="condition-image-error"></span>
           </div>
           <label class="wide">Ответ <span>необязательно; короткий математический ответ без разбора</span><textarea name="answer_latex" id="answer-input" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
+          <label class="wide">Подсказка <span>необязательно; направление решения без готового ответа</span><textarea name="hint_latex" id="hint-input" rows="2" placeholder="Вынесите общий множитель за скобки и примените формулу разности квадратов."></textarea></label>
+          <label class="wide">Norāde (LV) <span>neobligāti; risinājuma virziens, neatklājot atbildi</span><textarea name="hint_latex_lv" id="hint-input-lv" rows="2" placeholder="Iznesiet kopīgo reizinātāju pirms iekavām."></textarea></label>
           <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель (Ответ)</span><div id="answer-preview"></div></div>
           <div class="wide image-field">
             <span class="image-field-head">Рисунок к решению <span>png, jpg, webp — до 2 МБ</span></span>
