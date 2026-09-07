@@ -7,6 +7,9 @@
     "description_lv": "Pilni un nepilni kvadrātvienādojumi, diskriminants, Vjeta teorēma un sadalīšana reizinātājos.",
     "tasks": [
       {
+        "_kak_polzovatsya": "Замените содержимое своими данными. Обязательны только title и condition_latex, остальные поля необязательны. Ключи, начинающиеся с подчёркивания, импорт игнорирует — это пояснения.",
+        "_pro_tegi": "tags — слаги из закрытого словаря, не больше трёх на задачу. Полный список раскрывается под полем ввода в диалоге импорта. Неизвестный слаг не сохранится, но теперь о нём сообщат в предупреждениях.",
+        "_pro_podskazku": "hint_latex — вторая ступень раскрытия между ответом и решением. Называет приём или первый шаг, но не выдаёт ответ.",
         "title": "Квадратное уравнение по теореме Виета",
         "title_lv": "Kvadrātvienādojums pēc Vjeta teorēmas",
         "condition_latex": "Решите уравнение $x^2 - 5x + 6 = 0$. Ответ запишите в порядке возрастания корней.",
@@ -20,7 +23,10 @@
         "grade": 9,
         "position": 1,
         "is_published": true,
-        "tags": ["vienadojumi", "algebriskie-parveidojumi"]
+        "tags": [
+          "vienadojumi",
+          "algebriskie-parveidojumi"
+        ]
       }
     ]
   }

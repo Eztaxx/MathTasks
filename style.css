@@ -2290,3 +2290,12 @@ body.dark .drill-hint-section .math {
 .similar-list a:hover{background:var(--chip-hover,#f1f5f9)}
 .similar-name{flex:1;min-width:0}
 .similar-diff{flex:none;font-size:11.5px;color:var(--muted)}
+
+/* Словарь кросс-тегов под полем импорта: слаги закрытые, угадать их
+   нельзя, а неизвестный тег теперь виден в предупреждениях. */
+.bulk-dialog-taglist{margin:10px 0;font-size:13px}
+.bulk-dialog-taglist[hidden]{display:none}
+.bulk-dialog-taglist summary{cursor:pointer;color:var(--muted);padding:4px 0}
+.bulk-tag-vocab{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:3px 14px;padding:8px 0 2px}
+.bulk-tag-vocab code{font-size:12px}
+.bulk-tag-vocab span{color:var(--muted);font-size:12px}

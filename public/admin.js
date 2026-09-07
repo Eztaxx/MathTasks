@@ -35,6 +35,7 @@
   const bulkDialogStatus = document.querySelector('#bulk-dialog-status');
   const bulkDialogSubmit = document.querySelector('#bulk-dialog-submit');
   const bulkDialogCopy = document.querySelector('#bulk-dialog-copy');
+  const bulkDialogTagList = document.querySelector('#bulk-dialog-taglist');
   const bulkDialogClose = document.querySelector('#bulk-dialog-close');
   const bulkDialogCancel = document.querySelector('#bulk-dialog-cancel');
   const btnExportTasks = document.querySelector('#btn-export-tasks');
@@ -1512,11 +1513,22 @@ ${JSON.stringify(texts)}`;
       bulkDialogTextarea.value = JSON.stringify(exportData, null, 2);
       bulkDialogSubmit.textContent = 'Скачать tasks-export.json';
       bulkDialogCopy.hidden = false;
+      if (bulkDialogTagList) bulkDialogTagList.hidden = true;
     } else {
       bulkDialogTitle.textContent = 'Массовый импорт задач (JSON)';
       bulkDialogDesc.innerHTML = 'Загрузите <code>.json</code> файл или вставьте массив. Недостающие темы создаются автоматически. Обязательны только <code>title</code> и <code>condition_latex</code>, остальное — по желанию. Кнопка «Вставить образец» подставляет одну задачу со всеми полями сразу: латышские версии, подсказка, теги, сложность и порядок.';
       bulkDialogTextarea.value = '';
       bulkDialogTextarea.placeholder = 'Вставьте сюда массив JSON или нажмите «Вставить образец».';
+      /* Словарь тегов закрытый, и угадать слаг невозможно — показываем
+         его прямо под полем, рядом с местом, где его вводят. */
+      const vocab = (allTags.length ? allTags : (window.MathTasksLib?.CROSS_TAGS || []));
+      if (bulkDialogTagList) {
+        bulkDialogTagList.innerHTML = vocab.length
+          ? '<summary>Допустимые кросс-теги (' + vocab.length + ') — не больше трёх на задачу</summary><div class="bulk-tag-vocab">' +
+            vocab.map(t => '<code>' + escapeHtml(t.slug) + '</code> <span>' + escapeHtml(t.title_lv || t.title || '') + '</span>').join('') + '</div>'
+          : '<summary>Словарь тегов недоступен</summary><div class="bulk-tag-vocab">Выполните миграцию 010_cross_tags.sql.</div>';
+        bulkDialogTagList.hidden = false;
+      }
       bulkDialogSubmit.textContent = 'Импортировать в базу';
       bulkDialogCopy.hidden = true;
     }
@@ -1916,6 +1928,7 @@ ${JSON.stringify(texts)}`;
 
     // 2. Добавляем задачи
     let successCount = 0;
+    const warnings = [];
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (!item.title || !item.condition_latex) {
@@ -1952,16 +1965,32 @@ ${JSON.stringify(texts)}`;
         successCount++;
         const newTaskId = insertedTask?.id;
         // Привязываем кросс-теги Skola2030 если они переданы в массиве tags
-        if (newTaskId && Array.isArray(item.tags) && item.tags.length && tagsReady) {
-          try {
-            const rawTags = item.tags.map(t => String(t).trim().toLowerCase());
-            const tagRows = allTags.filter(t => rawTags.includes(t.slug?.toLowerCase()) || rawTags.includes(t.title?.toLowerCase()));
-            const tagInserts = tagRows.slice(0, 3).map(t => ({ task_id: newTaskId, tag_id: t.id }));
+        if (newTaskId && Array.isArray(item.tags) && item.tags.length) {
+          if (!tagsReady) {
+            warnings.push(`Задача «${item.title}»: теги не сохранены — не выполнена миграция 010_cross_tags.sql.`);
+          } else try {
+            const rawTags = item.tags.map(t => String(t).trim().toLowerCase()).filter(Boolean);
+            const matched = [];
+            const unknown = [];
+            for (const raw of rawTags) {
+              const row = allTags.find(t => t.slug?.toLowerCase() === raw || t.title?.toLowerCase() === raw || t.title_lv?.toLowerCase() === raw);
+              row ? matched.push(row) : unknown.push(raw);
+            }
+            /* Словарь тегов закрытый. Молча выбросить непонятый тег — значит
+               потерять разметку без единого следа, поэтому говорим об этом. */
+            if (unknown.length) {
+              warnings.push(`Задача «${item.title}»: неизвестные теги — ${unknown.join(', ')}. Допустимые слаги перечислены под полем ввода.`);
+            }
+            if (matched.length > 3) {
+              warnings.push(`Задача «${item.title}»: тегов больше трёх, сохранены первые три (${matched.slice(0, 3).map(t => t.slug).join(', ')}).`);
+            }
+            const tagInserts = matched.slice(0, 3).map(t => ({ task_id: newTaskId, tag_id: t.id }));
             if (tagInserts.length) {
-              await db.from('task_tags').insert(tagInserts);
+              const { error: tagErr } = await db.from('task_tags').insert(tagInserts);
+              if (tagErr) warnings.push(`Задача «${item.title}»: теги не сохранены — ${tagErr.message}`);
             }
           } catch (tErr) {
-            console.warn('Ошибка сохранения тегов при импорте:', tErr.message);
+            warnings.push(`Задача «${item.title}»: ошибка сохранения тегов — ${tErr.message}`);
           }
         }
       }
@@ -1970,15 +1999,19 @@ ${JSON.stringify(texts)}`;
     bulkDialogSubmit.disabled = false;
     bulkDialogSubmit.textContent = 'Импортировать в базу';
 
+    const warnBlock = warnings.length
+      ? `<br><br><strong>Предупреждения (${warnings.length}):</strong><br>${warnings.slice(0, 12).map(escapeHtml).join('<br>')}${warnings.length > 12 ? '<br>…' : ''}`
+      : '';
+
     if (errors.length) {
       bulkDialogStatus.className = 'bulk-dialog-status ' + (successCount > 0 ? 'warning' : 'error');
       bulkDialogStatus.innerHTML = `Обработано тем: <strong>${uniqueTopics.length}</strong> (создано новых: ${createdTopicsCount}).<br>` +
-        `Успешно сохранено задач: <strong>${successCount}</strong> из ${items.length}.<br>` +
+        `Успешно сохранено задач: <strong>${successCount}</strong> из ${items.length}.<br>` + warnBlock +
         `Ошибки:<br>${errors.map(escapeHtml).join('<br>')}`;
       bulkDialogStatus.hidden = false;
     } else {
       bulkDialogStatus.className = 'bulk-dialog-status success';
-      bulkDialogStatus.innerHTML = `🎉 Успешно импортировано! Тем обработано: <strong>${uniqueTopics.length}</strong> (создано новых: ${createdTopicsCount}), задач сохранено: <strong>${successCount}</strong> из ${items.length}!`;
+      bulkDialogStatus.innerHTML = `🎉 Успешно импортировано! Тем обработано: <strong>${uniqueTopics.length}</strong> (создано новых: ${createdTopicsCount}), задач сохранено: <strong>${successCount}</strong> из ${items.length}!` + warnBlock;
       bulkDialogStatus.hidden = false;
       setTimeout(() => bulkDialog?.close(), 2200);
     }
