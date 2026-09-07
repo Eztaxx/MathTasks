@@ -1067,20 +1067,38 @@ function openLightbox(src, alt) {
   const dialog = document.querySelector('#lightbox-dialog');
   const img = document.querySelector('#lightbox-img');
   const caption = document.querySelector('#lightbox-caption');
+  const content = document.querySelector('.lightbox-content');
   if (!dialog || !img) return;
   scrollBeforeLightbox = window.scrollY;
-  img.src = src;
+
+  /* Элемент картинки один на все чертежи, и браузер продолжает рисовать
+     прежний кадр, пока не загрузится новый. Секунду виден чертёж чужой
+     задачи — по нему можно начать рассуждать. Поэтому сначала снимаем
+     старый кадр и показываем картинку только после загрузки. */
+  img.hidden = true;
+  img.removeAttribute('src');
   img.alt = alt || '';
-  // До открытия картинка скрыта: img без src невалиден и скринридер
-  // объявляет его как «пустое изображение».
-  img.hidden = false;
   if (caption) caption.textContent = alt || '';
+  content?.classList.add('is-loading');
+
+  img.onload = () => {
+    img.hidden = false;
+    content?.classList.remove('is-loading');
+  };
+  img.onerror = () => {
+    content?.classList.remove('is-loading');
+    if (caption) caption.textContent = 'Не удалось загрузить чертёж.';
+  };
+  img.src = src;
+
   if (typeof dialog.showModal === 'function') dialog.showModal();
   else dialog.setAttribute('open', '');
   requestAnimationFrame(() => window.scrollTo({ top: scrollBeforeLightbox }));
 }
 
 document.querySelector('#lightbox-dialog')?.addEventListener('close', () => {
+  const img = document.querySelector('#lightbox-img');
+  if (img) { img.hidden = true; img.removeAttribute('src'); }
   window.scrollTo({ top: scrollBeforeLightbox });
 });
 

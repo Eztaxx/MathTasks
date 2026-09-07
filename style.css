@@ -2326,3 +2326,10 @@ body.dark .lightbox-img{background:#f7f9ff}
    с собственным position:relative верстается в потоке и «уезжает» вниз
    документа: открыв чертёж внизу списка, до окна приходилось листать. */
 dialog[open]{position:fixed;inset:0;margin:auto}
+
+/* Пока новый чертёж грузится, окно держит высоту и показывает
+   ожидание — иначе оно схлопывается и дёргается. */
+.lightbox-content{min-height:180px;justify-content:center}
+.lightbox-content.is-loading::before{content:'';width:26px;height:26px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--blue,#1764ff);animation:lightbox-spin .7s linear infinite}
+@keyframes lightbox-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.lightbox-content.is-loading::before{animation:none}}
