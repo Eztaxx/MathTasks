@@ -73,7 +73,7 @@ const CROSS_TAG_SLUGS = [
 
 async function sitemap(request, env) {
   const origin = new URL(request.url).origin;
-  let paths = ['/', '/tasks', '/tags', '/about', '/grade/visparigais', '/grade/matematika-1', '/grade/matematika-2']
+  let paths = ['/', '/tasks', '/tags', '/about', '/control-works', '/exams.html', '/mock-exams.html', '/trainer.html', '/grade/visparigais', '/grade/matematika-1', '/grade/matematika-2']
     .concat(CROSS_TAG_SLUGS.map(slug => `/tag/${slug}`));
 
   if (env.SUPABASE_URL && supabaseKeyOf(env)) {
@@ -91,6 +91,7 @@ async function sitemap(request, env) {
         .concat(grades.map(g => `/grade/${g}`))
         .concat(subjects.map(s => `/subject/${s.slug}`))
         .concat(topics.map(t => `/topic/${t.slug}`))
+        .concat(topics.map(t => `/control-work/${t.slug}`))
         .concat(tagSlugs.map(slug => `/tag/${slug}`))
         .concat(tasks.map(t => `/task/${t.id}-${slugify(t.title)}`));
     } catch (error) {

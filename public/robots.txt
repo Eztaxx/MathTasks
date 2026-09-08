@@ -4,4 +4,4 @@ Allow: /
 Disallow: /admin.html
 
 # Карту сайта отдаёт воркер, она собирается из базы на каждый запрос
-Sitemap: https://mathtasks.unitutor.workers.dev/sitemap.xml
+Sitemap: https://mathtasks.lv/sitemap.xml
