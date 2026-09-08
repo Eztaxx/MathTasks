@@ -42,13 +42,15 @@
       <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img"><path d="M1.6 29.8C9.4 27.2 17.4 26.2 24 27.2V43.4C17.4 42.4 9.4 43.4 1.6 46Z" fill="#12306e"/><path d="M46.4 29.8C38.6 27.2 30.6 26.2 24 27.2V43.4C30.6 42.4 38.6 43.4 46.4 46Z" fill="#1a3f8f"/><path d="M4 31C10.4 29 17 28.2 22.8 29V40.8C17 40 10.4 40.8 4 42.8Z" fill="#eaf1ff"/><path d="M44 31C37.6 29 31 28.2 25.2 29V40.8C31 40 37.6 40.8 44 42.8Z" fill="#d7e5ff"/><path d="M7.4 33.9 19 32.9M7.4 36.7 19 35.7M40.6 33.9 29 32.9M40.6 36.7 29 35.7" stroke="#5a92ff" stroke-width="1.15" stroke-linecap="round"/><path d="M10 28.5v11.2l2.4-2.4 2.4 2.4V28.1Z" fill="#7fb0ff"/><path d="M15 15v9.6c0 4 18 4 18 0V15Z" fill="#12306e"/><path d="M24 5 45.5 13.4 24 21.8 2.5 13.4Z" fill="#1a3f8f"/><path d="M24 5 45.5 13.4 24 21.8Z" fill="#27529f"/><path d="M24 13.4 39.8 15.5v5.9" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M39.8 20.8c-2 0-2.3 2.5-1.9 5.4.6.7 3.2.7 3.8 0 .4-2.9.1-5.4-1.9-5.4Z" fill="#7fb0ff"/></svg></span>
       <span class="label"><span class="brand-math">Math</span><span class="brand-tasks">Tasks</span></span>
     </a>
+    <a class="sidebar-home-btn" id="sidebar-home-btn" href="/" title="На главную" data-i18n-title="nav_to_home">
+      <span class="nav-icon">⌂</span>
+      <span class="label" data-i18n="nav_to_home">На главную</span>
+    </a>
     <div class="grade-context">
       <label class="grade-select-label" for="grade-select"><span data-i18n="grade_label">Класс</span><select id="grade-select"></select></label>
       <button data-i18n="grade_all_short" class="grade-pill" id="grade-pill" type="button" aria-label="Выбрать класс" data-i18n-aria="grade_pick">Все</button>
     </div>
     <nav id="sidebar-nav">
-      <a class="nav-link" href="/" title="Главная" data-i18n-title="nav_home"><span class="nav-icon">⌂</span><span class="label" data-i18n="nav_home">Главная</span></a>
-
       <div class="sidebar-track-header">
         <span class="track-header-icon">⚡</span>
         <span class="track-header-title" data-i18n="track_heading_prep">Тренажёры и экзамены</span>
@@ -61,10 +63,10 @@
             <span data-i18n="nav_trainer_desc">Устный счёт и дроби</span>
           </div>
         </a>
-        <a class="sidebar-track-card" href="/exams.html" title="Государственные экзамены по математике">
+        <a class="sidebar-track-card" href="/exams.html" title="Подготовка к экзаменам">
           <div class="track-card-badge blue">🎯</div>
           <div class="track-card-body">
-            <strong data-i18n="nav_exams">Государственные экзамены</strong>
+            <strong data-i18n="nav_exams">Подготовка к экзаменам</strong>
             <span data-i18n="nav_exams_desc">Уровни, формулы, стратегия</span>
           </div>
         </a>
@@ -75,18 +77,25 @@
             <span data-i18n="nav_mock_exams_desc">Структура и формулы</span>
           </div>
         </a>
+        <a class="sidebar-track-card" href="/control-works" title="Контрольные работы">
+          <div class="track-card-badge teal">📝</div>
+          <div class="track-card-body">
+            <strong data-i18n="nav_control_works">Контрольные работы</strong>
+            <span data-i18n="nav_control_works_desc">Тематические проверочные работы (40 мин)</span>
+          </div>
+        </a>
       </div>
 
       <div class="sidebar-track-header">
         <span class="track-header-icon">🎓</span>
-        <span class="track-header-title" data-i18n="track_heading_pamat">Основная школа (1–9 классы)</span>
+        <span class="track-header-title" data-i18n="track_heading_pamat">Основная школа</span>
       </div>
       <div class="sidebar-track-subgroup">
-        <a class="sidebar-track-card" href="/grade/9" title="Экзамен 9 класс">
-          <div class="track-card-badge gold">9. kl.</div>
+        <a class="sidebar-track-card" href="/grade/9" title="Экзамен основной школы">
+          <div class="track-card-badge gold">Pamat</div>
           <div class="track-card-body">
-            <strong>Экзамен 9 класс 🎯</strong>
-            <span>Итоговая работа основной школы</span>
+            <strong><span data-i18n="track_9">Экзамен основной школы</span> 🎯</strong>
+            <span data-i18n="track_9_desc">Итоговая работа основной школы</span>
           </div>
         </a>
       </div>
@@ -96,14 +105,14 @@
           <div class="track-card-badge orange">3. kl.</div>
           <div class="track-card-body">
             <strong>3 класс</strong>
-            <span data-i18n="track_diag">Диагностика</span>
+            <span data-i18n="track_diag_short">Диагностика</span>
           </div>
         </a>
         <a class="sidebar-track-card" href="/grade/6" title="6 класс">
           <div class="track-card-badge green">6. kl.</div>
           <div class="track-card-body">
             <strong>6 класс</strong>
-            <span data-i18n="track_diag">Диагностика</span>
+            <span data-i18n="track_diag_short">Диагностика</span>
           </div>
         </a>
       </div>
@@ -117,21 +126,21 @@
           <div class="track-card-badge teal">Visp</div>
           <div class="track-card-body">
             <strong>Vispārīgais līmenis</strong>
-            <span>Базовый курс: старшая школа и техникум</span>
+            <span data-i18n="track_visp_desc">Базовый курс: старшая школа и техникум</span>
           </div>
         </a>
         <a class="sidebar-track-card" href="/grade/matematika-1" title="Optimālais līmenis">
           <div class="track-card-badge blue">Opt</div>
           <div class="track-card-body">
             <strong>Optimālais līmenis</strong>
-            <span>Стандартный курс, 10–11 классы</span>
+            <span data-i18n="track_opt_desc">Стандартный курс (Matemātika I)</span>
           </div>
         </a>
         <a class="sidebar-track-card" href="/grade/matematika-2" title="Augstākais līmenis">
           <div class="track-card-badge purple">Aug</div>
           <div class="track-card-body">
             <strong>Augstākais līmenis</strong>
-            <span>Углублённый курс к экзамену</span>
+            <span data-i18n="track_augst_desc">Углублённый курс к экзамену</span>
           </div>
         </a>
       </div>
@@ -188,6 +197,30 @@
       <div class="lang-switcher" id="lang-switcher" role="group" aria-label="Valodas izvēle / Выбор языка" data-i18n-aria="lang_switcher">
         <button type="button" class="lang-btn" data-lang="lv" title="Latviešu valoda" data-i18n-title="lang_lv">LV</button>
         <button type="button" class="lang-btn active" data-lang="ru" title="Русский язык" data-i18n-title="lang_ru">RU</button>
+      </div>
+      <div class="exam-timer-wrap" id="exam-timer-wrap">
+        <button class="timer-topbar-btn" id="exam-timer-btn" type="button" aria-label="Экзаменационный таймер" data-i18n-aria="timer_title" title="Экзаменационный таймер" data-i18n-title="timer_title">
+          <span class="timer-icon" aria-hidden="true">⏱️</span>
+          <span class="timer-topbar-digits" id="timer-display">00:00</span>
+        </button>
+        <div class="timer-dropdown" id="timer-dropdown" hidden>
+          <div class="timer-dropdown-header">
+            <span class="timer-dropdown-title" data-i18n="timer_title">Экзаменационный таймер</span>
+            <button class="timer-close-btn" id="timer-close-btn" type="button" aria-label="Закрыть">×</button>
+          </div>
+          <div class="timer-big-display" id="timer-big-display">00:00</div>
+          <div class="timer-presets">
+            <button type="button" class="timer-preset-btn active" data-timer-seconds="0" data-i18n="timer_stopwatch">⏱️ Секундомер</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="2400" data-i18n="timer_40m">40 мин (Урок / К/Р)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="5400" data-i18n="timer_90m">90 мин (Зачёт)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="7200" data-i18n="timer_120m">120 мин (Pamatskola)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="10800" data-i18n="timer_180m">180 мин (Vidusskola)</button>
+          </div>
+          <div class="timer-controls">
+            <button type="button" class="primary-button timer-action-btn" id="timer-toggle-btn" data-i18n="timer_start">Старт</button>
+            <button type="button" class="ghost-button timer-action-btn" id="timer-reset-btn" data-i18n="timer_reset">Сброс</button>
+          </div>
+        </div>
       </div>
       <button class="theme-switch" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Переключить тему" data-i18n-aria="theme_toggle" title="Переключить тему" data-i18n-title="theme_toggle">
         <span class="theme-switch-track" aria-hidden="true">
@@ -265,6 +298,36 @@
       <div class="topic-grid" id="list-topics" hidden></div>
       <nav class="topic-anchors" id="list-anchors" hidden aria-label="Задачи темы" data-i18n-aria="topic_tasks_nav"></nav>
       <div class="task-list" id="list-tasks"></div>
+      <div class="topic-control-work-slot" id="topic-control-work-slot" hidden></div>
+    </div>
+
+    <div id="view-control-work" hidden>
+      <nav class="breadcrumb" id="cw-breadcrumb" aria-label="Хлебные крошки" data-i18n-aria="breadcrumbs"></nav>
+      <header class="cw-header-card">
+        <div class="cw-header-info">
+          <span class="cw-badge" data-i18n="cw_badge">📝 Pārbaudes darbs • Skola2030</span>
+          <h1 id="cw-title"></h1>
+          <p id="cw-desc" data-i18n="cw_topic_card_desc">Проверьте свои знания в условиях реального школьного урока без подсказок. Рекомендуемое время: 40 минут.</p>
+        </div>
+        <div class="cw-header-timer" id="cw-header-timer">
+          <span class="cw-timer-label" data-i18n="cw_time_left">Осталось времени:</span>
+          <span class="cw-timer-val" id="cw-timer-display">40:00</span>
+        </div>
+      </header>
+      <div class="cw-result-card" id="cw-result-card" hidden></div>
+      <div class="task-list cw-task-list" id="cw-task-list"></div>
+      <div class="cw-actions-bar" id="cw-actions-bar">
+        <button type="button" class="primary-button cw-submit-btn" id="cw-submit-btn" data-i18n="cw_submit_btn">✅ Сдать работу на проверку</button>
+      </div>
+    </div>
+
+    <div id="view-control-works" hidden>
+      <nav class="breadcrumb" aria-label="Хлебные крошки" data-i18n-aria="breadcrumbs"><a href="/" data-i18n="nav_home">Главная</a><span class="crumb-sep">/</span><span data-i18n="nav_control_works">Контрольные работы</span></nav>
+      <header class="list-header">
+        <h1 data-i18n="cw_catalog_title">Тематические контрольные работы</h1>
+        <p data-i18n="cw_catalog_desc">Подготовка к школьным проверочным работам с контролем времени (40 минут).</p>
+      </header>
+      <div class="cw-catalog-list" id="cw-catalog-list"></div>
     </div>
 
     <div id="view-about" hidden>

@@ -14,30 +14,37 @@
   <script src="/theme-init.js"></script>
 </head>
 <body class="trainer-page">
-  <header class="admin-topbar">
-    <a class="brand" href="/">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 48 48" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
-          <path d="M1.6 29.8C9.4 27.2 17.4 26.2 24 27.2V43.4C17.4 42.4 9.4 43.4 1.6 46Z" fill="#12306e"/>
-          <path d="M46.4 29.8C38.6 27.2 30.6 26.2 24 27.2V43.4C30.6 42.4 38.6 43.4 46.4 46Z" fill="#1a3f8f"/>
-          <path d="M4 31C10.4 29 17 28.2 22.8 29V40.8C17 40 10.4 40.8 4 42.8Z" fill="#eaf1ff"/>
-          <path d="M44 31C37.6 29 31 28.2 25.2 29V40.8C31 40 37.6 40.8 44 42.8Z" fill="#d7e5ff"/>
-          <path d="M7.4 33.9 19 32.9M7.4 36.7 19 35.7M40.6 33.9 29 32.9M40.6 36.7 29 35.7" stroke="#5a92ff" stroke-width="1.15" stroke-linecap="round"/>
-          <path d="M10 28.5v11.2l2.4-2.4 2.4 2.4V28.1Z" fill="#7fb0ff"/>
-          <path d="M15 15v9.6c0 4 18 4 18 0V15Z" fill="#12306e"/>
-          <path d="M24 5 45.5 13.4 24 21.8 2.5 13.4Z" fill="#1a3f8f"/>
-          <path d="M24 5 45.5 13.4 24 21.8Z" fill="#27529f"/>
-          <path d="M24 13.4 39.8 15.5v5.9" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M39.8 20.8c-2 0-2.3 2.5-1.9 5.4.6.7 3.2.7 3.8 0 .4-2.9.1-5.4-1.9-5.4Z" fill="#7fb0ff"/>
-        </svg>
-      </span>
-      <span class="label"><span class="brand-math">Math</span><span class="brand-tasks">Tasks</span></span>
-    </a>
-    <span class="admin-badge">⚡ Тренажёр устного счёта</span>
+    <div class="topbar-brand-wrap">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+            <path d="M1.6 29.8C9.4 27.2 17.4 26.2 24 27.2V43.4C17.4 42.4 9.4 43.4 1.6 46Z" fill="#12306e"/>
+            <path d="M46.4 29.8C38.6 27.2 30.6 26.2 24 27.2V43.4C30.6 42.4 38.6 43.4 46.4 46Z" fill="#1a3f8f"/>
+            <path d="M4 31C10.4 29 17 28.2 22.8 29V40.8C17 40 10.4 40.8 4 42.8Z" fill="#eaf1ff"/>
+            <path d="M44 31C37.6 29 31 28.2 25.2 29V40.8C31 40 37.6 40.8 44 42.8Z" fill="#d7e5ff"/>
+            <path d="M7.4 33.9 19 32.9M7.4 36.7 19 35.7M40.6 33.9 29 32.9M40.6 36.7 29 35.7" stroke="#5a92ff" stroke-width="1.15" stroke-linecap="round"/>
+            <path d="M10 28.5v11.2l2.4-2.4 2.4 2.4V28.1Z" fill="#7fb0ff"/>
+            <path d="M15 15v9.6c0 4 18 4 18 0V15Z" fill="#12306e"/>
+            <path d="M24 5 45.5 13.4 24 21.8 2.5 13.4Z" fill="#1a3f8f"/>
+            <path d="M24 5 45.5 13.4 24 21.8Z" fill="#27529f"/>
+            <path d="M24 13.4 39.8 15.5v5.9" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M39.8 20.8c-2 0-2.3 2.5-1.9 5.4.6.7 3.2.7 3.8 0 .4-2.9.1-5.4-1.9-5.4Z" fill="#7fb0ff"/>
+          </svg>
+        </span>
+        <span class="label"><span class="brand-math">Math</span><span class="brand-tasks">Tasks</span></span>
+      </a>
+      <a class="topbar-home-btn" href="/" data-i18n="nav_to_home">← На главную</a>
+    </div>
+    <span class="admin-badge" data-i18n="trainer_badge">⚡ Тренажёр устного счёта</span>
 
     <div class="trainer-top-actions">
-      <a class="nav-btn-link" href="/exams.html">🎯 Экзамены Skola2030</a>
-      <a class="nav-btn-link" href="/mock-exams.html">📋 Пробники</a>
+      <a class="nav-btn-link" href="/exams.html" data-i18n="nav_exams">🎯 Подготовка к экзаменам</a>
+      <a class="nav-btn-link" href="/mock-exams.html" data-i18n="nav_mock_exams">📋 Пробники</a>
+
+      <div class="lang-switcher" role="group" aria-label="Выбор языка" data-i18n-aria="lang_switcher">
+        <button class="lang-btn" data-lang="lv" type="button" aria-label="Latviešu valoda">LV</button>
+        <button class="lang-btn" data-lang="ru" type="button" aria-label="Русский язык">RU</button>
+      </div>
 
       <button class="sound-toggle-btn" id="btn-sound-toggle" type="button" title="Включить / выключить звук" aria-label="Звук">
         <span id="sound-icon">🔊</span>
@@ -52,23 +59,22 @@
         </span>
       </button>
 
-      <a class="text-button" href="/">← На сайт</a>
-      <a class="text-button" href="/admin.html">Админка</a>
+      <a class="text-button" href="/admin.html" data-i18n="btn_admin_short">Админка</a>
     </div>
   </header>
 
   <main class="trainer-container">
     <div class="trainer-header">
-      <h1>⚡ Тренажёр быстрого устного счёта</h1>
-      <p>Развивайте математическую скорость: рандомные примеры, дроби, умножение, деление и мгновенный разбор.</p>
+      <h1 data-i18n="trainer_title">⚡ Тренажёр быстрого устного счёта</h1>
+      <p data-i18n="trainer_sub">Развивайте математическую скорость: рандомные примеры, дроби, умножение, деление и мгновенный разбор.</p>
     </div>
 
     <!-- Переключение формата: Куча примеров (Тренажёр) vs По одной карточке -->
     <div class="trainer-view-tabs" role="tablist" aria-label="Формат отображения">
-      <button type="button" class="trainer-view-tab active" id="tab-view-sheet" data-view="sheet" role="tab" aria-selected="true">
+      <button type="button" class="trainer-view-tab active" id="tab-view-sheet" data-view="sheet" role="tab" aria-selected="true" data-i18n="tab_sheet">
         📋 Куча примеров на страницу (Тренажёр)
       </button>
-      <button type="button" class="trainer-view-tab" id="tab-view-card" data-view="card" role="tab" aria-selected="false">
+      <button type="button" class="trainer-view-tab" id="tab-view-card" data-view="card" role="tab" aria-selected="false" data-i18n="tab_card">
         🗂️ По одной карточке (Спринт / Марафон)
       </button>
     </div>
@@ -76,34 +82,34 @@
     <!-- Панель выбора темы и режима -->
     <div class="trainer-panel">
       <div class="trainer-categories-row">
-        <span class="trainer-label">Категория вычислений:</span>
+        <span class="trainer-label" data-i18n="cat_label">Категория вычислений:</span>
         <div class="trainer-chip-group" id="trainer-category-group">
-          <button type="button" class="trainer-cat-chip active" data-cat="addsub2">➕ Двузначные ±</button>
-          <button type="button" class="trainer-cat-chip" data-cat="addsub3">➕ Трёхзначные ±</button>
-          <button type="button" class="trainer-cat-chip" data-cat="multdiv">✖️ Умножение и деление</button>
-          <button type="button" class="trainer-cat-chip" data-cat="fractions">🍰 Обыкновенные дроби</button>
-          <button type="button" class="trainer-cat-chip" data-cat="decimals">🎯 Десятичные дроби</button>
-          <button type="button" class="trainer-cat-chip" data-cat="powers">⚡ Квадраты и корни</button>
-          <button type="button" class="trainer-cat-chip" data-cat="negatives">❄️ Отрицательные числа</button>
-          <button type="button" class="trainer-cat-chip" data-cat="mix">🎲 Микс (всё подряд)</button>
+          <button type="button" class="trainer-cat-chip active" data-cat="addsub2" data-i18n="cat_addsub2">➕ Двузначные ±</button>
+          <button type="button" class="trainer-cat-chip" data-cat="addsub3" data-i18n="cat_addsub3">➕ Трёхзначные ±</button>
+          <button type="button" class="trainer-cat-chip" data-cat="multdiv" data-i18n="cat_multdiv">✖️ Умножение и деление</button>
+          <button type="button" class="trainer-cat-chip" data-cat="fractions" data-i18n="cat_fractions">🍰 Обыкновенные дроби</button>
+          <button type="button" class="trainer-cat-chip" data-cat="decimals" data-i18n="cat_decimals">🎯 Десятичные дроби</button>
+          <button type="button" class="trainer-cat-chip" data-cat="powers" data-i18n="cat_powers">⚡ Квадраты и корни</button>
+          <button type="button" class="trainer-cat-chip" data-cat="negatives" data-i18n="cat_negatives">❄️ Отрицательные числа</button>
+          <button type="button" class="trainer-cat-chip" data-cat="mix" data-i18n="cat_mix">🎲 Микс (всё подряд)</button>
         </div>
       </div>
 
       <div class="trainer-diff-row" id="trainer-diff-row">
-        <span class="trainer-label">Уровень сложности:</span>
+        <span class="trainer-label" data-i18n="diff_label">Уровень сложности:</span>
         <div class="trainer-chip-group" id="trainer-diff-group">
-          <button type="button" class="trainer-diff-chip active" data-diff="normal">🟢 Базовый</button>
-          <button type="button" class="trainer-diff-chip" data-diff="hard">🟡 Продвинутый</button>
-          <button type="button" class="trainer-diff-chip" data-diff="expert">🔴 Эксперт</button>
+          <button type="button" class="trainer-diff-chip active" data-diff="normal" data-i18n="diff_normal">🟢 Базовый</button>
+          <button type="button" class="trainer-diff-chip" data-diff="hard" data-i18n="diff_hard">🟡 Продвинутый</button>
+          <button type="button" class="trainer-diff-chip" data-diff="expert" data-i18n="diff_expert">🔴 Эксперт</button>
         </div>
       </div>
 
       <div class="trainer-mode-row" id="trainer-mode-row" hidden>
-        <span class="trainer-label">Режим игры:</span>
+        <span class="trainer-label" data-i18n="mode_label">Режим игры:</span>
         <div class="trainer-chip-group" id="trainer-mode-group">
-          <button type="button" class="trainer-mode-chip active" data-mode="zen">♾️ Марафон (без спешки)</button>
-          <button type="button" class="trainer-mode-chip" data-mode="sprint60">⏱️ Спринт 60 сек</button>
-          <button type="button" class="trainer-mode-chip" data-mode="sprint120">⏱️ Спринт 120 сек</button>
+          <button type="button" class="trainer-mode-chip active" data-mode="zen" data-i18n="mode_zen">♾️ Марафон (без спешки)</button>
+          <button type="button" class="trainer-mode-chip" data-mode="sprint60" data-i18n="mode_sprint60">⏱️ Спринт 60 сек</button>
+          <button type="button" class="trainer-mode-chip" data-mode="sprint120" data-i18n="mode_sprint120">⏱️ Спринт 120 сек</button>
         </div>
       </div>
     </div>
@@ -112,17 +118,17 @@
     <div class="trainer-sheet-container" id="trainer-sheet-container">
       <div class="sheet-controls-bar">
         <div class="sheet-count-group">
-          <span class="trainer-label">Примеров на листе:</span>
-          <button type="button" class="sheet-count-chip" data-count="10">10</button>
-          <button type="button" class="sheet-count-chip active" data-count="20">20</button>
+          <span class="trainer-label" data-i18n="sheet_count_label">Примеров на листе:</span>
+          <button type="button" class="sheet-count-chip active" data-count="15">15</button>
           <button type="button" class="sheet-count-chip" data-count="30">30</button>
+          <button type="button" class="sheet-count-chip" data-count="60">60</button>
         </div>
 
         <div class="sheet-action-btns">
-          <button type="button" class="secondary-button" id="btn-sheet-refresh" title="Сгенерировать новые случайные примеры">
+          <button type="button" class="secondary-button" id="btn-sheet-refresh" data-i18n="btn_sheet_refresh" title="Сгенерировать новые случайные примеры">
             🔄 Новый лист
           </button>
-          <button type="button" class="secondary-button" id="btn-sheet-check-all" title="Проверить все введённые ответы">
+          <button type="button" class="secondary-button" id="btn-sheet-check-all" data-i18n="btn_sheet_check_all" title="Проверить все введённые ответы">
             ✓ Проверить всё
           </button>
         </div>
@@ -130,12 +136,12 @@
 
       <div class="compact-drill-banner">
         <div class="sheet-banner-left">
-          <span>⚡ <strong>Тренажёр быстрого счёта:</strong> вводите ответы и жмите <kbd>Enter</kbd> для автоперехода к следующему примеру</span>
+          <span data-i18n-html="sheet_banner_text">⚡ <strong>Тренажёр быстрого счёта:</strong> вводите ответы и жмите <kbd>Enter</kbd> для автоперехода к следующему примеру</span>
         </div>
         <div class="sheet-banner-right">
           <div class="sheet-stopwatch" id="sheet-stopwatch">⏱️ 00:00</div>
           <div class="compact-drill-stats" id="sheet-stats-badge">
-            <span id="sheet-solved-count">0</span> / <span id="sheet-total-count">20</span>
+            <span id="sheet-solved-count">0</span> / <span id="sheet-total-count">15</span>
           </div>
         </div>
       </div>
@@ -144,10 +150,10 @@
 
       <div class="sheet-completion-card" id="sheet-completion-card" hidden>
         <div class="completion-icon">🏆</div>
-        <h3>Отличная работа! Лист завершён!</h3>
+        <h3 data-i18n="sheet_completed_title">Отличная работа! Лист завершён!</h3>
         <p id="sheet-completion-text">Все примеры решены верно!</p>
         <div class="completion-actions">
-          <button type="button" class="primary-button" id="btn-sheet-next-pack">
+          <button type="button" class="primary-button" id="btn-sheet-next-pack" data-i18n="sheet_completed_btn">
             🚀 Сгенерировать новый лист
           </button>
         </div>
@@ -161,19 +167,19 @@
         <div class="trainer-stat-badge streak-badge" id="hud-streak" title="Текущая серия правильных ответов подряд">
           <span class="streak-icon">🔥</span>
           <span class="streak-val" id="val-streak">0</span>
-          <span class="stat-caption">серия</span>
+          <span class="stat-caption" data-i18n="hud_streak">серия</span>
         </div>
 
         <div class="trainer-stat-badge" id="hud-score">
           <span class="stat-icon">⭐</span>
           <span class="stat-val" id="val-score">0</span>
-          <span class="stat-caption">решено</span>
+          <span class="stat-caption" data-i18n="hud_score">решено</span>
         </div>
 
         <div class="trainer-stat-badge" id="hud-accuracy">
           <span class="stat-icon">🎯</span>
           <span class="stat-val" id="val-accuracy">100%</span>
-          <span class="stat-caption">точность</span>
+          <span class="stat-caption" data-i18n="hud_accuracy">точность</span>
         </div>
 
         <div class="trainer-stat-badge timer-badge" id="hud-timer" hidden>
@@ -288,8 +294,9 @@
     </dialog>
   </main>
 
+  <script src="/i18n.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/trainer.js?v=20260907-5"></script>
-  <script src="/trainer-page.js"></script>
+  <script src="/trainer.js?v=20260908-1"></script>
+  <script src="/trainer-page.js?v=20260908-2"></script>
 </body>
 </html>

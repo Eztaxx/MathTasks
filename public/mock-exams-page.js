@@ -14,6 +14,7 @@
           themeToggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
         });
       }
+      window.MathTasksLib?.initExamTimerUi();
     })();
 
 /* Формулы в тексте страницы записаны как $…$ — отрисовываем их разом.

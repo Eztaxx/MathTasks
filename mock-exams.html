@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Пробные экзамены по математике — Структура и формулы | MathTasks</title>
-  <meta name="description" content="Структура пробных государственных экзаменов по математике (9 класс, Vispārīgais, Optimālais, Augstākais līmenis). Разбор частей экзамена, критерии оценивания и правила работы с формульными листами." />
+  <meta name="description" content="Структура пробных государственных экзаменов по математике (Pamatskola, Vispārīgais, Optimālais, Augstākais līmenis). Разбор частей экзамена, критерии оценивания и правила работы с формульными листами." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,29 +15,62 @@
 </head>
 <body class="exams-page">
   <header class="admin-topbar">
-    <a class="brand" href="/">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 48 48" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
-          <path d="M1.6 29.8C9.4 27.2 17.4 26.2 24 27.2V43.4C17.4 42.4 9.4 43.4 1.6 46Z" fill="#12306e"/>
-          <path d="M46.4 29.8C38.6 27.2 30.6 26.2 24 27.2V43.4C30.6 42.4 38.6 43.4 46.4 46Z" fill="#1a3f8f"/>
-          <path d="M4 31C10.4 29 17 28.2 22.8 29V40.8C17 40 10.4 40.8 4 42.8Z" fill="#eaf1ff"/>
-          <path d="M44 31C37.6 29 31 28.2 25.2 29V40.8C31 40 37.6 40.8 44 42.8Z" fill="#d7e5ff"/>
-          <path d="M7.4 33.9 19 32.9M7.4 36.7 19 35.7M40.6 33.9 29 32.9M40.6 36.7 29 35.7" stroke="#5a92ff" stroke-width="1.15" stroke-linecap="round"/>
-          <path d="M10 28.5v11.2l2.4-2.4 2.4 2.4V28.1Z" fill="#7fb0ff"/>
-          <path d="M15 15v9.6c0 4 18 4 18 0V15Z" fill="#12306e"/>
-          <path d="M24 5 45.5 13.4 24 21.8 2.5 13.4Z" fill="#1a3f8f"/>
-          <path d="M24 5 45.5 13.4 24 21.8Z" fill="#27529f"/>
-          <path d="M24 13.4 39.8 15.5v5.9" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M39.8 20.8c-2 0-2.3 2.5-1.9 5.4.6.7 3.2.7 3.8 0 .4-2.9.1-5.4-1.9-5.4Z" fill="#7fb0ff"/>
-        </svg>
-      </span>
-      <span class="label"><span class="brand-math">Math</span><span class="brand-tasks">Tasks</span></span>
-    </a>
-    <span class="admin-badge">📋 Пробные экзамены</span>
+    <div class="topbar-brand-wrap">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+            <path d="M1.6 29.8C9.4 27.2 17.4 26.2 24 27.2V43.4C17.4 42.4 9.4 43.4 1.6 46Z" fill="#12306e"/>
+            <path d="M46.4 29.8C38.6 27.2 30.6 26.2 24 27.2V43.4C30.6 42.4 38.6 43.4 46.4 46Z" fill="#1a3f8f"/>
+            <path d="M4 31C10.4 29 17 28.2 22.8 29V40.8C17 40 10.4 40.8 4 42.8Z" fill="#eaf1ff"/>
+            <path d="M44 31C37.6 29 31 28.2 25.2 29V40.8C31 40 37.6 40.8 44 42.8Z" fill="#d7e5ff"/>
+            <path d="M7.4 33.9 19 32.9M7.4 36.7 19 35.7M40.6 33.9 29 32.9M40.6 36.7 29 35.7" stroke="#5a92ff" stroke-width="1.15" stroke-linecap="round"/>
+            <path d="M10 28.5v11.2l2.4-2.4 2.4 2.4V28.1Z" fill="#7fb0ff"/>
+            <path d="M15 15v9.6c0 4 18 4 18 0V15Z" fill="#12306e"/>
+            <path d="M24 5 45.5 13.4 24 21.8 2.5 13.4Z" fill="#1a3f8f"/>
+            <path d="M24 5 45.5 13.4 24 21.8Z" fill="#27529f"/>
+            <path d="M24 13.4 39.8 15.5v5.9" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M39.8 20.8c-2 0-2.3 2.5-1.9 5.4.6.7 3.2.7 3.8 0 .4-2.9.1-5.4-1.9-5.4Z" fill="#7fb0ff"/>
+          </svg>
+        </span>
+        <span class="label"><span class="brand-math">Math</span><span class="brand-tasks">Tasks</span></span>
+      </a>
+      <a class="topbar-home-btn" href="/" data-i18n="nav_to_home">← На главную</a>
+    </div>
+    <span class="admin-badge" data-i18n="mock_badge">📋 Пробные экзамены</span>
 
     <div class="trainer-top-actions">
-      <a class="nav-btn-link" href="/exams.html">🎯 Подготовка к экзаменам</a>
-      <a class="nav-btn-link" href="/trainer.html">⚡ Тренажёр счёта</a>
+      <a class="nav-btn-link" href="/exams.html" data-i18n="nav_exams">🎯 Подготовка к экзаменам</a>
+      <a class="nav-btn-link" href="/trainer.html" data-i18n="nav_trainer">⚡ Тренажёр счёта</a>
+
+      <div class="exam-timer-wrap" id="exam-timer-wrap">
+        <button class="timer-topbar-btn" id="exam-timer-btn" type="button" aria-label="Экзаменационный таймер" data-i18n-aria="timer_title" title="Экзаменационный таймер" data-i18n-title="timer_title">
+          <span class="timer-icon" aria-hidden="true">⏱️</span>
+          <span class="timer-topbar-digits" id="timer-display">00:00</span>
+        </button>
+        <div class="timer-dropdown" id="timer-dropdown" hidden>
+          <div class="timer-dropdown-header">
+            <span class="timer-dropdown-title" data-i18n="timer_title">Экзаменационный таймер</span>
+            <button class="timer-close-btn" id="timer-close-btn" type="button" aria-label="Закрыть">×</button>
+          </div>
+          <div class="timer-big-display" id="timer-big-display">00:00</div>
+          <div class="timer-presets">
+            <button type="button" class="timer-preset-btn active" data-timer-seconds="0" data-i18n="timer_stopwatch">⏱️ Секундомер</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="2400" data-i18n="timer_40m">40 мин (Урок / К/Р)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="5400" data-i18n="timer_90m">90 мин (Зачёт)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="7200" data-i18n="timer_120m">120 мин (Pamatskola)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="10800" data-i18n="timer_180m">180 мин (Vidusskola)</button>
+          </div>
+          <div class="timer-controls">
+            <button type="button" class="primary-button timer-action-btn" id="timer-toggle-btn" data-i18n="timer_start">Старт</button>
+            <button type="button" class="ghost-button timer-action-btn" id="timer-reset-btn" data-i18n="timer_reset">Сброс</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="lang-switcher" role="group" aria-label="Выбор языка" data-i18n-aria="lang_switcher">
+        <button class="lang-btn" data-lang="lv" type="button" aria-label="Latviešu valoda">LV</button>
+        <button class="lang-btn" data-lang="ru" type="button" aria-label="Русский язык">RU</button>
+      </div>
 
       <button class="theme-switch" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Переключить тему" title="Переключить тему">
         <span class="theme-switch-track" aria-hidden="true">
@@ -47,8 +80,6 @@
           </span>
         </span>
       </button>
-
-      <a class="text-button" href="/">← На сайт</a>
     </div>
   </header>
 
@@ -56,16 +87,16 @@
     <!-- Hero раздел пробников -->
     <section class="exams-hero">
       <div class="exams-hero-content">
-        <span class="exams-tag">Eksāmenu paraugi • Skola2030</span>
-        <h1>Пробные государственные экзамены (Paraugi)</h1>
-        <p>
+        <span class="exams-tag" data-i18n="mock_hero_tag">Eksāmenu paraugi • Skola2030</span>
+        <h1 data-i18n="mock_hero_h1">Пробные государственные экзамены (Paraugi)</h1>
+        <p data-i18n="mock_hero_p">
           Официальная структура экзаменационных вариантов VISC: спецификация заданий, 
           распределение баллов, правила работы с калькулятором и руководство по формульным листам.
         </p>
 
         <div class="exams-hero-actions">
-          <a href="#formulas-guide" class="primary-button">📖 Руководство по формульным листам</a>
-          <a href="#mock-variants" class="secondary-button">Смотреть структуру вариантов ↓</a>
+          <a href="#formulas-guide" class="primary-button" data-i18n="mock_btn_formula_guide">📖 Руководство по формульным листам</a>
+          <a href="#mock-variants" class="secondary-button" data-i18n="mock_btn_to_variants">Смотреть структуру вариантов ↓</a>
         </div>
       </div>
     </section>
@@ -73,14 +104,14 @@
     <!-- КРИТИЧЕСКИЙ РАЗДЕЛ: Пользование формульными листами -->
     <section class="formula-guide-section" id="formulas-guide">
       <div class="section-title-wrap">
-        <h2>📑 Как правильно пользоваться формульным листом на экзамене</h2>
-        <p>Настоящий чит-код государственного экзамена — если знать, как он устроен и что в нём искать.</p>
+        <h2 data-i18n="mock_guide_h2">📑 Как правильно пользоваться формульным листом на экзамене</h2>
+        <p data-i18n="mock_guide_p">Настоящий чит-код государственного экзамена — если знать, как он устроен и что в нём искать.</p>
       </div>
 
       <div class="formula-guide-card">
         <div class="formula-guide-banner">
-          <div class="guide-badge-big">ВАЖНО ДЛЯ КАЖДОГО ЭКЗАМЕНУЕМОГО</div>
-          <p>
+          <div class="guide-badge-big" data-i18n="mock_guide_badge">ВАЖНО ДЛЯ КАЖДОГО ЭКЗАМЕНУЕМОГО</div>
+          <p data-i18n-html="mock_guide_banner_p">
             Официальный формульный лист (<em>Formulu lapa</em>) выдаётся в бумажном виде каждому ученику 
             вместе с экзаменационным буклетом. <strong>Пользоваться им разрешено на протяжении всего экзамена</strong> 
             (и в Части 1, и в Части 2).
@@ -92,9 +123,9 @@
           <div class="formula-column has-formulas">
             <div class="column-header">
               <span class="col-icon">✓</span>
-              <h4>Что ЕСТЬ в формульном листе (не учите наизусть)</h4>
+              <h4 data-i18n="mock_has_h4">Что ЕСТЬ в формульном листе (не учите наизусть)</h4>
             </div>
-            <p class="col-desc">Эти формулы не нужно зубрить — нужно лишь уметь быстро их находить и подставлять числа:</p>
+            <p class="col-desc" data-i18n="mock_has_desc">Эти формулы не нужно зубрить — нужно лишь уметь быстро их находить и подставлять числа:</p>
             <ul class="formula-check-list">
               <li><strong>Формулы сокр. умножения:</strong> $(a \pm b)^2 = a^2 \pm 2ab + b^2$, $a^2 - b^2 = (a-b)(a+b)$.</li>
               <li><strong>Свойства степеней и корней:</strong> $a^m \cdot a^n$, $(a^m)^n$, $\sqrt{a \cdot b}$, $\sqrt[n]{a}$.</li>
@@ -102,8 +133,8 @@
               <li><strong>Тригонометрия в треугольнике:</strong> $\sin \alpha, \cos \alpha, \tan \alpha$, значения для 30°, 45°, 60°.</li>
               <li><strong>Планиметрия (Площади):</strong> треугольник ($S = \frac{1}{2}ah$, формула Герона), трапеция, параллелограмм, круг ($S = \pi R^2, C = 2\pi R$).</li>
               <li><strong>Стереометрия (Объёмы и площади):</strong> призма, цилиндр, пирамида, конус, шар ($V = \frac{4}{3}\pi R^3$).</li>
-              <li><strong>Для Optimālais (11 кл):</strong> единичный круг, теоремы синусов и косинусов, комбинаторика ($n!, C_n^k, A_n^k$), тригонометрические тождества.</li>
-              <li><strong>Для Augstākais (12 кл):</strong> таблица производных и первообразных, бином Ньютона, объёмы тел вращения.</li>
+              <li><strong>Для Optimālais (Mat I):</strong> единичный круг, теоремы синусов и косинусов, комбинаторика ($n!, C_n^k, A_n^k$), тригонометрические тождества.</li>
+              <li><strong>Для Augstākais (Mat II):</strong> таблица производных и первообразных, бином Ньютона, объёмы тел вращения.</li>
             </ul>
           </div>
 
@@ -111,9 +142,9 @@
           <div class="formula-column missing-formulas">
             <div class="column-header">
               <span class="col-icon">✕</span>
-              <h4>Чего НЕТ в формульном листе (обязательно помнить!)</h4>
+              <h4 data-i18n="mock_missing_h4">Чего НЕТ в формульном листе (обязательно помнить!)</h4>
             </div>
-            <p class="col-desc">Эти правила составители экзамена считают базовыми, их в листе <strong>нет</strong>:</p>
+            <p class="col-desc" data-i18n="mock_missing_desc">Эти правила составители экзамена считают базовыми, их в листе <strong>нет</strong>:</p>
             <ul class="formula-cross-list">
               <li><strong>Теорема Виета:</strong> $x_1 + x_2 = -\frac{b}{a}$, $x_1 \cdot x_2 = \frac{c}{a}$ (для быстрого счёта корней).</li>
               <li><strong>Смена знака в неравенствах:</strong> при умножении или делении обеих частей на <em>отрицательное</em> число знак строго переворачивается!</li>
@@ -128,9 +159,9 @@
         </div>
 
         <div class="formula-sheet-downloads-bar">
-          <span class="downloads-label">Скачать официальные листы VISC для тренировки:</span>
+          <span class="downloads-label" data-i18n="mock_download_label">Скачать официальные листы VISC для тренировки:</span>
           <div class="downloads-buttons">
-            <a class="download-pill" href="/formulas/eksamens-matematika-9-klase-2026.pdf" target="_blank">📄 9 класс (PDF)</a>
+            <a class="download-pill" href="/formulas/eksamens-matematika-9-klase-2026.pdf" target="_blank">📄 Pamatskola (PDF)</a>
             <a class="download-pill" href="/formulas/eksamens-matematika-visparigais-2026.pdf" target="_blank">📄 Vispārīgais (PDF)</a>
             <a class="download-pill" href="/formulas/eksamens-matematika-optimalais-2026.pdf" target="_blank">📄 Optimālais / Mat I (PDF)</a>
             <a class="download-pill" href="/formulas/eksamens-matematika-augstakais-2026.pdf" target="_blank">📄 Augstākais / Mat II (PDF)</a>
@@ -142,23 +173,23 @@
     <!-- Структура пробных вариантов -->
     <section class="mock-variants-section" id="mock-variants">
       <div class="section-title-wrap">
-        <h2>Структура пробных вариантов по уровням</h2>
-        <p>Официальная модель построения контрольно-измерительных материалов Skola2030.</p>
+        <h2 data-i18n="mock_variants_h2">Структура пробных вариантов по уровням</h2>
+        <p data-i18n="mock_variants_p">Официальная модель построения контрольно-измерительных материалов Skola2030.</p>
       </div>
 
       <div class="mock-cards-stack">
-        <!-- 9. klase -->
+        <!-- Pamatskola -->
         <div class="mock-exam-card">
           <div class="mock-card-top">
             <div class="mock-meta">
-              <span class="exam-badge badge-gold">9. klase</span>
+              <span class="exam-badge badge-gold">Pamatskola</span>
               <span class="mock-time">⏱️ 120 минут (2 часа)</span>
               <span class="mock-points">⭐ 50 баллов суммарно</span>
             </div>
-            <span class="mock-status-pill">Заготовка структуры</span>
+            <span class="mock-status-pill" data-i18n="mock_status_pill">Заготовка структуры</span>
           </div>
 
-          <h3>Государственный экзамен по математике за 9 класс (Pamatskola)</h3>
+          <h3>Государственный экзамен основной школы (Pamatskola)</h3>
           <p class="mock-summary">
             Проверяет базовые математические навыки за весь курс основной школы. Обязателен для получения аттестата.
           </p>
@@ -198,10 +229,10 @@
               <span class="mock-time">⏱️ 180 минут (3 часа)</span>
               <span class="mock-points">⭐ 70 баллов суммарно</span>
             </div>
-            <span class="mock-status-pill">Заготовка структуры</span>
+            <span class="mock-status-pill" data-i18n="mock_status_pill">Заготовка структуры</span>
           </div>
 
-          <h3>Оптимальный уровень — Matemātika I (11 класс)</h3>
+          <h3>Оптимальный уровень — Matemātika I</h3>
           <p class="mock-summary">
             Централизованный экзамен среднего образования для поступления в латвийские и европейские университеты.
           </p>
@@ -210,7 +241,7 @@
             <div class="mock-part">
               <div class="mock-part-head">
                 <span class="part-tag">1. daļa • 30 баллов</span>
-                <span class="part-calc-badge no-calc">🚫 Без калькулятора</span>
+                <span class="part-calc-badge no-calc" data-i18n="mock_no_calc">🚫 Без калькулятора</span>
               </div>
               <ul class="part-points">
                 <li><strong>Задания:</strong> преобразование выражений с корнями и логарифмами, тригонометрические значения на круге, геометрические свойства векторов.</li>
@@ -221,7 +252,7 @@
             <div class="mock-part">
               <div class="mock-part-head">
                 <span class="part-tag">2. daļa • 40 баллов</span>
-                <span class="part-calc-badge has-calc">📱 С калькулятором</span>
+                <span class="part-calc-badge has-calc" data-i18n="mock_has_calc">📱 С калькулятором</span>
               </div>
               <ul class="part-points">
                 <li><strong>Задания:</strong> комплексные задачи на стереометрию (сечения призм и пирамид), тригонометрические уравнения, реальные модели (экспоненциальный рост, сложные проценты), комбинаторика.</li>
@@ -239,10 +270,10 @@
               <span class="mock-time">⏱️ 210 минут (3.5 часа)</span>
               <span class="mock-points">⭐ 80 баллов суммарно</span>
             </div>
-            <span class="mock-status-pill">Заготовка структуры</span>
+            <span class="mock-status-pill" data-i18n="mock_status_pill">Заготовка структуры</span>
           </div>
 
-          <h3>Высший уровень — Matemātika II (12 класс / Padziļinātais)</h3>
+          <h3>Высший уровень — Matemātika II (Padziļinātais kurss)</h3>
           <p class="mock-summary">
             Углублённый профильный экзамен по высшей математике для технических и естественных специальностей (RTU, LU DF, RSU).
           </p>
@@ -251,7 +282,7 @@
             <div class="mock-part">
               <div class="mock-part-head">
                 <span class="part-tag">1. daļa • 25 баллов</span>
-                <span class="part-calc-badge no-calc">🚫 Без калькулятора</span>
+                <span class="part-calc-badge no-calc" data-i18n="mock_no_calc">🚫 Без калькулятора</span>
               </div>
               <ul class="part-points">
                 <li><strong>Темы:</strong> вычисление пределов последовательностей и функций, производные элементарных и сложных функций, геометрия векторов в $\mathbb{R}^3$.</li>
@@ -261,7 +292,7 @@
             <div class="mock-part">
               <div class="mock-part-head">
                 <span class="part-tag">2. daļa • 55 баллов</span>
-                <span class="part-calc-badge has-calc">📱 С калькулятором</span>
+                <span class="part-calc-badge has-calc" data-i18n="mock_has_calc">📱 С калькулятором</span>
               </div>
               <ul class="part-points">
                 <li><strong>Темы:</strong> интегральное исчисление (определённый интеграл, площади криволинейных трапеций, объёмы тел вращения), метод математической индукции, бином Ньютона, стереометрические доказательства.</li>
@@ -318,8 +349,10 @@
   </main>
 
   <footer class="admin-footer" style="margin-top: 50px; text-align: center; padding: 24px 16px; color: var(--muted); border-top: 1px solid var(--line);">
-    <p>MathTasks — справочно-тренировочная платформа по стандарту Skola2030 (Латвия).</p>
+    <p data-i18n="mock_footer">MathTasks — справочно-тренировочная платформа по стандарту Skola2030 (Латвия).</p>
   </footer>
+  <script src="/lib.js"></script>
+  <script src="/i18n.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="/mock-exams-page.js"></script>

@@ -6,6 +6,8 @@ const gradePill = document.querySelector('#grade-pill');
 const viewHome = document.querySelector('#view-home');
 const viewList = document.querySelector('#view-list');
 const viewAbout = document.querySelector('#view-about');
+const viewControlWork = document.querySelector('#view-control-work');
+const viewControlWorks = document.querySelector('#view-control-works');
 const topicsElement = document.querySelector('#topics');
 const tasksElement = document.querySelector('#tasks');
 const gradeFilter = document.querySelector('#grade-filter');
@@ -378,7 +380,7 @@ function renderClassSidebar(grade) {
 
 function renderHubSidebar() {
   const tr = window.MathTasks.t || (k => k);
-  const home = `<a class="nav-link" href="/" title="${escapeHtml(tr('nav_home'))}"><span class="nav-icon">⌂</span><span class="label">${escapeHtml(tr('nav_home'))}</span></a>`;
+  const home = '';
 
   const isGradeActive = val => {
     if (val === 'visparigais') return selectedGrade === 'visparigais';
@@ -550,6 +552,10 @@ function renderSidebar() {
 
 function markActiveNav(activeTopicSlug = null) {
   const current = location.pathname;
+  const homeBtn = document.querySelector('#sidebar-home-btn');
+  if (homeBtn) {
+    homeBtn.classList.toggle('active', current === '/' && !selectedGrade && !activeTopicSlug);
+  }
   sidebarNav.querySelectorAll('a').forEach(link => {
     const href = link.getAttribute('href');
     const isDirectMatch = href === current;
@@ -1347,6 +1353,8 @@ function showView(name) {
   viewHome.hidden = name !== 'home';
   viewList.hidden = name !== 'list';
   viewAbout.hidden = name !== 'about';
+  if (viewControlWork) viewControlWork.hidden = name !== 'control-work';
+  if (viewControlWorks) viewControlWorks.hidden = name !== 'control-works';
   // Прокручиваем только при смене вида: иначе поиск дёргал бы страницу на каждой букве.
   if (currentView !== name) window.scrollTo(0, 0);
   currentView = name;
@@ -1373,6 +1381,11 @@ function resetListBlocks() {
   listAnchors.innerHTML = '';
   listActions.hidden = true;
   listActions.innerHTML = '';
+  const cwSlot = document.querySelector('#topic-control-work-slot');
+  if (cwSlot) {
+    cwSlot.hidden = true;
+    cwSlot.innerHTML = '';
+  }
   document.querySelector('#task-nav')?.remove();
 }
 
@@ -1584,19 +1597,45 @@ window.addEventListener('focus', () => {
 
 let currentTopicTasks = [];
 let filterOnlyUnsolved = false;
+let currentTasksSort = 'default';
+let shuffledTopicTasks = null;
+let currentListEmptyText = 'В этой теме задач пока нет.';
 
 function renderCurrentTopicTasks() {
   const tr = window.MathTasks.t || (k => k);
-  const tasksToRender = filterOnlyUnsolved
-    ? currentTopicTasks.filter(t => !isTaskSolved(t.id))
-    : currentTopicTasks;
+
+  let baseList = (currentTasksSort === 'shuffle' && shuffledTopicTasks)
+    ? [...shuffledTopicTasks]
+    : [...currentTopicTasks];
+
+  let tasksToRender = filterOnlyUnsolved
+    ? baseList.filter(t => !isTaskSolved(t.id))
+    : baseList;
+
+  if (currentTasksSort !== 'shuffle') {
+    const sortFn = window.MathTasksLib?.sortTasks || ((list) => [...list]);
+    tasksToRender = sortFn(tasksToRender, currentTasksSort, {
+      isSolved: id => isTaskSolved(id)
+    });
+  }
 
   const emptyText = filterOnlyUnsolved
     ? tr('all_tasks_solved')
-    : 'В этой теме задач пока нет.';
+    : currentListEmptyText;
 
-  renderTaskList(listTasks, tasksToRender, emptyText, { showTopicLink: false, showGrade: true });
-  renderTopicAnchors(tasksToRender);
+  const showTopicLink = !currentActiveTopic;
+  renderTaskList(listTasks, tasksToRender, emptyText, { showTopicLink, showGrade: true });
+  if (currentActiveTopic) {
+    renderTopicAnchors(tasksToRender);
+    renderTopicControlWorkCard(currentActiveTopic, currentTopicTasks);
+  } else {
+    listAnchors.hidden = true;
+    const cwSlot = document.querySelector('#topic-control-work-slot');
+    if (cwSlot) {
+      cwSlot.hidden = true;
+      cwSlot.innerHTML = '';
+    }
+  }
   renderPrintActions(currentTopicTasks);
 }
 
@@ -1621,6 +1660,26 @@ function renderPrintActions(tasks) {
     </div>
   ` : '';
 
+  const sortControl = tasks.length > 1 ? `
+    <div class="tasks-sort-wrap">
+      <label for="tasks-sort-select" class="tasks-sort-label">
+        <span class="sort-icon" aria-hidden="true">⇅</span>
+        <span>${escapeHtml(tr('sort_label'))}</span>
+      </label>
+      <select id="tasks-sort-select" class="tasks-sort-select" data-tasks-sort aria-label="${escapeHtml(tr('sort_label'))}">
+        <option value="default"${currentTasksSort === 'default' ? ' selected' : ''}>${escapeHtml(tr('sort_default'))}</option>
+        <option value="diff_asc"${currentTasksSort === 'diff_asc' ? ' selected' : ''}>${escapeHtml(tr('sort_diff_asc'))}</option>
+        <option value="diff_desc"${currentTasksSort === 'diff_desc' ? ' selected' : ''}>${escapeHtml(tr('sort_diff_desc'))}</option>
+        <option value="unsolved"${currentTasksSort === 'unsolved' ? ' selected' : ''}>${escapeHtml(tr('sort_unsolved'))}</option>
+        <option value="solved"${currentTasksSort === 'solved' ? ' selected' : ''}>${escapeHtml(tr('sort_solved'))}</option>
+        <option value="shuffle"${currentTasksSort === 'shuffle' ? ' selected' : ''}>${escapeHtml(tr('sort_shuffle'))}</option>
+      </select>
+      ${currentTasksSort === 'shuffle' ? `
+        <button type="button" class="tasks-reshuffle-btn" data-reshuffle="true" title="${escapeHtml(tr('sort_reshuffle'))}" aria-label="${escapeHtml(tr('sort_reshuffle'))}">🔀</button>
+      ` : ''}
+    </div>
+  ` : '';
+
   const solvedCount = tasks.filter(t => isTaskSolved(t.id)).length;
   const unsolvedFilterBtn = (tasks.length > 1 && solvedCount > 0) ? `
     <button class="view-mode-btn${filterOnlyUnsolved ? ' active' : ''}" type="button" data-toggle-unsolved="true" title="${escapeHtml(tr('filter_unsolved_title'))}">
@@ -1628,9 +1687,19 @@ function renderPrintActions(tasks) {
     </button>
   ` : '';
 
+  const cwQuickBtn = currentActiveTopic ? `
+    <a class="view-mode-btn cw-quick-jump-btn" href="#topic-control-work" title="${escapeHtml(tr('btn_start_cw'))}">
+      <span class="view-mode-icon">📝</span> ${escapeHtml(tr('btn_start_cw_short'))}
+    </a>
+  ` : '';
+
   listActions.innerHTML = `
-    ${viewToggle}
-    ${unsolvedFilterBtn}
+    <div class="list-actions-main">
+      ${viewToggle}
+      ${sortControl}
+      ${unsolvedFilterBtn}
+      ${cwQuickBtn}
+    </div>
     <div class="print-actions-group">
       <span class="list-actions-label">${escapeHtml(tr('print'))}:</span>
       <button class="ghost-button" type="button" data-print="full">${escapeHtml(tr('print_with_solutions'))}</button>
@@ -1639,13 +1708,40 @@ function renderPrintActions(tasks) {
   `;
 }
 
+listActions.addEventListener('change', event => {
+  const sortSelect = event.target.closest('[data-tasks-sort]');
+  if (sortSelect) {
+    currentTasksSort = sortSelect.value;
+    if (currentTasksSort === 'shuffle') {
+      const shuffleFn = window.MathTasksLib?.shuffleArray || ((arr) => [...arr].reverse());
+      shuffledTopicTasks = shuffleFn(currentTopicTasks);
+    } else {
+      shuffledTopicTasks = null;
+    }
+    singleTaskIndex = 0;
+    renderCurrentTopicTasks();
+  }
+});
+
 listActions.addEventListener('click', event => {
   const button = event.target.closest('[data-print]');
   if (button) printTasks(button.dataset.print === 'full');
+
   const filterBtn = event.target.closest('[data-toggle-unsolved]');
   if (filterBtn) {
     filterOnlyUnsolved = !filterOnlyUnsolved;
+    singleTaskIndex = 0;
     renderCurrentTopicTasks();
+    return;
+  }
+
+  const reshuffleBtn = event.target.closest('[data-reshuffle]');
+  if (reshuffleBtn) {
+    const shuffleFn = window.MathTasksLib?.shuffleArray || ((arr) => [...arr].reverse());
+    shuffledTopicTasks = shuffleFn(currentTopicTasks);
+    singleTaskIndex = 0;
+    renderCurrentTopicTasks();
+    return;
   }
 });
 
@@ -1701,6 +1797,9 @@ async function showTopic(slug) {
   taskCounts.set(topic.id, tasks.length);
   currentTopicTasks = tasks;
   filterOnlyUnsolved = false;
+  currentTasksSort = 'default';
+  shuffledTopicTasks = null;
+  currentListEmptyText = 'В этой теме задач пока нет.';
 
   const prog = getTopicProgress(topic.id);
   const progHtml = prog.total > 0 ? `
@@ -1745,8 +1844,13 @@ async function showAllTasks() {
   }
   const { data, error } = await query;
   if (error) { listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('err_load_tasks')}</p>`; return; }
-  renderPrintActions(data || []);
-  renderTaskList(listTasks, data || [], 'Задач пока нет.');
+  currentActiveTopic = null;
+  currentTopicTasks = data || [];
+  filterOnlyUnsolved = false;
+  currentTasksSort = 'default';
+  shuffledTopicTasks = null;
+  currentListEmptyText = selectedGrade ? `Задач для ${gradeLabel(selectedGrade)} пока нет.` : 'Задач пока нет.';
+  renderCurrentTopicTasks();
 }
 
 async function showFavorites() {
@@ -1775,8 +1879,495 @@ async function showFavorites() {
     return;
   }
 
-  renderPrintActions(data || []);
-  renderTaskList(listTasks, data, 'Закладок нет.', { showTopicLink: true, showGrade: true });
+  currentActiveTopic = null;
+  currentTopicTasks = data || [];
+  filterOnlyUnsolved = false;
+  currentTasksSort = 'default';
+  shuffledTopicTasks = null;
+  currentListEmptyText = (window.MathTasks.t || (k => k))('fav_empty_hint') || 'Закладок нет.';
+  renderCurrentTopicTasks();
+}
+
+/* ── Контрольные работы (Pārbaudes darbi) ─────────────────────────── */
+
+function getControlWorkStorage() {
+  try {
+    const raw = localStorage.getItem('math-tasks:control-works');
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function getControlWorkResult(topicId) {
+  const store = getControlWorkStorage();
+  return store[topicId] || null;
+}
+
+function saveControlWorkResult(topicId, result) {
+  try {
+    const store = getControlWorkStorage();
+    store[topicId] = {
+      ...result,
+      date: new Date().toISOString()
+    };
+    localStorage.setItem('math-tasks:control-works', JSON.stringify(store));
+  } catch (err) {
+    console.warn('Could not save control work result', err);
+  }
+}
+
+function renderTopicControlWorkCard(topic, tasks) {
+  const slot = document.querySelector('#topic-control-work-slot');
+  if (!slot) return;
+  const tr = window.MathTasks.t || (k => k);
+  if (!tasks || tasks.length === 0) {
+    slot.hidden = true;
+    slot.innerHTML = '';
+    return;
+  }
+
+  const prevResult = getControlWorkResult(topic.id);
+  const cwTasks = window.MathTasksLib?.selectControlWorkTasks ? window.MathTasksLib.selectControlWorkTasks(tasks) : tasks.slice(0, 5);
+  const cwCount = cwTasks.length;
+
+  let statusBadge = '';
+  if (prevResult) {
+    statusBadge = `
+      <div class="cw-card-status done">
+        <span class="cw-status-icon">🏆</span>
+        <span class="cw-status-text">${escapeHtml(tr('cw_status_done', { percent: prevResult.percent, grade: prevResult.grade }))}</span>
+      </div>
+    `;
+  }
+
+  slot.hidden = false;
+  slot.innerHTML = `
+    <div class="topic-control-work-card" id="topic-control-work">
+      <div class="cw-card-top">
+        <span class="cw-badge">${escapeHtml(tr('cw_badge'))}</span>
+        ${statusBadge}
+      </div>
+      <div class="cw-card-main">
+        <h3 class="cw-card-title">${escapeHtml(tr('cw_topic_card_title'))}</h3>
+        <p class="cw-card-desc">${escapeHtml(tr('cw_topic_card_desc'))}</p>
+        <ul class="cw-card-features">
+          <li>⏱️ ${escapeHtml(tr('cw_feature_time'))}</li>
+          <li>📝 ${escapeHtml(tr('cw_feature_tasks'))}</li>
+          <li>📊 ${escapeHtml(tr('cw_feature_eval'))}</li>
+        </ul>
+      </div>
+      <div class="cw-card-actions">
+        <a href="/control-work/${encodeURIComponent(topic.slug)}" class="primary-button cw-start-btn">
+          ${escapeHtml(prevResult ? tr('cw_retry_btn') : tr('btn_start_cw'))} (${cwCount} заданий) →
+        </a>
+      </div>
+    </div>
+  `;
+}
+
+let currentCwTopic = null;
+let currentCwTasks = [];
+let currentCwUserAnswers = {};
+let currentCwTimer = null;
+let currentCwSubmitted = false;
+
+async function startControlWork(slug) {
+  showView('control-work');
+  const tr = window.MathTasks.t || (k => k);
+  let topic = allTopics.find(item => item.slug === slug);
+  if (!topic && db) {
+    const { data } = await db.from('topics').select('*').eq('slug', slug).maybeSingle();
+    if (data) topic = data;
+  }
+  if (!topic) {
+    const list = document.querySelector('#cw-task-list');
+    if (list) list.innerHTML = `<p class="empty-state">${escapeHtml(tr('err_load_tasks'))}</p>`;
+    return;
+  }
+
+  currentActiveTopic = topic;
+  if (topic.grade && selectedGrade !== topic.grade) {
+    applyGrade(topic.grade);
+  } else {
+    renderSidebar();
+  }
+
+  const subject = subjectById(topic.subject_id);
+  const topicTitle = loc(topic, 'title');
+  const subjectTitle = loc(subject, 'title');
+
+  const crumbs = [[tr('nav_home') || 'Главная', '/']];
+  if (topic.grade) crumbs.push([gradeLabel(topic.grade), `/grade/${topic.grade}`]);
+  if (subject) crumbs.push([subjectTitle, `/subject/${encodeURIComponent(subject.slug)}`]);
+  crumbs.push([topicTitle, `/topic/${encodeURIComponent(topic.slug)}`]);
+  crumbs.push([tr('nav_control_works') || 'Контрольная работа', null]);
+
+  const breadcrumbEl = document.querySelector('#cw-breadcrumb');
+  if (breadcrumbEl) {
+    breadcrumbEl.innerHTML = crumbs
+      .map(([label, href]) => (href ? `<a href="${href}">${escapeHtml(label)}</a>` : `<span>${escapeHtml(label)}</span>`))
+      .join('<span class="crumb-sep">/</span>');
+  }
+
+  const titleEl = document.querySelector('#cw-title');
+  if (titleEl) {
+    titleEl.textContent = tr('cw_mode_title', { topic: topicTitle });
+  }
+  setMeta(tr('cw_mode_title', { topic: topicTitle }), `Проверочная работа по теме «${topicTitle}» на 40 минут с автоматической оценкой.`);
+
+  const cwList = document.querySelector('#cw-task-list');
+  if (cwList) {
+    cwList.innerHTML = `<p class="empty-state">${escapeHtml(tr('state_loading_tasks'))}</p>`;
+  }
+
+  const resCard = document.querySelector('#cw-result-card');
+  if (resCard) {
+    resCard.hidden = true;
+    resCard.innerHTML = '';
+  }
+  const submitBtn = document.querySelector('#cw-submit-btn');
+  if (submitBtn) submitBtn.hidden = false;
+
+  const { data, error } = await db.from('tasks').select(TASK_SELECT)
+    .eq('is_published', true).eq('topic_id', topic.id)
+    .order('position').order('created_at', { ascending: true });
+
+  if (error || !data || !data.length) {
+    if (cwList) cwList.innerHTML = `<p class="empty-state">${escapeHtml(tr('err_load_tasks'))}</p>`;
+    return;
+  }
+
+  const cwTasks = window.MathTasksLib?.selectControlWorkTasks ? window.MathTasksLib.selectControlWorkTasks(data) : data.slice(0, 5);
+  currentCwTopic = topic;
+  currentCwTasks = cwTasks;
+  currentCwUserAnswers = {};
+  currentCwSubmitted = false;
+
+  // Инициализация 40-минутного таймера
+  if (currentCwTimer) currentCwTimer.stop();
+  const timerDisplay = document.querySelector('#cw-timer-display');
+  if (timerDisplay) {
+    timerDisplay.textContent = '40:00';
+    timerDisplay.classList.remove('warning');
+  }
+  currentCwTimer = window.MathTasksLib?.createExamTimer ? window.MathTasksLib.createExamTimer({ initialSeconds: 40 * 60 }) : null;
+
+  if (currentCwTimer) {
+    currentCwTimer.on((event, state) => {
+      if (event === 'tick') {
+        const fmt = window.MathTasksLib?.formatTimerDisplay ? window.MathTasksLib.formatTimerDisplay(state.seconds) : `${Math.floor(state.seconds / 60)}:${state.seconds % 60}`;
+        if (timerDisplay) {
+          timerDisplay.textContent = fmt;
+          timerDisplay.classList.toggle('warning', state.seconds <= 60 && state.seconds > 0);
+        }
+      } else if (event === 'finish') {
+        if (!currentCwSubmitted) {
+          submitControlWork(true);
+        }
+      }
+    });
+    currentCwTimer.start();
+  }
+
+  renderControlWorkCards();
+}
+
+function renderControlWorkCards() {
+  const cwList = document.querySelector('#cw-task-list');
+  if (!cwList) return;
+  const tr = window.MathTasks.t || (k => k);
+
+  cwList.innerHTML = currentCwTasks.map((task, idx) => {
+    const taskTitle = loc(task, 'title');
+    const diff = task.difficulty;
+    const val = currentCwUserAnswers[task.id] || '';
+    const figure = task.condition_image ? `<img class="task-figure" src="${imageUrl(task.condition_image)}" alt="${escapeHtml(taskTitle)}" />` : '';
+
+    return `
+      <article class="cw-task-card" data-task-id="${task.id}" id="cw-task-${task.id}">
+        <div class="cw-task-header">
+          <span class="cw-task-num">№ ${idx + 1}</span>
+          ${difficultyBadge(diff)}
+        </div>
+        <div class="cw-task-body">
+          <strong class="cw-task-title">${escapeHtml(taskTitle)}</strong>
+          <div class="math cw-task-condition" data-cw-condition="${task.id}"></div>
+          ${figure}
+        </div>
+        <div class="cw-task-answer-area">
+          <div class="quick-math-bar" aria-label="Quick Math">
+            <span class="quick-math-bar-label" title="Quick Math">${escapeHtml(tr('quick_math_label'))}</span>
+            <button type="button" class="quick-math-btn" data-cw-insert="√(" title="√x">√x</button>
+            <button type="button" class="quick-math-btn" data-cw-insert="²" title="x²">x²</button>
+            <button type="button" class="quick-math-btn" data-cw-insert="^" title="xⁿ">xⁿ</button>
+            <button type="button" class="quick-math-btn" data-cw-insert="/" title="/">/</button>
+            <button type="button" class="quick-math-btn" data-cw-insert="π" title="π">π</button>
+            <button type="button" class="quick-math-btn" data-cw-insert="±" title="±">±</button>
+            <button type="button" class="quick-math-btn" data-cw-insert="|" title="|x|">|x|</button>
+            <button type="button" class="quick-math-btn" data-cw-insert="(" title="( )">( )</button>
+            <button type="button" class="quick-math-btn" data-cw-insert="x" title="x">x</button>
+            <button type="button" class="quick-math-btn" data-cw-insert="·" title="·">·</button>
+            <button type="button" class="quick-math-btn" data-cw-insert="≤" title="≤">≤</button>
+            <button type="button" class="quick-math-btn" data-cw-insert="≥" title="≥">≥</button>
+          </div>
+          <div class="cw-answer-input-wrap">
+            <label for="cw-input-${task.id}" class="cw-input-label">${escapeHtml(tr('atbilde') || 'Ответ')}:</label>
+            <input type="text" id="cw-input-${task.id}" class="cw-answer-input" data-task-id="${task.id}" placeholder="${escapeHtml(tr('self_check_placeholder'))}" value="${escapeHtml(val)}" autocomplete="off" />
+          </div>
+        </div>
+        <div class="cw-task-review" data-cw-review="${task.id}" hidden></div>
+      </article>
+    `;
+  }).join('');
+
+  cwList.querySelectorAll('[data-cw-condition]').forEach(el => {
+    const taskId = Number(el.dataset.cwCondition);
+    const task = currentCwTasks.find(t => t.id === taskId);
+    if (task) {
+      renderMath(el, loc(task, 'condition_latex'));
+    }
+  });
+}
+
+function submitControlWork(isTimeout = false) {
+  if (currentCwSubmitted || !currentCwTasks.length) return;
+  currentCwSubmitted = true;
+  const tr = window.MathTasks.t || (k => k);
+
+  let elapsedSec = 40 * 60;
+  if (currentCwTimer) {
+    elapsedSec = currentCwTimer.getElapsed();
+    currentCwTimer.stop();
+  }
+
+  document.querySelectorAll('.cw-answer-input').forEach(input => {
+    const taskId = Number(input.dataset.taskId);
+    if (taskId) currentCwUserAnswers[taskId] = input.value.trim();
+  });
+
+  let correctCount = 0;
+  const gradedResults = currentCwTasks.map(task => {
+    const userAns = currentCwUserAnswers[task.id] || '';
+    const correctAns = loc(task, 'answer_latex') || '';
+    const isCorrect = window.MathTasksLib?.compareAnswers ? window.MathTasksLib.compareAnswers(userAns, correctAns) : false;
+    if (isCorrect) correctCount++;
+    return { task, userAns, correctAns, isCorrect };
+  });
+
+  /* Функция отдаёт подпись на двух языках отдельными полями; какая нужна,
+     знает только интерфейс. Пустая строка лучше слова «undefined». */
+  const gradeLevelLabel = info => {
+    const lang = window.MathTasks?.getLang ? window.MathTasks.getLang() : 'ru';
+    return (lang === 'lv' ? info?.levelLv : info?.levelRu) || info?.level || '';
+  };
+
+  const gradeInfo = window.MathTasksLib?.calculateControlWorkGrade ? window.MathTasksLib.calculateControlWorkGrade(correctCount, currentCwTasks.length) : {
+    score: correctCount,
+    total: currentCwTasks.length,
+    percent: Math.round((correctCount / currentCwTasks.length) * 100),
+    grade: Math.round((correctCount / currentCwTasks.length) * 10),
+    level: ''
+  };
+
+  if (currentCwTopic) {
+    saveControlWorkResult(currentCwTopic.id, {
+      score: gradeInfo.score,
+      total: gradeInfo.total,
+      grade: gradeInfo.grade,
+      percent: gradeInfo.percent,
+      timeSpentSec: elapsedSec
+    });
+  }
+
+  const resCard = document.querySelector('#cw-result-card');
+  if (resCard) {
+    resCard.hidden = false;
+    const mins = Math.floor(elapsedSec / 60);
+    const secs = elapsedSec % 60;
+    const timeFormatted = `${mins} мин ${secs < 10 ? '0' : ''}${secs} сек`;
+
+    resCard.innerHTML = `
+      <div class="cw-result-inner">
+        <div class="cw-result-grade-badge grade-${gradeInfo.grade}">
+          <span class="cw-grade-val">${gradeInfo.grade}</span>
+          <span class="cw-grade-scale">/ 10</span>
+        </div>
+        <div class="cw-result-info">
+          <h2 class="cw-result-title">${escapeHtml(tr('cw_result_heading'))}</h2>
+          <div class="cw-result-stats">
+            <div class="cw-result-stat">
+              <strong>${escapeHtml(tr('cw_score_line', { correct: gradeInfo.score, total: gradeInfo.total, percent: gradeInfo.percent }))}</strong>
+            </div>
+            <div class="cw-result-stat">
+              <strong>${escapeHtml(tr('cw_grade_line', { grade: gradeInfo.grade, level: gradeLevelLabel(gradeInfo) }))}</strong>
+            </div>
+            <div class="cw-result-stat">
+              <span>${escapeHtml(tr('cw_time_spent_line', { time: timeFormatted }))}</span>
+            </div>
+          </div>
+          <p class="cw-result-notice">💡 ${escapeHtml(tr('cw_solutions_unlocked'))}</p>
+        </div>
+      </div>
+      <div class="cw-result-footer">
+        <button type="button" class="primary-button" id="btn-cw-retry">${escapeHtml(tr('cw_retry_btn'))}</button>
+        <a href="/topic/${encodeURIComponent(currentCwTopic ? currentCwTopic.slug : '')}" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('cw_back_to_topic'))}</a>
+      </div>
+    `;
+  }
+
+  const submitBtn = document.querySelector('#cw-submit-btn');
+  if (submitBtn) submitBtn.hidden = true;
+
+  gradedResults.forEach(({ task, userAns, correctAns, isCorrect }) => {
+    const card = document.querySelector(`#cw-task-${task.id}`);
+    if (!card) return;
+
+    card.classList.add(isCorrect ? 'cw-is-correct' : 'cw-is-wrong');
+    const input = card.querySelector('.cw-answer-input');
+    if (input) input.disabled = true;
+
+    const quickBar = card.querySelector('.quick-math-bar');
+    if (quickBar) quickBar.hidden = true;
+
+    const reviewEl = card.querySelector(`[data-cw-review="${task.id}"]`);
+    if (reviewEl) {
+      reviewEl.hidden = false;
+      const statusBadge = isCorrect
+        ? `<span class="cw-eval-badge success">✅ ${escapeHtml(tr('self_check_success'))}</span>`
+        : `<span class="cw-eval-badge wrong">❌ ${escapeHtml(tr('self_check_error'))}</span>`;
+
+      const solutionLatex = loc(task, 'solution_latex');
+      const solImg = task.solution_image ? `<img class="task-figure" src="${imageUrl(task.solution_image)}" alt="Solution figure" />` : '';
+
+      reviewEl.innerHTML = `
+        <div class="cw-eval-row">
+          ${statusBadge}
+          <div class="cw-review-answers">
+            ${!isCorrect ? `<div class="cw-user-ans"><span>${escapeHtml(tr('your_answer') || 'Ваш ответ')}:</span> <code>${escapeHtml(userAns || '—')}</code></div>` : ''}
+            <div class="cw-correct-ans">
+              <span>${escapeHtml(tr('atbilde') || 'Правильный ответ')}:</span>
+              <div class="math cw-correct-math" data-cw-ans="${task.id}"></div>
+            </div>
+          </div>
+        </div>
+        <details class="cw-solution-dropdown" open>
+          <summary class="cw-solution-summary">${escapeHtml(tr('atrisinajums') || 'Разбор решения')}</summary>
+          <div class="cw-solution-content">
+            <div class="math cw-solution-math" data-cw-sol="${task.id}"></div>
+            ${solImg}
+          </div>
+        </details>
+      `;
+
+      const ansEl = reviewEl.querySelector(`[data-cw-ans="${task.id}"]`);
+      if (ansEl) renderMath(ansEl, correctAns);
+
+      const solEl = reviewEl.querySelector(`[data-cw-sol="${task.id}"]`);
+      if (solEl && solutionLatex) renderMath(solEl, solutionLatex);
+    }
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function showControlWorksCatalog() {
+  showView('control-works');
+  const tr = window.MathTasks.t || (k => k);
+  setMeta(tr('cw_catalog_title'), tr('cw_catalog_desc'));
+  renderSidebar();
+
+  const container = document.querySelector('#cw-catalog-list');
+  if (!container) return;
+
+  const topicsWithTasks = allTopics.filter(topic => (taskCounts.get(topic.id) || 0) > 0);
+
+  if (!topicsWithTasks.length) {
+    container.innerHTML = `<p class="empty-state">${escapeHtml(tr('state_loading_tasks'))}</p>`;
+    return;
+  }
+
+  const stages = [
+    {
+      id: 'sakumskola',
+      title: tr('stage_sakumskola') || '1–4 классы (Начальная школа)',
+      filter: t => {
+        const g = getTopicGradeBucket(t);
+        return g >= 1 && g <= 4;
+      }
+    },
+    {
+      id: 'pamatskola1',
+      title: tr('stage_pamatskola1') || '5–6 классы',
+      filter: t => {
+        const g = getTopicGradeBucket(t);
+        return g >= 5 && g <= 6;
+      }
+    },
+    {
+      id: 'pamatskola2',
+      title: tr('stage_pamatskola2') || '7–9 классы (Основная школа)',
+      filter: t => {
+        const g = getTopicGradeBucket(t);
+        return g >= 7 && g <= 9;
+      }
+    },
+    {
+      id: 'vidusskola',
+      title: tr('stage_vidusskola') || '10–12 классы (Средняя школа)',
+      filter: t => {
+        const g = getTopicGradeBucket(t);
+        return g >= 10 && g <= 12;
+      }
+    }
+  ];
+
+  const html = stages.map(stage => {
+    const stageTopics = topicsWithTasks.filter(stage.filter);
+    if (!stageTopics.length) return '';
+
+    const cardsHtml = stageTopics.map(topic => {
+      const subject = subjectById(topic.subject_id);
+      const title = loc(topic, 'title');
+      const count = taskCounts.get(topic.id) || 0;
+      const prevResult = getControlWorkResult(topic.id);
+      const grade = topic.grade ? gradeLabel(topic.grade) : '';
+
+      let statusHtml = `<span class="cw-cat-pill">⏱️ ${escapeHtml(tr('cw_minutes'))}</span>`;
+      if (prevResult) {
+        statusHtml = `<span class="cw-cat-pill done">🏆 ${prevResult.percent}% (${prevResult.grade}/10)</span>`;
+      }
+
+      return `
+        <div class="cw-catalog-card${prevResult ? ' is-passed' : ''}">
+          <div class="cw-cat-top">
+            <span class="tag ${tagClass(subject)}">${escapeHtml(loc(subject, 'title') || tr('subject_fallback'))}</span>
+            ${grade ? `<span class="grade-badge">${grade}</span>` : ''}
+            ${statusHtml}
+          </div>
+          <h3 class="cw-cat-title"><a href="/control-work/${encodeURIComponent(topic.slug)}">${escapeHtml(title)}</a></h3>
+          <p class="cw-cat-desc">${escapeHtml(loc(topic, 'description') || '')}</p>
+          <div class="cw-cat-footer">
+            <span class="cw-cat-count">${count} ${tr('tasks_word') || 'заданий в теме'}</span>
+            <a href="/control-work/${encodeURIComponent(topic.slug)}" class="secondary-button cw-cat-btn">
+              ${prevResult ? escapeHtml(tr('cw_retry_btn')) : escapeHtml(tr('btn_start_cw_short'))} →
+            </a>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <section class="cw-catalog-stage">
+        <h2 class="cw-stage-heading">${escapeHtml(stage.title)}</h2>
+        <div class="cw-catalog-grid">
+          ${cardsHtml}
+        </div>
+      </section>
+    `;
+  }).filter(Boolean).join('');
+
+  container.innerHTML = html || `<p class="empty-state">Тем пока нет.</p>`;
 }
 
 /* ── Поиск ────────────────────────────────────────────────────────── */
@@ -2189,8 +2780,13 @@ async function showTag(slug) {
     metaEl.innerHTML = `<span class="search-count">${tasksCountLabel}</span>${showAllLink} <a class="search-escape" href="/tags">${allTagsLabel}</a>`;
   }
 
-  renderPrintActions(tasks);
-  renderTaskList(listTasks, tasks, tr('tag_empty') || (currentLang === 'lv' ? 'Šai birkai pagaidām nav pievienots neviens uzdevums.' : 'Задач с этим тегом пока нет.'), { showTopicLink: true, showGrade: true });
+  currentActiveTopic = null;
+  currentTopicTasks = tasks || [];
+  filterOnlyUnsolved = false;
+  currentTasksSort = 'default';
+  shuffledTopicTasks = null;
+  currentListEmptyText = tr('tag_empty') || (currentLang === 'lv' ? 'Šai birkai pagaidām nav pievienots neviens uzdevums.' : 'Задач с этим тегом пока нет.');
+  renderCurrentTopicTasks();
 }
 
 /* ── Маршруты ─────────────────────────────────────────────────────── */
@@ -2209,7 +2805,7 @@ async function route({ force = false } = {}) {
   const params = new URLSearchParams(location.search);
 
   // Сброс контекста темы в сайдбаре при уходе со страницы темы или задачи
-  if (!path.startsWith('/topic/') && !path.startsWith('/task/')) {
+  if (!path.startsWith('/topic/') && !path.startsWith('/task/') && !path.startsWith('/control-work/')) {
     if (currentActiveTopic !== null) {
       currentActiveTopic = null;
       renderSidebar();
@@ -2223,6 +2819,10 @@ async function route({ force = false } = {}) {
   // Поле поиска чистим при уходе с выдачи, чтобы шапка не врала о текущем виде.
   if (searchInput.value) searchInput.value = '';
   searchAcrossGrades = false;
+
+  const cwMatch = path.match(/^\/control-work\/(.+)$/);
+  if (cwMatch) { await startControlWork(decodeURIComponent(cwMatch[1])); return; }
+  if (path === '/control-works') { await showControlWorksCatalog(); return; }
 
   const gradeMatch = path.match(/^\/grade\/(.+)$/);
   if (gradeMatch) { await showGradePage(decodeURIComponent(gradeMatch[1])); return; }
@@ -2758,12 +3358,39 @@ document.addEventListener('click', event => {
       if (pInput) insertIntoInput(pInput, mathBtn.dataset.plotterInsert);
       return;
     }
+    if (mathBtn.dataset.cwInsert) {
+      const card = mathBtn.closest('.cw-task-card');
+      const input = card?.querySelector('.cw-answer-input');
+      if (input && !input.disabled) {
+        insertIntoInput(input, mathBtn.dataset.cwInsert);
+        const taskId = Number(input.dataset.taskId);
+        if (taskId) currentCwUserAnswers[taskId] = input.value;
+      }
+      return;
+    }
     if (mathBtn.dataset.insert) {
       const checkBlock = mathBtn.closest('.task-self-check');
       const input = checkBlock?.querySelector('.self-check-input');
       if (input && !input.disabled) {
         insertIntoInput(input, mathBtn.dataset.insert);
       }
+    }
+    return;
+  }
+
+  // Кнопки сдачи и повтора контрольной работы
+  const submitCwBtn = event.target.closest('#cw-submit-btn');
+  if (submitCwBtn) {
+    event.preventDefault();
+    submitControlWork();
+    return;
+  }
+
+  const retryCwBtn = event.target.closest('#btn-cw-retry');
+  if (retryCwBtn) {
+    event.preventDefault();
+    if (currentCwTopic) {
+      startControlWork(currentCwTopic.slug);
     }
     return;
   }
@@ -3326,6 +3953,17 @@ document.querySelector('#lang-switcher')?.addEventListener('click', event => {
   }
 });
 
+// Ввод ответов в контрольных работах
+document.addEventListener('input', event => {
+  if (event.target.matches('.cw-answer-input')) {
+    const taskId = Number(event.target.dataset.taskId);
+    if (taskId) currentCwUserAnswers[taskId] = event.target.value.trim();
+  }
+});
+
+// Инициализация экзаменационного таймера в шапке
+window.ExamTimer = window.MathTasksLib?.initExamTimerUi ? window.MathTasksLib.initExamTimerUi(document) : null;
+
 window.addEventListener('languagechange', async () => {
   window.MathTasksI18n?.applyTranslations(document);
   fillGradeSelect(gradeSelect, window.MathTasks.t('all_grades'));
@@ -3333,8 +3971,8 @@ window.addEventListener('languagechange', async () => {
   renderSidebar();
   renderHeadings();
   const tr = window.MathTasks.t || (k => k);
-  if (ExamTimer.toggleBtn) {
-    ExamTimer.toggleBtn.textContent = ExamTimer.isRunning ? tr('timer_pause') : tr('timer_start');
+  if (window.ExamTimer && window.ExamTimer.toggleBtn) {
+    window.ExamTimer.toggleBtn.textContent = window.ExamTimer.isRunning ? tr('timer_pause') : tr('timer_start');
   }
   if (currentView === 'home') {
     await loadHome();

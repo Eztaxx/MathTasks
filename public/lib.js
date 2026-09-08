@@ -57,6 +57,11 @@
     s = s.replace(/^[a-zA-Z](_[0-9a-zA-Z]+)?\s*=\s*/, '');
     s = s.replace(/\\(cdot|times)/g, '*');
     s = s.replace(/·/g, '*');
+    /* Градусы: в эталоне они записаны как 65^{'+'}circ, ученик набирает
+       «65» или «65°». Без приведения к одному виду верный ответ в
+       градусах не засчитывался ни в одном написании. */
+    s = s.replace(/\^\{?\\circ\}?/g, '°');
+    s = s.replace(/\\degree/g, '°');
     s = s.replace(/²/g, '^2');
     s = s.replace(/³/g, '^3');
     s = s.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
@@ -89,7 +94,7 @@
 
   /* Единицы и валюты, которые пишут в ответе после числа. Степень
      (^2, ^3) снимаем вместе с ними: «см^2» — та же единица. */
-  const UNIT_WORDS = /(?:см|мм|дм|км|м|га|кг|мг|г|тонн[аы]?|л|мл|ч|мин|сек|с|руб|евро|cm|mm|dm|km|ha|kg|mg|g|t|ml|min|sec|h|s|eur|€|%)(?:\^\d)?/gi;
+  const UNIT_WORDS = /(?:см|мм|дм|км|м|га|кг|мг|г|тонн[аы]?|л|мл|ч|мин|сек|с|руб|евро|cm|mm|dm|km|ha|kg|mg|g|t|ml|min|sec|h|s|eur|€|%|°)(?:\^\d)?/gi;
 
   const stripUnits = str => String(str)
     .replace(UNIT_WORDS, '')
@@ -510,6 +515,407 @@
     }
   };
 
+  /* Вес сложности задачи для упорядочивания */
+  const getDifficultyWeight = diff => {
+    if (!diff) return 2; // Средний по умолчанию
+    const d = String(diff).trim().toLowerCase();
+    if (d.includes('лёгк') || d.includes('легк') || d.includes('баз') || d.includes('easy') || d.includes('pamat') || d.includes('vienk')) {
+      return 1;
+    }
+    if (d.includes('олимп') || d.includes('olimp')) {
+      return 4;
+    }
+    if (d.includes('сложн') || d.includes('hard') || d.includes('проф') || d.includes('augst') || d.includes('padziļ') || d.includes('sarežģ')) {
+      return 3;
+    }
+    return 2; // Средний / vidējs / medium
+  };
+
+  /* Несмещённое перемешивание массива (Фишер — Йетс) */
+  const shuffleArray = (array, randomFn = Math.random) => {
+    if (!Array.isArray(array)) return [];
+    const copy = [...array];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(randomFn() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  };
+
+  /* Сортировка списка задач по заданному критерию */
+  const sortTasks = (tasks, sortBy = 'default', options = {}) => {
+    if (!Array.isArray(tasks) || tasks.length <= 1) return Array.isArray(tasks) ? [...tasks] : [];
+    if (sortBy === 'shuffle') {
+      return shuffleArray(tasks, options.random || Math.random);
+    }
+
+    const isSolvedFn = typeof options.isSolved === 'function'
+      ? options.isSolved
+      : (id => {
+          if (options.solvedIds) {
+            if (options.solvedIds instanceof Set) return options.solvedIds.has(Number(id));
+            if (Array.isArray(options.solvedIds)) return options.solvedIds.includes(Number(id));
+          }
+          return false;
+        });
+
+    const decorated = tasks.map((task, index) => {
+      const pos = Number(task.position);
+      return {
+        task,
+        index,
+        position: Number.isFinite(pos) && pos > 0 ? pos : index + 1,
+        diffWeight: getDifficultyWeight(task.difficulty),
+        isSolved: isSolvedFn(task.id) ? 1 : 0
+      };
+    });
+
+    decorated.sort((a, b) => {
+      if (sortBy === 'diff_asc') {
+        if (a.diffWeight !== b.diffWeight) return a.diffWeight - b.diffWeight;
+      } else if (sortBy === 'diff_desc') {
+        if (a.diffWeight !== b.diffWeight) return b.diffWeight - a.diffWeight;
+      } else if (sortBy === 'unsolved') {
+        if (a.isSolved !== b.isSolved) return a.isSolved - b.isSolved; // 0 (unsolved) first
+      } else if (sortBy === 'solved') {
+        if (a.isSolved !== b.isSolved) return b.isSolved - a.isSolved; // 1 (solved) first
+      }
+      // Вторичный / дефолтный критерий: по порядку позиции в теме
+      if (a.position !== b.position) return a.position - b.position;
+      return a.index - b.index;
+    });
+
+    return decorated.map(item => item.task);
+  };
+
+  /* Проверка, относится ли задача к контрольной работе (по тегам или префиксу названия) */
+  const isControlWorkTask = task => {
+    if (!task) return false;
+    const title = String(task.title || '').trim();
+    if (/^\[(?:к[\/.]?р|p[\/.]?d)\]/i.test(title) || /контрольн|pārbaudes\s+darb/i.test(title)) {
+      return true;
+    }
+    const tags = Array.isArray(task.tags)
+      ? task.tags
+      : (Array.isArray(task.task_tags) ? task.task_tags.map(tt => tt.tags?.slug || tt.slug).filter(Boolean) : []);
+    return tags.some(t => {
+      const s = String(t).toLowerCase();
+      return s === 'kontroldarbs' || s === 'parbaudes-darbs' || s === 'kontrolnaya-rabota';
+    });
+  };
+
+  /* Отбор задач для контрольной работы темы:
+     1. Если автор создал специальные задачи (с префиксом [К/Р] или тегом kontroldarbs) — берём их.
+     2. Если их нет (автор составит позже) — формируем тренировочный вариант из 4-5 задач темы с балансом сложности. */
+  const selectControlWorkTasks = (tasks = []) => {
+    if (!Array.isArray(tasks) || tasks.length === 0) return [];
+
+    // 1. Ищем авторские задачи контрольной работы
+    const authored = tasks.filter(isControlWorkTask);
+    if (authored.length >= 3) {
+      return sortTasks(authored, 'default');
+    }
+
+    // 2. Если задач всего 5 или меньше — берём все
+    if (tasks.length <= 5) {
+      return sortTasks(tasks, 'default');
+    }
+
+    // 3. Формируем сбалансированный вариант: 1-2 лёгкие, 2 средние, 1 сложная
+    const easy = tasks.filter(t => getDifficultyWeight(t.difficulty) === 1);
+    const med = tasks.filter(t => getDifficultyWeight(t.difficulty) === 2);
+    const hard = tasks.filter(t => getDifficultyWeight(t.difficulty) >= 3);
+
+    const picked = [];
+    const pickFrom = (arr, count) => {
+      const sorted = [...arr].sort((a, b) => (Number(a.position) || 0) - (Number(b.position) || 0));
+      for (const item of sorted) {
+        if (picked.length < 5 && count > 0 && !picked.includes(item)) {
+          picked.push(item);
+          count--;
+        }
+      }
+    };
+
+    pickFrom(easy, 2);
+    pickFrom(med, 2);
+    pickFrom(hard, 1);
+
+    // Если не набралось 5 задач, добираем из оставшихся по порядку
+    if (picked.length < 5) {
+      for (const t of tasks) {
+        if (picked.length >= 5) break;
+        if (!picked.includes(t)) picked.push(t);
+      }
+    }
+
+    return sortTasks(picked, 'default');
+  };
+
+  /* Перевод результатов проверочной работы в 10-балльную систему VISC */
+  const calculateControlWorkGrade = (score = 0, total = 0) => {
+    if (!total || total <= 0) return { grade: 0, percent: 0, levelKey: 'none', levelRu: 'Нет данных', levelLv: 'Nav datu' };
+    const validScore = Math.max(0, Math.min(score, total));
+    const percent = Math.round((validScore / total) * 100);
+
+    let grade = 1;
+    let levelKey = 'nepietiekams';
+    let levelRu = 'Неудовлетворительно';
+    let levelLv = 'Nepietiekams';
+
+    if (percent >= 95) {
+      grade = 10;
+      levelKey = 'izcili';
+      levelRu = 'Превосходно (Высший уровень)';
+      levelLv = 'Izcili (Augstākais līmenis)';
+    } else if (percent >= 88) {
+      grade = 9;
+      levelKey = 'teicami';
+      levelRu = 'Отлично (Высший уровень)';
+      levelLv = 'Teicami (Augstākais līmenis)';
+    } else if (percent >= 78) {
+      grade = 8;
+      levelKey = 'loti_labi';
+      levelRu = 'Очень хорошо (Оптимальный уровень)';
+      levelLv = 'Ļoti labi (Optimālais līmenis)';
+    } else if (percent >= 68) {
+      grade = 7;
+      levelKey = 'labi';
+      levelRu = 'Хорошо (Оптимальный уровень)';
+      levelLv = 'Labi (Optimālais līmenis)';
+    } else if (percent >= 58) {
+      grade = 6;
+      levelKey = 'gandriz_labi';
+      levelRu = 'Почти хорошо (Оптимальный уровень)';
+      levelLv = 'Gandrīz labi (Optimālais līmenis)';
+    } else if (percent >= 48) {
+      grade = 5;
+      levelKey = 'viduveji';
+      levelRu = 'Удовлетворительно (Базовый уровень)';
+      levelLv = 'Viduvēji (Pamatlīmenis)';
+    } else if (percent >= 38) {
+      grade = 4;
+      levelKey = 'gandriz_viduveji';
+      levelRu = 'Базово достаточно';
+      levelLv = 'Gandrīz viduvēji (Pamatlīmenis)';
+    } else if (percent >= 25) {
+      grade = 3;
+      levelKey = 'vaji';
+      levelRu = 'Слабо (Ниже стандарта)';
+      levelLv = 'Vāji (Zem standarta)';
+    } else if (percent >= 12) {
+      grade = 2;
+      levelKey = 'loti_vaji';
+      levelRu = 'Очень слабо';
+      levelLv = 'Ļoti vāji';
+    } else {
+      grade = 1;
+      levelKey = 'loti_loti_vaji';
+      levelRu = 'Крайне слабо';
+      levelLv = 'Ļoti, ļoti vāji';
+    }
+
+    return { grade, percent, levelKey, levelRu, levelLv, score: validScore, total };
+  };
+
+  /* Фабрика экзаменационного таймера (без DOM).
+   *
+   * Время считается по часам, а не по числу тиков. Счёт вида seconds++
+   * на каждом срабатывании setInterval кажется естественным, но браузер
+   * притормаживает таймеры в фоновой вкладке — а ученик уходит на
+   * страницу задачи и возвращается. Замер при торможении впятеро: за
+   * пятьдесят реальных секунд счётчик насчитывал десять, то есть врал на
+   * восемьдесят процентов; трёхчасовой экзамен тянулся бы девятьсот
+   * минут. setInterval остаётся, но только чтобы перерисовывать цифры.
+   */
+  const createExamTimer = (opts = {}) => {
+    const now = typeof opts.now === 'function' ? opts.now : () => Date.now();
+
+    let initialSeconds = Math.max(0, Number(opts.initialSeconds) || 0);
+    let isRunning = false;
+    let intervalId = null;
+    let startedAt = 0;      // отметка времени последнего запуска
+    let carried = 0;        // сколько уже отсчитано до текущего запуска
+
+    const elapsed = () => carried + (isRunning ? Math.floor((now() - startedAt) / 1000) : 0);
+    /* Обратный отсчёт не уходит ниже нуля, секундомер растёт без предела. */
+    const current = () => initialSeconds === 0
+      ? elapsed()
+      : Math.max(0, initialSeconds - elapsed());
+
+    const listeners = new Set();
+    const notify = (event) => {
+      const state = { seconds: current(), initialSeconds, isRunning };
+      listeners.forEach(fn => fn(event, state));
+    };
+
+    const start = () => {
+      if (isRunning) return;
+      /* Уже досчитанный до нуля таймер запускать нечего — иначе он
+         молча пойдёт по второму кругу. */
+      if (initialSeconds > 0 && current() === 0) return;
+      isRunning = true;
+      startedAt = now();
+      notify('start');
+      intervalId = setInterval(() => {
+        /* Вкладка могла проспать конец отсчёта целиком: проверяем не
+           «дошло ли до нуля именно сейчас», а «не пора ли уже». */
+        if (initialSeconds > 0 && current() === 0) {
+          pause();
+          notify('finish');
+          return;
+        }
+        notify('tick');
+      }, 1000);
+    };
+
+    const pause = () => {
+      if (!isRunning) return;
+      carried = elapsed();
+      isRunning = false;
+      if (intervalId) clearInterval(intervalId);
+      intervalId = null;
+      notify('pause');
+    };
+
+    const reset = () => {
+      pause();
+      carried = 0;
+      startedAt = 0;
+      notify('reset');
+    };
+
+    const setSeconds = (sec) => {
+      pause();
+      initialSeconds = Math.max(0, Number(sec) || 0);
+      carried = 0;
+      startedAt = 0;
+      notify('set');
+    };
+
+    return {
+      get seconds() { return current(); },
+      get initialSeconds() { return initialSeconds; },
+      get isRunning() { return isRunning; },
+      start,
+      pause,
+      stop: pause,
+      reset,
+      setSeconds,
+      setTimer: setSeconds,
+      /* Сколько времени прошло — одинаково для обоих режимов. */
+      getElapsed: () => elapsed(),
+      on: (fn) => {
+        listeners.add(fn);
+        return () => listeners.delete(fn);
+      }
+    };
+  };
+
+  /* Инициализация UI экзаменационного таймера в DOM */
+  const initExamTimerUi = (root = (typeof document !== 'undefined' ? document : null)) => {
+    if (!root) return null;
+    const btn = root.querySelector('#exam-timer-btn');
+    const dropdown = root.querySelector('#timer-dropdown');
+    if (!btn || !dropdown) return null;
+
+    const display = root.querySelector('#timer-display');
+    const bigDisplay = root.querySelector('#timer-big-display');
+    const toggleBtn = root.querySelector('#timer-toggle-btn');
+    const resetBtn = root.querySelector('#timer-reset-btn');
+    const closeBtn = root.querySelector('#timer-close-btn');
+    const presetBtns = root.querySelectorAll('.timer-preset-btn');
+
+    const timer = createExamTimer({ initialSeconds: 0 });
+
+    const updateDisplay = () => {
+      const str = formatTimerDisplay(timer.seconds);
+      if (display) display.textContent = str;
+      if (bigDisplay) bigDisplay.textContent = str;
+    };
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.hidden = !dropdown.hidden;
+    });
+
+    closeBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.hidden = true;
+    });
+
+    root.addEventListener('click', (e) => {
+      if (!e.target.closest('#exam-timer-wrap')) {
+        dropdown.hidden = true;
+      }
+    });
+
+    presetBtns.forEach(pBtn => {
+      pBtn.addEventListener('click', () => {
+        presetBtns.forEach(b => b.classList.remove('active'));
+        pBtn.classList.add('active');
+        const sec = Number(pBtn.dataset.timerSeconds) || 0;
+        timer.setSeconds(sec);
+        updateDisplay();
+      });
+    });
+
+    toggleBtn?.addEventListener('click', () => {
+      if (timer.isRunning) timer.pause();
+      else timer.start();
+    });
+
+    resetBtn?.addEventListener('click', () => {
+      timer.reset();
+      updateDisplay();
+    });
+
+    timer.on((event, state) => {
+      const tr = (typeof window !== 'undefined' && window.MathTasks?.t) || (k => k);
+      if (event === 'start') {
+        btn.classList.add('running');
+        btn.classList.remove('warning');
+        if (toggleBtn) toggleBtn.textContent = tr('timer_pause');
+      } else if (event === 'pause') {
+        btn.classList.remove('running');
+        if (toggleBtn) toggleBtn.textContent = tr('timer_start');
+      } else if (event === 'reset') {
+        btn.classList.remove('running', 'warning');
+        if (toggleBtn) toggleBtn.textContent = tr('timer_start');
+      } else if (event === 'tick') {
+        if (state.initialSeconds > 0 && state.seconds <= 60 && state.seconds > 0) {
+          btn.classList.add('warning');
+        } else {
+          btn.classList.remove('warning');
+        }
+        updateDisplay();
+      } else if (event === 'finish') {
+        btn.classList.remove('running');
+        btn.classList.add('warning');
+        if (toggleBtn) toggleBtn.textContent = tr('timer_start');
+        updateDisplay();
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            const ctx = new AudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.8);
+          }
+        } catch {}
+      }
+    });
+
+    updateDisplay();
+    return timer;
+  };
+
   const api = {
     makeSlug,
     sanitizeSearch,
@@ -534,7 +940,15 @@
     normalizeTextKey,
     resolveSubject,
     extractCleanJson,
-    safeParseJson
+    safeParseJson,
+    getDifficultyWeight,
+    shuffleArray,
+    sortTasks,
+    isControlWorkTask,
+    selectControlWorkTasks,
+    calculateControlWorkGrade,
+    createExamTimer,
+    initExamTimerUi
   };
   if (typeof globalThis !== 'undefined' && typeof globalThis.window !== 'undefined') {
     globalThis.window.MathTasksLib = api;

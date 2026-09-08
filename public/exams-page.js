@@ -14,4 +14,5 @@
           themeToggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
         });
       }
+      window.MathTasksLib?.initExamTimerUi();
     })();

@@ -37,7 +37,7 @@
 
       // Состояние режима «Куча примеров (Лист-тренажёр)»
       const sheetState = {
-        count: 20,
+        count: 15,
         questions: [],
         solvedSet: new Set(),
         elapsedSec: 0,
@@ -118,6 +118,9 @@
         if (totalCountEl) totalCountEl.textContent = sheetState.count;
         if (solvedCountEl) solvedCountEl.textContent = '0';
 
+        const isTextMode = state.category === 'fractions' || state.category === 'negatives' || state.category === 'mix';
+        const inputModeVal = isTextMode ? 'text' : 'decimal';
+
         trainerSheetGrid.innerHTML = sheetState.questions.map((q, idx) => `
           <div class="compact-drill-item" data-sheet-item="${idx}" id="sheet-item-${idx}">
             <span class="compact-drill-num">${idx + 1}.</span>
@@ -133,7 +136,7 @@
                        autocorrect="off" 
                        autocapitalize="off" 
                        spellcheck="false" 
-                       inputmode="decimal" />
+                       inputmode="${inputModeVal}" />
                 <span class="compact-drill-status"></span>
               </div>
             </div>
@@ -171,6 +174,9 @@
         if (nextInput) {
           nextInput.focus();
           nextInput.select();
+          try {
+            nextInput.closest('.compact-drill-item')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } catch (_) {}
         }
       }
 
@@ -309,7 +315,11 @@
 
         if (e.key === 'Enter') {
           e.preventDefault();
-          checkSheetInput(input, true);
+          if (input.readOnly) {
+            moveToNextInput(Number(input.dataset.sheetIdx));
+          } else {
+            checkSheetInput(input, true);
+          }
         } else if (e.key === 'ArrowDown') {
           e.preventDefault();
           const all = Array.from(trainerSheetGrid.querySelectorAll('.compact-drill-input:not([readonly])'));

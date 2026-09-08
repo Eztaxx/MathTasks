@@ -23,7 +23,14 @@ import {
   resolveSubject,
   normalizeTextKey,
   extractCleanJson,
-  safeParseJson
+  safeParseJson,
+  getDifficultyWeight,
+  shuffleArray,
+  sortTasks,
+  isControlWorkTask,
+  selectControlWorkTasks,
+  calculateControlWorkGrade,
+  createExamTimer
 } from '../public/lib.js';
 
 describe('makeSlug', () => {
@@ -165,7 +172,7 @@ describe('i18n (Bilingual support LV / RU)', () => {
     expect(i18n.getLang()).toBe('lv');
     expect(i18n.t('nav_home')).toBe('Sākums');
     expect(i18n.t('diff_easy')).toBe('Pamatlīmenis');
-    expect(i18n.t('track_9')).toBe('9. klases eksāmens');
+    expect(i18n.t('track_9')).toBe('Pamatskolas eksāmens');
     expect(i18n.t('solved_badge')).toBe('✓ Atrisināts');
   });
 
@@ -174,7 +181,7 @@ describe('i18n (Bilingual support LV / RU)', () => {
     expect(i18n.getLang()).toBe('ru');
     expect(i18n.t('nav_home')).toBe('Главная');
     expect(i18n.t('diff_easy')).toBe('Базовый');
-    expect(i18n.t('track_9')).toBe('Экзамен 9 класс');
+    expect(i18n.t('track_9')).toBe('Экзамен основной школы');
     expect(i18n.t('solved_badge')).toBe('✓ Решено');
   });
 
@@ -671,5 +678,400 @@ describe('compareAnswers: единицы измерения в ответе', ()
 
   it('неверное число не спасает отсутствие единицы', () => {
     expect(compareAnswers('7', '$6\\text{ см}$')).toBe(false);
+  });
+});
+
+describe('getDifficultyWeight', () => {
+  it('возвращает 1 для простых уровней (RU / LV / EN)', () => {
+    expect(getDifficultyWeight('Лёгкий')).toBe(1);
+    expect(getDifficultyWeight('легкий')).toBe(1);
+    expect(getDifficultyWeight('Базовый')).toBe(1);
+    expect(getDifficultyWeight('pamatlīmenis')).toBe(1);
+    expect(getDifficultyWeight('vienkāršs')).toBe(1);
+    expect(getDifficultyWeight('easy')).toBe(1);
+  });
+
+  it('возвращает 2 для средних уровней и пустых значений', () => {
+    expect(getDifficultyWeight('Средний')).toBe(2);
+    expect(getDifficultyWeight('vidējs')).toBe(2);
+    expect(getDifficultyWeight('medium')).toBe(2);
+    expect(getDifficultyWeight('')).toBe(2);
+    expect(getDifficultyWeight(null)).toBe(2);
+    expect(getDifficultyWeight(undefined)).toBe(2);
+  });
+
+  it('возвращает 3 для сложных и углублённых уровней', () => {
+    expect(getDifficultyWeight('Сложный')).toBe(3);
+    expect(getDifficultyWeight('Профильный')).toBe(3);
+    expect(getDifficultyWeight('padziļinātais')).toBe(3);
+    expect(getDifficultyWeight('augstākais')).toBe(3);
+    expect(getDifficultyWeight('sarežģīts')).toBe(3);
+    expect(getDifficultyWeight('hard')).toBe(3);
+  });
+
+  it('возвращает 4 для олимпиадного уровня', () => {
+    expect(getDifficultyWeight('Олимпиадный')).toBe(4);
+    expect(getDifficultyWeight('olimpiāde')).toBe(4);
+    expect(getDifficultyWeight('olimp')).toBe(4);
+  });
+});
+
+describe('shuffleArray', () => {
+  it('возвращает новый массив с теми же элементами', () => {
+    const original = [1, 2, 3, 4, 5];
+    const shuffled = shuffleArray(original);
+    expect(shuffled).toHaveLength(5);
+    expect(shuffled).toEqual(expect.arrayContaining(original));
+    expect(original).toEqual([1, 2, 3, 4, 5]); // Исходный массив не мутирован
+  });
+
+  it('корректно обрабатывает пустые массивы и массивы из 1 элемента', () => {
+    expect(shuffleArray([])).toEqual([]);
+    expect(shuffleArray([42])).toEqual([42]);
+    expect(shuffleArray(null)).toEqual([]);
+  });
+
+  it('работает детерминированно с кастомным randomFn', () => {
+    const list = ['a', 'b', 'c'];
+    // Всегда выбирает первый доступный индекс
+    const fixedRandom = () => 0;
+    const shuffled = shuffleArray(list, fixedRandom);
+    expect(shuffled).toEqual(['b', 'c', 'a']);
+  });
+});
+
+describe('sortTasks', () => {
+  const sampleTasks = [
+    { id: 1, title: 'Задача 1', position: 1, difficulty: 'Средний' },
+    { id: 2, title: 'Задача 2', position: 2, difficulty: 'Сложный' },
+    { id: 3, title: 'Задача 3', position: 3, difficulty: 'Лёгкий' },
+    { id: 4, title: 'Задача 4', position: 4, difficulty: 'Олимпиадный' },
+    { id: 5, title: 'Задача 5', position: 5, difficulty: 'Лёгкий' }
+  ];
+
+  it('сортирует по умолчанию по position', () => {
+    const shuffled = [sampleTasks[3], sampleTasks[0], sampleTasks[2], sampleTasks[4], sampleTasks[1]];
+    const sorted = sortTasks(shuffled, 'default');
+    expect(sorted.map(t => t.id)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('сортирует diff_asc (сначала простые)', () => {
+    const sorted = sortTasks(sampleTasks, 'diff_asc');
+    // Лёгкие: id 3 (pos 3), id 5 (pos 5)
+    // Средний: id 1 (pos 1)
+    // Сложный: id 2 (pos 2)
+    // Олимпиадный: id 4 (pos 4)
+    expect(sorted.map(t => t.id)).toEqual([3, 5, 1, 2, 4]);
+  });
+
+  it('сортирует diff_desc (сначала сложные)', () => {
+    const sorted = sortTasks(sampleTasks, 'diff_desc');
+    // Олимпиадный: 4
+    // Сложный: 2
+    // Средний: 1
+    // Лёгкие: 3, 5
+    expect(sorted.map(t => t.id)).toEqual([4, 2, 1, 3, 5]);
+  });
+
+  it('сортирует unsolved (сначала нерешённые)', () => {
+    // Допустим, задачи 1 и 3 решены
+    const solvedIds = new Set([1, 3]);
+    const sorted = sortTasks(sampleTasks, 'unsolved', { solvedIds });
+    // Нерешённые: 2, 4, 5
+    // Решённые: 1, 3
+    expect(sorted.map(t => t.id)).toEqual([2, 4, 5, 1, 3]);
+  });
+
+  it('сортирует solved (сначала решённые)', () => {
+    const solvedIds = [2, 5];
+    const sorted = sortTasks(sampleTasks, 'solved', { solvedIds });
+    // Решённые: 2, 5
+    // Нерешённые: 1, 3, 4
+    expect(sorted.map(t => t.id)).toEqual([2, 5, 1, 3, 4]);
+  });
+
+  it('поддерживает options.isSolved как функцию', () => {
+    const sorted = sortTasks(sampleTasks, 'unsolved', {
+      isSolved: id => id === 4
+    });
+    expect(sorted.map(t => t.id)).toEqual([1, 2, 3, 5, 4]);
+  });
+
+  it('перемешивает задачи в режиме shuffle', () => {
+    const result = sortTasks(sampleTasks, 'shuffle', { random: () => 0 });
+    expect(result).toHaveLength(5);
+    expect(result.map(t => t.id)).not.toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('безопасно возвращает пустой или единичный массив', () => {
+    expect(sortTasks([])).toEqual([]);
+    expect(sortTasks([{ id: 10 }])).toEqual([{ id: 10 }]);
+    expect(sortTasks(null)).toEqual([]);
+  });
+});
+
+describe('isControlWorkTask', () => {
+  it('распознаёт префиксы [К/Р], [КР], [P/D], [PD] в названии', () => {
+    expect(isControlWorkTask({ title: '[К/Р] Квадратные уравнения' })).toBe(true);
+    expect(isControlWorkTask({ title: '[кр] Линейные уравнения' })).toBe(true);
+    expect(isControlWorkTask({ title: '[P/D] Kvadratvienādojumi' })).toBe(true);
+    expect(isControlWorkTask({ title: '[PD] Trīsstūri' })).toBe(true);
+    expect(isControlWorkTask({ title: 'Контрольная работа №1' })).toBe(true);
+    expect(isControlWorkTask({ title: 'Temata pārbaudes darbs' })).toBe(true);
+    expect(isControlWorkTask({ title: 'Обычная задача на теорему Виета' })).toBe(false);
+  });
+
+  it('распознаёт теги kontroldarbs и parbaudes-darbs', () => {
+    expect(isControlWorkTask({ title: 'Задача 1', tags: ['kontroldarbs'] })).toBe(true);
+    expect(isControlWorkTask({ title: 'Задача 2', tags: ['parbaudes-darbs'] })).toBe(true);
+    expect(isControlWorkTask({ title: 'Задача 3', task_tags: [{ tags: { slug: 'kontroldarbs' } }] })).toBe(true);
+    expect(isControlWorkTask({ title: 'Задача 4', tags: ['algebra', 'vienadojumi'] })).toBe(false);
+  });
+});
+
+describe('selectControlWorkTasks', () => {
+  it('отдаёт предпочтение авторским задачам контрольной работы', () => {
+    const mixed = [
+      { id: 1, title: 'Обычная задача 1', difficulty: 'Лёгкий', position: 1 },
+      { id: 2, title: '[К/Р] Задание 1', difficulty: 'Лёгкий', position: 2 },
+      { id: 3, title: '[К/Р] Задание 2', difficulty: 'Средний', position: 3 },
+      { id: 4, title: '[К/Р] Задание 3', difficulty: 'Сложный', position: 4 },
+      { id: 5, title: 'Обычная задача 2', difficulty: 'Средний', position: 5 }
+    ];
+    const cw = selectControlWorkTasks(mixed);
+    expect(cw.map(t => t.id)).toEqual([2, 3, 4]);
+  });
+
+  it('формирует сбалансированный тренировочный вариант из задач темы, если авторских к/р пока нет', () => {
+    const topicTasks = [
+      { id: 10, title: 'Задача 1', difficulty: 'Лёгкий', position: 1 },
+      { id: 11, title: 'Задача 2', difficulty: 'Лёгкий', position: 2 },
+      { id: 12, title: 'Задача 3', difficulty: 'Средний', position: 3 },
+      { id: 13, title: 'Задача 4', difficulty: 'Средний', position: 4 },
+      { id: 14, title: 'Задача 5', difficulty: 'Сложный', position: 5 },
+      { id: 15, title: 'Задача 6', difficulty: 'Сложный', position: 6 }
+    ];
+    const cw = selectControlWorkTasks(topicTasks);
+    expect(cw).toHaveLength(5);
+    // Должны присутствовать задачи разных сложностей
+    const diffs = cw.map(t => t.difficulty);
+    expect(diffs).toContain('Лёгкий');
+    expect(diffs).toContain('Средний');
+    expect(diffs).toContain('Сложный');
+  });
+
+  it('корректно обрабатывает пустые списки и короткие темы', () => {
+    expect(selectControlWorkTasks([])).toEqual([]);
+    const short = [{ id: 1, title: 'Единственная задача', position: 1 }];
+    expect(selectControlWorkTasks(short)).toEqual(short);
+  });
+});
+
+describe('calculateControlWorkGrade', () => {
+  it('правильно рассчитывает высшие баллы (9-10)', () => {
+    expect(calculateControlWorkGrade(10, 10).grade).toBe(10);
+    expect(calculateControlWorkGrade(10, 10).percent).toBe(100);
+    expect(calculateControlWorkGrade(9, 10).grade).toBe(9);
+    expect(calculateControlWorkGrade(9, 10).percent).toBe(90);
+  });
+
+  it('правильно рассчитывает оптимальные баллы (6-8)', () => {
+    expect(calculateControlWorkGrade(8, 10).grade).toBe(8);
+    expect(calculateControlWorkGrade(7, 10).grade).toBe(7);
+    expect(calculateControlWorkGrade(6, 10).grade).toBe(6);
+  });
+
+  it('правильно рассчитывает базовые баллы (4-5)', () => {
+    expect(calculateControlWorkGrade(5, 10).grade).toBe(5);
+    expect(calculateControlWorkGrade(4, 10).grade).toBe(4);
+  });
+
+  it('правильно рассчитывает недостаточные баллы (1-3)', () => {
+    expect(calculateControlWorkGrade(3, 10).grade).toBe(3);
+    expect(calculateControlWorkGrade(2, 10).grade).toBe(2);
+    expect(calculateControlWorkGrade(1, 10).grade).toBe(1);
+    expect(calculateControlWorkGrade(0, 10).grade).toBe(1);
+  });
+
+  it('возвращает двуязычные уровни освоения', () => {
+    const res = calculateControlWorkGrade(8, 10);
+    expect(res.levelLv).toContain('Optimālais līmenis');
+    expect(res.levelRu).toContain('Оптимальный уровень');
+  });
+});
+
+describe('createExamTimer', () => {
+  it('инициализируется с корректным временем', () => {
+    const timer = createExamTimer({ initialSeconds: 2400 });
+    expect(timer.seconds).toBe(2400);
+    expect(timer.initialSeconds).toBe(2400);
+    expect(timer.isRunning).toBe(false);
+  });
+
+  it('позволяет менять пресет времени', () => {
+    const timer = createExamTimer({ initialSeconds: 0 });
+    timer.setSeconds(5400);
+    expect(timer.seconds).toBe(5400);
+    expect(timer.initialSeconds).toBe(5400);
+    timer.reset();
+    expect(timer.seconds).toBe(5400);
+  });
+
+  it('уведомляет слушателей о событиях', () => {
+    const timer = createExamTimer({ initialSeconds: 100 });
+    const events = [];
+    const unsubscribe = timer.on((ev) => events.push(ev));
+
+    timer.start();
+    expect(timer.isRunning).toBe(true);
+    expect(events).toContain('start');
+
+    timer.pause();
+    expect(timer.isRunning).toBe(false);
+    expect(events).toContain('pause');
+
+    timer.reset();
+    expect(events).toContain('reset');
+
+    unsubscribe();
+    timer.start();
+    // Больше событий не добавляется
+    expect(events.filter(e => e === 'start')).toHaveLength(1);
+    timer.pause();
+  });
+});
+
+
+
+
+describe('createExamTimer: время по часам, а не по тикам', () => {
+  /* Подменяем и часы, и setInterval: так можно проиграть фоновую вкладку,
+     где тики приходят реже, чем раз в секунду. */
+  const harness = () => {
+    const real = { setInterval: globalThis.setInterval, clearInterval: globalThis.clearInterval };
+    let clock = 1_000_000;
+    let tick = null;
+    globalThis.setInterval = fn => { tick = fn; return 1; };
+    globalThis.clearInterval = () => { tick = null; };
+    return {
+      now: () => clock,
+      advance: seconds => { clock += seconds * 1000; },
+      fire: () => tick && tick(),
+      restore: () => { globalThis.setInterval = real.setInterval; globalThis.clearInterval = real.clearInterval; }
+    };
+  };
+
+  it('секундомер не отстаёт, когда фоновая вкладка тормозит тики', () => {
+    const h = harness();
+    const timer = createExamTimer({ initialSeconds: 0, now: h.now });
+    timer.start();
+    /* Десять тиков, но между ними по пять секунд реального времени —
+       ровно так браузер обходится с фоновой вкладкой. */
+    for (let i = 0; i < 10; i++) { h.advance(5); h.fire(); }
+    expect(timer.seconds).toBe(50);
+    h.restore();
+  });
+
+  it('обратный отсчёт заканчивается вовремя, даже если вкладка проспала конец', () => {
+    const h = harness();
+    const timer = createExamTimer({ initialSeconds: 60, now: h.now });
+    const events = [];
+    timer.on(ev => events.push(ev));
+    timer.start();
+    /* Вкладка молчала полторы минуты и прислала один тик. */
+    h.advance(90);
+    h.fire();
+    expect(timer.seconds).toBe(0);
+    expect(events).toContain('finish');
+    expect(timer.isRunning).toBe(false);
+    h.restore();
+  });
+
+  it('пауза сохраняет отсчитанное, а не обнуляет его', () => {
+    const h = harness();
+    const timer = createExamTimer({ initialSeconds: 100, now: h.now });
+    timer.start();
+    h.advance(30);
+    timer.pause();
+    expect(timer.seconds).toBe(70);
+    /* Пока на паузе, часы идут — на счётчике это отражаться не должно. */
+    h.advance(1000);
+    expect(timer.seconds).toBe(70);
+    timer.start();
+    h.advance(20);
+    h.fire();
+    expect(timer.seconds).toBe(50);
+    h.restore();
+  });
+
+  it('досчитанный до нуля таймер не идёт по второму кругу', () => {
+    const h = harness();
+    const timer = createExamTimer({ initialSeconds: 10, now: h.now });
+    timer.start();
+    h.advance(15);
+    h.fire();
+    expect(timer.seconds).toBe(0);
+    timer.start();
+    expect(timer.isRunning).toBe(false);
+    h.restore();
+  });
+
+  it('сброс возвращает исходное время', () => {
+    const h = harness();
+    const timer = createExamTimer({ initialSeconds: 120, now: h.now });
+    timer.start();
+    h.advance(45);
+    timer.reset();
+    expect(timer.seconds).toBe(120);
+    expect(timer.getElapsed()).toBe(0);
+    h.restore();
+  });
+});
+
+describe('compareAnswers: градусы в ответе', () => {
+  /* Эталон пишет градусы как 65^\circ, ученик набирает «65» или «65°».
+     До правки не засчитывалось ни одно написание. */
+  it('число без знака градуса засчитывается', () => {
+    expect(compareAnswers('65', '$65^\\circ$')).toBe(true);
+  });
+
+  it('число со знаком градуса засчитывается', () => {
+    expect(compareAnswers('65°', '$65^\\circ$')).toBe(true);
+  });
+
+  it('неверное число не засчитывается', () => {
+    expect(compareAnswers('60', '$65^\\circ$')).toBe(false);
+  });
+});
+
+describe('calculateControlWorkGrade: подписи на двух языках', () => {
+  it('отдаёт подпись отдельно для русского и латышского', () => {
+    const r = calculateControlWorkGrade(3, 5);
+    expect(r.grade).toBe(6);
+    expect(r.percent).toBe(60);
+    expect(typeof r.levelRu).toBe('string');
+    expect(typeof r.levelLv).toBe('string');
+    expect(r.levelRu.length).toBeGreaterThan(0);
+    expect(r.levelLv.length).toBeGreaterThan(0);
+  });
+
+  it('крайние значения не выпадают из шкалы', () => {
+    expect(calculateControlWorkGrade(5, 5).grade).toBe(10);
+    expect(calculateControlWorkGrade(0, 5).grade).toBe(1);
+    expect(calculateControlWorkGrade(0, 0).grade).toBe(0);
+  });
+});
+
+describe('calculateControlWorkGrade: score и total', () => {
+  it('возвращает исходные числа, чтобы строку «Верно: 3 из 5» было чем заполнить', () => {
+    const r = calculateControlWorkGrade(3, 5);
+    expect(r.score).toBe(3);
+    expect(r.total).toBe(5);
+  });
+
+  it('счёт выше максимума обрезается, а не выводится как есть', () => {
+    const r = calculateControlWorkGrade(9, 5);
+    expect(r.score).toBe(5);
+    expect(r.percent).toBe(100);
   });
 });

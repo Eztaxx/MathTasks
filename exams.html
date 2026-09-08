@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Государственные экзамены по математике — Skola2030 | MathTasks</title>
-  <meta name="description" content="Государственные экзамены по математике в Латвии: основная школа, Vispārīgais, Optimālais (Matemātika I), Augstākais (Matemātika II). Уровни, темы, формульные листы и стратегия подготовки." />
+  <title>Подготовка к экзаменам по математике — Skola2030 | MathTasks</title>
+  <meta name="description" content="Подготовка к государственным экзаменам по математике в Латвии: основная школа, Vispārīgais, Optimālais (Matemātika I), Augstākais (Matemātika II). Уровни, темы, формульные листы и стратегия подготовки." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,29 +15,62 @@
 </head>
 <body class="exams-page">
   <header class="admin-topbar">
-    <a class="brand" href="/">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 48 48" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
-          <path d="M1.6 29.8C9.4 27.2 17.4 26.2 24 27.2V43.4C17.4 42.4 9.4 43.4 1.6 46Z" fill="#12306e"/>
-          <path d="M46.4 29.8C38.6 27.2 30.6 26.2 24 27.2V43.4C30.6 42.4 38.6 43.4 46.4 46Z" fill="#1a3f8f"/>
-          <path d="M4 31C10.4 29 17 28.2 22.8 29V40.8C17 40 10.4 40.8 4 42.8Z" fill="#eaf1ff"/>
-          <path d="M44 31C37.6 29 31 28.2 25.2 29V40.8C31 40 37.6 40.8 44 42.8Z" fill="#d7e5ff"/>
-          <path d="M7.4 33.9 19 32.9M7.4 36.7 19 35.7M40.6 33.9 29 32.9M40.6 36.7 29 35.7" stroke="#5a92ff" stroke-width="1.15" stroke-linecap="round"/>
-          <path d="M10 28.5v11.2l2.4-2.4 2.4 2.4V28.1Z" fill="#7fb0ff"/>
-          <path d="M15 15v9.6c0 4 18 4 18 0V15Z" fill="#12306e"/>
-          <path d="M24 5 45.5 13.4 24 21.8 2.5 13.4Z" fill="#1a3f8f"/>
-          <path d="M24 5 45.5 13.4 24 21.8Z" fill="#27529f"/>
-          <path d="M24 13.4 39.8 15.5v5.9" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M39.8 20.8c-2 0-2.3 2.5-1.9 5.4.6.7 3.2.7 3.8 0 .4-2.9.1-5.4-1.9-5.4Z" fill="#7fb0ff"/>
-        </svg>
-      </span>
-      <span class="label"><span class="brand-math">Math</span><span class="brand-tasks">Tasks</span></span>
-    </a>
-    <span class="admin-badge">🎯 Центр подготовки к экзаменам</span>
+    <div class="topbar-brand-wrap">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+            <path d="M1.6 29.8C9.4 27.2 17.4 26.2 24 27.2V43.4C17.4 42.4 9.4 43.4 1.6 46Z" fill="#12306e"/>
+            <path d="M46.4 29.8C38.6 27.2 30.6 26.2 24 27.2V43.4C30.6 42.4 38.6 43.4 46.4 46Z" fill="#1a3f8f"/>
+            <path d="M4 31C10.4 29 17 28.2 22.8 29V40.8C17 40 10.4 40.8 4 42.8Z" fill="#eaf1ff"/>
+            <path d="M44 31C37.6 29 31 28.2 25.2 29V40.8C31 40 37.6 40.8 44 42.8Z" fill="#d7e5ff"/>
+            <path d="M7.4 33.9 19 32.9M7.4 36.7 19 35.7M40.6 33.9 29 32.9M40.6 36.7 29 35.7" stroke="#5a92ff" stroke-width="1.15" stroke-linecap="round"/>
+            <path d="M10 28.5v11.2l2.4-2.4 2.4 2.4V28.1Z" fill="#7fb0ff"/>
+            <path d="M15 15v9.6c0 4 18 4 18 0V15Z" fill="#12306e"/>
+            <path d="M24 5 45.5 13.4 24 21.8 2.5 13.4Z" fill="#1a3f8f"/>
+            <path d="M24 5 45.5 13.4 24 21.8Z" fill="#27529f"/>
+            <path d="M24 13.4 39.8 15.5v5.9" fill="none" stroke="#7fb0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M39.8 20.8c-2 0-2.3 2.5-1.9 5.4.6.7 3.2.7 3.8 0 .4-2.9.1-5.4-1.9-5.4Z" fill="#7fb0ff"/>
+          </svg>
+        </span>
+        <span class="label"><span class="brand-math">Math</span><span class="brand-tasks">Tasks</span></span>
+      </a>
+      <a class="topbar-home-btn" href="/" data-i18n="nav_to_home">← На главную</a>
+    </div>
+    <span class="admin-badge" data-i18n="exams_badge">🎯 Подготовка к экзаменам</span>
 
     <div class="trainer-top-actions">
-      <a class="nav-btn-link" href="/mock-exams.html">📋 Пробные экзамены</a>
-      <a class="nav-btn-link" href="/trainer.html">⚡ Тренажёр счёта</a>
+      <a class="nav-btn-link" href="/mock-exams.html" data-i18n="nav_mock_exams">📋 Пробные экзамены</a>
+      <a class="nav-btn-link" href="/trainer.html" data-i18n="nav_trainer">⚡ Тренажёр счёта</a>
+
+      <div class="exam-timer-wrap" id="exam-timer-wrap">
+        <button class="timer-topbar-btn" id="exam-timer-btn" type="button" aria-label="Экзаменационный таймер" data-i18n-aria="timer_title" title="Экзаменационный таймер" data-i18n-title="timer_title">
+          <span class="timer-icon" aria-hidden="true">⏱️</span>
+          <span class="timer-topbar-digits" id="timer-display">00:00</span>
+        </button>
+        <div class="timer-dropdown" id="timer-dropdown" hidden>
+          <div class="timer-dropdown-header">
+            <span class="timer-dropdown-title" data-i18n="timer_title">Экзаменационный таймер</span>
+            <button class="timer-close-btn" id="timer-close-btn" type="button" aria-label="Закрыть">×</button>
+          </div>
+          <div class="timer-big-display" id="timer-big-display">00:00</div>
+          <div class="timer-presets">
+            <button type="button" class="timer-preset-btn active" data-timer-seconds="0" data-i18n="timer_stopwatch">⏱️ Секундомер</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="2400" data-i18n="timer_40m">40 мин (Урок / К/Р)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="5400" data-i18n="timer_90m">90 мин (Зачёт)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="7200" data-i18n="timer_120m">120 мин (Pamatskola)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="10800" data-i18n="timer_180m">180 мин (Vidusskola)</button>
+          </div>
+          <div class="timer-controls">
+            <button type="button" class="primary-button timer-action-btn" id="timer-toggle-btn" data-i18n="timer_start">Старт</button>
+            <button type="button" class="ghost-button timer-action-btn" id="timer-reset-btn" data-i18n="timer_reset">Сброс</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="lang-switcher" role="group" aria-label="Выбор языка" data-i18n-aria="lang_switcher">
+        <button class="lang-btn" data-lang="lv" type="button" aria-label="Latviešu valoda">LV</button>
+        <button class="lang-btn" data-lang="ru" type="button" aria-label="Русский язык">RU</button>
+      </div>
 
       <button class="theme-switch" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Переключить тему" title="Переключить тему">
         <span class="theme-switch-track" aria-hidden="true">
@@ -47,8 +80,6 @@
           </span>
         </span>
       </button>
-
-      <a class="text-button" href="/">← На сайт</a>
     </div>
   </header>
 
@@ -56,16 +87,16 @@
     <!-- Hero раздел подготовки -->
     <section class="exams-hero">
       <div class="exams-hero-content">
-        <span class="exams-tag">Valsts pārbaudījumi • Skola2030</span>
-        <h1>Государственные экзамены по математике</h1>
-        <p>
+        <span class="exams-tag" data-i18n="exams_hero_tag">Valsts pārbaudījumi • Skola2030</span>
+        <h1 data-i18n="exams_hero_h1">Подготовка к экзаменам по математике</h1>
+        <p data-i18n="exams_hero_p">
           Всё необходимое для успешной сдачи экзаменов в Латвии: официальные формульные листы VISC, 
           структура заданий, разбор критериев оценивания и подборки задач по темам.
         </p>
 
         <div class="exams-hero-actions">
-          <a href="#levels" class="primary-button">Выбрать свой уровень</a>
-          <a href="/mock-exams.html" class="secondary-button">Перейти к пробным экзаменам →</a>
+          <a href="#levels" class="primary-button" data-i18n="exams_btn_choose_level">Выбрать свой уровень</a>
+          <a href="/mock-exams.html" class="secondary-button" data-i18n="exams_btn_to_mocks">Перейти к пробным экзаменам →</a>
         </div>
       </div>
     </section>
@@ -73,8 +104,8 @@
     <!-- 4 уровня экзаменов Skola2030 -->
     <section class="exams-levels" id="levels">
       <div class="section-title-wrap">
-        <h2>4 экзаменационных уровня в Латвии</h2>
-        <p>Выберите уровень обучения для получения полной программы подготовки, тем и формульных материалов.</p>
+        <h2 data-i18n="exams_levels_h2">4 экзаменационных уровня в Латвии</h2>
+        <p data-i18n="exams_levels_p">Выберите уровень обучения для получения полной программы подготовки, тем и формульных материалов.</p>
       </div>
 
       <div class="exams-levels-grid">
@@ -84,8 +115,8 @@
             <span class="exam-badge badge-gold">Pamatskola</span>
             <span class="exam-level-type">Valsts eksāmens</span>
           </div>
-          <h3>Экзамен за курс основной школы</h3>
-          <p class="exam-desc">
+          <h3 data-i18n="exams_pamat_title">Экзамен за курс основной школы</h3>
+          <p class="exam-desc" data-i18n="exams_pamat_desc">
             Обязательный централизованный экзамен по математике за курс основной школы. 
             Проверяет базовые математические навыки, работу с формулами, текстовые задачи и основы геометрии.
           </p>
@@ -97,10 +128,10 @@
           </ul>
 
           <div class="exam-card-footer">
-            <a href="/formulas/eksamens-matematika-9-klase-2026.pdf" target="_blank" rel="noopener noreferrer" class="exam-doc-link">
+            <a href="/formulas/eksamens-matematika-9-klase-2026.pdf" target="_blank" rel="noopener noreferrer" class="exam-doc-link" data-i18n="exams_pamat_sheet">
               📄 Формульный лист основной школы (PDF)
             </a>
-            <a href="/?grade=9" class="primary-button small">Решать задачи основной школы →</a>
+            <a href="/?grade=9" class="primary-button small" data-i18n="exams_pamat_btn">Решать задачи основной школы →</a>
           </div>
         </div>
 
@@ -110,8 +141,8 @@
             <span class="exam-badge badge-teal">Vispārīgais</span>
             <span class="exam-level-type">Vidusskola</span>
           </div>
-          <h3>Общий уровень (Vispārīgais līmenis)</h3>
-          <p class="exam-desc">
+          <h3 data-i18n="exams_visp_title">Общий уровень (Vispārīgais līmenis)</h3>
+          <p class="exam-desc" data-i18n="exams_visp_desc">
             Ориентирован на базовую математическую грамотность в средней школе для гуманитарных и творческих направлений.
           </p>
 
@@ -122,10 +153,10 @@
           </ul>
 
           <div class="exam-card-footer">
-            <a href="/formulas/eksamens-matematika-visparigais-2026.pdf" target="_blank" rel="noopener noreferrer" class="exam-doc-link">
+            <a href="/formulas/eksamens-matematika-visparigais-2026.pdf" target="_blank" rel="noopener noreferrer" class="exam-doc-link" data-i18n="exams_visp_sheet">
               📄 Формульный лист Vispārīgais (PDF)
             </a>
-            <a href="/?grade=10" class="primary-button small">Решать задачи уровня Vispārīgais →</a>
+            <a href="/?grade=10" class="primary-button small" data-i18n="exams_visp_btn">Решать задачи уровня Vispārīgais →</a>
           </div>
         </div>
 
@@ -135,8 +166,8 @@
             <span class="exam-badge badge-blue">Optimālais (Mat I)</span>
             <span class="exam-level-type">Vidusskola</span>
           </div>
-          <h3>Оптимальный уровень — Matemātika I</h3>
-          <p class="exam-desc">
+          <h3 data-i18n="exams_opt_title">Оптимальный уровень — Matemātika I</h3>
+          <p class="exam-desc" data-i18n="exams_opt_desc">
             Главный государственный экзамен для большинства выпускников средней школы. 
             Необходим для поступления в вузы на экономику, бизнес, медицину, социальные науки.
           </p>
@@ -148,10 +179,10 @@
           </ul>
 
           <div class="exam-card-footer">
-            <a href="/formulas/eksamens-matematika-optimalais-2026.pdf" target="_blank" rel="noopener noreferrer" class="exam-doc-link">
+            <a href="/formulas/eksamens-matematika-optimalais-2026.pdf" target="_blank" rel="noopener noreferrer" class="exam-doc-link" data-i18n="exams_opt_sheet">
               📄 Формульный лист Optimālais (PDF)
             </a>
-            <a href="/?grade=11" class="primary-button small">Решать задачи Matemātika I →</a>
+            <a href="/?grade=11" class="primary-button small" data-i18n="exams_opt_btn">Решать задачи Matemātika I →</a>
           </div>
         </div>
 
@@ -161,8 +192,8 @@
             <span class="exam-badge badge-purple">Augstākais (Mat II)</span>
             <span class="exam-level-type">Padziļinātais kurss</span>
           </div>
-          <h3>Высший уровень — Matemātika II</h3>
-          <p class="exam-desc">
+          <h3 data-i18n="exams_augst_title">Высший уровень — Matemātika II</h3>
+          <p class="exam-desc" data-i18n="exams_augst_desc">
             Профильный углублённый экзамен для будущих программистов, инженеров, физиков и математиков. 
             Содержит элементы высшей математики и математического анализа.
           </p>
@@ -174,10 +205,10 @@
           </ul>
 
           <div class="exam-card-footer">
-            <a href="/formulas/eksamens-matematika-augstakais-2026.pdf" target="_blank" rel="noopener noreferrer" class="exam-doc-link">
+            <a href="/formulas/eksamens-matematika-augstakais-2026.pdf" target="_blank" rel="noopener noreferrer" class="exam-doc-link" data-i18n="exams_augst_sheet">
               📄 Формульный лист Augstākais (PDF)
             </a>
-            <a href="/?grade=12" class="primary-button small">Решать задачи Matemātika II →</a>
+            <a href="/?grade=12" class="primary-button small" data-i18n="exams_augst_btn">Решать задачи Matemātika II →</a>
           </div>
         </div>
       </div>
@@ -186,8 +217,8 @@
     <!-- Пошаговый план подготовки -->
     <section class="exams-plan">
       <div class="section-title-wrap">
-        <h2>Пошаговая стратегия подготовки к экзамену</h2>
-        <p>Проверенные методические рекомендации для эффективного распределения времени и сил.</p>
+        <h2 data-i18n="exams_plan_h2">Пошаговая стратегия подготовки к экзамену</h2>
+        <p data-i18n="exams_plan_p">Проверенные методические рекомендации для эффективного распределения времени и сил.</p>
       </div>
 
       <div class="plan-steps-grid">
@@ -253,8 +284,10 @@
   </main>
 
   <footer class="admin-footer" style="margin-top: 50px; text-align: center; padding: 24px 16px; color: var(--muted); border-top: 1px solid var(--line);">
-    <p>MathTasks — платформа подготовки к математическим экзаменам по стандарту Skola2030 (Латвия).</p>
+    <p data-i18n="exams_footer">MathTasks — платформа подготовки к математическим экзаменам по стандарту Skola2030 (Латвия).</p>
   </footer>
+  <script src="/lib.js"></script>
+  <script src="/i18n.js"></script>
   <script src="/exams-page.js"></script>
 
 </body>
