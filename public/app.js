@@ -1974,6 +1974,7 @@ let currentCwSubmitted = false;
 
 async function startControlWork(slug) {
   showView('control-work');
+  resetListBlocks();
   const tr = window.MathTasks.t || (k => k);
   let topic = allTopics.find(item => item.slug === slug);
   if (!topic && db) {
