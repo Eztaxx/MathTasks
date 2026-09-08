@@ -107,6 +107,13 @@ const loc = (item, field) => {
     : (item?.[field] || '');
 };
 
+const topicTitleOf = (topic) => {
+  const lang = window.MathTasks?.getLang ? window.MathTasks.getLang() : 'ru';
+  return (window.MathTasksLib && window.MathTasksLib.formatTopicTitle)
+    ? window.MathTasksLib.formatTopicTitle(topic, lang)
+    : loc(topic, 'title');
+};
+
 const subjectOf = task => task.topics?.subjects;
 const tagClass = subject => {
   const title = (subject?.title || '').toLowerCase();
@@ -304,7 +311,7 @@ function renderTopicSidebar(topic) {
     <span class="label">${escapeHtml((window.MathTasks.t || (k => k))('all_exams_tracks'))}</span>
   </a>`;
 
-  const topicTitle = loc(topic, 'title');
+  const topicTitle = topicTitleOf(topic);
   const subjectTitle = loc(subject, 'title');
 
   // Контекстная плашка открытой темы
@@ -328,7 +335,7 @@ function renderTopicSidebar(topic) {
     if (!sTopics.length) return '';
     const links = sTopics.map(t => {
       const isCurrent = t.id === topic.id;
-      return `<a class="${isCurrent ? 'active' : ''}" href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(loc(t, 'title'))}</a>`;
+      return `<a class="${isCurrent ? 'active' : ''}" href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(topicTitleOf(t))}</a>`;
     }).join('');
     const sTitle = loc(subj, 'title');
     return `<section class="nav-group open" data-subject="${subj.id}">
@@ -367,7 +374,7 @@ function renderClassSidebar(grade) {
   const groups = subjects.map((subj, index) => {
     const sTopics = gradeTopics.filter(t => t.subject_id === subj.id);
     if (!sTopics.length) return '';
-    const links = sTopics.map(t => `<a href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(loc(t, 'title'))}</a>`).join('');
+    const links = sTopics.map(t => `<a href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(topicTitleOf(t))}</a>`).join('');
     return `<section class="nav-group open" data-subject="${subj.id}">
       <button class="group-title" title="${escapeHtml(subj.title)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(subj.title)}</span><span class="chevron">⌃</span></button>
       <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">${escapeHtml((window.MathTasks.t || (k => k))('subject_all_topics'))}</a>${links}</div>
@@ -848,7 +855,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   const subject = subjectOf(task);
   const grade = showGrade ? (task.grade ?? task.topics?.grade) : null;
   const topicLink = showTopicLink && task.topics?.slug
-    ? `<a class="task-topic" href="/topic/${encodeURIComponent(task.topics.slug)}">${escapeHtml(loc(task.topics, 'title'))}</a>`
+    ? `<a class="task-topic" href="/topic/${encodeURIComponent(task.topics.slug)}">${escapeHtml(topicTitleOf(task.topics))}</a>`
     : '';
   const isFav = isFavorite(task.id);
   const favBtn = `<button class="task-action-btn${isFav ? ' active' : ''}" type="button" data-fav-id="${task.id}" title="${isFav ? escapeHtml(tr('favorite_remove')) : escapeHtml(tr('favorite'))}" aria-label="${escapeHtml(tr('favorite'))}">${isFav ? `★ ${escapeHtml(tr('favorite_active'))}` : `☆ ${escapeHtml(tr('favorite'))}`}</button>`;
@@ -1286,7 +1293,7 @@ function topicCard(topic, index, showGrade) {
     progressBadge
   ].filter(Boolean).join('');
 
-  const topicTitle = loc(topic, 'title');
+  const topicTitle = topicTitleOf(topic);
   const topicDesc = loc(topic, 'description');
 
   return `<a class="topic-card" href="/topic/${encodeURIComponent(topic.slug)}">
@@ -1767,7 +1774,7 @@ async function showTopic(slug) {
   }
   const tr = window.MathTasks.t || (k => k);
   const subject = subjectById(topic.subject_id);
-  const topicTitle = loc(topic, 'title');
+  const topicTitle = topicTitleOf(topic);
   const topicDesc = loc(topic, 'description');
   const subjectTitle = loc(subject, 'title');
 
@@ -1995,7 +2002,7 @@ async function startControlWork(slug) {
   }
 
   const subject = subjectById(topic.subject_id);
-  const topicTitle = loc(topic, 'title');
+  const topicTitle = topicTitleOf(topic);
   const subjectTitle = loc(subject, 'title');
 
   const crumbs = [[tr('nav_home') || 'Главная', '/']];
@@ -2329,7 +2336,7 @@ async function showControlWorksCatalog() {
 
     const cardsHtml = stageTopics.map(topic => {
       const subject = subjectById(topic.subject_id);
-      const title = loc(topic, 'title');
+      const title = topicTitleOf(topic);
       const count = taskCounts.get(topic.id) || 0;
       const prevResult = getControlWorkResult(topic.id);
       const grade = topic.grade ? gradeLabel(topic.grade) : '';
@@ -2548,7 +2555,7 @@ async function showTask(rawId) {
     renderSidebar();
   }
   const taskTitle = loc(task, 'title');
-  const topicTitle = loc(topic, 'title');
+  const topicTitle = topic ? topicTitleOf(topic) : '';
   const subjectTitle = loc(subject, 'title');
 
   const crumbs = [[(window.MathTasks.t || (k => k))('nav_home'), '/']];

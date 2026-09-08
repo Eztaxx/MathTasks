@@ -10,6 +10,7 @@ import {
   calcTopicProgress,
   formatTimerDisplay,
   getLocalizedText,
+  formatTopicTitle,
   maskLatexForTranslation,
   unmaskLatexAfterTranslation,
   parseMultiTopicJson,
@@ -1073,5 +1074,52 @@ describe('calculateControlWorkGrade: score и total', () => {
     const r = calculateControlWorkGrade(9, 5);
     expect(r.score).toBe(5);
     expect(r.percent).toBe(100);
+  });
+});
+
+describe('formatTopicTitle: нумерация тем Skola2030', () => {
+  it('добавляет префикс {grade}.{position}. к названию без номера', () => {
+    const topic = {
+      grade: 9,
+      position: 1,
+      title: 'Как определяют и характеризуют подобные треугольники',
+      title_lv: 'Kā definē un raksturo līdzīgus trijstūrus?'
+    };
+    expect(formatTopicTitle(topic, 'ru')).toBe('9.1. Как определяют и характеризуют подобные треугольники');
+    expect(formatTopicTitle(topic, 'lv')).toBe('9.1. Kā definē un raksturo līdzīgus trijstūrus?');
+  });
+
+  it('не дублирует префикс, если заголовок уже пронумерован', () => {
+    const topic = {
+      grade: 9,
+      position: 1,
+      title: '9.1. Как определяют и характеризуют подобные треугольники',
+      title_lv: '9.1. Kā definē un raksturo līdzīgus trijstūrus?'
+    };
+    expect(formatTopicTitle(topic, 'ru')).toBe('9.1. Как определяют и характеризуют подобные треугольники');
+    expect(formatTopicTitle(topic, 'lv')).toBe('9.1. Kā definē un raksturo līdzīgus trijstūrus?');
+  });
+
+  it('корректно форматирует темы разных классов (1–9)', () => {
+    expect(formatTopicTitle({ grade: 1, position: 8, title: 'Как описывают и создают фигуры' })).toBe('1.8. Как описывают и создают фигуры');
+    expect(formatTopicTitle({ grade: 2, position: 4, title: 'Как расчет времени помогает планировать' })).toBe('2.4. Как расчет времени помогает планировать');
+    expect(formatTopicTitle({ grade: 7, position: 9, title: 'Линейные неравенства' })).toBe('7.9. Линейные неравенства');
+    expect(formatTopicTitle({ grade: 8, position: 8, title: 'Теорема Пифагора' })).toBe('8.8. Теорема Пифагора');
+  });
+
+  it('нормализует устаревший или неполный номер до канонического {grade}.{position}.', () => {
+    const topic = { grade: 9, position: 3, title: '1. Тригонометрия' };
+    expect(formatTopicTitle(topic)).toBe('9.3. Тригонометрия');
+  });
+
+  it('не добавляет числовой префикс для нечисловых уровней (visparigais)', () => {
+    const topic = { grade: 'visparigais', position: 1, title: 'Реальные числа' };
+    expect(formatTopicTitle(topic)).toBe('Реальные числа');
+  });
+
+  it('безопасно обрабатывает пустые или некорректные входные данные', () => {
+    expect(formatTopicTitle(null)).toBe('');
+    expect(formatTopicTitle(undefined)).toBe('');
+    expect(formatTopicTitle('Простая строка')).toBe('Простая строка');
   });
 });

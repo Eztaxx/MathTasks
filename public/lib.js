@@ -182,6 +182,29 @@
     return item[field] || '';
   };
 
+  /* Форматирование заголовка темы с гарантированной нумерацией класса и позиции (например: "9.1. ...") */
+  const formatTopicTitle = (topic, lang = 'ru') => {
+    if (!topic) return '';
+    if (typeof topic === 'string') return topic;
+    const title = (getLocalizedText(topic, 'title', lang) || '').trim();
+    if (!title) return '';
+
+    const gradeNum = parseInt(topic.grade, 10);
+    const posNum = parseInt(topic.position, 10);
+
+    if (Number.isInteger(gradeNum) && gradeNum >= 1 && gradeNum <= 12 && Number.isInteger(posNum) && posNum > 0) {
+      const expectedPrefix = `${gradeNum}.${posNum}. `;
+      const numMatch = title.match(/^(\d+(?:\.\d+)*)\.?\s*(.*)$/);
+      if (numMatch) {
+        const rest = numMatch[2] || '';
+        return `${expectedPrefix}${rest}`.trim();
+      }
+      return `${expectedPrefix}${title}`.trim();
+    }
+
+    return title;
+  };
+
   /* Маскирование математических формул перед отправкой в переводчик */
   const maskLatexForTranslation = (text = '') => {
     if (!text) return { maskedText: '', tokens: [] };
@@ -927,6 +950,7 @@
     calcTopicProgress,
     formatTimerDisplay,
     getLocalizedText,
+    formatTopicTitle,
     maskLatexForTranslation,
     unmaskLatexAfterTranslation,
     parseMultiTopicJson,

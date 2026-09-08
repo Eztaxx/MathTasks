@@ -7,11 +7,11 @@ describe('Skola2030 Topics Catalog (JSON & Database integrity)', () => {
   const jsonPath = path.resolve(__dirname, '../public/data/skola2030_topics.json');
   const sqlPath = path.resolve(__dirname, '../supabase/seed_skola2030.sql');
 
-  it('каталог skola2030_topics.json существует и содержит 81 тему стандарта Skola2030', () => {
+  it('каталог skola2030_topics.json существует и содержит 96 тем стандарта Skola2030', () => {
     expect(fs.existsSync(jsonPath)).toBe(true);
     const content = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
     expect(Array.isArray(content)).toBe(true);
-    expect(content.length).toBe(81);
+    expect(content.length).toBe(96);
   });
 
   it('каждая тема имеет корректный класс (1–12), слаг, разделы и переводы (RU, LV, EN)', () => {
@@ -30,7 +30,7 @@ describe('Skola2030 Topics Catalog (JSON & Database integrity)', () => {
     });
   });
 
-  it('файл seed_skola2030.sql содержит DDL ограничения, 3 раздела и 81 тему', () => {
+  it('файл seed_skola2030.sql содержит DDL ограничения, 3 раздела и 96 тем', () => {
     expect(fs.existsSync(sqlPath)).toBe(true);
     const sql = fs.readFileSync(sqlPath, 'utf8');
     expect(sql).toContain('alter table public.topics add constraint topics_grade_range check (grade is null or grade between 1 and 12);');

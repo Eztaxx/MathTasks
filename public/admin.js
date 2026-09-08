@@ -362,8 +362,10 @@
       /* Класс — глобальный контекст сайта: тему без него посетитель увидит
          только в режиме «Все классы», поэтому предупреждаем прямо в списке. */
       const warning = topic.grade ? '' : '<span class="admin-warn">не видна в меню при выбранном классе</span>';
+      const hasPrefix = /^\d+(\.\d+)/.test(topic.title || '');
+      const rowNum = hasPrefix ? '' : `<span class="admin-row-num">${Math.max(1, topic.position ?? 1)}.</span> `;
       return `<div class="admin-row">
-        <span class="admin-row-main"><strong><span class="admin-row-num">${Math.max(1, topic.position ?? 1)}.</span> ${escapeHtml(topic.title)}</strong><small>${escapeHtml(subjectTitle(topic.subject_id))} · ${gradeText(topic.grade)} · задач: ${count}</small>${warning}</span>
+        <span class="admin-row-main"><strong>${rowNum}${escapeHtml(topic.title)}</strong><small>${escapeHtml(subjectTitle(topic.subject_id))} · ${gradeText(topic.grade)} · задач: ${count}</small>${warning}</span>
         ${topicArrows(topic)}
         <button class="text-button" type="button" data-edit-topic="${topic.id}">Изменить</button>
         <button class="text-button danger" type="button" data-delete-topic="${topic.id}">Удалить</button>

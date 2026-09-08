@@ -6,8 +6,8 @@
     "grade_name": "1 класс",
     "subject_slug": "geometry",
     "position": 1,
-    "title_ru": "Как рассказать и показать: сколько, где, какой",
-    "title_lv": "Kā izstāsta un parāda: cik, kur, kāds",
+    "title_ru": "1.1. Как рассказать и показать: сколько, где, какой",
+    "title_lv": "1.1. Kā izstāsta un parāda: cik, kur, kāds?",
     "description_ru": "Фигуры (линия, многоугольник, круг). Характеристика, сравнение и группировка геометрических объектов; Последовательности предметов и чисел. Расположение и направления объектов на плоскости, в пространстве; Количество, счет. Число и его изображение, цифры",
     "description_lv": "Figūras (līnija, daudzstūris, riņķis). Ģeometrisku objektu raksturošana, salīdzināšana, grupēšana; Priekšmetu un skaitļu virknes. Objektu novietojums un virzieni plaknē, telpā; Skaits, skaitīšana. Skaitlis un tā attēlošana, cipari",
     "subtopics": [
@@ -30,10 +30,10 @@
     "slug": "skola2030-g1-2-skolko-vsego-skolko-ostalos",
     "grade": 1,
     "grade_name": "1 класс",
-    "subject_slug": "statistics",
+    "subject_slug": "algebra",
     "position": 2,
-    "title_ru": "Сколько всего, сколько осталось",
-    "title_lv": "Cik kopā, cik palika (saskaitīšana un atņemšana līdz 10)",
+    "title_ru": "1.2. Сколько всего, сколько осталось",
+    "title_lv": "1.2. Cik kopā, cik palika?",
     "description_ru": "Сложение и вычитание в пределах 10; Состав числа. Его визуализация, запись; Таблица для записи данных",
     "description_lv": "Saskaitīšana un atņemšana 10 apjomā; Skaitļa sastāvs. Tā vizualizēšana, pierakstīšana; Tabula datu pierakstīšanai",
     "subtopics": [
@@ -58,8 +58,8 @@
     "grade_name": "1 класс",
     "subject_slug": "geometry",
     "position": 3,
-    "title_ru": "Как измерять длины и получать симметричные фигуры",
-    "title_lv": "Kā mēra garumus un iegūst simetriskas figūras",
+    "title_ru": "1.3. Как измерять длины и получать симметричные фигуры",
+    "title_lv": "1.3. Kā mēra garumus un kā iegūst simetrisku figūru?",
     "description_ru": "Определение, сравнение и вычисление длин; Симметричные фигуры",
     "description_lv": "Garumu noteikšana, salīdzināšana un aprēķināšana; Simetriskas figūras",
     "subtopics": [
@@ -80,8 +80,8 @@
     "grade_name": "1 класс",
     "subject_slug": "algebra",
     "position": 4,
-    "title_ru": "Как записывают и сравнивают числа больше 10",
-    "title_lv": "Skaitļu līdz 100 lasīšana, pierakstīšana un salīdzināšana",
+    "title_ru": "1.4. Как записывают и сравнивают числа больше 10",
+    "title_lv": "1.4. Kā pieraksta un salīdzina skaitļus, kuri ir lielāki nekā 10?",
     "description_ru": "Измерение длины (см) и сравнение; Десятичный состав, чтение и запись чисел 10-100; Сравнение чисел. Числовые последовательности",
     "description_lv": "Garuma mērīšana (cm) un salīdzināšana; Skaitļu 10-100 decimālais sastāvs, lasīšana un pierakstīšana; Skaitļu salīdzināšana. Skaitļu virknes",
     "subtopics": [
@@ -106,8 +106,8 @@
     "grade_name": "1 класс",
     "subject_slug": "algebra",
     "position": 5,
-    "title_ru": "Как складывают и вычитают числа больше 10",
-    "title_lv": "Saskaitīšana un atņemšana 20 apjomā",
+    "title_ru": "1.5. Как складывают и вычитают числа больше 10",
+    "title_lv": "1.5. Kā saskaita un atņem skaitļus, kuri lielāki nekā 10?",
     "description_ru": "Вычитание в пределах 20; Прибавление однозначного числа к двузначному в пределах 20; Сложение однозначных чисел с переходом через 10",
     "description_lv": "Atņemšana 20 apjomā; Viencipara skaitļa pieskaitīšana pie divciparu skaitļa 20 apjomā; Viencipara skaitļu saskaitīšana, ja rezultāts pārsniedz 10",
     "subtopics": [
@@ -132,8 +132,8 @@
     "grade_name": "1 класс",
     "subject_slug": "algebra",
     "position": 6,
-    "title_ru": "Что значит «на столько больше», «на столько меньше»",
-    "title_lv": "Divu lielumu salīdzināšana un starpības uzdevumi",
+    "title_ru": "1.6. Что значит «на столько больше», «на столько меньше»",
+    "title_lv": "1.6. Ko nozīmē “par tik vairāk”, “par tik mazāk”?",
     "description_ru": "Сравнение двух величин в пределах 20; Бытовые задачи, решаемые сложением и вычитанием в пределах 20",
     "description_lv": "Divu lielumu salīdzināšana 20 apjomā; Sadzīves situāciju uzdevumi, kuru atrisināšanai izmanto saskaitīšanu un atņemšanu 20 apjomā",
     "subtopics": [
@@ -154,8 +154,8 @@
     "grade_name": "1 класс",
     "subject_slug": "algebra",
     "position": 7,
-    "title_ru": "Где мы встречаемся с большими числами",
-    "title_lv": "Lieli skaitļi, mērījumi un nauda ikdienā",
+    "title_ru": "1.7. Где мы встречаемся с большими числами",
+    "title_lv": "1.7. Kur sastopamies ar lieliem skaitļiem?",
     "description_ru": "Измерение длины (см, дм, м); Измерение/отсчет времени; Деньги (евро, центы); Сложение и вычитание в пределах 100. Бытовые ситуации",
     "description_lv": "Garuma mērīšana (cm, dm, m); Laika mērīšana/skaitīšana; Nauda (eiro, centi); Saskaitīšana un atņemšana 100 apjomā. Sadzīves situācijas",
     "subtopics": [
@@ -179,35 +179,161 @@
   },
   {
     "id": 8,
+    "slug": "skola2030-g1-8-apraksta-un-veido-figuras",
+    "grade": 1,
+    "grade_name": "1 класс",
+    "subject_slug": "geometry",
+    "position": 8,
+    "title_ru": "1.8. Как описывают и создают фигуры",
+    "title_lv": "1.8. Kā apraksta un veido figūras?",
+    "description_ru": "Геометрические фигуры на плоскости и в пространстве. Создание фигур из деталей, рисование и характеристика",
+    "description_lv": "Ģeometriskas figūras plaknē un telpā. Figūru veidošana no detaļām, zīmēšana un raksturošana",
+    "subtopics": [
+      {
+        "ru": "Геометрические фигуры на плоскости и в пространстве. Создание фигур из деталей, рисование и характеристика",
+        "lv": "Ģeometriskas figūras plaknē un telpā. Figūru veidošana no detaļām, zīmēšana un raksturošana"
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "slug": "skola2030-g2-1-grupe-objektus",
+    "grade": 2,
+    "grade_name": "2 класс",
+    "subject_slug": "statistics",
+    "position": 1,
+    "title_ru": "2.1. Как группируют объекты",
+    "title_lv": "2.1. Kā grupē objektus?",
+    "description_ru": "Группировка объектов по признакам, упорядочивание данных в таблицах и диаграммах",
+    "description_lv": "Objektu grupēšana pēc pazīmēm, datu kārtošana tabulās un diagrammās",
+    "subtopics": [
+      {
+        "ru": "Группировка объектов по признакам, упорядочивание данных в таблицах и диаграммах",
+        "lv": "Objektu grupēšana pēc pazīmēm, datu kārtošana tabulās un diagrammās"
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "slug": "skola2030-g2-2-nosaka-dazadus-garumus",
+    "grade": 2,
+    "grade_name": "2 класс",
+    "subject_slug": "geometry",
+    "position": 2,
+    "title_ru": "2.2. Как определяют различные длины",
+    "title_lv": "2.2. Kā nosaka dažādus garumus?",
+    "description_ru": "Измерение и сравнение длины (миллиметры, сантиметры, дециметры, метры). Построение отрезков",
+    "description_lv": "Garuma mērīšana un salīdzināšana (milimetri, centimetri, decimetri, metri). Nogriežņu zīmēšana",
+    "subtopics": [
+      {
+        "ru": "Измерение и сравнение длины (миллиметры, сантиметры, дециметры, метры). Построение отрезков",
+        "lv": "Garuma mērīšana un salīdzināšana (milimetri, centimetri, decimetri, metri). Nogriežņu zīmēšana"
+      }
+    ]
+  },
+  {
+    "id": 11,
     "slug": "skola2030-g2-1-skladyvayut-i-vychitayut-dvuznachnye",
     "grade": 2,
     "grade_name": "2 класс",
     "subject_slug": "algebra",
-    "position": 1,
-    "title_ru": "Как складывают и вычитают двузначные числа",
-    "title_lv": "Divciparu skaitļu saskaitīšana un atņemšana",
-    "description_ru": "Сложение и вычитание в пределах 100. Бытовые ситуации; Сложение и вычитание в пределах 20. Бытовые ситуации",
-    "description_lv": "Saskaitīšana un atņemšana 100 apjomā. Sadzīves situācijas; Saskaitīšana un atņemšana 20 apjomā. Sadzīves situācijas",
+    "position": 3,
+    "title_ru": "2.3. Как складывают и вычитают двузначные числа",
+    "title_lv": "2.3. Kā saskaita un atņem divciparu skaitļus?",
+    "description_ru": "Сложение и вычитание в пределах 100. Бытовые ситуации; Сложение и вычитание в пределах 20",
+    "description_lv": "Saskaitīšana un atņemšana 100 apjomā. Sadzīves situācijas; Saskaitīšana un atņemšana 20 apjomā",
     "subtopics": [
       {
         "ru": "Сложение и вычитание в пределах 100. Бытовые ситуации",
         "lv": "Saskaitīšana un atņemšana 100 apjomā. Sadzīves situācijas"
       },
       {
-        "ru": "Сложение и вычитание в пределах 20. Бытовые ситуации",
-        "lv": "Saskaitīšana un atņemšana 20 apjomā. Sadzīves situācijas"
+        "ru": "Сложение и вычитание в пределах 20",
+        "lv": "Saskaitīšana un atņemšana 20 apjomā"
       }
     ]
   },
   {
-    "id": 9,
+    "id": 12,
+    "slug": "skola2030-g2-4-laika-rekini-palidz-planot",
+    "grade": 2,
+    "grade_name": "2 класс",
+    "subject_slug": "algebra",
+    "position": 4,
+    "title_ru": "2.4. Как расчет времени помогает планировать",
+    "title_lv": "2.4. Kā laika rēķini palīdz plānot?",
+    "description_ru": "Единицы измерения времени (часы, минуты, дни, месяцы), чтение часов и планирование времени",
+    "description_lv": "Laika mērvienības (stundas, minūtes, dienas, mēneši), pulksteņa lasīšana un laika plānošana",
+    "subtopics": [
+      {
+        "ru": "Единицы измерения времени (часы, минуты, дни, месяцы), чтение часов и планирование времени",
+        "lv": "Laika mērvienības (stundas, minūtes, dienas, mēneši), pulksteņa lasīšana un laika plānošana"
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "slug": "skola2030-g2-5-rodas-izteiksme",
+    "grade": 2,
+    "grade_name": "2 класс",
+    "subject_slug": "algebra",
+    "position": 5,
+    "title_ru": "2.5. Как возникает выражение",
+    "title_lv": "2.5. Kā rodas izteiksme?",
+    "description_ru": "Числовые выражения со скобками и без. Порядок действий и моделирование текстовых ситуаций",
+    "description_lv": "Skaitliskas izteiksmes ar iekavām un bez tām. Darbību secība un tekstveida situāciju modelēšana",
+    "subtopics": [
+      {
+        "ru": "Числовые выражения со скобками и без. Порядок действий и моделирование текстовых ситуаций",
+        "lv": "Skaitliskas izteiksmes ar iekavām un bez tām. Darbību secība un tekstveida situāciju modelēšana"
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "slug": "skola2030-g2-6-veido-un-raksturo-figuras",
+    "grade": 2,
+    "grade_name": "2 класс",
+    "subject_slug": "geometry",
+    "position": 6,
+    "title_ru": "2.6. Как создают и характеризуют фигуры",
+    "title_lv": "2.6. Kā veido un raksturo figūras?",
+    "description_ru": "Виды многоугольников (треугольники, четырёхугольники), их стороны и вершины. Сравнение фигур",
+    "description_lv": "Daudzstūru veidi (trijstūri, četrstūri), to malas un virsotnes. Figūru salīdzināšana",
+    "subtopics": [
+      {
+        "ru": "Виды многоугольников (треугольники, четырёхугольники), их стороны и вершины. Сравнение фигур",
+        "lv": "Daudzstūru veidi (trijstūri, četrstūri), to malas un virsotnes. Figūru salīdzināšana"
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "slug": "skola2030-g2-7-reizinat-un-dalit-ar-2",
+    "grade": 2,
+    "grade_name": "2 класс",
+    "subject_slug": "algebra",
+    "position": 7,
+    "title_ru": "2.7. Что значит умножать и делить на 2",
+    "title_lv": "2.7. Ko nozīmē reizināt un dalīt ar 2?",
+    "description_ru": "Смысл умножения и деления на 2, половина и удвоенное количество, решение задач",
+    "description_lv": "Reizināšanas un dalīšanas ar 2 jēga, puse un divkāršs apjoms, uzdevumu risināšana",
+    "subtopics": [
+      {
+        "ru": "Смысл умножения и деления на 2, половина и удвоенное количество, решение задач",
+        "lv": "Reizināšanas un dalīšanas ar 2 jēga, puse un divkāršs apjoms, uzdevumu risināšana"
+      }
+    ]
+  },
+  {
+    "id": 16,
     "slug": "skola2030-g2-2-umnozhayut-i-delyat-na",
     "grade": 2,
     "grade_name": "2 класс",
     "subject_slug": "algebra",
-    "position": 2,
-    "title_ru": "Как умножают и делят на 3, 4 и 5",
-    "title_lv": "Reizināšana un dalīšana ar 3, 4 un 5",
+    "position": 8,
+    "title_ru": "2.8. Как умножают и делят на 3, 4 и 5",
+    "title_lv": "2.8. Kā reizina un dala ar 3, 4 un 5?",
     "description_ru": "Как умножают и делят на 3 и 4?; Как умножают и делят на 5? Умножение и деление в пределах 50",
     "description_lv": "Kā reizina un dala ar 3 un 4?; Kā reizina un dala ar 5? Reizināšana un dalīšana 50 apjomā",
     "subtopics": [
@@ -222,14 +348,14 @@
     ]
   },
   {
-    "id": 10,
+    "id": 17,
     "slug": "skola2030-g3-1-umnozhayut-i-delyat-na",
     "grade": 3,
     "grade_name": "3 класс",
     "subject_slug": "algebra",
     "position": 1,
-    "title_ru": "Как умножают и делят на 6, 7, 8, 9 и 10",
-    "title_lv": "Reizināšana un dalīšana ar 6, 7, 8, 9 un 10",
+    "title_ru": "3.1. Как умножают и делят на 6, 7, 8, 9 и 10",
+    "title_lv": "3.1. Kā reizina un dala ar 6, 7, 8, 9 un 10?",
     "description_ru": "Умножение и деление двузначных чисел; Таблица умножения. Умножение и деление в различных ситуациях",
     "description_lv": "Divciparu skaitļu reizināšana un dalīšana; Reizināšanas tabula. Reizināšana un dalīšana dažādās situācijās",
     "subtopics": [
@@ -244,14 +370,14 @@
     ]
   },
   {
-    "id": 11,
+    "id": 18,
     "slug": "skola2030-g3-2-ispolzuyut-vse-deystviya",
     "grade": 3,
     "grade_name": "3 класс",
-    "subject_slug": "geometry",
+    "subject_slug": "algebra",
     "position": 2,
-    "title_ru": "Как используют все действия",
-    "title_lv": "Visu četru darbību lietošana 100 apjomā",
+    "title_ru": "3.2. Как используют все действия",
+    "title_lv": "3.2. Kā izmanto visas darbības?",
     "description_ru": "Насколько хорошо я умею выполнять действия с числами в пределах 100?; Числовые выражения; Формулы вычисления периметра прямоугольника",
     "description_lv": "Cik labi protu veikt darbības ar skaitļiem 100 apjomā?; Skaitliskas izteiksmes; Taisnstūra perimetra aprēķināšanas formulas",
     "subtopics": [
@@ -270,14 +396,14 @@
     ]
   },
   {
-    "id": 12,
+    "id": 19,
     "slug": "skola2030-g3-3-sostavlyayut-plan-mestnosti",
     "grade": 3,
     "grade_name": "3 класс",
-    "subject_slug": "algebra",
+    "subject_slug": "geometry",
     "position": 3,
-    "title_ru": "Как составляют план местности",
-    "title_lv": "Reizināšana un dalīšana ar desmitiem, telpas plāns",
+    "title_ru": "3.3. Как составляют план местности",
+    "title_lv": "3.3. Kā veido vietas plānu?",
     "description_ru": "Умножение и деление многозначных чисел на 10, 100 и полные десятки; План помещения; Трехзначные и четырехзначные числа",
     "description_lv": "Daudzciparu skaitļu reizināšana un dalīšana ar 10, 100 un pilniem desmitiem; Telpas plāns; Trīsciparu un četrciparu skaitļi",
     "subtopics": [
@@ -296,16 +422,16 @@
     ]
   },
   {
-    "id": 13,
+    "id": 20,
     "slug": "skola2030-g3-4-znachit-chast-ot-tselogo",
     "grade": 3,
     "grade_name": "3 класс",
     "subject_slug": "algebra",
     "position": 4,
-    "title_ru": "Что значит часть от целого",
-    "title_lv": "Daļa no veselā un daļa no lieluma",
-    "description_ru": "Деление на равные части, целое и часть; Часть от количества; Запись дроби. Дроби можно складывать. Дроби на числовой прямой.; Сравнение дробей; Запись десятых долей в виде десятичной дроби",
-    "description_lv": "Dalīšana vienādās daļās, veselais un daļa; Daļa no skaita; Daļskaitļa pieraksts. Dalskaitļus var saskaitīt. Daļskaitļi uz skaitļu taisnes.; Daļu salīdzināšana; Desmitdaļu pieraksts decimāldaļu formā",
+    "title_ru": "3.4. Что значит часть от целого",
+    "title_lv": "3.4. Ko nozīmē daļa no veselā?",
+    "description_ru": "Деление на равные части, целое и часть; Часть от количества; Запись дроби. Дроби можно складывать. Дроби на числовой прямой.; Сравнение дробей",
+    "description_lv": "Dalīšana vienādās daļās, veselais un daļa; Daļa no skaita; Daļskaitļa pieraksts. Daļskaitļi uz skaitļu taisnes; Daļu salīdzināšana",
     "subtopics": [
       {
         "ru": "Деление на равные части, целое и часть",
@@ -317,27 +443,59 @@
       },
       {
         "ru": "Запись дроби. Дроби можно складывать. Дроби на числовой прямой.",
-        "lv": "Daļskaitļa pieraksts. Dalskaitļus var saskaitīt. Daļskaitļi uz skaitļu taisnes."
+        "lv": "Daļskaitļa pieraksts. Daļskaitļi uz skaitļu taisnes"
       },
       {
         "ru": "Сравнение дробей",
         "lv": "Daļu salīdzināšana"
-      },
-      {
-        "ru": "Запись десятых долей в виде десятичной дроби",
-        "lv": "Desmitdaļu pieraksts decimāldaļu formā"
       }
     ]
   },
   {
-    "id": 14,
-    "slug": "skola2030-g3-5-sozdayut-prostranstvennye-modeli",
+    "id": 21,
+    "slug": "skola2030-g3-5-kadi-lielumi-raksturo-figuru",
     "grade": 3,
     "grade_name": "3 класс",
     "subject_slug": "geometry",
     "position": 5,
-    "title_ru": "Как создают пространственные модели",
-    "title_lv": "Telpiskas figūras un to izklājumi",
+    "title_ru": "3.5. Какие величины характеризуют фигуру",
+    "title_lv": "3.5. Kādi lielumi raksturo figūru?",
+    "description_ru": "Периметр прямоугольника и квадрата, измерение площади квадратными единицами",
+    "description_lv": "Taisnstūra un kvadrāta perimetrs, laukuma mērīšana ar kvadrātvienībām",
+    "subtopics": [
+      {
+        "ru": "Периметр прямоугольника и квадрата, измерение площади квадратными единицами",
+        "lv": "Taisnstūra un kvadrāta perimetrs, laukuma mērīšana ar kvadrātvienībām"
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "slug": "skola2030-g3-6-saskaita-un-atnem-trisciparu",
+    "grade": 3,
+    "grade_name": "3 класс",
+    "subject_slug": "algebra",
+    "position": 6,
+    "title_ru": "3.6. Как складывают и вычитают трёхзначные числа",
+    "title_lv": "3.6. Kā saskaita un atņem trīsciparu skaitļus?",
+    "description_ru": "Сложение и вычитание трёхзначных чисел столбиком и устно, бытовые расчёты",
+    "description_lv": "Trīsciparu skaitļu saskaitīšana un atņemšana stabiņā un galvā, sadzīves aprēķini",
+    "subtopics": [
+      {
+        "ru": "Сложение и вычитание трёхзначных чисел столбиком и устно, бытовые расчёты",
+        "lv": "Trīsciparu skaitļu saskaitīšana un atņemšana stabiņā un galvā, sadzīves aprēķini"
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "slug": "skola2030-g3-5-sozdayut-prostranstvennye-modeli",
+    "grade": 3,
+    "grade_name": "3 класс",
+    "subject_slug": "geometry",
+    "position": 7,
+    "title_ru": "3.7. Как создают пространственные модели",
+    "title_lv": "3.7. Kā veido telpiskus modeļus?",
     "description_ru": "Пространственные фигуры; Развертки пространственных фигур, вид пространственной фигуры с разных сторон",
     "description_lv": "Telpiskas figūras; Telpisku figūru izklājumi, kā telpiska figūra izskatās no dažādām pusēm",
     "subtopics": [
@@ -352,14 +510,14 @@
     ]
   },
   {
-    "id": 15,
+    "id": 24,
     "slug": "skola2030-g4-1-skladyvayut-i-vychitayut-mnogoznachnye",
     "grade": 4,
     "grade_name": "4 класс",
     "subject_slug": "algebra",
     "position": 1,
-    "title_ru": "Как складывают и вычитают многозначные числа",
-    "title_lv": "Daudzciparu skaitļu saskaitīšana un atņemšana",
+    "title_ru": "4.1. Как складывают и вычитают многозначные числа",
+    "title_lv": "4.1. Kā saskaita un atņem daudzciparu skaitļus?",
     "description_ru": "Первая тысяча (повторение); Четырехзначные числа. Сложение и вычитание четырехзначных чисел",
     "description_lv": "Pirmais tūkstotis (atkārtojums); Četrciparu skaitļi. Četrciparu skaitļu saskaitīšana un atņemšana",
     "subtopics": [
@@ -374,14 +532,14 @@
     ]
   },
   {
-    "id": 16,
+    "id": 25,
     "slug": "skola2030-g4-2-mnogoznachnye-chisla-umnozhayut-i",
     "grade": 4,
     "grade_name": "4 класс",
     "subject_slug": "algebra",
     "position": 2,
-    "title_ru": "Как многозначные числа умножают и делят на однозначное число",
-    "title_lv": "Daudzciparu skaitļu reizināšana un dalīšana ar viencipara skaitli",
+    "title_ru": "4.2. Как многозначные числа умножают и делят на однозначное число",
+    "title_lv": "4.2. Kā daudzciparu skaitļus reizina un dala ar viencipara skaitli?",
     "description_ru": "Деление двузначного числа на однозначное; Умножение двузначного числа на однозначное; Деление трехзначного числа на однозначное; Умножение трехзначного числа на однозначное",
     "description_lv": "Divciparu skaitļa dalīšana ar viencipara skaitli; Divciparu skaitļa reizināšana ar viencipara skaitli; Trīsciparu skaitļa dalīšana ar viencipara skaitli; Trīsciparu skaitļa reizināšana ar viencipara skaitli",
     "subtopics": [
@@ -404,14 +562,32 @@
     ]
   },
   {
-    "id": 17,
+    "id": 26,
+    "slug": "skola2030-g4-3-ka-mera-lenki",
+    "grade": 4,
+    "grade_name": "4 класс",
+    "subject_slug": "geometry",
+    "position": 3,
+    "title_ru": "4.3. Как измеряют углы",
+    "title_lv": "4.3. Kā mēra leņķi?",
+    "description_ru": "Понятие угла, виды углов (острый, прямой, тупой, развёрнутый), измерение углов транспортиром и построение",
+    "description_lv": "Leņķa jēdziens, leņķu veidi (šaurs, taisns, plats, izstiepts), leņķu mērīšana ar transportieri un zīmēšana",
+    "subtopics": [
+      {
+        "ru": "Понятие угла, виды углов (острый, прямой, тупой, развёрнутый), измерение углов транспортиром и построение",
+        "lv": "Leņķa jēdziens, leņķu veidi (šaurs, taisns, plats, izstiepts), leņķu mērīšana ar transportieri un zīmēšana"
+      }
+    ]
+  },
+  {
+    "id": 27,
     "slug": "skola2030-g4-3-mnogoznachnye-chisla-umnozhayut-i",
     "grade": 4,
     "grade_name": "4 класс",
     "subject_slug": "algebra",
-    "position": 3,
-    "title_ru": "Как многозначные числа умножают и делят на двузначное число",
-    "title_lv": "Daudzciparu skaitļu reizināšana un dalīšana ar divciparu skaitli",
+    "position": 4,
+    "title_ru": "4.4. Как многозначные числа умножают и делят на двузначное число",
+    "title_lv": "4.4. Kā daudzciparu skaitļus reizina un dala ar divciparu skaitli?",
     "description_ru": "Деление многозначного числа на двузначное; Умножение многозначного числа на двузначное",
     "description_lv": "Daudzciparu skaitļa dalīšana ar divciparu skaitli; Daudzciparu skaitļa reizināšana ar divciparu skaitli",
     "subtopics": [
@@ -426,14 +602,14 @@
     ]
   },
   {
-    "id": 18,
+    "id": 28,
     "slug": "skola2030-g4-4-sravnivayut-skladyvayut-i-vychitayut",
     "grade": 4,
     "grade_name": "4 класс",
     "subject_slug": "algebra",
-    "position": 4,
-    "title_ru": "Как сравнивают, складывают и вычитают дроби",
-    "title_lv": "Parasto daļu salīdzināšana, saskaitīšana un atņemšana",
+    "position": 5,
+    "title_ru": "4.5. Как сравнивают, складывают и вычитают дроби",
+    "title_lv": "4.5. Kā salīdzina, saskaita un atņem daļskaitļus?",
     "description_ru": "Дробь как произведение числителя и основной дроби; Дроби, их расположение на числовой прямой; Сложение и вычитание дробей с одинаковыми знаменателями; Сравнение дробей",
     "description_lv": "Daļa kā skaitītāja un pamatdaļas reizinājums; Daļas, to novietojums uz skaitļu taisnes; Daļu ar vienādiem saucējiem saskaitīšana un atņemšana; Daļu salīdzināšana",
     "subtopics": [
@@ -456,64 +632,82 @@
     ]
   },
   {
-    "id": 19,
+    "id": 29,
     "slug": "skola2030-g4-5-znachit-chast-ot-tselogo",
     "grade": 4,
     "grade_name": "4 класс",
     "subject_slug": "algebra",
-    "position": 5,
-    "title_ru": "Что значит часть от целого",
-    "title_lv": "Daļa no veselā un daļa no lieluma",
-    "description_ru": "Целое — это числовое значение величины; Целое состоит из нескольких элементов, но их нельзя напрямую показать и увидеть; Целое состоит из нескольких элементов, их можно показать и увидеть (повторение за 3 класс)",
-    "description_lv": "Veselais ir lieluma skaitliskā vērtība; Veselo veido vairāki elementi, bet tiešā veidā tos nevar parādīt un redzēt; Veselo veido vairāki elementi, tos var parādīt un redzēt (atkārtojums no 3. klases)",
+    "position": 6,
+    "title_ru": "4.6. Что значит часть от целого",
+    "title_lv": "4.6. Ko nozīmē daļa no veselā?",
+    "description_ru": "Целое — это числовое значение величины; Целое состоит из нескольких элементов; Нахождение части от величины и числа",
+    "description_lv": "Veselais ir lieluma skaitliskā vērtība; Veselo veido vairāki elementi; Daļa no lieluma un daļa no skaita",
     "subtopics": [
       {
         "ru": "Целое — это числовое значение величины",
         "lv": "Veselais ir lieluma skaitliskā vērtība"
       },
       {
-        "ru": "Целое состоит из нескольких элементов, но их нельзя напрямую показать и увидеть",
-        "lv": "Veselo veido vairāki elementi, bet tiešā veidā tos nevar parādīt un redzēt"
+        "ru": "Целое состоит из нескольких элементов",
+        "lv": "Veselo veido vairāki elementi"
       },
       {
-        "ru": "Целое состоит из нескольких элементов, их можно показать и увидеть (повторение за 3 класс)",
-        "lv": "Veselo veido vairāki elementi, tos var parādīt un redzēt (atkārtojums no 3. klases)"
+        "ru": "Нахождение части от величины и числа",
+        "lv": "Daļa no lieluma un daļa no skaita"
       }
     ]
   },
   {
-    "id": 20,
+    "id": 30,
+    "slug": "skola2030-g4-7-nosaka-dazadu-figuru-laukumu",
+    "grade": 4,
+    "grade_name": "4 класс",
+    "subject_slug": "geometry",
+    "position": 7,
+    "title_ru": "4.7. Как определяют площадь различных фигур",
+    "title_lv": "4.7. Kā nosaka dažādu figūru laukumu?",
+    "description_ru": "Вычисление площади прямоугольника и составных фигур, единицы площади (см², дм², м²)",
+    "description_lv": "Taisnstūra un kombinētu taisnstūrveida figūru laukuma aprēķināšana, laukuma mērvienības (cm², dm², m²)",
+    "subtopics": [
+      {
+        "ru": "Вычисление площади прямоугольника и составных фигур, единицы площади (см², дм², м²)",
+        "lv": "Taisnstūra un kombinētu taisnstūrveida figūru laukuma aprēķināšana, laukuma mērvienības (cm², dm², m²)"
+      }
+    ]
+  },
+  {
+    "id": 31,
     "slug": "skola2030-g4-6-obshchego-v-matematicheskom-opisanii",
     "grade": 4,
     "grade_name": "4 класс",
     "subject_slug": "algebra",
-    "position": 6,
-    "title_ru": "Что общего в математическом описании покупок и движения",
-    "title_lv": "Kas kopigs iepirksanas un kustibas matematiskaja apraksta",
-    "description_ru": "Время, путь, скорость; Количество, оплата, цена",
-    "description_lv": "Laiks, ceļš, ātrums; Skaits, samaksa, cena",
+    "position": 8,
+    "title_ru": "4.8. Что общего в математическом описании покупок и движения",
+    "title_lv": "4.8. Kas kopīgs iepirkšanās un kustības matemātiskajā aprakstā?",
+    "description_ru": "Время, путь, скорость; Количество, оплата, цена. Уравнения и зависимости между величинами",
+    "description_lv": "Laiks, ceļš, ātrums; Skaits, samaksa, cena. Vienādojumi un sakarības starp lielumiem",
     "subtopics": [
       {
         "ru": "Время, путь, скорость",
         "lv": "Laiks, ceļš, ātrums"
       },
       {
-        "ru": "Количество, оплата, цена",
-        "lv": "Skaits, samaksa, cena"
+        "ru": "Количество, оплата, цена. Уравнения и зависимости между величинами",
+        "lv": "Skaits, samaksa, cena. Vienādojumi un sakarības starp lielumiem"
       }
     ]
   },
   {
-    "id": 21,
+    "id": 32,
     "slug": "skola2030-g5-1-po-raznomu-zapisyvayut-naturalnye",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "algebra",
     "position": 1,
-    "title_ru": "Как по-разному записывают натуральные числа",
-    "title_lv": "Naturālo skaitļu pieraksts un noapaļošana",
-    "description_ru": "Другие системы записи натуральных чисел; Запись натуральных чисел в десятичной системе; Округление натуральных чисел; Закономерности между компонентами действий в суммах и разностях; Применение сложения и вычитания в новых ситуациях",
-    "description_lv": "Citas naturālo skaitļu pieraksta sistēmas; Naturālo skaitļu pieraksts decimālajā sistēmā; Naturālu skaitļu noapaļošana; Sakarības starp darbību locekļiem summās un starpībās; Saskaitīšanas un atņemšanas lietojums jaunās situācijās",
+    "title_ru": "5.1. Как по-разному записывают натуральные числа",
+    "title_lv": "5.1. Kā dažādi pieraksta naturālos skaitļus?",
+    "description_ru": "Другие системы записи натуральных чисел; Запись натуральных чисел в десятичной системе; Округление натуральных чисел; Закономерности между компонентами действий в суммах и разностях",
+    "description_lv": "Citas naturālo skaitļu pieraksta sistēmas; Naturālo skaitļu pieraksts decimālajā sistēmā; Naturālu skaitļu noapaļošana; Sakarības starp darbību locekļiem summās un starpībās",
     "subtopics": [
       {
         "ru": "Другие системы записи натуральных чисел",
@@ -530,22 +724,18 @@
       {
         "ru": "Закономерности между компонентами действий в суммах и разностях",
         "lv": "Sakarības starp darbību locekļiem summās un starpībās"
-      },
-      {
-        "ru": "Применение сложения и вычитания в новых ситуациях",
-        "lv": "Saskaitīšanas un atņemšanas lietojums jaunās situācijās"
       }
     ]
   },
   {
-    "id": 22,
+    "id": 33,
     "slug": "skola2030-g5-2-ispolzuyut-razlozhenie-chisla-na",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "algebra",
     "position": 2,
-    "title_ru": "Как используют разложение числа на множители",
-    "title_lv": "Ka lieto skaitla sadalisanu reizinatajos",
+    "title_ru": "5.2. Как используют разложение числа на множители",
+    "title_lv": "5.2. Kā lieto skaitļa sadalīšanu reizinātājos?",
     "description_ru": "Возведение в степень; Приемы умножения, деления и свойства действий; Разложение на множители",
     "description_lv": "Kāpināšana; Reizināšanas, dalīšanas paņēmieni un darbību īpašības; Sadalīšana reizinātājos",
     "subtopics": [
@@ -564,16 +754,16 @@
     ]
   },
   {
-    "id": 23,
+    "id": 34,
     "slug": "skola2030-g5-3-obyasnyayut-i-primenyayut-osnovnoe",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "algebra",
     "position": 3,
-    "title_ru": "Как объясняют и применяют основное свойство дроби",
-    "title_lv": "Ka skaidro un lieto dalas pamatipasibu",
-    "description_ru": "Основное свойство дроби; Сложение и вычитание дробей с разными знаменателями; Сравнение дробей; Деление основной дроби на целое число, деление целого числа на основную дробь",
-    "description_lv": "Daļas pamatīpašība; Daļu ar dažādiem saucējiem saskaitīšana un atņemšana; Daļu salīdzināšana; Pamatdaļas dalīšana ar veselu skaitli, vesela skaitļa dalīšana ar pamatdaļu",
+    "title_ru": "5.3. Как объясняют и применяют основное свойство дроби",
+    "title_lv": "5.3. Kā skaidro un lieto daļas pamatīpašību?",
+    "description_ru": "Основное свойство дроби; Сложение и вычитание дробей с разными знаменателями; Сравнение дробей; Деление основной дроби на целое число",
+    "description_lv": "Daļas pamatīpašība; Daļu ar dažādiem saucējiem saskaitīšana un atņemšana; Daļu salīdzināšana; Pamatdaļas dalīšana ar veselu skaitli",
     "subtopics": [
       {
         "ru": "Основное свойство дроби",
@@ -588,20 +778,20 @@
         "lv": "Daļu salīdzināšana"
       },
       {
-        "ru": "Деление основной дроби на целое число, деление целого числа на основную дробь",
-        "lv": "Pamatdaļas dalīšana ar veselu skaitli, vesela skaitļa dalīšana ar pamatdaļu"
+        "ru": "Деление основной дроби на целое число",
+        "lv": "Pamatdaļas dalīšana ar veselu skaitli"
       }
     ]
   },
   {
-    "id": 24,
+    "id": 35,
     "slug": "skola2030-g5-4-odno-chislo-vyrazhayut-chast",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "algebra",
     "position": 4,
-    "title_ru": "Как одно число выражают как часть другого числа",
-    "title_lv": "Viena skaitļa izteikšana kā otra skaitļa daļa",
+    "title_ru": "5.4. Как одно число выражают как часть другого числа",
+    "title_lv": "5.4. Kā vienu skaitli izsaka kā otra skaitļa daļu?",
     "description_ru": "Дробь как запись действия деления; Дробь и числовое значение целого",
     "description_lv": "Daļa kā dalīšanas darbības pieraksts; Daļas un veselā skaitliskā vērtība",
     "subtopics": [
@@ -616,14 +806,14 @@
     ]
   },
   {
-    "id": 25,
+    "id": 36,
     "slug": "skola2030-g5-5-skladyvayut-i-vychitayut-smeshannye",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "algebra",
     "position": 5,
-    "title_ru": "Как складывают и вычитают смешанные числа",
-    "title_lv": "Jauktu skaitļu saskaitīšana un atņemšana",
+    "title_ru": "5.5. Как складывают и вычитают смешанные числа",
+    "title_lv": "5.5. Kā saskaita un atņem jauktus skaitļus?",
     "description_ru": "Смешанные числа; Сложение и вычитание смешанных чисел; Сложение и вычитание смешанных чисел, если знаменатели разные",
     "description_lv": "Jaukti skaitļi; Jauktu skaitļu saskaitīšana un atņemšana; Jauktu skaitļu saskaitīšana un atņemšana, ja saucēji ir dažādi",
     "subtopics": [
@@ -642,14 +832,14 @@
     ]
   },
   {
-    "id": 26,
+    "id": 37,
     "slug": "skola2030-g5-6-opredelyayut-neizvestnye-velichiny-figur",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "geometry",
     "position": 6,
-    "title_ru": "Как определяют неизвестные величины фигур",
-    "title_lv": "Daudzstūru īpašības, leņķi un riņķa līnija",
+    "title_ru": "5.6. Как определяют неизвестные величины фигур",
+    "title_lv": "5.6. Kā nosaka figūru nezināmos lielumus?",
     "description_ru": "Свойства и величины многоугольников; Угол. Угол как сумма или разность других углов; Окружность и её длина",
     "description_lv": "Daudzstūru īpašības un lielumi; Leņķis. Leņķis kā citu leņķu summa vai starpība; Riņķa līnija un tās garums",
     "subtopics": [
@@ -668,14 +858,14 @@
     ]
   },
   {
-    "id": 27,
+    "id": 38,
     "slug": "skola2030-g5-7-ispolzuyut-desyatichnye-drobi-i",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "statistics",
     "position": 7,
-    "title_ru": "Как используют десятичные дроби и проценты",
-    "title_lv": "Ka lieto decimaldalas un procentus",
+    "title_ru": "5.7. Как используют десятичные дроби и проценты",
+    "title_lv": "5.7. Kā lieto decimāldaļas un procentus?",
     "description_ru": "Десятичные дроби, их изображение на числовой прямой и сравнение; Сложение и вычитание десятичных дробей; Проценты; Задачи на проценты; Круговая диаграмма",
     "description_lv": "Decimāldaļas, to attēlojums uz skaitļu taisnes un salīdzināšana; Decimāldaļu saskaitīšana un atņemšana; Procenti; Procentu uzdevumi; Sektoru diagramma",
     "subtopics": [
@@ -702,14 +892,32 @@
     ]
   },
   {
-    "id": 28,
+    "id": 39,
+    "slug": "skola2030-g5-8-vizuali-attelo-sakaribu",
+    "grade": 5,
+    "grade_name": "5 класс",
+    "subject_slug": "statistics",
+    "position": 8,
+    "title_ru": "5.8. Как визуально отображают зависимость между величинами",
+    "title_lv": "5.8. Kā vizuāli attēlo sakarību starp lielumiem?",
+    "description_ru": "Графическое представление данных, столбчатые и линейные диаграммы, считывание зависимостей между переменными",
+    "description_lv": "Datu grafiskā attēlošana, stabiņu un līniju diagrammas, divu mainīgo sakarību nolasīšana",
+    "subtopics": [
+      {
+        "ru": "Графическое представление данных, столбчатые и линейные диаграммы, считывание зависимостей между переменными",
+        "lv": "Datu grafiskā attēlošana, stabiņu un līniju diagrammas, divu mainīgo sakarību nolasīšana"
+      }
+    ]
+  },
+  {
+    "id": 40,
     "slug": "skola2030-g6-1-sovokupnost-delyat-v-opredelennom",
     "grade": 6,
     "grade_name": "6 класс",
     "subject_slug": "algebra",
     "position": 1,
-    "title_ru": "Как совокупность делят в определенном отношении",
-    "title_lv": "Attiecības, proporcijas un mērogs",
+    "title_ru": "6.1. Как совокупность делят в определенном отношении",
+    "title_lv": "6.1. Kā kopumu sadala noteiktā attiecībā?",
     "description_ru": "Масштаб; Пропорциональные величины; Отношения чисел. Деление совокупности в определенном отношении",
     "description_lv": "Mērogs; Proporcionāli lielumi; Skaitļu attiecības. Kopuma sadalīšana noteiktā attiecībā",
     "subtopics": [
@@ -728,34 +936,56 @@
     ]
   },
   {
-    "id": 29,
+    "id": 41,
     "slug": "skola2030-g6-2-umnozhayut-i-delyat-obyknovennye",
     "grade": 6,
     "grade_name": "6 класс",
     "subject_slug": "algebra",
     "position": 2,
-    "title_ru": "Как умножают и делят обыкновенные дроби",
-    "title_lv": "Parasto daļu un jauktu skaitļu reizināšana un dalīšana",
-    "description_ru": "Умножение и деление дробей и смешанных чисел на целое число",
-    "description_lv": "Daļu un jauktu skaitļu reizināšana un dalīšana ar veselu skaitli",
+    "title_ru": "6.2. Как умножают и делят обыкновенные дроби",
+    "title_lv": "6.2. Kā reizina un dala parastās daļas?",
+    "description_ru": "Умножение и деление дробей и смешанных чисел на целое число; Умножение и деление обыкновенных дробей между собой",
+    "description_lv": "Daļu un jauktu skaitļu reizināšana un dalīšana ar veselu skaitli; Parasto daļu reizināšana un dalīšana savā starpā",
     "subtopics": [
       {
         "ru": "Умножение и деление дробей и смешанных чисел на целое число",
         "lv": "Daļu un jauktu skaitļu reizināšana un dalīšana ar veselu skaitli"
+      },
+      {
+        "ru": "Умножение и деление обыкновенных дробей между собой",
+        "lv": "Parasto daļu reizināšana un dalīšana savā starpā"
       }
     ]
   },
   {
-    "id": 30,
+    "id": 42,
+    "slug": "skola2030-g6-3-komata-lietojums-decimaldalas",
+    "grade": 6,
+    "grade_name": "6 класс",
+    "subject_slug": "algebra",
+    "position": 3,
+    "title_ru": "6.3. Как понимание запятой помогает при умножении и делении десятичных дробей",
+    "title_lv": "6.3. Kā izpratne par komata lietojumu palīdz, ja reizina un dala decimāldaļas?",
+    "description_ru": "Умножение и деление десятичных дробей на 10, 100, 1000 и между собой. Правила переноса запятой и округление",
+    "description_lv": "Decimāldaļu reizināšana un dalīšana ar 10, 100, 1000 un savā starpā. Komata pārvietošanas likumi un noapaļošana",
+    "subtopics": [
+      {
+        "ru": "Умножение и деление десятичных дробей на 10, 100, 1000 и между собой. Правила переноса запятой и округление",
+        "lv": "Decimāldaļu reizināšana un dalīšana ar 10, 100, 1000 un savā starpā. Komata pārvietošanas likumi un noapaļošana"
+      }
+    ]
+  },
+  {
+    "id": 43,
     "slug": "skola2030-g6-3-izobrazhayut-i-kharakterizuyut-prostranstvennye",
     "grade": 6,
     "grade_name": "6 класс",
     "subject_slug": "geometry",
-    "position": 3,
-    "title_ru": "Как изображают и характеризуют пространственные тела",
-    "title_lv": "Telpisku ķermeņu virsmas laukums un tilpums",
-    "description_ru": "Объем; Площадь поверхности",
-    "description_lv": "Tilpums; Virsmas laukums",
+    "position": 4,
+    "title_ru": "6.4. Как изображают и характеризуют пространственные тела",
+    "title_lv": "6.4. Kā attēlo un raksturo telpiskus ķermeņus?",
+    "description_ru": "Объем; Площадь поверхности; Прямоугольный параллелепипед и куб, их развертки",
+    "description_lv": "Tilpums; Virsmas laukums; Taisnstūra paralēlskaldnis un kubs, to izklājumi",
     "subtopics": [
       {
         "ru": "Объем",
@@ -764,36 +994,58 @@
       {
         "ru": "Площадь поверхности",
         "lv": "Virsmas laukums"
+      },
+      {
+        "ru": "Прямоугольный параллелепипед и куб, их развертки",
+        "lv": "Taisnstūra paralēlskaldnis un kubs, to izklājumi"
       }
     ]
   },
   {
-    "id": 31,
+    "id": 44,
+    "slug": "skola2030-g6-5-sadzives-situacijas-procentus",
+    "grade": 6,
+    "grade_name": "6 класс",
+    "subject_slug": "statistics",
+    "position": 5,
+    "title_ru": "6.5. Как в жизненных ситуациях используют проценты",
+    "title_lv": "6.5. Kā sadzīves situācijās izmanto procentus?",
+    "description_ru": "Нахождение процента от числа, нахождение числа по его проценту, изменение цен, скидки и налоги",
+    "description_lv": "Procentu aprēķināšana no skaitļa, skaitļa atrašana pēc tā procentiem, cenu izmaiņas, atlaides un nodokļi",
+    "subtopics": [
+      {
+        "ru": "Нахождение процента от числа, нахождение числа по его проценту, изменение цен, скидки и налоги",
+        "lv": "Procentu aprēķināšana no skaitļa, skaitļa atrašana pēc tā procentiem, cenu izmaiņas, atlaides un nodokļi"
+      }
+    ]
+  },
+  {
+    "id": 45,
     "slug": "skola2030-g6-4-nuzhny-chisla-kotorye-menshe",
     "grade": 6,
     "grade_name": "6 класс",
     "subject_slug": "algebra",
-    "position": 4,
-    "title_ru": "Зачем нужны числа, которые меньше нуля",
-    "title_lv": "Negatīvi skaitļi un skaitļu taisne",
-    "description_ru": "Противоположные числа. Положительные и отрицательные числа, их расположение на числовой прямой",
-    "description_lv": "Pretēji skaitļi. Pozitīvi un negatīvi skaitļi, to novietojums uz skaitļu taisnes",
+    "position": 6,
+    "title_ru": "6.6. Зачем нужны числа, которые меньше нуля",
+    "title_lv": "6.6. Kāpēc nepieciešami skaitļi, kuri ir mazāki nekā nulle?",
+    "description_ru": "Противоположные числа. Положительные и отрицательные числа, их расположение на числовой прямой, модуль и сравнение",
+    "description_lv": "Pretēji skaitļi. Pozitīvi un negatīvi skaitļi, to novietojums uz skaitļu taisnes, moduļa jēdziens un salīdzināšana",
     "subtopics": [
       {
-        "ru": "Противоположные числа. Положительные и отрицательные числа, их расположение на числовой прямой",
-        "lv": "Pretēji skaitļi. Pozitīvi un negatīvi skaitļi, to novietojums uz skaitļu taisnes"
+        "ru": "Противоположные числа. Положительные и отрицательные числа, их расположение на числовой прямой, модуль и сравнение",
+        "lv": "Pretēji skaitļi. Pozitīvi un negatīvi skaitļi, to novietojums uz skaitļu taisnes, moduļa jēdziens un salīdzināšana"
       }
     ]
   },
   {
-    "id": 32,
+    "id": 46,
     "slug": "skola2030-g6-5-znachit-pribavit-k-chislu",
     "grade": 6,
     "grade_name": "6 класс",
     "subject_slug": "algebra",
-    "position": 5,
-    "title_ru": "Что значит прибавить к числу отрицательное число или вычесть отрицательное число",
-    "title_lv": "Darbības ar negatīviem skaitļiem",
+    "position": 7,
+    "title_ru": "6.7. Что значит прибавить к числу отрицательное число или вычесть отрицательное число",
+    "title_lv": "6.7. Ko nozīmē skaitlim pieskaitīt negatīvu skaitli, no skaitļa atņemt negatīvu skaitli?",
     "description_ru": "Сложение и вычитание положительных и отрицательных дробей; Сложение и вычитание целых чисел",
     "description_lv": "Pozitīvu un negatīvu daļskaitļu saskaitīšana un atņemšana; Veselu skaitļu saskaitīšana un atņemšana",
     "subtopics": [
@@ -808,14 +1060,32 @@
     ]
   },
   {
-    "id": 33,
+    "id": 47,
+    "slug": "skola2030-g6-8-plano-darbibu-izpildi",
+    "grade": 6,
+    "grade_name": "6 класс",
+    "subject_slug": "algebra",
+    "position": 8,
+    "title_ru": "6.8. Как планируют порядок действий со всеми видами чисел",
+    "title_lv": "6.8. Kā plāno darbību izpildi ar visu veidu skaitļiem?",
+    "description_ru": "Все четыре действия с рациональными числами (целые числа, обыкновенные дроби, десятичные дроби). Вычисление сложных выражений",
+    "description_lv": "Visas četras darbības ar racionāliem skaitļiem (veseli skaitļi, parastās daļas, decimāldaļas). Izteiksmju aprēķināšana",
+    "subtopics": [
+      {
+        "ru": "Все четыре действия с рациональными числами (целые числа, обыкновенные дроби, десятичные дроби). Вычисление сложных выражений",
+        "lv": "Visas četras darbības ar racionāliem skaitļiem (veseli skaitļi, parastās daļas, decimāldaļas). Izteiksmju aprēķināšana"
+      }
+    ]
+  },
+  {
+    "id": 48,
     "slug": "skola2030-g7-1-opredelyayut-vse-elementy-mnozhestva",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "statistics",
     "position": 1,
-    "title_ru": "Как определяют все элементы множества, вычисляют вероятность события",
-    "title_lv": "Kopas, Eilera-Venna diagrammas un varbūtība",
+    "title_ru": "7.1. Как определяют все элементы множества, вычисляют вероятность события",
+    "title_lv": "7.1. Kā nosaka kopas visus elementus, aprēķina notikuma varbūtību?",
     "description_ru": "Создание выборок, их характеристика, определение количества выборок; Множества, диаграмма Эйлера-Венна. Полный перебор; Вероятность и её применения",
     "description_lv": "Izlašu veidošana, raksturošana, izlašu skaita noteikšana; Kopas, Eilera-Venna diagramma. Pilnā pārlase; Varbūtība un tās lietojumi",
     "subtopics": [
@@ -834,14 +1104,14 @@
     ]
   },
   {
-    "id": 34,
+    "id": 49,
     "slug": "skola2030-g7-2-opredelyayut-geometricheskie-figury",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "geometry",
     "position": 2,
-    "title_ru": "Как определяют геометрические фигуры",
-    "title_lv": "Ģeometriskās figūras, taisnes un leņķi",
+    "title_ru": "7.2. Как определяют геометрические фигуры",
+    "title_lv": "7.2. Kā definē ģeometriskas figūras?",
     "description_ru": "Взаимное расположение двух прямых на плоскости. Угол; Равные фигуры. Длина отрезка и её вычисление; Определение и изображение геометрических фигур",
     "description_lv": "Divu taišņu novietojums plaknē. Leņķis; Vienādas figūras. Nogriežņa garums un tā aprēķināšana; Ģeometrisko figūru definēšana un attēlošana",
     "subtopics": [
@@ -860,14 +1130,14 @@
     ]
   },
   {
-    "id": 35,
+    "id": 50,
     "slug": "skola2030-g7-3-kharakterizuyut-zavisimost-mezhdu-peremennymi",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "algebra",
     "position": 3,
-    "title_ru": "Как характеризуют зависимость между переменными величинами",
-    "title_lv": "Tiešā un apgrieztā proporcionalitāte",
+    "title_ru": "7.3. Как характеризуют зависимость между переменными величинами",
+    "title_lv": "7.3. Kā raksturo sakarību starp mainīgiem lielumiem?",
     "description_ru": "Зависимость между обратно пропорциональными величинами и другие виды зависимостей; Зависимость между прямо пропорциональными величинами",
     "description_lv": "Sakarība starp apgriezti proporcionāliem lielumiem un cita veida sakarības; Sakarība starp tieši proporcionāliem lielumiem",
     "subtopics": [
@@ -882,14 +1152,14 @@
     ]
   },
   {
-    "id": 36,
+    "id": 51,
     "slug": "skola2030-g7-4-zapisyvayut-i-issleduyut-funktsii",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "algebra",
     "position": 4,
-    "title_ru": "Как записывают и исследуют функции, график которых — прямая",
-    "title_lv": "Lineārā funkcija un tās grafiks",
+    "title_ru": "7.4. Как записывают и исследуют функции, график которых — прямая",
+    "title_lv": "7.4. Kā pieraksta un pēta funkcijas, kuru grafiks ir taisne?",
     "description_ru": "Функция, связанные с ней понятия. Линейная функция; Свойства линейной функции",
     "description_lv": "Funkcija, ar to saistītie jēdzieni. Lineāra funkcija; Lineāras funkcijas īpašības",
     "subtopics": [
@@ -904,14 +1174,14 @@
     ]
   },
   {
-    "id": 37,
+    "id": 52,
     "slug": "skola2030-g7-5-kharakterizuyut-treugolnik-ispolzuya-ego",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "geometry",
     "position": 5,
-    "title_ru": "Как характеризуют треугольник, используя его элементы",
-    "title_lv": "Trijstūris, tā elementi un vienādības pazīmes",
+    "title_ru": "7.5. Как характеризуют треугольник, используя его элементы",
+    "title_lv": "7.5. Kā raksturo trijstūri, izmantojot tā elementus?",
     "description_ru": "Серединный перпендикуляр отрезка и характерные отрезки в треугольнике; Треугольники с равными сторонами; Расположение трех точек на плоскости. Треугольник; Равные треугольники, признаки равенства и их применение",
     "description_lv": "Nogriežņa vidusperpendikuls un raksturīgie nogriežņi trijstūrī; Trijstūri ar vienādām malām; Triju punktu novietojums plaknē.Trijstūris; Vienādi trijstūri, vienādības pazīmes un to lietošana",
     "subtopics": [
@@ -934,14 +1204,14 @@
     ]
   },
   {
-    "id": 38,
+    "id": 53,
     "slug": "skola2030-g7-6-zavisimosti-mezhdu-velichinami-v",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "geometry",
     "position": 6,
-    "title_ru": "Каковы зависимости между величинами в треугольнике",
-    "title_lv": "Sakarības starp malām un leņķiem trijstūrī",
+    "title_ru": "7.6. Каковы зависимости между величинами в треугольнике",
+    "title_lv": "7.6. Kādas ir sakarības starp lielumiem trijstūrī?",
     "description_ru": "Зависимости между сторонами и углами треугольника. Свойства и признаки треугольника; Сумма углов треугольника; Расположение трех прямых на плоскости",
     "description_lv": "Sakarības starp trijstūra malām un leņķiem. Trijstūra īpašības un pazīmes; Trijstūra leņķu summa; Trīs taišņu novietojums plaknē",
     "subtopics": [
@@ -960,14 +1230,14 @@
     ]
   },
   {
-    "id": 39,
+    "id": 54,
     "slug": "skola2030-g7-7-znachit-preobrazovat-vyrazhenie-s",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "algebra",
     "position": 7,
-    "title_ru": "Что значит преобразовать выражение с переменной величиной",
-    "title_lv": "Algebriskas izteiksmes un to pārveidojumi",
+    "title_ru": "7.7. Что значит преобразовать выражение с переменной величиной",
+    "title_lv": "7.7. Ko nozīmē pārveidot izteiksmi ar mainīgo lielumu?",
     "description_ru": "Алгебраические выражения и их значение; Преобразования алгебраических выражений; Тождественно равные выражения; Числовые и алгебраические выражения",
     "description_lv": "Algebriskas izteiksmes un to vērtība; Algebrisku izteiksmju pārveidojumi; Identiski vienādas izteiksmes; Skaitliskas un algebriskas izteiksmes",
     "subtopics": [
@@ -990,14 +1260,14 @@
     ]
   },
   {
-    "id": 40,
+    "id": 55,
     "slug": "skola2030-g7-8-priemy-opredeleniya-neizvestnogo-lineynoe",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "algebra",
     "position": 8,
-    "title_ru": "Каковы приемы определения неизвестного, линейное уравнение",
-    "title_lv": "Lineāri vienādojumi un proporcijas",
+    "title_ru": "7.8. Каковы приемы определения неизвестного, линейное уравнение",
+    "title_lv": "7.8. Kādi ir paņēmieni nezināmā noteikšanai?",
     "description_ru": "Использование линейного уравнения при решении текстовых задач; Линейное уравнение и его решение; Пропорция. Выражение величины из пропорции; Эквивалентные преобразования уравнения",
     "description_lv": "Lineāra vienādojuma lietojums teksta uzdevumu atrisināšanā; Lineārs vienādojums un tā atrisināšana; Proporcija. Lieluma izteikšana no proporcijas; Vienādojuma ekvivalenti pārveidojumi",
     "subtopics": [
@@ -1020,14 +1290,14 @@
     ]
   },
   {
-    "id": 41,
+    "id": 56,
     "slug": "skola2030-g7-9-sravnivayut-vyrazheniya-est-peremennaya",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "algebra",
     "position": 9,
-    "title_ru": "Как сравнивают выражения, где есть переменная, неравенства",
-    "title_lv": "Lineāras nevienādības",
+    "title_ru": "7.9. Как сравнивают выражения, где есть переменная, неравенства",
+    "title_lv": "7.9. Kā salīdzina izteiksmes, kurās ir mainīgais lielums?",
     "description_ru": "Сравнение выражений. Неравенство и его решение; Решение линейных неравенств; Применение неравенств",
     "description_lv": "Izteiksmju salīdzināšana. Nevienādība un tās atrisinājums; Lineāru nevienādību atrisināšana; Nevienādību lietošana",
     "subtopics": [
@@ -1046,14 +1316,14 @@
     ]
   },
   {
-    "id": 42,
+    "id": 57,
     "slug": "skola2030-g8-1-matematicheski-opisyvayut-i-analiziruyut",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "statistics",
     "position": 1,
-    "title_ru": "Как математически описывают и анализируют данные, статистика",
-    "title_lv": "Datu vākšana, kārtošana un statistiskie rādītāji",
+    "title_ru": "8.1. Как математически описывают и анализируют данные, статистика",
+    "title_lv": "8.1. Kā matemātiski raksturo un analizē datus?",
     "description_ru": "Сбор, обобщение и отображение данных; Упорядочивание данных и статистические показатели",
     "description_lv": "Datu ieguve, apkopošana un attēlošana; Datu sakārtošana un statistiskie rādītāji",
     "subtopics": [
@@ -1068,14 +1338,14 @@
     ]
   },
   {
-    "id": 43,
+    "id": 58,
     "slug": "skola2030-g8-2-obyasnyayut-i-primenyayut-stepen",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "algebra",
     "position": 2,
-    "title_ru": "Как объясняют и применяют степень с целым показателем",
-    "title_lv": "Pakāpe ar veselu kāpinātāju",
+    "title_ru": "8.2. Как объясняют и применяют степень с целым показателем",
+    "title_lv": "8.2. Kā skaidro un lieto pakāpi ar veselu kāpinātāju?",
     "description_ru": "Степень с натуральным показателем и свойства; Степень с целым показателем",
     "description_lv": "Pakāpe ar naturālu kāpinātāju un īpašības; Pakāpe ar veselu kāpinātāju",
     "subtopics": [
@@ -1090,14 +1360,14 @@
     ]
   },
   {
-    "id": 44,
+    "id": 59,
     "slug": "skola2030-g8-3-postupayut-esli-chislo-nelzya",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "algebra",
     "position": 3,
-    "title_ru": "Как поступают, если число нельзя записать в виде дроби, квадратный корень",
-    "title_lv": "Kvadrātsakne un reālie skaitļi",
+    "title_ru": "8.3. Как поступают, если число нельзя записать в виде дроби, квадратный корень",
+    "title_lv": "8.3. Kā rīkojas, ja skaitli nevar pierakstīt kā daļu?",
     "description_ru": "Арифметический квадратный корень; Свойства арифметического квадратного корня; Приближения точного значения чисел. Рациональные и иррациональные числа",
     "description_lv": "Aritmētiskā kvadrātsakne; Aritmētiskās kvadrātsaknes īpašības; Skaitļu precīzās vērtības tuvinājumi. Racionāli un iracionāli skaitļi",
     "subtopics": [
@@ -1116,14 +1386,14 @@
     ]
   },
   {
-    "id": 45,
+    "id": 60,
     "slug": "skola2030-g8-4-vychislyayut-ploshchad-dlya-lyubogo",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "geometry",
     "position": 4,
-    "title_ru": "Как вычисляют площадь для любого треугольника, круга, призмы, цилиндра",
-    "title_lv": "Trijstūra, riņķa, prizmas un cilindra laukumi un tilpumi",
+    "title_ru": "8.4. Как вычисляют площадь для любого треугольника, круга, призмы, цилиндра",
+    "title_lv": "8.4. Kā aprēķina laukumu jebkuram trijstūrim, riņķim?",
     "description_ru": "Цилиндр, площадь его поверхности и объем; Площадь. Площадь треугольника; Площадь круга. Площадь комбинированных фигур; Прямая призма, площадь её поверхности и объем",
     "description_lv": "Cilindrs, tā virsmas laukums un tilpums; Laukums. Trijstūra laukums; Riņķa laukums. Kombinētu figūru laukums; Taisna prizma, tās virsmas laukums un tilpums",
     "subtopics": [
@@ -1146,14 +1416,14 @@
     ]
   },
   {
-    "id": 46,
+    "id": 61,
     "slug": "skola2030-g8-5-obshchego-u-chetyrekhugolnikov-protivopolozhnye",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "geometry",
     "position": 5,
-    "title_ru": "Что общего у четырехугольников, противоположные стороны которых попарно параллельны",
-    "title_lv": "Paralelograms, rombs un taisnstūris",
+    "title_ru": "8.5. Что общего у четырехугольников, противоположные стороны которых попарно параллельны",
+    "title_lv": "8.5. Kas kopīgs četrstūriem, kuru pretējās malas ir pa pāriem paralēlas?",
     "description_ru": "Площадь параллелограмма; Параллелограмм; Ромб и прямоугольник; Признаки параллельности прямых; Четырехугольники",
     "description_lv": "Paralelograma laukums; Paralelograms; Rombs un taisnstūris; Taišņu paralelitātes pazīmes; Četrstūri",
     "subtopics": [
@@ -1180,14 +1450,14 @@
     ]
   },
   {
-    "id": 47,
+    "id": 62,
     "slug": "skola2030-g8-6-obyasnyayut-i-vypolnyayut-deystviya",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "algebra",
     "position": 6,
-    "title_ru": "Как объясняют и выполняют действия с выражениями",
-    "title_lv": "Darbības ar vienaudžiem un daudzskaldņiem/polinomiem",
+    "title_ru": "8.6. Как объясняют и выполняют действия с выражениями",
+    "title_lv": "8.6. Kā skaidro un izpilda darbības ar izteiksmēm?",
     "description_ru": "Произведение одночлена и многочлена; Одночлены, их сложение и вычитание; Умножение, деление, возведение в степень одночленов; Произведение многочлена на многочлен; Многочлены, их сложение и вычитание",
     "description_lv": "Monoma un polinoma reizinājums; Monomi, to saskaitīšana un atņemšana; Monomu reizināšana, dalīšana, kāpināšana; Polinoma reizinājums ar polinomu; Polinomi, to saskaitīšana un atņemšana",
     "subtopics": [
@@ -1214,14 +1484,14 @@
     ]
   },
   {
-    "id": 48,
+    "id": 63,
     "slug": "skola2030-g8-7-razlichnye-funktsii-ispolzuyut-dlya",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "algebra",
     "position": 7,
-    "title_ru": "Как различные функции используют для математического моделирования",
-    "title_lv": "Kvadrātfunkcija un apgrieztā proporcionalitāte",
+    "title_ru": "8.7. Как различные функции используют для математического моделирования",
+    "title_lv": "8.7. Kā dažādas funkcijas izmanto matemātiskai modelēšanai?",
     "description_ru": "Функция y=k/x; Квадратичная функция, свойства; График квадратичной функции",
     "description_lv": "Funkcija y=k/x; Kvadrātfunkcija, īpašības; Kvadrātfunkcijas grafiks",
     "subtopics": [
@@ -1240,14 +1510,14 @@
     ]
   },
   {
-    "id": 49,
+    "id": 64,
     "slug": "skola2030-g8-8-opredelyayut-neizvestnuyu-storonu-pryamougolnogo",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "geometry",
     "position": 8,
-    "title_ru": "Как определяют неизвестную сторону прямоугольного треугольника, теорема Пифагора",
-    "title_lv": "Pitagora teorēma un taisnleņķa trijstūris",
+    "title_ru": "8.8. Как определяют неизвестную сторону прямоугольного треугольника, теорема Пифагора",
+    "title_lv": "8.8. Kā nosaka taisnleņķa trijstūra nezināmās malas garumu?",
     "description_ru": "Теорема Пифагора и её применение; Прямоугольный треугольник, равенство прямоугольных треугольников",
     "description_lv": "Pitagora teorēma un tās lietojums; Taisleņķa trijstūris, taisleņķa trijstūru vienādība",
     "subtopics": [
@@ -1262,14 +1532,14 @@
     ]
   },
   {
-    "id": 50,
+    "id": 65,
     "slug": "skola2030-g9-1-opredelyayut-i-kharakterizuyut-podobnye",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "geometry",
     "position": 1,
-    "title_ru": "Как определяют и характеризуют подобные треугольники",
-    "title_lv": "Līdzīgi trijstūri un Talesa teorēma",
+    "title_ru": "9.1. Как определяют и характеризуют подобные треугольники",
+    "title_lv": "9.1. Kā definē un raksturo līdzīgus trijstūrus?",
     "description_ru": "Подобные треугольники, признаки подобия треугольников; Теорема Фалеса. Пропорциональные отрезки; Средняя линия треугольника; Применение подобия треугольников",
     "description_lv": "Līdzīgi trijstūri, trijstūru līdzības pazīmes; Talesa teorēma. Proporcionāli nogriežņi; Trijstūra viduslīnija; Trijstūru līdzības lietojums",
     "subtopics": [
@@ -1292,14 +1562,14 @@
     ]
   },
   {
-    "id": 51,
+    "id": 66,
     "slug": "skola2030-g9-2-obshchego-u-chetyrekhugolnikov-u",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "geometry",
     "position": 2,
-    "title_ru": "Что общего у четырехугольников, у которых ровно две стороны параллельны, трапеция",
-    "title_lv": "Trapece un tās laukums",
+    "title_ru": "9.2. Что общего у четырехугольников, у которых ровно две стороны параллельны, трапеция",
+    "title_lv": "9.2. Kas kopīgs četrstūriem, kuriem tieši divas malas ir paralēlas?",
     "description_ru": "Прямая четырехугольная призма, пространственные тела; Трапеция, прямоугольная трапеция; Средняя линия трапеции. Площадь трапеции; Равнобедренная трапеция",
     "description_lv": "Taisna četrstūra prizma, telpiski ķermeņi; Trapece, taisnleņķa trapece; Trapeces viduslīnija. Trapeces laukums; Vienādsānu trapece",
     "subtopics": [
@@ -1322,14 +1592,14 @@
     ]
   },
   {
-    "id": 52,
+    "id": 67,
     "slug": "skola2030-g9-3-v-vychisleniyakh-ispolzuyut-otnoshenie",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "geometry",
     "position": 3,
-    "title_ru": "Как в вычислениях используют отношение двух сторон прямоугольного треугольника",
-    "title_lv": "Sinuss, kosinuss un tangenss taisnleņķa trijstūrī",
+    "title_ru": "9.3. Как в вычислениях используют отношение двух сторон прямоугольного треугольника",
+    "title_lv": "9.3. Kā aprēķinos izmanto taisnleņķa trijstūra divu malu attiecību?",
     "description_ru": "Зависимости в прямоугольном треугольнике в математических и реальных контекстах; Определение sin, cos, tg, вычисление неизвестных величин в прямоугольном треугольнике",
     "description_lv": "Sakarības taisnleņķa trijstūrī matemātiskos un reālos kontekstos; Sin, cos, tg definēšana, nezināmo lielumu aprēķināšana taisnleņķa trijstūrī",
     "subtopics": [
@@ -1344,14 +1614,14 @@
     ]
   },
   {
-    "id": 53,
+    "id": 68,
     "slug": "skola2030-g9-4-ispolzuyut-razlozhenie-vyrazheniy-na",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "algebra",
     "position": 4,
-    "title_ru": "Как используют разложение выражений на множители",
-    "title_lv": "Formulas saīsinātai reizināšanai un sadalīšana reizinātājos",
+    "title_ru": "9.4. Как используют разложение выражений на множители",
+    "title_lv": "9.4. Kā izmanto izteiksmju sadalīšanu reizinājos?",
     "description_ru": "Квадрат двучлена; Разность квадратов; Разложение многочлена на множители вынесением общего множителя за скобки; Применение всех действий с одночленами, многочленами",
     "description_lv": "Binoma kvadrāts; Kvadrātu starpība; Polinoma sadalīšana reizinātājos, iznesot kopīgo reizinātāju pirms iekavām; Visu darbību ar monomiem, polinomiem lietojums",
     "subtopics": [
@@ -1374,14 +1644,14 @@
     ]
   },
   {
-    "id": 54,
+    "id": 69,
     "slug": "skola2030-g9-5-obyasnyayut-i-ispolzuyut-formuly",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "algebra",
     "position": 5,
-    "title_ru": "Как объясняют и используют формулы при работе с квадратным уравнением, квадратичной функцией",
-    "title_lv": "Kvadrātvienādojumi, diskriminants un Vjeta teorēma",
+    "title_ru": "9.5. Как объясняют и используют формулы при работе с квадратным уравнением, квадратичной функцией",
+    "title_lv": "9.5. Kā skaidro un izmanto formulas darbā ar kvadrātvienādojumu, kvadrātfunkciju?",
     "description_ru": "Квадратичные функции; Квадратные неравенства; Формула корней квадратного уравнения; Квадратные уравнения x²=t, ax²=t и (x+k)²=t; Квадратное уравнение; Произведение, равное 0, уравнения ax²+bx=0; Теорема Виета",
     "description_lv": "Kvadrātfunkcijas; Kvadrātnevienādības; Kvadrātvienādojuma sakņu formula; Kvadrātvienādojumi x²=t, ax²=t un (x+k)²=t; Kvadrātvienādojums; Reizinājums vienāds ar 0, vienādojumi ax²+bx=0; Vjeta teorēma",
     "subtopics": [
@@ -1416,16 +1686,16 @@
     ]
   },
   {
-    "id": 55,
+    "id": 70,
     "slug": "skola2030-g9-6-opisyvayut-situatsii-s-dvumya",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "algebra",
     "position": 6,
-    "title_ru": "Как описывают ситуации с двумя неизвестными величинами",
-    "title_lv": "Divu vienādojumu sistēmas ar diviem mainīgajiem",
-    "description_ru": "Уравнение с двумя неизвестными, его графическое изображение; Решение систем уравнений графическим способом; Аналитические способы решения систем уравнений (вместе); Способ подстановки для решения систем уравнений; Способ сложения для решения систем уравнений",
-    "description_lv": "Vienādojums ar diviem nezināmajiem, tā grafiskais attēlojums; Vienādojumu sistēmas atrisināšana grafiski; Vienādojumu sistēmas atrisināšanas analītiskie paņēmieni (kopā); Vienādojumu sistēmas atrisināšanas ievietošanas paņēmiens; Vienādojumu sistēmas atrisināšanas saskaitīšanas paņēmiens",
+    "title_ru": "9.6. Как описывают ситуации с двумя неизвестными величинами",
+    "title_lv": "9.6. Kā apraksta situācijas ar diviem nezināmiem lielumiem?",
+    "description_ru": "Уравнение с двумя неизвестными, его графическое изображение; Решение систем уравнений графическим способом; Аналитические способы решения систем уравнений; Способ подстановки; Способ сложения",
+    "description_lv": "Vienādojums ar diviem nezināmajiem, tā grafiskais attēlojums; Vienādojumu sistēmas atrisināšana grafiski; Vienādojumu sistēmas atrisināšanas analītiskie paņēmieni; Ievietošanas paņēmiens; Saskaitīšanas paņēmiens",
     "subtopics": [
       {
         "ru": "Уравнение с двумя неизвестными, его графическое изображение",
@@ -1436,28 +1706,28 @@
         "lv": "Vienādojumu sistēmas atrisināšana grafiski"
       },
       {
-        "ru": "Аналитические способы решения систем уравнений (вместе)",
-        "lv": "Vienādojumu sistēmas atrisināšanas analītiskie paņēmieni (kopā)"
+        "ru": "Аналитические способы решения систем уравнений",
+        "lv": "Vienādojumu sistēmas atrisināšanas analītiskie paņēmieni"
       },
       {
-        "ru": "Способ подстановки для решения систем уравнений",
-        "lv": "Vienādojumu sistēmas atrisināšanas ievietošanas paņēmiens"
+        "ru": "Способ подстановки",
+        "lv": "Ievietošanas paņēmiens"
       },
       {
-        "ru": "Способ сложения для решения систем уравнений",
-        "lv": "Vienādojumu sistēmas atrisināšanas saskaitīšanas paņēmiens"
+        "ru": "Способ сложения",
+        "lv": "Saskaitīšanas paņēmiens"
       }
     ]
   },
   {
-    "id": 56,
+    "id": 71,
     "slug": "skola2030-g9-7-chislovuyu-posledovatelnost-zapisyvayut-formuloy",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "algebra",
     "position": 7,
-    "title_ru": "Как числовую последовательность записывают формулой",
-    "title_lv": "Aritmētiskā progresija",
+    "title_ru": "9.7. Как числовую последовательность записывают формулой",
+    "title_lv": "9.7. Kā skaitļu virkni pieraksta ar formulu?",
     "description_ru": "Арифметическая прогрессия, её свойства; Применение арифметической прогрессии; Числовые последовательности, упорядочивания чисел",
     "description_lv": "Aritmētiskā progresija, tās īpašības; Aritmētiskās progresijas pielietojums; Skaitļu virknes, skaitļu sakārtojumi",
     "subtopics": [
@@ -1476,14 +1746,14 @@
     ]
   },
   {
-    "id": 57,
+    "id": 72,
     "slug": "skola2030-g9-8-opisyvayut-vzaimnoe-raspolozhenie-okruzhnosti",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "geometry",
     "position": 8,
-    "title_ru": "Как описывают взаимное расположение окружности и многоугольника",
-    "title_lv": "Ievilktas un apvilktas riņķa līnijas un daudzstūri",
+    "title_ru": "9.8. Как описывают взаимное расположение окружности и многоугольника",
+    "title_lv": "9.8. Kā raksturo riņķa līnijas un daudzstūra savstarpējo novietojumu?",
     "description_ru": "Окружность, описанная около треугольника; Правильные многоугольники; Касательная к окружности, вписанная в треугольник окружность; Четырехугольник и окружность",
     "description_lv": "Ap trijstūri apvilkta riņķa līnija; Regulāri daudzstūri; Riņķa līnijas pieskare, trijstūrī ievilkta riņķa līnija; Četrstūris un riņķa līnija",
     "subtopics": [
@@ -1506,14 +1776,14 @@
     ]
   },
   {
-    "id": 58,
+    "id": 73,
     "slug": "skola2030-g11-1-vektory-i-dvizhenie",
     "grade": 11,
-    "grade_name": "Математика I (Matemātika I) - Оптимальный уровень",
+    "grade_name": "Matemātika I (11 класс)",
     "subject_slug": "geometry",
     "position": 1,
-    "title_ru": "Векторы и движение",
-    "title_lv": "Vektori plaknē un telpā, vektoru darbības",
+    "title_ru": "11.1. Векторы и движение",
+    "title_lv": "11.1. Vektori plaknē un telpā, vektoru darbības",
     "description_ru": "Расстояние между двумя точками; Проекция вектора на ось; Векторы в координатной форме на плоскости; Векторы в пространстве; Вектор, его модуль. Расположение векторов; Выражение векторов; Правила сложения векторов",
     "description_lv": "Attālums starp diviem punktiem; Vektora projekcija uz ass; Vektori koordinātu formā plaknē; Vektori telpā; Vektors, tā modulis. Vektoru novietojums; Vektoru izteikšana; Vektoru saskaitīšanas likumi",
     "subtopics": [
@@ -1548,14 +1818,14 @@
     ]
   },
   {
-    "id": 59,
+    "id": 74,
     "slug": "skola2030-g11-2-uravnenie-linii",
     "grade": 11,
-    "grade_name": "Математика I (Matemātika I) - Оптимальный уровень",
+    "grade_name": "Matemātika I (11 класс)",
     "subject_slug": "geometry",
     "position": 2,
-    "title_ru": "Уравнение линии",
-    "title_lv": "Taisnes un riņķa līnijas vienādojums",
+    "title_ru": "11.2. Уравнение линии",
+    "title_lv": "11.2. Taisnes un riņķa līnijas vienādojums",
     "description_ru": "Линейная функция. Приращение функции и аргумента; Неравенство с 2 переменными; Параллельные и перпендикулярные прямые; Уравнение прямой; Уравнение с 2 переменными. Уравнение окружности",
     "description_lv": "Lineāra funkcija. Funkcijas un argumenta pieaugums; Nevienādība ar 2 mainīgajiem; Paralēlas un perpendikulāras taisnes; Taisnes vienādojums; Vienādojums ar 2 mainīgajiem. Riņķa līnijas vienādojums",
     "subtopics": [
@@ -1582,14 +1852,14 @@
     ]
   },
   {
-    "id": 60,
+    "id": 75,
     "slug": "skola2030-g11-3-kombinatorika-i-veroyatnost-i",
     "grade": 11,
-    "grade_name": "Математика I (Matemātika I) - Оптимальный уровень",
+    "grade_name": "Matemātika I (11 класс)",
     "subject_slug": "statistics",
     "position": 3,
-    "title_ru": "Комбинаторика и вероятность I",
-    "title_lv": "Kombinatorika un varbūtību teorija I",
+    "title_ru": "11.3. Комбинаторика и вероятность I",
+    "title_lv": "11.3. Kombinatorika un varbūtību teorija I",
     "description_ru": "Комбинаторика I; Комбинаторика. Введение; Множества. Действия с множествами; Вероятность суммы. Условная вероятность; Элементы теории вероятностей",
     "description_lv": "Kombinatorika I; Kombinatorika. Ievads; Kopas. Darbības ar kopām; Summas varbūtība. Nosacītā varbūtība; Varbūtību teorijas elementi",
     "subtopics": [
@@ -1616,14 +1886,14 @@
     ]
   },
   {
-    "id": 61,
+    "id": 76,
     "slug": "skola2030-g11-4-statistika-i",
     "grade": 11,
-    "grade_name": "Математика I (Matemātika I) - Оптимальный уровень",
+    "grade_name": "Matemātika I (11 класс)",
     "subject_slug": "statistics",
     "position": 4,
-    "title_ru": "Статистика I",
-    "title_lv": "Aprakstošā statistika un izkliedes mēri I",
+    "title_ru": "11.4. Статистика I",
+    "title_lv": "11.4. Aprakstošā statistika un izkliedes mēri I",
     "description_ru": "Меры рассеяния, графическое представление данных; Популяция, выборка и данные. Средние величины",
     "description_lv": "Izkliedes mēri, datu grafiska attēlošana; Populācija, izlase un dati. Vidējie lielumi",
     "subtopics": [
@@ -1638,14 +1908,14 @@
     ]
   },
   {
-    "id": 62,
+    "id": 77,
     "slug": "skola2030-g11-5-drobno-ratsionalnaya-funktsiya-i",
     "grade": 11,
-    "grade_name": "Математика I (Matemātika I) - Оптимальный уровень",
+    "grade_name": "Matemātika I (11 класс)",
     "subject_slug": "algebra",
     "position": 5,
-    "title_ru": "Дробно-рациональная функция и алгебраические дроби",
-    "title_lv": "Algebriskās daļas un daļveida racionāla funkcija",
+    "title_ru": "11.5. Дробно-рациональная функция и алгебраические дроби",
+    "title_lv": "11.5. Algebriskās daļas un daļveida racionāla funkcija",
     "description_ru": "Алгебраические дроби. Область определения; Алгебраические уравнения; Умножение, деление, возведение в степень алгебраических дробей; Сложение и вычитание алгебраических дробей; Сокращение и расширение алгебраических дробей; Дробно-рациональная функция; Тождество. Закон смены знаков; Рациональные алгебраические выражения",
     "description_lv": "Algebriskas daļas. Definīcijas kopa; Algebriski vienādojumi; Algebrisko daļu reizināšana, dalīšana, kāpināšana; Algebrisko daļu saskaitīšana un atņemšana; Algebrisku daļu saīsināšana un paplašināšana; Daļveida funkcija; Identitāte. Zīmju maiņas likums; Racionālas algebriskas izteiksmes",
     "subtopics": [
@@ -1684,14 +1954,14 @@
     ]
   },
   {
-    "id": 63,
+    "id": 78,
     "slug": "skola2030-g11-6-drobno-ratsionalnye-uravneniya-i",
     "grade": 11,
-    "grade_name": "Математика I (Matemātika I) - Оптимальный уровень",
+    "grade_name": "Matemātika I (11 класс)",
     "subject_slug": "algebra",
     "position": 6,
-    "title_ru": "Дробно-рациональные уравнения и неравенства",
-    "title_lv": "Daļveida racionāli vienādojumi un nevienādības",
+    "title_ru": "11.6. Дробно-рациональные уравнения и неравенства",
+    "title_lv": "11.6. Daļveida racionāli vienādojumi un nevienādības",
     "description_ru": "Повторение решения линейных и квадратных неравенств; Дробно-рациональные неравенства. Метод интервалов; Дробно-рациональные уравнения; Дробно-рациональные уравнения в текстовых задачах",
     "description_lv": "Atkārtojums par lineāru un kvadrātnevienādību risināšanu; Daļveida nevienādības. Intervālu metode; Daļveida vienādojumi; Daļveida vienādojumi teksta uzdevumos",
     "subtopics": [
@@ -1714,14 +1984,14 @@
     ]
   },
   {
-    "id": 64,
+    "id": 79,
     "slug": "skola2030-g11-7-funktsii-sinusa-i-kosinusa",
     "grade": 11,
-    "grade_name": "Математика I (Matemātika I) - Оптимальный уровень",
+    "grade_name": "Matemātika I (11 класс)",
     "subject_slug": "geometry",
     "position": 7,
-    "title_ru": "Функции синуса и косинуса",
-    "title_lv": "Sinusa un kosinusa funkcijas, sinusu un kosinusu teorēmas",
+    "title_ru": "11.7. Функции синуса и косинуса",
+    "title_lv": "11.7. Sinusa un kosinusa funkcijas, sinusu un kosinusu teorēmas",
     "description_ru": "Синус и косинус угла поворота; Зависимости в прямоугольном треугольнике. Повторение; Теорема синусов и косинусов; Тригонометрические функции, их свойства",
     "description_lv": "Pagrieziena leņķa sinuss un kosinuss; Sakarības taisnleņķa trijstūrī. Atkārtojums; Sinusu un kosinusu teorēma; Trigonometriskās funkcijas, to īpašības",
     "subtopics": [
@@ -1744,14 +2014,14 @@
     ]
   },
   {
-    "id": 65,
+    "id": 80,
     "slug": "skola2030-g11-8-trigonometricheskie-vyrazheniya-i-uravneniya",
     "grade": 11,
-    "grade_name": "Математика I (Matemātika I) - Оптимальный уровень",
+    "grade_name": "Matemātika I (11 класс)",
     "subject_slug": "algebra",
     "position": 8,
-    "title_ru": "Тригонометрические выражения и уравнения",
-    "title_lv": "Trigonometriskās formulas un pamatvienādojumi",
+    "title_ru": "11.8. Тригонометрические выражения и уравнения",
+    "title_lv": "11.8. Trigonometriskās formulas un pamatvienādojumi",
     "description_ru": "Формулы суммы аргументов и двойного аргумента; Метод разложения на множители и метод подстановки; Простейшие тригонометрические уравнения; Тригонометрические выражения и основное тождество",
     "description_lv": "Argumentu summas un divkāršā argumenta formulas; Sadalīšana reizinātājos un substitūcijas metode; Trigonometriskie pamatvienādojumi; Trigonometriskās izteiksmes un pamatidentitāte",
     "subtopics": [
@@ -1774,14 +2044,14 @@
     ]
   },
   {
-    "id": 66,
+    "id": 81,
     "slug": "skola2030-g11-9-stepen-s-ratsionalnym-pokazatelem",
     "grade": 11,
-    "grade_name": "Математика I (Matemātika I) - Оптимальный уровень",
+    "grade_name": "Matemātika I (11 класс)",
     "subject_slug": "algebra",
     "position": 9,
-    "title_ru": "Степень с рациональным показателем, геометрическая прогрессия",
-    "title_lv": "Pakāpe ar racionālu kāpinātāju un ģeometriskā progresija",
+    "title_ru": "11.9. Степень с рациональным показателем, геометрическая прогрессия",
+    "title_lv": "11.9. Pakāpe ar racionālu kāpinātāju un ģeometriskā progresija",
     "description_ru": "Корень n-ой степени; Степень с рациональным показателем; Последовательности; Геометрическая прогрессия",
     "description_lv": "N-tās pakāpes sakne; Pakāpe ar racionālu kāpinātāju; Virknes; Ģeometriskā progresija",
     "subtopics": [
@@ -1804,14 +2074,14 @@
     ]
   },
   {
-    "id": 67,
+    "id": 82,
     "slug": "skola2030-g11-10-pokazatelnaya-funktsiya",
     "grade": 11,
-    "grade_name": "Математика I (Matemātika I) - Оптимальный уровень",
+    "grade_name": "Matemātika I (11 класс)",
     "subject_slug": "algebra",
     "position": 10,
-    "title_ru": "Показательная функция",
-    "title_lv": "Eksponentfunkcija, eksponentvienādojumi un logaritmi",
+    "title_ru": "11.10. Показательная функция",
+    "title_lv": "11.10. Eksponentfunkcija, eksponentvienādojumi un logaritmi",
     "description_ru": "Экспоненциальные процессы; Показательная функция; Показательные неравенства; Показательные уравнения; Свойства степеней. Повторение; Простейшие неравенства. Повторение; Простейшие уравнения. Повторение; Логарифм числа",
     "description_lv": "Eksponenciāli procesi; Eksponentfunkcija; Eksponentnevienādības; Eksponentvienādojumi; Pakāpju īpašības. Atkārtojums; Pamatnevienādības. Atkārtojums; Pamatvienādojumi. Atkārtojums; Skaitļa logaritms",
     "subtopics": [
@@ -1850,14 +2120,14 @@
     ]
   },
   {
-    "id": 68,
+    "id": 83,
     "slug": "skola2030-g11-11-pryamye-i-ploskosti-v",
     "grade": 11,
-    "grade_name": "Математика I (Matemātika I) - Оптимальный уровень",
+    "grade_name": "Matemātika I (11 класс)",
     "subject_slug": "geometry",
     "position": 11,
-    "title_ru": "Прямые и плоскости в пространстве, многогранники",
-    "title_lv": "Taisnes un plaknes telpā, daudzskaldņi un prizmas",
+    "title_ru": "11.11. Прямые и плоскости в пространстве, многогранники",
+    "title_lv": "11.11. Taisnes un plaknes telpā, daudzskaldņi un prizmas",
     "description_ru": "Диагонали многогранника и сечение плоскостью; Неправильная пирамида; Поверхность и объем призмы; Правильная треугольная пирамида; Правильная четырехугольная и шестиугольная пирамида; Прямые и плоскости в пространстве; Вычисления в прямоугольном треугольнике. Повторение",
     "description_lv": "Daudzskaldņa diagonāles un šķēlums ar plakni; Neregulāra piramīda; Prizmas virsma un tilpums; Regulāra trijstūra piramīda; Regulāra četrstūra un sešstūra piramīda; Taisnes un plaknes telpā; Taisnleņķa trijstūra aprēķināšana. Atkārtojums",
     "subtopics": [
@@ -1892,14 +2162,14 @@
     ]
   },
   {
-    "id": 69,
+    "id": 84,
     "slug": "skola2030-g11-12-tela-vrashcheniya",
     "grade": 11,
-    "grade_name": "Математика I (Matemātika I) - Оптимальный уровень",
+    "grade_name": "Matemātika I (11 класс)",
     "subject_slug": "geometry",
     "position": 12,
-    "title_ru": "Тела вращения",
-    "title_lv": "Rotācijas ķermeņi (cilindrs, konuss, lode)",
+    "title_ru": "11.12. Тела вращения",
+    "title_lv": "11.12. Rotācijas ķermeņi (cilindrs, konuss, lode)",
     "description_ru": "Геометрические комбинации цилиндра и призмы; Цилиндр; Конус; Шар; Геометрические комбинации шара и призмы",
     "description_lv": "Cilindra un prizmas ģeometriskās kombinācijas; Cilindrs; Konuss; Lode; Lodes un prizmas ģeometriskās kombinācijas",
     "subtopics": [
@@ -1926,14 +2196,14 @@
     ]
   },
   {
-    "id": 70,
+    "id": 85,
     "slug": "skola2030-g12-1-matematicheskaya-induktsiya",
     "grade": 12,
-    "grade_name": "Математика II (Matemātika II) - Продвинутый уровень",
+    "grade_name": "Matemātika II (12 класс)",
     "subject_slug": "statistics",
     "position": 1,
-    "title_ru": "Математическая индукция",
-    "title_lv": "Matemātiskā indukcija, Paskāla trijstūris un Ņūtona binoms",
+    "title_ru": "12.1. Математическая индукция",
+    "title_lv": "12.1. Matemātiskā indukcija, Paskāla trijstūris un Ņūtona binoms",
     "description_ru": "Комбинаторика II. Треугольник Паскаля; Принцип математической индукции; Элементы математической логики; Бином Ньютона",
     "description_lv": "Kombinatorika II. Paskāla trijstūris; Matemātiskās indukcijas princips. MIP; Matemātiskās loģikas elementi; Ņūtona binoms",
     "subtopics": [
@@ -1956,14 +2226,14 @@
     ]
   },
   {
-    "id": 71,
+    "id": 86,
     "slug": "skola2030-g12-2-veroyatnost-i-statistika-ii",
     "grade": 12,
-    "grade_name": "Математика II (Matemātika II) - Продвинутый уровень",
+    "grade_name": "Matemātika II (12 класс)",
     "subject_slug": "statistics",
     "position": 2,
-    "title_ru": "Вероятность и статистика II",
-    "title_lv": "Varbūtību sadalījumi, Bernulli formula un pilnā varbūtība II",
+    "title_ru": "12.2. Вероятность и статистика II",
+    "title_lv": "12.2. Varbūtību sadalījumi, Bernulli formula un pilnā varbūtība II",
     "description_ru": "Распределения случайной величины. Формула Бернулли; Вероятность объединения событий; Формула полной вероятности; Статистика II",
     "description_lv": "Gadījuma lieluma sadalījumi. Bernulli formula; Notikumu apvienojuma varbūtība; Pilnās varbūtības formula; Statistika II",
     "subtopics": [
@@ -1986,14 +2256,14 @@
     ]
   },
   {
-    "id": 72,
+    "id": 87,
     "slug": "skola2030-g12-3-posledovatelnosti-i-pokazatelnaya-funktsiya",
     "grade": 12,
-    "grade_name": "Математика II (Matemātika II) - Продвинутый уровень",
+    "grade_name": "Matemātika II (12 класс)",
     "subject_slug": "algebra",
     "position": 3,
-    "title_ru": "Последовательности и показательная функция",
-    "title_lv": "Skaitļu virkņu robeža, skaitlis e un bezgalīga ģeometriskā progresija",
+    "title_ru": "12.3. Последовательности и показательная функция",
+    "title_lv": "12.3. Skaitļu virkņu robeža, skaitlis e un bezgalīga ģeometriskā progresija",
     "description_ru": "Бесконечно убывающая геометрическая прогрессия; Число e и экспоненциальные процессы; Последовательности, их монотонность и предел",
     "description_lv": "Bezgalīgi dilstoša ģeometriskā progresija; Skaitlis e un eksponenciāli procesi; Virknes, to monotonitāte un robeža",
     "subtopics": [
@@ -2012,14 +2282,14 @@
     ]
   },
   {
-    "id": 73,
+    "id": 88,
     "slug": "skola2030-g12-4-stepennaya-funktsiya-i-logarifmicheskaya",
     "grade": 12,
-    "grade_name": "Математика II (Matemātika II) - Продвинутый уровень",
+    "grade_name": "Matemātika II (12 класс)",
     "subject_slug": "algebra",
     "position": 4,
-    "title_ru": "Степенная функция и логарифмическая функция, модуль",
-    "title_lv": "Pakāpes un logaritmiskā funkcija, moduļa vienādojumi",
+    "title_ru": "12.4. Степенная функция и логарифмическая функция, модуль",
+    "title_lv": "12.4. Pakāpes un logaritmiskā funkcija, moduļa vienādojumi",
     "description_ru": "Обратная функция; Иррациональные и логарифмические уравнения; Логарифмические уравнения и системы; Логарифмическая функция; Логарифмические неравенства; Функция модуля, уравнения, неравенства; Степенная функция",
     "description_lv": "Inversā funkcija; Iracionālie un logaritmiskie vienādojumi; Logaritmiskie vienādojumi un sistēmas; Logaritmiskā funkcija; Logaritmiskās nevienādības; Moduļa funkcija, vienādojumi, nevienādības; Pakāpes funkcija",
     "subtopics": [
@@ -2054,14 +2324,14 @@
     ]
   },
   {
-    "id": 74,
+    "id": 89,
     "slug": "skola2030-g12-5-drobno-ratsionalnaya-funktsiya-i",
     "grade": 12,
-    "grade_name": "Математика II (Matemātika II) - Продвинутый уровень",
+    "grade_name": "Matemātika II (12 класс)",
     "subject_slug": "algebra",
     "position": 5,
-    "title_ru": "Дробно-рациональная функция и алгебраические преобразования",
-    "title_lv": "Polinomu dalīšana, Bezū teorēma un nenoteiktie koeficienti",
+    "title_ru": "12.5. Дробно-рациональная функция и алгебраические преобразования",
+    "title_lv": "12.5. Polinomu dalīšana, Bezū teorēma un nenoteiktie koeficienti",
     "description_ru": "Дробно-рациональная функция; Метод неопределенных коэффициентов; Деление многочлена на многочлен. Теорема Безу; Разложение на множители",
     "description_lv": "Daļveida funkcija; Nenoteikto koeficientu metode; Polinoma dalīšana ar polinomu. Bezū teorēma; Sadalīšana reizinātājos",
     "subtopics": [
@@ -2084,56 +2354,52 @@
     ]
   },
   {
-    "id": 75,
+    "id": 90,
     "slug": "skola2030-g12-6-proizvodnaya-i-eyo-primenenie",
     "grade": 12,
-    "grade_name": "Математика II (Matemātika II) - Продвинутый уровень",
+    "grade_name": "Matemātika II (12 класс)",
     "subject_slug": "algebra",
     "position": 6,
-    "title_ru": "Производная и её применение",
-    "title_lv": "Atvasinājums, diferencēšanas kārtulas un funkciju pētīšana",
+    "title_ru": "12.6. Производная и её применение",
+    "title_lv": "12.6. Atvasinājums, diferencēšanas kārtulas un funkciju pētīšana",
     "description_ru": "Определение производной и её смысл; Применение производной при исследовании функций; Правила и формулы дифференцирования; Непрерывность функции; Исследование функций в математике и других областях; Предел",
-    "description_lv": "Atvasinājuma definīcija un  interpretācija; Atvasinājuma definīcija un interpretācija; Atvasinājuma lietojums funkciju pētīšanā; Atvasināšanas likumi un formulas; Funkcijas nepārtrauktība; Funkciju pētīšana matemātikā un citās jomās; Robeža",
+    "description_lv": "Atvasinājuma definīcija un interpretācija; Atvasinājuma lietojums funkciju pētīšanā; Atvasināšanas likumi un formulas; Funkcijas nepārtrauktība; Funkciju pētīšana matemātikā un citās jomās; Robeža",
     "subtopics": [
       {
         "ru": "Определение производной и её смысл",
-        "lv": "Atvasinājuma definīcija un  interpretācija"
-      },
-      {
-        "ru": "Применение производной при исследовании функций",
         "lv": "Atvasinājuma definīcija un interpretācija"
       },
       {
-        "ru": "Правила и формулы дифференцирования",
+        "ru": "Применение производной при исследовании функций",
         "lv": "Atvasinājuma lietojums funkciju pētīšanā"
       },
       {
-        "ru": "Непрерывность функции",
+        "ru": "Правила и формулы дифференцирования",
         "lv": "Atvasināšanas likumi un formulas"
       },
       {
-        "ru": "Исследование функций в математике и других областях",
+        "ru": "Непрерывность функции",
         "lv": "Funkcijas nepārtrauktība"
       },
       {
-        "ru": "Предел",
+        "ru": "Исследование функций в математике и других областях",
         "lv": "Funkciju pētīšana matemātikā un citās jomās"
       },
       {
-        "ru": "Robeža",
+        "ru": "Предел",
         "lv": "Robeža"
       }
     ]
   },
   {
-    "id": 76,
+    "id": 91,
     "slug": "skola2030-g12-7-integral-i-ego-primenenie",
     "grade": 12,
-    "grade_name": "Математика II (Matemātika II) - Продвинутый уровень",
+    "grade_name": "Matemātika II (12 класс)",
     "subject_slug": "algebra",
     "position": 7,
-    "title_ru": "Интеграл и его применение",
-    "title_lv": "Nenoteiktais un noteiktais integrālis, laukumu aprēķināšana",
+    "title_ru": "12.7. Интеграл и его применение",
+    "title_lv": "12.7. Nenoteiktais un noteiktais integrālis, laukumu aprēķināšana",
     "description_ru": "Интегрирование дробно-рациональных функций; Вычисление площади и объема с помощью определенного интеграла; Неопределенный интеграл; Определенный интеграл и его применение в физике; Переход к дифференциалу другой функции (замена переменной)",
     "description_lv": "Daļveida racionālu funkciju integrēšana; Laukuma un tilpuma aprēķināšana ar noteikto integrāli; Nenoteiktais integrālis; Noteiktais integrālis un integrāļa lietojums fizikā; Pāreja uz citas funkcijas diferenciāli",
     "subtopics": [
@@ -2160,14 +2426,14 @@
     ]
   },
   {
-    "id": 77,
+    "id": 92,
     "slug": "skola2030-g12-8-trigonometriya-ii",
     "grade": 12,
-    "grade_name": "Математика II (Matemātika II) - Продвинутый уровень",
+    "grade_name": "Matemātika II (12 класс)",
     "subject_slug": "algebra",
     "position": 8,
-    "title_ru": "Тригонометрия II",
-    "title_lv": "Trigonometriskās nevienādības un inversās trigonometriskās funkcijas",
+    "title_ru": "12.8. Тригонометрия II",
+    "title_lv": "12.8. Trigonometriskās nevienādības un inversās trigonometriskās funkcijas",
     "description_ru": "Тангенс и котангенс угла; Тригонометрические уравнения и неравенства; Тригонометрические и обратные им функции",
     "description_lv": "Leņķa tangenss un kotangenss; Trigonometriskie vienādojumi un nevienādības; Trigonometriskās un to inversās funkcijas",
     "subtopics": [
@@ -2186,14 +2452,14 @@
     ]
   },
   {
-    "id": 78,
+    "id": 93,
     "slug": "skola2030-g12-9-analiticheskaya-geometriya",
     "grade": 12,
-    "grade_name": "Математика II (Matemātika II) - Продвинутый уровень",
+    "grade_name": "Matemātika II (12 класс)",
     "subject_slug": "geometry",
     "position": 9,
-    "title_ru": "Аналитическая геометрия",
-    "title_lv": "Analītiskā ģeometrija: taisnes, vektori un skalārais reizinājums",
+    "title_ru": "12.9. Аналитическая геометрия",
+    "title_lv": "12.9. Analītiskā ģeometrija: taisnes, vektori un skalārais reizinājums",
     "description_ru": "Взаимное расположение двух прямых. Точка и прямая; Линии на плоскости; Уравнение прямой; Векторы; Скалярное произведение векторов",
     "description_lv": "Divu taišņu savstarpējais novietojums. Punkts un taisne; Līnijas plaknē; Taisnes vienādojums; Vektori; Vektoru skalārais reizinājums",
     "subtopics": [
@@ -2220,14 +2486,14 @@
     ]
   },
   {
-    "id": 79,
+    "id": 94,
     "slug": "skola2030-g12-10-planimetriya-ii",
     "grade": 12,
-    "grade_name": "Математика II (Matemātika II) - Продвинутый уровень",
+    "grade_name": "Matemātika II (12 класс)",
     "subject_slug": "geometry",
     "position": 10,
-    "title_ru": "Планиметрия II",
-    "title_lv": "Padziļinātā planimetrija: sakarības daudzstūros un riņķī",
+    "title_ru": "12.10. Планиметрия II",
+    "title_lv": "12.10. Padziļinātā planimetrija: sakarības daudzstūros un riņķī",
     "description_ru": "Углы и отрезки, связанные с окружностью; Зависимости в многоугольниках, правильных многоугольниках; Зависимости в треугольниках; Зависимости в четырехугольниках; Геометрические преобразования",
     "description_lv": "Ar riņķa līniju saistītie leņķi un nogriežņi; Sakarības daudzstūros, regulāros daudzstūros; Sakarības trijstūros; Sakarības četrstūros; Ģeometriskie pārveidojumi",
     "subtopics": [
@@ -2254,14 +2520,14 @@
     ]
   },
   {
-    "id": 80,
+    "id": 95,
     "slug": "skola2030-g12-11-stereometriya-ii",
     "grade": 12,
-    "grade_name": "Математика II (Matemātika II) - Продвинутый уровень",
+    "grade_name": "Matemātika II (12 класс)",
     "subject_slug": "geometry",
     "position": 11,
-    "title_ru": "Стереометрия II",
-    "title_lv": "Padziļinātā stereometrija: ķermeņu šķēlumi un kombinācijas",
+    "title_ru": "12.11. Стереометрия II",
+    "title_lv": "12.11. Padziļinātā stereometrija: ķermeņu šķēlumi un kombinācijas",
     "description_ru": "Многогранники, их сечение плоскостью; Геометрические комбинации конуса и пирамиды; Геометрические комбинации шара, цилиндра и конуса; Геометрические комбинации призмы и цилиндра; Комбинации призмы и шара, пирамиды и шара",
     "description_lv": "Daudzskaldņi, to šķēlums ar plakni; Konusa un piramīdas ģeometriskās kombinācijas; Lodes, cilindra un konusa ģeometriskās kombinācijas; Prizmas un cilindra ģeometriskās kombinācijas; Prizmas un lodes, piramīdas un lodes kombinācijas",
     "subtopics": [
@@ -2288,14 +2554,14 @@
     ]
   },
   {
-    "id": 81,
+    "id": 96,
     "slug": "skola2030-g12-12-kompleksnye-zadachi-po-algebre",
     "grade": 12,
-    "grade_name": "Математика II (Matemātika II) - Продвинутый уровень",
+    "grade_name": "Matemātika II (12 класс)",
     "subject_slug": "algebra",
     "position": 12,
-    "title_ru": "Комплексные задачи по алгебре",
-    "title_lv": "Kompleksie uzdevumi algebrā, vienādojumi ar parametriem",
+    "title_ru": "12.12. Комплексные задачи по алгебре",
+    "title_lv": "12.12. Kompleksie uzdevumi algebrā, vienādojumi ar parametriem",
     "description_ru": "Повторение. Виды простейших уравнений; Метод подстановки. Уравнения и неравенства; Уравнения с параметром; Решение уравнений разложением на множители",
     "description_lv": "Atkārtojums. Pamatvienādojumu veidi; Substitūcijas metode. Vienādojumi un nevienādības; Vienādojumi ar parametru; Vienādojumu risināšana, sadalot reizinātājos",
     "subtopics": [
