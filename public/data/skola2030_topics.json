@@ -3804,1522 +3804,436 @@
   },
   {
     "id": 121,
-    "slug": "augst-iracionalie-vienadojumi",
+    "slug": "augst-algebriskie-parveidojumi-indukcija",
     "grade": 12,
     "grade_name": "Matemātika II",
     "subject_slug": "algebra",
     "position": 1,
-    "title_ru": "12.1. Иррациональные уравнения",
-    "title_lv": "12.1. Iracionālie vienādojumi",
-    "description_ru": "Возведение обеих частей в степень, учет ОДЗ, замена переменной, появление посторонних корней.",
-    "description_lv": "Abu pušu kāpināšana pakāpē, definīcijas apgabala ievērošana, mainīgā nomaiņa, svešu sakņu atsijāšana.",
+    "title_ru": "12.1. Алгебраические преобразования, индукция",
+    "title_lv": "12.1. Algebriskie pārveidojumi, indukcija",
+    "description_ru": "Программа Matemātika II: 16 ч.",
+    "description_lv": "Matemātika II programma: 16 st.",
     "subtopics": [
       {
         "num": "12.1.1",
-        "ru": "Понятие иррационального уравнения и область допустимых значений",
-        "lv": "Iracionāla vienādojuma jēdziens un pieļaujamo vērtību apgabals"
+        "ru": "Элементы математической логики",
+        "lv": "Matemātiskās loģikas elementi"
       },
       {
         "num": "12.1.2",
-        "ru": "Возведение в степень и избавление от радикалов",
-        "lv": "Kāpināšana un atbrīvošanās no saknēm"
-      },
-      {
-        "num": "12.1.3",
-        "ru": "Проверка корней и отсев посторонних решений",
-        "lv": "Sakņu pārbaude un nederīgo sakņu atmetīšana"
-      },
-      {
-        "num": "12.1.4",
-        "ru": "Метод введения новой переменной",
-        "lv": "Jauna mainīgā ieviešanas metode"
+        "ru": "Принцип математической индукции",
+        "lv": "Matemātiskās indukcijas princips"
       }
     ]
   },
   {
     "id": 122,
-    "slug": "augst-logaritmiskie-vienadojumi-sistemas",
+    "slug": "augst-polinomu-dalisana-augstakas-pakapes-vienadojum",
     "grade": 12,
     "grade_name": "Matemātika II",
     "subject_slug": "algebra",
     "position": 2,
-    "title_ru": "12.2. Логарифмические уравнения, неравенства и системы",
-    "title_lv": "12.2. Logaritmiskie vienādojumi, nevienādības un sistēmas",
-    "description_ru": "Переход к новому основанию, переменное основание логарифма $\\log_{g(x)} f(x)$, метод рационализации.",
-    "description_lv": "Pāreja uz jaunu bāzi, mainīga logaritma bāze $\\log_{g(x)} f(x)$, racionalizācijas metode.",
+    "title_ru": "12.2. Деление многочленов, уравнения высших степеней",
+    "title_lv": "12.2. Polinomu dalīšana, augstākas pakāpes vienādojumi",
+    "description_ru": "Программа Matemātika II: 20 ч.",
+    "description_lv": "Matemātika II programma: 20 st.",
     "subtopics": [
       {
         "num": "12.2.1",
-        "ru": "Определение и свойства логарифмических функций",
-        "lv": "Logaritmiskās funkcijas definīcija un īpašības"
+        "ru": "Деление многочленов и теорема Безу",
+        "lv": "Polinomu dalīšana un Bezū teorēma"
       },
       {
         "num": "12.2.2",
-        "ru": "Решение простейших логарифмических уравнений",
-        "lv": "Vienkāršāko logarithmisko vienādojumu risināšana"
+        "ru": "Метод неопределенных коэффициентов",
+        "lv": "Nenoteikto koeficientu metode"
       },
       {
         "num": "12.2.3",
-        "ru": "Логарифмические неравенства и учет ОДЗ",
-        "lv": "Logaritmiskās nevienādības un PVA ievērošana"
+        "ru": "Уравнения и неравенства с параметром",
+        "lv": "Vienādojumi un nevienādības ar parametru"
       },
       {
         "num": "12.2.4",
-        "ru": "Системы логарифмических уравнений",
-        "lv": "Logaritmisko vienādojumu sistēmas"
+        "ru": "Комплексные приемы решения уравнений",
+        "lv": "Kompleksi vienādojumu risināšanas paņēmieni"
       }
     ]
   },
   {
     "id": 123,
-    "slug": "augst-polinomu-dalisana-bezu",
+    "slug": "augst-funkcija",
     "grade": 12,
     "grade_name": "Matemātika II",
-    "subject_slug": "algebra",
+    "subject_slug": "funkcijas",
     "position": 3,
-    "title_ru": "12.3. Деление многочленов и теорема Безу",
-    "title_lv": "12.3. Polinomu dalīšana un Bezū teorēma",
-    "description_ru": "Деление многочлена на многочлен «уголком», теорема Безу $P(a) = R$, схема Горнера, нахождение рациональных корней.",
-    "description_lv": "Polinomu dalīšana stabiņā, Bezū teorēma $P(a) = R$, Hornera shēma, racionālu sakņu atrašana.",
+    "title_ru": "12.3. Функция",
+    "title_lv": "12.3. Funkcija",
+    "description_ru": "Программа Matemātika II: 20 ч.",
+    "description_lv": "Matemātika II programma: 20 st.",
     "subtopics": [
       {
         "num": "12.3.1",
-        "ru": "Деление многочлена на многочлен уголком",
-        "lv": "Polinoma dalīšana ar polinomu stabiņā"
+        "ru": "Обратная функция",
+        "lv": "Inversā funkcija"
       },
       {
         "num": "12.3.2",
-        "ru": "Теорема Безу и нахождение остатка от деления",
-        "lv": "Bezū teorēma un atlikuma atrašana"
-      },
-      {
-        "num": "12.3.3",
-        "ru": "Корни многочлена и схема Горнера",
-        "lv": "Polinoma saknes un Horner’a shēma"
-      },
-      {
-        "num": "12.3.4",
-        "ru": "Разложение многочлена на линейные множители",
-        "lv": "Polinoma sadalīšana lineāros reizinātājos"
+        "ru": "Исследование дробно-рациональной функции",
+        "lv": "Daļveida racionālas funkcijas pētīšana"
       }
     ]
   },
   {
     "id": 124,
-    "slug": "augst-nenoteikto-koeficientu-metode",
+    "slug": "augst-vienadojumi-un-nevienadibas-ar-moduli-iraciona",
     "grade": 12,
     "grade_name": "Matemātika II",
     "subject_slug": "algebra",
     "position": 4,
-    "title_ru": "12.4. Метод неопределенных коэффициентов",
-    "title_lv": "12.4. Nenoteikto koeficientu metode",
-    "description_ru": "Разложение рациональных дробей на сумму простейших, равенство многочленов, составление систем линейных уравнений.",
-    "description_lv": "Racionālu daļu sadalīšana pamatdaļās, polinomu vienādība, lineāru vienādojumu sistēmu veidošana.",
+    "title_ru": "12.4. Уравнения и неравенства с модулем, иррациональные уравнения",
+    "title_lv": "12.4. Vienādojumi un nevienādības ar moduli, iracionāli vienādojumi",
+    "description_ru": "Программа Matemātika II: 19 ч.",
+    "description_lv": "Matemātika II programma: 19 st.",
     "subtopics": [
       {
         "num": "12.4.1",
-        "ru": "Суть метода неопределенных коэффициентов",
-        "lv": "Nenoteikto koeficientu metodes būtība"
-      },
-      {
-        "num": "12.4.2",
-        "ru": "Разложение рациональной дроби на простейшие дроби",
-        "lv": "Racionālas daļas sadalīšana elementārdaļās"
-      },
-      {
-        "num": "12.4.3",
-        "ru": "Нахождение неизвестных коэффициентов",
-        "lv": "Nezināmo koeficientu atrašana"
-      },
-      {
-        "num": "12.4.4",
-        "ru": "Применение метода к интегралам и многочленам",
-        "lv": "Metodes lietojums integrāļos un polinomos"
+        "ru": "Иррациональные уравнения",
+        "lv": "Iracionālie vienādojumi"
       }
     ]
   },
   {
     "id": 125,
-    "slug": "augst-vienadojumi-parametri",
+    "slug": "augst-logaritmiskie-vienadojumi-un-nevienadibas-jauk",
     "grade": 12,
     "grade_name": "Matemātika II",
     "subject_slug": "algebra",
     "position": 5,
-    "title_ru": "12.5. Уравнения и неравенства с параметром",
-    "title_lv": "12.5. Vienādojumi un nevienādības ar parametru",
-    "description_ru": "Аналитический и графический методы исследования количества корней в зависимости от значений параметра $a$.",
-    "description_lv": "Analītiskā un grafiskā metode sakņu skaita pētīšanai atkarībā no parametra $a$ vērtībām.",
+    "title_ru": "12.5. Логарифмические уравнения и неравенства. Смешанные системы уравнений",
+    "title_lv": "12.5. Logaritmiskie vienādojumi un nevienādības. Jauktas vienādojumu sistēmas",
+    "description_ru": "Программа Matemātika II: 20 ч.",
+    "description_lv": "Matemātika II programma: 20 st.",
     "subtopics": [
       {
         "num": "12.5.1",
-        "ru": "Линейные и квадратные уравнения с параметром",
-        "lv": "Lineāri un kvadrātvienādojumi ar parametru"
-      },
-      {
-        "num": "12.5.2",
-        "ru": "Исследование количества корней уравнения",
-        "lv": "Vienādojuma sakņu skaita izpēte"
-      },
-      {
-        "num": "12.5.3",
-        "ru": "Расположение корней квадратного трехчлена",
-        "lv": "Kvadrāttrinoma sakņu izvietojums"
-      },
-      {
-        "num": "12.5.4",
-        "ru": "Неравенства с параметром и графический метод",
-        "lv": "Nevienādības ar parametru un grafiskā metode"
+        "ru": "Логарифмические уравнения, неравенства и системы",
+        "lv": "Logaritmiskie vienādojumi, nevienādības un sistēmas"
       }
     ]
   },
   {
     "id": 126,
-    "slug": "augst-kompleksi-vienadojumu-panemieni",
+    "slug": "augst-trigonometrija",
     "grade": 12,
     "grade_name": "Matemātika II",
-    "subject_slug": "algebra",
+    "subject_slug": "trigonometrija",
     "position": 6,
-    "title_ru": "12.6. Комплексные приемы решения уравнений",
-    "title_lv": "12.6. Kompleksi vienādojumu risināšanas paņēmieni",
-    "description_ru": "Однородные уравнения, симметрические системы, метод оценки (мажорант), функционально-графический метод.",
-    "description_lv": "Homogēni vienādojumi, simetriskas sistēmas, mažorantu metode, funkcionāli grafiskā metode.",
+    "title_ru": "12.6. Тригонометрия",
+    "title_lv": "12.6. Trigonometrija",
+    "description_ru": "Программа Matemātika II: 24 ч.",
+    "description_lv": "Matemātika II programma: 24 st.",
     "subtopics": [
       {
         "num": "12.6.1",
-        "ru": "Использование симметрии и свойств функций",
-        "lv": "Simetrijas un funkciju īpašību izmantošana"
+        "ru": "Тангенс и котангенс угла",
+        "lv": "Leņķa tangenss un kotangenss"
       },
       {
         "num": "12.6.2",
-        "ru": "Метод замены переменной в уравнениях высших степеней",
-        "lv": "Mainīgā aizvietošanas metode augstāku pakāpju vienādojumos"
+        "ru": "Обратные тригонометрические функции",
+        "lv": "Apgrieztās trigonometriskās funkcijas"
       },
       {
         "num": "12.6.3",
-        "ru": "Однородные уравнения",
-        "lv": "Homogēni vienādojumi"
+        "ru": "Тригонометрические неравенства",
+        "lv": "Trigonometriskās nevienādības"
       },
       {
         "num": "12.6.4",
-        "ru": "Комбинированные уравнения и нестандартные приемы",
-        "lv": "Kombinēti vienādojumi un nestandarta paņēmieni"
+        "ru": "Системы тригонометрических уравнений",
+        "lv": "Trigonometrisko vienādojumu sistēmas"
+      },
+      {
+        "num": "12.6.5",
+        "ru": "Гармонические колебания и тригонометрические модели",
+        "lv": "Harmoniskās svārstības un trigonometriskie modeļi"
       }
     ]
   },
   {
     "id": 127,
-    "slug": "augst-inversa-funkcija",
+    "slug": "augst-virknes-virknes-robeza",
     "grade": 12,
     "grade_name": "Matemātika II",
-    "subject_slug": "funkcijas",
+    "subject_slug": "matematiskais-analizs",
     "position": 7,
-    "title_ru": "12.7. Обратная функция",
-    "title_lv": "12.7. Inversā funkcija",
-    "description_ru": "Условие обратимости (строгая монотонность), нахождение формулы обратной функции $y = f^{-1}(x)$, симметрия графиков относительно $y = x$.",
-    "description_lv": "Invertējamības nosacījums (monotonitāte), inversās funkcijas atrašana, grafiku simetrija pret taisni $y = x$.",
+    "title_ru": "12.7. Последовательности, предел последовательности",
+    "title_lv": "12.7. Virknes, virknes robeža",
+    "description_ru": "Программа Matemātika II: 16 ч.",
+    "description_lv": "Matemātika II programma: 16 st.",
     "subtopics": [
       {
         "num": "12.7.1",
-        "ru": "Понятие обратной функции и условие обратимости",
-        "lv": "Inversās funkcijas jēdziens un invertējamības nosacījums"
+        "ru": "Последовательности, их монотонность и предел",
+        "lv": "Virknes, to monotonitāte un robeža"
       },
       {
         "num": "12.7.2",
-        "ru": "График обратной функции и его симметрия",
-        "lv": "Inversās funkcijas grafiks un tā simetrija"
+        "ru": "Бесконечно убывающая геометрическая прогрессия",
+        "lv": "Bezgalīgi dilstoša ģeometriskā progresija"
       },
       {
         "num": "12.7.3",
-        "ru": "Нахождение формулы обратной функции",
-        "lv": "Inversās funkcijas izteiksmes atrasšana"
-      },
-      {
-        "num": "12.7.4",
-        "ru": "Взаимосвязь областей определения и значений",
-        "lv": "Definīcijas apgabala un vērtību kopas savstarpējā saistība"
+        "ru": "Число e и экспоненциальные процессы",
+        "lv": "Skaitlis e un eksponenciāli procesi"
       }
     ]
   },
   {
     "id": 128,
-    "slug": "augst-virknes-monotonitate-robeza",
+    "slug": "augst-funkcijas-robeza-nepartrauktiba",
     "grade": 12,
     "grade_name": "Matemātika II",
     "subject_slug": "matematiskais-analizs",
     "position": 8,
-    "title_ru": "12.8. Последовательности, их монотонность и предел",
-    "title_lv": "12.8. Virknes, to monotonitāte un robeža",
-    "description_ru": "Ограниченность и монотонность числовых последовательностей, понятие предела $\\lim_{n \\to \\infty} a_n$, вычисление пределов отношений многочленов.",
-    "description_lv": "Skaitļu virkņu ierobežotība un monotonitāte, virknes robežas jēdziens $\\lim_{n \\to \\infty} a_n$, robežu aprēķināšana.",
+    "title_ru": "12.8. Предел функции, непрерывность",
+    "title_lv": "12.8. Funkcijas robeža, nepārtrauktība",
+    "description_ru": "Программа Matemātika II: 16 ч.",
+    "description_lv": "Matemātika II programma: 16 st.",
     "subtopics": [
       {
         "num": "12.8.1",
-        "ru": "Понятие числовой последовательности и способы задания",
-        "lv": "Skaitļu virknes jēdziens un uzdošanas veidi"
+        "ru": "Непрерывность функции",
+        "lv": "Funkcijas nepārtrauktība"
       },
       {
         "num": "12.8.2",
-        "ru": "Монотонность последовательности",
-        "lv": "Virknes monotonitāte"
-      },
-      {
-        "num": "12.8.3",
-        "ru": "Ограниченность последовательности",
-        "lv": "Virknes ierobežotība"
-      },
-      {
-        "num": "12.8.4",
-        "ru": "Предел последовательности и сходимость",
-        "lv": "Virknes robeža un konvergence"
+        "ru": "Предел функции",
+        "lv": "Funkcijas robeža"
       }
     ]
   },
   {
     "id": 129,
-    "slug": "augst-bezgaligi-dilstosa-progresija",
+    "slug": "augst-funkcijas-atvasinajums",
     "grade": 12,
     "grade_name": "Matemātika II",
-    "subject_slug": "planimetrija",
+    "subject_slug": "matematiskais-analizs",
     "position": 9,
-    "title_ru": "12.9. Бесконечно убывающая геометрическая прогрессия",
-    "title_lv": "12.9. Bezgalīgi dilstoša ģeometriskā progresija",
-    "description_ru": "Условие сходимости $|q| < 1$, формула суммы $S = \\frac{b_1}{1 - q}$, обращение периодических десятичных дробей в обыкновенные.",
-    "description_lv": "Konverģences nosacījums $|q| < 1$, summas formula $S = \\frac{b_1}{1 - q}$, bezgalīgu periodisku decimāldaļu pārvēršana parastajās daļās.",
+    "title_ru": "12.9. Производная функции",
+    "title_lv": "12.9. Funkcijas atvasinājums",
+    "description_ru": "Программа Matemātika II: 15 ч.",
+    "description_lv": "Matemātika II programma: 15 st.",
     "subtopics": [
       {
         "num": "12.9.1",
-        "ru": "Понятие бесконечно убывающей геометрической прогрессии",
-        "lv": "Bezgalīgi dilstošas ģeometriskās progresijas jēdziens"
+        "ru": "Определение производной и её геометрический смысл",
+        "lv": "Atvasinājuma definīcija un tā ģeometriskā jēga"
       },
       {
         "num": "12.9.2",
-        "ru": "Формула суммы бесконечно убывающей прогрессии",
-        "lv": "Bezgalīgi dilstošas progresijas summas formula"
-      },
-      {
-        "num": "12.9.3",
-        "ru": "Перевод периодических дробей в обыкновенные",
-        "lv": "Periodisku decimāldaļu pārveidošana par parastajām daļām"
-      },
-      {
-        "num": "12.9.4",
-        "ru": "Применение прогрессии в текстовых задачах",
-        "lv": "Progresijas lietojums teksta uzdevumos"
+        "ru": "Правила и формулы дифференцирования",
+        "lv": "Diferencēšanas likumi un formulas"
       }
     ]
   },
   {
     "id": 130,
-    "slug": "augst-skaitlis-e-eksponenciali-procesi",
+    "slug": "augst-funkcijas-atvasinajuma-lietojumi",
     "grade": 12,
     "grade_name": "Matemātika II",
-    "subject_slug": "algebra",
+    "subject_slug": "matematiskais-analizs",
     "position": 10,
-    "title_ru": "12.10. Число e и экспоненциальные процессы",
-    "title_lv": "12.10. Skaitlis e un eksponenciāli procesi",
-    "description_ru": "Число Эйлера $e = \\lim (1 + 1/n)^n \\approx 2{,}718$, натуральный логарифм $\\ln x$, непрерывное начисление процентов, дифференциальные уравнения радиоактивного распада.",
-    "description_lv": "Eilera skaitlis $e \\approx 2{,}718$, naturāllogaritms $\\ln x$, nepārtraukti procentu aprēķini, sabrukšanas vienādojums.",
+    "title_ru": "12.10. Применения производной",
+    "title_lv": "12.10. Funkcijas atvasinājuma lietojumi",
+    "description_ru": "Программа Matemātika II: 18 ч.",
+    "description_lv": "Matemātika II programma: 18 st.",
     "subtopics": [
       {
         "num": "12.10.1",
-        "ru": "Число e и его математический смысл",
-        "lv": "Skaitlis e un tā matemātiskā jēga"
+        "ru": "Касательная к графику функции",
+        "lv": "Pieskare funkcijas grafikam"
       },
       {
         "num": "12.10.2",
-        "ru": "Функция натурального экспоненциального роста",
-        "lv": "Naturālās eksponenciālās augšanas funkcija"
+        "ru": "Исследование функций с помощью производной",
+        "lv": "Funkciju pētīšana ar atvasinājumu: monotonitāte un ekstrēmi"
       },
       {
         "num": "12.10.3",
-        "ru": "Моделирование процессов роста и распада",
-        "lv": "Augšanas un sabrukšanas procesu modelēšana"
-      },
-      {
-        "num": "12.10.4",
-        "ru": "Непрерывное начисление процентов",
-        "lv": "Nepārtrauktie procentu aprēķini"
+        "ru": "Прикладные задачи на оптимизацию",
+        "lv": "Lietišķi optimizācijas uzdevumi"
       }
     ]
   },
   {
     "id": 131,
-    "slug": "augst-funkcijas-nepartrauktiba",
+    "slug": "augst-integralis",
     "grade": 12,
     "grade_name": "Matemātika II",
     "subject_slug": "matematiskais-analizs",
     "position": 11,
-    "title_ru": "12.11. Непрерывность функции",
-    "title_lv": "12.11. Funkcijas nepārtrauktība",
-    "description_ru": "Определение непрерывности в точке $\\lim_{x \\to x_0} f(x) = f(x_0)$, точки разрыва, теорема Больцано–Коши о промежуточных значениях.",
-    "description_lv": "Nepārtrauktība punktā $\\lim_{x \\to x_0} f(x) = f(x_0)$, pārtraukuma punkti, teorēma par funkcijas starpvērtībām.",
+    "title_ru": "12.11. Интеграл",
+    "title_lv": "12.11. Integrālis",
+    "description_ru": "Программа Matemātika II: 16 ч.",
+    "description_lv": "Matemātika II programma: 16 st.",
     "subtopics": [
       {
         "num": "12.11.1",
-        "ru": "Понятие непрерывности функции в точке",
-        "lv": "Funkcijas nepārtrauktības jēdziens punktā"
+        "ru": "Первообразная и неопределенный интеграл",
+        "lv": "Primitīvā funkcija un nenoteiktais integrālis"
       },
       {
         "num": "12.11.2",
-        "ru": "Односторонние пределы и непрерывность",
-        "lv": "Vienpusējās robežas un nepārtrauktība"
-      },
-      {
-        "num": "12.11.3",
-        "ru": "Классификация точек разрыва",
-        "lv": "Pārtraukuma punktu klasifikācija"
-      },
-      {
-        "num": "12.11.4",
-        "ru": "Свойства непрерывных на отрезке функций",
-        "lv": "Funkciju, kas ir nepārtrauktas slēgtā intervālā, īpašības"
+        "ru": "Определенный интеграл и формула Ньютона–Лейбница",
+        "lv": "Noteiktais integrālis un Ņūtona–Leibnica formula"
       }
     ]
   },
   {
     "id": 132,
-    "slug": "augst-dalveida-racionalas-funkcijas-petisana",
+    "slug": "augst-integrala-lietojumi",
     "grade": 12,
     "grade_name": "Matemātika II",
-    "subject_slug": "funkcijas",
+    "subject_slug": "matematiskais-analizs",
     "position": 12,
-    "title_ru": "12.12. Исследование дробно-рациональной функции",
-    "title_lv": "12.12. Daļveida racionālas funkcijas pētīšana",
-    "description_ru": "Наклонные асимптоты $y = kx + b$, точки пересечения с осями координат, знаки постоянства.",
-    "description_lv": "Slīpās asimptotas $y = kx + b$, krustpunkti ar asīm, zīmju pastāvība.",
+    "title_ru": "12.12. Применения интеграла",
+    "title_lv": "12.12. Integrāļa lietojumi",
+    "description_ru": "Программа Matemātika II: 14 ч.",
+    "description_lv": "Matemātika II programma: 14 st.",
     "subtopics": [
       {
         "num": "12.12.1",
-        "ru": "Область определения и нули функции",
-        "lv": "Definīcijas apgabals un funkcijas nulles"
+        "ru": "Вычисление площадей и объемов с помощью интеграла",
+        "lv": "Laukumu un tilpumu aprēķināšana ar integrāli"
       },
       {
         "num": "12.12.2",
-        "ru": "Асимптоты графика дробно-рациональной функции",
-        "lv": "Daļveida racionālas funkcijas grafika asimptotes"
-      },
-      {
-        "num": "12.12.3",
-        "ru": "Поведение функции на бесконечности",
-        "lv": "Funkcijas uzvedība bezgalībā"
-      },
-      {
-        "num": "12.12.4",
-        "ru": "Построение эскиза графика функции",
-        "lv": "Funkcijas grafika skices zīmēšana"
+        "ru": "Применение интеграла в физике",
+        "lv": "Integrāļa lietojums fizikā"
       }
     ]
   },
   {
     "id": 133,
-    "slug": "augst-lenka-tangenss-kotangenss",
+    "slug": "augst-kombinatorika-varbutibu-teorija-un-statistika",
     "grade": 12,
     "grade_name": "Matemātika II",
-    "subject_slug": "trigonometrija",
+    "subject_slug": "statistics",
     "position": 13,
-    "title_ru": "12.13. Тангенс и котангенс угла",
-    "title_lv": "12.13. Leņķa tangenss un kotangenss",
-    "description_ru": "Функции $y = \\tan x$ и $y = \\cot x$, период $T = \\pi$, область определения, вертикальные асимптоты.",
-    "description_lv": "Funkcijas $y = \\tan x$ un $y = \\cot x$, periods $T = \\pi$, definīcijas apgabals, asimptotas.",
+    "title_ru": "12.13. Комбинаторика, теория вероятностей и статистика",
+    "title_lv": "12.13. Kombinatorika, varbūtību teorija un statistika",
+    "description_ru": "Программа Matemātika II: 28 ч.",
+    "description_lv": "Matemātika II programma: 28 st.",
     "subtopics": [
       {
         "num": "12.13.1",
-        "ru": "Определения тангенса и котангенса в прямоугольном треугольнике и на единичной окружности",
-        "lv": "Tangensa un kotangensa definīcijas taisnleņķa trijstūrī un uz vienības riņķa līnijas"
+        "ru": "Комбинаторика II: Треугольник Паскаля",
+        "lv": "Kombinatorika II: Paskāla trijstūris"
       },
       {
         "num": "12.13.2",
-        "ru": "Значения тангенса и котангенса для стандартных углов",
-        "lv": "Tangensa un kotangensa vērtības standarta leņķiem"
+        "ru": "Бином Ньютона",
+        "lv": "Ņūtona binoms"
       },
       {
         "num": "12.13.3",
-        "ru": "Основные тригонометрические тождества с тангенсом и котангенсом",
-        "lv": "Pamata trigonometriskās identitātes ar tangensu un kotangensu"
+        "ru": "Распределения случайной величины и формула Бернулли",
+        "lv": "Gadījuma lieluma sadalījumi un Bernulli formula"
       },
       {
         "num": "12.13.4",
-        "ru": "Графики и свойства функций тангенса и котангенса",
-        "lv": "Tangensa un kotangensa funkciju grafiki un īpašības"
+        "ru": "Формула полной вероятности и формула Байеса",
+        "lv": "Notikumu apvienojuma un pilnās varbūtības formula"
+      },
+      {
+        "num": "12.13.5",
+        "ru": "Статистика II: Выводы о генеральной совокупности",
+        "lv": "Statistika II: secinājumi par populāciju"
       }
     ]
   },
   {
     "id": 134,
-    "slug": "augst-apgrieztas-trig-funkcijas",
+    "slug": "augst-geometrija",
     "grade": 12,
     "grade_name": "Matemātika II",
-    "subject_slug": "trigonometrija",
+    "subject_slug": "planimetrija",
     "position": 14,
-    "title_ru": "12.14. Обратные тригонометрические функции",
-    "title_lv": "12.14. Apgrieztās trigonometriskās funkcijas",
-    "description_ru": "Определения и графики $\\arcsin x, \\arccos x, \\arctan x$, их области определения и множества главных значений.",
-    "description_lv": "Funkcijas $\\arcsin x, \\arccos x, \\arctan x$, to definīcijas un vērtību apgabali, identitātes.",
+    "title_ru": "12.14. Геометрия",
+    "title_lv": "12.14. Ģeometrija",
+    "description_ru": "Программа Matemātika II: 26 ч.",
+    "description_lv": "Matemātika II programma: 26 st.",
     "subtopics": [
       {
         "num": "12.14.1",
-        "ru": "Понятия арксинуса, арккосинуса, арктангенса и арккотангенса",
-        "lv": "Arksinusa, arkkosinusa, arktangensa un arkkotangensa jēdzieni"
+        "ru": "Соотношения в треугольниках (углубленно)",
+        "lv": "Sakarības trijstūros (padziļināti)"
       },
       {
         "num": "12.14.2",
-        "ru": "Значения обратных тригонометрических функций",
-        "lv": "Apgriezto trigonometrisko funkciju vērtības"
+        "ru": "Соотношения в четырехугольниках и правильных многоугольниках",
+        "lv": "Sakarības četrstūros un regulāros daudzstūros"
       },
       {
         "num": "12.14.3",
-        "ru": "Свойства и графики обратных тригонометрических функций",
-        "lv": "Apgriezto trigonometrisko funkciju īpašības un grafiki"
+        "ru": "Отрезки и углы, связанные с окружностью",
+        "lv": "Ar riņķa līniju saistīti leņķi un nogriežņi"
       },
       {
         "num": "12.14.4",
-        "ru": "Вычисление выражений с обратными тригонометрическими функциями",
-        "lv": "Izteiksmju aprēķināšana ar apgrieztajām trigonometriskajām funkcijām"
+        "ru": "Геометрические преобразования (углубленно)",
+        "lv": "Ģeometriskie pārveidojumi"
+      },
+      {
+        "num": "12.14.5",
+        "ru": "Аналитическая геометрия: прямая и окружность",
+        "lv": "Analītiskā ģeometrija: taisne un riņķa līnija"
+      },
+      {
+        "num": "12.14.6",
+        "ru": "Скалярное произведение векторов в геометрических задачах",
+        "lv": "Vektoru skalārais reizinājums uzdevumos"
+      },
+      {
+        "num": "12.14.7",
+        "ru": "Сечения многогранников плоскостью (углубленно)",
+        "lv": "Daudzskaldņi un to šķēlumi ar plakni"
+      },
+      {
+        "num": "12.14.8",
+        "ru": "Комбинации призмы и цилиндра",
+        "lv": "Prizmas un cilindra ģeometriskās kombinācijas"
+      },
+      {
+        "num": "12.14.9",
+        "ru": "Комбинации конуса и пирамиды",
+        "lv": "Konusa un piramīdas ģeometriskās kombinācijas"
+      },
+      {
+        "num": "12.14.10",
+        "ru": "Комбинации шара, цилиндра и конуса",
+        "lv": "Lodes, cilindra un konusa ģeometriskās kombinācijas"
+      },
+      {
+        "num": "12.14.11",
+        "ru": "Комбинации призмы, пирамиды и сферы",
+        "lv": "Prizmas un lodes, piramīdas un lodes kombinācijas"
       }
     ]
   },
   {
     "id": 135,
-    "slug": "augst-trigonometriskas-nevienadibas",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "trigonometrija",
-    "position": 15,
-    "title_ru": "12.15. Тригонометрические неравенства",
-    "title_lv": "12.15. Trigonometriskās nevienādības",
-    "description_ru": "Решение неравенств $\\sin x > a$, $\\cos x \\le a$ с помощью тригонометрического круга и графиков функций.",
-    "description_lv": "Nevienādību risināšana ar vienības riņķi un grafiku palīdzību, perioda pieskaitīšana.",
-    "subtopics": [
-      {
-        "num": "12.15.1",
-        "ru": "Простейшие тригонометрические неравенства",
-        "lv": "Vienkāršākās trigonometriskās nevienādības"
-      },
-      {
-        "num": "12.15.2",
-        "ru": "Тригонометрические неравенства, решаемые заменой переменной",
-        "lv": "Trigonometriskās nevienādības, ko risina ar mainīgā aizvietojumu"
-      },
-      {
-        "num": "12.15.3",
-        "ru": "Неравенства с использованием формул приведения и тождеств",
-        "lv": "Nevienādības, izmantojot reducēšanas formulas un identitātes"
-      },
-      {
-        "num": "12.15.4",
-        "ru": "Метод интервалов для тригонометрических неравенств",
-        "lv": "Intervālu metode trigonometriskajām nevienādībām"
-      }
-    ]
-  },
-  {
-    "id": 136,
-    "slug": "augst-trig-vienadojumu-sistemas",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "trigonometrija",
-    "position": 16,
-    "title_ru": "12.16. Системы тригонометрических уравнений",
-    "title_lv": "12.16. Trigonometrisko vienādojumu sistēmas",
-    "description_ru": "Методы сложения и подстановки, формулы преобразования произведения функций в сумму и суммы в произведение.",
-    "description_lv": "Saskaitīšanas un ievietošanas metodes, reizinājuma pārvēršana summā un otrādi.",
-    "subtopics": [
-      {
-        "num": "12.16.1",
-        "ru": "Системы простейших тригонометрических уравнений",
-        "lv": "Vienkāršāko trigonometrisko vienādojumu sistēmas"
-      },
-      {
-        "num": "12.16.2",
-        "ru": "Системы уравнений, требующие применения тригонометрических формул",
-        "lv": "Vienādojumu sistēmas, kuru risināšanai nepieciešams izmantot trigonometriskās formulas"
-      },
-      {
-        "num": "12.16.3",
-        "ru": "Системы тригонометрических уравнений с заменой переменных",
-        "lv": "Trigonometrisko vienādojumu sistēmas ar mainīgo aizvietojumu"
-      },
-      {
-        "num": "12.16.4",
-        "ru": "Отбор корней в системах тригонометрических уравнений",
-        "lv": "Sakņu atlase trigonometrisko vienādojumu sistēmās"
-      }
-    ]
-  },
-  {
-    "id": 137,
-    "slug": "augst-harmoniskas-svarstibas-modeli",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "trigonometrija",
-    "position": 17,
-    "title_ru": "12.17. Гармонические колебания и тригонометрические модели",
-    "title_lv": "12.17. Harmoniskās svārstības un trigonometriskie modeļi",
-    "description_ru": "Уравнение колебаний $x(t) = A \\cos(\\omega t + \\varphi_0)$, амплитуда $A$, циклическая частота $\\omega$, начальная фаза $\\varphi_0$, период $T = 2\\pi/\\omega$.",
-    "description_lv": "Svārstību vienādojums $x(t) = A \\cos(\\omega t + \\varphi_0)$, amplitūda, cikliskā frekvence, sākumfāze, periods.",
-    "subtopics": [
-      {
-        "num": "12.17.1",
-        "ru": "Модель гармонических колебаний через синус и косинус",
-        "lv": "Harmonisko svārstību modelis ar sinusu un kosinusu"
-      },
-      {
-        "num": "12.17.2",
-        "ru": "Амплитуда, частота и период гармонических колебаний",
-        "lv": "Harmonisko svārstību amplitūda, frekvence un periods"
-      },
-      {
-        "num": "12.17.3",
-        "ru": "Фазовый сдвиг в тригонометрических моделях",
-        "lv": "Fāzes nobīde trigonometriskajos modeļos"
-      },
-      {
-        "num": "12.17.4",
-        "ru": "Применение тригонометрических моделей к реальным процессам",
-        "lv": "Trigonometrisko modeļu lietojums reālos procesos"
-      }
-    ]
-  },
-  {
-    "id": 138,
-    "slug": "augst-sakaribas-trijsturos-padzilinati",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "planimetrija",
-    "position": 18,
-    "title_ru": "12.18. Соотношения в треугольниках (углубленно)",
-    "title_lv": "12.18. Sakarības trijstūros (padziļināti)",
-    "description_ru": "Теорема о медианах (точка пересечения делит в отношении 2:1), биссектрисах (деление противоположной стороны), теорема Менелая и Чевы.",
-    "description_lv": "Mediānu krustpunkta īpašība ($2:1$), bisektrises īpašība, Menelāja un Čevas teorēmas.",
-    "subtopics": [
-      {
-        "num": "12.18.1",
-        "ru": "Теоремы синусов и косинусов для произвольных треугольников",
-        "lv": "Sinusu un kosinusa teorēmas patvaļīgiem trijstūriem"
-      },
-      {
-        "num": "12.18.2",
-        "ru": "Формулы площади треугольника в углубленном курсе",
-        "lv": "Trijstūra laukuma formulas padziļinātajā kursā"
-      },
-      {
-        "num": "12.18.3",
-        "ru": "Радиусы вписанной и описанной окружностей треугольника",
-        "lv": "Trijstūrī ievilktas un ap trijstūri apvilktas riņķa līnijas rādiusi"
-      },
-      {
-        "num": "12.18.4",
-        "ru": "Решение прикладных геометрических задач повышенной сложности",
-        "lv": "Paaugstinātas grūtības lietišķo ģeometrisko uzdevumu risināšana"
-      }
-    ]
-  },
-  {
-    "id": 139,
-    "slug": "augst-sakaribas-cetrsturos-daudzsturos",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "planimetrija",
-    "position": 19,
-    "title_ru": "12.19. Соотношения в четырехугольниках и правильных многоугольниках",
-    "title_lv": "12.19. Sakarības četrstūros un regulāros daudzstūros",
-    "description_ru": "Вписанные четырехугольники (сумма противоположных углов $180^\\circ$), описанные четырехугольники (суммы противоположных сторон равны), теорема Птолемея.",
-    "description_lv": "Ievilkti un apvilkti četrstūri, pretējo leņķu un malu summas, Ptolemaja teorēma.",
-    "subtopics": [
-      {
-        "num": "12.19.1",
-        "ru": "Свойства и признаки параллелограмма, ромба, прямоугольника и квадрата",
-        "lv": "Paralelograma, romba, taisnstūra un kvadrāta īpašības un pazīmes"
-      },
-      {
-        "num": "12.19.2",
-        "ru": "Свойства и площади вписанных и описанных четырехугольников",
-        "lv": "Ievilkto un apvilkto četrstūru īpašības un laukumi"
-      },
-      {
-        "num": "12.19.3",
-        "ru": "Углы и периметры правильных многоугольников",
-        "lv": "Regulāru daudzstūru leņķi un perimetri"
-      },
-      {
-        "num": "12.19.4",
-        "ru": "Применение свойств многоугольников в задачах на вычисление",
-        "lv": "Daudzstūru īpašību lietojums aprēķinu uzdevumos"
-      }
-    ]
-  },
-  {
-    "id": 140,
-    "slug": "augst-rinka-linija-lenki-nogriezni",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "planimetrija",
-    "position": 20,
-    "title_ru": "12.20. Отрезки и углы, связанные с окружностью",
-    "title_lv": "12.20. Ar riņķa līniju saistīti leņķi un nogriežņi",
-    "description_ru": "Теорема о произведении отрезков пересекающихся хорд, теорема о касательной и секущей ($AK^2 = AM \\cdot AN$).",
-    "description_lv": "Hordu krustošanās teorēma, pieskares un sekantes teorēma ($AK^2 = AM \\cdot AN$).",
-    "subtopics": [
-      {
-        "num": "12.20.1",
-        "ru": "Центральные и вписанные углы окружности",
-        "lv": "Riņķa līnijas centrālie un ievilktie leņķi"
-      },
-      {
-        "num": "12.20.2",
-        "ru": "Углы между хордами, секущими и касательными",
-        "lv": "Leņķi starp hordām, sekantēm un pieskarēm"
-      },
-      {
-        "num": "12.20.3",
-        "ru": "Свойства пересекающихся хорд, секущих и касательных",
-        "lv": "Krustojošos hordu, sekunžu un pieskaņu īpašības"
-      },
-      {
-        "num": "12.20.4",
-        "ru": "Метрические соотношения в окружности в геометрических задачах",
-        "lv": "Metriskās sakarības riņķa līnijā ģeometrijas uzdevumos"
-      }
-    ]
-  },
-  {
-    "id": 141,
-    "slug": "augst-geometriskie-parveidojumi-padzilinati",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "planimetrija",
-    "position": 21,
-    "title_ru": "12.21. Геометрические преобразования (углубленно)",
-    "title_lv": "12.21. Ģeometriskie pārveidojumi",
-    "description_ru": "Гомотетия и подобие, композиция движений, инварианты преобразований, применение преобразований при решении геометрических задач.",
-    "description_lv": "Homotētija, kustību kompozīcija, invarianti, pārveidojumu izmantošana uzdevumu risināšanā.",
-    "subtopics": [
-      {
-        "num": "12.21.1",
-        "ru": "Параллельный перенос и центральная симметрия на плоскости",
-        "lv": "Paralēlā pārvietošana un centrālā simetrija plaknē"
-      },
-      {
-        "num": "12.21.2",
-        "ru": "Осевая симметрия и поворот фигуры",
-        "lv": "Asu simetrija un figūras pagrieziens"
-      },
-      {
-        "num": "12.21.3",
-        "ru": "Гомотетия и преобразование подобия",
-        "lv": "Homotētija un līdzības pārveidojums"
-      },
-      {
-        "num": "12.21.4",
-        "ru": "Применение геометрических преобразований для решения задач",
-        "lv": "Ģeometrisko pārveidojumu pielietojums uzdevumu risināšanā"
-      }
-    ]
-  },
-  {
-    "id": 142,
-    "slug": "augst-analitiska-geometrija-taisne-rinkis",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "planimetrija",
-    "position": 22,
-    "title_ru": "12.22. Аналитическая геометрия: прямая и окружность",
-    "title_lv": "12.22. Analītiskā ģeometrija: taisne un riņķa līnija",
-    "description_ru": "Расстояние от точки до прямой $d = \\frac{|Ax_0 + By_0 + C|}{\\sqrt{A^2 + B^2}}$, касание прямой и окружности, пересечение фигур.",
-    "description_lv": "Attālums no punkta līdz taisnei, pieskaršanās nosacījumi, taisnes un riņķa līnijas krustpunkti.",
-    "subtopics": [
-      {
-        "num": "12.22.1",
-        "ru": "Уравнение прямой с угловым коэффициентом и общее уравнение прямой",
-        "lv": "Taisnes vienādojums ar virzienkoeficientu un vispārīgais taisnes vienādojums"
-      },
-      {
-        "num": "12.22.2",
-        "ru": "Взаимное расположение прямых на плоскости",
-        "lv": "Taisņu savstarpējais novietojumsplaknē"
-      },
-      {
-        "num": "12.22.3",
-        "ru": "Уравнение окружности на координатной плоскости",
-        "lv": "Riņķa līnijas vienādojums koordinātu plaknē"
-      },
-      {
-        "num": "12.22.4",
-        "ru": "Взаимное расположение прямой и окружности",
-        "lv": "Taisnes un riņķa līnijas savstarpējais novietojums"
-      }
-    ]
-  },
-  {
-    "id": 143,
-    "slug": "augst-vektoru-skalarais-uzdevumos",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "planimetrija",
-    "position": 23,
-    "title_ru": "12.23. Скалярное произведение векторов в геометрических задачах",
-    "title_lv": "12.23. Vektoru skalārais reizinājums uzdevumos",
-    "description_ru": "Применение векторов для вычисления углов между прямыми, доказательства ортогональности, нахождения проекции вектора на вектор.",
-    "description_lv": "Leņķa aprēķināšana starp taisnēm, ortogonalitātes pierādīšana, vektora projekcija.",
-    "subtopics": [
-      {
-        "num": "12.23.1",
-        "ru": "Определение и вычисление скалярного произведения векторов",
-        "lv": "Vektoru skalārā reizinājuma definīcija un aprēķināšana"
-      },
-      {
-        "num": "12.23.2",
-        "ru": "Условие перпендикулярности векторов",
-        "lv": "Vektoru perpendikularitātes nosacījums"
-      },
-      {
-        "num": "12.23.3",
-        "ru": "Вычисление углов между векторами и прямыми",
-        "lv": "Leņķu aprēķināšana starp vektoriem un taisnēm"
-      },
-      {
-        "num": "12.23.4",
-        "ru": "Применение векторов для доказательства геометрических утверждений",
-        "lv": "Vektoru pielietojums ģeometrisku apgalvojumu pierādīšanā"
-      }
-    ]
-  },
-  {
-    "id": 144,
-    "slug": "augst-daudzskaldnu-skelumi-padzilinati",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "stereometrija",
-    "position": 24,
-    "title_ru": "12.24. Сечения многогранников плоскостью (углубленно)",
-    "title_lv": "12.24. Daudzskaldņi un to šķēlumi ar plakni",
-    "description_ru": "Метод следов, внутреннее проектирование, построение сечений через три точки, не лежащие на одной грани, вычисление площадей сечений.",
-    "description_lv": "Pēdu metode, iekšējā projektēšana, šķēlumu konstrukcija caur 3 punktiem, šķēluma laukuma aprēķināšana.",
-    "subtopics": [
-      {
-        "num": "12.24.1",
-        "ru": "Следы плоскости и линии пересечения с гранями многогранника",
-        "lv": "Plaknes pēdas un krustošanās līnijas ar daudzskaldņa skaldnēm"
-      },
-      {
-        "num": "12.24.2",
-        "ru": "Построение сечений куба, призм и пирамид методом следов",
-        "lv": "Kubal, prizmu un piramīdu šķēlumu konstrukcija ar pēdu metodi"
-      },
-      {
-        "num": "12.24.3",
-        "ru": "Построение сечений многогранников методом параллельного переноса",
-        "lv": "Daudzskaldņu šķēlumu konstrukcija ar paralelās pārvietošanas metodi"
-      },
-      {
-        "num": "12.24.4",
-        "ru": "Вычисление периметров и площадей сечений многогранников",
-        "lv": "Daudzskaldņu šķēlumu perimetru un laukumu aprēķināšana"
-      }
-    ]
-  },
-  {
-    "id": 145,
-    "slug": "augst-prizmas-cilindra-kombinacijas",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "stereometrija",
-    "position": 25,
-    "title_ru": "12.25. Комбинации призмы и цилиндра",
-    "title_lv": "12.25. Prizmas un cilindra ģeometriskās kombinācijas",
-    "description_ru": "Вписанные и описанные призмы около цилиндра, соотношение объемов, осевые сечения.",
-    "description_lv": "Apvilkta un ievilkta prizma, tilpumu attiecības, aksiālšķēlumi.",
-    "subtopics": [
-      {
-        "num": "12.25.1",
-        "ru": "Вписанный и описанный цилиндр призмы",
-        "lv": "Prizmā ievilkts un ap prizmu apvilkts cilindrs"
-      },
-      {
-        "num": "12.25.2",
-        "ru": "Вписанная и описанная призма цилиндра",
-        "lv": "Cilindrā ievilkta un ap cilindru apvilkta prizma"
-      },
-      {
-        "num": "12.25.3",
-        "ru": "Вычисление площади поверхности комбинаций призмы и цилиндра",
-        "lv": "Prizmas un cilindra kombināciju virsmas laukuma aprēķināšana"
-      },
-      {
-        "num": "12.25.4",
-        "ru": "Вычисление объема комбинаций призмы и цилиндра",
-        "lv": "Prizmas un cilindra kombināciju tilpuma aprēķināšana"
-      }
-    ]
-  },
-  {
-    "id": 146,
-    "slug": "augst-konusa-piramidas-kombinacijas",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "stereometrija",
-    "position": 26,
-    "title_ru": "12.26. Комбинации конуса и пирамиды",
-    "title_lv": "12.26. Konusa un piramīdas ģeometriskās kombinācijas",
-    "description_ru": "Вписанная и описанная пирамида относительно конуса, общая вершина и высота, связь радиуса основания конуса с многоугольником основания.",
-    "description_lv": "Ievilktas un apvilktas piramīdas, kopējā virsotne un augstums, sakarības starp rādiusu un pamata daudzstūri.",
-    "subtopics": [
-      {
-        "num": "12.26.1",
-        "ru": "Вписанный и описанный конус пирамиды",
-        "lv": "Piramīdā ievilkts un ap piramīdu apvilkts konuss"
-      },
-      {
-        "num": "12.26.2",
-        "ru": "Вписанная и описанная пирамида конуса",
-        "lv": "Konusā ievilkta un ap konusu apvilkta piramīda"
-      },
-      {
-        "num": "12.26.3",
-        "ru": "Элементы и сечения комбинаций конуса и пирамиды",
-        "lv": "Konusa un piramīdas kombināciju elementi un šķēlumi"
-      },
-      {
-        "num": "12.26.4",
-        "ru": "Объемы и площади поверхности комбинаций конуса и пирамиды",
-        "lv": "Konusa un piramīdas kombināciju tilpums un virsmas laukums"
-      }
-    ]
-  },
-  {
-    "id": 147,
-    "slug": "augst-lodes-cilindra-konusa-kombinacijas",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "stereometrija",
-    "position": 27,
-    "title_ru": "12.27. Комбинации шара, цилиндра и конуса",
-    "title_lv": "12.27. Lodes, cilindra un konusa ģeometriskās kombinācijas",
-    "description_ru": "Шар, вписанный в цилиндр (задача Архимеда), шар, вписанный в конус и описанный около конуса, осевые сечения.",
-    "description_lv": "Lodes un cilindra kombinācija (Arhimēda uzdevums), lodē ievilkts un apvilkts konuss, aksiālšķēlumi.",
-    "subtopics": [
-      {
-        "num": "12.27.1",
-        "ru": "Шар, вписанный в цилиндр и конус",
-        "lv": "Cilindrā un konusā ievilkta lode"
-      },
-      {
-        "num": "12.27.2",
-        "ru": "Шар, описанный около цилиндра и конуса",
-        "lv": "Ap cilindru un konusu apvilkta lode"
-      },
-      {
-        "num": "12.27.3",
-        "ru": "Цилиндр и конус, вписанные в шар",
-        "lv": "Lodē ievilkts cilindrs un konuss"
-      },
-      {
-        "num": "12.27.4",
-        "ru": "Комбинированные задачи на объем и площадь тел вращения",
-        "lv": "Kombinēti uzdevumi par rotācijas ķermeņu tilpumu un virsmas laukumu"
-      }
-    ]
-  },
-  {
-    "id": 148,
-    "slug": "augst-prizmas-piramidas-lodes-kombinacijas",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "stereometrija",
-    "position": 28,
-    "title_ru": "12.28. Комбинации призмы, пирамиды и сферы",
-    "title_lv": "12.28. Prizmas un lodes, piramīdas un lodes kombinācijas",
-    "description_ru": "Центр описанной сферы многогранника, радиус сферы, описанной около куба и правильной пирамиды.",
-    "description_lv": "Daudzskaldnim apvilktas sfēras centrs un rādiuss, kubam un piramīdai apvilkta lode.",
-    "subtopics": [
-      {
-        "num": "12.28.1",
-        "ru": "Сфера, вписанная в призму и пирамиду",
-        "lv": "Prizmā un piramīdā ievilkta sfēra"
-      },
-      {
-        "num": "12.28.2",
-        "ru": "Сфера, описанная около призмы и пирамиды",
-        "lv": "Ap prizmu un piramīdu apvilkta sfēra"
-      },
-      {
-        "num": "12.28.3",
-        "ru": "Радиус сферы в комбинациях с многогранниками",
-        "lv": "Sfēras rādiuss kombinācijās ar daudzskaldņiem"
-      },
-      {
-        "num": "12.28.4",
-        "ru": "Решение прикладных задач на многогранники со сферой",
-        "lv": "Praktisku uzdevumu risināšana par daudzskaldņiem ar sfēru"
-      }
-    ]
-  },
-  {
-    "id": 149,
-    "slug": "augst-kombinatorika-paskala-trijsturis",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "statistics",
-    "position": 29,
-    "title_ru": "12.29. Комбинаторика II: Треугольник Паскаля",
-    "title_lv": "12.29. Kombinatorika II: Paskāla trijstūris",
-    "description_ru": "Свойства биномиальных коэффициентов $C_n^k = C_{n-1}^{k-1} + C_{n-1}^k$, симметрия $C_n^k = C_n^{n-k}$, сумма элементов строки $\\sum C_n^k = 2^n$.",
-    "description_lv": "Binomiālo koeficientu īpašības, simetrija, rindas elementu summa $2^n$.",
-    "subtopics": [
-      {
-        "num": "12.29.1",
-        "ru": "Свойства и закономерности треугольника Паскаля",
-        "lv": "Paskāla trijstūra īpašības un likumsakarības"
-      },
-      {
-        "num": "12.29.2",
-        "ru": "Связь треугольника Паскаля с сочетаниями",
-        "lv": "Paskāla trijstūra saistība ar kombinācijām"
-      },
-      {
-        "num": "12.29.3",
-        "ru": "Нахождение элементов треугольника Паскаля",
-        "lv": "Paskāla trijstūra elementu atrašana"
-      },
-      {
-        "num": "12.29.4",
-        "ru": "Применение треугольника Паскаля в комбинаторике",
-        "lv": "Paskāla trijstūra lietojums kombinatorikā"
-      }
-    ]
-  },
-  {
-    "id": 150,
-    "slug": "augst-nutona-binoms",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "statistics",
-    "position": 30,
-    "title_ru": "12.30. Бином Ньютона",
-    "title_lv": "12.30. Ņūtona binoms",
-    "description_ru": "Формула $(a + b)^n = \\sum_{k=0}^n C_n^k a^{n-k} b^k$, нахождение конкретного члена разложения $T_{k+1}$, свободный член.",
-    "description_lv": "Binoma formula, konkrēta locekļa $T_{k+1}$ noteikšana, no mainīgā neatkarīgais loceklis.",
-    "subtopics": [
-      {
-        "num": "12.30.1",
-        "ru": "Формула бинома Ньютона",
-        "lv": "Ņūtona binoma formula"
-      },
-      {
-        "num": "12.30.2",
-        "ru": "Нахождение коэффициентов бинома Ньютона",
-        "lv": "Ņūtona binoma koeficientu atrašana"
-      },
-      {
-        "num": "12.30.3",
-        "ru": "Определение заданного члена разложения бинома",
-        "lv": "Binoma summas dotā locekļa noteikšana"
-      },
-      {
-        "num": "12.30.4",
-        "ru": "Тождества с биномиальными коэффициентами",
-        "lv": "Identitātes ar binomiālajiem koeficientiem"
-      }
-    ]
-  },
-  {
-    "id": 151,
-    "slug": "augst-matematiskas-logikas-elementi",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "statistics",
-    "position": 31,
-    "title_ru": "12.31. Элементы математической логики",
-    "title_lv": "12.31. Matemātiskās loģikas elementi",
-    "description_ru": "Высказывания, конъюнкция, дизъюнкция, импликация $A \\implies B$, эквивалентность, кванторы $\\forall$ и $\\exists$, доказательство от противного.",
-    "description_lv": "Izteikumi, loģiskās operācijas, implikācija, kvantori $\\forall$ un $\\exists$, pierādījums no pretējā.",
-    "subtopics": [
-      {
-        "num": "12.31.1",
-        "ru": "Высказывания и логические операции",
-        "lv": "Izteikumi un loģiskās darbības"
-      },
-      {
-        "num": "12.31.2",
-        "ru": "Таблицы истинности",
-        "lv": "Patiesības tabulas"
-      },
-      {
-        "num": "12.31.3",
-        "ru": "Законы алгебры логики",
-        "lv": "Loģikas algebras likumi"
-      },
-      {
-        "num": "12.31.4",
-        "ru": "Необходимые и достаточные условия",
-        "lv": "Nepieciešamie un pietiekamie nosacījumi"
-      },
-      {
-        "num": "12.31.5",
-        "ru": "Методы математического доказательства",
-        "lv": "Matemātisko pierādījumu metodes"
-      }
-    ]
-  },
-  {
-    "id": 152,
-    "slug": "augst-matematiskas-indukcijas-princips",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "statistics",
-    "position": 32,
-    "title_ru": "12.32. Принцип математической индукции",
-    "title_lv": "12.32. Matemātiskās indukcijas princips",
-    "description_ru": "База индукции $n = 1$, индукционный переход $n = k \\implies n = k + 1$, доказательство формул сумм и делимости.",
-    "description_lv": "Indukcijas bāze, indukcijas pāreja, vienādību un dalāmības pierādīšana.",
-    "subtopics": [
-      {
-        "num": "12.32.1",
-        "ru": "Сущность метода математической индукции",
-        "lv": "Matemātiskās indukcijas metodes būtība"
-      },
-      {
-        "num": "12.32.2",
-        "ru": "Доказательство делимости и равенств",
-        "lv": "Dalāmības un vienādību pierādīšana"
-      },
-      {
-        "num": "12.32.3",
-        "ru": "Доказательство неравенств",
-        "lv": "Nevienādību pierādīšana"
-      }
-    ]
-  },
-  {
-    "id": 153,
-    "slug": "augst-bernulli-formula-sadalijumi",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "statistics",
-    "position": 33,
-    "title_ru": "12.33. Распределения случайной величины и формула Бернулли",
-    "title_lv": "12.33. Gadījuma lieluma sadalījumi un Bernulli formula",
-    "description_ru": "Схема независимых испытаний Бернулли $P_n(k) = C_n^k p^k (1-p)^{n-k}$, закон распределения дискретной случайной величины, математическое ожидание $E(X)$ и дисперсия $D(X)$.",
-    "description_lv": "Bernulli formula, diskrēta gadījuma lieluma sadalījuma likums, matemātiskā cerība $E(X)$ un dispersija $D(X)$.",
-    "subtopics": [
-      {
-        "num": "12.33.1",
-        "ru": "Дискретная случайная величина и закон распределения",
-        "lv": "Diskrēts gadījuma lielums un sadalījuma likums"
-      },
-      {
-        "num": "12.33.2",
-        "ru": "Математическое ожидание и дисперсия",
-        "lv": "Matemātiskā cerība un dispersija"
-      },
-      {
-        "num": "12.33.3",
-        "ru": "Схема Бернулли и формула Бернулли",
-        "lv": "Bernulli shēma un Bernulli formula"
-      },
-      {
-        "num": "12.33.4",
-        "ru": "Биномиальное распределение",
-        "lv": "Binomiālais sadalījums"
-      }
-    ]
-  },
-  {
-    "id": 154,
-    "slug": "augst-pilnas-varbutibas-formula",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "statistics",
-    "position": 34,
-    "title_ru": "12.34. Формула полной вероятности и формула Байеса",
-    "title_lv": "12.34. Notikumu apvienojuma un pilnās varbūtības formula",
-    "description_ru": "Полная группа гипотез $H_1, \\dots, H_n$, формула $P(A) = \\sum P(H_i) P(A|H_i)$, переоценка вероятностей по формуле Байеса.",
-    "description_lv": "Pilnās varbūtības formula $P(A) = \\sum P(H_i) P(A|H_i)$, hipotēžu varbūtību pārrēķins ar Beijesa formulu.",
-    "subtopics": [
-      {
-        "num": "12.34.1",
-        "ru": "Условная вероятность и теорема умножения",
-        "lv": "Nosacītā varbūtība un reizināšanas teorēma"
-      },
-      {
-        "num": "12.34.2",
-        "ru": "Теорема сложения вероятностей",
-        "lv": "Varbūtību saskaitīšanas teorēma"
-      },
-      {
-        "num": "12.34.3",
-        "ru": "Формула полной вероятности",
-        "lv": "Pilnās varbūtības formula"
-      },
-      {
-        "num": "12.34.4",
-        "ru": "Формула Байеса",
-        "lv": "Bajesas formula"
-      }
-    ]
-  },
-  {
-    "id": 155,
-    "slug": "augst-statistika-secinajumi-populacija",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "statistics",
-    "position": 35,
-    "title_ru": "12.35. Статистика II: Выводы о генеральной совокупности",
-    "title_lv": "12.35. Statistika II: secinājumi par populāciju",
-    "description_ru": "Доверительные интервалы для среднего значения, погрешность выборки, проверка статистических гипотез, нормальное распределение (правило трех сигм).",
-    "description_lv": "Ticamības intervāli vidējai vērtībai, izlases kļūda, statistisko hipotēžu pārbaude, normālais sadalījums (3 sigmu likums).",
-    "subtopics": [
-      {
-        "num": "12.35.1",
-        "ru": "Генеральная совокупность и выборка",
-        "lv": "Ģenerālkopa un izlase"
-      },
-      {
-        "num": "12.35.2",
-        "ru": "Точечные оценки параметров",
-        "lv": "Parametru punkta novērtējumi"
-      },
-      {
-        "num": "12.35.3",
-        "ru": "Интервальные оценки и доверительный интервал",
-        "lv": "Intervāla novērtējumi un ticamības intervāls"
-      },
-      {
-        "num": "12.35.4",
-        "ru": "Проверка статистических гипотез",
-        "lv": "Statistisko hipotēšu pārbaude"
-      }
-    ]
-  },
-  {
-    "id": 156,
-    "slug": "augst-funkcijas-robeza",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "matematiskais-analizs",
-    "position": 36,
-    "title_ru": "12.36. Предел функции",
-    "title_lv": "12.36. Funkcijas robeža",
-    "description_ru": "Понятие предела функции в точке $\\lim_{x \\to x_0} f(x)$, раскрытие неопределенностей $[0/0]$ и $[\\infty/\\infty]$, первый замечательный предел $\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1$.",
-    "description_lv": "Funkcijas robeža punktā, nenoteiktību $[0/0]$ un $[\\infty/\\infty]$ novēršana, pirmā ievērojamā robeža $\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1$.",
-    "subtopics": [
-      {
-        "num": "12.36.1",
-        "ru": "Понятие предела функции в точке",
-        "lv": "Funkcijas robežas jēdziens punktā"
-      },
-      {
-        "num": "12.36.2",
-        "ru": "Односторонние пределы",
-        "lv": "Vienpusējās robežas"
-      },
-      {
-        "num": "12.36.3",
-        "ru": "Вычисление пределов и неопределенности",
-        "lv": "Robežu aprēķināšana un nenoteiktības"
-      },
-      {
-        "num": "12.36.4",
-        "ru": "Предел функции на бесконечности",
-        "lv": "Funkcijas robeža bezgalībā"
-      },
-      {
-        "num": "12.36.5",
-        "ru": "Непрерывность функции",
-        "lv": "Funkcijas nepārtrauktība"
-      }
-    ]
-  },
-  {
-    "id": 157,
-    "slug": "augst-atvasinajuma-definicija-geometriska-jega",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "matematiskais-analizs",
-    "position": 37,
-    "title_ru": "12.37. Определение производной и её геометрический смысл",
-    "title_lv": "12.37. Atvasinājuma definīcija un tā ģeometriskā jēga",
-    "description_ru": "Производная как предел отношения приращений $f'(x) = \\lim_{\\Delta x \\to 0} \\frac{\\Delta y}{\\Delta x}$, угловой коэффициент касательной $k = f'(x_0) = \\tan \\alpha$, механический смысл (мгновенная скорость).",
-    "description_lv": "Atvasinājuma definīcija, pieskares virziena koeficients $k = f'(x_0) = \\tan \\alpha$, momentānais ātrums.",
-    "subtopics": [
-      {
-        "num": "12.37.1",
-        "ru": "Приращение аргумента и функции",
-        "lv": "Argumenta un funkcijas pieaugums"
-      },
-      {
-        "num": "12.37.2",
-        "ru": "Предел отношения приращений",
-        "lv": "Pieaugumu attiecības robeža"
-      },
-      {
-        "num": "12.37.3",
-        "ru": "Понятие и определение производной",
-        "lv": "Atvasinājuma jēdziens un definīcija"
-      },
-      {
-        "num": "12.37.4",
-        "ru": "Геометрический смысл производной",
-        "lv": "Atvasinājuma ģeometriskā jēga"
-      }
-    ]
-  },
-  {
-    "id": 158,
-    "slug": "augst-diferencesanas-likumi-formulas",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "matematiskais-analizs",
-    "position": 38,
-    "title_ru": "12.38. Правила и формулы дифференцирования",
-    "title_lv": "12.38. Diferencēšanas likumi un formulas",
-    "description_ru": "Таблица производных ($x^n, e^x, \\ln x, \\sin x, \\cos x$), производная суммы, произведения $(uv)'$, частного $(u/v)'$, производная сложной функции $f(g(x))'$.",
-    "description_lv": "Atvasinājumu tabula, reizinājuma un dalījuma diferencēšana, saliktas funkcijas atvasinājums.",
-    "subtopics": [
-      {
-        "num": "12.38.1",
-        "ru": "Производная степенной функции",
-        "lv": "Pakāpveida funkcijas atvasinājums"
-      },
-      {
-        "num": "12.38.2",
-        "ru": "Производные тригонометрических функций",
-        "lv": "Trigonometrisko funkciju atvasinājumi"
-      },
-      {
-        "num": "12.38.3",
-        "ru": "Правила дифференцирования суммы и произведения",
-        "lv": "Summas un reizinājuma diferencēšanas likumi"
-      },
-      {
-        "num": "12.38.4",
-        "ru": "Производная частного и сложной функции",
-        "lv": "Dalījuma un saliktas funkcijas atvasinājums"
-      }
-    ]
-  },
-  {
-    "id": 159,
-    "slug": "augst-pieskare-grafikam",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "funkcijas",
-    "position": 39,
-    "title_ru": "12.39. Касательная к графику функции",
-    "title_lv": "12.39. Pieskare funkcijas grafikam",
-    "description_ru": "Уравнение касательной $y = f(x_0) + f'(x_0)(x - x_0)$, параллельность касательной заданной прямой, нахождение точек касания.",
-    "description_lv": "Pieskares vienādojums $y = f(x_0) + f'(x_0)(x - x_0)$, pieskares paralelitāte dotajai taisnei.",
-    "subtopics": [
-      {
-        "num": "12.39.1",
-        "ru": "Угловой коэффициент касательной",
-        "lv": "Pieskares virziena koeficients"
-      },
-      {
-        "num": "12.39.2",
-        "ru": "Уравнение касательной в точке",
-        "lv": "Pieskares vienādojums punktā"
-      },
-      {
-        "num": "12.39.3",
-        "ru": "Угол между кривой и прямой",
-        "lv": "Leņķis starp līniju un taisni"
-      },
-      {
-        "num": "12.39.4",
-        "ru": "Условия параллельности и перпендикулярности касательных",
-        "lv": "Pieskares paralelitātes un perpendikularitātes nosacījumi"
-      }
-    ]
-  },
-  {
-    "id": 160,
-    "slug": "augst-funkciju-petisana-ar-atvasinajumu",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "matematiskais-analizs",
-    "position": 40,
-    "title_ru": "12.40. Исследование функций с помощью производной",
-    "title_lv": "12.40. Funkciju pētīšana ar atvasinājumu: monotonitāte un ekstrēmi",
-    "description_ru": "Критические (стационарные) точки $f'(x) = 0$, достаточные признаки максимума и минимума (смена знака производной), выпуклость и точки перегиба $f''(x) = 0$.",
-    "description_lv": "Kritiskie punkti $f'(x) = 0$, ekstrēmu noteikšana, ieliekums, izliekums un pārliekuma punkti $f''(x) = 0$.",
-    "subtopics": [
-      {
-        "num": "12.40.1",
-        "ru": "Связь знака производной и монотонности",
-        "lv": "Atvasinājuma zīmes un monotonitātes saistība"
-      },
-      {
-        "num": "12.40.2",
-        "ru": "Критические точки и стационарные точки",
-        "lv": "Kritiskie punkti un stacionārie punkti"
-      },
-      {
-        "num": "12.40.3",
-        "ru": "Локальные экстремумы функции",
-        "lv": "Funkcijas lokālie ekstrēmi"
-      },
-      {
-        "num": "12.40.4",
-        "ru": "Наибольшее и наименьшее значения на отрезке",
-        "lv": "Lielākā un mazākā vērtība slēgtā intervālā"
-      }
-    ]
-  },
-  {
-    "id": 161,
-    "slug": "augst-lietiski-optimizacijas-uzdevumi",
+    "slug": "augst-kursa-matematika-ii-apkopojums",
     "grade": 12,
     "grade_name": "Matemātika II",
     "subject_slug": "algebra",
-    "position": 41,
-    "title_ru": "12.41. Прикладные задачи на оптимизацию",
-    "title_lv": "12.41. Lietišķi optimizācijas uzdevumi",
-    "description_ru": "Нахождение наименьшего и наибольшего значения функции на отрезке, составление целевой функции, оптимизация расхода материалов и прибыли.",
-    "description_lv": "Lielākā un mazākā vērtība slēgtā intervālā, mērķfunkcijas sastādīšana, izmaksu un materiālu optimizācija.",
-    "subtopics": [
-      {
-        "num": "12.41.1",
-        "ru": "Составление математической модели оптимизационной задачи",
-        "lv": "Optimizācijas uzdevuma matemātiskā modeļa sastādīšana"
-      },
-      {
-        "num": "12.41.2",
-        "ru": "Поиск оптимального значения с помощью производной",
-        "lv": "Optimālās vērtības atrašana, izmantojot atvasinājumu"
-      },
-      {
-        "num": "12.41.3",
-        "ru": "Прикладные задачи геометрии и физики",
-        "lv": "Praktiskie uzdevumi ģeometrijā un fizikā"
-      }
-    ]
-  },
-  {
-    "id": 162,
-    "slug": "augst-primitiva-funkcija-integraliss",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "matematiskais-analizs",
-    "position": 42,
-    "title_ru": "12.42. Первообразная и неопределенный интеграл",
-    "title_lv": "12.42. Primitīvā funkcija un nenoteiktais integrālis",
-    "description_ru": "Определение первообразной $F'(x) = f(x)$, неопределенный интеграл $\\int f(x)dx = F(x) + C$, таблица интегралов, метод замены переменной.",
-    "description_lv": "Primitīvā funkcija, nenoteiktā integrāļa definīcija, integrāļu tabula, substitūcijas metode.",
-    "subtopics": [
-      {
-        "num": "12.42.1",
-        "ru": "Понятие первообразной функции",
-        "lv": "Primitīvās funkcijas jēdziens"
-      },
-      {
-        "num": "12.42.2",
-        "ru": "Таблица неопределенных интегралов",
-        "lv": "Nenoteikto integrāļu tabula"
-      },
-      {
-        "num": "12.42.3",
-        "ru": "Правила интегрирования",
-        "lv": "Integrēšanas likumi"
-      },
-      {
-        "num": "12.42.4",
-        "ru": "Непосредственное интегрирование",
-        "lv": "Tiešā integrēšana"
-      }
-    ]
-  },
-  {
-    "id": 163,
-    "slug": "augst-noteiktais-integralis-nutona-leibnica",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "matematiskais-analizs",
-    "position": 43,
-    "title_ru": "12.43. Определенный интеграл и формула Ньютона–Лейбница",
-    "title_lv": "12.43. Noteiktais integrālis un Ņūtona–Leibnica formula",
-    "description_ru": "Геометрический смысл определенного интеграла, формула $\\int_a^b f(x)dx = F(b) - F(a)$, свойства определенного интеграла.",
-    "description_lv": "Noteiktā integrāļa ģeometriskā jēga, Ņūtona–Leibnica formula $\\int_a^b f(x)dx = F(b) - F(a)$, īpašības.",
-    "subtopics": [
-      {
-        "num": "12.43.1",
-        "ru": "Понятие определенного интеграла и интегральная сумма",
-        "lv": "Noteiktā integrāļa jēdziens un integrālsumma"
-      },
-      {
-        "num": "12.43.2",
-        "ru": "Геометрический смысл определенного интеграла",
-        "lv": "Noteiktā integrāļa ģeometriskā jēga"
-      },
-      {
-        "num": "12.43.3",
-        "ru": "Формула Ньютона–Лейбница",
-        "lv": "Ņūtona–Leibnica formula"
-      },
-      {
-        "num": "12.43.4",
-        "ru": "Свойства определенного интеграла",
-        "lv": "Noteiktā integrāļa īpašības"
-      }
-    ]
-  },
-  {
-    "id": 164,
-    "slug": "augst-laukumi-tilpumi-integralis",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "matematiskais-analizs",
-    "position": 44,
-    "title_ru": "12.44. Вычисление площадей и объемов с помощью интеграла",
-    "title_lv": "12.44. Laukumu un tilpumu aprēķināšana ar integrāli",
-    "description_ru": "Площадь криволинейной трапеции $S = \\int_a^b (f_1(x) - f_2(x))dx$, объем тела вращения вокруг оси $Ox$: $V = \\pi \\int_a^b f(x)^2 dx$.",
-    "description_lv": "Liekliniju trapeces laukums, rotācijas ķermeņa tilpums $V = \\pi \\int_a^b f(x)^2 dx$.",
-    "subtopics": [
-      {
-        "num": "12.44.1",
-        "ru": "Вычисление площади плоской фигуры с помощью интеграла",
-        "lv": "Plakanas figuras laukuma aprēķināšana ar integrāli"
-      },
-      {
-        "num": "12.44.2",
-        "ru": "Площадь фигуры, ограниченной несколькими линиями",
-        "lv": "Figūras laukums, ko ierobežo vairākas līnijas"
-      },
-      {
-        "num": "12.44.3",
-        "ru": "Вычисление объема тела вращения",
-        "lv": "Rotācijas ķermeņa tilpuma aprēķināšana"
-      }
-    ]
-  },
-  {
-    "id": 165,
-    "slug": "augst-integrala-lietojums-fizika",
-    "grade": 12,
-    "grade_name": "Matemātika II",
-    "subject_slug": "matematiskais-analizs",
-    "position": 45,
-    "title_ru": "12.45. Применение интеграла в физике",
-    "title_lv": "12.45. Integrāļa lietojums fizikā",
-    "description_ru": "Путь по переменной скорости $s = \\int_{t_1}^{t_2} v(t)dt$, работа переменной силы $A = \\int F(x)dx$ (растяжение пружины по закону Гука).",
-    "description_lv": "Noietā ceļa aprēķināšana ar mainīgu ātrumu, spēka padarītais darbs (Huka likums).",
-    "subtopics": [
-      {
-        "num": "12.45.1",
-        "ru": "Путь и перемещение как интеграл от скорости",
-        "lv": "Ceļš un pārvietojums kā ātruma integrālis"
-      },
-      {
-        "num": "12.45.2",
-        "ru": "Работа переменной силы",
-        "lv": "Mainīga spēka darbs"
-      },
-      {
-        "num": "12.45.3",
-        "ru": "Физические приложения интеграла в задачах динамики и кинематики",
-        "lv": "Integrāļa fiziskie lietojumi dinamikas un kinemātikas uzdevumos"
-      }
-    ]
+    "position": 15,
+    "title_ru": "12.15. Обобщение курса Математика II",
+    "title_lv": "12.15. Kursa Matemātika II apkopojums",
+    "description_ru": "Программа Matemātika II: 12 ч.",
+    "description_lv": "Matemātika II programma: 12 st.",
+    "subtopics": []
   }
 ]

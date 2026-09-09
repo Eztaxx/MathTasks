@@ -1064,406 +1064,123 @@
 
 ## 12 класс
 
-### 12.1. Иррациональные уравнения
+### 12.1. Алгебраические преобразования, индукция
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.1.1` | Понятие иррационального уравнения и область допустимых значений | Iracionāla vienādojuma jēdziens un pieļaujamo vērtību apgabals |
-| `12.1.2` | Возведение в степень и избавление от радикалов | Kāpināšana un atbrīvošanās no saknēm |
-| `12.1.3` | Проверка корней и отсев посторонних решений | Sakņu pārbaude un nederīgo sakņu atmetīšana |
-| `12.1.4` | Метод введения новой переменной | Jauna mainīgā ieviešanas metode |
+| `12.1.1` | Элементы математической логики | Matemātiskās loģikas elementi |
+| `12.1.2` | Принцип математической индукции | Matemātiskās indukcijas princips |
 
-### 12.2. Логарифмические уравнения, неравенства и системы
+### 12.2. Деление многочленов, уравнения высших степеней
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.2.1` | Определение и свойства логарифмических функций | Logaritmiskās funkcijas definīcija un īpašības |
-| `12.2.2` | Решение простейших логарифмических уравнений | Vienkāršāko logarithmisko vienādojumu risināšana |
-| `12.2.3` | Логарифмические неравенства и учет ОДЗ | Logaritmiskās nevienādības un PVA ievērošana |
-| `12.2.4` | Системы логарифмических уравнений | Logaritmisko vienādojumu sistēmas |
+| `12.2.1` | Деление многочленов и теорема Безу | Polinomu dalīšana un Bezū teorēma |
+| `12.2.2` | Метод неопределенных коэффициентов | Nenoteikto koeficientu metode |
+| `12.2.3` | Уравнения и неравенства с параметром | Vienādojumi un nevienādības ar parametru |
+| `12.2.4` | Комплексные приемы решения уравнений | Kompleksi vienādojumu risināšanas paņēmieni |
 
-### 12.3. Деление многочленов и теорема Безу
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.3.1` | Деление многочлена на многочлен уголком | Polinoma dalīšana ar polinomu stabiņā |
-| `12.3.2` | Теорема Безу и нахождение остатка от деления | Bezū teorēma un atlikuma atrašana |
-| `12.3.3` | Корни многочлена и схема Горнера | Polinoma saknes un Horner’a shēma |
-| `12.3.4` | Разложение многочлена на линейные множители | Polinoma sadalīšana lineāros reizinātājos |
-
-### 12.4. Метод неопределенных коэффициентов
+### 12.3. Функция
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.4.1` | Суть метода неопределенных коэффициентов | Nenoteikto koeficientu metodes būtība |
-| `12.4.2` | Разложение рациональной дроби на простейшие дроби | Racionālas daļas sadalīšana elementārdaļās |
-| `12.4.3` | Нахождение неизвестных коэффициентов | Nezināmo koeficientu atrašana |
-| `12.4.4` | Применение метода к интегралам и многочленам | Metodes lietojums integrāļos un polinomos |
+| `12.3.1` | Обратная функция | Inversā funkcija |
+| `12.3.2` | Исследование дробно-рациональной функции | Daļveida racionālas funkcijas pētīšana |
 
-### 12.5. Уравнения и неравенства с параметром
+### 12.4. Уравнения и неравенства с модулем, иррациональные уравнения
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.5.1` | Линейные и квадратные уравнения с параметром | Lineāri un kvadrātvienādojumi ar parametru |
-| `12.5.2` | Исследование количества корней уравнения | Vienādojuma sakņu skaita izpēte |
-| `12.5.3` | Расположение корней квадратного трехчлена | Kvadrāttrinoma sakņu izvietojums |
-| `12.5.4` | Неравенства с параметром и графический метод | Nevienādības ar parametru un grafiskā metode |
+| `12.4.1` | Иррациональные уравнения | Iracionālie vienādojumi |
 
-### 12.6. Комплексные приемы решения уравнений
+### 12.5. Логарифмические уравнения и неравенства. Смешанные системы уравнений
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.6.1` | Использование симметрии и свойств функций | Simetrijas un funkciju īpašību izmantošana |
-| `12.6.2` | Метод замены переменной в уравнениях высших степеней | Mainīgā aizvietošanas metode augstāku pakāpju vienādojumos |
-| `12.6.3` | Однородные уравнения | Homogēni vienādojumi |
-| `12.6.4` | Комбинированные уравнения и нестандартные приемы | Kombinēti vienādojumi un nestandarta paņēmieni |
+| `12.5.1` | Логарифмические уравнения, неравенства и системы | Logaritmiskie vienādojumi, nevienādības un sistēmas |
 
-### 12.7. Обратная функция
+### 12.6. Тригонометрия
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.7.1` | Понятие обратной функции и условие обратимости | Inversās funkcijas jēdziens un invertējamības nosacījums |
-| `12.7.2` | График обратной функции и его симметрия | Inversās funkcijas grafiks un tā simetrija |
-| `12.7.3` | Нахождение формулы обратной функции | Inversās funkcijas izteiksmes atrasšana |
-| `12.7.4` | Взаимосвязь областей определения и значений | Definīcijas apgabala un vērtību kopas savstarpējā saistība |
+| `12.6.1` | Тангенс и котангенс угла | Leņķa tangenss un kotangenss |
+| `12.6.2` | Обратные тригонометрические функции | Apgrieztās trigonometriskās funkcijas |
+| `12.6.3` | Тригонометрические неравенства | Trigonometriskās nevienādības |
+| `12.6.4` | Системы тригонометрических уравнений | Trigonometrisko vienādojumu sistēmas |
+| `12.6.5` | Гармонические колебания и тригонометрические модели | Harmoniskās svārstības un trigonometriskie modeļi |
 
-### 12.8. Последовательности, их монотонность и предел
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.8.1` | Понятие числовой последовательности и способы задания | Skaitļu virknes jēdziens un uzdošanas veidi |
-| `12.8.2` | Монотонность последовательности | Virknes monotonitāte |
-| `12.8.3` | Ограниченность последовательности | Virknes ierobežotība |
-| `12.8.4` | Предел последовательности и сходимость | Virknes robeža un konvergence |
-
-### 12.9. Бесконечно убывающая геометрическая прогрессия
+### 12.7. Последовательности, предел последовательности
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.9.1` | Понятие бесконечно убывающей геометрической прогрессии | Bezgalīgi dilstošas ģeometriskās progresijas jēdziens |
-| `12.9.2` | Формула суммы бесконечно убывающей прогрессии | Bezgalīgi dilstošas progresijas summas formula |
-| `12.9.3` | Перевод периодических дробей в обыкновенные | Periodisku decimāldaļu pārveidošana par parastajām daļām |
-| `12.9.4` | Применение прогрессии в текстовых задачах | Progresijas lietojums teksta uzdevumos |
+| `12.7.1` | Последовательности, их монотонность и предел | Virknes, to monotonitāte un robeža |
+| `12.7.2` | Бесконечно убывающая геометрическая прогрессия | Bezgalīgi dilstoša ģeometriskā progresija |
+| `12.7.3` | Число e и экспоненциальные процессы | Skaitlis e un eksponenciāli procesi |
 
-### 12.10. Число e и экспоненциальные процессы
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.10.1` | Число e и его математический смысл | Skaitlis e un tā matemātiskā jēga |
-| `12.10.2` | Функция натурального экспоненциального роста | Naturālās eksponenciālās augšanas funkcija |
-| `12.10.3` | Моделирование процессов роста и распада | Augšanas un sabrukšanas procesu modelēšana |
-| `12.10.4` | Непрерывное начисление процентов | Nepārtrauktie procentu aprēķini |
-
-### 12.11. Непрерывность функции
+### 12.8. Предел функции, непрерывность
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.11.1` | Понятие непрерывности функции в точке | Funkcijas nepārtrauktības jēdziens punktā |
-| `12.11.2` | Односторонние пределы и непрерывность | Vienpusējās robežas un nepārtrauktība |
-| `12.11.3` | Классификация точек разрыва | Pārtraukuma punktu klasifikācija |
-| `12.11.4` | Свойства непрерывных на отрезке функций | Funkciju, kas ir nepārtrauktas slēgtā intervālā, īpašības |
+| `12.8.1` | Непрерывность функции | Funkcijas nepārtrauktība |
+| `12.8.2` | Предел функции | Funkcijas robeža |
 
-### 12.12. Исследование дробно-рациональной функции
+### 12.9. Производная функции
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.12.1` | Область определения и нули функции | Definīcijas apgabals un funkcijas nulles |
-| `12.12.2` | Асимптоты графика дробно-рациональной функции | Daļveida racionālas funkcijas grafika asimptotes |
-| `12.12.3` | Поведение функции на бесконечности | Funkcijas uzvedība bezgalībā |
-| `12.12.4` | Построение эскиза графика функции | Funkcijas grafika skices zīmēšana |
+| `12.9.1` | Определение производной и её геометрический смысл | Atvasinājuma definīcija un tā ģeometriskā jēga |
+| `12.9.2` | Правила и формулы дифференцирования | Diferencēšanas likumi un formulas |
 
-### 12.13. Тангенс и котангенс угла
+### 12.10. Применения производной
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.13.1` | Определения тангенса и котангенса в прямоугольном треугольнике и на единичной окружности | Tangensa un kotangensa definīcijas taisnleņķa trijstūrī un uz vienības riņķa līnijas |
-| `12.13.2` | Значения тангенса и котангенса для стандартных углов | Tangensa un kotangensa vērtības standarta leņķiem |
-| `12.13.3` | Основные тригонометрические тождества с тангенсом и котангенсом | Pamata trigonometriskās identitātes ar tangensu un kotangensu |
-| `12.13.4` | Графики и свойства функций тангенса и котангенса | Tangensa un kotangensa funkciju grafiki un īpašības |
+| `12.10.1` | Касательная к графику функции | Pieskare funkcijas grafikam |
+| `12.10.2` | Исследование функций с помощью производной | Funkciju pētīšana ar atvasinājumu: monotonitāte un ekstrēmi |
+| `12.10.3` | Прикладные задачи на оптимизацию | Lietišķi optimizācijas uzdevumi |
 
-### 12.14. Обратные тригонометрические функции
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.14.1` | Понятия арксинуса, арккосинуса, арктангенса и арккотангенса | Arksinusa, arkkosinusa, arktangensa un arkkotangensa jēdzieni |
-| `12.14.2` | Значения обратных тригонометрических функций | Apgriezto trigonometrisko funkciju vērtības |
-| `12.14.3` | Свойства и графики обратных тригонометрических функций | Apgriezto trigonometrisko funkciju īpašības un grafiki |
-| `12.14.4` | Вычисление выражений с обратными тригонометрическими функциями | Izteiksmju aprēķināšana ar apgrieztajām trigonometriskajām funkcijām |
-
-### 12.15. Тригонометрические неравенства
+### 12.11. Интеграл
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.15.1` | Простейшие тригонометрические неравенства | Vienkāršākās trigonometriskās nevienādības |
-| `12.15.2` | Тригонометрические неравенства, решаемые заменой переменной | Trigonometriskās nevienādības, ko risina ar mainīgā aizvietojumu |
-| `12.15.3` | Неравенства с использованием формул приведения и тождеств | Nevienādības, izmantojot reducēšanas formulas un identitātes |
-| `12.15.4` | Метод интервалов для тригонометрических неравенств | Intervālu metode trigonometriskajām nevienādībām |
+| `12.11.1` | Первообразная и неопределенный интеграл | Primitīvā funkcija un nenoteiktais integrālis |
+| `12.11.2` | Определенный интеграл и формула Ньютона–Лейбница | Noteiktais integrālis un Ņūtona–Leibnica formula |
 
-### 12.16. Системы тригонометрических уравнений
+### 12.12. Применения интеграла
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.16.1` | Системы простейших тригонометрических уравнений | Vienkāršāko trigonometrisko vienādojumu sistēmas |
-| `12.16.2` | Системы уравнений, требующие применения тригонометрических формул | Vienādojumu sistēmas, kuru risināšanai nepieciešams izmantot trigonometriskās formulas |
-| `12.16.3` | Системы тригонометрических уравнений с заменой переменных | Trigonometrisko vienādojumu sistēmas ar mainīgo aizvietojumu |
-| `12.16.4` | Отбор корней в системах тригонометрических уравнений | Sakņu atlase trigonometrisko vienādojumu sistēmās |
+| `12.12.1` | Вычисление площадей и объемов с помощью интеграла | Laukumu un tilpumu aprēķināšana ar integrāli |
+| `12.12.2` | Применение интеграла в физике | Integrāļa lietojums fizikā |
 
-### 12.17. Гармонические колебания и тригонометрические модели
+### 12.13. Комбинаторика, теория вероятностей и статистика
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.17.1` | Модель гармонических колебаний через синус и косинус | Harmonisko svārstību modelis ar sinusu un kosinusu |
-| `12.17.2` | Амплитуда, частота и период гармонических колебаний | Harmonisko svārstību amplitūda, frekvence un periods |
-| `12.17.3` | Фазовый сдвиг в тригонометрических моделях | Fāzes nobīde trigonometriskajos modeļos |
-| `12.17.4` | Применение тригонометрических моделей к реальным процессам | Trigonometrisko modeļu lietojums reālos procesos |
+| `12.13.1` | Комбинаторика II: Треугольник Паскаля | Kombinatorika II: Paskāla trijstūris |
+| `12.13.2` | Бином Ньютона | Ņūtona binoms |
+| `12.13.3` | Распределения случайной величины и формула Бернулли | Gadījuma lieluma sadalījumi un Bernulli formula |
+| `12.13.4` | Формула полной вероятности и формула Байеса | Notikumu apvienojuma un pilnās varbūtības formula |
+| `12.13.5` | Статистика II: Выводы о генеральной совокупности | Statistika II: secinājumi par populāciju |
 
-### 12.18. Соотношения в треугольниках (углубленно)
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.18.1` | Теоремы синусов и косинусов для произвольных треугольников | Sinusu un kosinusa teorēmas patvaļīgiem trijstūriem |
-| `12.18.2` | Формулы площади треугольника в углубленном курсе | Trijstūra laukuma formulas padziļinātajā kursā |
-| `12.18.3` | Радиусы вписанной и описанной окружностей треугольника | Trijstūrī ievilktas un ap trijstūri apvilktas riņķa līnijas rādiusi |
-| `12.18.4` | Решение прикладных геометрических задач повышенной сложности | Paaugstinātas grūtības lietišķo ģeometrisko uzdevumu risināšana |
-
-### 12.19. Соотношения в четырехугольниках и правильных многоугольниках
+### 12.14. Геометрия
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.19.1` | Свойства и признаки параллелограмма, ромба, прямоугольника и квадрата | Paralelograma, romba, taisnstūra un kvadrāta īpašības un pazīmes |
-| `12.19.2` | Свойства и площади вписанных и описанных четырехугольников | Ievilkto un apvilkto četrstūru īpašības un laukumi |
-| `12.19.3` | Углы и периметры правильных многоугольников | Regulāru daudzstūru leņķi un perimetri |
-| `12.19.4` | Применение свойств многоугольников в задачах на вычисление | Daudzstūru īpašību lietojums aprēķinu uzdevumos |
+| `12.14.1` | Соотношения в треугольниках (углубленно) | Sakarības trijstūros (padziļināti) |
+| `12.14.2` | Соотношения в четырехугольниках и правильных многоугольниках | Sakarības četrstūros un regulāros daudzstūros |
+| `12.14.3` | Отрезки и углы, связанные с окружностью | Ar riņķa līniju saistīti leņķi un nogriežņi |
+| `12.14.4` | Геометрические преобразования (углубленно) | Ģeometriskie pārveidojumi |
+| `12.14.5` | Аналитическая геометрия: прямая и окружность | Analītiskā ģeometrija: taisne un riņķa līnija |
+| `12.14.6` | Скалярное произведение векторов в геометрических задачах | Vektoru skalārais reizinājums uzdevumos |
+| `12.14.7` | Сечения многогранников плоскостью (углубленно) | Daudzskaldņi un to šķēlumi ar plakni |
+| `12.14.8` | Комбинации призмы и цилиндра | Prizmas un cilindra ģeometriskās kombinācijas |
+| `12.14.9` | Комбинации конуса и пирамиды | Konusa un piramīdas ģeometriskās kombinācijas |
+| `12.14.10` | Комбинации шара, цилиндра и конуса | Lodes, cilindra un konusa ģeometriskās kombinācijas |
+| `12.14.11` | Комбинации призмы, пирамиды и сферы | Prizmas un lodes, piramīdas un lodes kombinācijas |
 
-### 12.20. Отрезки и углы, связанные с окружностью
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.20.1` | Центральные и вписанные углы окружности | Riņķa līnijas centrālie un ievilktie leņķi |
-| `12.20.2` | Углы между хордами, секущими и касательными | Leņķi starp hordām, sekantēm un pieskarēm |
-| `12.20.3` | Свойства пересекающихся хорд, секущих и касательных | Krustojošos hordu, sekunžu un pieskaņu īpašības |
-| `12.20.4` | Метрические соотношения в окружности в геометрических задачах | Metriskās sakarības riņķa līnijā ģeometrijas uzdevumos |
-
-### 12.21. Геометрические преобразования (углубленно)
+### 12.15. Обобщение курса Математика II
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `12.21.1` | Параллельный перенос и центральная симметрия на плоскости | Paralēlā pārvietošana un centrālā simetrija plaknē |
-| `12.21.2` | Осевая симметрия и поворот фигуры | Asu simetrija un figūras pagrieziens |
-| `12.21.3` | Гомотетия и преобразование подобия | Homotētija un līdzības pārveidojums |
-| `12.21.4` | Применение геометрических преобразований для решения задач | Ģeometrisko pārveidojumu pielietojums uzdevumu risināšanā |
-
-### 12.22. Аналитическая геометрия: прямая и окружность
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.22.1` | Уравнение прямой с угловым коэффициентом и общее уравнение прямой | Taisnes vienādojums ar virzienkoeficientu un vispārīgais taisnes vienādojums |
-| `12.22.2` | Взаимное расположение прямых на плоскости | Taisņu savstarpējais novietojumsplaknē |
-| `12.22.3` | Уравнение окружности на координатной плоскости | Riņķa līnijas vienādojums koordinātu plaknē |
-| `12.22.4` | Взаимное расположение прямой и окружности | Taisnes un riņķa līnijas savstarpējais novietojums |
-
-### 12.23. Скалярное произведение векторов в геометрических задачах
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.23.1` | Определение и вычисление скалярного произведения векторов | Vektoru skalārā reizinājuma definīcija un aprēķināšana |
-| `12.23.2` | Условие перпендикулярности векторов | Vektoru perpendikularitātes nosacījums |
-| `12.23.3` | Вычисление углов между векторами и прямыми | Leņķu aprēķināšana starp vektoriem un taisnēm |
-| `12.23.4` | Применение векторов для доказательства геометрических утверждений | Vektoru pielietojums ģeometrisku apgalvojumu pierādīšanā |
-
-### 12.24. Сечения многогранников плоскостью (углубленно)
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.24.1` | Следы плоскости и линии пересечения с гранями многогранника | Plaknes pēdas un krustošanās līnijas ar daudzskaldņa skaldnēm |
-| `12.24.2` | Построение сечений куба, призм и пирамид методом следов | Kubal, prizmu un piramīdu šķēlumu konstrukcija ar pēdu metodi |
-| `12.24.3` | Построение сечений многогранников методом параллельного переноса | Daudzskaldņu šķēlumu konstrukcija ar paralelās pārvietošanas metodi |
-| `12.24.4` | Вычисление периметров и площадей сечений многогранников | Daudzskaldņu šķēlumu perimetru un laukumu aprēķināšana |
-
-### 12.25. Комбинации призмы и цилиндра
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.25.1` | Вписанный и описанный цилиндр призмы | Prizmā ievilkts un ap prizmu apvilkts cilindrs |
-| `12.25.2` | Вписанная и описанная призма цилиндра | Cilindrā ievilkta un ap cilindru apvilkta prizma |
-| `12.25.3` | Вычисление площади поверхности комбинаций призмы и цилиндра | Prizmas un cilindra kombināciju virsmas laukuma aprēķināšana |
-| `12.25.4` | Вычисление объема комбинаций призмы и цилиндра | Prizmas un cilindra kombināciju tilpuma aprēķināšana |
-
-### 12.26. Комбинации конуса и пирамиды
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.26.1` | Вписанный и описанный конус пирамиды | Piramīdā ievilkts un ap piramīdu apvilkts konuss |
-| `12.26.2` | Вписанная и описанная пирамида конуса | Konusā ievilkta un ap konusu apvilkta piramīda |
-| `12.26.3` | Элементы и сечения комбинаций конуса и пирамиды | Konusa un piramīdas kombināciju elementi un šķēlumi |
-| `12.26.4` | Объемы и площади поверхности комбинаций конуса и пирамиды | Konusa un piramīdas kombināciju tilpums un virsmas laukums |
-
-### 12.27. Комбинации шара, цилиндра и конуса
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.27.1` | Шар, вписанный в цилиндр и конус | Cilindrā un konusā ievilkta lode |
-| `12.27.2` | Шар, описанный около цилиндра и конуса | Ap cilindru un konusu apvilkta lode |
-| `12.27.3` | Цилиндр и конус, вписанные в шар | Lodē ievilkts cilindrs un konuss |
-| `12.27.4` | Комбинированные задачи на объем и площадь тел вращения | Kombinēti uzdevumi par rotācijas ķermeņu tilpumu un virsmas laukumu |
-
-### 12.28. Комбинации призмы, пирамиды и сферы
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.28.1` | Сфера, вписанная в призму и пирамиду | Prizmā un piramīdā ievilkta sfēra |
-| `12.28.2` | Сфера, описанная около призмы и пирамиды | Ap prizmu un piramīdu apvilkta sfēra |
-| `12.28.3` | Радиус сферы в комбинациях с многогранниками | Sfēras rādiuss kombinācijās ar daudzskaldņiem |
-| `12.28.4` | Решение прикладных задач на многогранники со сферой | Praktisku uzdevumu risināšana par daudzskaldņiem ar sfēru |
-
-### 12.29. Комбинаторика II: Треугольник Паскаля
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.29.1` | Свойства и закономерности треугольника Паскаля | Paskāla trijstūra īpašības un likumsakarības |
-| `12.29.2` | Связь треугольника Паскаля с сочетаниями | Paskāla trijstūra saistība ar kombinācijām |
-| `12.29.3` | Нахождение элементов треугольника Паскаля | Paskāla trijstūra elementu atrašana |
-| `12.29.4` | Применение треугольника Паскаля в комбинаторике | Paskāla trijstūra lietojums kombinatorikā |
-
-### 12.30. Бином Ньютона
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.30.1` | Формула бинома Ньютона | Ņūtona binoma formula |
-| `12.30.2` | Нахождение коэффициентов бинома Ньютона | Ņūtona binoma koeficientu atrašana |
-| `12.30.3` | Определение заданного члена разложения бинома | Binoma summas dotā locekļa noteikšana |
-| `12.30.4` | Тождества с биномиальными коэффициентами | Identitātes ar binomiālajiem koeficientiem |
-
-### 12.31. Элементы математической логики
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.31.1` | Высказывания и логические операции | Izteikumi un loģiskās darbības |
-| `12.31.2` | Таблицы истинности | Patiesības tabulas |
-| `12.31.3` | Законы алгебры логики | Loģikas algebras likumi |
-| `12.31.4` | Необходимые и достаточные условия | Nepieciešamie un pietiekamie nosacījumi |
-| `12.31.5` | Методы математического доказательства | Matemātisko pierādījumu metodes |
-
-### 12.32. Принцип математической индукции
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.32.1` | Сущность метода математической индукции | Matemātiskās indukcijas metodes būtība |
-| `12.32.2` | Доказательство делимости и равенств | Dalāmības un vienādību pierādīšana |
-| `12.32.3` | Доказательство неравенств | Nevienādību pierādīšana |
-
-### 12.33. Распределения случайной величины и формула Бернулли
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.33.1` | Дискретная случайная величина и закон распределения | Diskrēts gadījuma lielums un sadalījuma likums |
-| `12.33.2` | Математическое ожидание и дисперсия | Matemātiskā cerība un dispersija |
-| `12.33.3` | Схема Бернулли и формула Бернулли | Bernulli shēma un Bernulli formula |
-| `12.33.4` | Биномиальное распределение | Binomiālais sadalījums |
-
-### 12.34. Формула полной вероятности и формула Байеса
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.34.1` | Условная вероятность и теорема умножения | Nosacītā varbūtība un reizināšanas teorēma |
-| `12.34.2` | Теорема сложения вероятностей | Varbūtību saskaitīšanas teorēma |
-| `12.34.3` | Формула полной вероятности | Pilnās varbūtības formula |
-| `12.34.4` | Формула Байеса | Bajesas formula |
-
-### 12.35. Статистика II: Выводы о генеральной совокупности
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.35.1` | Генеральная совокупность и выборка | Ģenerālkopa un izlase |
-| `12.35.2` | Точечные оценки параметров | Parametru punkta novērtējumi |
-| `12.35.3` | Интервальные оценки и доверительный интервал | Intervāla novērtējumi un ticamības intervāls |
-| `12.35.4` | Проверка статистических гипотез | Statistisko hipotēšu pārbaude |
-
-### 12.36. Предел функции
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.36.1` | Понятие предела функции в точке | Funkcijas robežas jēdziens punktā |
-| `12.36.2` | Односторонние пределы | Vienpusējās robežas |
-| `12.36.3` | Вычисление пределов и неопределенности | Robežu aprēķināšana un nenoteiktības |
-| `12.36.4` | Предел функции на бесконечности | Funkcijas robeža bezgalībā |
-| `12.36.5` | Непрерывность функции | Funkcijas nepārtrauktība |
-
-### 12.37. Определение производной и её геометрический смысл
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.37.1` | Приращение аргумента и функции | Argumenta un funkcijas pieaugums |
-| `12.37.2` | Предел отношения приращений | Pieaugumu attiecības robeža |
-| `12.37.3` | Понятие и определение производной | Atvasinājuma jēdziens un definīcija |
-| `12.37.4` | Геометрический смысл производной | Atvasinājuma ģeometriskā jēga |
-
-### 12.38. Правила и формулы дифференцирования
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.38.1` | Производная степенной функции | Pakāpveida funkcijas atvasinājums |
-| `12.38.2` | Производные тригонометрических функций | Trigonometrisko funkciju atvasinājumi |
-| `12.38.3` | Правила дифференцирования суммы и произведения | Summas un reizinājuma diferencēšanas likumi |
-| `12.38.4` | Производная частного и сложной функции | Dalījuma un saliktas funkcijas atvasinājums |
-
-### 12.39. Касательная к графику функции
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.39.1` | Угловой коэффициент касательной | Pieskares virziena koeficients |
-| `12.39.2` | Уравнение касательной в точке | Pieskares vienādojums punktā |
-| `12.39.3` | Угол между кривой и прямой | Leņķis starp līniju un taisni |
-| `12.39.4` | Условия параллельности и перпендикулярности касательных | Pieskares paralelitātes un perpendikularitātes nosacījumi |
-
-### 12.40. Исследование функций с помощью производной
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.40.1` | Связь знака производной и монотонности | Atvasinājuma zīmes un monotonitātes saistība |
-| `12.40.2` | Критические точки и стационарные точки | Kritiskie punkti un stacionārie punkti |
-| `12.40.3` | Локальные экстремумы функции | Funkcijas lokālie ekstrēmi |
-| `12.40.4` | Наибольшее и наименьшее значения на отрезке | Lielākā un mazākā vērtība slēgtā intervālā |
-
-### 12.41. Прикладные задачи на оптимизацию
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.41.1` | Составление математической модели оптимизационной задачи | Optimizācijas uzdevuma matemātiskā modeļa sastādīšana |
-| `12.41.2` | Поиск оптимального значения с помощью производной | Optimālās vērtības atrašana, izmantojot atvasinājumu |
-| `12.41.3` | Прикладные задачи геометрии и физики | Praktiskie uzdevumi ģeometrijā un fizikā |
-
-### 12.42. Первообразная и неопределенный интеграл
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.42.1` | Понятие первообразной функции | Primitīvās funkcijas jēdziens |
-| `12.42.2` | Таблица неопределенных интегралов | Nenoteikto integrāļu tabula |
-| `12.42.3` | Правила интегрирования | Integrēšanas likumi |
-| `12.42.4` | Непосредственное интегрирование | Tiešā integrēšana |
-
-### 12.43. Определенный интеграл и формула Ньютона–Лейбница
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.43.1` | Понятие определенного интеграла и интегральная сумма | Noteiktā integrāļa jēdziens un integrālsumma |
-| `12.43.2` | Геометрический смысл определенного интеграла | Noteiktā integrāļa ģeometriskā jēga |
-| `12.43.3` | Формула Ньютона–Лейбница | Ņūtona–Leibnica formula |
-| `12.43.4` | Свойства определенного интеграла | Noteiktā integrāļa īpašības |
-
-### 12.44. Вычисление площадей и объемов с помощью интеграла
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.44.1` | Вычисление площади плоской фигуры с помощью интеграла | Plakanas figuras laukuma aprēķināšana ar integrāli |
-| `12.44.2` | Площадь фигуры, ограниченной несколькими линиями | Figūras laukums, ko ierobežo vairākas līnijas |
-| `12.44.3` | Вычисление объема тела вращения | Rotācijas ķermeņa tilpuma aprēķināšana |
-
-### 12.45. Применение интеграла в физике
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `12.45.1` | Путь и перемещение как интеграл от скорости | Ceļš un pārvietojums kā ātruma integrālis |
-| `12.45.2` | Работа переменной силы | Mainīga spēka darbs |
-| `12.45.3` | Физические приложения интеграла в задачах динамики и кинематики | Integrāļa fiziskie lietojumi dinamikas un kinemātikas uzdevumos |
 
