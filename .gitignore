@@ -27,3 +27,5 @@ docs/backup/snapshots/
 # Отчёты разбора задач по подтемам — результат прогона, не исходник
 docs/subtopic-assignment.log
 docs/subtopic-assignment.json
+docs/subtopic-generation.log
+docs/subtopic-generation.json

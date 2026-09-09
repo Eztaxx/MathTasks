@@ -7,26 +7,46 @@ describe('Skola2030 Topics Catalog (JSON & Database integrity)', () => {
   const jsonPath = path.resolve(__dirname, '../public/data/skola2030_topics.json');
   const sqlPath = path.resolve(__dirname, '../supabase/seed_skola2030.sql');
 
-  it('каталог skola2030_topics.json существует и содержит 96 тем стандарта Skola2030', () => {
+  /* Каталог пересобирается из базы (scripts/sync-catalog-from-db.mjs), и
+     число тем растёт вместе с ней — привязываться к нему нельзя. Держим
+     то, на что опирается генератор: все двенадцать классов на месте,
+     слаги уникальны, у каждой темы есть подтемы с номерами. */
+  it('каталог skola2030_topics.json покрывает все классы с 1 по 12', () => {
     expect(fs.existsSync(jsonPath)).toBe(true);
     const content = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
     expect(Array.isArray(content)).toBe(true);
-    expect(content.length).toBe(96);
+    expect(content.length).toBeGreaterThanOrEqual(96);
+    const grades = new Set(content.map(t => t.grade));
+    for (let g = 1; g <= 12; g++) expect(grades.has(g)).toBe(true);
   });
 
-  it('каждая тема имеет корректный класс (1–12), слаг, разделы и переводы (RU, LV, EN)', () => {
+  it('каждая тема имеет корректный класс, уникальный слаг, раздел, оба перевода и подтемы', () => {
     const content = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-    const validSubjects = ['algebra', 'geometry', 'statistics'];
+    /* Слаги разделов исторические: geometry и statistics по-английски. */
+    const validSubjects = ['algebra', 'geometry', 'statistics', 'funkcijas', 'trigonometrija',
+      'planimetrija', 'stereometrija', 'matematiskais-analizs', 'kombinatorika-un-varbutibas'];
+    const slugs = new Set();
 
     content.forEach(topic => {
       expect(topic.grade).toBeGreaterThanOrEqual(1);
       expect(topic.grade).toBeLessThanOrEqual(12);
-      expect(topic.slug).toMatch(/^skola2030-g\d+/);
+      expect(typeof topic.slug).toBe('string');
+      expect(topic.slug.length).toBeGreaterThan(3);
+      expect(slugs.has(topic.slug)).toBe(false);
+      slugs.add(topic.slug);
       expect(validSubjects).toContain(topic.subject_slug);
       expect(topic.title_ru.length).toBeGreaterThan(3);
       expect(topic.title_lv.length).toBeGreaterThan(3);
+      /* Номер темы стоит в начале обоих названий: по нему их различают
+         и в интерфейсе, и в промпте генератора. */
+      expect(topic.title_ru).toMatch(new RegExp(`^${topic.grade}\\.${topic.position}\\. `));
       expect(Array.isArray(topic.subtopics)).toBe(true);
       expect(topic.subtopics.length).toBeGreaterThan(0);
+      topic.subtopics.forEach(sub => {
+        expect(sub.num).toMatch(new RegExp(`^${topic.grade}\\.${topic.position}\\.\\d+$`));
+        expect(sub.ru.length).toBeGreaterThan(2);
+        expect(sub.lv.length).toBeGreaterThan(2);
+      });
     });
   });
 

@@ -65,7 +65,7 @@ let модель = 0;
 
 async function ask(prompt) {
   let последняя = '';
-  for (let attempt = 0; attempt < 6; attempt++) {
+  for (let attempt = 0; attempt < 9; attempt++) {
     const name = МОДЕЛИ[модель];
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${name}:generateContent?key=${encodeURIComponent(GEMINI)}`, {
@@ -82,12 +82,15 @@ async function ask(prompt) {
       return JSON.parse(text.replace(/^```(?:json)?\s*|\s*```$/g, ''));
     }
     последняя = `${name} ${res.status}: ${(await res.text()).slice(0, 120).replace(/\s+/g, ' ')}`;
-    if (res.status === 404 || res.status === 429) {
-      if (модель < МОДЕЛИ.length - 1) { модель++; лог(`переключаюсь на ${МОДЕЛИ[модель]} (${последняя.slice(0, 60)})`); continue; }
-    } else if (res.status !== 503 && res.status !== 500) {
+    if (res.status !== 404 && res.status !== 429 && res.status !== 503 && res.status !== 500) {
       throw new Error(последняя);
     }
-    await sleep(4000 * (attempt + 1));
+    /* И «квота кончилась», и «модель перегружена» лечатся одинаково —
+       следующей моделью. Крутим список по кругу с растущей паузой:
+       503 у Gemini держится минутами, а не секундами. */
+    модель = (модель + 1) % МОДЕЛИ.length;
+    лог(`пробую ${МОДЕЛИ[модель]} (${последняя.slice(0, 70)})`);
+    await sleep(5000 * (attempt + 1));
   }
   throw new Error('не ответил ни один вариант — ' + последняя);
 }
