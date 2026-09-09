@@ -2543,9 +2543,7 @@ body.dark.trainer-page, html.dark body.trainer-page {
   /* В три-четыре строки шапка съедает пятую часть экрана телефона.
      Липкой ей быть уже незачем — пусть уезжает вместе со страницей. */
   .admin-topbar { position: static; padding: 10px 12px; gap: 8px; }
-  /* На узком экране логотип с кнопкой обратно встают друг под друга —
-     в строку они занимают больше половины ширины. */
-  .topbar-brand-wrap { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .topbar-brand-wrap { gap: 8px; }
   .admin-topbar .admin-badge { margin-right: 0; font-size: 11px; padding: 4px 9px; }
   .admin-topbar .brand { font-size: 17px; }
   .admin-topbar .brand-mark { width: 32px; height: 32px; }
