@@ -246,17 +246,27 @@ ${customPrompt ? `Дополнительные пожелания: "${customProm
   "solution_latex_lv": "Soli pa solim atrisinājums latviski"
 }`;
 
-  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(activeApiKey)}`;
+  /* Квота у Gemini считается на каждую модель отдельно, и gemini-3.6-flash
+     на бесплатном тарифе кончается первой: без запасных генератор вставал
+     с 429, хотя другие модели отвечали. Клиентский генератор так и делает —
+     воркер должен вести себя так же. */
+  const МОДЕЛИ = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite'];
 
   try {
-    const response = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.3 }
-      })
-    });
+    let response = null;
+    for (const name of МОДЕЛИ) {
+      response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${name}:generateContent?key=${encodeURIComponent(activeApiKey)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: 'application/json', temperature: 0.3 }
+          })
+        });
+      if (response.ok) break;
+      if (response.status !== 429 && response.status !== 404) break;
+    }
 
     if (!response.ok) {
       return json({ error: `Gemini API error: ${await response.text()}` }, response.status);

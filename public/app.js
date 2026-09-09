@@ -36,7 +36,6 @@ let topicTasksMap = new Map();
 let allSubtopics = [];
 let subtopicsByTopic = new Map();
 let subtopicCounts = new Map();
-let hasSubtopics = false;
 
 function getTopicProgress(topicId) {
   const taskIds = topicTasksMap.get(topicId) || [];
@@ -4051,12 +4050,10 @@ async function loadSubtopics() {
   allSubtopics = [];
   subtopicsByTopic = new Map();
   subtopicCounts = new Map();
-  hasSubtopics = false;
   try {
     const { data, error } = await db.from('subtopics').select('*').order('position');
     if (error || !data) return;
     allSubtopics = data;
-    hasSubtopics = true;
     for (const s of allSubtopics) {
       if (!subtopicsByTopic.has(s.topic_id)) subtopicsByTopic.set(s.topic_id, []);
       subtopicsByTopic.get(s.topic_id).push(s);

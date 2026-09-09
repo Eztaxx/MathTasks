@@ -2515,6 +2515,29 @@ body.dark.trainer-page, html.dark body.trainer-page {
   align-items: center;
   gap: 14px;
   margin-left: auto;
+  /* Шесть элементов подряд не влезают в узкую шапку: без переноса строка
+     вылезала за экран и утаскивала за собой всю страницу вбок. */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* На телефоне ряд действий встаёт отдельной строкой под названием
+   раздела: рядом с ним для него нет и половины нужной ширины. */
+@media (max-width: 720px) {
+  /* В три-четыре строки шапка съедает пятую часть экрана телефона.
+     Липкой ей быть уже незачем — пусть уезжает вместе со страницей. */
+  .admin-topbar { position: static; padding: 10px 12px; gap: 8px; }
+  .admin-topbar .admin-badge { margin-right: 0; font-size: 11px; padding: 4px 9px; }
+  .admin-topbar .brand { font-size: 17px; }
+  .admin-topbar .brand-mark { width: 32px; height: 32px; }
+  .trainer-top-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  .trainer-top-actions .nav-btn-link { font-size: 12px; padding: 5px 9px; }
+  .trainer-top-actions .text-button { font-size: 12px; }
 }
 
 .sound-toggle-btn {
@@ -3408,6 +3431,16 @@ body.dark .nav-btn-link {
   gap: 12px;
   flex-wrap: wrap;
 }
+
+/* Шапка-баннер на телефоне: 36 px полей с каждой стороны забирали пятую
+   часть ширины, длинные заголовки не переносились по слогам и вылезали
+   за скруглённый край, а кнопки упирались в него вплотную. */
+@media (max-width: 560px) {
+  .exams-hero { padding: 26px 18px; border-radius: 16px; margin-bottom: 26px; }
+  .exams-hero h1 { font-size: 26px; overflow-wrap: anywhere; hyphens: auto; }
+  .exams-hero-actions { flex-direction: column; align-items: stretch; }
+  .exams-hero-actions > * { text-align: center; }
+}
 .exams-hero-actions .primary-button {
   background: #fff;
   color: #1764ff;
@@ -3450,9 +3483,13 @@ body.dark .nav-btn-link {
   margin-bottom: 50px;
 }
 @media(max-width: 768px) {
+  /* minmax(0,…) вместо 1fr: у колонки грида минимум равен min-content,
+     и одна широкая строка внутри растягивала её шире контейнера. */
   .exams-levels-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
+  .exam-card-footer { flex-direction: column; align-items: stretch; }
+  .exam-card-footer > * { text-align: center; }
 }
 
 .exam-level-card {
@@ -3544,6 +3581,9 @@ body.dark .badge-purple { background: #2e1065; color: #c4b5fd; }
 .exam-card-footer {
   margin-top: auto;
   display: flex;
+  /* Ссылка на формульный лист и кнопка «Решать» вдвоём требуют 340 px:
+     без переноса они распирали карточку шире экрана телефона. */
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
