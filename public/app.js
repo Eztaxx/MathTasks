@@ -16,6 +16,7 @@ const listTopics = document.querySelector('#list-topics');
 const listGroups = document.querySelector('#list-groups');
 const listTasks = document.querySelector('#list-tasks');
 const listAnchors = document.querySelector('#list-anchors');
+const listSubtopics = document.querySelector('#list-subtopics');
 const listActions = document.querySelector('#list-actions');
 const topicsHeading = document.querySelector('#topics-heading');
 const tasksHeading = document.querySelector('#tasks-heading');
@@ -30,6 +31,12 @@ let subjects = [];
 let allTopics = [];
 let taskCounts = new Map();
 let topicTasksMap = new Map();
+/* Третий уровень каталога: раздел -> тема -> подтема -> задача.
+   Подтема необязательна, задача может лежать прямо в теме. */
+let allSubtopics = [];
+let subtopicsByTopic = new Map();
+let subtopicCounts = new Map();
+let hasSubtopics = false;
 
 function getTopicProgress(topicId) {
   const taskIds = topicTasksMap.get(topicId) || [];
@@ -298,6 +305,9 @@ gradeSelect.addEventListener('change', async () => {
 /* ── Боковое меню: Два режима (Хаб экзаменов / Фокус на теме) ───── */
 
 let currentActiveTopic = null;
+/* Открытая подтема: на её странице контрольная работа темы не нужна —
+   она собирается по всей теме, а не по одной подтеме. */
+let currentSubtopic = null;
 
 function renderTopicSidebar(topic) {
   const subject = subjectById(topic.subject_id);
@@ -1334,7 +1344,27 @@ function renderHeadings() {
   tasksHeading.textContent = tr('new_tasks') + suffix;
 }
 
+/* Полоса «решать весь класс»: без неё до задач класса можно было добраться
+   только через тему, а прогнать всю параллель подряд — никак. */
+function renderGradeActions() {
+  const box = document.querySelector('#grade-actions');
+  if (!box) return;
+  const tr = window.MathTasks.t || (k => k);
+  if (!selectedGrade) { box.hidden = true; box.innerHTML = ''; return; }
+  const topics = topicsForGrade(allTopics);
+  const total = topics.reduce((sum, t) => sum + (taskCounts.get(t.id) || 0), 0);
+  box.innerHTML = `<a class="grade-action" href="/grade/${encodeURIComponent(selectedGrade)}/tasks">
+      <span class="grade-action-icon" aria-hidden="true">∑</span>
+      <span class="grade-action-body">
+        <strong>${escapeHtml(tr('grade_solve_all', { grade: gradeLabel(selectedGrade) }))}</strong>
+        <span>${escapeHtml(tr('grade_solve_all_hint', { count: total, topics: topics.length }))}</span>
+      </span>
+    </a>`;
+  box.hidden = false;
+}
+
 async function loadHome() {
+  renderGradeActions();
   const topics = topicsForGrade(allTopics);
   topicsElement.innerHTML = topics.length
     ? topics.map((topic, index) => topicCard(topic, index, !selectedGrade)).join('')
@@ -1386,6 +1416,7 @@ function resetListBlocks() {
   listTasks.innerHTML = '';
   listAnchors.hidden = true;
   listAnchors.innerHTML = '';
+  if (listSubtopics) { listSubtopics.hidden = true; listSubtopics.innerHTML = ''; }
   listActions.hidden = true;
   listActions.innerHTML = '';
   const cwSlot = document.querySelector('#topic-control-work-slot');
@@ -1562,6 +1593,91 @@ function showSubject(slug) {
 
 /* Разбор темы читают подряд и возвращаются к нужному номеру, поэтому список
    номеров сверху экономит прокрутку. При двух задачах он бесполезен. */
+/* ── Подтемы ──────────────────────────────────────────────────────── */
+
+const subtopicsOf = topicId => subtopicsByTopic.get(topicId) || [];
+const subtopicBySlug = slug => allSubtopics.find(s => s.slug === slug);
+const subtopicTitle = s => `${s.code ? s.code + '. ' : ''}${loc(s, 'title')}`;
+
+/* Полоса подтем над списком задач. Активной может быть либо «вся тема»
+   (страница темы), либо одна подтема (страница подтемы). */
+function renderSubtopicNav(topic, activeSubtopicId = null) {
+  if (!listSubtopics) return;
+  const list = subtopicsOf(topic.id);
+  if (!list.length) { listSubtopics.hidden = true; listSubtopics.innerHTML = ''; return; }
+  const tr = window.MathTasks.t || (k => k);
+  const total = taskCounts.get(topic.id) || 0;
+  const all = `<a class="subtopic-chip${activeSubtopicId ? '' : ' active'}" href="/topic/${encodeURIComponent(topic.slug)}">
+    <span class="subtopic-chip-title">${escapeHtml(tr('subtopic_whole_topic'))}</span>
+    <span class="subtopic-chip-count">${total}</span>
+  </a>`;
+  const chips = list.map(s => {
+    const count = subtopicCounts.get(s.id) || 0;
+    return `<a class="subtopic-chip${s.id === activeSubtopicId ? ' active' : ''}${count ? '' : ' empty'}" href="/subtopic/${encodeURIComponent(s.slug)}" title="${escapeHtml(subtopicTitle(s))}">
+      <span class="subtopic-chip-code">${escapeHtml(s.code || '')}</span>
+      <span class="subtopic-chip-title">${escapeHtml(loc(s, 'title'))}</span>
+      <span class="subtopic-chip-count">${count}</span>
+    </a>`;
+  }).join('');
+  listSubtopics.innerHTML = `<span class="subtopic-nav-label">${escapeHtml(tr('subtopics_label'))}</span><div class="subtopic-chips">${all}${chips}</div>`;
+  listSubtopics.hidden = false;
+}
+
+/* Страница одной подтемы: тот же список задач, что и у темы, но суженный
+   до одной подтемы. Всё управление списком (сортировка, режимы, печать)
+   работает как есть — меняется только набор задач. */
+async function showSubtopic(slug) {
+  showView('list');
+  resetListBlocks();
+  const tr = window.MathTasks.t || (k => k);
+  const sub = subtopicBySlug(slug);
+  const topic = sub ? allTopics.find(t => t.id === sub.topic_id) : null;
+  if (!sub || !topic) {
+    currentActiveTopic = null;
+    fillListHeader({ crumbs: [[tr('nav_home'), '/']], title: tr('subtopic_not_found'), description: '' });
+    setMeta(tr('subtopic_not_found'));
+    renderSidebar();
+    return;
+  }
+  currentActiveTopic = topic;
+  currentSubtopic = sub;
+  if (topic.grade && selectedGrade !== topic.grade) applyGrade(topic.grade);
+  else renderSidebar();
+
+  const subject = subjectById(topic.subject_id);
+  const topicTitle = topicTitleOf(topic);
+  const title = subtopicTitle(sub);
+
+  const crumbs = [[tr('nav_home'), '/']];
+  if (topic.grade) crumbs.push([gradeLabel(topic.grade), `/grade/${topic.grade}`]);
+  if (subject) crumbs.push([loc(subject, 'title'), `/subject/${encodeURIComponent(subject.slug)}`]);
+  crumbs.push([topicTitle, `/topic/${encodeURIComponent(topic.slug)}`]);
+  crumbs.push([loc(sub, 'title'), null]);
+
+  fillListHeader({
+    crumbs, title,
+    meta: topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : '',
+  });
+  setMeta(topic.grade ? `${title}, ${gradeLabel(topic.grade)}` : title,
+    `Задачи по подтеме «${loc(sub, 'title')}» с условиями, ответами и разбором решений.`);
+
+  renderSubtopicNav(topic, sub.id);
+  listTasks.innerHTML = `<p class="empty-state">${tr('state_loading_tasks')}</p>`;
+  const { data, error } = await db.from('tasks').select(TASK_SELECT)
+    .eq('is_published', true).eq('subtopic_id', sub.id)
+    .order('position').order('created_at', { ascending: true });
+  if (error) { listTasks.innerHTML = `<p class="empty-state">${tr('err_load_tasks')}</p>`; return; }
+
+  const tasks = data || [];
+  subtopicCounts.set(sub.id, tasks.length);
+  currentTopicTasks = tasks;
+  filterOnlyUnsolved = false;
+  currentTasksSort = 'default';
+  shuffledTopicTasks = null;
+  currentListEmptyText = tr('subtopic_empty');
+  renderCurrentTopicTasks();
+}
+
 function renderTopicAnchors(tasks) {
   /* Полоса нужна только в списке. В режиме «по одной» у пагинатора есть
      своя такая же, и две подряд сбивали с толку. В тренажёре номер стоит
@@ -1634,7 +1750,7 @@ function renderCurrentTopicTasks() {
   renderTaskList(listTasks, tasksToRender, emptyText, { showTopicLink, showGrade: true });
   if (currentActiveTopic) {
     renderTopicAnchors(tasksToRender);
-    renderTopicControlWorkCard(currentActiveTopic, currentTopicTasks);
+    if (!currentSubtopic) renderTopicControlWorkCard(currentActiveTopic, currentTopicTasks);
   } else {
     listAnchors.hidden = true;
     const cwSlot = document.querySelector('#topic-control-work-slot');
@@ -1767,6 +1883,7 @@ async function showTopic(slug) {
   }
   // Переключаем контекст класса и переводим сайдбар в фокус-режим темы
   currentActiveTopic = topic;
+  currentSubtopic = null;
   if (topic.grade && selectedGrade !== topic.grade) {
     applyGrade(topic.grade);
   } else {
@@ -1824,6 +1941,7 @@ async function showTopic(slug) {
     metaEl.innerHTML = `${gradeBadge} ${progHtml}`;
   }
 
+  renderSubtopicNav(topic);
   renderCurrentTopicTasks();
 }
 
@@ -1841,7 +1959,7 @@ async function showAllTasks() {
   renderSidebar();
 
   listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_loading_tasks')}</p>`;
-  let query = db.from('tasks').select(TASK_SELECT).eq('is_published', true).order('created_at', { ascending: false }).limit(200);
+  let query = db.from('tasks').select(TASK_SELECT).eq('is_published', true).order('created_at', { ascending: false }).limit(500);
   if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) {
     query = query.in('grade', [10, 11]);
   } else if (selectedGrade === 'matematika-2' || selectedGrade === 12) {
@@ -1852,7 +1970,14 @@ async function showAllTasks() {
   const { data, error } = await query;
   if (error) { listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('err_load_tasks')}</p>`; return; }
   currentActiveTopic = null;
-  currentTopicTasks = data || [];
+  currentSubtopic = null;
+  /* Порядок по дате годится для ленты «новые задачи», но не для прохода
+     всего класса: там ждут порядок программы — тема за темой. */
+  const topicPos = new Map(allTopics.map(t => [t.id, t.position ?? 0]));
+  currentTopicTasks = (data || []).sort((a, b) =>
+    (topicPos.get(a.topic_id) ?? 999) - (topicPos.get(b.topic_id) ?? 999)
+    || (a.position ?? 0) - (b.position ?? 0)
+    || a.id - b.id);
   filterOnlyUnsolved = false;
   currentTasksSort = 'default';
   shuffledTopicTasks = null;
@@ -2813,7 +2938,7 @@ async function route({ force = false } = {}) {
   const params = new URLSearchParams(location.search);
 
   // Сброс контекста темы в сайдбаре при уходе со страницы темы или задачи
-  if (!path.startsWith('/topic/') && !path.startsWith('/task/') && !path.startsWith('/control-work/')) {
+  if (!path.startsWith('/topic/') && !path.startsWith('/subtopic/') && !path.startsWith('/task/') && !path.startsWith('/control-work/')) {
     if (currentActiveTopic !== null) {
       currentActiveTopic = null;
       renderSidebar();
@@ -2832,11 +2957,24 @@ async function route({ force = false } = {}) {
   if (cwMatch) { await startControlWork(decodeURIComponent(cwMatch[1])); return; }
   if (path === '/control-works') { await showControlWorksCatalog(); return; }
 
+  /* Разбираем раньше страницы класса: иначе «7/tasks» уедет в неё как в
+     название класса и вместо списка задач откроется главная. */
+  const gradeTasksMatch = path.match(/^\/grade\/([^\/]+)\/tasks$/);
+  if (gradeTasksMatch) {
+    const grade = parseGradeValue(decodeURIComponent(gradeTasksMatch[1]));
+    if (grade && selectedGrade !== grade) applyGrade(grade);
+    await showAllTasks();
+    return;
+  }
+
   const gradeMatch = path.match(/^\/grade\/(.+)$/);
   if (gradeMatch) { await showGradePage(decodeURIComponent(gradeMatch[1])); return; }
 
   const subjectMatch = path.match(/^\/subject\/(.+)$/);
   if (subjectMatch) { showSubject(decodeURIComponent(subjectMatch[1])); return; }
+
+  const subtopicMatch = path.match(/^\/subtopic\/(.+)$/);
+  if (subtopicMatch) { await showSubtopic(decodeURIComponent(subtopicMatch[1])); return; }
 
   const topicMatch = path.match(/^\/topic\/(.+)$/);
   if (topicMatch) { await showTopic(decodeURIComponent(topicMatch[1])); return; }
@@ -3902,7 +4040,34 @@ async function loadCatalog() {
       topicTasksMap.get(topicId).push(id);
     }
   });
+  await loadSubtopics();
   renderSidebar();
+}
+
+/* Подтемы добавляет миграция 020. Пока её не применили, PostgREST отвечает
+   404 на таблицу и 400 на колонку — сайт должен продолжать работать без
+   третьего уровня, а не падать целиком. */
+async function loadSubtopics() {
+  allSubtopics = [];
+  subtopicsByTopic = new Map();
+  subtopicCounts = new Map();
+  hasSubtopics = false;
+  try {
+    const { data, error } = await db.from('subtopics').select('*').order('position');
+    if (error || !data) return;
+    allSubtopics = data;
+    hasSubtopics = true;
+    for (const s of allSubtopics) {
+      if (!subtopicsByTopic.has(s.topic_id)) subtopicsByTopic.set(s.topic_id, []);
+      subtopicsByTopic.get(s.topic_id).push(s);
+    }
+    const { data: counts } = await db.from('tasks').select('id, subtopic_id').eq('is_published', true);
+    (counts || []).forEach(({ subtopic_id: id }) => {
+      if (id) subtopicCounts.set(id, (subtopicCounts.get(id) || 0) + 1);
+    });
+  } catch (err) {
+    console.warn('Подтемы недоступны: примените миграцию 020_subtopics.sql', err);
+  }
 }
 
 async function refreshSession() {

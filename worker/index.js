@@ -78,12 +78,14 @@ async function sitemap(request, env) {
 
   if (env.SUPABASE_URL && supabaseKeyOf(env)) {
     try {
-      const [subjects, topics, tasks, tags] = await Promise.all([
+      const [subjects, topics, tasks, tags, subtopics] = await Promise.all([
         readSupabase(env, 'subjects?select=slug'),
         readSupabase(env, 'topics?select=slug,grade'),
         // Черновики в карту не попадают — их и на сайте не видно.
         readSupabase(env, 'tasks?select=id,title&is_published=eq.true'),
-        readSupabase(env, 'tags?select=slug').catch(() => [])
+        readSupabase(env, 'tags?select=slug').catch(() => []),
+        // Подтемы появляются миграцией 020: до неё запрос падает, карта живёт без них.
+        readSupabase(env, 'subtopics?select=slug').catch(() => [])
       ]);
       const grades = [...new Set(topics.map(t => t.grade).filter(Boolean))].sort((a, b) => a - b);
       const tagSlugs = (tags && tags.length > 0) ? tags.map(t => t.slug) : CROSS_TAG_SLUGS;
@@ -91,7 +93,9 @@ async function sitemap(request, env) {
         .concat(grades.map(g => `/grade/${g}`))
         .concat(subjects.map(s => `/subject/${s.slug}`))
         .concat(topics.map(t => `/topic/${t.slug}`))
+        .concat((subtopics || []).map(s => `/subtopic/${s.slug}`))
         .concat(topics.map(t => `/control-work/${t.slug}`))
+        .concat(grades.map(g => `/grade/${g}/tasks`))
         .concat(tagSlugs.map(slug => `/tag/${slug}`))
         .concat(tasks.map(t => `/task/${t.id}-${slugify(t.title)}`));
     } catch (error) {

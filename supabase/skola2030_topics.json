@@ -12,16 +12,29 @@
     "description_lv": "Figūras (līnija, daudzstūris, riņķis). Ģeometrisku objektu raksturošana, salīdzināšana, grupēšana; Priekšmetu un skaitļu virknes. Objektu novietojums un virzieni plaknē, telpā; Skaits, skaitīšana. Skaitlis un tā attēlošana, cipari",
     "subtopics": [
       {
-        "ru": "Фигуры (линия, многоугольник, круг). Характеристика, сравнение и группировка геометрических объектов",
-        "lv": "Figūras (līnija, daudzstūris, riņķis). Ģeometrisku objektu raksturošana, salīdzināšana, grupēšana"
+        "num": "1.1.1",
+        "lv": "Skaits, skaitīšana. Skaitlis un tā attēlošana, cipari",
+        "ru": "Количество, счёт. Число и его изображение, цифры"
       },
       {
-        "ru": "Последовательности предметов и чисел. Расположение и направления объектов на плоскости, в пространстве",
-        "lv": "Priekšmetu un skaitļu virknes. Objektu novietojums un virzieni plaknē, telpā"
+        "num": "1.1.2",
+        "lv": "Priekšmetu un skaitļu virknes",
+        "ru": "Последовательности предметов и чисел"
       },
       {
-        "ru": "Количество, счет. Число и его изображение, цифры",
-        "lv": "Skaits, skaitīšana. Skaitlis un tā attēlošana, cipari"
+        "num": "1.1.3",
+        "lv": "Figūras (līnija, daudzstūris, riņķis)",
+        "ru": "Фигуры (линия, многоугольник, круг)"
+      },
+      {
+        "num": "1.1.4",
+        "lv": "Ģeometrisku objektu raksturošana, salīdzināšana, grupēšana",
+        "ru": "Характеристика, сравнение и группировка геометрических объектов"
+      },
+      {
+        "num": "1.1.5",
+        "lv": "Objektu novietojums un virzieni plaknē, telpā",
+        "ru": "Расположение и направления объектов на плоскости и в пространстве"
       }
     ]
   },
@@ -38,16 +51,19 @@
     "description_lv": "Saskaitīšana un atņemšana 10 apjomā; Skaitļa sastāvs. Tā vizualizēšana, pierakstīšana; Tabula datu pierakstīšanai",
     "subtopics": [
       {
-        "ru": "Сложение и вычитание в пределах 10",
-        "lv": "Saskaitīšana un atņemšana 10 apjomā"
+        "num": "1.2.1",
+        "lv": "Skaitļa sastāvs. Tā vizualizēšana, pierakstīšana",
+        "ru": "Состав числа, его изображение и запись"
       },
       {
-        "ru": "Состав числа. Его визуализация, запись",
-        "lv": "Skaitļa sastāvs. Tā vizualizēšana, pierakstīšana"
+        "num": "1.2.2",
+        "lv": "Tabula datu pierakstīšanai",
+        "ru": "Таблица для записи данных"
       },
       {
-        "ru": "Таблица для записи данных",
-        "lv": "Tabula datu pierakstīšanai"
+        "num": "1.2.3",
+        "lv": "Saskaitīšana un atņemšana 10 apjomā",
+        "ru": "Сложение и вычитание в пределах 10"
       }
     ]
   },
@@ -64,12 +80,19 @@
     "description_lv": "Garumu noteikšana, salīdzināšana un aprēķināšana; Simetriskas figūras",
     "subtopics": [
       {
-        "ru": "Определение, сравнение и вычисление длин",
-        "lv": "Garumu noteikšana, salīdzināšana un aprēķināšana"
+        "num": "1.3.1",
+        "lv": "Nogrieznis, tā mērīšana",
+        "ru": "Отрезок и его измерение"
       },
       {
-        "ru": "Симметричные фигуры",
-        "lv": "Simetriskas figūras"
+        "num": "1.3.2",
+        "lv": "Garumu noteikšana, salīdzināšana un aprēķināšana",
+        "ru": "Определение, сравнение и вычисление длин"
+      },
+      {
+        "num": "1.3.3",
+        "lv": "Simetriskas figūras",
+        "ru": "Симметричные фигуры"
       }
     ]
   },
@@ -86,16 +109,24 @@
     "description_lv": "Garuma mērīšana (cm) un salīdzināšana; Skaitļu 10-100 decimālais sastāvs, lasīšana un pierakstīšana; Skaitļu salīdzināšana. Skaitļu virknes",
     "subtopics": [
       {
-        "ru": "Измерение длины (см) и сравнение",
-        "lv": "Garuma mērīšana (cm) un salīdzināšana"
+        "num": "1.4.1",
+        "lv": "Skaitļu 10–100 decimālais sastāvs, lasīšana un pierakstīšana",
+        "ru": "Десятичный состав чисел 10–100, чтение и запись"
       },
       {
-        "ru": "Десятичный состав, чтение и запись чисел 10-100",
-        "lv": "Skaitļu 10-100 decimālais sastāvs, lasīšana un pierakstīšana"
+        "num": "1.4.2",
+        "lv": "Skaitļu salīdzināšana",
+        "ru": "Сравнение чисел"
       },
       {
-        "ru": "Сравнение чисел. Числовые последовательности",
-        "lv": "Skaitļu salīdzināšana. Skaitļu virknes"
+        "num": "1.4.3",
+        "lv": "Skaitļu virknes",
+        "ru": "Числовые последовательности"
+      },
+      {
+        "num": "1.4.4",
+        "lv": "Garuma mērīšana (cm) un salīdzināšana",
+        "ru": "Измерение длины (см) и сравнение"
       }
     ]
   },
@@ -112,16 +143,19 @@
     "description_lv": "Atņemšana 20 apjomā; Viencipara skaitļa pieskaitīšana pie divciparu skaitļa 20 apjomā; Viencipara skaitļu saskaitīšana, ja rezultāts pārsniedz 10",
     "subtopics": [
       {
-        "ru": "Вычитание в пределах 20",
-        "lv": "Atņemšana 20 apjomā"
+        "num": "1.5.1",
+        "lv": "Viencipara skaitļa pieskaitīšana pie divciparu skaitļa 20 apjomā",
+        "ru": "Прибавление однозначного числа к двузначному в пределах 20"
       },
       {
-        "ru": "Прибавление однозначного числа к двузначному в пределах 20",
-        "lv": "Viencipara skaitļa pieskaitīšana pie divciparu skaitļa 20 apjomā"
+        "num": "1.5.2",
+        "lv": "Viencipara skaitļu saskaitīšana, ja rezultāts pārsniedz 10",
+        "ru": "Сложение однозначных чисел с переходом через 10"
       },
       {
-        "ru": "Сложение однозначных чисел с переходом через 10",
-        "lv": "Viencipara skaitļu saskaitīšana, ja rezultāts pārsniedz 10"
+        "num": "1.5.3",
+        "lv": "Atņemšana 20 apjomā",
+        "ru": "Вычитание в пределах 20"
       }
     ]
   },
@@ -138,12 +172,14 @@
     "description_lv": "Divu lielumu salīdzināšana 20 apjomā; Sadzīves situāciju uzdevumi, kuru atrisināšanai izmanto saskaitīšanu un atņemšanu 20 apjomā",
     "subtopics": [
       {
-        "ru": "Сравнение двух величин в пределах 20",
-        "lv": "Divu lielumu salīdzināšana 20 apjomā"
+        "num": "1.6.1",
+        "lv": "Divu lielumu salīdzināšana 20 apjomā",
+        "ru": "Сравнение двух величин в пределах 20"
       },
       {
-        "ru": "Бытовые задачи, решаемые сложением и вычитанием в пределах 20",
-        "lv": "Sadzīves situāciju uzdevumi, kuru atrisināšanai izmanto saskaitīšanu un atņemšanu 20 apjomā"
+        "num": "1.6.2",
+        "lv": "Sadzīves situāciju uzdevumi, kuru atrisināšanai izmanto saskaitīšanu un atņemšanu 20 apjomā",
+        "ru": "Бытовые задачи на сложение и вычитание в пределах 20"
       }
     ]
   },
@@ -160,20 +196,29 @@
     "description_lv": "Garuma mērīšana (cm, dm, m); Laika mērīšana/skaitīšana; Nauda (eiro, centi); Saskaitīšana un atņemšana 100 apjomā. Sadzīves situācijas",
     "subtopics": [
       {
-        "ru": "Измерение длины (см, дм, м)",
-        "lv": "Garuma mērīšana (cm, dm, m)"
+        "num": "1.7.1",
+        "lv": "Nauda (eiro, cents)",
+        "ru": "Деньги (евро, цент)"
       },
       {
-        "ru": "Измерение/отсчет времени",
-        "lv": "Laika mērīšana/skaitīšana"
+        "num": "1.7.2",
+        "lv": "Garuma mērīšana (cm, dm, m)",
+        "ru": "Измерение длины (см, дм, м)"
       },
       {
-        "ru": "Деньги (евро, центы)",
-        "lv": "Nauda (eiro, centi)"
+        "num": "1.7.3",
+        "lv": "Laika mērīšana/skaitīšana",
+        "ru": "Измерение и отсчёт времени"
       },
       {
-        "ru": "Сложение и вычитание в пределах 100. Бытовые ситуации",
-        "lv": "Saskaitīšana un atņemšana 100 apjomā. Sadzīves situācijas"
+        "num": "1.7.4",
+        "lv": "Saskaitīšana un atņemšana 100 apjomā",
+        "ru": "Сложение и вычитание в пределах 100"
+      },
+      {
+        "num": "1.7.5",
+        "lv": "Saskaitīšana un atņemšana sadzīves situācijās",
+        "ru": "Сложение и вычитание в бытовых ситуациях"
       }
     ]
   },
@@ -190,8 +235,19 @@
     "description_lv": "Ģeometriskas figūras plaknē un telpā. Figūru veidošana no detaļām, zīmēšana un raksturošana",
     "subtopics": [
       {
-        "ru": "Геометрические фигуры на плоскости и в пространстве. Создание фигур из деталей, рисование и характеристика",
-        "lv": "Ģeometriskas figūras plaknē un telpā. Figūru veidošana no detaļām, zīmēšana un raksturošana"
+        "num": "1.8.1",
+        "lv": "Figūru dalīšana daļās",
+        "ru": "Деление фигур на части"
+      },
+      {
+        "num": "1.8.2",
+        "lv": "Simetriskas figūras",
+        "ru": "Симметричные фигуры"
+      },
+      {
+        "num": "1.8.3",
+        "lv": "Telpiskas figūras",
+        "ru": "Пространственные фигуры"
       }
     ]
   },
@@ -208,8 +264,19 @@
     "description_lv": "Objektu grupēšana pēc pazīmēm, datu kārtošana tabulās un diagrammās",
     "subtopics": [
       {
-        "ru": "Группировка объектов по признакам, упорядочивание данных в таблицах и диаграммах",
-        "lv": "Objektu grupēšana pēc pazīmēm, datu kārtošana tabulās un diagrammās"
+        "num": "2.1.1",
+        "lv": "Ko nozīmē grupēt, kā to var parādīt",
+        "ru": "Что значит группировать и как это показать"
+      },
+      {
+        "num": "2.1.2",
+        "lv": "Skaitļu grupēšana",
+        "ru": "Группировка чисел"
+      },
+      {
+        "num": "2.1.3",
+        "lv": "Figūru grupēšana",
+        "ru": "Группировка фигур"
       }
     ]
   },
@@ -226,8 +293,19 @@
     "description_lv": "Garuma mērīšana un salīdzināšana (milimetri, centimetri, decimetri, metri). Nogriežņu zīmēšana",
     "subtopics": [
       {
-        "ru": "Измерение и сравнение длины (миллиметры, сантиметры, дециметры, метры). Построение отрезков",
-        "lv": "Garuma mērīšana un salīdzināšana (milimetri, centimetri, decimetri, metri). Nogriežņu zīmēšana"
+        "num": "2.2.1",
+        "lv": "Mērinstrumenti garuma mērīšanai. Mērvienības",
+        "ru": "Измерительные инструменты для длины. Единицы измерения"
+      },
+      {
+        "num": "2.2.2",
+        "lv": "Dažādu objektu mērīšana",
+        "ru": "Измерение различных объектов"
+      },
+      {
+        "num": "2.2.3",
+        "lv": "Dota lieluma objektu veidošana",
+        "ru": "Построение объектов заданной величины"
       }
     ]
   },
@@ -244,12 +322,19 @@
     "description_lv": "Saskaitīšana un atņemšana 100 apjomā. Sadzīves situācijas; Saskaitīšana un atņemšana 20 apjomā",
     "subtopics": [
       {
-        "ru": "Сложение и вычитание в пределах 100. Бытовые ситуации",
-        "lv": "Saskaitīšana un atņemšana 100 apjomā. Sadzīves situācijas"
+        "num": "2.3.1",
+        "lv": "Saskaitīšana un atņemšana 20 apjomā atkārtojums",
+        "ru": "Повторение сложения и вычитания в пределах 20"
       },
       {
-        "ru": "Сложение и вычитание в пределах 20",
-        "lv": "Saskaitīšana un atņemšana 20 apjomā"
+        "num": "2.3.2",
+        "lv": "Saskaitīšanas un atņemšanas paņēmieni, veicot darbības 100 apjomā",
+        "ru": "Приёмы сложения и вычитания в пределах 100"
+      },
+      {
+        "num": "2.3.3",
+        "lv": "Situācijas, kuras var atrisināt ar saskaitīšanu un atņemšanu",
+        "ru": "Ситуации, решаемые сложением и вычитанием"
       }
     ]
   },
@@ -266,8 +351,19 @@
     "description_lv": "Laika mērvienības (stundas, minūtes, dienas, mēneši), pulksteņa lasīšana un laika plānošana",
     "subtopics": [
       {
-        "ru": "Единицы измерения времени (часы, минуты, дни, месяцы), чтение часов и планирование времени",
-        "lv": "Laika mērvienības (stundas, minūtes, dienas, mēneši), pulksteņa lasīšana un laika plānošana"
+        "num": "2.4.1",
+        "lv": "Pulkstenis. Kalendārs",
+        "ru": "Часы. Календарь"
+      },
+      {
+        "num": "2.4.2",
+        "lv": "Laika rēķini",
+        "ru": "Расчёты времени"
+      },
+      {
+        "num": "2.4.3",
+        "lv": "Laika plānošana",
+        "ru": "Планирование времени"
       }
     ]
   },
@@ -284,8 +380,19 @@
     "description_lv": "Skaitliskas izteiksmes ar iekavām un bez tām. Darbību secība un tekstveida situāciju modelēšana",
     "subtopics": [
       {
-        "ru": "Числовые выражения со скобками и без. Порядок действий и моделирование текстовых ситуаций",
-        "lv": "Skaitliskas izteiksmes ar iekavām un bez tām. Darbību secība un tekstveida situāciju modelēšana"
+        "num": "2.5.1",
+        "lv": "Izteiksmju veidošana",
+        "ru": "Составление выражений"
+      },
+      {
+        "num": "2.5.2",
+        "lv": "Izteiksmes vērtības aprēķināšana",
+        "ru": "Вычисление значения выражения"
+      },
+      {
+        "num": "2.5.3",
+        "lv": "Vienādības un nevienādības",
+        "ru": "Равенства и неравенства"
       }
     ]
   },
@@ -302,8 +409,19 @@
     "description_lv": "Daudzstūru veidi (trijstūri, četrstūri), to malas un virsotnes. Figūru salīdzināšana",
     "subtopics": [
       {
-        "ru": "Виды многоугольников (треугольники, четырёхугольники), их стороны и вершины. Сравнение фигур",
-        "lv": "Daudzstūru veidi (trijstūri, četrstūri), to malas un virsotnes. Figūru salīdzināšana"
+        "num": "2.6.1",
+        "lv": "Daudzstūru veidi",
+        "ru": "Виды многоугольников"
+      },
+      {
+        "num": "2.6.2",
+        "lv": "Daudzstūru veidošana un pārveidošana",
+        "ru": "Построение и преобразование многоугольников"
+      },
+      {
+        "num": "2.6.3",
+        "lv": "Daudzstūra perimetrs, taisnstūra laukums",
+        "ru": "Периметр многоугольника, площадь прямоугольника"
       }
     ]
   },
@@ -320,8 +438,24 @@
     "description_lv": "Reizināšanas un dalīšanas ar 2 jēga, puse un divkāršs apjoms, uzdevumu risināšana",
     "subtopics": [
       {
-        "ru": "Смысл умножения и деления на 2, половина и удвоенное количество, решение задач",
-        "lv": "Reizināšanas un dalīšanas ar 2 jēga, puse un divkāršs apjoms, uzdevumu risināšana"
+        "num": "2.7.1",
+        "lv": "Dubultošana un dalīšana sadzīvē un modeļos",
+        "ru": "Удвоение и деление пополам в быту и на моделях"
+      },
+      {
+        "num": "2.7.2",
+        "lv": "Reizināšana un dalīšana – pieraksts un darbības izpilde",
+        "ru": "Умножение и деление — запись и выполнение действия"
+      },
+      {
+        "num": "2.7.3",
+        "lv": "Pāra un nepāra skaitļi",
+        "ru": "Чётные и нечётные числа"
+      },
+      {
+        "num": "2.7.4",
+        "lv": "Situācijas ar salīdzinājumu (2 reizes lielāks/mazāks)",
+        "ru": "Ситуации со сравнением (в 2 раза больше/меньше)"
       }
     ]
   },
@@ -338,12 +472,24 @@
     "description_lv": "Kā reizina un dala ar 3 un 4?; Kā reizina un dala ar 5? Reizināšana un dalīšana 50 apjomā",
     "subtopics": [
       {
-        "ru": "Как умножают и делят на 3 и 4?",
-        "lv": "Kā reizina un dala ar 3 un 4?"
+        "num": "2.8.1",
+        "lv": "Reizināšana un dalīšana sadzīvē un modeļos (lai iegūtu reizinājumus)",
+        "ru": "Умножение и деление в быту и на моделях (получение произведений)"
       },
       {
-        "ru": "Как умножают и делят на 5? Умножение и деление в пределах 50",
-        "lv": "Kā reizina un dala ar 5? Reizināšana un dalīšana 50 apjomā"
+        "num": "2.8.2",
+        "lv": "Reizināšana un dalīšana – pieraksts un darbības izpilde, sakarība starp reizināšanu un dalīšanu",
+        "ru": "Умножение и деление — запись и выполнение действия, связь между умножением и делением"
+      },
+      {
+        "num": "2.8.3",
+        "lv": "Reizināšana un dalīšana sadzīvē un modeļos (kur noder prasme reizināt un dalīt)",
+        "ru": "Умножение и деление в быту и на моделях (где нужно умение умножать и делить)"
+      },
+      {
+        "num": "2.8.4",
+        "lv": "Situācijas ar salīdzinājumu (... reizes lielāks/mazāks; par ... lielāks/mazāks)",
+        "ru": "Ситуации со сравнением (в … раз больше/меньше; на … больше/меньше)"
       }
     ]
   },
@@ -360,12 +506,19 @@
     "description_lv": "Divciparu skaitļu reizināšana un dalīšana; Reizināšanas tabula. Reizināšana un dalīšana dažādās situācijās",
     "subtopics": [
       {
-        "ru": "Умножение и деление двузначных чисел",
-        "lv": "Divciparu skaitļu reizināšana un dalīšana"
+        "num": "3.1.1",
+        "lv": "Reizināšanas tabula",
+        "ru": "Таблица умножения"
       },
       {
-        "ru": "Таблица умножения. Умножение и деление в различных ситуациях",
-        "lv": "Reizināšanas tabula. Reizināšana un dalīšana dažādās situācijās"
+        "num": "3.1.2",
+        "lv": "Reizināšana un dalīšana dažādās situācijās",
+        "ru": "Умножение и деление в различных ситуациях"
+      },
+      {
+        "num": "3.1.3",
+        "lv": "Divciparu skaitļu reizināšana un dalīšana",
+        "ru": "Умножение и деление двузначных чисел"
       }
     ]
   },
@@ -382,16 +535,19 @@
     "description_lv": "Cik labi protu veikt darbības ar skaitļiem 100 apjomā?; Skaitliskas izteiksmes; Taisnstūra perimetra aprēķināšanas formulas",
     "subtopics": [
       {
-        "ru": "Насколько хорошо я умею выполнять действия с числами в пределах 100?",
-        "lv": "Cik labi protu veikt darbības ar skaitļiem 100 apjomā?"
+        "num": "3.2.1",
+        "lv": "Cik labi protu veikt darbības ar skaitļiem 100 apjomā?",
+        "ru": "Насколько хорошо я умею выполнять действия с числами в пределах 100"
       },
       {
-        "ru": "Числовые выражения",
-        "lv": "Skaitliskas izteiksmes"
+        "num": "3.2.2",
+        "lv": "Skaitliskas izteiksmes",
+        "ru": "Числовые выражения"
       },
       {
-        "ru": "Формулы вычисления периметра прямоугольника",
-        "lv": "Taisnstūra perimetra aprēķināšanas formulas"
+        "num": "3.2.3",
+        "lv": "Taisnstūra perimetra aprēķināšanas formulas",
+        "ru": "Формулы вычисления периметра прямоугольника"
       }
     ]
   },
@@ -408,16 +564,29 @@
     "description_lv": "Daudzciparu skaitļu reizināšana un dalīšana ar 10, 100 un pilniem desmitiem; Telpas plāns; Trīsciparu un četrciparu skaitļi",
     "subtopics": [
       {
-        "ru": "Умножение и деление многозначных чисел на 10, 100 и полные десятки",
-        "lv": "Daudzciparu skaitļu reizināšana un dalīšana ar 10, 100 un pilniem desmitiem"
+        "num": "3.3.1",
+        "lv": "Plāna izveides gaita",
+        "ru": "Порядок составления плана"
       },
       {
-        "ru": "План помещения",
-        "lv": "Telpas plāns"
+        "num": "3.3.2",
+        "lv": "Nepieciešamās prasmes – mērīšana, mēru izteikšana mazākās vienībās",
+        "ru": "Необходимые умения — измерение, выражение мер в более мелких единицах"
       },
       {
-        "ru": "Трехзначные и четырехзначные числа",
-        "lv": "Trīsciparu un četrciparu skaitļi"
+        "num": "3.3.3",
+        "lv": "Nepieciešamās prasmes – daudzciparu skaitļu dalīšana ar 10; 100; 20; 50 u. tml.",
+        "ru": "Необходимые умения — деление многозначных чисел на 10, 100, 20, 50 и т. п."
+      },
+      {
+        "num": "3.3.4",
+        "lv": "Nepieciešamās prasmes – attāluma dabā samazināšana",
+        "ru": "Необходимые умения — уменьшение реального расстояния"
+      },
+      {
+        "num": "3.3.5",
+        "lv": "Telpas plāna izveide",
+        "ru": "Составление плана помещения"
       }
     ]
   },
@@ -434,20 +603,29 @@
     "description_lv": "Dalīšana vienādās daļās, veselais un daļa; Daļa no skaita; Daļskaitļa pieraksts. Daļskaitļi uz skaitļu taisnes; Daļu salīdzināšana",
     "subtopics": [
       {
-        "ru": "Деление на равные части, целое и часть",
-        "lv": "Dalīšana vienādās daļās, veselais un daļa"
+        "num": "3.4.1",
+        "lv": "Dalīšana vienādās daļās, veselais un daļa",
+        "ru": "Деление на равные части, целое и часть"
       },
       {
-        "ru": "Часть от количества",
-        "lv": "Daļa no skaita"
+        "num": "3.4.2",
+        "lv": "Daļskaitļa pieraksts (parastās daļas). Daļskaitļus var saskaitīt. Daļskaitļi uz skaitļu taisnes",
+        "ru": "Запись дроби (обыкновенные дроби). Сложение дробей. Дроби на числовой прямой"
       },
       {
-        "ru": "Запись дроби. Дроби можно складывать. Дроби на числовой прямой.",
-        "lv": "Daļskaitļa pieraksts. Daļskaitļi uz skaitļu taisnes"
+        "num": "3.4.3",
+        "lv": "Daļskaitļu salīdzināšana",
+        "ru": "Сравнение дробей"
       },
       {
-        "ru": "Сравнение дробей",
-        "lv": "Daļu salīdzināšana"
+        "num": "3.4.4",
+        "lv": "Desmitdaļu pieraksts decimāldaļas formā",
+        "ru": "Запись десятых в виде десятичной дроби"
+      },
+      {
+        "num": "3.4.5",
+        "lv": "Daļa no skaita",
+        "ru": "Часть от количества"
       }
     ]
   },
@@ -464,8 +642,24 @@
     "description_lv": "Taisnstūra un kvadrāta perimetrs, laukuma mērīšana ar kvadrātvienībām",
     "subtopics": [
       {
-        "ru": "Периметр прямоугольника и квадрата, измерение площади квадратными единицами",
-        "lv": "Taisnstūra un kvadrāta perimetrs, laukuma mērīšana ar kvadrātvienībām"
+        "num": "3.5.1",
+        "lv": "Kas daudzstūriem kopīgs un kas – atšķirīgs?",
+        "ru": "Что общего у многоугольников и чем они различаются"
+      },
+      {
+        "num": "3.5.2",
+        "lv": "Leņķu salīdzināšana",
+        "ru": "Сравнение углов"
+      },
+      {
+        "num": "3.5.3",
+        "lv": "Taisnstūra laukums",
+        "ru": "Площадь прямоугольника"
+      },
+      {
+        "num": "3.5.4",
+        "lv": "Tilpums",
+        "ru": "Объём"
       }
     ]
   },
@@ -482,8 +676,19 @@
     "description_lv": "Trīsciparu skaitļu saskaitīšana un atņemšana stabiņā un galvā, sadzīves aprēķini",
     "subtopics": [
       {
-        "ru": "Сложение и вычитание трёхзначных чисел столбиком и устно, бытовые расчёты",
-        "lv": "Trīsciparu skaitļu saskaitīšana un atņemšana stabiņā un galvā, sadzīves aprēķini"
+        "num": "3.6.1",
+        "lv": "Trīsciparu skaitļa pieraksts, lasīšana, skaitļu salīdzināšana",
+        "ru": "Запись и чтение трёхзначного числа, сравнение чисел"
+      },
+      {
+        "num": "3.6.2",
+        "lv": "Saskaitīšanas un atņemšanas paņēmieni, darbību pieraksts",
+        "ru": "Приёмы сложения и вычитания, запись действий"
+      },
+      {
+        "num": "3.6.3",
+        "lv": "Prasmes saskaitīt un atņemt izmantošana dažādās situācijās",
+        "ru": "Применение умения складывать и вычитать в разных ситуациях"
       }
     ]
   },
@@ -500,12 +705,19 @@
     "description_lv": "Telpiskas figūras; Telpisku figūru izklājumi, kā telpiska figūra izskatās no dažādām pusēm",
     "subtopics": [
       {
-        "ru": "Пространственные фигуры",
-        "lv": "Telpiskas figūras"
+        "num": "3.7.1",
+        "lv": "Telpisku modeļu izveide",
+        "ru": "Создание пространственных моделей"
       },
       {
-        "ru": "Развертки пространственных фигур, вид пространственной фигуры с разных сторон",
-        "lv": "Telpisku figūru izklājumi, kā telpiska figūra izskatās no dažādām pusēm"
+        "num": "3.7.2",
+        "lv": "Izklājums",
+        "ru": "Развёртка"
+      },
+      {
+        "num": "3.7.3",
+        "lv": "Kā telpiska figūra izskatās no dažādām pusēm",
+        "ru": "Как пространственная фигура выглядит с разных сторон"
       }
     ]
   },
@@ -522,12 +734,29 @@
     "description_lv": "Pirmais tūkstotis (atkārtojums); Četrciparu skaitļi. Četrciparu skaitļu saskaitīšana un atņemšana",
     "subtopics": [
       {
-        "ru": "Первая тысяча (повторение)",
-        "lv": "Pirmais tūkstotis (atkārtojums)"
+        "num": "4.1.1",
+        "lv": "Pirmais tūkstotis (atkārtojums)",
+        "ru": "Первая тысяча (повторение)"
       },
       {
-        "ru": "Четырехзначные числа. Сложение и вычитание четырехзначных чисел",
-        "lv": "Četrciparu skaitļi. Četrciparu skaitļu saskaitīšana un atņemšana"
+        "num": "4.1.2",
+        "lv": "Četrciparu skaitļi",
+        "ru": "Четырёхзначные числа"
+      },
+      {
+        "num": "4.1.3",
+        "lv": "Datu ieguve un izmantošana",
+        "ru": "Получение и использование данных"
+      },
+      {
+        "num": "4.1.4",
+        "lv": "Četrciparu skaitļu saskaitīšana un atņemšana",
+        "ru": "Сложение и вычитание четырёхзначных чисел"
+      },
+      {
+        "num": "4.1.5",
+        "lv": "Četrciparu skaitļu saskaitīšanas un atņemšanas lietošana",
+        "ru": "Применение сложения и вычитания четырёхзначных чисел"
       }
     ]
   },
@@ -544,20 +773,24 @@
     "description_lv": "Divciparu skaitļa dalīšana ar viencipara skaitli; Divciparu skaitļa reizināšana ar viencipara skaitli; Trīsciparu skaitļa dalīšana ar viencipara skaitli; Trīsciparu skaitļa reizināšana ar viencipara skaitli",
     "subtopics": [
       {
-        "ru": "Деление двузначного числа на однозначное",
-        "lv": "Divciparu skaitļa dalīšana ar viencipara skaitli"
+        "num": "4.2.1",
+        "lv": "Divciparu skaitļa reizināšana ar viencipara skaitli",
+        "ru": "Умножение двузначного числа на однозначное"
       },
       {
-        "ru": "Умножение двузначного числа на однозначное",
-        "lv": "Divciparu skaitļa reizināšana ar viencipara skaitli"
+        "num": "4.2.2",
+        "lv": "Divciparu skaitļa dalīšana ar viencipara skaitli",
+        "ru": "Деление двузначного числа на однозначное"
       },
       {
-        "ru": "Деление трехзначного числа на однозначное",
-        "lv": "Trīsciparu skaitļa dalīšana ar viencipara skaitli"
+        "num": "4.2.3",
+        "lv": "Trīsciparu skaitļa reizināšana ar viencipara skaitli",
+        "ru": "Умножение трёхзначного числа на однозначное"
       },
       {
-        "ru": "Умножение трехзначного числа на однозначное",
-        "lv": "Trīsciparu skaitļa reizināšana ar viencipara skaitli"
+        "num": "4.2.4",
+        "lv": "Trīsciparu skaitļa dalīšana ar viencipara skaitli",
+        "ru": "Деление трёхзначного числа на однозначное"
       }
     ]
   },
@@ -574,8 +807,24 @@
     "description_lv": "Leņķa jēdziens, leņķu veidi (šaurs, taisns, plats, izstiepts), leņķu mērīšana ar transportieri un zīmēšana",
     "subtopics": [
       {
-        "ru": "Понятие угла, виды углов (острый, прямой, тупой, развёрнутый), измерение углов транспортиром и построение",
-        "lv": "Leņķa jēdziens, leņķu veidi (šaurs, taisns, plats, izstiepts), leņķu mērīšana ar transportieri un zīmēšana"
+        "num": "4.3.1",
+        "lv": "Paralēlas un perpendikulāras taisnas līnijas",
+        "ru": "Параллельные и перпендикулярные прямые"
+      },
+      {
+        "num": "4.3.2",
+        "lv": "Leņķi daudzstūros, leņķa definēšana",
+        "ru": "Углы в многоугольниках, определение угла"
+      },
+      {
+        "num": "4.3.3",
+        "lv": "Leņķa lielums un tā mērīšana",
+        "ru": "Величина угла и её измерение"
+      },
+      {
+        "num": "4.3.4",
+        "lv": "Figūru zīmēšana, ievērojot leņķa lielumu",
+        "ru": "Построение фигур с заданной величиной угла"
       }
     ]
   },
@@ -592,12 +841,24 @@
     "description_lv": "Daudzciparu skaitļa dalīšana ar divciparu skaitli; Daudzciparu skaitļa reizināšana ar divciparu skaitli",
     "subtopics": [
       {
-        "ru": "Деление многозначного числа на двузначное",
-        "lv": "Daudzciparu skaitļa dalīšana ar divciparu skaitli"
+        "num": "4.4.1",
+        "lv": "Divu divciparu skaitļu reizināšana",
+        "ru": "Умножение двух двузначных чисел"
       },
       {
-        "ru": "Умножение многозначного числа на двузначное",
-        "lv": "Daudzciparu skaitļa reizināšana ar divciparu skaitli"
+        "num": "4.4.2",
+        "lv": "Trīsciparu skaitļa reizināšana ar divciparu skaitli",
+        "ru": "Умножение трёхзначного числа на двузначное"
+      },
+      {
+        "num": "4.4.3",
+        "lv": "Trīsciparu skaitļa dalīšana ar divciparu skaitli",
+        "ru": "Деление трёхзначного числа на двузначное"
+      },
+      {
+        "num": "4.4.4",
+        "lv": "Apgūto prasmju lietošana",
+        "ru": "Применение освоенных умений"
       }
     ]
   },
@@ -614,20 +875,24 @@
     "description_lv": "Daļa kā skaitītāja un pamatdaļas reizinājums; Daļas, to novietojums uz skaitļu taisnes; Daļu ar vienādiem saucējiem saskaitīšana un atņemšana; Daļu salīdzināšana",
     "subtopics": [
       {
-        "ru": "Дробь как произведение числителя и основной дроби",
-        "lv": "Daļa kā skaitītāja un pamatdaļas reizinājums"
+        "num": "4.5.1",
+        "lv": "Daļas, to novietojums uz skaitļu taisnes",
+        "ru": "Дроби и их расположение на числовой прямой"
       },
       {
-        "ru": "Дроби, их расположение на числовой прямой",
-        "lv": "Daļas, to novietojums uz skaitļu taisnes"
+        "num": "4.5.2",
+        "lv": "Daļu salīdzināšana",
+        "ru": "Сравнение дробей"
       },
       {
-        "ru": "Сложение и вычитание дробей с одинаковыми знаменателями",
-        "lv": "Daļu ar vienādiem saucējiem saskaitīšana un atņemšana"
+        "num": "4.5.3",
+        "lv": "Daļu ar vienādiem saucējiem saskaitīšana un atņemšana",
+        "ru": "Сложение и вычитание дробей с одинаковыми знаменателями"
       },
       {
-        "ru": "Сравнение дробей",
-        "lv": "Daļu salīdzināšana"
+        "num": "4.5.4",
+        "lv": "Daļa kā skaitītāja un pamatdaļas reizinājums",
+        "ru": "Дробь как произведение числителя и доли"
       }
     ]
   },
@@ -644,16 +909,24 @@
     "description_lv": "Veselais ir lieluma skaitliskā vērtība; Veselo veido vairāki elementi; Daļa no lieluma un daļa no skaita",
     "subtopics": [
       {
-        "ru": "Целое — это числовое значение величины",
-        "lv": "Veselais ir lieluma skaitliskā vērtība"
+        "num": "4.6.1",
+        "lv": "Veselo veido vairāki elementi, tos var parādīt un redzēt (atkārtojums no 3. klases)",
+        "ru": "Целое состоит из нескольких элементов, их можно показать и увидеть (повторение за 3 класс)"
       },
       {
-        "ru": "Целое состоит из нескольких элементов",
-        "lv": "Veselo veido vairāki elementi"
+        "num": "4.6.2",
+        "lv": "Veselo veido vairāki elementi, bet tiešā veidā tos nevar parādīt un redzēt",
+        "ru": "Целое состоит из нескольких элементов, но напрямую их показать и увидеть нельзя"
       },
       {
-        "ru": "Нахождение части от величины и числа",
-        "lv": "Daļa no lieluma un daļa no skaita"
+        "num": "4.6.3",
+        "lv": "Veselais ir lieluma skaitliskā vērtība",
+        "ru": "Целое — числовое значение величины"
+      },
+      {
+        "num": "4.6.4",
+        "lv": "Veselais ir skaitlis",
+        "ru": "Целое — число"
       }
     ]
   },
@@ -670,8 +943,19 @@
     "description_lv": "Taisnstūra un kombinētu taisnstūrveida figūru laukuma aprēķināšana, laukuma mērvienības (cm², dm², m²)",
     "subtopics": [
       {
-        "ru": "Вычисление площади прямоугольника и составных фигур, единицы площади (см², дм², м²)",
-        "lv": "Taisnstūra un kombinētu taisnstūrveida figūru laukuma aprēķināšana, laukuma mērvienības (cm², dm², m²)"
+        "num": "4.7.1",
+        "lv": "Spriešana, izmantojot laukuma īpašības",
+        "ru": "Рассуждения с использованием свойств площади"
+      },
+      {
+        "num": "4.7.2",
+        "lv": "Laukuma mērvienības",
+        "ru": "Единицы измерения площади"
+      },
+      {
+        "num": "4.7.3",
+        "lv": "Taisnstūra laukuma aprēķināšanas formula, tās lietojums",
+        "ru": "Формула площади прямоугольника и её применение"
       }
     ]
   },
@@ -688,12 +972,14 @@
     "description_lv": "Laiks, ceļš, ātrums; Skaits, samaksa, cena. Vienādojumi un sakarības starp lielumiem",
     "subtopics": [
       {
-        "ru": "Время, путь, скорость",
-        "lv": "Laiks, ceļš, ātrums"
+        "num": "4.8.1",
+        "lv": "Skaits, samaksa, cena",
+        "ru": "Количество, оплата, цена"
       },
       {
-        "ru": "Количество, оплата, цена. Уравнения и зависимости между величинами",
-        "lv": "Skaits, samaksa, cena. Vienādojumi un sakarības starp lielumiem"
+        "num": "4.8.2",
+        "lv": "Laiks, ceļš, ātrums",
+        "ru": "Время, путь, скорость"
       }
     ]
   },
@@ -710,20 +996,29 @@
     "description_lv": "Citas naturālo skaitļu pieraksta sistēmas; Naturālo skaitļu pieraksts decimālajā sistēmā; Naturālu skaitļu noapaļošana; Sakarības starp darbību locekļiem summās un starpībās",
     "subtopics": [
       {
-        "ru": "Другие системы записи натуральных чисел",
-        "lv": "Citas naturālo skaitļu pieraksta sistēmas"
+        "num": "5.1.1",
+        "lv": "Naturālo skaitļu pieraksts decimālajā sistēmā",
+        "ru": "Запись натуральных чисел в десятичной системе"
       },
       {
-        "ru": "Запись натуральных чисел в десятичной системе",
-        "lv": "Naturālo skaitļu pieraksts decimālajā sistēmā"
+        "num": "5.1.2",
+        "lv": "Citas naturālo skaitļu pieraksta sistēmas",
+        "ru": "Другие системы записи натуральных чисел"
       },
       {
-        "ru": "Округление натуральных чисел",
-        "lv": "Naturālu skaitļu noapaļošana"
+        "num": "5.1.3",
+        "lv": "Skaitļu noapaļošana",
+        "ru": "Округление чисел"
       },
       {
-        "ru": "Закономерности между компонентами действий в суммах и разностях",
-        "lv": "Sakarības starp darbību locekļiem summās un starpībās"
+        "num": "5.1.4",
+        "lv": "Saskaitīšanas un atņemšanas lietojums jaunās situācijās",
+        "ru": "Применение сложения и вычитания в новых ситуациях"
+      },
+      {
+        "num": "5.1.5",
+        "lv": "Sakarības starp darbību locekļiem summās un starpībās",
+        "ru": "Связи между компонентами сложения и вычитания"
       }
     ]
   },
@@ -740,16 +1035,24 @@
     "description_lv": "Kāpināšana; Reizināšanas, dalīšanas paņēmieni un darbību īpašības; Sadalīšana reizinātājos",
     "subtopics": [
       {
-        "ru": "Возведение в степень",
-        "lv": "Kāpināšana"
+        "num": "5.2.1",
+        "lv": "Reizināšanas, dalīšanas paņēmieni un darbību īpašības",
+        "ru": "Приёмы умножения и деления, свойства действий"
       },
       {
-        "ru": "Приемы умножения, деления и свойства действий",
-        "lv": "Reizināšanas, dalīšanas paņēmieni un darbību īpašības"
+        "num": "5.2.2",
+        "lv": "Sadalīšana reizinātājos",
+        "ru": "Разложение на множители"
       },
       {
-        "ru": "Разложение на множители",
-        "lv": "Sadalīšana reizinātājos"
+        "num": "5.2.3",
+        "lv": "Dalītāji un dalāmie",
+        "ru": "Делители и кратные"
+      },
+      {
+        "num": "5.2.4",
+        "lv": "Kāpināšana",
+        "ru": "Возведение в степень"
       }
     ]
   },
@@ -766,20 +1069,24 @@
     "description_lv": "Daļas pamatīpašība; Daļu ar dažādiem saucējiem saskaitīšana un atņemšana; Daļu salīdzināšana; Pamatdaļas dalīšana ar veselu skaitli",
     "subtopics": [
       {
-        "ru": "Основное свойство дроби",
-        "lv": "Daļas pamatīpašība"
+        "num": "5.3.1",
+        "lv": "Daļas pamatīpašība",
+        "ru": "Основное свойство дроби"
       },
       {
-        "ru": "Сложение и вычитание дробей с разными знаменателями",
-        "lv": "Daļu ar dažādiem saucējiem saskaitīšana un atņemšana"
+        "num": "5.3.2",
+        "lv": "Pamatdaļas dalīšana ar veselu skaitli, vesela skaitļa dalīšana ar pamatdaļu",
+        "ru": "Деление доли на целое число, деление целого числа на долю"
       },
       {
-        "ru": "Сравнение дробей",
-        "lv": "Daļu salīdzināšana"
+        "num": "5.3.3",
+        "lv": "Daļu salīdzināšana",
+        "ru": "Сравнение дробей"
       },
       {
-        "ru": "Деление основной дроби на целое число",
-        "lv": "Pamatdaļas dalīšana ar veselu skaitli"
+        "num": "5.3.4",
+        "lv": "Daļu ar dažādiem saucējiem saskaitīšana un atņemšana",
+        "ru": "Сложение и вычитание дробей с разными знаменателями"
       }
     ]
   },
@@ -796,12 +1103,19 @@
     "description_lv": "Daļa kā dalīšanas darbības pieraksts; Daļas un veselā skaitliskā vērtība",
     "subtopics": [
       {
-        "ru": "Дробь как запись действия деления",
-        "lv": "Daļa kā dalīšanas darbības pieraksts"
+        "num": "5.4.1",
+        "lv": "Daļas un veselā skaitliskā vērtība",
+        "ru": "Дробь и числовое значение целого"
       },
       {
-        "ru": "Дробь и числовое значение целого",
-        "lv": "Daļas un veselā skaitliskā vērtība"
+        "num": "5.4.2",
+        "lv": "Viens skaitlis kā otra skaitļa daļa",
+        "ru": "Одно число как часть другого числа"
+      },
+      {
+        "num": "5.4.3",
+        "lv": "Daļa kā dalīšanas darbības pieraksts",
+        "ru": "Дробь как запись деления"
       }
     ]
   },
@@ -818,16 +1132,19 @@
     "description_lv": "Jaukti skaitļi; Jauktu skaitļu saskaitīšana un atņemšana; Jauktu skaitļu saskaitīšana un atņemšana, ja saucēji ir dažādi",
     "subtopics": [
       {
-        "ru": "Смешанные числа",
-        "lv": "Jaukti skaitļi"
+        "num": "5.5.1",
+        "lv": "Jaukti skaitļi",
+        "ru": "Смешанные числа"
       },
       {
-        "ru": "Сложение и вычитание смешанных чисел",
-        "lv": "Jauktu skaitļu saskaitīšana un atņemšana"
+        "num": "5.5.2",
+        "lv": "Jauktu skaitļu saskaitīšana un atņemšana, ja saucēji ir vienādi",
+        "ru": "Сложение и вычитание смешанных чисел с одинаковыми знаменателями"
       },
       {
-        "ru": "Сложение и вычитание смешанных чисел, если знаменатели разные",
-        "lv": "Jauktu skaitļu saskaitīšana un atņemšana, ja saucēji ir dažādi"
+        "num": "5.5.3",
+        "lv": "Jauktu skaitļu saskaitīšana un atņemšana, ja saucēji ir dažādi",
+        "ru": "Сложение и вычитание смешанных чисел с разными знаменателями"
       }
     ]
   },
@@ -844,16 +1161,24 @@
     "description_lv": "Daudzstūru īpašības un lielumi; Leņķis. Leņķis kā citu leņķu summa vai starpība; Riņķa līnija un tās garums",
     "subtopics": [
       {
-        "ru": "Свойства и величины многоугольников",
-        "lv": "Daudzstūru īpašības un lielumi"
+        "num": "5.6.1",
+        "lv": "Leņķis kā citu leņķu summa vai starpība",
+        "ru": "Угол как сумма или разность других углов"
       },
       {
-        "ru": "Угол. Угол как сумма или разность других углов",
-        "lv": "Leņķis. Leņķis kā citu leņķu summa vai starpība"
+        "num": "5.6.2",
+        "lv": "Riņķa līnija un tās garums",
+        "ru": "Окружность и её длина"
       },
       {
-        "ru": "Окружность и её длина",
-        "lv": "Riņķa līnija un tās garums"
+        "num": "5.6.3",
+        "lv": "Daudzstūru īpašības un lielumi",
+        "ru": "Свойства и величины многоугольников"
+      },
+      {
+        "num": "5.6.4",
+        "lv": "Figūru īpašību lietojums",
+        "ru": "Применение свойств фигур"
       }
     ]
   },
@@ -870,24 +1195,29 @@
     "description_lv": "Decimāldaļas, to attēlojums uz skaitļu taisnes un salīdzināšana; Decimāldaļu saskaitīšana un atņemšana; Procenti; Procentu uzdevumi; Sektoru diagramma",
     "subtopics": [
       {
-        "ru": "Десятичные дроби, их изображение на числовой прямой и сравнение",
-        "lv": "Decimāldaļas, to attēlojums uz skaitļu taisnes un salīdzināšana"
+        "num": "5.7.1",
+        "lv": "Decimāldaļas, to attēlojums uz skaitļu taisnes un salīdzināšana",
+        "ru": "Десятичные дроби, их изображение на числовой прямой и сравнение"
       },
       {
-        "ru": "Сложение и вычитание десятичных дробей",
-        "lv": "Decimāldaļu saskaitīšana un atņemšana"
+        "num": "5.7.2",
+        "lv": "Decimāldaļu saskaitīšana un atņemšana",
+        "ru": "Сложение и вычитание десятичных дробей"
       },
       {
-        "ru": "Проценты",
-        "lv": "Procenti"
+        "num": "5.7.3",
+        "lv": "Procenti",
+        "ru": "Проценты"
       },
       {
-        "ru": "Задачи на проценты",
-        "lv": "Procentu uzdevumi"
+        "num": "5.7.4",
+        "lv": "Procentu lietojums dažādos kontekstos",
+        "ru": "Применение процентов в разных контекстах"
       },
       {
-        "ru": "Круговая диаграмма",
-        "lv": "Sektoru diagramma"
+        "num": "5.7.5",
+        "lv": "Sektoru diagramma",
+        "ru": "Круговая диаграмма"
       }
     ]
   },
@@ -904,8 +1234,19 @@
     "description_lv": "Datu grafiskā attēlošana, stabiņu un līniju diagrammas, divu mainīgo sakarību nolasīšana",
     "subtopics": [
       {
-        "ru": "Графическое представление данных, столбчатые и линейные диаграммы, считывание зависимостей между переменными",
-        "lv": "Datu grafiskā attēlošana, stabiņu un līniju diagrammas, divu mainīgo sakarību nolasīšana"
+        "num": "5.8.1",
+        "lv": "Skaits, samaksa, cena",
+        "ru": "Количество, оплата, цена"
+      },
+      {
+        "num": "5.8.2",
+        "lv": "Laiks, ceļš, ātrums",
+        "ru": "Время, путь, скорость"
+      },
+      {
+        "num": "5.8.3",
+        "lv": "Sakarības mums apkārt",
+        "ru": "Зависимости вокруг нас"
       }
     ]
   },
@@ -922,16 +1263,29 @@
     "description_lv": "Mērogs; Proporcionāli lielumi; Skaitļu attiecības. Kopuma sadalīšana noteiktā attiecībā",
     "subtopics": [
       {
-        "ru": "Масштаб",
-        "lv": "Mērogs"
+        "num": "6.1.1",
+        "lv": "Skaitļu attiecība",
+        "ru": "Отношение чисел"
       },
       {
-        "ru": "Пропорциональные величины",
-        "lv": "Proporcionāli lielumi"
+        "num": "6.1.2",
+        "lv": "Kopuma sadalīšana noteiktā attiecībā (2 vai 3 lielumi)",
+        "ru": "Деление совокупности в заданном отношении (2 или 3 величины)"
       },
       {
-        "ru": "Отношения чисел. Деление совокупности в определенном отношении",
-        "lv": "Skaitļu attiecības. Kopuma sadalīšana noteiktā attiecībā"
+        "num": "6.1.3",
+        "lv": "Tieši proporcionāli lielumi",
+        "ru": "Прямо пропорциональные величины"
+      },
+      {
+        "num": "6.1.4",
+        "lv": "Mērogs",
+        "ru": "Масштаб"
+      },
+      {
+        "num": "6.1.5",
+        "lv": "Apgriezti proporcionāli lielumi",
+        "ru": "Обратно пропорциональные величины"
       }
     ]
   },
@@ -948,12 +1302,24 @@
     "description_lv": "Daļu un jauktu skaitļu reizināšana un dalīšana ar veselu skaitli; Parasto daļu reizināšana un dalīšana savā starpā",
     "subtopics": [
       {
-        "ru": "Умножение и деление дробей и смешанных чисел на целое число",
-        "lv": "Daļu un jauktu skaitļu reizināšana un dalīšana ar veselu skaitli"
+        "num": "6.2.1",
+        "lv": "Parasto daļu reizināšana un dalīšana ar veselu skaitli",
+        "ru": "Умножение и деление обыкновенных дробей на целое число"
       },
       {
-        "ru": "Умножение и деление обыкновенных дробей между собой",
-        "lv": "Parasto daļu reizināšana un dalīšana savā starpā"
+        "num": "6.2.2",
+        "lv": "Parasto daļu reizināšana, tās ģeometriskais modelis; jauktu skaitļu reizināšana",
+        "ru": "Умножение обыкновенных дробей и его геометрическая модель; умножение смешанных чисел"
+      },
+      {
+        "num": "6.2.3",
+        "lv": "Dalīšana ar daļu, tās modelēšana; dalīšana ar jauktu skaitli",
+        "ru": "Деление на дробь и его моделирование; деление на смешанное число"
+      },
+      {
+        "num": "6.2.4",
+        "lv": "Lietojums situācijās ar sadzīves un matemātisku kontekstu",
+        "ru": "Применение в бытовых и математических контекстах"
       }
     ]
   },
@@ -970,8 +1336,19 @@
     "description_lv": "Decimāldaļu reizināšana un dalīšana ar 10, 100, 1000 un savā starpā. Komata pārvietošanas likumi un noapaļošana",
     "subtopics": [
       {
-        "ru": "Умножение и деление десятичных дробей на 10, 100, 1000 и между собой. Правила переноса запятой и округление",
-        "lv": "Decimāldaļu reizināšana un dalīšana ar 10, 100, 1000 un savā starpā. Komata pārvietošanas likumi un noapaļošana"
+        "num": "6.3.1",
+        "lv": "Decimāldaļu reizināšana, tās ģeometriskais modelis",
+        "ru": "Умножение десятичных дробей и его геометрическая модель"
+      },
+      {
+        "num": "6.3.2",
+        "lv": "Decimāldaļu dalīšana",
+        "ru": "Деление десятичных дробей"
+      },
+      {
+        "num": "6.3.3",
+        "lv": "Skaitliskas izteiksmes, kas satur parastās daļas un decimāldaļas vienkopus",
+        "ru": "Числовые выражения с обыкновенными и десятичными дробями вместе"
       }
     ]
   },
@@ -988,16 +1365,24 @@
     "description_lv": "Tilpums; Virsmas laukums; Taisnstūra paralēlskaldnis un kubs, to izklājumi",
     "subtopics": [
       {
-        "ru": "Объем",
-        "lv": "Tilpums"
+        "num": "6.4.1",
+        "lv": "Telpisku ķermeņu īpašības",
+        "ru": "Свойства пространственных тел"
       },
       {
-        "ru": "Площадь поверхности",
-        "lv": "Virsmas laukums"
+        "num": "6.4.2",
+        "lv": "Telpisku ķermeņu virsmas laukums",
+        "ru": "Площадь поверхности пространственных тел"
       },
       {
-        "ru": "Прямоугольный параллелепипед и куб, их развертки",
-        "lv": "Taisnstūra paralēlskaldnis un kubs, to izklājumi"
+        "num": "6.4.3",
+        "lv": "Telpisku ķermeņu tilpums, taisnstūra paralēlskaldņa tilpuma aprēķināšana",
+        "ru": "Объём пространственных тел, вычисление объёма прямоугольного параллелепипеда"
+      },
+      {
+        "num": "6.4.4",
+        "lv": "Sakarības starp plaknes figūru, telpisku ķermeņu lielumiem",
+        "ru": "Связи между величинами плоских фигур и пространственных тел"
       }
     ]
   },
@@ -1014,8 +1399,14 @@
     "description_lv": "Procentu aprēķināšana no skaitļa, skaitļa atrašana pēc tā procentiem, cenu izmaiņas, atlaides un nodokļi",
     "subtopics": [
       {
-        "ru": "Нахождение процента от числа, нахождение числа по его проценту, изменение цен, скидки и налоги",
-        "lv": "Procentu aprēķināšana no skaitļa, skaitļa atrašana pēc tā procentiem, cenu izmaiņas, atlaides un nodokļi"
+        "num": "6.5.1",
+        "lv": "Skaitlis kā otra skaitļa procenti",
+        "ru": "Число как проценты от другого числа"
+      },
+      {
+        "num": "6.5.2",
+        "lv": "Procentu lietojums dažādos kontekstos",
+        "ru": "Применение процентов в разных контекстах"
       }
     ]
   },
@@ -1032,8 +1423,24 @@
     "description_lv": "Pretēji skaitļi. Pozitīvi un negatīvi skaitļi, to novietojums uz skaitļu taisnes, moduļa jēdziens un salīdzināšana",
     "subtopics": [
       {
-        "ru": "Противоположные числа. Положительные и отрицательные числа, их расположение на числовой прямой, модуль и сравнение",
-        "lv": "Pretēji skaitļi. Pozitīvi un negatīvi skaitļi, to novietojums uz skaitļu taisnes, moduļa jēdziens un salīdzināšana"
+        "num": "6.6.1",
+        "lv": "Pretējais skaitlis, pozitīvi un negatīvi skaitļi, to novietojums uz skaitļu taisnes",
+        "ru": "Противоположное число, положительные и отрицательные числа, их расположение на числовой прямой"
+      },
+      {
+        "num": "6.6.2",
+        "lv": "Sakarības starp negatīviem skaitļiem",
+        "ru": "Соотношения между отрицательными числами"
+      },
+      {
+        "num": "6.6.3",
+        "lv": "Koordinātu plakne, reālu procesu grafiskais attēlojums",
+        "ru": "Координатная плоскость, графическое изображение реальных процессов"
+      },
+      {
+        "num": "6.6.4",
+        "lv": "Figūru novietojums koordinātu plaknē un figūru īpašības",
+        "ru": "Расположение фигур на координатной плоскости и свойства фигур"
       }
     ]
   },
@@ -1050,12 +1457,19 @@
     "description_lv": "Pozitīvu un negatīvu daļskaitļu saskaitīšana un atņemšana; Veselu skaitļu saskaitīšana un atņemšana",
     "subtopics": [
       {
-        "ru": "Сложение и вычитание положительных и отрицательных дробей",
-        "lv": "Pozitīvu un negatīvu daļskaitļu saskaitīšana un atņemšana"
+        "num": "6.7.1",
+        "lv": "Veselu skaitļu saskaitīšana",
+        "ru": "Сложение целых чисел"
       },
       {
-        "ru": "Сложение и вычитание целых чисел",
-        "lv": "Veselu skaitļu saskaitīšana un atņemšana"
+        "num": "6.7.2",
+        "lv": "Veselu skaitļu atņemšana",
+        "ru": "Вычитание целых чисел"
+      },
+      {
+        "num": "6.7.3",
+        "lv": "Pozitīvu un negatīvu daļskaitļu saskaitīšana un atņemšana",
+        "ru": "Сложение и вычитание положительных и отрицательных дробей"
       }
     ]
   },
@@ -1072,8 +1486,19 @@
     "description_lv": "Visas četras darbības ar racionāliem skaitļiem (veseli skaitļi, parastās daļas, decimāldaļas). Izteiksmju aprēķināšana",
     "subtopics": [
       {
-        "ru": "Все четыре действия с рациональными числами (целые числа, обыкновенные дроби, десятичные дроби). Вычисление сложных выражений",
-        "lv": "Visas četras darbības ar racionāliem skaitļiem (veseli skaitļi, parastās daļas, decimāldaļas). Izteiksmju aprēķināšana"
+        "num": "6.8.1",
+        "lv": "Veselu skaitļu reizināšana un dalīšana",
+        "ru": "Умножение и деление целых чисел"
+      },
+      {
+        "num": "6.8.2",
+        "lv": "Pozitīvu un negatīvu daļskaitļu reizināšana un dalīšana",
+        "ru": "Умножение и деление положительных и отрицательных дробей"
+      },
+      {
+        "num": "6.8.3",
+        "lv": "Skaitliskas izteiksmes (visu veidu skaitļi, visas darbības)",
+        "ru": "Числовые выражения (все виды чисел, все действия)"
       }
     ]
   },
@@ -1090,16 +1515,24 @@
     "description_lv": "Izlašu veidošana, raksturošana, izlašu skaita noteikšana; Kopas, Eilera-Venna diagramma. Pilnā pārlase; Varbūtība un tās lietojumi",
     "subtopics": [
       {
-        "ru": "Создание выборок, их характеристика, определение количества выборок",
-        "lv": "Izlašu veidošana, raksturošana, izlašu skaita noteikšana"
+        "num": "7.1.1",
+        "lv": "Kopas, darbības ar tām",
+        "ru": "Множества и действия с ними"
       },
       {
-        "ru": "Множества, диаграмма Эйлера-Венна. Полный перебор",
-        "lv": "Kopas, Eilera-Venna diagramma. Pilnā pārlase"
+        "num": "7.1.2",
+        "lv": "Informācijas strukturēšana, pilnā pārlase",
+        "ru": "Структурирование информации, полный перебор"
       },
       {
-        "ru": "Вероятность и её применения",
-        "lv": "Varbūtība un tās lietojumi"
+        "num": "7.1.3",
+        "lv": "Izlašu veidošana, raksturošana, izlašu skaita noteikšana",
+        "ru": "Составление и описание выборок, определение числа выборок"
+      },
+      {
+        "num": "7.1.4",
+        "lv": "Varbūtība un tās lietojumi",
+        "ru": "Вероятность и её применение"
       }
     ]
   },
@@ -1116,16 +1549,24 @@
     "description_lv": "Divu taišņu novietojums plaknē. Leņķis; Vienādas figūras. Nogriežņa garums un tā aprēķināšana; Ģeometrisko figūru definēšana un attēlošana",
     "subtopics": [
       {
-        "ru": "Взаимное расположение двух прямых на плоскости. Угол",
-        "lv": "Divu taišņu novietojums plaknē. Leņķis"
+        "num": "7.2.1",
+        "lv": "Ģeometrisko figūru definēšana un attēlošana",
+        "ru": "Определение и изображение геометрических фигур"
       },
       {
-        "ru": "Равные фигуры. Длина отрезка и её вычисление",
-        "lv": "Vienādas figūras. Nogriežņa garums un tā aprēķināšana"
+        "num": "7.2.2",
+        "lv": "Vienādas figūras",
+        "ru": "Равные фигуры"
       },
       {
-        "ru": "Определение и изображение геометрических фигур",
-        "lv": "Ģeometrisko figūru definēšana un attēlošana"
+        "num": "7.2.3",
+        "lv": "Nogriežņa garums un tā aprēķināšana",
+        "ru": "Длина отрезка и её вычисление"
+      },
+      {
+        "num": "7.2.4",
+        "lv": "Divu taišņu novietojums plaknē",
+        "ru": "Взаимное расположение двух прямых на плоскости"
       }
     ]
   },
@@ -1142,12 +1583,19 @@
     "description_lv": "Sakarība starp apgriezti proporcionāliem lielumiem un cita veida sakarības; Sakarība starp tieši proporcionāliem lielumiem",
     "subtopics": [
       {
-        "ru": "Зависимость между обратно пропорциональными величинами и другие виды зависимостей",
-        "lv": "Sakarība starp apgriezti proporcionāliem lielumiem un cita veida sakarības"
+        "num": "7.3.1",
+        "lv": "Sakarība starp tieši proporcionāliem lielumiem",
+        "ru": "Зависимость между прямо пропорциональными величинами"
       },
       {
-        "ru": "Зависимость между прямо пропорциональными величинами",
-        "lv": "Sakarība starp tieši proporcionāliem lielumiem"
+        "num": "7.3.2",
+        "lv": "Sakarība starp apgriezti proporcionāliem lielumiem",
+        "ru": "Зависимость между обратно пропорциональными величинами"
+      },
+      {
+        "num": "7.3.3",
+        "lv": "Cita veida sakarības starp mainīgiem lielumiem",
+        "ru": "Другие виды зависимостей между переменными величинами"
       }
     ]
   },
@@ -1164,12 +1612,24 @@
     "description_lv": "Funkcija, ar to saistītie jēdzieni. Lineāra funkcija; Lineāras funkcijas īpašības",
     "subtopics": [
       {
-        "ru": "Функция, связанные с ней понятия. Линейная функция",
-        "lv": "Funkcija, ar to saistītie jēdzieni. Lineāra funkcija"
+        "num": "7.4.1",
+        "lv": "Funkcija, ar to saistītie jēdzieni",
+        "ru": "Функция и связанные с ней понятия"
       },
       {
-        "ru": "Свойства линейной функции",
-        "lv": "Lineāras funkcijas īpašības"
+        "num": "7.4.2",
+        "lv": "Lineāras funkcijas dažādi attēlojumi",
+        "ru": "Различные представления линейной функции"
+      },
+      {
+        "num": "7.4.3",
+        "lv": "Lineāras funkcijas īpašības",
+        "ru": "Свойства линейной функции"
+      },
+      {
+        "num": "7.4.4",
+        "lv": "Lineāra funkcija kā reālu procesu matemātiskais modelis",
+        "ru": "Линейная функция как математическая модель реальных процессов"
       }
     ]
   },
@@ -1186,20 +1646,29 @@
     "description_lv": "Nogriežņa vidusperpendikuls un raksturīgie nogriežņi trijstūrī; Trijstūri ar vienādām malām; Triju punktu novietojums plaknē.Trijstūris; Vienādi trijstūri, vienādības pazīmes un to lietošana",
     "subtopics": [
       {
-        "ru": "Серединный перпендикуляр отрезка и характерные отрезки в треугольнике",
-        "lv": "Nogriežņa vidusperpendikuls un raksturīgie nogriežņi trijstūrī"
+        "num": "7.5.1",
+        "lv": "Triju punktu novietojums plaknē, trijstūris",
+        "ru": "Расположение трёх точек на плоскости, треугольник"
       },
       {
-        "ru": "Треугольники с равными сторонами",
-        "lv": "Trijstūri ar vienādām malām"
+        "num": "7.5.2",
+        "lv": "Vienādi trijstūri, vienādības pazīmes",
+        "ru": "Равные треугольники, признаки равенства"
       },
       {
-        "ru": "Расположение трех точек на плоскости. Треугольник",
-        "lv": "Triju punktu novietojums plaknē.Trijstūris"
+        "num": "7.5.3",
+        "lv": "Trijstūru vienādības pazīmju lietošana",
+        "ru": "Применение признаков равенства треугольников"
       },
       {
-        "ru": "Равные треугольники, признаки равенства и их применение",
-        "lv": "Vienādi trijstūri, vienādības pazīmes un to lietošana"
+        "num": "7.5.4",
+        "lv": "Trijstūri ar vienādām malām",
+        "ru": "Треугольники с равными сторонами"
+      },
+      {
+        "num": "7.5.5",
+        "lv": "Nogriežņa vidusperpendikuls un raksturīgie nogriežņi trijstūri",
+        "ru": "Серединный перпендикуляр отрезка и характерные отрезки в треугольнике"
       }
     ]
   },
@@ -1216,16 +1685,29 @@
     "description_lv": "Sakarības starp trijstūra malām un leņķiem. Trijstūra īpašības un pazīmes; Trijstūra leņķu summa; Trīs taišņu novietojums plaknē",
     "subtopics": [
       {
-        "ru": "Зависимости между сторонами и углами треугольника. Свойства и признаки треугольника",
-        "lv": "Sakarības starp trijstūra malām un leņķiem. Trijstūra īpašības un pazīmes"
+        "num": "7.6.1",
+        "lv": "Īpašības un pazīmes",
+        "ru": "Свойства и признаки"
       },
       {
-        "ru": "Сумма углов треугольника",
-        "lv": "Trijstūra leņķu summa"
+        "num": "7.6.2",
+        "lv": "Sakarības starp trijstūra malām un leņķiem",
+        "ru": "Соотношения между сторонами и углами треугольника"
       },
       {
-        "ru": "Расположение трех прямых на плоскости",
-        "lv": "Trīs taišņu novietojums plaknē"
+        "num": "7.6.3",
+        "lv": "Trīs taišņu novietojums plaknē",
+        "ru": "Взаимное расположение трёх прямых на плоскости"
+      },
+      {
+        "num": "7.6.4",
+        "lv": "Trijstūra leņķu summa",
+        "ru": "Сумма углов треугольника"
+      },
+      {
+        "num": "7.6.5",
+        "lv": "Figūru īpašību lietojums",
+        "ru": "Применение свойств фигур"
       }
     ]
   },
@@ -1242,20 +1724,24 @@
     "description_lv": "Algebriskas izteiksmes un to vērtība; Algebrisku izteiksmju pārveidojumi; Identiski vienādas izteiksmes; Skaitliskas un algebriskas izteiksmes",
     "subtopics": [
       {
-        "ru": "Алгебраические выражения и их значение",
-        "lv": "Algebriskas izteiksmes un to vērtība"
+        "num": "7.7.1",
+        "lv": "Skaitliskas un algebriskas izteiksmes",
+        "ru": "Числовые и алгебраические выражения"
       },
       {
-        "ru": "Преобразования алгебраических выражений",
-        "lv": "Algebrisku izteiksmju pārveidojumi"
+        "num": "7.7.2",
+        "lv": "Algebriskas izteiksmes vērtība",
+        "ru": "Значение алгебраического выражения"
       },
       {
-        "ru": "Тождественно равные выражения",
-        "lv": "Identiski vienādas izteiksmes"
+        "num": "7.7.3",
+        "lv": "Algebrisku izteiksmju pārveidojumi",
+        "ru": "Преобразования алгебраических выражений"
       },
       {
-        "ru": "Числовые и алгебраические выражения",
-        "lv": "Skaitliskas un algebriskas izteiksmes"
+        "num": "7.7.4",
+        "lv": "Identiski vienādas izteiksmes",
+        "ru": "Тождественно равные выражения"
       }
     ]
   },
@@ -1272,20 +1758,24 @@
     "description_lv": "Lineāra vienādojuma lietojums teksta uzdevumu atrisināšanā; Lineārs vienādojums un tā atrisināšana; Proporcija. Lieluma izteikšana no proporcijas; Vienādojuma ekvivalenti pārveidojumi",
     "subtopics": [
       {
-        "ru": "Использование линейного уравнения при решении текстовых задач",
-        "lv": "Lineāra vienādojuma lietojums teksta uzdevumu atrisināšanā"
+        "num": "7.8.1",
+        "lv": "Lineārs vienādojums un tā atrisināšana",
+        "ru": "Линейное уравнение и его решение"
       },
       {
-        "ru": "Линейное уравнение и его решение",
-        "lv": "Lineārs vienādojums un tā atrisināšana"
+        "num": "7.8.2",
+        "lv": "Vienādojuma ekvivalenti pārveidojumi",
+        "ru": "Равносильные преобразования уравнения"
       },
       {
-        "ru": "Пропорция. Выражение величины из пропорции",
-        "lv": "Proporcija. Lieluma izteikšana no proporcijas"
+        "num": "7.8.3",
+        "lv": "Lineāra vienādojuma izmantošana",
+        "ru": "Применение линейного уравнения"
       },
       {
-        "ru": "Эквивалентные преобразования уравнения",
-        "lv": "Vienādojuma ekvivalenti pārveidojumi"
+        "num": "7.8.4",
+        "lv": "Proporcija, lieluma izteikšana no formulas",
+        "ru": "Пропорция, выражение величины из формулы"
       }
     ]
   },
@@ -1302,16 +1792,24 @@
     "description_lv": "Izteiksmju salīdzināšana. Nevienādība un tās atrisinājums; Lineāru nevienādību atrisināšana; Nevienādību lietošana",
     "subtopics": [
       {
-        "ru": "Сравнение выражений. Неравенство и его решение",
-        "lv": "Izteiksmju salīdzināšana. Nevienādība un tās atrisinājums"
+        "num": "7.9.1",
+        "lv": "Izteiksmju salīdzināšana",
+        "ru": "Сравнение выражений"
       },
       {
-        "ru": "Решение линейных неравенств",
-        "lv": "Lineāru nevienādību atrisināšana"
+        "num": "7.9.2",
+        "lv": "Nevienādība un tās atrisinājums",
+        "ru": "Неравенство и его решение"
       },
       {
-        "ru": "Применение неравенств",
-        "lv": "Nevienādību lietošana"
+        "num": "7.9.3",
+        "lv": "Lineāru nevienādību atrisināšana",
+        "ru": "Решение линейных неравенств"
+      },
+      {
+        "num": "7.9.4",
+        "lv": "Nevienādību lietošana",
+        "ru": "Применение неравенств"
       }
     ]
   },
@@ -1328,12 +1826,24 @@
     "description_lv": "Datu ieguve, apkopošana un attēlošana; Datu sakārtošana un statistiskie rādītāji",
     "subtopics": [
       {
-        "ru": "Сбор, обобщение и отображение данных",
-        "lv": "Datu ieguve, apkopošana un attēlošana"
+        "num": "8.1.1",
+        "lv": "Datu ieguve, apkopošana un attēlošana",
+        "ru": "Получение, обработка и представление данных"
       },
       {
-        "ru": "Упорядочивание данных и статистические показатели",
-        "lv": "Datu sakārtošana un statistiskie rādītāji"
+        "num": "8.1.2",
+        "lv": "Statistiskie rādītāji",
+        "ru": "Статистические показатели"
+      },
+      {
+        "num": "8.1.3",
+        "lv": "Datu izmantošana pētījumos",
+        "ru": "Использование данных в исследованиях"
+      },
+      {
+        "num": "8.1.4",
+        "lv": "Datu apstrāde (kopīgs/integrēts temats)",
+        "ru": "Обработка данных (общая, межпредметная тема)"
       }
     ]
   },
@@ -1350,12 +1860,29 @@
     "description_lv": "Pakāpe ar naturālu kāpinātāju un īpašības; Pakāpe ar veselu kāpinātāju",
     "subtopics": [
       {
-        "ru": "Степень с натуральным показателем и свойства",
-        "lv": "Pakāpe ar naturālu kāpinātāju un īpašības"
+        "num": "8.2.1",
+        "lv": "Pakāpe ar naturālu kāpinātāju un tās īpašības",
+        "ru": "Степень с натуральным показателем и её свойства"
       },
       {
-        "ru": "Степень с целым показателем",
-        "lv": "Pakāpe ar veselu kāpinātāju"
+        "num": "8.2.2",
+        "lv": "Kāpinātājs 0 vai negatīvs skaitlis",
+        "ru": "Показатель 0 или отрицательное число"
+      },
+      {
+        "num": "8.2.3",
+        "lv": "Pakāpe ar veselu kāpinātāju un tās īpašības",
+        "ru": "Степень с целым показателем и её свойства"
+      },
+      {
+        "num": "8.2.4",
+        "lv": "Skaitļa pierakts normālformā",
+        "ru": "Запись числа в стандартном виде"
+      },
+      {
+        "num": "8.2.5",
+        "lv": "Funkcijas y = x^2; y = x^3",
+        "ru": "Функции y = x² и y = x³"
       }
     ]
   },
@@ -1372,16 +1899,24 @@
     "description_lv": "Aritmētiskā kvadrātsakne; Aritmētiskās kvadrātsaknes īpašības; Skaitļu precīzās vērtības tuvinājumi. Racionāli un iracionāli skaitļi",
     "subtopics": [
       {
-        "ru": "Арифметический квадратный корень",
-        "lv": "Aritmētiskā kvadrātsakne"
+        "num": "8.3.1",
+        "lv": "Skaitļu precīzās vērtības tuvinājumi",
+        "ru": "Приближения точных значений чисел"
       },
       {
-        "ru": "Свойства арифметического квадратного корня",
-        "lv": "Aritmētiskās kvadrātsaknes īpašības"
+        "num": "8.3.2",
+        "lv": "Racionāli un iracionāli skaitļi",
+        "ru": "Рациональные и иррациональные числа"
       },
       {
-        "ru": "Приближения точного значения чисел. Рациональные и иррациональные числа",
-        "lv": "Skaitļu precīzās vērtības tuvinājumi. Racionāli un iracionāli skaitļi"
+        "num": "8.3.3",
+        "lv": "Aritmētiskā kvadrātsakne",
+        "ru": "Арифметический квадратный корень"
+      },
+      {
+        "num": "8.3.4",
+        "lv": "Aritmētiskās kvadrātsaknes īpašības",
+        "ru": "Свойства арифметического квадратного корня"
       }
     ]
   },
@@ -1398,20 +1933,29 @@
     "description_lv": "Cilindrs, tā virsmas laukums un tilpums; Laukums. Trijstūra laukums; Riņķa laukums. Kombinētu figūru laukums; Taisna prizma, tās virsmas laukums un tilpums",
     "subtopics": [
       {
-        "ru": "Цилиндр, площадь его поверхности и объем",
-        "lv": "Cilindrs, tā virsmas laukums un tilpums"
+        "num": "8.4.1",
+        "lv": "Laukums (atkārtojums)",
+        "ru": "Площадь (повторение)"
       },
       {
-        "ru": "Площадь. Площадь треугольника",
-        "lv": "Laukums. Trijstūra laukums"
+        "num": "8.4.2",
+        "lv": "Trijstūra laukums",
+        "ru": "Площадь треугольника"
       },
       {
-        "ru": "Площадь круга. Площадь комбинированных фигур",
-        "lv": "Riņķa laukums. Kombinētu figūru laukums"
+        "num": "8.4.3",
+        "lv": "Riņķa laukums, kombinētu figūru laukums",
+        "ru": "Площадь круга, площадь комбинированных фигур"
       },
       {
-        "ru": "Прямая призма, площадь её поверхности и объем",
-        "lv": "Taisna prizma, tās virsmas laukums un tilpums"
+        "num": "8.4.4",
+        "lv": "Taisna prizma, tās virsmas laukums un tilpums",
+        "ru": "Прямая призма, площадь её поверхности и объём"
+      },
+      {
+        "num": "8.4.5",
+        "lv": "Cilindrs, tā virsmas laukums un tilpums",
+        "ru": "Цилиндр, площадь его поверхности и объём"
       }
     ]
   },
@@ -1428,24 +1972,29 @@
     "description_lv": "Paralelograma laukums; Paralelograms; Rombs un taisnstūris; Taišņu paralelitātes pazīmes; Četrstūri",
     "subtopics": [
       {
-        "ru": "Площадь параллелограмма",
-        "lv": "Paralelograma laukums"
+        "num": "8.5.1",
+        "lv": "Taišņu paralelitātes pazīmes",
+        "ru": "Признаки параллельности прямых"
       },
       {
-        "ru": "Параллелограмм",
-        "lv": "Paralelograms"
+        "num": "8.5.2",
+        "lv": "Četrstūri",
+        "ru": "Четырёхугольники"
       },
       {
-        "ru": "Ромб и прямоугольник",
-        "lv": "Rombs un taisnstūris"
+        "num": "8.5.3",
+        "lv": "Paralelograms",
+        "ru": "Параллелограмм"
       },
       {
-        "ru": "Признаки параллельности прямых",
-        "lv": "Taišņu paralelitātes pazīmes"
+        "num": "8.5.4",
+        "lv": "Paralelogramu veidi",
+        "ru": "Виды параллелограммов"
       },
       {
-        "ru": "Четырехугольники",
-        "lv": "Četrstūri"
+        "num": "8.5.5",
+        "lv": "Paralelograma laukums",
+        "ru": "Площадь параллелограмма"
       }
     ]
   },
@@ -1462,24 +2011,24 @@
     "description_lv": "Monoma un polinoma reizinājums; Monomi, to saskaitīšana un atņemšana; Monomu reizināšana, dalīšana, kāpināšana; Polinoma reizinājums ar polinomu; Polinomi, to saskaitīšana un atņemšana",
     "subtopics": [
       {
-        "ru": "Произведение одночлена и многочлена",
-        "lv": "Monoma un polinoma reizinājums"
+        "num": "8.6.1",
+        "lv": "Monomi, to saskaitīšana un atņemšana",
+        "ru": "Одночлены, их сложение и вычитание"
       },
       {
-        "ru": "Одночлены, их сложение и вычитание",
-        "lv": "Monomi, to saskaitīšana un atņemšana"
+        "num": "8.6.2",
+        "lv": "Monomu reizināšana, dalīšana, kāpināšana",
+        "ru": "Умножение, деление и возведение одночленов в степень"
       },
       {
-        "ru": "Умножение, деление, возведение в степень одночленов",
-        "lv": "Monomu reizināšana, dalīšana, kāpināšana"
+        "num": "8.6.3",
+        "lv": "Polinomi, to saskaitīšana un atņemšana",
+        "ru": "Многочлены, их сложение и вычитание"
       },
       {
-        "ru": "Произведение многочлена на многочлен",
-        "lv": "Polinoma reizinājums ar polinomu"
-      },
-      {
-        "ru": "Многочлены, их сложение и вычитание",
-        "lv": "Polinomi, to saskaitīšana un atņemšana"
+        "num": "8.6.4",
+        "lv": "Monoma un polinoma reizinājums",
+        "ru": "Произведение одночлена и многочлена"
       }
     ]
   },
@@ -1496,16 +2045,24 @@
     "description_lv": "Funkcija y=k/x; Kvadrātfunkcija, īpašības; Kvadrātfunkcijas grafiks",
     "subtopics": [
       {
-        "ru": "Функция y=k/x",
-        "lv": "Funkcija y=k/x"
+        "num": "8.7.1",
+        "lv": "Kvadrātfunkcija, funkcija y = k/x kā sakarību, procesu vai objektu matemātiskais modelis",
+        "ru": "Квадратичная функция и функция y = k/x как математическая модель зависимостей, процессов или объектов"
       },
       {
-        "ru": "Квадратичная функция, свойства",
-        "lv": "Kvadrātfunkcija, īpašības"
+        "num": "8.7.2",
+        "lv": "Kvadrātfunkcijas grafika konstruēšana un īpašību noteikšana",
+        "ru": "Построение графика квадратичной функции и определение её свойств"
       },
       {
-        "ru": "График квадратичной функции",
-        "lv": "Kvadrātfunkcijas grafiks"
+        "num": "8.7.3",
+        "lv": "Funkcijas y = k/x grafika konstruēšana un īpašību noteikšana",
+        "ru": "Построение графика функции y = k/x и определение её свойств"
+      },
+      {
+        "num": "8.7.4",
+        "lv": "Vienādojumu, nevienādību atrisināšana",
+        "ru": "Решение уравнений и неравенств"
       }
     ]
   },
@@ -1522,12 +2079,24 @@
     "description_lv": "Pitagora teorēma un tās lietojums; Taisleņķa trijstūris, taisleņķa trijstūru vienādība",
     "subtopics": [
       {
-        "ru": "Теорема Пифагора и её применение",
-        "lv": "Pitagora teorēma un tās lietojums"
+        "num": "8.8.1",
+        "lv": "Taisnleņķa trijstūris",
+        "ru": "Прямоугольный треугольник"
       },
       {
-        "ru": "Прямоугольный треугольник, равенство прямоугольных треугольников",
-        "lv": "Taisleņķa trijstūris, taisleņķa trijstūru vienādība"
+        "num": "8.8.2",
+        "lv": "Taisnleņķa trijstūru vienādība",
+        "ru": "Равенство прямоугольных треугольников"
+      },
+      {
+        "num": "8.8.3",
+        "lv": "Pitagora teorēma",
+        "ru": "Теорема Пифагора"
+      },
+      {
+        "num": "8.8.4",
+        "lv": "Pitagora teorēmas lietojums",
+        "ru": "Применение теоремы Пифагора"
       }
     ]
   },
@@ -1544,20 +2113,29 @@
     "description_lv": "Līdzīgi trijstūri, trijstūru līdzības pazīmes; Talesa teorēma. Proporcionāli nogriežņi; Trijstūra viduslīnija; Trijstūru līdzības lietojums",
     "subtopics": [
       {
-        "ru": "Подобные треугольники, признаки подобия треугольников",
-        "lv": "Līdzīgi trijstūri, trijstūru līdzības pazīmes"
+        "num": "9.1.1",
+        "lv": "Talesa teorēma, trijstūra viduslīnija",
+        "ru": "Теорема Фалеса, средняя линия треугольника"
       },
       {
-        "ru": "Теорема Фалеса. Пропорциональные отрезки",
-        "lv": "Talesa teorēma. Proporcionāli nogriežņi"
+        "num": "9.1.2",
+        "lv": "Proporcionāli nogriežņi",
+        "ru": "Пропорциональные отрезки"
       },
       {
-        "ru": "Средняя линия треугольника",
-        "lv": "Trijstūra viduslīnija"
+        "num": "9.1.3",
+        "lv": "Līdzība, līdzīgi trijstūri",
+        "ru": "Подобие, подобные треугольники"
       },
       {
-        "ru": "Применение подобия треугольников",
-        "lv": "Trijstūru līdzības lietojums"
+        "num": "9.1.4",
+        "lv": "Trijstūru līdzības pazīmes",
+        "ru": "Признаки подобия треугольников"
+      },
+      {
+        "num": "9.1.5",
+        "lv": "Trijstūru līdzības lietojums",
+        "ru": "Применение подобия треугольников"
       }
     ]
   },
@@ -1574,20 +2152,29 @@
     "description_lv": "Taisna četrstūra prizma, telpiski ķermeņi; Trapece, taisnleņķa trapece; Trapeces viduslīnija. Trapeces laukums; Vienādsānu trapece",
     "subtopics": [
       {
-        "ru": "Прямая четырехугольная призма, пространственные тела",
-        "lv": "Taisna četrstūra prizma, telpiski ķermeņi"
+        "num": "9.2.1",
+        "lv": "Trapece, taisnleņķa trapece",
+        "ru": "Трапеция, прямоугольная трапеция"
       },
       {
-        "ru": "Трапеция, прямоугольная трапеция",
-        "lv": "Trapece, taisnleņķa trapece"
+        "num": "9.2.2",
+        "lv": "Vienādsānu trapece",
+        "ru": "Равнобедренная трапеция"
       },
       {
-        "ru": "Средняя линия трапеции. Площадь трапеции",
-        "lv": "Trapeces viduslīnija. Trapeces laukums"
+        "num": "9.2.3",
+        "lv": "Trapeces viduslīnija, tās īpašība",
+        "ru": "Средняя линия трапеции и её свойство"
       },
       {
-        "ru": "Равнобедренная трапеция",
-        "lv": "Vienādsānu trapece"
+        "num": "9.2.4",
+        "lv": "Trapeces laukums",
+        "ru": "Площадь трапеции"
+      },
+      {
+        "num": "9.2.5",
+        "lv": "Taisna četrstūra prizma, telpiski ķermeņi",
+        "ru": "Прямая четырёхугольная призма, пространственные тела"
       }
     ]
   },
@@ -1604,12 +2191,19 @@
     "description_lv": "Sakarības taisnleņķa trijstūrī matemātiskos un reālos kontekstos; Sin, cos, tg definēšana, nezināmo lielumu aprēķināšana taisnleņķa trijstūrī",
     "subtopics": [
       {
-        "ru": "Зависимости в прямоугольном треугольнике в математических и реальных контекстах",
-        "lv": "Sakarības taisnleņķa trijstūrī matemātiskos un reālos kontekstos"
+        "num": "9.3.1",
+        "lv": "Līdzīgi taisnleņķa trijstūri, malu attiecības izmantošana aprēķinos",
+        "ru": "Подобные прямоугольные треугольники, использование отношения сторон в вычислениях"
       },
       {
-        "ru": "Определение sin, cos, tg, вычисление неизвестных величин в прямоугольном треугольнике",
-        "lv": "Sin, cos, tg definēšana, nezināmo lielumu aprēķināšana taisnleņķa trijstūrī"
+        "num": "9.3.2",
+        "lv": "Sinusa (kosinusa, tangensa) definēšana, nezināmo lielumu aprēķināšana taisnleņķa trijstūrī",
+        "ru": "Определение синуса (косинуса, тангенса), вычисление неизвестных величин в прямоугольном треугольнике"
+      },
+      {
+        "num": "9.3.3",
+        "lv": "Sakarību taisnleņķa trijstūrī lietojums matemātiskos un reālos kontekstos",
+        "ru": "Применение соотношений в прямоугольном треугольнике в математических и реальных контекстах"
       }
     ]
   },
@@ -1626,20 +2220,24 @@
     "description_lv": "Binoma kvadrāts; Kvadrātu starpība; Polinoma sadalīšana reizinātājos, iznesot kopīgo reizinātāju pirms iekavām; Visu darbību ar monomiem, polinomiem lietojums",
     "subtopics": [
       {
-        "ru": "Квадрат двучлена",
-        "lv": "Binoma kvadrāts"
+        "num": "9.4.1",
+        "lv": "Polinoma sadalīšana reizinātājos, iznesot kopīgo reizinātāju pirms iekavām",
+        "ru": "Разложение многочлена на множители вынесением общего множителя за скобки"
       },
       {
-        "ru": "Разность квадратов",
-        "lv": "Kvadrātu starpība"
+        "num": "9.4.2",
+        "lv": "Binoma kvadrāts",
+        "ru": "Квадрат двучлена"
       },
       {
-        "ru": "Разложение многочлена на множители вынесением общего множителя за скобки",
-        "lv": "Polinoma sadalīšana reizinātājos, iznesot kopīgo reizinātāju pirms iekavām"
+        "num": "9.4.3",
+        "lv": "Kvadrātu starpība",
+        "ru": "Разность квадратов"
       },
       {
-        "ru": "Применение всех действий с одночленами, многочленами",
-        "lv": "Visu darbību ar monomiem, polinomiem lietojums"
+        "num": "9.4.4",
+        "lv": "Visu darbību ar monomiem, polinomiem lietojums",
+        "ru": "Применение всех действий с одночленами и многочленами"
       }
     ]
   },
@@ -1656,32 +2254,19 @@
     "description_lv": "Kvadrātfunkcijas; Kvadrātnevienādības; Kvadrātvienādojuma sakņu formula; Kvadrātvienādojumi x²=t, ax²=t un (x+k)²=t; Kvadrātvienādojums; Reizinājums vienāds ar 0, vienādojumi ax²+bx=0; Vjeta teorēma",
     "subtopics": [
       {
-        "ru": "Квадратичные функции",
-        "lv": "Kvadrātfunkcijas"
+        "num": "9.5.1",
+        "lv": "Kvadrātvienādojuma atrisināšana, izmantojot sakņu formulu",
+        "ru": "Решение квадратного уравнения по формуле корней"
       },
       {
-        "ru": "Квадратные неравенства",
-        "lv": "Kvadrātnevienādības"
+        "num": "9.5.2",
+        "lv": "Kvadrātfunkcijas grafika uzzīmēšana, izmantojot virsotnes formulu",
+        "ru": "Построение графика квадратичной функции по формуле вершины"
       },
       {
-        "ru": "Формула корней квадратного уравнения",
-        "lv": "Kvadrātvienādojuma sakņu formula"
-      },
-      {
-        "ru": "Квадратные уравнения x²=t, ax²=t и (x+k)²=t",
-        "lv": "Kvadrātvienādojumi x²=t, ax²=t un (x+k)²=t"
-      },
-      {
-        "ru": "Квадратное уравнение",
-        "lv": "Kvadrātvienādojums"
-      },
-      {
-        "ru": "Произведение, равное 0, уравнения ax²+bx=0",
-        "lv": "Reizinājums vienāds ar 0, vienādojumi ax²+bx=0"
-      },
-      {
-        "ru": "Теорема Виета",
-        "lv": "Vjeta teorēma"
+        "num": "9.5.3",
+        "lv": "Kvadrātnevienādību risināšana",
+        "ru": "Решение квадратных неравенств"
       }
     ]
   },
@@ -1698,24 +2283,19 @@
     "description_lv": "Vienādojums ar diviem nezināmajiem, tā grafiskais attēlojums; Vienādojumu sistēmas atrisināšana grafiski; Vienādojumu sistēmas atrisināšanas analītiskie paņēmieni; Ievietošanas paņēmiens; Saskaitīšanas paņēmiens",
     "subtopics": [
       {
-        "ru": "Уравнение с двумя неизвестными, его графическое изображение",
-        "lv": "Vienādojums ar diviem nezināmajiem, tā grafiskais attēlojums"
+        "num": "9.6.1",
+        "lv": "Vienādojums ar diviem nezināmajiem un tā grafiskais attēlojums",
+        "ru": "Уравнение с двумя неизвестными и его графическое изображение"
       },
       {
-        "ru": "Решение систем уравнений графическим способом",
-        "lv": "Vienādojumu sistēmas atrisināšana grafiski"
+        "num": "9.6.2",
+        "lv": "Vienādojumu sistēmas atrisināšana grafiski",
+        "ru": "Графическое решение системы уравнений"
       },
       {
-        "ru": "Аналитические способы решения систем уравнений",
-        "lv": "Vienādojumu sistēmas atrisināšanas analītiskie paņēmieni"
-      },
-      {
-        "ru": "Способ подстановки",
-        "lv": "Ievietošanas paņēmiens"
-      },
-      {
-        "ru": "Способ сложения",
-        "lv": "Saskaitīšanas paņēmiens"
+        "num": "9.6.3",
+        "lv": "Vienādojumu sistēmas atrisināšanas analītiskie paņēmieni",
+        "ru": "Аналитические приёмы решения системы уравнений"
       }
     ]
   },
@@ -1732,16 +2312,19 @@
     "description_lv": "Aritmētiskā progresija, tās īpašības; Aritmētiskās progresijas pielietojums; Skaitļu virknes, skaitļu sakārtojumi",
     "subtopics": [
       {
-        "ru": "Арифметическая прогрессия, её свойства",
-        "lv": "Aritmētiskā progresija, tās īpašības"
+        "num": "9.7.1",
+        "lv": "Skaitļu virknes, skaitļu sakārtojumi",
+        "ru": "Числовые последовательности, упорядочение чисел"
       },
       {
-        "ru": "Применение арифметической прогрессии",
-        "lv": "Aritmētiskās progresijas pielietojums"
+        "num": "9.7.2",
+        "lv": "Aritmētiskā progresija, tās īpašības",
+        "ru": "Арифметическая прогрессия и её свойства"
       },
       {
-        "ru": "Числовые последовательности, упорядочивания чисел",
-        "lv": "Skaitļu virknes, skaitļu sakārtojumi"
+        "num": "9.7.3",
+        "lv": "Aritmētiskās progresijas pieraksts, ar formulu aprakstot atkarību no kārtas numura",
+        "ru": "Запись арифметической прогрессии формулой зависимости от порядкового номера"
       }
     ]
   },
@@ -1758,20 +2341,24 @@
     "description_lv": "Ap trijstūri apvilkta riņķa līnija; Regulāri daudzstūri; Riņķa līnijas pieskare, trijstūrī ievilkta riņķa līnija; Četrstūris un riņķa līnija",
     "subtopics": [
       {
-        "ru": "Окружность, описанная около треугольника",
-        "lv": "Ap trijstūri apvilkta riņķa līnija"
+        "num": "9.8.1",
+        "lv": "Ap trijstūri apvilkta riņķa līnija",
+        "ru": "Окружность, описанная около треугольника"
       },
       {
-        "ru": "Правильные многоугольники",
-        "lv": "Regulāri daudzstūri"
+        "num": "9.8.2",
+        "lv": "Riņķa līnijas pieskare, trijstūrī ievilkta riņķa līnija",
+        "ru": "Касательная к окружности, окружность, вписанная в треугольник"
       },
       {
-        "ru": "Касательная к окружности, вписанная в треугольник окружность",
-        "lv": "Riņķa līnijas pieskare, trijstūrī ievilkta riņķa līnija"
+        "num": "9.8.3",
+        "lv": "Četrstūris un riņķa līnija",
+        "ru": "Четырёхугольник и окружность"
       },
       {
-        "ru": "Четырехугольник и окружность",
-        "lv": "Četrstūris un riņķa līnija"
+        "num": "9.8.4",
+        "lv": "Regulārs daudzstūris",
+        "ru": "Правильный многоугольник"
       }
     ]
   },
@@ -1788,32 +2375,39 @@
     "description_lv": "Attālums starp diviem punktiem; Vektora projekcija uz ass; Vektori koordinātu formā plaknē; Vektori telpā; Vektors, tā modulis. Vektoru novietojums; Vektoru izteikšana; Vektoru saskaitīšanas likumi",
     "subtopics": [
       {
-        "ru": "Расстояние между двумя точками",
-        "lv": "Attālums starp diviem punktiem"
+        "num": "11.1.1",
+        "lv": "Attālums starp diviem punktiem",
+        "ru": "Расстояние между двумя точками"
       },
       {
-        "ru": "Проекция вектора на ось",
-        "lv": "Vektora projekcija uz ass"
+        "num": "11.1.2",
+        "lv": "Vektora projekcija uz ass",
+        "ru": "Проекция вектора на ось"
       },
       {
-        "ru": "Векторы в координатной форме на плоскости",
-        "lv": "Vektori koordinātu formā plaknē"
+        "num": "11.1.3",
+        "lv": "Vektori koordinātu formā plaknē",
+        "ru": "Векторы в координатной форме на плоскости"
       },
       {
-        "ru": "Векторы в пространстве",
-        "lv": "Vektori telpā"
+        "num": "11.1.4",
+        "lv": "Vektori telpā",
+        "ru": "Векторы в пространстве"
       },
       {
-        "ru": "Вектор, его модуль. Расположение векторов",
-        "lv": "Vektors, tā modulis. Vektoru novietojums"
+        "num": "11.1.5",
+        "lv": "Vektors, tā modulis. Vektoru novietojums",
+        "ru": "Вектор, его модуль. Расположение векторов"
       },
       {
-        "ru": "Выражение векторов",
-        "lv": "Vektoru izteikšana"
+        "num": "11.1.6",
+        "lv": "Vektoru izteikšana",
+        "ru": "Выражение векторов"
       },
       {
-        "ru": "Правила сложения векторов",
-        "lv": "Vektoru saskaitīšanas likumi"
+        "num": "11.1.7",
+        "lv": "Vektoru saskaitīšanas likumi",
+        "ru": "Правила сложения векторов"
       }
     ]
   },
@@ -1830,24 +2424,29 @@
     "description_lv": "Lineāra funkcija. Funkcijas un argumenta pieaugums; Nevienādība ar 2 mainīgajiem; Paralēlas un perpendikulāras taisnes; Taisnes vienādojums; Vienādojums ar 2 mainīgajiem. Riņķa līnijas vienādojums",
     "subtopics": [
       {
-        "ru": "Линейная функция. Приращение функции и аргумента",
-        "lv": "Lineāra funkcija. Funkcijas un argumenta pieaugums"
+        "num": "11.2.1",
+        "lv": "Lineāra funkcija. Funkcijas un argumenta pieaugums",
+        "ru": "Линейная функция. Приращение функции и аргумента"
       },
       {
-        "ru": "Неравенство с 2 переменными",
-        "lv": "Nevienādība ar 2 mainīgajiem"
+        "num": "11.2.2",
+        "lv": "Nevienādība ar 2 mainīgajiem",
+        "ru": "Неравенство с 2 переменными"
       },
       {
-        "ru": "Параллельные и перпендикулярные прямые",
-        "lv": "Paralēlas un perpendikulāras taisnes"
+        "num": "11.2.3",
+        "lv": "Paralēlas un perpendikulāras taisnes",
+        "ru": "Параллельные и перпендикулярные прямые"
       },
       {
-        "ru": "Уравнение прямой",
-        "lv": "Taisnes vienādojums"
+        "num": "11.2.4",
+        "lv": "Taisnes vienādojums",
+        "ru": "Уравнение прямой"
       },
       {
-        "ru": "Уравнение с 2 переменными. Уравнение окружности",
-        "lv": "Vienādojums ar 2 mainīgajiem. Riņķa līnijas vienādojums"
+        "num": "11.2.5",
+        "lv": "Vienādojums ar 2 mainīgajiem. Riņķa līnijas vienādojums",
+        "ru": "Уравнение с 2 переменными. Уравнение окружности"
       }
     ]
   },
@@ -1864,24 +2463,29 @@
     "description_lv": "Kombinatorika I; Kombinatorika. Ievads; Kopas. Darbības ar kopām; Summas varbūtība. Nosacītā varbūtība; Varbūtību teorijas elementi",
     "subtopics": [
       {
-        "ru": "Комбинаторика I",
-        "lv": "Kombinatorika I"
+        "num": "11.3.1",
+        "lv": "Kombinatorika I",
+        "ru": "Комбинаторика I"
       },
       {
-        "ru": "Комбинаторика. Введение",
-        "lv": "Kombinatorika. Ievads"
+        "num": "11.3.2",
+        "lv": "Kombinatorika. Ievads",
+        "ru": "Комбинаторика. Введение"
       },
       {
-        "ru": "Множества. Действия с множествами",
-        "lv": "Kopas. Darbības ar kopām"
+        "num": "11.3.3",
+        "lv": "Kopas. Darbības ar kopām",
+        "ru": "Множества. Действия с множествами"
       },
       {
-        "ru": "Вероятность суммы. Условная вероятность",
-        "lv": "Summas varbūtība. Nosacītā varbūtība"
+        "num": "11.3.4",
+        "lv": "Summas varbūtība. Nosacītā varbūtība",
+        "ru": "Вероятность суммы. Условная вероятность"
       },
       {
-        "ru": "Элементы теории вероятностей",
-        "lv": "Varbūtību teorijas elementi"
+        "num": "11.3.5",
+        "lv": "Varbūtību teorijas elementi",
+        "ru": "Элементы теории вероятностей"
       }
     ]
   },
@@ -1898,12 +2502,14 @@
     "description_lv": "Izkliedes mēri, datu grafiska attēlošana; Populācija, izlase un dati. Vidējie lielumi",
     "subtopics": [
       {
-        "ru": "Меры рассеяния, графическое представление данных",
-        "lv": "Izkliedes mēri, datu grafiska attēlošana"
+        "num": "11.4.1",
+        "lv": "Izkliedes mēri, datu grafiska attēlošana",
+        "ru": "Меры рассеяния, графическое представление данных"
       },
       {
-        "ru": "Популяция, выборка и данные. Средние величины",
-        "lv": "Populācija, izlase un dati. Vidējie lielumi"
+        "num": "11.4.2",
+        "lv": "Populācija, izlase un dati. Vidējie lielumi",
+        "ru": "Популяция, выборка и данные. Средние величины"
       }
     ]
   },
@@ -1920,36 +2526,44 @@
     "description_lv": "Algebriskas daļas. Definīcijas kopa; Algebriski vienādojumi; Algebrisko daļu reizināšana, dalīšana, kāpināšana; Algebrisko daļu saskaitīšana un atņemšana; Algebrisku daļu saīsināšana un paplašināšana; Daļveida funkcija; Identitāte. Zīmju maiņas likums; Racionālas algebriskas izteiksmes",
     "subtopics": [
       {
-        "ru": "Алгебраические дроби. Область определения",
-        "lv": "Algebriskas daļas. Definīcijas kopa"
+        "num": "11.5.1",
+        "lv": "Algebriskas daļas. Definīcijas kopa",
+        "ru": "Алгебраические дроби. Область определения"
       },
       {
-        "ru": "Алгебраические уравнения",
-        "lv": "Algebriski vienādojumi"
+        "num": "11.5.2",
+        "lv": "Algebriski vienādojumi",
+        "ru": "Алгебраические уравнения"
       },
       {
-        "ru": "Умножение, деление, возведение в степень алгебраических дробей",
-        "lv": "Algebrisko daļu reizināšana, dalīšana, kāpināšana"
+        "num": "11.5.3",
+        "lv": "Algebrisko daļu reizināšana, dalīšana, kāpināšana",
+        "ru": "Умножение, деление, возведение в степень алгебраических дробей"
       },
       {
-        "ru": "Сложение и вычитание алгебраических дробей",
-        "lv": "Algebrisko daļu saskaitīšana un atņemšana"
+        "num": "11.5.4",
+        "lv": "Algebrisko daļu saskaitīšana un atņemšana",
+        "ru": "Сложение и вычитание алгебраических дробей"
       },
       {
-        "ru": "Сокращение и расширение алгебраических дробей",
-        "lv": "Algebrisku daļu saīsināšana un paplašināšana"
+        "num": "11.5.5",
+        "lv": "Algebrisku daļu saīsināšana un paplašināšana",
+        "ru": "Сокращение и расширение алгебраических дробей"
       },
       {
-        "ru": "Дробно-рациональная функция",
-        "lv": "Daļveida funkcija"
+        "num": "11.5.6",
+        "lv": "Daļveida funkcija",
+        "ru": "Дробно-рациональная функция"
       },
       {
-        "ru": "Тождество. Закон смены знаков",
-        "lv": "Identitāte. Zīmju maiņas likums"
+        "num": "11.5.7",
+        "lv": "Identitāte. Zīmju maiņas likums",
+        "ru": "Тождество. Закон смены знаков"
       },
       {
-        "ru": "Рациональные алгебраические выражения",
-        "lv": "Racionālas algebriskas izteiksmes"
+        "num": "11.5.8",
+        "lv": "Racionālas algebriskas izteiksmes",
+        "ru": "Рациональные алгебраические выражения"
       }
     ]
   },
@@ -1966,20 +2580,24 @@
     "description_lv": "Atkārtojums par lineāru un kvadrātnevienādību risināšanu; Daļveida nevienādības. Intervālu metode; Daļveida vienādojumi; Daļveida vienādojumi teksta uzdevumos",
     "subtopics": [
       {
-        "ru": "Повторение решения линейных и квадратных неравенств",
-        "lv": "Atkārtojums par lineāru un kvadrātnevienādību risināšanu"
+        "num": "11.6.1",
+        "lv": "Atkārtojums par lineāru un kvadrātnevienādību risināšanu",
+        "ru": "Повторение решения линейных и квадратных неравенств"
       },
       {
-        "ru": "Дробно-рациональные неравенства. Метод интервалов",
-        "lv": "Daļveida nevienādības. Intervālu metode"
+        "num": "11.6.2",
+        "lv": "Daļveida nevienādības. Intervālu metode",
+        "ru": "Дробно-рациональные неравенства. Метод интервалов"
       },
       {
-        "ru": "Дробно-рациональные уравнения",
-        "lv": "Daļveida vienādojumi"
+        "num": "11.6.3",
+        "lv": "Daļveida vienādojumi",
+        "ru": "Дробно-рациональные уравнения"
       },
       {
-        "ru": "Дробно-рациональные уравнения в текстовых задачах",
-        "lv": "Daļveida vienādojumi teksta uzdevumos"
+        "num": "11.6.4",
+        "lv": "Daļveida vienādojumi teksta uzdevumos",
+        "ru": "Дробно-рациональные уравнения в текстовых задачах"
       }
     ]
   },
@@ -1996,20 +2614,24 @@
     "description_lv": "Pagrieziena leņķa sinuss un kosinuss; Sakarības taisnleņķa trijstūrī. Atkārtojums; Sinusu un kosinusu teorēma; Trigonometriskās funkcijas, to īpašības",
     "subtopics": [
       {
-        "ru": "Синус и косинус угла поворота",
-        "lv": "Pagrieziena leņķa sinuss un kosinuss"
+        "num": "11.7.1",
+        "lv": "Pagrieziena leņķa sinuss un kosinuss",
+        "ru": "Синус и косинус угла поворота"
       },
       {
-        "ru": "Зависимости в прямоугольном треугольнике. Повторение",
-        "lv": "Sakarības taisnleņķa trijstūrī. Atkārtojums"
+        "num": "11.7.2",
+        "lv": "Sakarības taisnleņķa trijstūrī. Atkārtojums",
+        "ru": "Зависимости в прямоугольном треугольнике. Повторение"
       },
       {
-        "ru": "Теорема синусов и косинусов",
-        "lv": "Sinusu un kosinusu teorēma"
+        "num": "11.7.3",
+        "lv": "Sinusu un kosinusu teorēma",
+        "ru": "Теорема синусов и косинусов"
       },
       {
-        "ru": "Тригонометрические функции, их свойства",
-        "lv": "Trigonometriskās funkcijas, to īpašības"
+        "num": "11.7.4",
+        "lv": "Trigonometriskās funkcijas, to īpašības",
+        "ru": "Тригонометрические функции, их свойства"
       }
     ]
   },
@@ -2026,20 +2648,24 @@
     "description_lv": "Argumentu summas un divkāršā argumenta formulas; Sadalīšana reizinātājos un substitūcijas metode; Trigonometriskie pamatvienādojumi; Trigonometriskās izteiksmes un pamatidentitāte",
     "subtopics": [
       {
-        "ru": "Формулы суммы аргументов и двойного аргумента",
-        "lv": "Argumentu summas un divkāršā argumenta formulas"
+        "num": "11.8.1",
+        "lv": "Argumentu summas un divkāršā argumenta formulas",
+        "ru": "Формулы суммы аргументов и двойного аргумента"
       },
       {
-        "ru": "Метод разложения на множители и метод подстановки",
-        "lv": "Sadalīšana reizinātājos un substitūcijas metode"
+        "num": "11.8.2",
+        "lv": "Sadalīšana reizinātājos un substitūcijas metode",
+        "ru": "Метод разложения на множители и метод подстановки"
       },
       {
-        "ru": "Простейшие тригонометрические уравнения",
-        "lv": "Trigonometriskie pamatvienādojumi"
+        "num": "11.8.3",
+        "lv": "Trigonometriskie pamatvienādojumi",
+        "ru": "Простейшие тригонометрические уравнения"
       },
       {
-        "ru": "Тригонометрические выражения и основное тождество",
-        "lv": "Trigonometriskās izteiksmes un pamatidentitāte"
+        "num": "11.8.4",
+        "lv": "Trigonometriskās izteiksmes un pamatidentitāte",
+        "ru": "Тригонометрические выражения и основное тождество"
       }
     ]
   },
@@ -2056,20 +2682,24 @@
     "description_lv": "N-tās pakāpes sakne; Pakāpe ar racionālu kāpinātāju; Virknes; Ģeometriskā progresija",
     "subtopics": [
       {
-        "ru": "Корень n-ой степени",
-        "lv": "N-tās pakāpes sakne"
+        "num": "11.9.1",
+        "lv": "N-tās pakāpes sakne",
+        "ru": "Корень n-ой степени"
       },
       {
-        "ru": "Степень с рациональным показателем",
-        "lv": "Pakāpe ar racionālu kāpinātāju"
+        "num": "11.9.2",
+        "lv": "Pakāpe ar racionālu kāpinātāju",
+        "ru": "Степень с рациональным показателем"
       },
       {
-        "ru": "Последовательности",
-        "lv": "Virknes"
+        "num": "11.9.3",
+        "lv": "Virknes",
+        "ru": "Последовательности"
       },
       {
-        "ru": "Геометрическая прогрессия",
-        "lv": "Ģeometriskā progresija"
+        "num": "11.9.4",
+        "lv": "Ģeometriskā progresija",
+        "ru": "Геометрическая прогрессия"
       }
     ]
   },
@@ -2086,36 +2716,44 @@
     "description_lv": "Eksponenciāli procesi; Eksponentfunkcija; Eksponentnevienādības; Eksponentvienādojumi; Pakāpju īpašības. Atkārtojums; Pamatnevienādības. Atkārtojums; Pamatvienādojumi. Atkārtojums; Skaitļa logaritms",
     "subtopics": [
       {
-        "ru": "Экспоненциальные процессы",
-        "lv": "Eksponenciāli procesi"
+        "num": "11.10.1",
+        "lv": "Eksponenciāli procesi",
+        "ru": "Экспоненциальные процессы"
       },
       {
-        "ru": "Показательная функция",
-        "lv": "Eksponentfunkcija"
+        "num": "11.10.2",
+        "lv": "Eksponentfunkcija",
+        "ru": "Показательная функция"
       },
       {
-        "ru": "Показательные неравенства",
-        "lv": "Eksponentnevienādības"
+        "num": "11.10.3",
+        "lv": "Eksponentnevienādības",
+        "ru": "Показательные неравенства"
       },
       {
-        "ru": "Показательные уравнения",
-        "lv": "Eksponentvienādojumi"
+        "num": "11.10.4",
+        "lv": "Eksponentvienādojumi",
+        "ru": "Показательные уравнения"
       },
       {
-        "ru": "Свойства степеней. Повторение",
-        "lv": "Pakāpju īpašības. Atkārtojums"
+        "num": "11.10.5",
+        "lv": "Pakāpju īpašības. Atkārtojums",
+        "ru": "Свойства степеней. Повторение"
       },
       {
-        "ru": "Простейшие неравенства. Повторение",
-        "lv": "Pamatnevienādības. Atkārtojums"
+        "num": "11.10.6",
+        "lv": "Pamatnevienādības. Atkārtojums",
+        "ru": "Простейшие неравенства. Повторение"
       },
       {
-        "ru": "Простейшие уравнения. Повторение",
-        "lv": "Pamatvienādojumi. Atkārtojums"
+        "num": "11.10.7",
+        "lv": "Pamatvienādojumi. Atkārtojums",
+        "ru": "Простейшие уравнения. Повторение"
       },
       {
-        "ru": "Логарифм числа",
-        "lv": "Skaitļa logaritms"
+        "num": "11.10.8",
+        "lv": "Skaitļa logaritms",
+        "ru": "Логарифм числа"
       }
     ]
   },
@@ -2132,32 +2770,39 @@
     "description_lv": "Daudzskaldņa diagonāles un šķēlums ar plakni; Neregulāra piramīda; Prizmas virsma un tilpums; Regulāra trijstūra piramīda; Regulāra četrstūra un sešstūra piramīda; Taisnes un plaknes telpā; Taisnleņķa trijstūra aprēķināšana. Atkārtojums",
     "subtopics": [
       {
-        "ru": "Диагонали многогранника и сечение плоскостью",
-        "lv": "Daudzskaldņa diagonāles un šķēlums ar plakni"
+        "num": "11.11.1",
+        "lv": "Daudzskaldņa diagonāles un šķēlums ar plakni",
+        "ru": "Диагонали многогранника и сечение плоскостью"
       },
       {
-        "ru": "Неправильная пирамида",
-        "lv": "Neregulāra piramīda"
+        "num": "11.11.2",
+        "lv": "Neregulāra piramīda",
+        "ru": "Неправильная пирамида"
       },
       {
-        "ru": "Поверхность и объем призмы",
-        "lv": "Prizmas virsma un tilpums"
+        "num": "11.11.3",
+        "lv": "Prizmas virsma un tilpums",
+        "ru": "Поверхность и объем призмы"
       },
       {
-        "ru": "Правильная треугольная пирамида",
-        "lv": "Regulāra trijstūra piramīda"
+        "num": "11.11.4",
+        "lv": "Regulāra trijstūra piramīda",
+        "ru": "Правильная треугольная пирамида"
       },
       {
-        "ru": "Правильная четырехугольная и шестиугольная пирамида",
-        "lv": "Regulāra četrstūra un sešstūra piramīda"
+        "num": "11.11.5",
+        "lv": "Regulāra četrstūra un sešstūra piramīda",
+        "ru": "Правильная четырехугольная и шестиугольная пирамида"
       },
       {
-        "ru": "Прямые и плоскости в пространстве",
-        "lv": "Taisnes un plaknes telpā"
+        "num": "11.11.6",
+        "lv": "Taisnes un plaknes telpā",
+        "ru": "Прямые и плоскости в пространстве"
       },
       {
-        "ru": "Вычисления в прямоугольном треугольнике. Повторение",
-        "lv": "Taisnleņķa trijstūra aprēķināšana. Atkārtojums"
+        "num": "11.11.7",
+        "lv": "Taisnleņķa trijstūra aprēķināšana. Atkārtojums",
+        "ru": "Вычисления в прямоугольном треугольнике. Повторение"
       }
     ]
   },
@@ -2174,24 +2819,29 @@
     "description_lv": "Cilindra un prizmas ģeometriskās kombinācijas; Cilindrs; Konuss; Lode; Lodes un prizmas ģeometriskās kombinācijas",
     "subtopics": [
       {
-        "ru": "Геометрические комбинации цилиндра и призмы",
-        "lv": "Cilindra un prizmas ģeometriskās kombinācijas"
+        "num": "11.12.1",
+        "lv": "Cilindra un prizmas ģeometriskās kombinācijas",
+        "ru": "Геометрические комбинации цилиндра и призмы"
       },
       {
-        "ru": "Цилиндр",
-        "lv": "Cilindrs"
+        "num": "11.12.2",
+        "lv": "Cilindrs",
+        "ru": "Цилиндр"
       },
       {
-        "ru": "Конус",
-        "lv": "Konuss"
+        "num": "11.12.3",
+        "lv": "Konuss",
+        "ru": "Конус"
       },
       {
-        "ru": "Шар",
-        "lv": "Lode"
+        "num": "11.12.4",
+        "lv": "Lode",
+        "ru": "Шар"
       },
       {
-        "ru": "Геометрические комбинации шара и призмы",
-        "lv": "Lodes un prizmas ģeometriskās kombinācijas"
+        "num": "11.12.5",
+        "lv": "Lodes un prizmas ģeometriskās kombinācijas",
+        "ru": "Геометрические комбинации шара и призмы"
       }
     ]
   },
@@ -2208,20 +2858,24 @@
     "description_lv": "Kombinatorika II. Paskāla trijstūris; Matemātiskās indukcijas princips. MIP; Matemātiskās loģikas elementi; Ņūtona binoms",
     "subtopics": [
       {
-        "ru": "Комбинаторика II. Треугольник Паскаля",
-        "lv": "Kombinatorika II. Paskāla trijstūris"
+        "num": "12.1.1",
+        "lv": "Kombinatorika II. Paskāla trijstūris",
+        "ru": "Комбинаторика II. Треугольник Паскаля"
       },
       {
-        "ru": "Принцип математической индукции",
-        "lv": "Matemātiskās indukcijas princips. MIP"
+        "num": "12.1.2",
+        "lv": "Matemātiskās indukcijas princips. MIP",
+        "ru": "Принцип математической индукции"
       },
       {
-        "ru": "Элементы математической логики",
-        "lv": "Matemātiskās loģikas elementi"
+        "num": "12.1.3",
+        "lv": "Matemātiskās loģikas elementi",
+        "ru": "Элементы математической логики"
       },
       {
-        "ru": "Бином Ньютона",
-        "lv": "Ņūtona binoms"
+        "num": "12.1.4",
+        "lv": "Ņūtona binoms",
+        "ru": "Бином Ньютона"
       }
     ]
   },
@@ -2238,20 +2892,24 @@
     "description_lv": "Gadījuma lieluma sadalījumi. Bernulli formula; Notikumu apvienojuma varbūtība; Pilnās varbūtības formula; Statistika II",
     "subtopics": [
       {
-        "ru": "Распределения случайной величины. Формула Бернулли",
-        "lv": "Gadījuma lieluma sadalījumi. Bernulli formula"
+        "num": "12.2.1",
+        "lv": "Gadījuma lieluma sadalījumi. Bernulli formula",
+        "ru": "Распределения случайной величины. Формула Бернулли"
       },
       {
-        "ru": "Вероятность объединения событий",
-        "lv": "Notikumu apvienojuma varbūtība"
+        "num": "12.2.2",
+        "lv": "Notikumu apvienojuma varbūtība",
+        "ru": "Вероятность объединения событий"
       },
       {
-        "ru": "Формула полной вероятности",
-        "lv": "Pilnās varbūtības formula"
+        "num": "12.2.3",
+        "lv": "Pilnās varbūtības formula",
+        "ru": "Формула полной вероятности"
       },
       {
-        "ru": "Статистика II",
-        "lv": "Statistika II"
+        "num": "12.2.4",
+        "lv": "Statistika II",
+        "ru": "Статистика II"
       }
     ]
   },
@@ -2268,16 +2926,19 @@
     "description_lv": "Bezgalīgi dilstoša ģeometriskā progresija; Skaitlis e un eksponenciāli procesi; Virknes, to monotonitāte un robeža",
     "subtopics": [
       {
-        "ru": "Бесконечно убывающая геометрическая прогрессия",
-        "lv": "Bezgalīgi dilstoša ģeometriskā progresija"
+        "num": "12.3.1",
+        "lv": "Bezgalīgi dilstoša ģeometriskā progresija",
+        "ru": "Бесконечно убывающая геометрическая прогрессия"
       },
       {
-        "ru": "Число e и экспоненциальные процессы",
-        "lv": "Skaitlis e un eksponenciāli procesi"
+        "num": "12.3.2",
+        "lv": "Skaitlis e un eksponenciāli procesi",
+        "ru": "Число e и экспоненциальные процессы"
       },
       {
-        "ru": "Последовательности, их монотонность и предел",
-        "lv": "Virknes, to monotonitāte un robeža"
+        "num": "12.3.3",
+        "lv": "Virknes, to monotonitāte un robeža",
+        "ru": "Последовательности, их монотонность и предел"
       }
     ]
   },
@@ -2294,32 +2955,39 @@
     "description_lv": "Inversā funkcija; Iracionālie un logaritmiskie vienādojumi; Logaritmiskie vienādojumi un sistēmas; Logaritmiskā funkcija; Logaritmiskās nevienādības; Moduļa funkcija, vienādojumi, nevienādības; Pakāpes funkcija",
     "subtopics": [
       {
-        "ru": "Обратная функция",
-        "lv": "Inversā funkcija"
+        "num": "12.4.1",
+        "lv": "Inversā funkcija",
+        "ru": "Обратная функция"
       },
       {
-        "ru": "Иррациональные и логарифмические уравнения",
-        "lv": "Iracionālie un logaritmiskie vienādojumi"
+        "num": "12.4.2",
+        "lv": "Iracionālie un logaritmiskie vienādojumi",
+        "ru": "Иррациональные и логарифмические уравнения"
       },
       {
-        "ru": "Логарифмические уравнения и системы",
-        "lv": "Logaritmiskie vienādojumi un sistēmas"
+        "num": "12.4.3",
+        "lv": "Logaritmiskie vienādojumi un sistēmas",
+        "ru": "Логарифмические уравнения и системы"
       },
       {
-        "ru": "Логарифмическая функция",
-        "lv": "Logaritmiskā funkcija"
+        "num": "12.4.4",
+        "lv": "Logaritmiskā funkcija",
+        "ru": "Логарифмическая функция"
       },
       {
-        "ru": "Логарифмические неравенства",
-        "lv": "Logaritmiskās nevienādības"
+        "num": "12.4.5",
+        "lv": "Logaritmiskās nevienādības",
+        "ru": "Логарифмические неравенства"
       },
       {
-        "ru": "Функция модуля, уравнения, неравенства",
-        "lv": "Moduļa funkcija, vienādojumi, nevienādības"
+        "num": "12.4.6",
+        "lv": "Moduļa funkcija, vienādojumi, nevienādības",
+        "ru": "Функция модуля, уравнения, неравенства"
       },
       {
-        "ru": "Степенная функция",
-        "lv": "Pakāpes funkcija"
+        "num": "12.4.7",
+        "lv": "Pakāpes funkcija",
+        "ru": "Степенная функция"
       }
     ]
   },
@@ -2336,20 +3004,24 @@
     "description_lv": "Daļveida funkcija; Nenoteikto koeficientu metode; Polinoma dalīšana ar polinomu. Bezū teorēma; Sadalīšana reizinātājos",
     "subtopics": [
       {
-        "ru": "Дробно-рациональная функция",
-        "lv": "Daļveida funkcija"
+        "num": "12.5.1",
+        "lv": "Daļveida funkcija",
+        "ru": "Дробно-рациональная функция"
       },
       {
-        "ru": "Метод неопределенных коэффициентов",
-        "lv": "Nenoteikto koeficientu metode"
+        "num": "12.5.2",
+        "lv": "Nenoteikto koeficientu metode",
+        "ru": "Метод неопределенных коэффициентов"
       },
       {
-        "ru": "Деление многочлена на многочлен. Теорема Безу",
-        "lv": "Polinoma dalīšana ar polinomu. Bezū teorēma"
+        "num": "12.5.3",
+        "lv": "Polinoma dalīšana ar polinomu. Bezū teorēma",
+        "ru": "Деление многочлена на многочлен. Теорема Безу"
       },
       {
-        "ru": "Разложение на множители",
-        "lv": "Sadalīšana reizinātājos"
+        "num": "12.5.4",
+        "lv": "Sadalīšana reizinātājos",
+        "ru": "Разложение на множители"
       }
     ]
   },
@@ -2366,28 +3038,34 @@
     "description_lv": "Atvasinājuma definīcija un interpretācija; Atvasinājuma lietojums funkciju pētīšanā; Atvasināšanas likumi un formulas; Funkcijas nepārtrauktība; Funkciju pētīšana matemātikā un citās jomās; Robeža",
     "subtopics": [
       {
-        "ru": "Определение производной и её смысл",
-        "lv": "Atvasinājuma definīcija un interpretācija"
+        "num": "12.6.1",
+        "lv": "Atvasinājuma definīcija un interpretācija",
+        "ru": "Определение производной и её смысл"
       },
       {
-        "ru": "Применение производной при исследовании функций",
-        "lv": "Atvasinājuma lietojums funkciju pētīšanā"
+        "num": "12.6.2",
+        "lv": "Atvasinājuma lietojums funkciju pētīšanā",
+        "ru": "Применение производной при исследовании функций"
       },
       {
-        "ru": "Правила и формулы дифференцирования",
-        "lv": "Atvasināšanas likumi un formulas"
+        "num": "12.6.3",
+        "lv": "Atvasināšanas likumi un formulas",
+        "ru": "Правила и формулы дифференцирования"
       },
       {
-        "ru": "Непрерывность функции",
-        "lv": "Funkcijas nepārtrauktība"
+        "num": "12.6.4",
+        "lv": "Funkcijas nepārtrauktība",
+        "ru": "Непрерывность функции"
       },
       {
-        "ru": "Исследование функций в математике и других областях",
-        "lv": "Funkciju pētīšana matemātikā un citās jomās"
+        "num": "12.6.5",
+        "lv": "Funkciju pētīšana matemātikā un citās jomās",
+        "ru": "Исследование функций в математике и других областях"
       },
       {
-        "ru": "Предел",
-        "lv": "Robeža"
+        "num": "12.6.6",
+        "lv": "Robeža",
+        "ru": "Предел"
       }
     ]
   },
@@ -2404,24 +3082,29 @@
     "description_lv": "Daļveida racionālu funkciju integrēšana; Laukuma un tilpuma aprēķināšana ar noteikto integrāli; Nenoteiktais integrālis; Noteiktais integrālis un integrāļa lietojums fizikā; Pāreja uz citas funkcijas diferenciāli",
     "subtopics": [
       {
-        "ru": "Интегрирование дробно-рациональных функций",
-        "lv": "Daļveida racionālu funkciju integrēšana"
+        "num": "12.7.1",
+        "lv": "Daļveida racionālu funkciju integrēšana",
+        "ru": "Интегрирование дробно-рациональных функций"
       },
       {
-        "ru": "Вычисление площади и объема с помощью определенного интеграла",
-        "lv": "Laukuma un tilpuma aprēķināšana ar noteikto integrāli"
+        "num": "12.7.2",
+        "lv": "Laukuma un tilpuma aprēķināšana ar noteikto integrāli",
+        "ru": "Вычисление площади и объема с помощью определенного интеграла"
       },
       {
-        "ru": "Неопределенный интеграл",
-        "lv": "Nenoteiktais integrālis"
+        "num": "12.7.3",
+        "lv": "Nenoteiktais integrālis",
+        "ru": "Неопределенный интеграл"
       },
       {
-        "ru": "Определенный интеграл и его применение в физике",
-        "lv": "Noteiktais integrālis un integrāļa lietojums fizikā"
+        "num": "12.7.4",
+        "lv": "Noteiktais integrālis un integrāļa lietojums fizikā",
+        "ru": "Определенный интеграл и его применение в физике"
       },
       {
-        "ru": "Переход к дифференциалу другой функции (замена переменной)",
-        "lv": "Pāreja uz citas funkcijas diferenciāli"
+        "num": "12.7.5",
+        "lv": "Pāreja uz citas funkcijas diferenciāli",
+        "ru": "Переход к дифференциалу другой функции (замена переменной)"
       }
     ]
   },
@@ -2438,16 +3121,19 @@
     "description_lv": "Leņķa tangenss un kotangenss; Trigonometriskie vienādojumi un nevienādības; Trigonometriskās un to inversās funkcijas",
     "subtopics": [
       {
-        "ru": "Тангенс и котангенс угла",
-        "lv": "Leņķa tangenss un kotangenss"
+        "num": "12.8.1",
+        "lv": "Leņķa tangenss un kotangenss",
+        "ru": "Тангенс и котангенс угла"
       },
       {
-        "ru": "Тригонометрические уравнения и неравенства",
-        "lv": "Trigonometriskie vienādojumi un nevienādības"
+        "num": "12.8.2",
+        "lv": "Trigonometriskie vienādojumi un nevienādības",
+        "ru": "Тригонометрические уравнения и неравенства"
       },
       {
-        "ru": "Тригонометрические и обратные им функции",
-        "lv": "Trigonometriskās un to inversās funkcijas"
+        "num": "12.8.3",
+        "lv": "Trigonometriskās un to inversās funkcijas",
+        "ru": "Тригонометрические и обратные им функции"
       }
     ]
   },
@@ -2464,24 +3150,29 @@
     "description_lv": "Divu taišņu savstarpējais novietojums. Punkts un taisne; Līnijas plaknē; Taisnes vienādojums; Vektori; Vektoru skalārais reizinājums",
     "subtopics": [
       {
-        "ru": "Взаимное расположение двух прямых. Точка и прямая",
-        "lv": "Divu taišņu savstarpējais novietojums. Punkts un taisne"
+        "num": "12.9.1",
+        "lv": "Divu taišņu savstarpējais novietojums. Punkts un taisne",
+        "ru": "Взаимное расположение двух прямых. Точка и прямая"
       },
       {
-        "ru": "Линии на плоскости",
-        "lv": "Līnijas plaknē"
+        "num": "12.9.2",
+        "lv": "Līnijas plaknē",
+        "ru": "Линии на плоскости"
       },
       {
-        "ru": "Уравнение прямой",
-        "lv": "Taisnes vienādojums"
+        "num": "12.9.3",
+        "lv": "Taisnes vienādojums",
+        "ru": "Уравнение прямой"
       },
       {
-        "ru": "Векторы",
-        "lv": "Vektori"
+        "num": "12.9.4",
+        "lv": "Vektori",
+        "ru": "Векторы"
       },
       {
-        "ru": "Скалярное произведение векторов",
-        "lv": "Vektoru skalārais reizinājums"
+        "num": "12.9.5",
+        "lv": "Vektoru skalārais reizinājums",
+        "ru": "Скалярное произведение векторов"
       }
     ]
   },
@@ -2498,24 +3189,29 @@
     "description_lv": "Ar riņķa līniju saistītie leņķi un nogriežņi; Sakarības daudzstūros, regulāros daudzstūros; Sakarības trijstūros; Sakarības četrstūros; Ģeometriskie pārveidojumi",
     "subtopics": [
       {
-        "ru": "Углы и отрезки, связанные с окружностью",
-        "lv": "Ar riņķa līniju saistītie leņķi un nogriežņi"
+        "num": "12.10.1",
+        "lv": "Ar riņķa līniju saistītie leņķi un nogriežņi",
+        "ru": "Углы и отрезки, связанные с окружностью"
       },
       {
-        "ru": "Зависимости в многоугольниках, правильных многоугольниках",
-        "lv": "Sakarības daudzstūros, regulāros daudzstūros"
+        "num": "12.10.2",
+        "lv": "Sakarības daudzstūros, regulāros daudzstūros",
+        "ru": "Зависимости в многоугольниках, правильных многоугольниках"
       },
       {
-        "ru": "Зависимости в треугольниках",
-        "lv": "Sakarības trijstūros"
+        "num": "12.10.3",
+        "lv": "Sakarības trijstūros",
+        "ru": "Зависимости в треугольниках"
       },
       {
-        "ru": "Зависимости в четырехугольниках",
-        "lv": "Sakarības četrstūros"
+        "num": "12.10.4",
+        "lv": "Sakarības četrstūros",
+        "ru": "Зависимости в четырехугольниках"
       },
       {
-        "ru": "Геометрические преобразования",
-        "lv": "Ģeometriskie pārveidojumi"
+        "num": "12.10.5",
+        "lv": "Ģeometriskie pārveidojumi",
+        "ru": "Геометрические преобразования"
       }
     ]
   },
@@ -2532,24 +3228,29 @@
     "description_lv": "Daudzskaldņi, to šķēlums ar plakni; Konusa un piramīdas ģeometriskās kombinācijas; Lodes, cilindra un konusa ģeometriskās kombinācijas; Prizmas un cilindra ģeometriskās kombinācijas; Prizmas un lodes, piramīdas un lodes kombinācijas",
     "subtopics": [
       {
-        "ru": "Многогранники, их сечение плоскостью",
-        "lv": "Daudzskaldņi, to šķēlums ar plakni"
+        "num": "12.11.1",
+        "lv": "Daudzskaldņi, to šķēlums ar plakni",
+        "ru": "Многогранники, их сечение плоскостью"
       },
       {
-        "ru": "Геометрические комбинации конуса и пирамиды",
-        "lv": "Konusa un piramīdas ģeometriskās kombinācijas"
+        "num": "12.11.2",
+        "lv": "Konusa un piramīdas ģeometriskās kombinācijas",
+        "ru": "Геометрические комбинации конуса и пирамиды"
       },
       {
-        "ru": "Геометрические комбинации шара, цилиндра и конуса",
-        "lv": "Lodes, cilindra un konusa ģeometriskās kombinācijas"
+        "num": "12.11.3",
+        "lv": "Lodes, cilindra un konusa ģeometriskās kombinācijas",
+        "ru": "Геометрические комбинации шара, цилиндра и конуса"
       },
       {
-        "ru": "Геометрические комбинации призмы и цилиндра",
-        "lv": "Prizmas un cilindra ģeometriskās kombinācijas"
+        "num": "12.11.4",
+        "lv": "Prizmas un cilindra ģeometriskās kombinācijas",
+        "ru": "Геометрические комбинации призмы и цилиндра"
       },
       {
-        "ru": "Комбинации призмы и шара, пирамиды и шара",
-        "lv": "Prizmas un lodes, piramīdas un lodes kombinācijas"
+        "num": "12.11.5",
+        "lv": "Prizmas un lodes, piramīdas un lodes kombinācijas",
+        "ru": "Комбинации призмы и шара, пирамиды и шара"
       }
     ]
   },
@@ -2566,20 +3267,24 @@
     "description_lv": "Atkārtojums. Pamatvienādojumu veidi; Substitūcijas metode. Vienādojumi un nevienādības; Vienādojumi ar parametru; Vienādojumu risināšana, sadalot reizinātājos",
     "subtopics": [
       {
-        "ru": "Повторение. Виды простейших уравнений",
-        "lv": "Atkārtojums. Pamatvienādojumu veidi"
+        "num": "12.12.1",
+        "lv": "Atkārtojums. Pamatvienādojumu veidi",
+        "ru": "Повторение. Виды простейших уравнений"
       },
       {
-        "ru": "Метод подстановки. Уравнения и неравенства",
-        "lv": "Substitūcijas metode. Vienādojumi un nevienādības"
+        "num": "12.12.2",
+        "lv": "Substitūcijas metode. Vienādojumi un nevienādības",
+        "ru": "Метод подстановки. Уравнения и неравенства"
       },
       {
-        "ru": "Уравнения с параметром",
-        "lv": "Vienādojumi ar parametru"
+        "num": "12.12.3",
+        "lv": "Vienādojumi ar parametru",
+        "ru": "Уравнения с параметром"
       },
       {
-        "ru": "Решение уравнений разложением на множители",
-        "lv": "Vienādojumu risināšana, sadalot reizinātājos"
+        "num": "12.12.4",
+        "lv": "Vienādojumu risināšana, sadalot reizinātājos",
+        "ru": "Решение уравнений разложением на множители"
       }
     ]
   }

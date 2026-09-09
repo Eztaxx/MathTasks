@@ -7,6 +7,7 @@
   const taskForm = document.querySelector('#task-form');
   const subjectSelect = document.querySelector('#subject-select');
   const topicSelect = document.querySelector('#topic-select');
+  const subtopicSelect = document.querySelector('#subtopic-select');
   const subjectList = document.querySelector('#subject-list');
   const topicList = document.querySelector('#topic-list');
   const taskList = document.querySelector('#task-list');
@@ -169,6 +170,7 @@
   let editingTaskId = null;
   let subjects = [];
   let topics = [];
+  let subtopics = [];
   let tasks = [];
 
   const deny = message => {
@@ -1063,8 +1065,22 @@ ${JSON.stringify(texts)}`;
     }
   }
 
+  /* Подтемы принадлежат теме, поэтому список пересобирается при каждой
+     смене темы. Пустой список — не ошибка: у темы может не быть подтем. */
+  function updateSubtopicDropdown(preferredSubtopicId = null) {
+    if (!subtopicSelect) return;
+    const topicId = Number(topicSelect.value) || null;
+    const currentVal = preferredSubtopicId !== null ? String(preferredSubtopicId) : subtopicSelect.value;
+    const mine = subtopics.filter(s => s.topic_id === topicId);
+    subtopicSelect.innerHTML = '<option value="">Без подтемы</option>' +
+      mine.map(s => `<option value="${s.id}">${escapeHtml(`${s.code ? s.code + '. ' : ''}${s.title}`)}</option>`).join('');
+    subtopicSelect.value = mine.some(s => String(s.id) === currentVal) ? currentVal : '';
+    subtopicSelect.disabled = !mine.length;
+  }
+
   taskGradeSelect?.addEventListener('change', () => {
     updateTaskTopicDropdown();
+    updateSubtopicDropdown();
   });
 
   // Класс обычно совпадает с классом темы — подставляем, но не запрещаем менять.
@@ -1074,6 +1090,7 @@ ${JSON.stringify(texts)}`;
         topics.map(t => `<option value="${t.id}">${escapeHtml(t.title)} (${gradeText(t.grade)})</option>`).join('');
       return;
     }
+    updateSubtopicDropdown();
     const topic = topics.find(item => String(item.id) === topicSelect.value);
     if (topic?.grade && !taskGradeSelect.value) {
       taskGradeSelect.value = String(topic.grade);
@@ -1106,6 +1123,7 @@ ${JSON.stringify(texts)}`;
     taskForm.elements.grade.value = toAdminGradeVal(task?.grade);
     updateTaskTopicDropdown(task?.topic_id);
     taskForm.elements.topic_id.value = task?.topic_id ? String(task.topic_id) : '';
+    updateSubtopicDropdown(task?.subtopic_id ?? null);
     taskForm.elements.difficulty.value = task?.difficulty || 'Средний';
     taskForm.elements.position.value = task?.position ?? 0;
     conditionInput.value = task?.condition_latex || '';
@@ -1395,6 +1413,7 @@ ${JSON.stringify(texts)}`;
       position: nextPosition(topicId, form.get('position')),
       grade: parseFormGrade(form.get('grade')),
       topic_id: topicId,
+      subtopic_id: form.get('subtopic_id') ? Number(form.get('subtopic_id')) : null,
       is_published: form.get('is_published') === 'on'
     });
     let savedTaskId = editingTaskId;
@@ -3072,10 +3091,19 @@ ${JSON.stringify(texts)}`;
   /* ── Загрузка ─────────────────────────────────────────────────────── */
 
   async function loadCatalog() {
-    const [subjectResult, topicResult] = await Promise.all([
+    const [subjectResult, topicResult, subtopicResult] = await Promise.all([
       db.from('subjects').select('*').order('position').order('title'),
-      db.from('topics').select(TOPIC_LIST_COLS).order('position').order('title')
+      db.from('topics').select(TOPIC_LIST_COLS).order('position').order('title'),
+      /* Подтемы появляются миграцией 020. До неё запрос падает, и админка
+         должна работать без третьего уровня, а не отказывать целиком. */
+      db.from('subtopics').select('id,topic_id,title,code,position').order('position')
     ]);
+    /* Колонку tasks.subtopic_id разрешаем к записи только когда таблица
+       подтем реально ответила: иначе до миграции 020 сохранение задачи
+       упало бы на неизвестной колонке. */
+    subtopics = subtopicResult?.error ? [] : (subtopicResult?.data || []);
+    if (!subtopicResult?.error) supportedTaskCols.add('subtopic_id');
+    if (subtopicSelect) subtopicSelect.title = subtopicResult?.error ? 'Недоступно: не выполнена миграция 020_subtopics.sql' : '';
     if (subjectResult.error || topicResult.error) {
       const message = (subjectResult.error || topicResult.error).message;
       subjectList.innerHTML = `<p class="admin-empty">Не удалось загрузить разделы: ${escapeHtml(message)}. Возможно, не применена миграция 002_subjects.sql.</p>`;

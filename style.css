@@ -628,6 +628,39 @@ body.dark a.task-title:hover{color:#5a92ff}
 .topic-anchor:hover{border-color:#c3d2ea;background:#f2f6fd}
 body.dark .topic-anchor{border-color:#2b3a58;color:#5a92ff}
 body.dark .topic-anchor:hover{background:#1a2740}
+/* ── Подтемы: третий уровень каталога ─────────────────────────────── */
+.subtopic-nav[hidden]{display:none}
+.subtopic-nav{margin:0 0 18px}
+.subtopic-nav-label{display:block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.subtopic-chips{display:flex;flex-wrap:wrap;gap:8px}
+.subtopic-chip{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:7px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);text-decoration:none;font:600 12px Manrope,sans-serif;line-height:1.3}
+.subtopic-chip:hover{border-color:#c3d2ea;background:#f2f6fd}
+.subtopic-chip.active{border-color:var(--accent);background:#edf4ff;color:var(--accent)}
+/* Пустая подтема остаётся кликабельной: по ней видно, что тема ещё не
+   заполнена, а не что ссылка сломана. */
+.subtopic-chip.empty{color:var(--muted);border-style:dashed}
+.subtopic-chip-code{font-weight:800;color:var(--accent);white-space:nowrap}
+.subtopic-chip.empty .subtopic-chip-code{color:var(--muted)}
+.subtopic-chip-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:30ch}
+.subtopic-chip-count{min-width:20px;height:20px;padding:0 6px;display:inline-grid;place-items:center;border-radius:6px;background:#f1f5f9;color:var(--muted);font:700 11px Manrope,sans-serif}
+.subtopic-chip.active .subtopic-chip-count{background:#fff;color:var(--accent)}
+body.dark .subtopic-chip{background:#131f36;border-color:#2b3a58;color:#dbe6ff}
+body.dark .subtopic-chip:hover{background:#1a2740}
+body.dark .subtopic-chip.active{background:#16264a;border-color:#5a92ff;color:#8fb6ff}
+body.dark .subtopic-chip-count{background:#1c2a45}
+
+/* ── Проход всего класса ──────────────────────────────────────────── */
+.grade-actions[hidden]{display:none}
+.grade-actions{margin:0 0 26px}
+.grade-action{display:inline-flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(110deg,#edf4ff,#f6f0ff);color:var(--ink);text-decoration:none}
+.grade-action:hover{border-color:var(--accent)}
+.grade-action-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;background:#fff;color:var(--accent);font-size:22px;font-weight:800}
+.grade-action-body{display:flex;flex-direction:column;gap:2px}
+.grade-action-body strong{font:800 14px Manrope,sans-serif}
+.grade-action-body span{font-size:12px;color:var(--muted)}
+body.dark .grade-action{background:linear-gradient(110deg,#14203a,#1b1734);border-color:#2b3a58}
+body.dark .grade-action-icon{background:#0e1830;color:#5a92ff}
+
 /* Якорь не должен упирать карточку в самый верх окна. */
 .task{scroll-margin-top:18px}
 @media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
