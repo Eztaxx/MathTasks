@@ -222,6 +222,26 @@
     return parts.length > 1 && String(parts[0]) === String(gradeNum) ? parts.slice(1).join('.') : str;
   };
 
+  /* Форматирование счетчика подтем и задач с правильной грамматикой (LV/RU) */
+  const formatSubtopicSummary = (subCount = 0, taskCount = 0, lang = 'ru') => {
+    const s = Math.max(0, parseInt(subCount, 10) || 0);
+    const t = Math.max(0, parseInt(taskCount, 10) || 0);
+    if (lang === 'lv') {
+      const sWord = (s % 10 === 1 && s % 100 !== 11) ? 'apakštēma' : 'apakštēmas';
+      const tWord = (t % 10 === 1 && t % 100 !== 11) ? 'uzdevums' : 'uzdevumi';
+      return `${s} ${sWord} • ${t} ${tWord}`;
+    }
+    let sWord = 'подтем';
+    if (s % 10 === 1 && s % 100 !== 11) sWord = 'подтема';
+    else if ([2, 3, 4].includes(s % 10) && ![12, 13, 14].includes(s % 100)) sWord = 'подтемы';
+
+    let tWord = 'задач';
+    if (t % 10 === 1 && t % 100 !== 11) tWord = 'задача';
+    else if ([2, 3, 4].includes(t % 10) && ![12, 13, 14].includes(t % 100)) tWord = 'задачи';
+
+    return `${s} ${sWord} • ${t} ${tWord}`;
+  };
+
   /* Маскирование математических формул перед отправкой в переводчик */
   const maskLatexForTranslation = (text = '') => {
     if (!text) return { maskedText: '', tokens: [] };
@@ -969,6 +989,7 @@
     getLocalizedText,
     formatTopicTitle,
     formatSubtopicCode,
+    formatSubtopicSummary,
     maskLatexForTranslation,
     unmaskLatexAfterTranslation,
     parseMultiTopicJson,

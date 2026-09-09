@@ -1633,27 +1633,89 @@ const subtopicTitle = (s, topic) => {
   return `${code ? code + '. ' : ''}${loc(s, 'title')}`;
 };
 
-/* Полоса подтем над списком задач. Активной может быть либо «вся тема»
-   (страница темы), либо одна подтема (страница подтемы). */
+const formatSubtopicSummary = (subCount, taskCount, lang = 'ru') => {
+  return window.MathTasksLib?.formatSubtopicSummary
+    ? window.MathTasksLib.formatSubtopicSummary(subCount, taskCount, lang)
+    : `${subCount} • ${taskCount}`;
+};
+
+/* Красивая и информативная панель подтем (Skola2030) над списком задач */
 function renderSubtopicNav(topic, activeSubtopicId = null) {
   if (!listSubtopics) return;
   const list = subtopicsOf(topic.id);
   if (!list.length) { listSubtopics.hidden = true; listSubtopics.innerHTML = ''; return; }
   const tr = window.MathTasks.t || (k => k);
+  const lang = window.MathTasks?.getLang ? window.MathTasks.getLang() : 'ru';
   const total = taskCounts.get(topic.id) || 0;
-  const all = `<a class="subtopic-chip${activeSubtopicId ? '' : ' active'}" href="/topic/${encodeURIComponent(topic.slug)}">
-    <span class="subtopic-chip-title">${escapeHtml(tr('subtopic_whole_topic'))}</span>
-    <span class="subtopic-chip-count">${total}</span>
+
+  const isAllActive = !activeSubtopicId;
+  const summaryText = formatSubtopicSummary(list.length, total, lang);
+  const tasksUnit = tr('tasks_unit') || (lang === 'lv' ? 'uzd.' : 'зад.');
+  const activeLabel = tr('subtopic_active_state') || (lang === 'lv' ? '✓ Aktīva' : '✓ Активна');
+
+  const allCard = `<a class="subtopic-all-btn${isAllActive ? ' active' : ''}" href="/topic/${encodeURIComponent(topic.slug)}">
+    <div class="subtopic-all-main">
+      <span class="subtopic-all-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+        </svg>
+      </span>
+      <div class="subtopic-all-text">
+        <span class="subtopic-all-title">${escapeHtml(tr('subtopic_all'))}</span>
+        <span class="subtopic-all-desc">${escapeHtml(tr('subtopic_all_desc'))}</span>
+      </div>
+    </div>
+    <div class="subtopic-all-meta">
+      <span class="subtopic-count-badge">${total} <small>${escapeHtml(tasksUnit)}</small></span>
+      ${isAllActive ? `<span class="subtopic-status-badge">${escapeHtml(activeLabel)}</span>` : ''}
+    </div>
   </a>`;
-  const chips = list.map(s => {
+
+  const cards = list.map(s => {
     const count = subtopicCounts.get(s.id) || 0;
-    return `<a class="subtopic-chip${s.id === activeSubtopicId ? ' active' : ''}${count ? '' : ' empty'}" href="/subtopic/${encodeURIComponent(s.slug)}" title="${escapeHtml(subtopicTitle(s, topic))}">
-      <span class="subtopic-chip-code">${escapeHtml(subtopicCode(s, topic))}</span>
-      <span class="subtopic-chip-title">${escapeHtml(loc(s, 'title'))}</span>
-      <span class="subtopic-chip-count">${count}</span>
+    const isActive = s.id === activeSubtopicId;
+    const code = subtopicCode(s, topic);
+    return `<a class="subtopic-card${isActive ? ' active' : ''}${count ? '' : ' empty'}" href="/subtopic/${encodeURIComponent(s.slug)}" title="${escapeHtml(subtopicTitle(s, topic))}">
+      <div class="subtopic-card-top">
+        <span class="subtopic-card-code">${escapeHtml(code)}</span>
+        <span class="subtopic-card-count">${count} <small>${escapeHtml(tasksUnit)}</small></span>
+      </div>
+      <div class="subtopic-card-title">${escapeHtml(loc(s, 'title'))}</div>
+      ${isActive ? `<div class="subtopic-card-footer"><span class="subtopic-status-badge">${escapeHtml(activeLabel)}</span></div>` : ''}
     </a>`;
   }).join('');
-  listSubtopics.innerHTML = `<span class="subtopic-nav-label">${escapeHtml(tr('subtopics_label'))}</span><div class="subtopic-chips">${all}${chips}</div>`;
+
+  listSubtopics.innerHTML = `
+    <div class="subtopic-box">
+      <div class="subtopic-header">
+        <div class="subtopic-header-title-wrap">
+          <span class="subtopic-icon-badge" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+          </span>
+          <div>
+            <h3 class="subtopic-heading">${escapeHtml(tr('subtopics_title'))}</h3>
+            <span class="subtopic-summary">${escapeHtml(summaryText)}</span>
+          </div>
+        </div>
+        <span class="subtopic-tag">Skola2030</span>
+      </div>
+      <div class="subtopic-master-row">
+        ${allCard}
+      </div>
+      <div class="subtopic-grid-heading">
+        <span class="subtopic-grid-label">${escapeHtml(tr('subtopics_grid_label'))}</span>
+      </div>
+      <div class="subtopics-grid">
+        ${cards}
+      </div>
+    </div>
+  `;
   listSubtopics.hidden = false;
 }
 
@@ -4206,6 +4268,9 @@ window.addEventListener('languagechange', async () => {
   const tr = window.MathTasks.t || (k => k);
   if (window.ExamTimer && window.ExamTimer.toggleBtn) {
     window.ExamTimer.toggleBtn.textContent = window.ExamTimer.isRunning ? tr('timer_pause') : tr('timer_start');
+  }
+  if (currentActiveTopic && listSubtopics && !listSubtopics.hidden) {
+    renderSubtopicNav(currentActiveTopic, currentSubtopic?.id);
   }
   if (currentView === 'home') {
     await loadHome();

@@ -634,26 +634,428 @@ body.dark a.task-title:hover{color:#5a92ff}
 .topic-anchor:hover{border-color:#c3d2ea;background:#f2f6fd}
 body.dark .topic-anchor{border-color:#2b3a58;color:#5a92ff}
 body.dark .topic-anchor:hover{background:#1a2740}
-/* ── Подтемы: третий уровень каталога ─────────────────────────────── */
+/* ── Подтемы: третий уровень каталога (Редизайн Skola2030) ────────── */
 .subtopic-nav[hidden]{display:none}
-.subtopic-nav{margin:0 0 18px}
-.subtopic-nav-label{display:block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.subtopic-nav{margin:0 0 24px;display:block}
+
+.subtopic-box{
+  background:#ffffff;
+  border:1.5px solid #e3e8f2;
+  border-radius:16px;
+  padding:18px 20px 20px;
+  box-shadow:0 3px 14px rgba(15,23,42,0.04);
+  transition:border-color .2s,box-shadow .2s;
+}
+
+.subtopic-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+  padding-bottom:12px;
+  border-bottom:1px solid #edf1f7;
+}
+
+.subtopic-header-title-wrap{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.subtopic-icon-badge{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#eff6ff,#dbeafe);
+  color:#1d4ed8;
+  flex-shrink:0;
+}
+
+.subtopic-heading{
+  margin:0;
+  font-size:16px;
+  font-weight:800;
+  color:var(--ink);
+  line-height:1.25;
+}
+
+.subtopic-summary{
+  display:block;
+  font-size:12px;
+  font-weight:600;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+.subtopic-tag{
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  padding:4px 9px;
+  border-radius:6px;
+  background:#f1f5f9;
+  color:var(--muted);
+}
+
+.subtopic-master-row{
+  margin-bottom:14px;
+}
+
+.subtopic-all-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:12px 16px;
+  border:1.5px solid #dce4f0;
+  border-radius:12px;
+  background:#f8fafc;
+  color:var(--ink);
+  text-decoration:none;
+  transition:all .18s cubic-bezier(0.2,0,0,1);
+  cursor:pointer;
+}
+
+.subtopic-all-btn:hover{
+  border-color:#93c5fd;
+  background:#f0f7ff;
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(23,100,255,0.08);
+}
+
+.subtopic-all-btn.active{
+  border-color:#1764ff;
+  background:linear-gradient(135deg,#1764ff 0%,#0d52df 100%);
+  color:#ffffff;
+  box-shadow:0 4px 16px rgba(23,100,255,0.28);
+}
+
+.subtopic-all-main{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.subtopic-all-icon{
+  width:36px;
+  height:36px;
+  border-radius:9px;
+  display:grid;
+  place-items:center;
+  background:#e0edff;
+  color:#1764ff;
+  flex-shrink:0;
+  transition:background .18s,color .18s;
+}
+
+.subtopic-all-btn.active .subtopic-all-icon{
+  background:rgba(255,255,255,0.2);
+  color:#ffffff;
+}
+
+.subtopic-all-title{
+  font-size:14.5px;
+  font-weight:700;
+  color:inherit;
+  display:block;
+}
+
+.subtopic-all-btn.active .subtopic-all-title{
+  font-weight:800;
+  color:#ffffff;
+}
+
+.subtopic-all-desc{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:500;
+  display:block;
+  margin-top:1px;
+}
+
+.subtopic-all-btn.active .subtopic-all-desc{
+  color:rgba(255,255,255,0.88);
+}
+
+.subtopic-all-meta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+}
+
+.subtopic-count-badge{
+  display:inline-flex;
+  align-items:baseline;
+  gap:4px;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:13px;
+  font-weight:800;
+  background:#eef2f6;
+  color:var(--ink);
+  border:1px solid transparent;
+}
+
+.subtopic-all-btn.active .subtopic-count-badge{
+  background:rgba(255,255,255,0.22);
+  color:#ffffff;
+  border-color:rgba(255,255,255,0.3);
+}
+
+.subtopic-status-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:11px;
+  font-weight:800;
+  padding:3px 9px;
+  border-radius:6px;
+  background:#dcfce7;
+  color:#15803d;
+  letter-spacing:.02em;
+}
+
+.subtopic-all-btn.active .subtopic-status-badge{
+  background:#ffffff;
+  color:#1764ff;
+}
+
+.subtopic-grid-heading{
+  margin:16px 0 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.subtopic-grid-label{
+  font-size:11.5px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+
+.subtopics-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+  gap:12px;
+}
+
+.subtopic-card{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  min-height:84px;
+  padding:12px 14px;
+  border:1.5px solid #e2e8f0;
+  border-radius:12px;
+  background:#ffffff;
+  color:var(--ink);
+  text-decoration:none;
+  transition:all .18s cubic-bezier(0.2,0,0,1);
+  cursor:pointer;
+  position:relative;
+}
+
+.subtopic-card:hover{
+  border-color:#93c5fd;
+  background:#fbfdff;
+  transform:translateY(-2px);
+  box-shadow:0 6px 16px rgba(23,100,255,0.08);
+}
+
+.subtopic-card.active{
+  border-color:#1764ff;
+  background:#f0f7ff;
+  box-shadow:0 4px 14px rgba(23,100,255,0.14);
+}
+
+.subtopic-card.empty{
+  opacity:0.72;
+  border-style:dashed;
+  background:#fbfbfb;
+}
+
+.subtopic-card.empty:hover{
+  opacity:1;
+  border-color:#cbd5e1;
+}
+
+.subtopic-card-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:8px;
+}
+
+.subtopic-card-code{
+  display:inline-flex;
+  align-items:center;
+  padding:2px 7px;
+  border-radius:6px;
+  font-size:12px;
+  font-weight:800;
+  font-family:Manrope,monospace,sans-serif;
+  background:#eff6ff;
+  color:#1d4ed8;
+  border:1px solid #dbeafe;
+  letter-spacing:.02em;
+}
+
+.subtopic-card.active .subtopic-card-code{
+  background:#1764ff;
+  color:#ffffff;
+  border-color:#1764ff;
+}
+
+.subtopic-card-count{
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--muted);
+}
+
+.subtopic-card-title{
+  font-size:13px;
+  font-weight:600;
+  line-height:1.4;
+  color:var(--ink);
+  word-break:break-word;
+}
+
+.subtopic-card.active .subtopic-card-title{
+  color:#0f4bc5;
+  font-weight:700;
+}
+
+.subtopic-card-footer{
+  margin-top:8px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+}
+
+/* ── Тёмная тема для подтем ─────────────────────────────────────── */
+body.dark .subtopic-box{
+  background:#121c2e;
+  border-color:#243552;
+  box-shadow:0 4px 18px rgba(0,0,0,0.25);
+}
+
+body.dark .subtopic-header{
+  border-bottom-color:#1e2c45;
+}
+
+body.dark .subtopic-heading{
+  color:#f1f5f9;
+}
+
+body.dark .subtopic-icon-badge{
+  background:linear-gradient(135deg,#1e293b,#172554);
+  color:#60a5fa;
+}
+
+body.dark .subtopic-tag{
+  background:#1c2a44;
+  color:#94a3b8;
+}
+
+body.dark .subtopic-all-btn{
+  background:#141f33;
+  border-color:#243552;
+  color:#e2e8f0;
+}
+
+body.dark .subtopic-all-btn:hover{
+  background:#1a2842;
+  border-color:#3b82f6;
+  box-shadow:0 4px 14px rgba(0,0,0,0.3);
+}
+
+body.dark .subtopic-all-btn.active{
+  background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);
+  border-color:#3b82f6;
+  color:#ffffff;
+  box-shadow:0 4px 16px rgba(37,99,235,0.35);
+}
+
+body.dark .subtopic-all-icon{
+  background:#1e293b;
+  color:#60a5fa;
+}
+
+body.dark .subtopic-count-badge{
+  background:#1c2840;
+  color:#cbd5e1;
+}
+
+body.dark .subtopic-card{
+  background:#152136;
+  border-color:#233452;
+  color:#e2e8f0;
+}
+
+body.dark .subtopic-card:hover{
+  background:#1a2842;
+  border-color:#3b82f6;
+  box-shadow:0 6px 18px rgba(0,0,0,0.35);
+}
+
+body.dark .subtopic-card.active{
+  background:#162646;
+  border-color:#3b82f6;
+  box-shadow:0 4px 16px rgba(59,130,246,0.25);
+}
+
+body.dark .subtopic-card.active .subtopic-card-code{
+  background:#2563eb;
+  color:#fff;
+  border-color:#2563eb;
+}
+
+body.dark .subtopic-card.active .subtopic-card-title{
+  color:#93c5fd;
+}
+
+body.dark .subtopic-card-code{
+  background:#1e293b;
+  color:#60a5fa;
+  border-color:#334155;
+}
+
+body.dark .subtopic-card-title{
+  color:#cbd5e1;
+}
+
+body.dark .subtopic-card.empty{
+  background:#121b2c;
+  border-color:#1e2c44;
+  opacity:0.65;
+}
+
+@media(max-width:720px){
+  .subtopic-box{padding:14px 14px 16px;border-radius:14px}
+  .subtopics-grid{grid-template-columns:1fr}
+  .subtopic-all-btn{flex-direction:column;align-items:flex-start;gap:10px}
+  .subtopic-all-meta{width:100%;justify-content:space-between}
+}
+
+/* Совместимость со старыми селекторами (fallback) */
 .subtopic-chips{display:flex;flex-wrap:wrap;gap:8px}
 .subtopic-chip{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:7px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);text-decoration:none;font:600 12px Manrope,sans-serif;line-height:1.3}
 .subtopic-chip:hover{border-color:#c3d2ea;background:#f2f6fd}
 .subtopic-chip.active{border-color:var(--accent);background:#edf4ff;color:var(--accent)}
-/* Пустая подтема остаётся кликабельной: по ней видно, что тема ещё не
-   заполнена, а не что ссылка сломана. */
 .subtopic-chip.empty{color:var(--muted);border-style:dashed}
 .subtopic-chip-code{font-weight:800;color:var(--accent);white-space:nowrap}
 .subtopic-chip.empty .subtopic-chip-code{color:var(--muted)}
 .subtopic-chip-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:30ch}
 .subtopic-chip-count{min-width:20px;height:20px;padding:0 6px;display:inline-grid;place-items:center;border-radius:6px;background:#f1f5f9;color:var(--muted);font:700 11px Manrope,sans-serif}
 .subtopic-chip.active .subtopic-chip-count{background:#fff;color:var(--accent)}
-body.dark .subtopic-chip{background:#131f36;border-color:#2b3a58;color:#dbe6ff}
-body.dark .subtopic-chip:hover{background:#1a2740}
-body.dark .subtopic-chip.active{background:#16264a;border-color:#5a92ff;color:#8fb6ff}
-body.dark .subtopic-chip-count{background:#1c2a45}
 
 /* ── Проход всего класса ──────────────────────────────────────────── */
 /* Ссылка живёт в строке заголовка «Темы», рядом с ним: отдельной плашкой

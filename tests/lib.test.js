@@ -12,6 +12,7 @@ import {
   getLocalizedText,
   formatTopicTitle,
   formatSubtopicCode,
+  formatSubtopicSummary,
   maskLatexForTranslation,
   unmaskLatexAfterTranslation,
   parseMultiTopicJson,
@@ -1158,5 +1159,28 @@ describe('formatSubtopicCode: номер подтемы для показа', ()
     expect(formatTopicTitle(null)).toBe('');
     expect(formatTopicTitle(undefined)).toBe('');
     expect(formatTopicTitle('Простая строка')).toBe('Простая строка');
+  });
+});
+
+describe('formatSubtopicSummary: грамматика счетчиков подтем и задач', () => {
+  it('корректно форматирует множественное и единственное число на латышском (LV)', () => {
+    expect(formatSubtopicSummary(1, 1, 'lv')).toBe('1 apakštēma • 1 uzdevums');
+    expect(formatSubtopicSummary(5, 55, 'lv')).toBe('5 apakštēmas • 55 uzdevumi');
+    expect(formatSubtopicSummary(11, 11, 'lv')).toBe('11 apakštēmas • 11 uzdevumi');
+    expect(formatSubtopicSummary(21, 21, 'lv')).toBe('21 apakštēma • 21 uzdevums');
+  });
+
+  it('корректно склоняет слова на русском (RU)', () => {
+    expect(formatSubtopicSummary(1, 1, 'ru')).toBe('1 подтема • 1 задача');
+    expect(formatSubtopicSummary(2, 4, 'ru')).toBe('2 подтемы • 4 задачи');
+    expect(formatSubtopicSummary(5, 55, 'ru')).toBe('5 подтем • 55 задач');
+    expect(formatSubtopicSummary(12, 14, 'ru')).toBe('12 подтем • 14 задач');
+    expect(formatSubtopicSummary(21, 21, 'ru')).toBe('21 подтема • 21 задача');
+  });
+
+  it('безопасно обрабатывает нули и пустые значения', () => {
+    expect(formatSubtopicSummary(0, 0, 'lv')).toBe('0 apakštēmas • 0 uzdevumi');
+    expect(formatSubtopicSummary(0, 0, 'ru')).toBe('0 подтем • 0 задач');
+    expect(formatSubtopicSummary(null, undefined, 'ru')).toBe('0 подтем • 0 задач');
   });
 });
