@@ -182,7 +182,11 @@
     return item[field] || '';
   };
 
-  /* Форматирование заголовка темы с гарантированной нумерацией класса и позиции (например: "9.1. ...") */
+  /* Номер темы в заголовке: «9.1. …» в основной школе и «1. …» в старшей.
+     У классов с первого по девятый номер темы двусоставный — так он и
+     записан в программе Skola2030. Vispārīgais, Matemātika I и
+     Matemātika II — не классы, а уровни: числа 10, 11 и 12 там служебные,
+     ими в базе различают курсы, и в заголовке они только путают. */
   const formatTopicTitle = (topic, lang = 'ru') => {
     if (!topic) return '';
     if (typeof topic === 'string') return topic;
@@ -193,7 +197,7 @@
     const posNum = parseInt(topic.position, 10);
 
     if (Number.isInteger(gradeNum) && gradeNum >= 1 && gradeNum <= 12 && Number.isInteger(posNum) && posNum > 0) {
-      const expectedPrefix = `${gradeNum}.${posNum}. `;
+      const expectedPrefix = gradeNum >= 10 ? `${posNum}. ` : `${gradeNum}.${posNum}. `;
       const numMatch = title.match(/^(\d+(?:\.\d+)*)\.?\s*(.*)$/);
       if (numMatch) {
         const rest = numMatch[2] || '';
@@ -203,6 +207,19 @@
     }
 
     return title;
+  };
+
+  /* Номер подтемы для показа: «7.5.2» в основной школе и «5.2» в старшей.
+     В базе код всегда полный — им подтемы различаются между уровнями, —
+     а в интерфейсе служебная десятка перед номером не нужна, иначе тема
+     подписана «5.», а подтема внутри неё «10.5.1». */
+  const formatSubtopicCode = (code, grade) => {
+    const str = String(code || '').trim();
+    if (!str) return '';
+    const gradeNum = parseInt(grade, 10);
+    if (!Number.isInteger(gradeNum) || gradeNum < 10) return str;
+    const parts = str.split('.');
+    return parts.length > 1 && String(parts[0]) === String(gradeNum) ? parts.slice(1).join('.') : str;
   };
 
   /* Маскирование математических формул перед отправкой в переводчик */
@@ -951,6 +968,7 @@
     formatTimerDisplay,
     getLocalizedText,
     formatTopicTitle,
+    formatSubtopicCode,
     maskLatexForTranslation,
     unmaskLatexAfterTranslation,
     parseMultiTopicJson,

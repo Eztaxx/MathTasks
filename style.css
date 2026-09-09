@@ -151,15 +151,19 @@ body.admin-page{background:#f5f7fd}
   align-items: center;
   gap: 12px;
 }
+/* Только стрелка: рядом с логотипом, который и так ведёт на главную,
+   подпись «На главную» занимала полсотни пикселей и повторяла его.
+   Название осталось в title и aria-label — для подсказки и скринридера. */
 .topbar-home-btn {
-  font: 700 12px Manrope, sans-serif;
+  font: 700 15px Manrope, sans-serif;
+  line-height: 1;
   color: var(--blue, #1764ff);
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 6px;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
   background: #eff6ff;
   border: 1px solid #bfdbfe;
   transition: all 0.15s ease;
@@ -776,7 +780,10 @@ body.dark .mini-badge.green{background:#092e18;color:#5de292;border-color:#13542
 
 .sidebar-topic-banner{padding:12px 13px;border-radius:11px;background:linear-gradient(135deg,#f2f6ff,#e7efff);border:1px solid #d4e2fc;margin-bottom:14px}
 .topic-banner-top{display:flex;align-items:center;gap:7px;margin-bottom:6px}
-.topic-banner-pill{padding:2px 7px;border-radius:5px;background:#1764ff;color:#fff;font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase}
+/* Без верхнего регистра: «Vispārīgais līmenis» — имя курса, а не ярлык,
+   и в капсе на десяти пикселях латышская диакритика читается плохо.
+   Плюс перенос по словам — в узком сайдбаре в строку оно не влезает. */
+.topic-banner-pill{padding:3px 8px;border-radius:6px;background:#1764ff;color:#fff;font-size:11px;font-weight:700;line-height:1.25;white-space:normal}
 .topic-banner-subject{font-size:11px;font-weight:600;color:var(--muted)}
 .topic-banner-title{font-size:13px;font-weight:800;line-height:1.35;color:#0b1935}
 
@@ -967,7 +974,7 @@ body.dark .toast-notice{background:rgba(21,33,55,.95);border-color:rgba(255,255,
 /* ── Печать ──────────────────────────────────────────────────────── */
 @media print{
   /* На бумаге нужны только условия: меню, поиск и кнопки — экранные элементы. */
-  .sidebar,.sidebar-scrim,.topbar,.breadcrumb,.topic-anchors,.list-actions,
+  .sidebar,.sidebar-scrim,.topbar,.breadcrumb,.topic-anchors,.subtopic-nav,.grade-actions,.list-actions,
   .task-nav,.solution-toggle,.hero,.grades,dialog{display:none!important}
   body{background:#fff;color:#000}
   main,body.sidebar-collapsed main{margin-left:0!important}

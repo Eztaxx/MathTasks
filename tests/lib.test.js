@@ -11,6 +11,7 @@ import {
   formatTimerDisplay,
   getLocalizedText,
   formatTopicTitle,
+  formatSubtopicCode,
   maskLatexForTranslation,
   unmaskLatexAfterTranslation,
   parseMultiTopicJson,
@@ -1110,6 +1111,42 @@ describe('formatTopicTitle: нумерация тем Skola2030', () => {
   it('нормализует устаревший или неполный номер до канонического {grade}.{position}.', () => {
     const topic = { grade: 9, position: 3, title: '1. Тригонометрия' };
     expect(formatTopicTitle(topic)).toBe('9.3. Тригонометрия');
+  });
+
+  /* Vispārīgais, Matemātika I и Matemātika II — уровни, а не классы:
+     числа 10, 11 и 12 в базе служебные, в заголовке им делать нечего. */
+  it('в старшей школе нумерует темы сквозным номером без класса', () => {
+    expect(formatTopicTitle({ grade: 10, position: 1, title: 'Числовые расчеты в жизненных ситуациях' }))
+      .toBe('1. Числовые расчеты в жизненных ситуациях');
+    expect(formatTopicTitle({ grade: 11, position: 12, title: 'Линейная функция и её график' }))
+      .toBe('12. Линейная функция и её график');
+    expect(formatTopicTitle({ grade: 12, position: 45, title: 'Применение интеграла в физике' }))
+      .toBe('45. Применение интеграла в физике');
+  });
+
+  it('срезает старый номер с классом, если он уже стоит в названии темы уровня', () => {
+    expect(formatTopicTitle({ grade: 10, position: 2, title: '10.2. Проценты, кредиты и финансовые расчеты' }))
+      .toBe('2. Проценты, кредиты и финансовые расчеты');
+  });
+});
+
+describe('formatSubtopicCode: номер подтемы для показа', () => {
+  it('в основной школе оставляет номер как есть', () => {
+    expect(formatSubtopicCode('7.5.2', 7)).toBe('7.5.2');
+    expect(formatSubtopicCode('1.1.1', 1)).toBe('1.1.1');
+  });
+
+  it('в старшей школе срезает служебный номер уровня', () => {
+    expect(formatSubtopicCode('10.5.1', 10)).toBe('5.1');
+    expect(formatSubtopicCode('11.10.4', 11)).toBe('10.4');
+    expect(formatSubtopicCode('12.45.3', 12)).toBe('45.3');
+  });
+
+  it('не трогает номер, который не начинается с этого уровня, и пустые значения', () => {
+    expect(formatSubtopicCode('9.1.1', 10)).toBe('9.1.1');
+    expect(formatSubtopicCode('', 11)).toBe('');
+    expect(formatSubtopicCode(null, 11)).toBe('');
+    expect(formatSubtopicCode('5.1', undefined)).toBe('5.1');
   });
 
   it('не добавляет числовой префикс для нечисловых уровней (visparigais)', () => {

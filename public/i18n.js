@@ -138,6 +138,9 @@
       grade_12: 'Matemātika II (Augstākais)',
       grade_N: '{n}. klase',
       grade_visparigais: 'Vispārīgais līmenis',
+      grade_short_visp: 'Vispārīgais',
+      grade_short_opt: 'Matemātika I',
+      grade_short_augst: 'Matemātika II',
       grade_matematika_1: 'Matemātika I (Optimālais)',
       grade_matematika_2: 'Matemātika II (Augstākais)',
       without_grade: 'Bez klases',
@@ -203,6 +206,7 @@
 
       // Pārbaudes darbi (Kontroldarbi)
       nav_control_works: 'Pārbaudes darbi',
+      cw_too_few: 'Šajā tēmā vēl nav pietiekami daudz uzdevumu pārbaudes darbam — vajag vismaz {count}.',
       nav_control_works_desc: 'Temata noslēguma darbi (40 min)',
       cw_badge: '📝 Pārbaudes darbs • Skola2030',
       cw_topic_card_title: 'Temata pārbaudes darbs',
@@ -581,6 +585,9 @@
       grade_12: 'Augstākais līmenis',
       grade_N: '{n} класс',
       grade_visparigais: 'Vispārīgais līmenis',
+      grade_short_visp: 'Vispārīgais',
+      grade_short_opt: 'Matemātika I',
+      grade_short_augst: 'Matemātika II',
       grade_matematika_1: 'Optimālais līmenis',
       grade_matematika_2: 'Augstākais līmenis',
       without_grade: 'Без класса',
@@ -646,6 +653,7 @@
 
       // Контрольные работы (К/Р)
       nav_control_works: 'Контрольные работы',
+      cw_too_few: 'В этой теме пока мало задач для контрольной — нужно хотя бы {count}.',
       nav_control_works_desc: 'Тематические проверочные работы (40 мин)',
       cw_badge: '📝 Контрольная работа • Skola2030',
       cw_topic_card_title: 'Контрольная работа по теме',

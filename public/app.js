@@ -137,6 +137,19 @@ const subjectIcon = subject => {
 
 const topicClass = index => ['lavender', 'green', 'orange', 'blue', 'pink', 'aqua', 'violet'][index % 7];
 
+/* Короткое имя ступени для плашек: полное «Matemātika II (Augstākais)»
+   в плашку сайдбара не помещается и переносится в три строки. */
+const gradeLabelShort = grade => {
+  const tr = window.MathTasks.t || (k => k);
+  const key = (grade === 10 || grade === 'visparigais') ? 'grade_short_visp'
+    : (grade === 11 || grade === 'matematika-1') ? 'grade_short_opt'
+    : (grade === 12 || grade === 'matematika-2') ? 'grade_short_augst'
+    : null;
+  if (!key) return gradeLabel(grade);
+  const translated = tr(key);
+  return translated && translated !== key ? translated : gradeLabel(grade);
+};
+
 const gradeLabel = grade => {
   const tr = window.MathTasks.t || (k => k);
   if (!grade) return tr('all_grades') !== 'all_grades' ? tr('all_grades') : 'Все классы';
@@ -326,7 +339,7 @@ function renderTopicSidebar(topic) {
   // Контекстная плашка открытой темы
   const banner = `<div class="sidebar-topic-banner">
     <div class="topic-banner-top">
-      ${grade ? `<span class="topic-banner-pill">${gradeLabel(grade)}</span>` : ''}
+      ${grade ? `<span class="topic-banner-pill">${escapeHtml(gradeLabelShort(grade))}</span>` : ''}
       <span class="topic-banner-subject">${escapeHtml(subjectTitle || 'Математика')}</span>
     </div>
     <div class="topic-banner-title">${escapeHtml(topicTitle)}</div>
@@ -359,6 +372,7 @@ function renderTopicSidebar(topic) {
 
 function renderClassSidebar(grade) {
   const label = gradeLabel(grade);
+  const labelShort = gradeLabelShort(grade);
   const backHref = '/';
 
   const backBtn = `<a class="sidebar-back-button" href="${backHref}" title="${escapeHtml((window.MathTasks.t || (k => k))('back_to_catalog'))}">
@@ -368,7 +382,7 @@ function renderClassSidebar(grade) {
 
   const banner = `<div class="sidebar-topic-banner">
     <div class="topic-banner-top">
-      <span class="topic-banner-pill">${escapeHtml(label)}</span>
+      <span class="topic-banner-pill">${escapeHtml(labelShort)}</span>
       <span class="topic-banner-subject">${escapeHtml((window.MathTasks.t || (k => k))('catalog_of_tasks'))}</span>
     </div>
     <div class="topic-banner-title">${escapeHtml((window.MathTasks.t || (k => k))('course_all_tasks'))}</div>
@@ -1606,7 +1620,18 @@ function showSubject(slug) {
 
 const subtopicsOf = topicId => subtopicsByTopic.get(topicId) || [];
 const subtopicBySlug = slug => allSubtopics.find(s => s.slug === slug);
-const subtopicTitle = s => `${s.code ? s.code + '. ' : ''}${loc(s, 'title')}`;
+/* В базе код подтемы всегда полный («10.5.1»), а показываем его так же,
+   как номер темы: в старшей школе без служебной десятки. */
+const subtopicCode = (sub, topic) => {
+  const grade = topic?.grade ?? allTopics.find(t => t.id === sub?.topic_id)?.grade;
+  return window.MathTasksLib?.formatSubtopicCode
+    ? window.MathTasksLib.formatSubtopicCode(sub?.code, grade)
+    : (sub?.code || '');
+};
+const subtopicTitle = (s, topic) => {
+  const code = subtopicCode(s, topic);
+  return `${code ? code + '. ' : ''}${loc(s, 'title')}`;
+};
 
 /* Полоса подтем над списком задач. Активной может быть либо «вся тема»
    (страница темы), либо одна подтема (страница подтемы). */
@@ -1622,8 +1647,8 @@ function renderSubtopicNav(topic, activeSubtopicId = null) {
   </a>`;
   const chips = list.map(s => {
     const count = subtopicCounts.get(s.id) || 0;
-    return `<a class="subtopic-chip${s.id === activeSubtopicId ? ' active' : ''}${count ? '' : ' empty'}" href="/subtopic/${encodeURIComponent(s.slug)}" title="${escapeHtml(subtopicTitle(s))}">
-      <span class="subtopic-chip-code">${escapeHtml(s.code || '')}</span>
+    return `<a class="subtopic-chip${s.id === activeSubtopicId ? ' active' : ''}${count ? '' : ' empty'}" href="/subtopic/${encodeURIComponent(s.slug)}" title="${escapeHtml(subtopicTitle(s, topic))}">
+      <span class="subtopic-chip-code">${escapeHtml(subtopicCode(s, topic))}</span>
       <span class="subtopic-chip-title">${escapeHtml(loc(s, 'title'))}</span>
       <span class="subtopic-chip-count">${count}</span>
     </a>`;
@@ -1655,7 +1680,7 @@ async function showSubtopic(slug) {
 
   const subject = subjectById(topic.subject_id);
   const topicTitle = topicTitleOf(topic);
-  const title = subtopicTitle(sub);
+  const title = subtopicTitle(sub, topic);
 
   const crumbs = [[tr('nav_home'), '/']];
   if (topic.grade) crumbs.push([gradeLabel(topic.grade), `/grade/${topic.grade}`]);
@@ -2031,6 +2056,11 @@ async function showFavorites() {
 
 /* ── Контрольные работы (Pārbaudes darbi) ─────────────────────────── */
 
+/* Работа из одной-двух задач контрольной не является: балансировщик при
+   таком запасе отдаёт всё, что есть, а оценка по одной задаче — это ноль
+   или сто процентов. Ниже этого порога тему в контрольные не берём. */
+const MIN_CONTROL_WORK_TASKS = 3;
+
 function getControlWorkStorage() {
   try {
     const raw = localStorage.getItem('math-tasks:control-works');
@@ -2062,7 +2092,7 @@ function renderTopicControlWorkCard(topic, tasks) {
   const slot = document.querySelector('#topic-control-work-slot');
   if (!slot) return;
   const tr = window.MathTasks.t || (k => k);
-  if (!tasks || tasks.length === 0) {
+  if (!tasks || tasks.length < MIN_CONTROL_WORK_TASKS) {
     slot.hidden = true;
     slot.innerHTML = '';
     return;
@@ -2177,6 +2207,13 @@ async function startControlWork(slug) {
 
   if (error || !data || !data.length) {
     if (cwList) cwList.innerHTML = `<p class="empty-state">${escapeHtml(tr('err_load_tasks'))}</p>`;
+    return;
+  }
+  /* Прямой заход по адресу минует и карточку темы, и каталог, поэтому
+     порог проверяем ещё раз здесь. */
+  if (data.length < MIN_CONTROL_WORK_TASKS) {
+    if (submitBtn) submitBtn.hidden = true;
+    if (cwList) cwList.innerHTML = `<p class="empty-state">${escapeHtml(tr('cw_too_few', { count: MIN_CONTROL_WORK_TASKS }))}</p>`;
     return;
   }
 
@@ -2422,7 +2459,7 @@ async function showControlWorksCatalog() {
   const container = document.querySelector('#cw-catalog-list');
   if (!container) return;
 
-  const topicsWithTasks = allTopics.filter(topic => (taskCounts.get(topic.id) || 0) > 0);
+  const topicsWithTasks = allTopics.filter(topic => (taskCounts.get(topic.id) || 0) >= MIN_CONTROL_WORK_TASKS);
 
   if (!topicsWithTasks.length) {
     container.innerHTML = `<p class="empty-state">${escapeHtml(tr('state_loading_tasks'))}</p>`;
@@ -2454,13 +2491,24 @@ async function showControlWorksCatalog() {
         return g >= 7 && g <= 9;
       }
     },
+    /* Три уровня старшей школы разведены по секциям: нумерация тем в
+       каждом своя, с единицы, и в общем списке «1. Иррациональные
+       уравнения» стояло рядом с «1. Числовые расчёты» из другого курса —
+       различить их было нечем. */
     {
-      id: 'vidusskola',
-      title: tr('stage_vidusskola') || '10–12 классы (Средняя школа)',
-      filter: t => {
-        const g = getTopicGradeBucket(t);
-        return g >= 10 && g <= 12;
-      }
+      id: 'visparigais',
+      title: tr('grade_visparigais') || 'Vispārīgais līmenis',
+      filter: t => getTopicGradeBucket(t) === 10
+    },
+    {
+      id: 'optimalais',
+      title: tr('grade_matematika_1') || 'Matemātika I (Optimālais)',
+      filter: t => getTopicGradeBucket(t) === 11
+    },
+    {
+      id: 'augstakais',
+      title: tr('grade_matematika_2') || 'Matemātika II (Augstākais)',
+      filter: t => getTopicGradeBucket(t) === 12
     }
   ];
 
