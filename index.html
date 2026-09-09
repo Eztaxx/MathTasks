@@ -198,30 +198,6 @@
         <button type="button" class="lang-btn" data-lang="lv" title="Latviešu valoda" data-i18n-title="lang_lv">LV</button>
         <button type="button" class="lang-btn active" data-lang="ru" title="Русский язык" data-i18n-title="lang_ru">RU</button>
       </div>
-      <div class="exam-timer-wrap" id="exam-timer-wrap">
-        <button class="timer-topbar-btn" id="exam-timer-btn" type="button" aria-label="Экзаменационный таймер" data-i18n-aria="timer_title" title="Экзаменационный таймер" data-i18n-title="timer_title">
-          <span class="timer-icon" aria-hidden="true">⏱️</span>
-          <span class="timer-topbar-digits" id="timer-display">00:00</span>
-        </button>
-        <div class="timer-dropdown" id="timer-dropdown" hidden>
-          <div class="timer-dropdown-header">
-            <span class="timer-dropdown-title" data-i18n="timer_title">Экзаменационный таймер</span>
-            <button class="timer-close-btn" id="timer-close-btn" type="button" aria-label="Закрыть">×</button>
-          </div>
-          <div class="timer-big-display" id="timer-big-display">00:00</div>
-          <div class="timer-presets">
-            <button type="button" class="timer-preset-btn active" data-timer-seconds="0" data-i18n="timer_stopwatch">⏱️ Секундомер</button>
-            <button type="button" class="timer-preset-btn" data-timer-seconds="2400" data-i18n="timer_40m">40 мин (Урок / К/Р)</button>
-            <button type="button" class="timer-preset-btn" data-timer-seconds="5400" data-i18n="timer_90m">90 мин (Зачёт)</button>
-            <button type="button" class="timer-preset-btn" data-timer-seconds="7200" data-i18n="timer_120m">120 мин (Pamatskola)</button>
-            <button type="button" class="timer-preset-btn" data-timer-seconds="10800" data-i18n="timer_180m">180 мин (Vidusskola)</button>
-          </div>
-          <div class="timer-controls">
-            <button type="button" class="primary-button timer-action-btn" id="timer-toggle-btn" data-i18n="timer_start">Старт</button>
-            <button type="button" class="ghost-button timer-action-btn" id="timer-reset-btn" data-i18n="timer_reset">Сброс</button>
-          </div>
-        </div>
-      </div>
       <button class="theme-switch" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Переключить тему" data-i18n-aria="theme_toggle" title="Переключить тему" data-i18n-title="theme_toggle">
         <span class="theme-switch-track" aria-hidden="true">
           <span class="theme-switch-thumb">
@@ -282,10 +258,8 @@
         <div class="grade-filter" id="grade-filter" role="group" aria-label="Фильтр по классу" data-i18n-aria="grade_filter"></div>
       </section>
 
-      <section class="grade-actions" id="grade-actions" hidden></section>
-
-      <section class="topics"><h2 id="topics-heading" data-i18n="popular_topics">Популярные темы</h2><div class="topic-grid" id="topics"></div></section>
-      <section class="tasks"><div class="section-heading"><h2 id="tasks-heading" data-i18n="new_tasks">Новые задачи</h2><a href="/tasks" data-i18n="view_all">Смотреть все →</a></div><div class="task-list" id="tasks"></div></section>
+      <section class="topics"><div class="section-heading"><h2 id="topics-heading">Популярные темы</h2><span class="grade-actions" id="grade-actions" hidden></span></div><div class="topic-grid" id="topics"></div></section>
+      <section class="tasks"><div class="section-heading"><h2 id="tasks-heading">Новые задачи</h2><a href="/tasks" data-i18n="view_all">Смотреть все →</a></div><div class="task-list" id="tasks"></div></section>
     </div>
 
     <div id="view-list" hidden>

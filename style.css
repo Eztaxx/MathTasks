@@ -138,16 +138,18 @@ body.sidebar-collapsed .about{gap:0;justify-content:center;margin-left:0;margin-
 
 /* ── Отдельная страница админ-панели ─────────────────────────────── */
 body.admin-page{background:#f5f7fd}
-.admin-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 26px;background:#fff;border-bottom:1px solid var(--line)}
+.admin-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;background:#fff;border-bottom:1px solid var(--line)}
 .admin-topbar .brand{height:auto;margin:0;font-size:19px;gap:11px}
 .admin-topbar .brand-mark{width:38px;height:38px}
 .admin-topbar .brand-mark svg{width:27px;height:27px}
 
+/* Логотип и «На главную» стоят в строку: колонкой кнопка свисала под
+   логотипом, шапка становилась двухэтажной, и всё остальное в ней
+   выравнивалось по середине этих двух этажей. */
 .topbar-brand-wrap {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
+  align-items: center;
+  gap: 12px;
 }
 .topbar-home-btn {
   font: 700 12px Manrope, sans-serif;
@@ -650,16 +652,12 @@ body.dark .subtopic-chip.active{background:#16264a;border-color:#5a92ff;color:#8
 body.dark .subtopic-chip-count{background:#1c2a45}
 
 /* ── Проход всего класса ──────────────────────────────────────────── */
+/* Ссылка живёт в строке заголовка «Темы», рядом с ним: отдельной плашкой
+   между фильтром классов и темами она висела ни к чему не привязанной. */
 .grade-actions[hidden]{display:none}
-.grade-actions{margin:0 0 26px}
-.grade-action{display:inline-flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(110deg,#edf4ff,#f6f0ff);color:var(--ink);text-decoration:none}
-.grade-action:hover{border-color:var(--accent)}
-.grade-action-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;background:#fff;color:var(--accent);font-size:22px;font-weight:800}
-.grade-action-body{display:flex;flex-direction:column;gap:2px}
-.grade-action-body strong{font:800 14px Manrope,sans-serif}
-.grade-action-body span{font-size:12px;color:var(--muted)}
-body.dark .grade-action{background:linear-gradient(110deg,#14203a,#1b1734);border-color:#2b3a58}
-body.dark .grade-action-icon{background:#0e1830;color:#5a92ff}
+.grade-action{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;color:var(--accent);text-decoration:none;font:700 13px Manrope,sans-serif}
+.grade-action:hover{text-decoration:underline}
+body.dark .grade-action{color:#5a92ff}
 
 /* Якорь не должен упирать карточку в самый верх окна. */
 .task{scroll-margin-top:18px}
@@ -2513,12 +2511,23 @@ body.dark.trainer-page, html.dark body.trainer-page {
 .trainer-top-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   margin-left: auto;
   /* Шесть элементов подряд не влезают в узкую шапку: без переноса строка
      вылезала за экран и утаскивала за собой всю страницу вбок. */
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+.trainer-top-actions .nav-btn-link { padding: 6px 10px; font-size: 12.5px; }
+.trainer-top-actions .text-button { font-size: 12.5px; }
+
+/* На ноутбуке шапке не хватает двух сотен пикселей, и ряд кнопок падал на
+   вторую строку. Плашка раздела при этом дублирует заголовок страницы,
+   который стоит прямо под ней, — её и убираем первой. */
+@media (max-width: 1240px) {
+  .trainer-page .admin-badge,
+  .exams-page .admin-badge,
+  .mock-page .admin-badge { display: none; }
 }
 
 /* На телефоне ряд действий встаёт отдельной строкой под названием
@@ -2527,6 +2536,9 @@ body.dark.trainer-page, html.dark body.trainer-page {
   /* В три-четыре строки шапка съедает пятую часть экрана телефона.
      Липкой ей быть уже незачем — пусть уезжает вместе со страницей. */
   .admin-topbar { position: static; padding: 10px 12px; gap: 8px; }
+  /* На узком экране логотип с кнопкой обратно встают друг под друга —
+     в строку они занимают больше половины ширины. */
+  .topbar-brand-wrap { flex-direction: column; align-items: flex-start; gap: 4px; }
   .admin-topbar .admin-badge { margin-right: 0; font-size: 11px; padding: 4px 9px; }
   .admin-topbar .brand { font-size: 17px; }
   .admin-topbar .brand-mark { width: 32px; height: 32px; }

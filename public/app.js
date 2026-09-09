@@ -433,6 +433,13 @@ function renderHubSidebar() {
           <span>${escapeHtml(tr('nav_mock_exams_desc'))}</span>
         </div>
       </a>
+      <a class="sidebar-track-card${location.pathname.startsWith('/control-work') ? ' active' : ''}" href="/control-works" title="${escapeHtml(tr('nav_control_works'))}">
+        <div class="track-card-badge teal">📝</div>
+        <div class="track-card-body">
+          <strong>${escapeHtml(tr('nav_control_works'))}</strong>
+          <span>${escapeHtml(tr('nav_control_works_desc'))}</span>
+        </div>
+      </a>
     </div>
   `;
 
@@ -1336,6 +1343,10 @@ function renderTopicGroups(container, groups) {
 
 /* ── Главная ──────────────────────────────────────────────────────── */
 
+/* Заголовки разделов главной считает этот код, а не data-i18n: к названию
+   добавляется выбранный класс. Атрибуты у них сняты — иначе автоперевод
+   на DOMContentLoaded затирал «Темы — 9 класс» обратно на «Популярные
+   темы», и класс из заголовка пропадал. */
 function renderHeadings() {
   const tr = window.MathTasks.t || (k => k);
   const suffix = selectedGrade ? ` — ${gradeLabel(selectedGrade)}` : '';
@@ -1352,12 +1363,11 @@ function renderGradeActions() {
   if (!selectedGrade) { box.hidden = true; box.innerHTML = ''; return; }
   const topics = topicsForGrade(allTopics);
   const total = topics.reduce((sum, t) => sum + (taskCounts.get(t.id) || 0), 0);
-  box.innerHTML = `<a class="grade-action" href="/grade/${encodeURIComponent(selectedGrade)}/tasks">
-      <span class="grade-action-icon" aria-hidden="true">∑</span>
-      <span class="grade-action-body">
-        <strong>${escapeHtml(tr('grade_solve_all', { grade: gradeLabel(selectedGrade) }))}</strong>
-        <span>${escapeHtml(tr('grade_solve_all_hint', { count: total, topics: topics.length }))}</span>
-      </span>
+  /* Пустому классу предлагать «решать всё» незачем — вести некуда. */
+  if (!total) { box.hidden = true; box.innerHTML = ''; return; }
+  box.innerHTML = `<a class="grade-action" href="/grade/${encodeURIComponent(selectedGrade)}/tasks"
+      title="${escapeHtml(tr('grade_solve_all_hint', { count: total, topics: topics.length }))}">
+      ${escapeHtml(tr('grade_solve_all_short', { count: total }))} →
     </a>`;
   box.hidden = false;
 }
