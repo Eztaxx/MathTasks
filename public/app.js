@@ -4083,7 +4083,12 @@ async function refreshSession() {
   /* Регистрации для учеников нет, и делать им в аккаунте пока нечего,
      поэтому «Личный кабинет» из интерфейса убран. Вошедший без прав всё же
      видит диалог — иначе ему нечем было бы выйти. */
-  accountButton.textContent = user ? (isAdmin ? (window.MathTasks.t || (k => k))('account_admin') : (window.MathTasks.t || (k => k))('account_plain')) : (window.MathTasks.t || (k => k))('account_signin');
+  /* Кнопка в шапке открывает диалог аккаунта, а не админку, — и называться
+     должна аккаунтом. Раньше у вошедшего администратора она подписывалась
+     «Админ-панель», хотя вела в диалог, где лежала вторая кнопка с тем же
+     названием. Имя «Админ-панель» теперь ровно одно и ровно там, где оно
+     действительно открывает панель. */
+  accountButton.textContent = (window.MathTasks.t || (k => k))(user ? 'account_plain' : 'account_signin');
   accountEmail.textContent = user?.email || '';
   accountStatus.textContent = !user ? ''
     : isAdmin ? 'Вы вошли как администратор. Панель управления на отдельной странице.'
