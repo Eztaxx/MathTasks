@@ -1639,7 +1639,7 @@ const formatSubtopicSummary = (subCount, taskCount, lang = 'ru') => {
     : `${subCount} • ${taskCount}`;
 };
 
-/* Красивая и информативная панель подтем (Skola2030) над списком задач */
+/* Компактная, элегантная и выразительная панель подтем (Skola2030) */
 function renderSubtopicNav(topic, activeSubtopicId = null) {
   if (!listSubtopics) return;
   const list = subtopicsOf(topic.id);
@@ -1650,69 +1650,49 @@ function renderSubtopicNav(topic, activeSubtopicId = null) {
 
   const isAllActive = !activeSubtopicId;
   const summaryText = formatSubtopicSummary(list.length, total, lang);
-  const tasksUnit = tr('tasks_unit') || (lang === 'lv' ? 'uzd.' : 'зад.');
-  const activeLabel = tr('subtopic_active_state') || (lang === 'lv' ? '✓ Aktīva' : '✓ Активна');
 
-  const allCard = `<a class="subtopic-all-btn${isAllActive ? ' active' : ''}" href="/topic/${encodeURIComponent(topic.slug)}">
-    <div class="subtopic-all-main">
-      <span class="subtopic-all-icon" aria-hidden="true">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
-          <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
-          <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-          <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-        </svg>
-      </span>
-      <div class="subtopic-all-text">
-        <span class="subtopic-all-title">${escapeHtml(tr('subtopic_all'))}</span>
-        <span class="subtopic-all-desc">${escapeHtml(tr('subtopic_all_desc'))}</span>
-      </div>
-    </div>
-    <div class="subtopic-all-meta">
-      <span class="subtopic-count-badge">${total} <small>${escapeHtml(tasksUnit)}</small></span>
-      ${isAllActive ? `<span class="subtopic-status-badge">${escapeHtml(activeLabel)}</span>` : ''}
-    </div>
+  const allPill = `<a class="subtopic-pill subtopic-pill-all${isAllActive ? ' active' : ''}" href="/topic/${encodeURIComponent(topic.slug)}" title="${escapeHtml(tr('subtopic_all'))}">
+    <span class="subtopic-pill-icon" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+      </svg>
+    </span>
+    <span class="subtopic-pill-title">${escapeHtml(tr('subtopic_all'))}</span>
+    <span class="subtopic-pill-count">${total}</span>
   </a>`;
 
-  const cards = list.map(s => {
+  const pills = list.map(s => {
     const count = subtopicCounts.get(s.id) || 0;
     const isActive = s.id === activeSubtopicId;
     const code = subtopicCode(s, topic);
-    return `<a class="subtopic-card${isActive ? ' active' : ''}${count ? '' : ' empty'}" href="/subtopic/${encodeURIComponent(s.slug)}" title="${escapeHtml(subtopicTitle(s, topic))}">
-      <div class="subtopic-card-top">
-        <span class="subtopic-card-code">${escapeHtml(code)}</span>
-        <span class="subtopic-card-count">${count} <small>${escapeHtml(tasksUnit)}</small></span>
-      </div>
-      <div class="subtopic-card-title">${escapeHtml(loc(s, 'title'))}</div>
-      ${isActive ? `<div class="subtopic-card-footer"><span class="subtopic-status-badge">${escapeHtml(activeLabel)}</span></div>` : ''}
+    return `<a class="subtopic-pill${isActive ? ' active' : ''}${count ? '' : ' empty'}" href="/subtopic/${encodeURIComponent(s.slug)}" title="${escapeHtml(subtopicTitle(s, topic))}">
+      <span class="subtopic-pill-code">${escapeHtml(code)}</span>
+      <span class="subtopic-pill-title">${escapeHtml(loc(s, 'title'))}</span>
+      <span class="subtopic-pill-count">${count}</span>
     </a>`;
   }).join('');
 
   listSubtopics.innerHTML = `
-    <div class="subtopic-box">
-      <div class="subtopic-header">
-        <div class="subtopic-header-title-wrap">
-          <span class="subtopic-icon-badge" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="subtopic-panel">
+      <div class="subtopic-panel-header">
+        <div class="subtopic-panel-title-group">
+          <span class="subtopic-panel-icon" aria-hidden="true">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
             </svg>
           </span>
-          <div>
-            <h3 class="subtopic-heading">${escapeHtml(tr('subtopics_title'))}</h3>
-            <span class="subtopic-summary">${escapeHtml(summaryText)}</span>
-          </div>
+          <span class="subtopic-panel-name">${escapeHtml(tr('subtopics_title'))}</span>
+          <span class="subtopic-panel-summary">${escapeHtml(summaryText)}</span>
         </div>
-        <span class="subtopic-tag">Skola2030</span>
+        <span class="subtopic-panel-tag">Skola2030</span>
       </div>
-      <div class="subtopic-master-row">
-        ${allCard}
-      </div>
-      <div class="subtopic-grid-heading">
-        <span class="subtopic-grid-label">${escapeHtml(tr('subtopics_grid_label'))}</span>
-      </div>
-      <div class="subtopics-grid">
-        ${cards}
+      <div class="subtopic-pills">
+        ${allPill}
+        ${pills}
       </div>
     </div>
   `;
