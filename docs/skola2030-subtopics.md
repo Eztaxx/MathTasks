@@ -898,473 +898,168 @@
 
 ## 11 класс
 
-### 11.1. Действительные числа и преобразование выражений
+### 11.1. Разложение на множители и методы решения уравнений
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.1.1` | Множество действительных чисел | Reālo skaitļu kopas |
-| `11.1.2` | Арифметические операции с корнями и степенями | Aritmētiskās darbības ar saknēm un pakāpēm |
-| `11.1.3` | Тождественные преобразования иррациональных выражений | Irracionālu izteiksmju identiskie pārveidojumi |
-| `11.1.4` | Оценка погрешностей и приближенные вычисления | Kļūdu novērtēšana un tuvinātie aprēķini |
+| `11.1.1` | Действительные числа и преобразование выражений | Reālie skaitļi un izteiksmju pārveidošana |
+| `11.1.2` | Линейные и квадратные уравнения, их системы | Lineāri un kvadrātvienādojumi, to sistēmas |
+| `11.1.3` | Уравнения и неравенства с модулем | Moduļa vienādojumi un nevienādības |
 
-### 11.2. Линейные и квадратные уравнения, их системы
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.2.1` | Решение линейных уравнений и систем | Lineāru vienādojumu un to sistēmu risināšana |
-| `11.2.2` | Квадратные уравнения и формула корней | Kvadrātvienādojumi un sakņu formula |
-| `11.2.3` | Теорема Виета и разложение квадратного трехчлена | Vijeta teorēma un kvadrāttrinoma sadalīšana reizinātājos |
-| `11.2.4` | Системы нелинейных уравнений | Nelineāru vienādojumu sistēmas |
-
-### 11.3. Неравенства и метод интервалов
+### 11.2. Алгебраические дроби
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.3.1` | Линейные и квадратные неравенства | Lineāras un kvadrātnevienādības |
-| `11.3.2` | Интервальное представление числовых множеств | Skaitļu kopu attēlošana intervālu veidā |
-| `11.3.3` | Метод интервалов для рациональных неравенств | Intervālu metode racionālām nevienādībām |
-| `11.3.4` | Системы неравенств с одной переменной | Nevienādību sistēmas ar vienu mainīgo |
+| `11.2.1` | Алгебраические дроби и действия с ними | Algebriskās daļas un darbības ar tām |
 
-### 11.4. Алгебраические дроби и действия с ними
+### 11.3. Дробные уравнения
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.4.1` | Область допустимых значений алгебраической дроби | Algebriskas daļas pieļaujamo vērtību apgabals |
-| `11.4.2` | Сокращение дробей и приведение к общему знаменателю | Daļu saīsināšana un novēšana no kopīga saucēja |
-| `11.4.3` | Сложение и вычитание алгебраических дробей | Algebrisku daļu saskaitīšana un atņemšana |
-| `11.4.4` | Умножение и деление алгебраических дробей | Algebrisku daļu reizināšana un dalīšana |
+| `11.3.1` | Дробно-рациональные уравнения и неравенства | Daļveida racionāli vienādojumi un nevienādības |
 
-### 11.5. Дробно-рациональные уравнения и неравенства
+### 11.4. Системы уравнений
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.5.1` | Дробно-рациональные уравнения | Daļveida racionāli vienādojumi |
-| `11.5.2` | Посторонние корни и проверка ОДЗ | Svešas saknes un PVA pārbaude |
-| `11.5.3` | Дробно-рациональные неравенства | Daļveida racionālas nevienādības |
-| `11.5.4` | Текстовые задачи с рациональными уравнениями | Teksta uzdevumi ar racionāliem vienādojumiem |
 
-### 11.6. Корень n-й степени и степень с рациональным показателем
+### 11.5. Дробные неравенства и системы неравенств
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.6.1` | Понятие корня n-й степени и его свойства | N-tās pakāpes saknes jēdziens un tās īpašības |
-| `11.6.2` | Преобразование числовых и буквенных выражений с корнями | Skaitlisku un burtisku izteikšu pārveidojumi ar saknēm |
-| `11.6.3` | Степень с рациональным показателем и ее свойства | Pakāpe ar racionālu kāpinātāju un tās īpašības |
-| `11.6.4` | Упрощение выражений со степенями | Izteikšu vienkārsošana ar pakāpēm |
+| `11.5.1` | Неравенства и метод интервалов | Nevienādības un intervālu metode |
 
-### 11.7. Последовательности, арифметическая и геометрическая прогрессия
+### 11.6. Расширение понятия угла, планиметрия
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.7.1` | Понятие числовой последовательности и способы ее задания | Skaitļu virknes jēdziens un tās uzdošanas veidi |
-| `11.7.2` | Арифметическая прогрессия, формула n-го члена и суммы | Aritmētiskā progresija, n-tā locekļa un summas formula |
-| `11.7.3` | Геометрическая прогрессия, формула n-го члена и суммы | Ģeometriskā progresija, n-tā locekļa un summas formula |
-| `11.7.4` | Применение прогрессий для решения практических задач | Progresiju lietojums praktisku uzdevumu risināšanā |
+| `11.6.1` | Соотношения в прямоугольном треугольнике (повторение) | Sakarības taisnleņķa trijstūrī (atkārtojums) |
+| `11.6.2` | Угол поворота, радианы и единичная окружность | Pagrieziena leņķis, radiāni un vienības riņķa līnija |
+| `11.6.3` | Теорема синусов и теорема косинусов | Sinusu un kosinusu teorēma |
+| `11.6.4` | Равенство и подобие треугольников (повторение) | Trijstūru vienādība un līdzība (atkārtojums) |
+| `11.6.5` | Геометрические преобразования плоскости | Ģeometriskie pārveidojumi: simetrija, pagrieziens, paralēlā pārnese |
+| `11.6.6` | Площади многоугольников | Daudzstūru laukumi |
+| `11.6.7` | Окружность: центральные и вписанные углы, касательные | Riņķa līnija: leņķi, pieskares, ievilktie daudzstūri |
+| `11.6.8` | Вписанная и описанная окружность треугольника | Trijstūrī ievilktā un apvilktā riņķa līnija |
 
-### 11.8. Показательные уравнения и неравенства
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.8.1` | Свойства показательной функции и ее график | Eksponentfunkcijas īpašības un tās grafiks |
-| `11.8.2` | Простейшие показательные уравнения | Vienkāršākie eksponentvienādojumi |
-| `11.8.3` | Методы решения показательных уравнений | Eksponentvienādojumu risināšanas metodes |
-| `11.8.4` | Показательные неравенства | Eksponentnevienādības |
-
-### 11.9. Логарифм и логарифмические уравнения
+### 11.7. Функция, её свойства и преобразования графика
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.9.1` | Понятие логарифма и его основные свойства | Logaritma jēdziens un tā pamata īpašības |
-| `11.9.2` | Преобразование логарифмических выражений | Logaritmisku izteikšu pārveidojumi |
-| `11.9.3` | Простейшие логарифмические уравнения | Vienkāršākie logaritmiskie vienādojumi |
-| `11.9.4` | Методы решения логарифмических уравнений | Logarisko vienādojumu risināšanas metodes |
+| `11.7.1` | Понятие функции, область определения и область значений | Funkcijas jēdziens, definīcijas un vērtību kopa |
+| `11.7.2` | Линейная функция и её график | Lineāra funkcija un tās grafiks |
+| `11.7.3` | Квадратичная функция и вершина параболы | Kvadrātfunkcija un parabolas virsotne |
+| `11.7.4` | Свойства функций: монотонность, нули, экстремумы | Funkciju īpašības: monotonitāte, nulles, ekstrēmi |
+| `11.7.5` | Дробно-линейная функция y = k/x | Daļveida racionāla funkcija y = k/x |
+| `11.7.6` | Преобразования графиков функций | Funkciju grafiku transformācijas |
+| `11.7.7` | Математическое моделирование с помощью функций | Matemātiskā modelēšana ar funkcijām |
 
-### 11.10. Уравнения и неравенства с модулем
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.10.1` | Геометрический смысл модуля числа | Skaitļa moduļa ģeometriskā jēga |
-| `11.10.2` | Уравнения, содержащие знак модуля | Vienādojumi, kas satur moduļa zīmi |
-| `11.10.3` | Простейшие неравенства с модулем | Vienkāršākie nevienādības ar moduli |
-| `11.10.4` | Системы и нестандартные уравнения с модулем | Sistēmas un nestandarta vienādojumi ar moduli |
-
-### 11.11. Понятие функции, область определения и область значений
+### 11.8. Тригонометрические функции
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.11.1` | Понятие функции и способы ее задания | Funkcijas jēdziens un tās uzdošanas veidi |
-| `11.11.2` | Область определения функции | Funkcijas definīcijas kopa |
-| `11.11.3` | Множество значений функции | Funkcijas vērtību kopa |
-| `11.11.4` | Исследование графика функции и ее свойств | Funkcijas grafika un tās īpašību pētīšana |
+| `11.8.1` | Функции синуса и косинуса, их свойства | Sinusa un kosinusa funkcijas, to īpašības |
 
-### 11.12. Линейная функция и её график
+### 11.9. Тригонометрические выражения
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.12.1` | Определение и геометрический смысл коэффициентов линейной функции | Lineāras funkcijas definīcija un koeficientu ģeometriskā jēga |
-| `11.12.2` | Построение графика линейной функции по точкам и с помощью углового коэффициента | Lineāras funkcijas grafika zīmēšana pēc punktiem un izmantojot virzienkoeficientu |
-| `11.12.3` | Нахождение уравнения прямой по двум точкам или угловому коэффициенту | Taisnes vienādojuma sastādīšana pēc diviem punktiem vai virzienkoeficienta |
-| `11.12.4` | Взаимное расположение графиков двух линейных функций | Divu lineāru funkciju grafiku savstarpējais novietojums |
-| `11.12.5` | Применение линейной функции для моделирования практических задач | Lineāras funkcijas lietojums praktisku uzdevumu modelēšanā |
+| `11.9.1` | Основное тригонометрическое тождество | Trigonometriskā pamatidentitāte |
+| `11.9.2` | Формулы сложения и двойного угла | Argumentu summas un divkāršā argumenta formulas |
+| `11.9.3` | Преобразование тригонометрических выражений | Trigonometrisko izteiksmju pārveidošana |
 
-### 11.13. Квадратичная функция и вершина параболы
+### 11.10. Тригонометрические уравнения
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.13.1` | Общий и канонический вид квадратичной функции | Kvadrātfunkcijas vispārīgais un kanoniskais veids |
-| `11.13.2` | Нахождение координат вершины и оси симметрии параболы | Parabolas virsotnes koordinātu un simetrijas ass atrašana |
-| `11.13.3` | Построение графиков параболы с помощью преобразований | Parabolas grafiku zīmēšana, izmantojot pārveidojumus |
-| `11.13.4` | Нули функции и точки пересечения с осями координат | Funkcijas nulles un krustpunkti ar koordinātu asīm |
-| `11.13.5` | Применение квадратичной функции для нахождения наибольшего и наименьшего значения | Kvadrātfunkcijas lietojums lielākās un mazākās vērtības atrašanā |
+| `11.10.1` | Простейшие тригонометрические уравнения | Pamatvienādojumi sin x = a, cos x = a |
 
-### 11.14. Свойства функций: монотонность, нули, экстремумы
+### 11.11. Векторы
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.14.1` | Область определения и область значений функции | Funkcijas definīcijas apgabals un vērtību apgabals |
-| `11.14.2` | Нули функции и промежутки знакопостоянства | Funkcijas nulles un zīmi mainīgie intervāli |
-| `11.14.3` | Исследование функции на возрастание и убывание | Funkcijas pētīšana par augšanu un dilšanu |
-| `11.14.4` | Экстремумы функции: локальный максимум и минимум | Funkcijas ekstrēmi: lokālais maksimums un minimums |
-| `11.14.5` | Чтение свойств функции по её графику | Funkcijas īpašību nolasīšana no tās grafika |
+| `11.11.1` | Векторы на плоскости и действия с ними | Vektori plaknē un darbības ar tiem |
+| `11.11.2` | Координаты векторов и скалярное произведение | Vektoru koordinātas un skalārais reizinājums |
+| `11.11.3` | Векторы в пространстве | Vektori telpā |
 
-### 11.15. Дробно-линейная функция y = k/x
+### 11.12. Уравнение линии, неравенства с двумя переменными
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.15.1` | Определение и свойства обратной пропорциональности | Apgrieztās proporcionalitātes definīcija un īpašības |
-| `11.15.2` | Построение гиперболы и её асимптоты | Hyperbolas zīmēšana un tās asimptotas |
-| `11.15.3` | Влияние коэффициента k на расположение ветвей гиперболы | Koeficienta k ietekme uz hiperbolas zariem |
-| `11.15.4` | Решение дробно-линейных уравнений и неравенств графически | Daļveida racionālu vienādojumu un nevienādību grafiska risināšana |
+| `11.12.1` | Уравнение прямой, параллельные и перпендикулярные прямые | Taisnes vienādojums, paralēlas un perpendikulāras taisnes |
+| `11.12.2` | Уравнение окружности | Riņķa līnijas vienādojums |
 
-### 11.16. Степенная функция
+### 11.13. Степень с рациональным показателем, прогрессии
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.16.1` | Понятие степенной функции с натуральным и целым показателем | Pakāpes funkcijas jēdziens ar naturālu un veselu kāpinātāju |
-| `11.16.2` | Степенная функция с рациональным показателем и её корень | Pakāpes funkcija ar racionālu kāpinātāju un tās sakne |
-| `11.16.3` | Графики и свойства степенных функций в зависимости от показателя | Pakāpes funkciju grafiki un īpašības atkarībā no kāpinātāja |
-| `11.16.4` | Сравнение значений степенных функций | Pakāpes funkciju vērtību salīdzināšana |
+| `11.13.1` | Корень n-й степени и степень с рациональным показателем | N-tās pakāpes sakne un pakāpe ar racionālu kāpinātāju |
+| `11.13.2` | Последовательности, арифметическая и геометрическая прогрессия | Virknes, aritmētiskā un ģeometriskā progresija |
+| `11.13.3` | Степенная функция | Pakāpes funkcija |
 
-### 11.17. Показательная функция и экспоненциальные процессы
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.17.1` | Определение показательной функции и её свойства | Eksponentfunkcijas definīcija un tās īpašības |
-| `11.17.2` | Построение графика показательной функции | Eksponentfunkcijas grafika zīmēšana |
-| `11.17.3` | Простейшие показательные уравнения и неравенства | Vienkāršākie eksponentvienādojumi un nevienādības |
-| `11.17.4` | Моделирование экспоненциального роста и убывания в реальных процессах | Eksponenciālās augšanas un dilšanas modelēšana reālos procesos |
-
-### 11.18. Логарифмическая функция
+### 11.14. Показательная функция и логарифм
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.18.1` | Понятие логарифма и его свойства | Logaritma jēdziens un tā īpašības |
-| `11.18.2` | Логарифмическая функция и ее график | Logaritmiskā funkcija un tās grafiks |
-| `11.18.3` | Свойства логарифмической функции | Logaritmiskās funkcijas īpašības |
-| `11.18.4` | Решение простейших логарифмических уравнений | Vienkāršāko logaritmisko vienādojumu risināšana |
+| `11.14.1` | Логарифм и логарифмические уравнения | Logaritms, logaritmiskie vienādojumi |
+| `11.14.2` | Показательная функция и экспоненциальные процессы | Eksponentfunkcija un eksponenciāli procesi |
+| `11.14.3` | Логарифмическая функция | Logaritmiskā funkcija |
 
-### 11.19. Преобразования графиков функций
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.19.1` | Параллельный перенос графиков функций | Funkciju grafiku paralēlā nobīde |
-| `11.19.2` | Растяжение и сжатие графиков функций | Funkciju grafiku stiepšana un spiešana |
-| `11.19.3` | Отражение графиков функций относительно осей координат | Funkciju grafiku atspoguļojums pret koordinātu asīm |
-| `11.19.4` | Преобразования графиков сложных функций | Saliktu funkciju grafiku transformācijas |
-
-### 11.20. Математическое моделирование с помощью функций
+### 11.15. Показательные уравнения и неравенства
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.20.1` | Составление функциональных зависимостей по текстовым условиям | Funkcionālo sakarību sastādīšana pēc teksta uzdevumu datiem |
-| `11.20.2` | Исследование математических моделей с помощью функций | Matemātisko modeļu pētīšana, izmantojot funkcijas |
-| `11.20.3` | Нахождение наибольшего и наименьшего значений в прикладных задачах | Lielākās un mazākās vērtības atrašana lietišķajos uzdevumos |
-| `11.20.4` | Интерпретация результатов математического моделирования | Matemātiskās modelēšanas rezultātu interpretācija |
+| `11.15.1` | Показательные уравнения и неравенства | Eksponentvienādojumi un eksponentnevienādības |
 
-### 11.21. Соотношения в прямоугольном треугольнике (повторение)
+### 11.16. Прямые и плоскости в пространстве
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.21.1` | Тригонометрические функции острого угла | Šaurā leņķa trigonometriskās funkcijas |
-| `11.21.2` | Вычисление элементов прямоугольного треугольника | Taisnleņķa trijstūra elementu aprēķināšana |
-| `11.21.3` | Применение теоремы Пифагора | Pitagora teorēmas lietojums |
-| `11.21.4` | Решение прикладных задач с прямоугольными треугольниками | Lietišķo uzdevumu risināšana ar taisnleņķa trijstūriem |
+| `11.16.1` | Прямые и плоскости в пространстве | Taisnes un plaknes telpā, to savstarpējais novietojums |
 
-### 11.22. Угол поворота, радианы и единичная окружность
+### 11.17. Многогранники
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.22.1` | Угол поворота и его градусная мера | Pagrieziena leņķis un tā grādu mērs |
-| `11.22.2` | Радианная мера угла | Leņķa radiānu mērs |
-| `11.22.3` | Единичная окружность и координаты точек | Vienības riņķa līnija un punktu koordinātas |
-| `11.22.4` | Определение тригонометрических функций для любого угла | Trigonometrisko funkciju definīcija jebkuram leņķim |
+| `11.17.1` | Многогранники и их сечения плоскостью | Daudzskaldņi, to elementi un šķēlums ar plakni |
+| `11.17.2` | Призма: площадь поверхности и объем | Prizma: virsmas laukums un tilpums |
+| `11.17.3` | Пирамида: правильная и произвольная | Piramīda: regulāra un neregulāra |
 
-### 11.23. Функции синуса и косинуса, их свойства
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.23.1` | Графики функций синуса и косинуса | Sinusa un kosinusa funkciju grafiki |
-| `11.23.2` | Область определения и множества значений | Definīcijas apgabals un vērtību apgabals |
-| `11.23.3` | Четность, нечетность и периодичность | Pāra, nepāra funkcijas un periodiskums |
-| `11.23.4` | Преобразования тригонометрических графиков | Trigonometrisko grafiku transformācijas |
-
-### 11.24. Основное тригонометрическое тождество
+### 11.18. Тела вращения и комбинации геометрических тел
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.24.1` | Связь между синусом и косинусом одного угла | Saistība starp viena leņķa sinusu un kosinusu |
-| `11.24.2` | Вычисление значения тригонометрической функции через основное тождество | Trigonometriskās funkcijas vērtības aprēķināšana, izmantojot pamatidentitāti |
-| `11.24.3` | Упрощение тригонометрических выражений с использованием единичной окружности | Trigonometrisko izteiksmju vienkārsošana, izmantojot vienības riņķi |
+| `11.18.1` | Цилиндр | Cilindrs |
+| `11.18.2` | Конус | Konuss |
+| `11.18.3` | Шар и сфера | Lode un sfēra |
+| `11.18.4` | Стереометрия: тела вращения и пирамиды | Stereometrija: rotācijas ķermeņi un piramīdas |
 
-### 11.25. Теорема синусов и теорема косинусов
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.25.1` | Применение теоремы синусов для нахождения сторон и углов | Sinusu teorēmas lietojums malu un leņķu aprēķināšanai |
-| `11.25.2` | Применение теоремы косинусов для нахождения сторон и углов | Kosinusu teorēmas lietojums malu un leņķu aprēķināšanai |
-| `11.25.3` | Вычисление площади треугольника по двум сторонам и углу между ними | Trijstūra laukuma aprēķināšana pēc divām malām un leņķa starp tām |
-| `11.25.4` | Комплексные задачи на треугольники с использованием обеих теорем | Kompleksi uzdevumi par trijstūriem, izmantojot abas teorēmas |
-
-### 11.26. Формулы сложения и двойного угла
+### 11.19. Элементы теории множеств и комбинаторика
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.26.1` | Формулы синуса и косинуса суммы и разности аргументов | Argumentu summas un starpības sinusa un kosinusa formulas |
-| `11.26.2` | Формулы двойного угла для синуса, косинуса и тангенса | Sinusa, kosinusa un tangensa divkāršā argumenta formulas |
-| `11.26.3` | Вычисление точных значений тригонометрических выражений | Trigonometrisko izteiksmju precīzu vērtību aprēķināšana |
+| `11.19.1` | Множества и операции над множествами | Kopas un darbības ar kopām |
+| `11.19.2` | Основные принципы комбинаторики | Kombinatorikas pamatprincipi |
+| `11.19.3` | Перестановки, сочетания и размещения | Permutācijas, kombinācijas un variācijas |
 
-### 11.27. Преобразование тригонометрических выражений
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.27.1` | Тождественные преобразования тригонометрических выражений | Trigonometrisko izteiksmju identiskie pārveidojumi |
-| `11.27.2` | Разложение тригонометрических выражений на множители | Trigonometrisko izteiksmju sadalīšana reizinātājos |
-| `11.27.3` | Доказательство тригонометрических тождеств | Trigonometrisko identitāšu pierādīšana |
-
-### 11.28. Простейшие тригонометрические уравнения
+### 11.20. Теория вероятностей
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.28.1` | Решение простейших уравнений с синусом | Vienkāršāko vienādojumu ar sinusu risināšana |
-| `11.28.2` | Решение простейших уравнений с косинусом | Vienkāršāko vienādojumu ar kosinusu risināšana |
-| `11.28.3` | Решение простейших уравнений с тангенсом и котангенсом | Vienkāršāko vienādojumu ar tangensu un kotangensu risināšana |
-| `11.28.4` | Нахождение корней тригонометрического уравнения на заданном интервале | Trigonometriskā vienādojuma sakņu atrašana dotajā intervālā |
+| `11.20.1` | Классическое определение вероятности | Klasiskā varbūtība un pilna pārlase |
+| `11.20.2` | Сложение вероятностей и условная вероятность | Summas varbūtība un nosacītā varbūtība |
 
-### 11.29. Равенство и подобие треугольников (повторение)
+### 11.21. Статистика
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.29.1` | Признаки равенства треугольников | Trijstūru vienādības pazīmes |
-| `11.29.2` | Признаки подобия треугольников | Trijstūru līdzības pazīmes |
-| `11.29.3` | Отношение площадей и периметров подобных треугольников | Līdzīgu trijstūru laukumu un perimetru attiecība |
-| `11.29.4` | Геометрические задачи на доказательство подобия | Ģeometriskie uzdevumi par līdzības pierādīšanu |
+| `11.21.1` | Генеральная совокупность, выборка и средние величины | Populācija, izlase un vidējie lielumi |
+| `11.21.2` | Меры рассеяния и графическое представление данных | Izkliedes mēri un datu grafiska attēlošana |
 
-### 11.30. Геометрические преобразования плоскости
+### 11.22. Обобщение курса Математика I
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `11.30.1` | Параллельный перенос на плоскости | Paralēlā pārnese plaknē |
-| `11.30.2` | Осевая и центральная симметрия | Ass simetrija un centrālā simetrija |
-| `11.30.3` | Поворот фигуры вокруг точки | Figūras pagrieziens ap punktu |
-| `11.30.4` | Комбинация геометрических преобразований | Ģeometrisko pārveidojumu kombinācija |
-
-### 11.31. Площади многоугольников
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.31.1` | Формулы площади треугольника и параллелограмма | Trijstūra un paralelograma laukuma formulas |
-| `11.31.2` | Площадь трапеции и произвольного многоугольника | Trapeces un patvaļīga daudzstūra laukums |
-| `11.31.3` | Отношение площадей подобных фигур | Līdzīgu figūru laukumu attiecība |
-
-### 11.32. Окружность: центральные и вписанные углы, касательные
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.32.1` | Центральные и вписанные углы | Centra leņķi un ievilktie leņķi |
-| `11.32.2` | Свойства касательной к окружности | Riņķa līnijas pieskares īpašības |
-| `11.32.3` | Углы между хордами, секущими и касательными | Leņķi starp hordām, sekantēm un pieskarēm |
-| `11.32.4` | Многоугольники, вписанные в окружность и описанные около нее | Riņķa līnijā ievilktie un apvilktie daudzstūri |
-
-### 11.33. Вписанная и описанная окружность треугольника
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.33.1` | Центр вписанной окружности и биссектрисы треугольника | Ievilktās riņķa līnijas centrs un trijstūra bisektrises |
-| `11.33.2` | Центр описанной окружности и серединные перпендикуляры | Apvilktās riņķa līnijas centrs un malas vidusperpendikuli |
-| `11.33.3` | Радиусы вписанной и описанной окружностей треугольника | Trijstūrī ievilktās un apvilktās riņķa līnijas rādiusi |
-
-### 11.34. Векторы на плоскости и действия с ними
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.34.1` | Понятие вектора и равенство векторов | Vektora jēdziens un vektoru vienādība |
-| `11.34.2` | Сложение и вычитание векторов геометрически | Vektoru saskaitīšana un atņemšana ģeometriski |
-| `11.34.3` | Умножение вектора на число | Vektora reizināšana ar skaitli |
-| `11.34.4` | Разложение вектора по двум неколлинеарным векторам | Vektora sadalīšana divos nekolineāros vektoros |
-
-### 11.35. Координаты векторов и скалярное произведение
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.35.1` | Координаты вектора и его длина | Vektora koordinātas un tā garums |
-| `11.35.2` | Действия с векторами в координатах | Darbības ar vektoriem koordinātās |
-| `11.35.3` | Скалярное произведение векторов | Vektoru skalārais reizinājums |
-| `11.35.4` | Угол между векторами с помощью скалярного произведения | Leņķis starp vektoriem, izmantojot skalāro reizinājumu |
-
-### 11.36. Уравнение прямой, параллельные и перпендикулярные прямые
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.36.1` | Угловой коэффициент и точка на прямой | Virziena koeficients un punkts uz taisnes |
-| `11.36.2` | Уравнение прямой по двум точкам | Taisnes vienādojums caur diviem punktiem |
-| `11.36.3` | Условия параллельности прямых | Taisņu paralelitātes nosacījumi |
-| `11.36.4` | Условия перпендикулярности прямых | Taisņu perpendikularitātes nosacījumi |
-
-### 11.37. Уравнение окружности
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.37.1` | Каноническое уравнение окружности | Riņķa līnijas kanoniskais vienādojums |
-| `11.37.2` | Нахождение центра и радиуса | Centra un rādiusa noteikšana |
-| `11.37.3` | Взаимное расположение прямой и окружности | Taisnes un riņķa līnijas savstarpējais novietojums |
-
-### 11.38. Прямые и плоскости в пространстве
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.38.1` | Взаимное расположение прямых в пространстве | Taisņu savstarpējais novietojums telpā |
-| `11.38.2` | Взаимное расположение прямой и плоскости | Taisnes un plaknes savstarpējais novietojums |
-| `11.38.3` | Взаимное расположение плоскостей | Plakņu savstarpējais novietojums |
-| `11.38.4` | Угол между прямой и плоскостью | Leņķis starp taisni un plakni |
-
-### 11.39. Многогранники и их сечения плоскостью
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.39.1` | Элементы многогранников | Daudzskaldņu elementi |
-| `11.39.2` | Построение сечений плоскостью | Šķēlumu veidošana ar plakni |
-| `11.39.3` | Визуализация и расчеты в сечениях | Vizualizācija un aprēķini šķēlumos |
-
-### 11.40. Призма: площадь поверхности и объем
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.40.1` | Элементы и виды призм | Prismu elementi un veidi |
-| `11.40.2` | Площадь полной поверхности призмы | Prizmas pilnās virsmas laukums |
-| `11.40.3` | Объем призмы | Prizmas tilpums |
-
-### 11.41. Пирамида: правильная и произвольная
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.41.1` | Элементы и виды пирамид | Piramīdu elementi un veidi |
-| `11.41.2` | Правильная пирамида и ее апофема | Regulāra piramīda un tās apotēma |
-| `11.41.3` | Площадь поверхности пирамиды | Piramīdas virsmas laukums |
-| `11.41.4` | Объем пирамиды | Piramīdas tilpums |
-
-### 11.42. Цилиндр
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.42.1` | Элементы и сечения цилиндра | Cilindra elementi un šķēlumi |
-| `11.42.2` | Площадь поверхности цилиндra | Cilindra virsmas laukums |
-| `11.42.3` | Объем цилиндра | Cilindra tilpums |
-| `11.42.4` | Применение формул цилиндра в задачах | Cilindra formulas lietojums uzdevumos |
-
-### 11.43. Конус
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.43.1` | Элементы и осевое сечение конуса | Kona elementi un ass šķēlums |
-| `11.43.2` | Площадь поверхности конуса | Kona virsmas laukums |
-| `11.43.3` | Объем конуса | Kona tilpums |
-| `11.43.4` | Комбинированные тела с конусом | Kombinēti ķermeņi ar konusu |
-
-### 11.44. Шар и сфера
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.44.1` | Уравнение сферы и взаимное расположение | Sfēras vienādojums un savstarpējais novietojums |
-| `11.44.2` | Площадь сферы | Sfēras virsmas laukums |
-| `11.44.3` | Объем шара и его частей | Lodes un tās daļu tilpums |
-| `11.44.4` | Прикладные задачи на шар и сферу | Lietišķie uzdevumi par lodi un sfēru |
-
-### 11.45. Векторы в пространстве
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.45.1` | Понятие вектора в пространстве и координаты | Vektors telpā un tā koordinātas |
-| `11.45.2` | Линейные операции с векторами в пространстве | Lineārās darbības ar vektoriem telpā |
-| `11.45.3` | Скалярное произведение векторов | Vektoru skalārā reizināšana |
-| `11.45.4` | Угол между векторами в пространстве | Leņķis starp vektoriem telpā |
-
-### 11.46. Множества и операции над множествами
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.46.1` | Способы задания множеств и подмножества | Kopu uzdošanas veidi un apakškopas |
-| `11.46.2` | Операции над множествами | Darbības ar kopām |
-| `11.46.3` | Диаграммы Эйлера-Венна | Eilera-Venna diagrammas |
-| `11.46.4` | Количество элементов объединения множеств | Kopu apvienojuma elementu skaits |
-
-### 11.47. Основные принципы комбинаторики
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.47.1` | Правила суммы и произведения в комбинаторике | Summas un reizinājuma likumi kombinatorikā |
-| `11.47.2` | Перестановки и факториал | Permutācijas un faktoriāls |
-| `11.47.3` | Размещения и сочетания | Variācijas un kombinācijas |
-| `11.47.4` | Решение текстовых комбинаторных задач | Teksta uzdevumu risināšana kombinatorikā |
-
-### 11.48. Перестановки, сочетания и размещения
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.48.1` | Правила суммы и произведения в комбинаторике | Saskaitīšanas un reizināšanas likumi kombinatorikā |
-| `11.48.2` | Перестановки без повторений | Permutācijas bez atkārtošanās |
-| `11.48.3` | Размещения без повторений | Variācijas bez atkārtošanās |
-| `11.48.4` | Сочетания без повторений | Kombinācijas bez atkārtošanās |
-
-### 11.49. Классическое определение вероятности
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.49.1` | Классическое определение вероятности | Klasiskā varbūtība |
-| `11.49.2` | Элементы комбинаторики в расчете вероятностей | Kombinatorikas elementi varbūtību aprēķināšanā |
-| `11.49.3` | Геометрическая вероятность | Ģeometriskā varbūtība |
-
-### 11.50. Сложение вероятностей и условная вероятность
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.50.1` | Сумма несовместных вероятностей | Nesavietojamu notikumu summa |
-| `11.50.2` | Условная вероятность и независимость событий | Nosacītā varbūtība un notikumu neatkarība |
-| `11.50.3` | Умножение вероятностей | Reizinājuma varbūtība |
-
-### 11.51. Генеральная совокупность, выборка и средние величины
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.51.1` | Генеральная совокупность и выборка | Ģenerālkopa un izlase |
-| `11.51.2` | Средние величины выборки | Izlases vidējie lielumi |
-| `11.51.3` | Медиана, мода и размах | Mediāna, moda un amplitūda |
-
-### 11.52. Меры рассеяния и графическое представление данных
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.52.1` | Дисперсия и стандартное отклонение | Dispersija un standartnovirze |
-| `11.52.2` | Графическое представление данных | Datu grafiska attēlošana |
-| `11.52.3` | Анализ и интерпретация статистических данных | Statistisko datu analīze un interpretācija |
-
-### 11.53. Стереометрия: тела вращения и пирамиды
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `11.53.1` | Цилиндр и конус | Cilindrs un konuss |
-| `11.53.2` | Сфера и шар | Sfēra un lodlampa |
-| `11.53.3` | Пирамида и её элементы | Piramīda un tās elementi |
-| `11.53.4` | Объемы и площади поверхности тел | Ķermeņu tilpumi un virsmas laukumi |
 
 
 ## 12 класс

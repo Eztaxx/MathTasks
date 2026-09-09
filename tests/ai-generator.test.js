@@ -40,14 +40,24 @@ describe('Skola2030 Topics Catalog (JSON & Database integrity)', () => {
       /* Номер темы стоит в начале обоих названий: по нему их различают
          и в интерфейсе, и в промпте генератора. */
       expect(topic.title_ru).toMatch(new RegExp(`^${topic.grade}\\.${topic.position}\\. `));
+      /* Числа подтем не требуем: только что заведённая тема программы
+         живёт без них, пока методист их не напишет — это нормальное
+         состояние, а не поломка. Проверяем форму тех, что есть. */
       expect(Array.isArray(topic.subtopics)).toBe(true);
-      expect(topic.subtopics.length).toBeGreaterThan(0);
       topic.subtopics.forEach(sub => {
         expect(sub.num).toMatch(new RegExp(`^${topic.grade}\\.${topic.position}\\.\\d+$`));
         expect(sub.ru.length).toBeGreaterThan(2);
         expect(sub.lv.length).toBeGreaterThan(2);
       });
     });
+  });
+
+  /* Отдельная пары тем без подтем — норма, а вот если подтемы пропали
+     оптом, значит пересборка каталога сломалась и это надо поймать. */
+  it('подтемы есть у подавляющего большинства тем каталога', () => {
+    const content = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    const сПодтемами = content.filter(t => t.subtopics.length > 0).length;
+    expect(сПодтемами / content.length).toBeGreaterThan(0.9);
   });
 
   it('файл seed_skola2030.sql содержит DDL ограничения, 3 раздела и 96 тем', () => {
