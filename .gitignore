@@ -23,3 +23,7 @@ __pycache__/
 # Снимки базы: по мегабайту каждый, в истории репозитория не нужны.
 # Копию за месяц можно положить руками через git add -f.
 docs/backup/snapshots/
+
+# Отчёты разбора задач по подтемам — результат прогона, не исходник
+docs/subtopic-assignment.log
+docs/subtopic-assignment.json
