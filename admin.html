@@ -149,6 +149,46 @@
         </div>
       </div>
 
+      <div class="admin-section" id="section-subtopics">
+        <div class="admin-feature-head">
+          <div class="admin-feature-badge-title">
+            <span class="admin-feature-icon">🧩</span>
+            <div>
+              <h3 class="admin-feature-title" id="subtopic-form-title">Подтемы</h3>
+              <p class="admin-feature-desc">Третий уровень каталога: тема → подтема → задача. Номер вида 7.5.2 показывается на сайте и задаёт порядок.</p>
+            </div>
+          </div>
+        </div>
+
+        <form class="topic-form" id="subtopic-form">
+          <label>Тема<select name="topic_id" id="subtopic-topic-select" required></select></label>
+          <label>Номер <span>например 7.5.2</span><input name="code" id="subtopic-code" placeholder="7.5.2" /></label>
+          <label>Порядок <span>внутри темы</span><input name="position" type="number" value="1" min="1" /></label>
+          <label class="wide">Название (RU)<input name="title" id="subtopic-title-ru" required placeholder="Например: Сумма углов треугольника" /></label>
+          <label class="wide">Nosaukums (LV)<input name="title_lv" id="subtopic-title-lv" placeholder="Piemēram: Trijstūra leņķu summa" /></label>
+          <button class="primary-button" type="submit" id="subtopic-submit">Добавить подтему</button>
+          <button class="text-button" type="button" id="subtopic-cancel" hidden>Отменить</button>
+          <span class="form-success" id="subtopic-success"></span>
+        </form>
+
+        <div class="admin-list-toolbar">
+          <div class="admin-filters-row">
+            <label class="admin-filter-field">
+              <span>Показать подтемы темы</span>
+              <select id="subtopic-filter-topic" class="admin-select-filter">
+                <option value="">Все темы</option>
+              </select>
+            </label>
+            <span class="admin-filter-count" id="subtopic-filter-count"></span>
+          </div>
+        </div>
+        <div class="admin-list-defer" id="subtopic-list-defer">
+          <p>Подтем в базе несколько сотен — список открывается по кнопке.</p>
+          <button class="secondary-button" type="button" id="btn-load-subtopics">Показать подтемы</button>
+        </div>
+        <div class="admin-list" id="subtopic-list" hidden></div>
+      </div>
+
       <!-- 🤖 AI Генератор задач Skola2030 -->
       <div class="admin-section ai-generator-section" id="ai-generator-section">
         <div class="admin-feature-head">

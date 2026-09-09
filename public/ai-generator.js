@@ -543,7 +543,7 @@ ${customPrompt ? `Дополнительные математические тр
    * За один сетевой запрос генерирует массив из нескольких задач (до 10-12 шт.),
    * что в 10 раз быстрее и предотвращает ошибки превышения лимитов 15 RPM.
    */
-  async function callGeminiBatchApi({ onRetry, apiKey, grade, topicTitle, topicsList, count = 10, difficulty = 'mix', taskType, context, customPrompt }) {
+  async function callGeminiBatchApi({ onRetry, apiKey, grade, topicTitle, topicsList, count = 10, difficulty = 'mix', taskType, context, customPrompt, subtopic = '', subtopicCode = '' }) {
     const isMultiTopic = Array.isArray(topicsList) && topicsList.length > 0;
     const topicsInstruction = isMultiTopic
       ? `Темы Skola2030 (распредели ${count} задач равномерно по этим темам): ${topicsList.map(t => `"${t}"`).join(', ')}.`
@@ -553,9 +553,16 @@ ${customPrompt ? `Дополнительные математические тр
       ? `Сложность задач распредели сбалансированно: ~40% "Лёгкий" (pamata līmenis), ~40% "Средний" (optimālais līmenis), ~20% "Сложный" (padziļinātais līmenis).`
       : `Сложность для всех задач: "${difficulty}".`;
 
+    /* Номер подтемы просим вернуть дословно: по нему задача ложится в
+       нужную подтему базы, а по переведённому названию — уже нет. */
+    const subtopicInstruction = subtopic
+      ? `Конкретный навык (подтема Skola2030${subtopicCode ? ` ${subtopicCode}` : ''}): "${subtopic}". Все задачи должны быть именно на этот навык.`
+      : '';
+
     const prompt = `Ты — ведущий методист и составитель экзаменационных материалов по математике в Латвии строго по государственному стандарту Skola2030.
 Создай ровно ${count} уникальных и качественных математических задач для ${grade} класса.
 ${topicsInstruction}
+${subtopicInstruction}
 ${diffInstruction}
 ${taskType ? `Тип задач: ${taskType}.` : ''}
 ${context ? `Сюжетный контекст задач (жизненные ситуации, Латвия, покупки, транспорт, ремонт, рецепты, пропорции): "${context}".` : ''}
@@ -572,7 +579,7 @@ ${customPrompt ? `Дополнительные математические тр
   {
     "title_ru": "Краткое название задачи",
     "title_lv": "Nosaukums latviski",
-    "topic_title": "Конкретная тема",
+    "topic_title": "Название темы — скопируй дословно одно из перечисленных выше",${subtopicCode ? `\n    "subtopic_code": "${subtopicCode}",` : ''}
     "difficulty": "Лёгкий | Средний | Сложный",
     "condition_latex_ru": "Условие задачи с формулами $...$",
     "condition_latex_lv": "Nosacījums ar formulām $...$",
@@ -707,7 +714,9 @@ ${customPrompt ? `Дополнительные математические тр
         difficulty,
         taskType,
         context,
-        customPrompt
+        customPrompt,
+        subtopic,
+        subtopicCode: options.subtopicCode || ''
       });
     }
 

@@ -69,7 +69,7 @@
      задачу открывают на правку. */
   const TASK_LIST_COLS = 'id,title,topic_id,grade,difficulty,is_published,position';
   const TOPIC_LIST_COLS = 'id,title,subject_id,grade,position,slug';
-  const TASK_INDEX_COLS = 'id,topic_id,position';
+  const TASK_INDEX_COLS = 'id,topic_id,subtopic_id,position';
 
   /* Указатель — три колонки на задачу (3 КБ на 81 задачу). Его хватает,
      чтобы показать «задач: N» у темы и посчитать номер новой задачи,
@@ -420,6 +420,135 @@
     if (error) { topicSuccess.textContent = 'Ошибка: ' + error.message; return; }
     if (String(editingTopicId) === deleteId) { topicForm.reset(); setTopicMode(null); }
     topicSuccess.textContent = 'Тема удалена.';
+    await loadCatalog();
+  });
+
+  /* ── Подтемы ──────────────────────────────────────────────────────── */
+
+  const subtopicForm = document.querySelector('#subtopic-form');
+  const subtopicList = document.querySelector('#subtopic-list');
+  const subtopicSuccess = document.querySelector('#subtopic-success');
+  const subtopicTopicSelect = document.querySelector('#subtopic-topic-select');
+  const subtopicFilterTopic = document.querySelector('#subtopic-filter-topic');
+  let editingSubtopicId = null;
+  let subtopicsShown = false;
+
+  const topicLabel = topic => `${topic.title}${topic.grade ? ` (${gradeText(topic.grade)})` : ''}`;
+  const subtopicLabel = s => `${s.code ? s.code + '. ' : ''}${s.title}`;
+
+  /* Оба выпадающих списка тем живут рядом с подтемами и обновляются вместе
+     с каталогом: тему могли только что завести или переименовать. */
+  function fillSubtopicTopicSelects() {
+    if (!subtopicTopicSelect) return;
+    const sorted = [...topics].sort((a, b) => (a.grade ?? 99) - (b.grade ?? 99) || (a.position ?? 0) - (b.position ?? 0));
+    const options = sorted.map(t => `<option value="${t.id}">${escapeHtml(topicLabel(t))}</option>`).join('');
+    const keepForm = subtopicTopicSelect.value;
+    subtopicTopicSelect.innerHTML = options;
+    if (keepForm) subtopicTopicSelect.value = keepForm;
+    if (subtopicFilterTopic) {
+      const keepFilter = subtopicFilterTopic.value;
+      subtopicFilterTopic.innerHTML = '<option value="">Все темы</option>' + options;
+      subtopicFilterTopic.value = keepFilter;
+    }
+  }
+
+  function setSubtopicMode(sub) {
+    editingSubtopicId = sub?.id ?? null;
+    document.querySelector('#subtopic-form-title').textContent = sub ? `Редактировать подтему: ${subtopicLabel(sub)}` : 'Подтемы';
+    document.querySelector('#subtopic-submit').textContent = sub ? 'Сохранить подтему' : 'Добавить подтему';
+    document.querySelector('#subtopic-cancel').hidden = !sub;
+    if (sub?.topic_id) subtopicTopicSelect.value = String(sub.topic_id);
+    subtopicForm.elements.code.value = sub?.code || '';
+    subtopicForm.elements.position.value = Math.max(1, sub?.position ?? 1);
+    subtopicForm.elements.title.value = sub?.title || '';
+    if (subtopicForm.elements.title_lv) subtopicForm.elements.title_lv.value = sub?.title_lv || '';
+    if (sub) subtopicForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function renderSubtopics() {
+    if (!subtopicList || !subtopicsShown) return;
+    const topicVal = subtopicFilterTopic?.value ? Number(subtopicFilterTopic.value) : null;
+    const filtered = subtopics
+      .filter(s => topicVal === null || s.topic_id === topicVal)
+      .sort((a, b) => {
+        const ta = topics.find(t => t.id === a.topic_id), tb = topics.find(t => t.id === b.topic_id);
+        return (ta?.grade ?? 99) - (tb?.grade ?? 99)
+          || (ta?.position ?? 0) - (tb?.position ?? 0)
+          || (a.position ?? 0) - (b.position ?? 0);
+      });
+    const countEl = document.querySelector('#subtopic-filter-count');
+    if (countEl) countEl.textContent = `Подтем: ${filtered.length} из ${subtopics.length}`;
+    if (!filtered.length) {
+      subtopicList.innerHTML = '<p class="admin-empty">Подтем нет. Заведите первую в форме выше.</p>';
+      return;
+    }
+    subtopicList.innerHTML = filtered.map(s => {
+      const topic = topics.find(t => t.id === s.topic_id);
+      const count = taskIndex.filter(t => t.subtopic_id === s.id).length;
+      return `<div class="admin-row">
+        <span class="admin-row-main"><strong>${escapeHtml(subtopicLabel(s))}</strong><small>${escapeHtml(topic ? topicLabel(topic) : 'тема не найдена')} · задач: ${count}</small></span>
+        <button class="text-button" type="button" data-edit-subtopic="${s.id}">Изменить</button>
+        <button class="text-button danger" type="button" data-delete-subtopic="${s.id}">Удалить</button>
+      </div>`;
+    }).join('');
+  }
+
+  function setSubtopicsShown(shown) {
+    subtopicsShown = shown;
+    subtopicList.hidden = !shown;
+    const defer = document.querySelector('#subtopic-list-defer');
+    if (defer) defer.hidden = shown;
+    if (shown) renderSubtopics();
+  }
+
+  document.querySelector('#btn-load-subtopics')?.addEventListener('click', () => setSubtopicsShown(true));
+  subtopicFilterTopic?.addEventListener('change', renderSubtopics);
+
+  subtopicForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+    subtopicSuccess.textContent = '';
+    const form = new FormData(subtopicForm);
+    const topicId = Number(form.get('topic_id'));
+    const title = form.get('title').trim();
+    if (!topicId) { subtopicSuccess.textContent = 'Выберите тему.'; return; }
+    const payload = {
+      topic_id: topicId,
+      title,
+      title_lv: form.get('title_lv')?.trim() || null,
+      code: form.get('code')?.trim() || null,
+      position: Math.max(1, Number(form.get('position')) || 1),
+    };
+    const { error } = editingSubtopicId
+      ? await db.from('subtopics').update(payload).eq('id', editingSubtopicId)
+      /* Слаг стоит в адресе /subtopic/<slug> и обязан быть уникальным;
+         хвост из времени спасает от совпадения названий в разных темах. */
+      : await db.from('subtopics').insert({ ...payload, slug: `${makeSlug(title)}-${Date.now()}` });
+    if (error) { subtopicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    subtopicSuccess.textContent = editingSubtopicId ? 'Подтема сохранена.' : 'Подтема добавлена.';
+    subtopicForm.reset();
+    setSubtopicMode(null);
+    await loadCatalog();
+  });
+
+  document.querySelector('#subtopic-cancel')?.addEventListener('click', () => { subtopicForm.reset(); setSubtopicMode(null); });
+
+  subtopicList?.addEventListener('click', async event => {
+    const editId = event.target.closest('[data-edit-subtopic]')?.dataset.editSubtopic;
+    if (editId) {
+      const full = await fetchFullRow('subtopics', editId);
+      if (!full) { subtopicSuccess.textContent = 'Не удалось загрузить подтему для правки.'; return; }
+      setSubtopicMode(full);
+      return;
+    }
+    const deleteId = event.target.closest('[data-delete-subtopic]')?.dataset.deleteSubtopic;
+    if (!deleteId) return;
+    const sub = subtopics.find(s => String(s.id) === deleteId);
+    const count = taskIndex.filter(t => String(t.subtopic_id) === deleteId).length;
+    if (!confirm(`Удалить подтему «${subtopicLabel(sub)}»?${count ? ` ${count} задач останутся в теме, но потеряют подтему.` : ''}`)) return;
+    const { error } = await db.from('subtopics').delete().eq('id', deleteId);
+    if (error) { subtopicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    if (String(editingSubtopicId) === deleteId) { subtopicForm.reset(); setSubtopicMode(null); }
+    subtopicSuccess.textContent = 'Подтема удалена.';
     await loadCatalog();
   });
 
@@ -2096,7 +2225,24 @@ ${JSON.stringify(texts)}`;
         if (foundTopic) topicId = foundTopic.id;
       }
 
+      /* Подтему ищем по номеру («8.8.3») — он уникален и не зависит от того,
+         как модель перевела название. Название берём запасным вариантом. */
+      let subtopicId = item.subtopic_id || null;
+      if (!subtopicId && (item.subtopic_code || item.subtopic_title || item.subtopic_title_lv)) {
+        const code = String(item.subtopic_code || '').trim();
+        const sNeedle = String(item.subtopic_title || '').trim().toLowerCase();
+        const sNeedleLv = String(item.subtopic_title_lv || '').trim().toLowerCase();
+        const pool = topicId ? subtopics.filter(s => s.topic_id === topicId) : subtopics;
+        const found = pool.find(s => code && String(s.code || '').trim() === code)
+          || pool.find(s =>
+            (sNeedle && s.title?.toLowerCase().trim() === sNeedle) ||
+            (sNeedleLv && s.title_lv?.toLowerCase().trim() === sNeedleLv));
+        if (found) subtopicId = found.id;
+        else warnings.push(`Задача #${i + 1}: подтема «${code || sNeedle || sNeedleLv}» не найдена, задача легла прямо в тему.`);
+      }
+
       const payload = sanitizeTaskPayload({
+        subtopic_id: subtopicId,
         title: String(item.title).trim(),
         title_lv: item.title_lv ? String(item.title_lv).trim() : null,
         condition_latex: String(item.condition_latex).trim(),
@@ -2730,19 +2876,22 @@ ${JSON.stringify(texts)}`;
         return;
       }
       const topicItem = skola2030Catalog.find(t => t.slug === slugOrId) || topics.find(t => String(t.id) === slugOrId);
-      const subtopics = topicItem?.subtopics || [];
-      if (subtopics.length) {
+      /* Значением делаем номер «7.5.2», а не название: по номеру задача
+         потом ложится в нужную подтему базы, как бы модель ни перевела
+         текст. Название остаётся видимым и уходит в промпт. */
+      const catalogSubs = topicItem?.subtopics || [];
+      if (catalogSubs.length) {
         aiGenSubtopic.innerHTML = '<option value="">Все навыки темы</option>' +
-          subtopics.map(s => `<option value="${escapeHtml(s.ru)}">${escapeHtml(s.ru)}</option>`).join('');
+          catalogSubs.map(s => `<option value="${escapeHtml(s.num || s.ru)}">${escapeHtml(`${s.num ? s.num + '. ' : ''}${s.ru}`)}</option>`).join('');
       } else {
         aiGenSubtopic.innerHTML = '<option value="">Все навыки темы</option>';
       }
 
       createRichSelect(aiGenSubtopic, {
-        searchable: subtopics.length > 4,
+        searchable: catalogSubs.length > 4,
         renderItem(value, text) {
           if (!value) return { main: 'Все навыки темы', sub: 'Случайный выбор из программы Skola2030' };
-          const s = subtopics.find(st => st.ru === value);
+          const s = catalogSubs.find(st => (st.num || st.ru) === value);
           if (s && s.lv) {
             return {
               main: s.ru || text,
@@ -2836,7 +2985,13 @@ ${JSON.stringify(texts)}`;
         ? (gradeCatalogTopics.length ? gradeCatalogTopics.map(t => t.title_ru) : gradeDbTopics.map(t => t.title))
         : [topicTitle];
 
-      const subtopic = isAllTopics ? '' : (aiGenSubtopic?.value || '');
+      /* В списке лежит номер подтемы, а модели нужен текст навыка. Номер
+         несём отдельно: по нему готовые задачи лягут в нужную подтему. */
+      const subtopicCode = isAllTopics ? '' : (aiGenSubtopic?.value || '');
+      const subtopicItem = subtopicCode
+        ? (topicItem?.subtopics || []).find(s => (s.num || s.ru) === subtopicCode)
+        : null;
+      const subtopic = subtopicItem ? subtopicItem.ru : (isAllTopics ? '' : subtopicCode);
       const selectedDifficulty = aiGenDifficulty?.value || 'mix';
       const taskType = aiGenType?.value || 'Уравнение';
       const context = (aiGenContext?.value || '').trim();
@@ -2897,6 +3052,7 @@ ${JSON.stringify(texts)}`;
               topicsList: batchTopics,
               count: batchCount,
               subtopic,
+              subtopicCode,
               difficulty: selectedDifficulty,
               taskType,
               context,
@@ -2952,13 +3108,21 @@ ${JSON.stringify(texts)}`;
         updateTaskTopicDropdown();
 
         // Ищем подходящую тему в БД
+        /* Номер «7.1.» в начале названия каталога мешает прямому сравнению:
+           в базе названия без него. Сравниваем очищенные, а если не сошлось —
+           по позиции темы внутри класса. */
+        const stripNum = s => String(s || '').replace(/^\s*\d+(\.\d+)*\.?\s*/, '').trim().toLowerCase();
         const dbMatchingTopic = topics.find(t => t.grade === g && (
           (t.slug && topicItem?.slug && t.slug === topicItem.slug) ||
-          t.title.toLowerCase().includes(topicTitle.toLowerCase()) ||
-          topicTitle.toLowerCase().includes(t.title.toLowerCase())
-        ));
+          stripNum(t.title) === stripNum(topicTitle)
+        )) || (topicItem?.position ? topics.find(t => t.grade === g && t.position === topicItem.position) : null);
         if (dbMatchingTopic) {
           topicSelect.value = String(dbMatchingTopic.id);
+          updateSubtopicDropdown();
+          if (subtopicCode) {
+            const hit = subtopics.find(s => s.topic_id === dbMatchingTopic.id && String(s.code || '') === String(subtopicCode));
+            if (hit) updateSubtopicDropdown(hit.id);
+          }
         }
 
         taskForm.elements.difficulty.value = first.difficulty;
@@ -2985,10 +3149,22 @@ ${JSON.stringify(texts)}`;
           // Формируем пакет задач для массового окна
           const tasksForBulk = generatedResults.map(({ result: r, difficulty: diff }, idx) => {
             const taskTopicTitle = r.topic_title || topicTitle;
-            const taskTopicItem = skola2030Catalog.find(t => t.title_ru === taskTopicTitle || t.slug === r.topic_slug) ||
-              topics.find(t => t.title === taskTopicTitle || (dbMatchingTopic && t.id === dbMatchingTopic.id));
-            const topicId = taskTopicItem?.id || (dbMatchingTopic ? dbMatchingTopic.id : null);
+            /* Ищем тему именно в базе. Раньше сюда попадал элемент каталога,
+               и его id (1…96) уходил в topic_id как настоящий — задача
+               оказывалась в случайной чужой теме. */
+            const catalogHit = skola2030Catalog.find(t => t.title_ru === taskTopicTitle || t.slug === r.topic_slug);
+            const cleanTitle = s => String(s || '').replace(/^\s*\d+(\.\d+)*\.?\s*/, '').trim().toLowerCase();
+            const dbHit = topics.find(t => t.grade === g && cleanTitle(t.title) === cleanTitle(taskTopicTitle))
+              || (catalogHit ? topics.find(t => t.grade === catalogHit.grade && t.position === catalogHit.position) : null)
+              || dbMatchingTopic || null;
+            const topicId = dbHit?.id || null;
+            const subCode = r.subtopic_code || subtopicCode || null;
+            const subHit = subCode && topicId
+              ? subtopics.find(s => s.topic_id === topicId && String(s.code || '') === String(subCode))
+              : null;
             return {
+              subtopic_id: subHit?.id || null,
+              subtopic_code: subCode,
               title: r.title_ru || r.title || `${taskTopicTitle} #${idx + 1}`,
               title_lv: r.title_lv || null,
               condition_latex: r.condition_latex_ru || r.condition_latex || '',
@@ -3096,13 +3272,15 @@ ${JSON.stringify(texts)}`;
       db.from('topics').select(TOPIC_LIST_COLS).order('position').order('title'),
       /* Подтемы появляются миграцией 020. До неё запрос падает, и админка
          должна работать без третьего уровня, а не отказывать целиком. */
-      db.from('subtopics').select('id,topic_id,title,code,position').order('position')
+      db.from('subtopics').select('id,topic_id,title,title_lv,code,position').order('position')
     ]);
     /* Колонку tasks.subtopic_id разрешаем к записи только когда таблица
        подтем реально ответила: иначе до миграции 020 сохранение задачи
        упало бы на неизвестной колонке. */
     subtopics = subtopicResult?.error ? [] : (subtopicResult?.data || []);
     if (!subtopicResult?.error) supportedTaskCols.add('subtopic_id');
+    fillSubtopicTopicSelects();
+    renderSubtopics();
     if (subtopicSelect) subtopicSelect.title = subtopicResult?.error ? 'Недоступно: не выполнена миграция 020_subtopics.sql' : '';
     if (subjectResult.error || topicResult.error) {
       const message = (subjectResult.error || topicResult.error).message;
@@ -3160,8 +3338,11 @@ ${JSON.stringify(texts)}`;
 
   async function loadTaskIndex() {
     const { data, error } = await db.from('tasks').select(TASK_INDEX_COLS);
-    if (error) { taskIndex = []; return; }
-    taskIndex = data || [];
+    if (!error) { taskIndex = data || []; return; }
+    /* Колонка subtopic_id появляется миграцией 020. Без отката весь указатель
+       оставался бы пустым, и у каждой темы значилось бы «задач: 0». */
+    const retry = await db.from('tasks').select('id,topic_id,position');
+    taskIndex = retry.error ? [] : (retry.data || []);
   }
 
   /* После правки всегда обновляем указатель, а список — только если
