@@ -392,15 +392,34 @@ body.dark .nav-icon.purple{color:#c4a8ff;background:#2a2148}
 .task-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .task-title{font-size:14px;font-weight:700;line-height:1.4}
 .task-condition{font-size:15px;line-height:1.85;padding:2px 0 6px;overflow-x:auto;overflow-y:hidden}
-.solution-toggle{align-self:flex-start;border:1px solid var(--line);border-radius:8px;background:transparent;color:#1764ff;font:600 12px Manrope;padding:7px 13px;cursor:pointer}
-.solution-toggle:hover{background:#eef4ff;border-color:#c3d2ea}
+.task-actions-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px;margin-bottom:2px}
+.solution-toggle{display:inline-flex;align-items:center;gap:6px;margin:0;border:1px solid var(--line);border-radius:8px;background:#ffffff;color:var(--blue,#1764ff);font:600 12px/1.3 Manrope,sans-serif;padding:6px 12px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.03);transition:all .15s ease;user-select:none;white-space:nowrap}
+.solution-toggle:hover{background:#f0f5ff;border-color:#bad1fa;color:#0b50d6;transform:translateY(-1px);box-shadow:0 2px 5px rgba(23,100,255,0.1)}
+.solution-toggle:active{transform:translateY(0)}
+.solution-toggle.active{background:#e6efff;border-color:#90b8ff;color:#004bd6;box-shadow:inset 0 1px 2px rgba(0,0,0,0.06)}
+.solution-toggle .toggle-icon{font-size:13px;line-height:1}
+.solution-toggle[hidden]{display:none!important}
+
+.solution-toggle-hint{border-color:#fde68a!important;color:#b45309!important;background:#fffdf5!important}
+.solution-toggle-hint:hover{background:#fef3c7!important;border-color:#f59e0b!important;color:#92400e!important;box-shadow:0 2px 5px rgba(245,158,11,0.15)!important}
+.solution-toggle-hint.active{background:#fef3c7!important;border-color:#d97706!important;color:#78350f!important}
+.solution-toggle-hint.hint-unlocked-pulse{animation:hint-unlocked-glow 1.4s ease}
+@keyframes hint-unlocked-glow{0%{transform:scale(0.92);box-shadow:0 0 0 0 rgba(245,158,11,0.8)}50%{transform:scale(1.06);box-shadow:0 0 0 8px rgba(245,158,11,0)}100%{transform:scale(1);box-shadow:0 1px 2px rgba(0,0,0,0.03)}}
+
+.task-reveals-wrap{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.task-reveals-wrap:empty{margin:0}
+
 .solution{border-left:3px solid #1764ff;padding:4px 0 4px 13px;display:flex;flex-direction:column;gap:5px}
 .solution[hidden]{display:none}
 .solution-label{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 .solution .math{font-size:15px;line-height:1.85;padding:2px 0 6px;overflow-x:auto;overflow-y:hidden}
 .solution-missing{margin:0;font-size:12px;color:var(--muted)}
-body.dark .solution-toggle{border-color:#2b3a58;color:#5a92ff}
-body.dark .solution-toggle:hover{background:#1a2740}
+body.dark .solution-toggle{background:#152238;border-color:#2b3a58;color:#70a2ff;box-shadow:0 1px 2px rgba(0,0,0,0.2)}
+body.dark .solution-toggle:hover{background:#1c2e4c;border-color:#3b527d;color:#90b8ff;box-shadow:0 2px 5px rgba(0,0,0,0.3)}
+body.dark .solution-toggle.active{background:#1e355b;border-color:#4872b8;color:#c0d8ff}
+body.dark .solution-toggle-hint{background:#231b07!important;border-color:#59420d!important;color:#fcd34d!important}
+body.dark .solution-toggle-hint:hover{background:#332709!important;border-color:#855b14!important;color:#fde68a!important}
+body.dark .solution-toggle-hint.active{background:#3b2c0a!important;border-color:#b45309!important;color:#fef3c7!important}
 body.dark .solution{border-left-color:#5a92ff}
 
 /* ── Кликабельные карточки тем ───────────────────────────────────── */
@@ -1255,7 +1274,7 @@ body.dark .toast-notice{background:rgba(21,33,55,.95);border-color:rgba(255,255,
   /* На бумаге нужны только условия: меню, поиск и кнопки — экранные элементы. */
   .sidebar,.sidebar-scrim,.topbar,.breadcrumb,.topic-anchors,.subtopic-nav,.grade-actions,.list-actions,
   .topic-header-cw-btn,.topic-header-progress,.topic-control-work-slot,
-  .task-nav,.solution-toggle,.hero,.grades,dialog{display:none!important}
+  .task-nav,.task-actions-bar,.solution-toggle,.hero,.grades,dialog{display:none!important}
   body{background:#fff;color:#000}
   main,body.sidebar-collapsed main{margin-left:0!important}
   .list-header h1{font-size:20pt}

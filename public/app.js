@@ -754,22 +754,34 @@ function taskFigure(path, title, kind) {
 /* Раскрываемая ступень: кнопка и панель идут парой, обработчик один на документ.
    Панель обязана иметь [hidden]{display:none} в стилях — авторское display
    в этом проекте уже дважды перебивало атрибут. */
-function revealBlock(kind, label, body) {
+function createRevealItem(kind, body, { hidden = false, icon = '' } = {}) {
   const tr = window.MathTasks.t || (k => k);
-  /* Ступеней раскрытия три: ответ, подсказка, решение. Подписи берём
-     по виду блока, а метку внутри — из той же строки без глагола. */
   const KEYS = {
     answer: ['reveal_answer', 'hide_answer'],
     hint: ['reveal_hint', 'hide_hint'],
     solution: ['reveal_solution', 'hide_solution']
   };
+  const ICONS = {
+    answer: '🔑',
+    hint: '💡',
+    solution: '📘'
+  };
   const [showKey, hideKey] = KEYS[kind] || KEYS.solution;
   const showText = tr(showKey);
   const hideText = tr(hideKey);
   const labelText = showText.replace(/^(Rādīt|Показать|Show)\s*/i, '');
-  return `<button class="solution-toggle" type="button" data-reveal aria-expanded="false"
-       data-show-label="${escapeHtml(showText)}" data-hide-label="${escapeHtml(hideText)}">${escapeHtml(showText)}</button>
-     <div class="reveal ${kind}" hidden><span class="reveal-label">${escapeHtml(labelText)}</span>${body}</div>`;
+  const btnIcon = icon || ICONS[kind] || '';
+
+  const button = `<button class="solution-toggle${kind === 'hint' ? ' solution-toggle-hint' : ''}" type="button" data-reveal="${kind}" data-kind="${kind}" aria-expanded="false" ${hidden ? 'hidden' : ''} data-show-label="${escapeHtml(showText)}" data-hide-label="${escapeHtml(hideText)}"><span class="toggle-icon">${btnIcon}</span> <span class="toggle-text">${escapeHtml(showText)}</span></button>`;
+
+  const panel = `<div class="reveal ${kind}" hidden><span class="reveal-label">${escapeHtml(labelText)}</span>${body}</div>`;
+
+  return { button, panel };
+}
+
+function revealBlock(kind, label, body) {
+  const item = createRevealItem(kind, body);
+  return item.button + item.panel;
 }
 
 /* ── Интерактивная самопроверка для ученика (3.1) ─────────────────── */
@@ -798,6 +810,30 @@ function setTaskSolved(taskId, solved) {
       list = list.filter(item => item !== id);
     }
     localStorage.setItem('math-tasks:solved', JSON.stringify(list));
+  } catch {}
+}
+
+function getWrongAttemptTasks() {
+  try {
+    const raw = localStorage.getItem('math-tasks:wrong-attempts');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function hasTaskWrongAttempt(taskId) {
+  return getWrongAttemptTasks().includes(Number(taskId));
+}
+
+function setTaskWrongAttempt(taskId) {
+  try {
+    const id = Number(taskId);
+    let list = getWrongAttemptTasks();
+    if (!list.includes(id)) {
+      list.push(id);
+      localStorage.setItem('math-tasks:wrong-attempts', JSON.stringify(list));
+    }
   } catch {}
 }
 
@@ -937,21 +973,48 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
       </div>
     </div>` : '';
 
-  const answer = loc(task, 'answer_latex')
-    ? revealBlock('answer', 'atbilde', '<div class="math" data-answer></div>')
-    : '';
-  /* Подсказка — вторая ступень: называет приём, не выдавая ответа.
-     Колонка появляется миграцией 016, до неё блок просто не рисуется. */
+  const hasAnswer = Boolean(loc(task, 'answer_latex'));
   const taskHint = loc(task, 'hint_latex');
-  const hint = taskHint
-    ? revealBlock('hint', 'norāde', '<div class="math" data-hint></div>')
-    : '';
-  const taskTitle = loc(task, 'title');
   const taskSolution = loc(task, 'solution_latex');
-  const solutionBody = `<div class="math" data-solution></div>${taskFigure(task.solution_image, taskTitle, 'Attēls pie atrisinājuma')}`;
-  const solution = taskSolution || task.solution_image
-    ? revealBlock('solution', 'atrisinājums', solutionBody)
-    : `<p class="solution-missing">${escapeHtml(tr('solution_missing'))}</p>`;
+  const taskTitle = loc(task, 'title');
+
+  // Логика кнопки подсказки: показывается, если ученик ответил неправильно,
+  // либо если задача уже решена, либо если у задачи нет формы ввода ответа
+  const showHintInitially = Boolean(hasTaskWrongAttempt(task.id) || solved || !hasAnswer);
+
+  const toggleButtons = [];
+  const revealPanels = [];
+
+  if (taskHint) {
+    const hintItem = createRevealItem('hint', '<div class="math" data-hint></div>', {
+      hidden: !showHintInitially,
+      icon: '💡'
+    });
+    toggleButtons.push(hintItem.button);
+    revealPanels.push(hintItem.panel);
+  }
+
+  if (hasAnswer) {
+    const ansItem = createRevealItem('answer', '<div class="math" data-answer></div>', {
+      icon: '🔑'
+    });
+    toggleButtons.push(ansItem.button);
+    revealPanels.push(ansItem.panel);
+  }
+
+  if (taskSolution || task.solution_image) {
+    const solutionBody = `<div class="math" data-solution></div>${taskFigure(task.solution_image, taskTitle, 'Attēls pie atrisinājuma')}`;
+    const solItem = createRevealItem('solution', solutionBody, {
+      icon: '📘'
+    });
+    toggleButtons.push(solItem.button);
+    revealPanels.push(solItem.panel);
+  } else {
+    revealPanels.push(`<p class="solution-missing">${escapeHtml(tr('solution_missing'))}</p>`);
+  }
+
+  const actionsBar = toggleButtons.length > 0 ? `<div class="task-actions-bar">${toggleButtons.join('')}</div>` : '';
+  const revealsWrap = revealPanels.length > 0 ? `<div class="task-reveals-wrap">${revealPanels.join('')}</div>` : '';
 
   /* Номер задачи напротив условия для экономии места и компактности */
   const numBadge = number
@@ -981,9 +1044,8 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
     ${taskFigure(task.condition_image, taskTitle, 'Zīmējums')}
     ${tagsRowHtml}
     ${selfCheck}
-    ${answer}
-    ${hint}
-    ${solution}
+    ${actionsBar}
+    ${revealsWrap}
   </article>`;
 }
 
@@ -1284,11 +1346,24 @@ document.querySelector('#lightbox-dialog')?.addEventListener('close', () => {
 document.addEventListener('click', event => {
   const toggle = event.target.closest('[data-reveal]');
   if (!toggle) return;
-  const panel = toggle.nextElementSibling;
+  const kind = toggle.dataset.reveal || toggle.dataset.kind;
+  const card = toggle.closest('.task');
+  const panel = (kind && card)
+    ? card.querySelector(`.reveal.${kind}`)
+    : toggle.nextElementSibling;
+  if (!panel) return;
   const shown = !panel.hidden;
   panel.hidden = shown;
   toggle.setAttribute('aria-expanded', String(!shown));
-  toggle.textContent = shown ? toggle.dataset.showLabel : toggle.dataset.hideLabel;
+  toggle.classList.toggle('active', !shown);
+
+  const textEl = toggle.querySelector('.toggle-text');
+  const newLabel = shown ? toggle.dataset.showLabel : toggle.dataset.hideLabel;
+  if (textEl) {
+    textEl.textContent = newLabel;
+  } else {
+    toggle.textContent = newLabel;
+  }
 });
 
 /* ── Карточки тем ─────────────────────────────────────────────────── */
@@ -3479,9 +3554,20 @@ document.addEventListener('submit', event => {
     }
     updateTopicHeaderProgress();
   } else {
+    setTaskWrongAttempt(taskId);
     resultDiv.className = 'self-check-result error';
     resultDiv.innerHTML = escapeHtml(tr('self_check_error'));
     resultDiv.hidden = false;
+    const card = form.closest('.task');
+    if (card) {
+      const hintBtn = card.querySelector('.solution-toggle[data-kind="hint"]');
+      if (hintBtn) {
+        hintBtn.hidden = false;
+        hintBtn.classList.remove('hint-unlocked-pulse');
+        void hintBtn.offsetWidth;
+        hintBtn.classList.add('hint-unlocked-pulse');
+      }
+    }
   }
 });
 
