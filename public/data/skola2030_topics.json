@@ -3240,8 +3240,8 @@
     "position": 1,
     "title_ru": "11.1. Разложение на множители и методы решения уравнений",
     "title_lv": "11.1. Sadalīšana reizinātājos un vienādojumu risināšanas metodes",
-    "description_ru": "Программа Matemātika I: 17 ч.",
-    "description_lv": "Matemātika I programma: 17 st.",
+    "description_ru": "Преобразование алгебраических выражений, формулы сокращенного умножения, методы разложения на множители, линейные и квадратные уравнения, уравнения и неравенства с модулем.",
+    "description_lv": "Algebrisko izteiksmju pārveidošana, saīsinātās reizināšanas formulas, sadalīšana reizinātājos, lineāri un kvadrātvienādojumi, vienādojumi un nevienādības ar moduli.",
     "subtopics": [
       {
         "num": "11.1.1",
@@ -3269,8 +3269,8 @@
     "position": 2,
     "title_ru": "11.2. Алгебраические дроби",
     "title_lv": "11.2. Algebriskās daļas",
-    "description_ru": "Программа Matemātika I: 17 ч.",
-    "description_lv": "Matemātika I programma: 17 st.",
+    "description_ru": "Область допустимых значений, сокращение алгебраических дробей, приведение к общему знаменателю, сложение, вычитание, умножение и деление дробей.",
+    "description_lv": "Pieļaujamo vērtību kopa, algebrisko daļu saīsināšana, vienādošana, saskaitīšana, atņemšana, reizināšana un dalīšana.",
     "subtopics": [
       {
         "num": "11.2.1",
@@ -3288,8 +3288,8 @@
     "position": 3,
     "title_ru": "11.3. Дробные уравнения",
     "title_lv": "11.3. Daļveida vienādojumi",
-    "description_ru": "Программа Matemātika I: 18 ч.",
-    "description_lv": "Matemātika I programma: 18 st.",
+    "description_ru": "Дробно-рациональные уравнения, нахождение области определения, проверка корней, сведение к целым уравнениям и решение текстовых задач.",
+    "description_lv": "Daļveida racionālie vienādojumi, definīcijas apgabala noteikšana, sakņu pārbaude, reducēšana uz veseliem vienādojumiem un teksta uzdevumi.",
     "subtopics": [
       {
         "num": "11.3.1",
@@ -3307,8 +3307,8 @@
     "position": 4,
     "title_ru": "11.4. Системы уравнений",
     "title_lv": "11.4. Vienādojumu sistēmas",
-    "description_ru": "Программа Matemātika I: 15 ч.",
-    "description_lv": "Matemātika I programma: 15 st.",
+    "description_ru": "Системы нелинейных уравнений с двумя переменными, метод подстановки, метод сложения, замена переменной и графическая интерпретация решений.",
+    "description_lv": "Nelineāru vienādojumu sistēmas ar diviem mainīgajiem, ievietošanas un saskaitīšanas paņēmieni, mainīgā maiņa un atrisinājumu grafiskā interpretācija.",
     "subtopics": []
   },
   {
@@ -3320,8 +3320,8 @@
     "position": 5,
     "title_ru": "11.5. Дробные неравенства и системы неравенств",
     "title_lv": "11.5. Daļveida nevienādības un nevienādību sistēmas",
-    "description_ru": "Программа Matemātika I: 18 ч.",
-    "description_lv": "Matemātika I programma: 18 st.",
+    "description_ru": "Метод интервалов для решения рациональных неравенств, строгие и нестрогие неравенства, системы и совокупности неравенств, числовые промежутки.",
+    "description_lv": "Intervālu metode racionālu nevienādību risināšanā, stingras un nestingras nevienādības, nevienādību sistēmas un skaitļu intervāli.",
     "subtopics": [
       {
         "num": "11.5.1",
@@ -3339,8 +3339,8 @@
     "position": 6,
     "title_ru": "11.6. Расширение понятия угла, планиметрия",
     "title_lv": "11.6. Leņķa jēdziena paplašinājums, planimetrija",
-    "description_ru": "Программа Matemātika I: 23 ч.",
-    "description_lv": "Matemātika I programma: 23 st.",
+    "description_ru": "Угол поворота, радианная мера угла, единичная окружность, теорема синусов и косинусов, площади многоугольников, свойства окружности и геометрические преобразования.",
+    "description_lv": "Pagrieziena leņķis, radiāna mērs, vienības riņķa līnija, sinusu un kosinusu teorēma, daudzstūru laukumi, riņķa līnijas īpašības un ģeometriskie pārveidojumi.",
     "subtopics": [
       {
         "num": "11.6.1",
@@ -3393,8 +3393,8 @@
     "position": 7,
     "title_ru": "11.7. Функция, её свойства и преобразования графика",
     "title_lv": "11.7. Funkcija, tās īpašības un grafika transformācijas",
-    "description_ru": "Программа Matemātika I: 21 ч.",
-    "description_lv": "Matemātika I programma: 21 st.",
+    "description_ru": "Область определения и значений, монотонность, экстремумы, нули, квадратичная и дробно-линейная функции, параллельный перенос и растяжение графиков.",
+    "description_lv": "Definīcijas un vērtību kopa, monotonitāte, ekstrēmi, nulles, kvadrātfunkcija un daļveida lineāra funkcija, grafiku paralēlā pārnese un stiepšana.",
     "subtopics": [
       {
         "num": "11.7.1",
@@ -3442,8 +3442,8 @@
     "position": 8,
     "title_ru": "11.8. Тригонометрические функции",
     "title_lv": "11.8. Trigonometriskās funkcijas",
-    "description_ru": "Программа Matemātika I: 20 ч.",
-    "description_lv": "Matemātika I programma: 20 st.",
+    "description_ru": "Функции y = sin x и y = cos x, их периодичность, амплитуда, графики синусоиды и косинусоиды, исследование гармонических процессов.",
+    "description_lv": "Funkcijas y = sin x un y = cos x, to periodiskums, amplitūda, sinusoīdas un kosinusoīdas grafiki, harmonisko procesu pētīšana.",
     "subtopics": [
       {
         "num": "11.8.1",
@@ -3461,8 +3461,8 @@
     "position": 9,
     "title_ru": "11.9. Тригонометрические выражения",
     "title_lv": "11.9. Trigonometriskās izteiksmes",
-    "description_ru": "Программа Matemātika I: 15 ч.",
-    "description_lv": "Matemātika I programma: 15 st.",
+    "description_ru": "Основное тригонометрическое тождество, формулы приведения, формулы сложения аргументов и двойного угла, упрощение тригонометрических выражений.",
+    "description_lv": "Trigonometriskā pamatidentitāte, redukcijas formulas, argumentu summas un divkāršā argumenta formulas, trigonometrisko izteiksmju vienkāršošana.",
     "subtopics": [
       {
         "num": "11.9.1",
@@ -3490,8 +3490,8 @@
     "position": 10,
     "title_ru": "11.10. Тригонометрические уравнения",
     "title_lv": "11.10. Trigonometriskie vienādojumi",
-    "description_ru": "Программа Matemātika I: 16 ч.",
-    "description_lv": "Matemātika I programma: 16 st.",
+    "description_ru": "Простейшие тригонометрические уравнения sin x = a, cos x = a, tg x = a, серии решений на числовой окружности и отбор корней на отрезке.",
+    "description_lv": "Pamatvienādojumi sin x = a, cos x = a, tg x = a, atrisinājumu sērijas uz vienības riņķa līnijas un sakņu atlase dotajā intervālā.",
     "subtopics": [
       {
         "num": "11.10.1",
@@ -3509,8 +3509,8 @@
     "position": 11,
     "title_ru": "11.11. Векторы",
     "title_lv": "11.11. Vektori",
-    "description_ru": "Программа Matemātika I: 17 ч.",
-    "description_lv": "Matemātika I programma: 17 st.",
+    "description_ru": "Векторы на плоскости и в пространстве, координаты вектора, сложение и умножение на число, длина вектора, угол между векторами и скалярное произведение.",
+    "description_lv": "Vektori plaknē un telpā, vektora koordinātas, saskaitīšana un reizināšana ar skaitli, vektora garums, leņķis starp vektoriem un skalārais reizinājums.",
     "subtopics": [
       {
         "num": "11.11.1",
@@ -3538,8 +3538,8 @@
     "position": 12,
     "title_ru": "11.12. Уравнение линии, неравенства с двумя переменными",
     "title_lv": "11.12. Līnijas vienādojums, nevienādības ar diviem mainīgajiem",
-    "description_ru": "Программа Matemātika I: 20 ч.",
-    "description_lv": "Matemātika I programma: 20 st.",
+    "description_ru": "Общее и угловое уравнение прямой, условия параллельности и перпендикулярности, уравнение окружности, геометрическое изображение неравенств на плоскости.",
+    "description_lv": "Taisnes vienādojums, paralelitātes un perpendikularitātes nosacījumi, riņķa līnijas vienādojums, nevienādību ģeometriskais attēlojums plaknē.",
     "subtopics": [
       {
         "num": "11.12.1",
@@ -3562,8 +3562,8 @@
     "position": 13,
     "title_ru": "11.13. Степень с рациональным показателем, прогрессии",
     "title_lv": "11.13. Pakāpe ar racionālu kāpinātāju, progresijas",
-    "description_ru": "Программа Matemātika I: 22 ч.",
-    "description_lv": "Matemātika I programma: 22 st.",
+    "description_ru": "Корень n-й степени, степень с рациональным показателем, степенная функция, свойства и формулы n-го члена и суммы прогрессий.",
+    "description_lv": "N-tās pakāpes sakne, pakāpe ar racionālu kāpinātāju, pakāpes funkcija, progresiju n-tā locekļa un summas formulas un īpašības.",
     "subtopics": [
       {
         "num": "11.13.1",
@@ -3591,8 +3591,8 @@
     "position": 14,
     "title_ru": "11.14. Показательная функция и логарифм",
     "title_lv": "11.14. Eksponentfunkcija un logaritms",
-    "description_ru": "Программа Matemātika I: 18 ч.",
-    "description_lv": "Matemātika I programma: 18 st.",
+    "description_ru": "Показательная функция y = aˣ и экспоненциальный рост, определение и свойства логарифмов, основное логарифмическое тождество, логарифмическая функция.",
+    "description_lv": "Eksponentfunkcija y = aˣ un eksponenciālie procesi, logaritma definīcija un īpašības, logaritmiskā pamatidentitāte, logaritmiskā funkcija.",
     "subtopics": [
       {
         "num": "11.14.1",
@@ -3620,8 +3620,8 @@
     "position": 15,
     "title_ru": "11.15. Показательные уравнения и неравенства",
     "title_lv": "11.15. Eksponentvienādojumi un nevienādības",
-    "description_ru": "Программа Matemātika I: 17 ч.",
-    "description_lv": "Matemātika I programma: 17 st.",
+    "description_ru": "Методы решения показательных уравнений приведением к общему основанию и заменой переменной, простейшие логарифмические уравнения и показательные неравенства.",
+    "description_lv": "Eksponentvienādojumu risināšanas metodes ar vienādo bāzu paņēmienu un mainīgā maiņu, vienkāršākie logaritmiskie vienādojumi un eksponentnevienādības.",
     "subtopics": [
       {
         "num": "11.15.1",
@@ -3639,8 +3639,8 @@
     "position": 16,
     "title_ru": "11.16. Прямые и плоскости в пространстве",
     "title_lv": "11.16. Taisnes un plaknes telpā",
-    "description_ru": "Программа Matemātika I: 16 ч.",
-    "description_lv": "Matemātika I programma: 16 st.",
+    "description_ru": "Аксиомы стереометрии, взаимное расположение прямых и плоскостей в пространстве, параллельность и перпендикулярность, угол между прямой и плоскостью, двугранный угол.",
+    "description_lv": "Stereometrijas aksiomas, taišņu un plakņu savstarpējais novietojums telpā, paralelitāte un perpendikularitāte, taisnes un plaknes leņķis, divplakņu kaktu leņķis.",
     "subtopics": [
       {
         "num": "11.16.1",
@@ -3658,8 +3658,8 @@
     "position": 17,
     "title_ru": "11.17. Многогранники",
     "title_lv": "11.17. Daudzskaldņi",
-    "description_ru": "Программа Matemātika I: 21 ч.",
-    "description_lv": "Matemātika I programma: 21 st.",
+    "description_ru": "Прямые и наклонные призмы, правильные пирамиды, параллелепипед, площадь боковой и полной поверхности, объем многогранников и сечения плоскостью.",
+    "description_lv": "Taisnas un slīpas prizmas, regulāras piramīdas, paralēlskaldnis, sānu un pilnas virsmas laukums, daudzskaldņu tilpums un šķēlumi ar plakni.",
     "subtopics": [
       {
         "num": "11.17.1",
@@ -3687,8 +3687,8 @@
     "position": 18,
     "title_ru": "11.18. Тела вращения и комбинации геометрических тел",
     "title_lv": "11.18. Rotācijas ķermeņi un ģeometrisko ķermeņu kombinācijas",
-    "description_ru": "Программа Matemātika I: 20 ч.",
-    "description_lv": "Matemātika I programma: 20 st.",
+    "description_ru": "Цилиндр, конус, шар и сфера, осевые сечения тел вращения, формулы площади поверхности и объема, комбинации многогранников и круглых тел.",
+    "description_lv": "Cilindrs, konuss, lode un sfēra, rotācijas ķermeņu ass šķēlumi, virsmas laukuma un tilpuma formulas, daudzskaldņu un rotācijas ķermeņu kombinācijas.",
     "subtopics": [
       {
         "num": "11.18.1",
@@ -3721,8 +3721,8 @@
     "position": 19,
     "title_ru": "11.19. Элементы теории множеств и комбинаторика",
     "title_lv": "11.19. Kopu teorijas elementi un kombinatorika",
-    "description_ru": "Программа Matemātika I: 21 ч.",
-    "description_lv": "Matemātika I programma: 21 st.",
+    "description_ru": "Множества, операции над множествами, правила сложения и умножения комбинаторики, формулы перестановок, размещений и сочетаний.",
+    "description_lv": "Kopas, darbības ar kopām, kombinatorikas saskaitīšanas un reizināšanas likumi, permutāciju, variāciju un kombināciju formulas.",
     "subtopics": [
       {
         "num": "11.19.1",
@@ -3750,8 +3750,8 @@
     "position": 20,
     "title_ru": "11.20. Теория вероятностей",
     "title_lv": "11.20. Varbūtību teorija",
-    "description_ru": "Программа Matemātika I: 18 ч.",
-    "description_lv": "Matemātika I programma: 18 st.",
+    "description_ru": "Классическое определение вероятности случайного события, дерево вероятностей, сложение и умножение вероятностей, независимые и зависимые события, условная вероятность.",
+    "description_lv": "Klasiskā varbūtības definīcija, varbūtību koks, varbūtību saskaitīšana un reizināšana, neatkarīgi un atkarīgi notikumi, nosacītā varbūtība.",
     "subtopics": [
       {
         "num": "11.20.1",
@@ -3774,8 +3774,8 @@
     "position": 21,
     "title_ru": "11.21. Статистика",
     "title_lv": "11.21. Statistika",
-    "description_ru": "Программа Matemātika I: 20 ч.",
-    "description_lv": "Matemātika I programma: 20 st.",
+    "description_ru": "Генеральная совокупность и выборка, частотные таблицы, среднее арифметическое, медиана, мода, размах, дисперсия и стандартное отклонение, диаграммы и гистограммы.",
+    "description_lv": "Populācija un izlase, biežumu tabulas, aritmētiskais vidējais, mediāna, moda, amplitūda, dispersija un standartnovirze, diagrammas un histogrammas.",
     "subtopics": [
       {
         "num": "11.21.1",
@@ -3798,8 +3798,8 @@
     "position": 22,
     "title_ru": "11.22. Обобщение курса Математика I",
     "title_lv": "11.22. Kursa Matemātika I apkopojums",
-    "description_ru": "Программа Matemātika I: 30 ч.",
-    "description_lv": "Matemātika I programma: 30 st.",
+    "description_ru": "Повторение и систематизация ключевых тем курса Математика I (алгебра, функции, геометрия, статистика и вероятность) и комплексная подготовка к экзамену оптимального уровня.",
+    "description_lv": "Kursa Matemātika I galveno tematu (algebra, funkcijas, ģeometrija, statistika un varbūtība) atkārtojums, sistematizēšana un sagatavošanās optimālā līmeņa eksāmenam.",
     "subtopics": []
   },
   {

@@ -1979,7 +1979,7 @@ async function showTopic(slug) {
   fillListHeader({
     crumbs,
     title: topicTitle,
-    description: topicDesc || '',
+    description: '',
     meta: topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : ''
   });
   setMeta(topic.grade ? `${topicTitle}, ${gradeLabel(topic.grade)}` : topicTitle,
