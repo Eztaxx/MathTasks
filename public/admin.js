@@ -805,7 +805,7 @@ ${JSON.stringify(texts)}`;
      и заполнить русские поля по латышским было нечем. */
   async function runTranslation(button, direction) {
     const toLv = direction === 'ru2lv';
-    const fields = toLv
+    const fields = (toLv
       ? [[taskForm.elements.title, taskForm.elements.title_lv],
          [conditionInput, conditionInputLv],
          [solutionInput, solutionInputLv],
@@ -815,13 +815,15 @@ ${JSON.stringify(texts)}`;
          [conditionInputLv, conditionInput],
          [solutionInputLv, solutionInput],
          [answerInputLv, answerInput],
-         [hintInputLv, hintInput]];
+         [hintInputLv, hintInput]]
+    ).filter(([src, dst]) => src || dst);
 
-    const [titleField, conditionField] = [fields[0][0], fields[1][0]];
-    if (!titleField?.value.trim() && !conditionField?.value.trim()) {
+    const conditionField = toLv ? conditionInput : conditionInputLv;
+    const titleField = toLv ? taskForm.elements.title : taskForm.elements.title_lv;
+    if (!conditionField?.value.trim() && !titleField?.value.trim()) {
       taskSuccess.textContent = toLv
-        ? 'Сначала заполните название или условие на русском.'
-        : 'Сначала заполните название или условие на латышском.';
+        ? 'Сначала заполните условие на русском.'
+        : 'Сначала заполните условие на латышском.';
       return;
     }
 
@@ -1244,10 +1246,10 @@ ${JSON.stringify(texts)}`;
 
   function setTaskMode(task) {
     editingTaskId = task?.id ?? null;
-    document.querySelector('#task-form-title').textContent = task ? `Редактировать задачу: ${task.title}` : 'Создание и редактирование задачи';
+    document.querySelector('#task-form-title').textContent = task ? `Редактировать задачу №${task.position ?? task.id}` : 'Создание и редактирование задачи';
     document.querySelector('#task-submit').textContent = task ? 'Сохранить задачу' : 'Добавить задачу';
     document.querySelector('#task-cancel').hidden = !task;
-    taskForm.elements.title.value = task?.title || '';
+    if (taskForm.elements.title) taskForm.elements.title.value = task?.title || '';
     if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = task?.title_lv || '';
     taskForm.elements.grade.value = toAdminGradeVal(task?.grade);
     updateTaskTopicDropdown(task?.topic_id);
@@ -1483,11 +1485,14 @@ ${JSON.stringify(texts)}`;
         tagBadges
       ].filter(Boolean).join('');
 
+      const conditionSnippet = task.condition_latex ? task.condition_latex.slice(0, 110).replace(/\s+/g, ' ') : '';
+      const sub = task.subtopic_id ? subtopics.find(s => s.id === task.subtopic_id) : null;
+
       return `<div class="admin-row">
         ${arrows}
         <div class="admin-row-main">
-          <strong>${escapeHtml(task.title)} <span style="font-weight:600;opacity:0.6;font-size:12px;margin-left:4px;">#${task.id}</span></strong>
-          <small>${escapeHtml(topic?.title || 'Без темы')} · ${escapeHtml(gradeText(grade))} · №${task.position ?? 0}</small>
+          <strong>№${task.position ?? 0} · ${escapeHtml(topic?.title || 'Без темы')} <span style="font-weight:600;opacity:0.6;font-size:12px;margin-left:4px;">#${task.id}</span></strong>
+          <small>${escapeHtml(gradeText(grade))}${sub ? ` · ${escapeHtml(sub.code ? sub.code + ' ' : '')}${escapeHtml(sub.title)}` : ''}${conditionSnippet ? ` · <em>${escapeHtml(conditionSnippet)}</em>` : ''}</small>
           <div class="admin-badge-group">${badges}</div>
         </div>
         <button class="text-button" type="button" data-edit-task="${task.id}" title="Редактировать">Изменить</button>
@@ -1525,8 +1530,12 @@ ${JSON.stringify(texts)}`;
     taskSuccess.textContent = '';
     const form = new FormData(taskForm);
     const topicId = form.get('topic_id') ? Number(form.get('topic_id')) : null;
+    const taskPos = nextPosition(topicId, form.get('position'));
+    const defaultTitle = editingTaskId
+      ? (taskIndex.find(t => t.id === editingTaskId)?.title || `Задача №${taskPos}`)
+      : `Задача №${taskPos}`;
     const payload = sanitizeTaskPayload({
-      title: form.get('title').trim(),
+      title: form.get('title')?.trim() || defaultTitle,
       title_lv: form.get('title_lv')?.trim() || null,
       condition_latex: conditionInput.value.trim(),
       condition_latex_lv: conditionInputLv?.value.trim() || null,
@@ -1539,7 +1548,7 @@ ${JSON.stringify(texts)}`;
       condition_image: images.condition.current,
       solution_image: images.solution.current,
       difficulty: form.get('difficulty'),
-      position: nextPosition(topicId, form.get('position')),
+      position: taskPos,
       grade: parseFormGrade(form.get('grade')),
       topic_id: topicId,
       subtopic_id: form.get('subtopic_id') ? Number(form.get('subtopic_id')) : null,
@@ -1605,7 +1614,7 @@ ${JSON.stringify(texts)}`;
       const source = await fetchFullRow('tasks', cloneId);
       if (!source) { taskSuccess.textContent = 'Не удалось загрузить задачу для копирования.'; return; }
       editingTaskId = null; // Гарантирует создание новой задачи при отправке
-      taskForm.elements.title.value = `[Копия] ${source.title}`;
+      if (taskForm.elements.title) taskForm.elements.title.value = source.title ? `[Копия] ${source.title}` : '';
       if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = source.title_lv ? `[Kopija] ${source.title_lv}` : '';
       taskForm.elements.topic_id.value = source.topic_id ? String(source.topic_id) : '';
       taskForm.elements.grade.value = toAdminGradeVal(source.grade);
@@ -1630,7 +1639,7 @@ ${JSON.stringify(texts)}`;
       } else {
         setSelectedTagSlugs([]);
       }
-      document.querySelector('#task-form-title').textContent = `Клонирование: ${source.title}`;
+      document.querySelector('#task-form-title').textContent = `Клонирование: задача №${source.position ?? source.id}`;
       document.querySelector('#task-submit').textContent = 'Добавить задачу (сохранить копию)';
       document.querySelector('#task-cancel').hidden = false;
       taskSuccess.textContent = '✨ Черновик копии задачи создан. Измените параметры и нажмите «Добавить задачу».';
@@ -1641,7 +1650,7 @@ ${JSON.stringify(texts)}`;
     const deleteId = event.target.closest('[data-delete-task]')?.dataset.deleteTask;
     if (!deleteId) return;
     const task = tasks.find(item => String(item.id) === deleteId);
-    const label = task ? `«${task.title}»` : 'выбранную задачу';
+    const label = task ? (task.title ? `«${task.title}»` : `задачу №${task.position ?? task.id}`) : 'выбранную задачу';
     if (!confirm(`Удалить ${label}? Это действие необратимо.`)) return;
     const { error } = await db.from('tasks').delete().eq('id', deleteId);
     if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
@@ -1801,7 +1810,7 @@ ${JSON.stringify(texts)}`;
     return null;
   }
 
-  /* ── Парсер JSON с поддержкой нескольких тем и задач ────────────── */
+  /* ── Парсер JSON с поддержкой тем, подтем и задач ────────────── */
   function parseMultiTopicJson(raw) {
     let parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) {
@@ -1815,20 +1824,87 @@ ${JSON.stringify(texts)}`;
     }
 
     const normalizedTopics = [];
+    const normalizedSubtopics = [];
     const normalizedTasks = [];
 
     for (const item of parsed) {
       if (!item) continue;
-      // Вариант 1: Объект темы со вложенным списком задач tasks: [...]
-      if (Array.isArray(item.tasks)) {
+      // Вариант 1: Объект темы со вложенным списком подтем subtopics: [...]
+      if (Array.isArray(item.subtopics)) {
         const topicInfo = {
           title: String(item.topic_title || item.title || item.name || '').trim(),
           title_lv: item.topic_title_lv || item.title_lv ? String(item.topic_title_lv || item.title_lv).trim() : null,
           grade: parseFormGrade(item.grade),
           subject_id: item.subject_id ? Number(item.subject_id) : null,
-          /* Раздел указывают слагом: числовой идентификатор снаружи никому
-             не известен, а без раздела новая тема молча уезжала в первый
-             по списку — в «Алгебру», даже если это стереометрия. */
+          subject_slug: item.subject_slug ? String(item.subject_slug).trim() : null,
+          subject_title: item.subject_title ? String(item.subject_title).trim() : null,
+          description: item.description ? String(item.description).trim() : null,
+          description_lv: item.description_lv ? String(item.description_lv).trim() : null
+        };
+        if (topicInfo.title) {
+          normalizedTopics.push(topicInfo);
+        }
+
+        for (const sub of item.subtopics) {
+          if (!sub) continue;
+          const subInfo = {
+            topic_title: topicInfo.title,
+            topic_title_lv: topicInfo.title_lv,
+            title: String(sub.title || sub.name || sub.subtopic_title || '').trim(),
+            title_lv: sub.title_lv || sub.subtopic_title_lv ? String(sub.title_lv || sub.subtopic_title_lv).trim() : null,
+            code: sub.code || sub.subtopic_code ? String(sub.code || sub.subtopic_code).trim() : null,
+            position: Number(sub.position) || null
+          };
+          if (subInfo.title || subInfo.code) {
+            normalizedSubtopics.push(subInfo);
+          }
+          if (Array.isArray(sub.tasks)) {
+            for (const t of sub.tasks) {
+              if (!t) continue;
+              normalizedTasks.push({
+                ...t,
+                topic_title: t.topic_title || topicInfo.title,
+                topic_title_lv: t.topic_title_lv || topicInfo.title_lv,
+                subtopic_title: t.subtopic_title || subInfo.title,
+                subtopic_title_lv: t.subtopic_title_lv || subInfo.title_lv,
+                subtopic_code: t.subtopic_code || subInfo.code,
+                grade: t.grade !== undefined ? parseFormGrade(t.grade) : topicInfo.grade,
+                subject_id: t.subject_id ? Number(t.subject_id) : topicInfo.subject_id
+              });
+            }
+          }
+        }
+
+        if (Array.isArray(item.tasks)) {
+          for (const t of item.tasks) {
+            if (!t) continue;
+            const subTitle = String(t.subtopic_title || t.subtopic || '').trim();
+            const subCode = String(t.subtopic_code || '').trim();
+            if (subTitle || subCode) {
+              normalizedSubtopics.push({
+                topic_title: topicInfo.title,
+                topic_title_lv: topicInfo.title_lv,
+                title: subTitle,
+                title_lv: t.subtopic_title_lv ? String(t.subtopic_title_lv).trim() : null,
+                code: subCode || null
+              });
+            }
+            normalizedTasks.push({
+              ...t,
+              topic_title: t.topic_title || topicInfo.title,
+              topic_title_lv: t.topic_title_lv || topicInfo.title_lv,
+              grade: t.grade !== undefined ? parseFormGrade(t.grade) : topicInfo.grade,
+              subject_id: t.subject_id ? Number(t.subject_id) : topicInfo.subject_id
+            });
+          }
+        }
+      } else if (Array.isArray(item.tasks)) {
+        // Вариант 2: Объект темы со вложенным списком задач tasks: [...]
+        const topicInfo = {
+          title: String(item.topic_title || item.title || item.name || '').trim(),
+          title_lv: item.topic_title_lv || item.title_lv ? String(item.topic_title_lv || item.title_lv).trim() : null,
+          grade: parseFormGrade(item.grade),
+          subject_id: item.subject_id ? Number(item.subject_id) : null,
           subject_slug: item.subject_slug ? String(item.subject_slug).trim() : null,
           subject_title: item.subject_title ? String(item.subject_title).trim() : null,
           description: item.description ? String(item.description).trim() : null,
@@ -1839,6 +1915,17 @@ ${JSON.stringify(texts)}`;
         }
         for (const t of item.tasks) {
           if (!t) continue;
+          const subTitle = String(t.subtopic_title || t.subtopic || '').trim();
+          const subCode = String(t.subtopic_code || '').trim();
+          if (subTitle || subCode) {
+            normalizedSubtopics.push({
+              topic_title: topicInfo.title,
+              topic_title_lv: topicInfo.title_lv,
+              title: subTitle,
+              title_lv: t.subtopic_title_lv ? String(t.subtopic_title_lv).trim() : null,
+              code: subCode || null
+            });
+          }
           normalizedTasks.push({
             ...t,
             topic_title: t.topic_title || topicInfo.title,
@@ -1848,7 +1935,7 @@ ${JSON.stringify(texts)}`;
           });
         }
       } else {
-        // Вариант 2: Плоская задача со свойством topic_title или topic
+        // Вариант 3: Плоская задача со свойством topic_title или topic
         const t = item;
         const topicTitle = String(t.topic_title || t.topic || '').trim();
         if (topicTitle) {
@@ -1863,22 +1950,44 @@ ${JSON.stringify(texts)}`;
             description_lv: null
           });
         }
+        const subTitle = String(t.subtopic_title || t.subtopic || '').trim();
+        const subCode = String(t.subtopic_code || '').trim();
+        if (subTitle || subCode) {
+          normalizedSubtopics.push({
+            topic_title: topicTitle,
+            topic_title_lv: t.topic_title_lv ? String(t.topic_title_lv).trim() : null,
+            title: subTitle,
+            title_lv: t.subtopic_title_lv ? String(t.subtopic_title_lv).trim() : null,
+            code: subCode || null
+          });
+        }
         normalizedTasks.push(t);
       }
     }
 
     // Уникальные темы по названию
     const uniqueTopics = [];
-    const seen = new Set();
+    const seenTopics = new Set();
     for (const top of normalizedTopics) {
       const key = top.title.toLowerCase();
-      if (key && !seen.has(key)) {
-        seen.add(key);
+      if (key && !seenTopics.has(key)) {
+        seenTopics.add(key);
         uniqueTopics.push(top);
       }
     }
 
-    return { uniqueTopics, tasks: normalizedTasks };
+    // Уникальные подтемы по коду или (тема + название)
+    const uniqueSubtopics = [];
+    const seenSubtopics = new Set();
+    for (const sub of normalizedSubtopics) {
+      const key = (sub.code ? `code:${sub.code}` : `${sub.topic_title}:::${sub.title}`).toLowerCase();
+      if ((sub.title || sub.code) && !seenSubtopics.has(key)) {
+        seenSubtopics.add(key);
+        uniqueSubtopics.push(sub);
+      }
+    }
+
+    return { uniqueTopics, uniqueSubtopics, tasks: normalizedTasks };
   }
 
   btnExportTasks?.addEventListener('click', () => { openBulkDialog('export').catch(e => console.error('экспорт:', e)); });
@@ -1896,10 +2005,10 @@ ${JSON.stringify(texts)}`;
       openBulkDialog('import');
       bulkDialogTextarea.value = content;
       try {
-        const { uniqueTopics, tasks: parsedTasks } = parseMultiTopicJson(content);
+        const { uniqueTopics, uniqueSubtopics, tasks: parsedTasks } = parseMultiTopicJson(content);
         bulkDialogStatus.className = 'bulk-dialog-status success';
         bulkDialogStatus.innerHTML = `📁 Файл <strong>${escapeHtml(file.name)}</strong> загружен!<br>` +
-          `Обнаружено тем: <strong>${uniqueTopics.length}</strong>, задач: <strong>${parsedTasks.length}</strong>.<br>` +
+          `Обнаружено: тем: <strong>${uniqueTopics.length}</strong>, подтем: <strong>${uniqueSubtopics.length}</strong>, задач: <strong>${parsedTasks.length}</strong>.<br>` +
           `Нажмите <strong>«Импортировать в базу»</strong>, чтобы сохранить данные в Supabase.`;
         bulkDialogStatus.hidden = false;
       } catch (err) {
@@ -1997,39 +2106,49 @@ ${JSON.stringify(texts)}`;
     bulkDialogStatus.hidden = false;
   });
 
-  // Шаблон формата с несколькими темами
+  // Шаблон формата с несколькими темами и подтемами
   bulkDialogTemplateBtn?.addEventListener('click', () => {
     const sampleData = [
       {
         "topic_title": "Квадратные уравнения",
         "topic_title_lv": "Kvadrātvienādojumi",
         "grade": 8,
-        "tasks": [
+        "subtopics": [
           {
-            "title": "Неполное квадратное уравнение",
-            "title_lv": "Nepilns kvadrātvienādojums",
-            "condition_latex": "Решите уравнение $x^2 - 9 = 0$.",
-            "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 9 = 0$.",
-            "answer_latex": "$x = \\pm 3$",
-            "answer_latex_lv": "$x = \\pm 3$",
-            "solution_latex": "Разложим на множители разность квадратов:\n$$(x - 3)(x + 3) = 0$$\nОткуда $x_1 = 3,\\; x_2 = -3$.",
-            "solution_latex_lv": "Sadalām reizinātājos kvadrātu starpību:\n$$(x - 3)(x + 3) = 0$$\nTātad $x_1 = 3,\\; x_2 = -3$.",
-            "tags": ["vienadojumi", "algebriskie-parveidojumi"],
-            "difficulty": "Лёгкий",
-            "is_published": true
+            "title": "Неполные квадратные уравнения",
+            "title_lv": "Nepilni kvadrātvienādojumi",
+            "code": "8.1.1",
+            "tasks": [
+              {
+                "condition_latex": "Решите уравнение $x^2 - 9 = 0$.",
+                "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 9 = 0$.",
+                "answer_latex": "$x = \\pm 3$",
+                "answer_latex_lv": "$x = \\pm 3$",
+                "solution_latex": "Разложим на множители разность квадратов:\n$$(x - 3)(x + 3) = 0$$\nОткуда $x_1 = 3,\\; x_2 = -3$.",
+                "solution_latex_lv": "Sadalām reizinātājos kvadrātu starpību:\n$$(x - 3)(x + 3) = 0$$\nTātad $x_1 = 3,\\; x_2 = -3$.",
+                "tags": ["vienadojumi", "algebriskie-parveidojumi"],
+                "difficulty": "Лёгкий",
+                "is_published": true
+              }
+            ]
           },
           {
-            "title": "Полное квадратное уравнение",
-            "title_lv": "Pilns kvadrātvienādojums",
-            "condition_latex": "Решите уравнение $x^2 - 5x + 6 = 0$.",
-            "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 5x + 6 = 0$.",
-            "answer_latex": "$x_1 = 2,\\; x_2 = 3$",
-            "answer_latex_lv": "$x_1 = 2,\\; x_2 = 3$",
-            "solution_latex": "По формуле корней через дискриминант:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
-            "solution_latex_lv": "Pēc sakņu formulas ar diskriminantu:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
-            "tags": ["vienadojumi"],
-            "difficulty": "Средний",
-            "is_published": true
+            "title": "Полные квадратные уравнения",
+            "title_lv": "Pilni kvadrātvienādojumi",
+            "code": "8.1.2",
+            "tasks": [
+              {
+                "condition_latex": "Решите уравнение $x^2 - 5x + 6 = 0$.",
+                "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 5x + 6 = 0$.",
+                "answer_latex": "$x_1 = 2,\\; x_2 = 3$",
+                "answer_latex_lv": "$x_1 = 2,\\; x_2 = 3$",
+                "solution_latex": "По формуле корней через дискриминант:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
+                "solution_latex_lv": "Pēc sakņu formulas ar diskriminantu:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
+                "tags": ["vienadojumi"],
+                "difficulty": "Средний",
+                "is_published": true
+              }
+            ]
           }
         ]
       },
@@ -2039,8 +2158,8 @@ ${JSON.stringify(texts)}`;
         "grade": 8,
         "tasks": [
           {
-            "title": "Нахождение гипотенузы треугольника",
-            "title_lv": "Taisnleņķa trijstūra hipotenūzas aprēķināšana",
+            "subtopic_title": "Прямоугольный треугольник",
+            "subtopic_code": "8.2.1",
             "condition_latex": "В прямоугольном треугольнике катеты равны $a = 3\\text{ см}$ и $b = 4\\text{ см}$. Найдите длину гипотенузы $c$.",
             "condition_latex_lv": "Taisnleņķa trijstūrī katetes ir $a = 3\\text{ cm}$ un $b = 4\\text{ cm}$. Aprēķiniet hipotenūzas $c$ garumu.",
             "answer_latex": "$c = 5\\text{ см}$",
@@ -2057,12 +2176,13 @@ ${JSON.stringify(texts)}`;
 
     openBulkDialog('import');
     bulkDialogTextarea.value = JSON.stringify(sampleData, null, 2);
+    const { uniqueTopics, uniqueSubtopics, tasks: parsedTasks } = parseMultiTopicJson(bulkDialogTextarea.value);
     bulkDialogStatus.className = 'bulk-dialog-status';
-    bulkDialogStatus.innerHTML = '📋 Образец формата с 2 темами и 3 задачами вставлен в поле. Нажмите «Импортировать в базу» для добавления.';
+    bulkDialogStatus.innerHTML = `📋 Образец формата вставлен (тем: <strong>${uniqueTopics.length}</strong>, подтем: <strong>${uniqueSubtopics.length}</strong>, задач: <strong>${parsedTasks.length}</strong>). Нажмите «Импортировать в базу».`;
     bulkDialogStatus.hidden = false;
   });
 
-  // Подсчёт тем и задач при вводе в поле
+  // Подсчёт тем, подтем и задач при вводе в поле
   bulkDialogTextarea?.addEventListener('input', () => {
     if (bulkMode !== 'import') return;
     const val = bulkDialogTextarea.value.trim();
@@ -2071,10 +2191,10 @@ ${JSON.stringify(texts)}`;
       return;
     }
     try {
-      const { uniqueTopics, tasks: parsedTasks } = parseMultiTopicJson(val);
-      if (parsedTasks.length > 0) {
+      const { uniqueTopics, uniqueSubtopics, tasks: parsedTasks } = parseMultiTopicJson(val);
+      if (parsedTasks.length > 0 || uniqueTopics.length > 0) {
         bulkDialogStatus.className = 'bulk-dialog-status';
-        bulkDialogStatus.innerHTML = `📊 Введено: тем: <strong>${uniqueTopics.length}</strong>, задач: <strong>${parsedTasks.length}</strong>. Нажмите «Импортировать в базу».`;
+        bulkDialogStatus.innerHTML = `📊 Обнаружено: тем: <strong>${uniqueTopics.length}</strong>, подтем: <strong>${uniqueSubtopics.length}</strong>, задач: <strong>${parsedTasks.length}</strong>. Нажмите «Импортировать в базу».`;
         bulkDialogStatus.hidden = false;
       }
     } catch {
@@ -2151,7 +2271,7 @@ ${JSON.stringify(texts)}`;
       return;
     }
 
-    const { uniqueTopics, tasks: items } = parsedResult;
+    const { uniqueTopics, uniqueSubtopics, tasks: items } = parsedResult;
     if (!items.length) {
       bulkDialogStatus.className = 'bulk-dialog-status error';
       bulkDialogStatus.textContent = 'В JSON не найдено задач для импорта.';
@@ -2163,6 +2283,7 @@ ${JSON.stringify(texts)}`;
     bulkDialogSubmit.textContent = 'Импортируем в Supabase…';
 
     let createdTopicsCount = 0;
+    let createdSubtopicsCount = 0;
     const errors = [];
 
     // 1. Создаём недостающие темы в Supabase
@@ -2203,13 +2324,51 @@ ${JSON.stringify(texts)}`;
       }
     }
 
+    // 1b. Создаём недостающие подтемы в Supabase
+    for (const sub of uniqueSubtopics) {
+      const parentTopic = topics.find(t =>
+        (sub.topic_title && t.title?.toLowerCase().trim() === sub.topic_title.toLowerCase().trim()) ||
+        (sub.topic_title_lv && t.title_lv?.toLowerCase().trim() === sub.topic_title_lv.toLowerCase().trim())
+      );
+      if (!parentTopic) continue;
+
+      const code = sub.code ? String(sub.code).trim() : '';
+      const sNeedle = sub.title ? String(sub.title).trim().toLowerCase() : '';
+      const sNeedleLv = sub.title_lv ? String(sub.title_lv).trim().toLowerCase() : '';
+
+      let existingSub = subtopics.find(s =>
+        s.topic_id === parentTopic.id && (
+          (code && String(s.code || '').trim() === code) ||
+          (sNeedle && s.title?.toLowerCase().trim() === sNeedle) ||
+          (sNeedleLv && s.title_lv?.toLowerCase().trim() === sNeedleLv)
+        )
+      );
+
+      if (!existingSub && (sub.title || sub.code)) {
+        const titleVal = sub.title || sub.code || 'Подтема';
+        const newSubPayload = {
+          topic_id: parentTopic.id,
+          title: titleVal,
+          title_lv: sub.title_lv || null,
+          code: sub.code || null,
+          position: sub.position || (subtopics.filter(s => s.topic_id === parentTopic.id).length + 1),
+          slug: `${makeSlug(titleVal)}-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+        };
+        const { data: createdSub, error: subErr } = await db.from('subtopics').insert(newSubPayload).select().single();
+        if (!subErr && createdSub) {
+          subtopics.push(createdSub);
+          createdSubtopicsCount++;
+        }
+      }
+    }
+
     // 2. Добавляем задачи
     let successCount = 0;
     const warnings = [];
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      if (!item.title || !item.condition_latex) {
-        errors.push(`Задача #${i + 1}: отсутствует title или condition_latex`);
+      if (!item.condition_latex) {
+        errors.push(`Задача #${i + 1}: отсутствует condition_latex`);
         continue;
       }
       let topicId = item.topic_id || null;
@@ -2241,9 +2400,12 @@ ${JSON.stringify(texts)}`;
         else warnings.push(`Задача #${i + 1}: подтема «${code || sNeedle || sNeedleLv}» не найдена, задача легла прямо в тему.`);
       }
 
+      const taskPos = nextPosition(topicId, null);
+      const titleVal = item.title ? String(item.title).trim() : `Задача №${taskPos}`;
+
       const payload = sanitizeTaskPayload({
         subtopic_id: subtopicId,
-        title: String(item.title).trim(),
+        title: titleVal,
         title_lv: item.title_lv ? String(item.title_lv).trim() : null,
         condition_latex: String(item.condition_latex).trim(),
         condition_latex_lv: item.condition_latex_lv ? String(item.condition_latex_lv).trim() : null,
@@ -2261,13 +2423,13 @@ ${JSON.stringify(texts)}`;
         /* Позицию из файла не берём: в наборах она у каждой задачи была
            единицей, и все задачи темы слипались в один номер. Номер внутри
            темы назначаем сами, по порядку добавления. */
-        position: nextPosition(topicId, null),
+        position: taskPos,
         is_published: item.is_published !== undefined ? Boolean(item.is_published) : true
       });
 
       const { data: insertedTask, error } = await db.from('tasks').insert(payload).select('id').maybeSingle();
       if (error) {
-        errors.push(`Задача #${i + 1} («${item.title}»): ${error.message}`);
+        errors.push(`Задача #${i + 1}: ${error.message}`);
       } else {
         successCount++;
         const newTaskId = insertedTask?.id;
@@ -2279,7 +2441,7 @@ ${JSON.stringify(texts)}`;
         // Привязываем кросс-теги Skola2030 если они переданы в массиве tags
         if (newTaskId && Array.isArray(item.tags) && item.tags.length) {
           if (!tagsReady) {
-            warnings.push(`Задача «${item.title}»: теги не сохранены — не выполнена миграция 010_cross_tags.sql.`);
+            warnings.push(`Задача #${i + 1}: теги не сохранены — не выполнена миграция 010_cross_tags.sql.`);
           } else try {
             const rawTags = item.tags.map(t => String(t).trim().toLowerCase()).filter(Boolean);
             const matched = [];
@@ -2291,18 +2453,18 @@ ${JSON.stringify(texts)}`;
             /* Словарь тегов закрытый. Молча выбросить непонятый тег — значит
                потерять разметку без единого следа, поэтому говорим об этом. */
             if (unknown.length) {
-              warnings.push(`Задача «${item.title}»: неизвестные теги — ${unknown.join(', ')}. Допустимые слаги перечислены под полем ввода.`);
+              warnings.push(`Задача #${i + 1}: неизвестные теги — ${unknown.join(', ')}. Допустимые слаги перечислены под полем ввода.`);
             }
             if (matched.length > 3) {
-              warnings.push(`Задача «${item.title}»: тегов больше трёх, сохранены первые три (${matched.slice(0, 3).map(t => t.slug).join(', ')}).`);
+              warnings.push(`Задача #${i + 1}: тегов больше трёх, сохранены первые три (${matched.slice(0, 3).map(t => t.slug).join(', ')}).`);
             }
             const tagInserts = matched.slice(0, 3).map(t => ({ task_id: newTaskId, tag_id: t.id }));
             if (tagInserts.length) {
               const { error: tagErr } = await db.from('task_tags').insert(tagInserts);
-              if (tagErr) warnings.push(`Задача «${item.title}»: теги не сохранены — ${tagErr.message}`);
+              if (tagErr) warnings.push(`Задача #${i + 1}: теги не сохранены — ${tagErr.message}`);
             }
           } catch (tErr) {
-            warnings.push(`Задача «${item.title}»: ошибка сохранения тегов — ${tErr.message}`);
+            warnings.push(`Задача #${i + 1}: ошибка сохранения тегов — ${tErr.message}`);
           }
         }
       }
@@ -2317,13 +2479,16 @@ ${JSON.stringify(texts)}`;
 
     if (errors.length) {
       bulkDialogStatus.className = 'bulk-dialog-status ' + (successCount > 0 ? 'warning' : 'error');
-      bulkDialogStatus.innerHTML = `Обработано тем: <strong>${uniqueTopics.length}</strong> (создано новых: ${createdTopicsCount}).<br>` +
+      bulkDialogStatus.innerHTML = `Обработано тем: <strong>${uniqueTopics.length}</strong> (создано новых: ${createdTopicsCount}), ` +
+        `подтем: <strong>${uniqueSubtopics.length}</strong>` + (createdSubtopicsCount ? ` (создано новых: ${createdSubtopicsCount})` : '') + `.<br>` +
         `Успешно сохранено задач: <strong>${successCount}</strong> из ${items.length}.<br>` + warnBlock +
         `Ошибки:<br>${errors.map(escapeHtml).join('<br>')}`;
       bulkDialogStatus.hidden = false;
     } else {
       bulkDialogStatus.className = 'bulk-dialog-status success';
-      bulkDialogStatus.innerHTML = `🎉 Успешно импортировано! Тем обработано: <strong>${uniqueTopics.length}</strong> (создано новых: ${createdTopicsCount}), задач сохранено: <strong>${successCount}</strong> из ${items.length}!` + warnBlock;
+      bulkDialogStatus.innerHTML = `🎉 Успешно импортировано! Тем обработано: <strong>${uniqueTopics.length}</strong> (создано новых: ${createdTopicsCount}), ` +
+        `подтем: <strong>${uniqueSubtopics.length}</strong>` + (createdSubtopicsCount ? ` (создано новых: ${createdSubtopicsCount})` : '') + `, ` +
+        `задач сохранено: <strong>${successCount}</strong> из ${items.length}!` + warnBlock;
       bulkDialogStatus.hidden = false;
       setTimeout(() => bulkDialog?.close(), 2200);
     }
@@ -3101,7 +3266,7 @@ ${JSON.stringify(texts)}`;
         const first = generatedResults[0];
 
         // Заполняем форму первой сгенерированной задачей для предпросмотра
-        taskForm.elements.title.value = first.result.title_ru || first.result.title || '';
+        if (taskForm.elements.title) taskForm.elements.title.value = first.result.title_ru || first.result.title || '';
         if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = first.result.title_lv || '';
 
         taskGradeSelect.value = String(g);
@@ -3207,7 +3372,7 @@ ${JSON.stringify(texts)}`;
           aiGenStatus.innerHTML = `⚠️ Ошибка на задаче ${generatedResults.length + 1}: ${err.message}. Но ${generatedResults.length} задач(а) уже готовы!`;
 
           const first = generatedResults[0];
-          taskForm.elements.title.value = first.result.title_ru || first.result.title || '';
+          if (taskForm.elements.title) taskForm.elements.title.value = first.result.title_ru || first.result.title || '';
           if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = first.result.title_lv || '';
           taskGradeSelect.value = String(g);
           updateTaskTopicDropdown();

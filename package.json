@@ -17,7 +17,9 @@
     "verify:pairing": "node scripts/verify-language-pairing.mjs",
     "backup": "node scripts/backup.mjs",
     "backup:check": "node scripts/backup.mjs --check",
-    "restore": "node scripts/restore.mjs"
+    "restore": "node scripts/restore.mjs",
+    "renumber": "node scripts/renumber-tasks.mjs",
+    "renumber:apply": "node scripts/renumber-tasks.mjs --apply"
   },
   "devDependencies": {
     "vite": "^7.1.3",

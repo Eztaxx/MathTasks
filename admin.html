@@ -383,10 +383,10 @@
               <button type="button" class="task-lang-tab" data-task-lang="lv">🇱🇻 Latviešu (Skola2030)</button>
             </div>
             <div class="ai-translate-group">
-              <button type="button" class="ai-translate-btn" id="btn-ai-translate" title="Перевести название, условие и решение с русского на латышский, сохранив разметку формул">
+              <button type="button" class="ai-translate-btn" id="btn-ai-translate" title="Перевести условие, ответ и решение с русского на латышский, сохранив разметку формул">
                 <span class="ai-icon">✨</span> Перевести RU → LV
               </button>
-              <button type="button" class="ai-translate-btn" id="btn-ai-translate-back" title="Перевести название, условие и решение с латышского на русский, сохранив разметку формул">
+              <button type="button" class="ai-translate-btn" id="btn-ai-translate-back" title="Перевести условие, ответ и решение с латышского на русский, сохранив разметку формул">
                 <span class="ai-icon">✨</span> Перевести LV → RU
               </button>
             </div>
@@ -428,7 +428,6 @@
 
           <!-- Группа полей RU -->
           <div class="task-lang-group" data-lang-group="ru">
-            <label class="wide">Название (RU)<input name="title" id="title-input-ru" required placeholder="Например: Квадратное уравнение" /></label>
             <label class="wide">Условие (RU) <span>обычный текст; формулы — между знаками $…$</span><textarea name="condition_latex" id="condition-input" required placeholder="Решите уравнение $2x^2 - 5x - 3 = 0$"></textarea></label>
             <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель (RU)</span><div id="condition-preview"></div></div>
             <label class="wide">Решение (RU) <span>необязательно; формулы — между знаками $…$</span><textarea name="solution_latex" id="solution-input" placeholder="Дискриминант $D = 49$, значит $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
@@ -437,7 +436,6 @@
 
           <!-- Группа полей LV -->
           <div class="task-lang-group" data-lang-group="lv" hidden>
-            <label class="wide">Nosaukums (LV)<input name="title_lv" id="title-input-lv" placeholder="Piemēram: Kvadrātvienādojums" /></label>
             <label class="wide">Nosacījums (LV) <span>parasts teksts; formulas — starp $…$</span><textarea name="condition_latex_lv" id="condition-input-lv" placeholder="Atrisiniet vienādojumu $2x^2 - 5x - 3 = 0$"></textarea></label>
             <div class="wide math-preview"><span class="math-preview-label">Kā redzēs skolēns (LV)</span><div id="condition-preview-lv"></div></div>
             <label class="wide">Atrisinājums (LV) <span>neobligāti; formulas — starp $…$</span><textarea name="solution_latex_lv" id="solution-input-lv" placeholder="Diskriminants $D = 49$, tātad $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
@@ -522,32 +520,42 @@
     "topic_title": "Квадратные уравнения",
     "topic_title_lv": "Kvadrātvienādojumi",
     "grade": 8,
-    "tasks": [
+    "subtopics": [
       {
-        "title": "Неполное квадратное уравнение",
-        "title_lv": "Nepilns kvadrātvienādojums",
-        "condition_latex": "Решите уравнение $x^2 - 9 = 0$.",
-        "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 9 = 0$.",
-        "answer_latex": "$x = \\pm 3$",
-        "answer_latex_lv": "$x = \\pm 3$",
-        "solution_latex": "Разложим на множители разность квадратов:\n$$(x - 3)(x + 3) = 0$$\nОткуда $x_1 = 3,\\; x_2 = -3$.",
-        "solution_latex_lv": "Sadalām reizinātājos kvadrātu starpību:\n$$(x - 3)(x + 3) = 0$$\nTātad $x_1 = 3,\\; x_2 = -3$.",
-        "tags": ["vienadojumi", "algebriskie-parveidojumi"],
-        "difficulty": "Лёгкий",
-        "is_published": true
+        "title": "Неполные квадратные уравнения",
+        "title_lv": "Nepilni kvadrātvienādojumi",
+        "code": "8.1.1",
+        "tasks": [
+          {
+            "condition_latex": "Решите уравнение $x^2 - 9 = 0$.",
+            "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 9 = 0$.",
+            "answer_latex": "$x = \\pm 3$",
+            "answer_latex_lv": "$x = \\pm 3$",
+            "solution_latex": "Разложим на множители разность квадратов:\n$$(x - 3)(x + 3) = 0$$\nОткуда $x_1 = 3,\\; x_2 = -3$.",
+            "solution_latex_lv": "Sadalām reizinātājos kvadrātu starpību:\n$$(x - 3)(x + 3) = 0$$\nTātad $x_1 = 3,\\; x_2 = -3$.",
+            "tags": ["vienadojumi", "algebriskie-parveidojumi"],
+            "difficulty": "Лёгкий",
+            "is_published": true
+          }
+        ]
       },
       {
-        "title": "Полное квадратное уравнение",
-        "title_lv": "Pilns kvadrātvienādojums",
-        "condition_latex": "Решите уравнение $x^2 - 5x + 6 = 0$.",
-        "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 5x + 6 = 0$.",
-        "answer_latex": "$x_1 = 2,\\; x_2 = 3$",
-        "answer_latex_lv": "$x_1 = 2,\\; x_2 = 3$",
-        "solution_latex": "По формуле корней через дискриминант:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
-        "solution_latex_lv": "Pēc sakņu formulas ar diskriminantu:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
-        "tags": ["vienadojumi"],
-        "difficulty": "Средний",
-        "is_published": true
+        "title": "Полные квадратные уравнения",
+        "title_lv": "Pilni kvadrātvienādojumi",
+        "code": "8.1.2",
+        "tasks": [
+          {
+            "condition_latex": "Решите уравнение $x^2 - 5x + 6 = 0$.",
+            "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 5x + 6 = 0$.",
+            "answer_latex": "$x_1 = 2,\\; x_2 = 3$",
+            "answer_latex_lv": "$x_1 = 2,\\; x_2 = 3$",
+            "solution_latex": "По формуле корней через дискриминант:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
+            "solution_latex_lv": "Pēc sakņu formulas ar diskriminantu:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
+            "tags": ["vienadojumi"],
+            "difficulty": "Средний",
+            "is_published": true
+          }
+        ]
       }
     ]
   },
@@ -557,8 +565,8 @@
     "grade": 8,
     "tasks": [
       {
-        "title": "Нахождение гипотенузы треугольника",
-        "title_lv": "Taisnleņķa trijstūra hipotenūzas aprēķināšana",
+        "subtopic_title": "Прямоугольный треугольник",
+        "subtopic_code": "8.2.1",
         "condition_latex": "В прямоугольном треугольнике катеты равны $a = 3\\text{ см}$ и $b = 4\\text{ см}$. Найдите длину гипотенузы $c$.",
         "condition_latex_lv": "Taisnleņķa trijstūrī katetes ir $a = 3\\text{ cm}$ un $b = 4\\text{ cm}$. Aprēķiniet hipotenūzas $c$ garumu.",
         "answer_latex": "$c = 5\\text{ см}$",

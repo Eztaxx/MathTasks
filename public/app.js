@@ -67,6 +67,7 @@ const TASK_SELECT_WITH_TAGS = '*, task_tags(tags(id, slug, title, title_lv, desc
 const TASK_SELECT_FULL = '*, topics(title, title_lv, slug, description, description_lv, subjects(title, title_lv, icon))';
 const TASK_SELECT_BASE = '*, topics(title, slug, description, subjects(title, icon))';
 let TASK_SELECT = TASK_SELECT_FULL;
+const MIN_CONTROL_WORK_TASKS = 1;
 let multilingualColumns = true;
 let hasTagsSupport = false;
 let allTags = (window.MathTasksLib && window.MathTasksLib.CROSS_TAGS) ? window.MathTasksLib.CROSS_TAGS : [];
@@ -952,18 +953,10 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
     ? revealBlock('solution', 'atrisinājums', solutionBody)
     : `<p class="solution-missing">${escapeHtml(tr('solution_missing'))}</p>`;
 
-  const titleText = highlightQuery ? highlightText(taskTitle, highlightQuery) : escapeHtml(taskTitle);
-  /* Номер задачи в подборке: по нему ученик находит нужную строку, когда
-     ему говорят «посмотри задачу 17», и по нему же работает переход
-     из полосы номеров наверху. */
-  const numBadge = number ? `<span class="task-number">${number}.</span>` : '';
-  /* Номер и заголовок — одна строка. Без обёртки оба были прямыми детьми
-     колоночного флексбокса карточки и растягивались во всю её ширину:
-     номер превращался в полосу, а подсветка — в полосу цветную. */
-  const titleTag = linkTitle
-    ? `<a class="task-title" href="${taskPath(task)}">${titleText}</a>`
-    : `<strong class="task-title">${titleText}</strong>`;
-  const title = `<div class="task-head">${numBadge}${titleTag}</div>`;
+  /* Номер задачи напротив условия для экономии места и компактности */
+  const numBadge = number
+    ? (linkTitle ? `<a class="task-number" href="${taskPath(task)}">${number}.</a>` : `<span class="task-number">${number}.</span>`)
+    : '';
 
   // Кросс-теги задачи
   const rawTaskTags = Array.isArray(task.task_tags)
@@ -981,10 +974,12 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
 
   return `<article class="task" id="task-${task.id}" data-task="${task.id}" data-task-id="${task.id}">
     <div class="task-meta">${meta}</div>
-    ${title}
-    ${tagsRowHtml}
-    <div class="math task-condition" data-condition></div>
+    <div class="task-condition-wrap">
+      ${numBadge}
+      <div class="math task-condition" data-condition></div>
+    </div>
     ${taskFigure(task.condition_image, taskTitle, 'Zīmējums')}
+    ${tagsRowHtml}
     ${selfCheck}
     ${answer}
     ${hint}
@@ -1897,12 +1892,27 @@ function renderPrintActions(tasks) {
       ${viewToggle}
       ${sortControl}
       ${unsolvedFilterBtn}
-      ${cwQuickBtn}
     </div>
-    <div class="print-actions-group">
-      <span class="list-actions-label">${escapeHtml(tr('print'))}:</span>
-      <button class="ghost-button" type="button" data-print="full">${escapeHtml(tr('print_with_solutions'))}</button>
-      <button class="ghost-button" type="button" data-print="blank">${escapeHtml(tr('print_no_solutions'))}</button>
+    <div class="print-menu-wrap">
+      <button class="view-mode-btn print-toggle-btn" type="button" id="print-toggle-btn" aria-haspopup="true" aria-expanded="false" title="${escapeHtml(tr('print') || 'Печать')}">
+        <span class="view-mode-icon">🖨️</span> <span>${escapeHtml(tr('print') || 'Печать')}</span> <span class="dropdown-caret">▾</span>
+      </button>
+      <div class="print-dropdown-menu" id="print-dropdown-menu" hidden>
+        <button class="print-dropdown-item" type="button" data-print-mode="blank">
+          <span class="print-item-icon">📄</span>
+          <div class="print-item-text">
+            <strong>${escapeHtml(tr('print_no_solutions') || 'Без решений')}</strong>
+            <small>${escapeHtml(tr('print_no_solutions_hint') || 'Только условия для учеников')}</small>
+          </div>
+        </button>
+        <button class="print-dropdown-item" type="button" data-print-mode="full">
+          <span class="print-item-icon">📝</span>
+          <div class="print-item-text">
+            <strong>${escapeHtml(tr('print_with_solutions') || 'С решениями')}</strong>
+            <small>${escapeHtml(tr('print_with_solutions_hint') || 'С ответами и разбором для учителя')}</small>
+          </div>
+        </button>
+      </div>
     </div>
   `;
 }
@@ -1923,8 +1933,27 @@ listActions.addEventListener('change', event => {
 });
 
 listActions.addEventListener('click', event => {
-  const button = event.target.closest('[data-print]');
-  if (button) printTasks(button.dataset.print === 'full');
+  const printToggle = event.target.closest('#print-toggle-btn');
+  if (printToggle) {
+    const menu = document.querySelector('#print-dropdown-menu');
+    if (menu) {
+      const isHidden = menu.hidden;
+      menu.hidden = !isHidden;
+      printToggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    }
+    return;
+  }
+
+  const printItem = event.target.closest('[data-print-mode]');
+  if (printItem) {
+    const mode = printItem.dataset.printMode;
+    const menu = document.querySelector('#print-dropdown-menu');
+    if (menu) menu.hidden = true;
+    const btn = document.querySelector('#print-toggle-btn');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+    printTasks(mode === 'full');
+    return;
+  }
 
   const filterBtn = event.target.closest('[data-toggle-unsolved]');
   if (filterBtn) {
@@ -1941,6 +1970,26 @@ listActions.addEventListener('click', event => {
     singleTaskIndex = 0;
     renderCurrentTopicTasks();
     return;
+  }
+});
+
+document.addEventListener('click', event => {
+  if (!event.target.closest('.print-menu-wrap')) {
+    const menu = document.querySelector('#print-dropdown-menu');
+    if (menu && !menu.hidden) {
+      menu.hidden = true;
+      document.querySelector('#print-toggle-btn')?.setAttribute('aria-expanded', 'false');
+    }
+  }
+});
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    const menu = document.querySelector('#print-dropdown-menu');
+    if (menu && !menu.hidden) {
+      menu.hidden = true;
+      document.querySelector('#print-toggle-btn')?.setAttribute('aria-expanded', 'false');
+    }
   }
 });
 
@@ -2001,6 +2050,16 @@ async function showTopic(slug) {
   shuffledTopicTasks = null;
   currentListEmptyText = 'В этой теме задач пока нет.';
 
+  renderTopicHeaderMeta(topic, tasks);
+
+  renderSubtopicNav(topic);
+  renderCurrentTopicTasks();
+}
+
+function renderTopicHeaderMeta(topic, tasks) {
+  const metaEl = document.querySelector('#list-meta');
+  if (!metaEl || !topic) return;
+  const tr = window.MathTasks.t || (k => k);
   const prog = getTopicProgress(topic.id);
   const progHtml = prog.total > 0 ? `
     <div class="topic-header-progress${prog.isComplete ? ' done' : ''}" id="topic-header-progress">
@@ -2011,14 +2070,19 @@ async function showTopic(slug) {
     </div>
   ` : '';
 
-  const metaEl = document.querySelector('#list-meta');
-  if (metaEl) {
-    const gradeBadge = topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : '';
-    metaEl.innerHTML = `${gradeBadge} ${progHtml}`;
-  }
+  const taskList = tasks || currentTopicTasks || [];
+  const isCwEligible = taskList.length >= MIN_CONTROL_WORK_TASKS;
+  const isCwReady = prog.percent >= 80;
+  const cwBtnHtml = isCwEligible ? `
+    <a class="topic-header-cw-btn${isCwReady ? ' highlighted' : ''}" id="topic-header-cw-btn" href="/control-work/${encodeURIComponent(topic.slug)}" title="${escapeHtml(isCwReady ? tr('cw_ready_hint') : tr('btn_start_cw'))}">
+      <span class="cw-btn-icon">📝</span>
+      <span class="cw-btn-text">${escapeHtml(tr('cw_badge_short'))}</span>
+      ${isCwReady ? `<span class="cw-ready-pill">${escapeHtml(tr('cw_ready_pill'))}</span>` : ''}
+    </a>
+  ` : '';
 
-  renderSubtopicNav(topic);
-  renderCurrentTopicTasks();
+  const gradeBadge = topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : '';
+  metaEl.innerHTML = `<div class="topic-header-meta-row">${gradeBadge} ${progHtml} ${cwBtnHtml}</div>`;
 }
 
 /* ── Все задачи ───────────────────────────────────────────────────── */
@@ -2097,11 +2161,6 @@ async function showFavorites() {
 }
 
 /* ── Контрольные работы (Pārbaudes darbi) ─────────────────────────── */
-
-/* Работа из одной-двух задач контрольной не является: балансировщик при
-   таком запасе отдаёт всё, что есть, а оценка по одной задаче — это ноль
-   или сто процентов. Ниже этого порога тему в контрольные не берём. */
-const MIN_CONTROL_WORK_TASKS = 3;
 
 function getControlWorkStorage() {
   try {
@@ -2312,7 +2371,6 @@ function renderControlWorkCards() {
           ${difficultyBadge(diff)}
         </div>
         <div class="cw-task-body">
-          <strong class="cw-task-title">${escapeHtml(taskTitle)}</strong>
           <div class="math cw-task-condition" data-cw-condition="${task.id}"></div>
           ${figure}
         </div>
@@ -2778,25 +2836,27 @@ async function showTask(rawId) {
   } else {
     renderSidebar();
   }
-  const taskTitle = loc(task, 'title');
+  const taskNum = taskNumber(task);
+  const tr = window.MathTasks.t || (k => k);
+  const crumbsTaskTitle = `${tr('task_prefix') || 'Задача'} №${taskNum}`;
   const topicTitle = topic ? topicTitleOf(topic) : '';
   const subjectTitle = loc(subject, 'title');
 
-  const crumbs = [[(window.MathTasks.t || (k => k))('nav_home'), '/']];
+  const crumbs = [[tr('nav_home'), '/']];
   if (grade) crumbs.push([gradeLabel(grade), `/grade/${grade}`]);
   if (subject) crumbs.push([subjectTitle, `/subject/${encodeURIComponent(subject.slug)}`]);
   if (topic) crumbs.push([topicTitle, `/topic/${encodeURIComponent(topic.slug)}`]);
-  crumbs.push([taskTitle, null]);
+  crumbs.push([crumbsTaskTitle, null]);
 
   fillListHeader({
     crumbs,
-    title: taskTitle,
+    title: crumbsTaskTitle,
     description: '',
     meta: grade ? `<span class="grade-badge">${gradeLabel(grade)}</span>` : ''
   });
   setMeta(
-    topic ? `${taskTitle} — ${topicTitle}${grade ? `, ${gradeLabel(grade)}` : ''}` : taskTitle,
-    `${taskTitle}: условие, ответ и подробное решение.${topic ? ` Тема «${topicTitle}».` : ''}`
+    topic ? `${crumbsTaskTitle} — ${topicTitle}${grade ? `, ${gradeLabel(grade)}` : ''}` : crumbsTaskTitle,
+    `${crumbsTaskTitle}: условие, ответ и подробное решение.${topic ? ` Тема «${topicTitle}».` : ''}`
   );
   renderTaskList(listTasks, [task], '', { showTopicLink: false, showGrade: false, linkTitle: false });
   await renderTaskNeighbours(task);
@@ -3381,22 +3441,7 @@ function drawFunctionPlot() {
 
 function updateTopicHeaderProgress() {
   if (!currentActiveTopic) return;
-  const tr = window.MathTasks.t || (k => k);
-  const prog = getTopicProgress(currentActiveTopic.id);
-  const progEl = document.querySelector('#topic-header-progress');
-  if (progEl) {
-    progEl.className = `topic-header-progress${prog.isComplete ? ' done' : ''}`;
-    const textEl = progEl.querySelector('.topic-header-progress-text');
-    if (textEl) {
-      textEl.textContent = prog.isComplete
-        ? tr('topic_mastered')
-        : tr('topic_progress', { solved: prog.solved, total: prog.total, percent: prog.percent });
-    }
-    const fillEl = progEl.querySelector('.topic-header-progress-fill');
-    if (fillEl) {
-      fillEl.style.width = `${prog.percent}%`;
-    }
-  }
+  renderTopicHeaderMeta(currentActiveTopic, currentTopicTasks);
 }
 
 // Интерактивная самопроверка: отправка ответа
@@ -4251,6 +4296,9 @@ window.addEventListener('languagechange', async () => {
   }
   if (currentActiveTopic && listSubtopics && !listSubtopics.hidden) {
     renderSubtopicNav(currentActiveTopic, currentSubtopic?.id);
+  }
+  if (currentActiveTopic && currentView === 'list' && !currentSubtopic) {
+    renderTopicHeaderMeta(currentActiveTopic, currentTopicTasks);
   }
   if (currentView === 'home') {
     await loadHome();
