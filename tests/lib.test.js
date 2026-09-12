@@ -33,7 +33,14 @@ import {
   isControlWorkTask,
   selectControlWorkTasks,
   calculateControlWorkGrade,
-  createExamTimer
+  createExamTimer,
+  parseCsvRows,
+  parseCsvToTasks,
+  parseTasksImport,
+  exportTasksToCsv,
+  computeTaskRenumbering,
+  computeTopicRenumbering,
+  computeSubtopicRenumbering
 } from '../public/lib.js';
 
 describe('makeSlug', () => {
@@ -800,6 +807,28 @@ describe('sortTasks', () => {
     expect(sorted.map(t => t.id)).toEqual([1, 2, 3, 5, 4]);
   });
 
+  it('сортирует задачи в обратном порядке номеров (num_desc)', () => {
+    const sorted = sortTasks(sampleTasks, 'num_desc');
+    expect(sorted.map(t => t.id)).toEqual([5, 4, 3, 2, 1]);
+  });
+
+  it('сортирует задачи по подтемам (subtopic)', () => {
+    const subtopics = [
+      { id: 101, code: '8.1.1', position: 1 },
+      { id: 102, code: '8.1.2', position: 2 }
+    ];
+    const tasksWithSubs = [
+      { id: 1, position: 1, subtopic_id: 102 },
+      { id: 2, position: 2, subtopic_id: 101 },
+      { id: 3, position: 3, subtopic_id: 102 },
+      { id: 4, position: 4, subtopic_id: 101 }
+    ];
+    const sorted = sortTasks(tasksWithSubs, 'subtopic', { subtopics });
+    // Подтема 101 (position 1) идет первой: задачи 2 (pos 2), 4 (pos 4)
+    // Подтема 102 (position 2) идет второй: задачи 1 (pos 1), 3 (pos 3)
+    expect(sorted.map(t => t.id)).toEqual([2, 4, 1, 3]);
+  });
+
   it('перемешивает задачи в режиме shuffle', () => {
     const result = sortTasks(sampleTasks, 'shuffle', { random: () => 0 });
     expect(result).toHaveLength(5);
@@ -1184,3 +1213,322 @@ describe('formatSubtopicSummary: грамматика счетчиков под�
     expect(formatSubtopicSummary(null, undefined, 'ru')).toBe('0 подтем • 0 задач');
   });
 });
+
+describe('parseCsvRows', () => {
+  it('парсит простые строки с запятыми', () => {
+    const csv = 'grade,topic,diff\n8,Уравнения,Лёгкий\n9,Функции,Средний';
+    const rows = parseCsvRows(csv);
+    expect(rows).toEqual([
+      ['grade', 'topic', 'diff'],
+      ['8', 'Уравнения', 'Лёгкий'],
+      ['9', 'Функции', 'Средний']
+    ]);
+  });
+
+  it('автоматически распознаёт табуляцию (TSV из Google Таблиц / Excel)', () => {
+    const tsv = 'grade\ttopic\tdiff\n8\tУравнения\tЛёгкий';
+    const rows = parseCsvRows(tsv);
+    expect(rows).toEqual([
+      ['grade', 'topic', 'diff'],
+      ['8', 'Уравнения', 'Лёгкий']
+    ]);
+  });
+
+  it('корректно обрабатывает кавычки RFC 4180 с запятыми и переносами строк внутри', () => {
+    const csv = 'grade,formula,note\n8,"$x = \\frac{a, b}{c}$","Первая строка\nВторая строка"';
+    const rows = parseCsvRows(csv);
+    expect(rows).toHaveLength(2);
+    expect(rows[1][1]).toBe('$x = \\frac{a, b}{c}$');
+    expect(rows[1][2]).toBe('Первая строка\nВторая строка');
+  });
+
+  it('обрабатывает экранированные кавычки ""', () => {
+    const csv = 'title,val\n"Слово ""в кавычках""",100';
+    const rows = parseCsvRows(csv);
+    expect(rows[1][0]).toBe('Слово "в кавычках"');
+  });
+});
+
+describe('parseCsvToTasks', () => {
+  it('распознаёт заголовки колонок на русском, латышском и английском', () => {
+    const csv = 'Класс,Тема,Код,Подтема,Условие,Ответ,Решение,Сложность\n' +
+      '8,Теорема Пифагора,8.2.1,Треугольники,Найди $c$,$c=5$,$c=\\sqrt{25}$,Лёгкий';
+    const res = parseCsvToTasks(csv);
+    expect(res.uniqueTopics).toHaveLength(1);
+    expect(res.uniqueTopics[0].title).toBe('Теорема Пифагора');
+    expect(res.uniqueSubtopics).toHaveLength(1);
+    expect(res.uniqueSubtopics[0].code).toBe('8.2.1');
+    expect(res.tasks).toHaveLength(1);
+    expect(res.tasks[0].condition_latex).toBe('Найди $c$');
+    expect(res.tasks[0].answer_latex).toBe('$c=5$');
+    expect(res.tasks[0].difficulty).toBe('Лёгкий');
+  });
+
+  it('поддерживает латышские заголовки колонок', () => {
+    const csv = 'Klase,Tema,Apakstema,Uzdevums,Atbilde\n' +
+      '9,Funkcijas,Lineara funkcija,Atrast $y$,$y=2$';
+    const res = parseCsvToTasks(csv);
+    expect(res.tasks).toHaveLength(1);
+    expect(res.tasks[0].condition_latex).toBe('Atrast $y$');
+    expect(res.tasks[0].answer_latex).toBe('$y=2$');
+  });
+
+  it('безопасно возвращает пустой результат для пустых строк', () => {
+    expect(parseCsvToTasks('')).toEqual({ uniqueTopics: [], uniqueSubtopics: [], tasks: [] });
+    expect(parseCsvToTasks(null)).toEqual({ uniqueTopics: [], uniqueSubtopics: [], tasks: [] });
+  });
+
+  /* Выгрузка кладёт латышские столбцы рядом с русскими. Раньше
+     «condition_latex_lv» перехватывал «condition_latex» по префиксу. */
+  it('не путает латышские столбцы с русскими', () => {
+    const tsv = 'grade\ttopic_title\ttopic_title_lv\tcondition_latex\tcondition_latex_lv\tanswer_latex\tanswer_latex_lv\n' +
+      '8\tТеорема Пифагора\tPitagora teorēma\tНайдите гипотенузу\tAtrodiet hipotenūzu\t$5$\t$5$';
+    const t = parseCsvToTasks(tsv).tasks[0];
+    expect(t.topic_title).toBe('Теорема Пифагора');
+    expect(t.topic_title_lv).toBe('Pitagora teorēma');
+    expect(t.condition_latex).toBe('Найдите гипотенузу');
+    expect(t.condition_latex_lv).toBe('Atrodiet hipotenūzu');
+    expect(t.answer_latex_lv).toBe('$5$');
+  });
+
+  it('понимает русские заголовки латышских столбцов, в том числе в скобках', () => {
+    const tsv = 'Класс\tТема\tТема LV\tУсловие\tУсловие (LV)\n' +
+      '7\tУравнения\tVienādojumi\tРешите $2x=4$\tAtrisiniet $2x=4$';
+    const t = parseCsvToTasks(tsv).tasks[0];
+    expect(t.topic_title).toBe('Уравнения');
+    expect(t.topic_title_lv).toBe('Vienādojumi');
+    expect(t.condition_latex).toBe('Решите $2x=4$');
+    expect(t.condition_latex_lv).toBe('Atrisiniet $2x=4$');
+  });
+
+  it('служебный столбец topic_id не попадает в название темы', () => {
+    const t = parseCsvToTasks('topic_id\ttopic_title\tcondition_latex\n301\tПодобие\tНайдите $x$').tasks[0];
+    expect(t.topic_title).toBe('Подобие');
+  });
+
+  /* Выгрузка и повторная загрузка должны давать то же самое — иначе
+     резервная копия через Excel разрушает каталог. */
+  it('выгрузка и повторная загрузка сохраняют оба языка и задачу без перевода', () => {
+    const csv = exportTasksToCsv(
+      [
+        {
+          id: 1, topic_id: 10, subtopic_id: 5, grade: 8,
+          condition_latex: 'Найдите $x$, если $x^2=9$', condition_latex_lv: 'Atrodiet $x$, ja $x^2=9$',
+          answer_latex: '$x=\\pm 3$', answer_latex_lv: '$x=\\pm 3$',
+          solution_latex: 'Шаг 1\nШаг 2', difficulty: 'Средний'
+        },
+        { id: 2, topic_id: 10, grade: 8, condition_latex: 'Только по-русски, $0{,}5 + 0{,}25$', difficulty: 'Лёгкий' }
+      ],
+      [{ id: 10, title: 'Квадратные уравнения', title_lv: 'Kvadrātvienādojumi', grade: 8 }],
+      [{ id: 5, code: '8.7.4', title: 'Решение уравнений', title_lv: 'Vienādojumu risināšana' }]
+    );
+    const back = parseCsvToTasks(csv);
+    expect(back.tasks).toHaveLength(2);
+    expect(back.tasks[0].topic_title).toBe('Квадратные уравнения');
+    expect(back.tasks[0].topic_title_lv).toBe('Kvadrātvienādojumi');
+    expect(back.tasks[0].condition_latex).toBe('Найдите $x$, если $x^2=9$');
+    expect(back.tasks[0].condition_latex_lv).toBe('Atrodiet $x$, ja $x^2=9$');
+    expect(back.tasks[0].answer_latex).toBe('$x=\\pm 3$');
+    expect(back.tasks[0].solution_latex).toBe('Шаг 1\nШаг 2');
+    expect(back.tasks[0].subtopic_code).toBe('8.7.4');
+    expect(back.tasks[1].condition_latex).toBe('Только по-русски, $0{,}5 + 0{,}25$');
+    expect(back.tasks[1].condition_latex_lv).toBeNull();
+    expect(back.warnings).toHaveLength(0);
+  });
+
+  /* Без столбца темы раньше заводилась тема «Без темы» — настоящая запись
+     в базе, которую потом приходилось удалять руками. */
+  it('без столбца темы не придумывает тему', () => {
+    const res = parseCsvToTasks('condition_latex\tanswer_latex\nРешите $x+1=3$\t$x=2$');
+    expect(res.tasks).toHaveLength(1);
+    expect(res.tasks[0].topic_title).toBe('');
+    expect(res.uniqueTopics).toHaveLength(0);
+  });
+
+  /* Запятая внутри формулы без кавычек сдвигает столбцы: ответ уезжает в
+     решение, решение — в сложность. Молча такое импортировать нельзя. */
+  it('предупреждает о строке шире заголовка', () => {
+    const res = parseCsvToTasks('grade,topic_title,condition_latex,answer_latex\n' +
+      '9,Системы,Решите систему $x+y=3, x-y=1$,$(2; 1)$');
+    expect(res.warnings.length).toBeGreaterThan(0);
+    expect(res.warnings[0]).toMatch(/Строка 2/);
+  });
+});
+
+describe('parseTasksImport: универсальный детектор JSON / CSV', () => {
+  it('распознаёт JSON формат', () => {
+    const jsonStr = JSON.stringify([
+      {
+        topic_title: 'Тема 1',
+        tasks: [{ condition_latex: '$x=1$' }]
+      }
+    ]);
+    const res = parseTasksImport(jsonStr);
+    expect(res.format).toBe('json');
+    expect(res.tasks).toHaveLength(1);
+    expect(res.tasks[0].condition_latex).toBe('$x=1$');
+  });
+
+  it('распознаёт CSV / TSV формат', () => {
+    const csvStr = 'grade,topic_title,condition_latex\n8,Алгебра,$2x=4$';
+    const res = parseTasksImport(csvStr);
+    expect(res.format).toBe('csv');
+    expect(res.tasks).toHaveLength(1);
+    expect(res.tasks[0].condition_latex).toBe('$2x=4$');
+  });
+});
+
+describe('exportTasksToCsv', () => {
+  it('генерирует CSV с UTF-8 BOM и корректными заголовками', () => {
+    const taskList = [
+      {
+        id: 1,
+        grade: 8,
+        topic_id: 10,
+        subtopic_id: 100,
+        condition_latex: 'Решите $x^2 - 4 = 0$',
+        answer_latex: '$x = \\pm 2$',
+        difficulty: 'Лёгкий',
+        task_tags: [{ tags: { slug: 'vienadojumi' } }]
+      }
+    ];
+    const topicsList = [{ id: 10, title: 'Уравнения', title_lv: 'Vienādojumi' }];
+    const subtopicsList = [{ id: 100, code: '8.1.1', title: 'Неполные', title_lv: 'Nepilni' }];
+
+    const csv = exportTasksToCsv(taskList, topicsList, subtopicsList);
+    expect(csv.startsWith('\uFEFF')).toBe(true); // UTF-8 BOM
+    /* Точка с запятой — разделитель списка латышского и русского Excel:
+       через запятую выгрузка открывалась там одним столбцом. */
+    expect(csv).toContain('grade;topic_title');
+    expect(csv).toContain('Уравнения');
+    expect(csv).toContain('Vienādojumi');
+    expect(csv).toContain('8.1.1');
+    expect(csv).toContain('Решите $x^2 - 4 = 0$');
+    expect(csv).toContain('vienadojumi');
+  });
+});
+
+describe('computeTaskRenumbering', () => {
+  it('безопасно возвращает пустой массив для пустого ввода', () => {
+    expect(computeTaskRenumbering([])).toEqual([]);
+    expect(computeTaskRenumbering(null)).toEqual([]);
+  });
+
+  it('выставляет последовательные номера 1..N и вычисляет changed', () => {
+    const tasks = [
+      { id: 10, position: 5 },
+      { id: 20, position: 2 },
+      { id: 30, position: 9 }
+    ];
+    const res = computeTaskRenumbering(tasks);
+    expect(res).toHaveLength(3);
+    expect(res[0]).toEqual({ id: 20, oldPosition: 2, newPosition: 1, changed: true, task: tasks[1] });
+    expect(res[1]).toEqual({ id: 10, oldPosition: 5, newPosition: 2, changed: true, task: tasks[0] });
+    expect(res[2]).toEqual({ id: 30, oldPosition: 9, newPosition: 3, changed: true, task: tasks[2] });
+  });
+
+  it('определяет, что изменений нет, если задачи уже пронумерованы 1..N', () => {
+    const tasks = [
+      { id: 1, position: 1 },
+      { id: 2, position: 2 },
+      { id: 3, position: 3 }
+    ];
+    const res = computeTaskRenumbering(tasks);
+    expect(res.every(r => !r.changed)).toBe(true);
+    expect(res.map(r => r.newPosition)).toEqual([1, 2, 3]);
+  });
+
+  it('учитывает позицию подтемы перед позицией задачи', () => {
+    const subtopics = [
+      { id: 101, position: 1 },
+      { id: 102, position: 2 }
+    ];
+    const tasks = [
+      { id: 1, subtopic_id: 102, position: 1 },
+      { id: 2, subtopic_id: 101, position: 5 },
+      { id: 3, subtopic_id: 101, position: 2 }
+    ];
+    const res = computeTaskRenumbering(tasks, subtopics);
+    // Сначала подтема 101 (pos: 2, then pos: 5), затем подтема 102 (pos: 1)
+    expect(res.map(r => r.id)).toEqual([3, 2, 1]);
+    expect(res.map(r => r.newPosition)).toEqual([1, 2, 3]);
+  });
+
+  it('сортирует задачи без позиции по дате создания и id', () => {
+    const tasks = [
+      { id: 5, position: null, created_at: '2026-01-02' },
+      { id: 4, position: null, created_at: '2026-01-01' },
+      { id: 1, position: 1, created_at: '2026-01-03' }
+    ];
+    const res = computeTaskRenumbering(tasks);
+    expect(res.map(r => r.id)).toEqual([1, 4, 5]);
+  });
+});
+
+describe('computeTopicRenumbering', () => {
+  it('безопасно возвращает пустой массив для пустого ввода', () => {
+    expect(computeTopicRenumbering([])).toEqual([]);
+    expect(computeTopicRenumbering(null)).toEqual([]);
+  });
+
+  it('перенумерует темы 1..N независимо внутри каждого класса', () => {
+    const topics = [
+      { id: 1, grade: 8, position: 10 },
+      { id: 2, grade: 8, position: 3 },
+      { id: 3, grade: 9, position: 5 },
+      { id: 4, grade: 9, position: 1 }
+    ];
+    const res = computeTopicRenumbering(topics);
+    expect(res).toHaveLength(4);
+
+    const grade8 = res.filter(r => r.grade === 8);
+    expect(grade8.map(r => r.id)).toEqual([2, 1]);
+    expect(grade8.map(r => r.newPosition)).toEqual([1, 2]);
+
+    const grade9 = res.filter(r => r.grade === 9);
+    expect(grade9.map(r => r.id)).toEqual([4, 3]);
+    expect(grade9.map(r => r.newPosition)).toEqual([1, 2]);
+  });
+
+  it('сохраняет неизменными темы, если позиции уже 1..N', () => {
+    const topics = [
+      { id: 1, grade: 7, position: 1 },
+      { id: 2, grade: 7, position: 2 }
+    ];
+    const res = computeTopicRenumbering(topics);
+    expect(res.every(r => !r.changed)).toBe(true);
+  });
+});
+
+describe('computeSubtopicRenumbering', () => {
+  it('безопасно возвращает пустой массив для пустого ввода', () => {
+    expect(computeSubtopicRenumbering([])).toEqual([]);
+    expect(computeSubtopicRenumbering(null)).toEqual([]);
+  });
+
+  it('перенумерует подтемы 1..M и формирует корректные коды Skola2030', () => {
+    const parentTopic = { id: 10, grade: 8, position: 2 };
+    const subtopics = [
+      { id: 1, position: 4, code: '8.2.4' },
+      { id: 2, position: 1, code: '8.2.1' },
+      { id: 3, position: 8, code: 'old-code' }
+    ];
+    const res = computeSubtopicRenumbering(subtopics, parentTopic);
+    expect(res).toHaveLength(3);
+    expect(res[0].id).toBe(2);
+    expect(res[0].newPosition).toBe(1);
+    expect(res[0].newCode).toBe('8.2.1');
+    expect(res[0].changed).toBe(false);
+
+    expect(res[1].id).toBe(1);
+    expect(res[1].newPosition).toBe(2);
+    expect(res[1].newCode).toBe('8.2.2');
+    expect(res[1].changed).toBe(true);
+
+    expect(res[2].id).toBe(3);
+    expect(res[2].newPosition).toBe(3);
+    expect(res[2].newCode).toBe('8.2.3');
+    expect(res[2].changed).toBe(true);
+  });
+});
+

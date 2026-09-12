@@ -27,6 +27,7 @@ const accountStatus = document.querySelector('#account-status');
 const adminPanelSlot = document.querySelector('#admin-panel-slot');
 
 let currentUser = null;
+let isCurrentUserAdmin = false;
 let subjects = [];
 let allTopics = [];
 let taskCounts = new Map();
@@ -1884,7 +1885,8 @@ function renderCurrentTopicTasks() {
   if (currentTasksSort !== 'shuffle') {
     const sortFn = window.MathTasksLib?.sortTasks || ((list) => [...list]);
     tasksToRender = sortFn(tasksToRender, currentTasksSort, {
-      isSolved: id => isTaskSolved(id)
+      isSolved: id => isTaskSolved(id),
+      subtopics: allSubtopics
     });
   }
 
@@ -1937,6 +1939,8 @@ function renderPrintActions(tasks) {
       </label>
       <select id="tasks-sort-select" class="tasks-sort-select" data-tasks-sort aria-label="${escapeHtml(tr('sort_label'))}">
         <option value="default"${currentTasksSort === 'default' ? ' selected' : ''}>${escapeHtml(tr('sort_default'))}</option>
+        <option value="num_desc"${currentTasksSort === 'num_desc' ? ' selected' : ''}>${escapeHtml(tr('sort_num_desc'))}</option>
+        <option value="subtopic"${currentTasksSort === 'subtopic' ? ' selected' : ''}>${escapeHtml(tr('sort_subtopic'))}</option>
         <option value="diff_asc"${currentTasksSort === 'diff_asc' ? ' selected' : ''}>${escapeHtml(tr('sort_diff_asc'))}</option>
         <option value="diff_desc"${currentTasksSort === 'diff_desc' ? ' selected' : ''}>${escapeHtml(tr('sort_diff_desc'))}</option>
         <option value="unsolved"${currentTasksSort === 'unsolved' ? ' selected' : ''}>${escapeHtml(tr('sort_unsolved'))}</option>
@@ -2007,7 +2011,8 @@ listActions.addEventListener('change', event => {
   }
 });
 
-listActions.addEventListener('click', event => {
+listActions.addEventListener('click', async event => {
+
   const printToggle = event.target.closest('#print-toggle-btn');
   if (printToggle) {
     const menu = document.querySelector('#print-dropdown-menu');
@@ -4301,6 +4306,7 @@ async function loadSubtopics() {
 async function refreshSession() {
   const { user, isAdmin } = await loadViewer();
   currentUser = user;
+  isCurrentUserAdmin = Boolean(isAdmin);
   /* Регистрации для учеников нет, и делать им в аккаунте пока нечего,
      поэтому «Личный кабинет» из интерфейса убран. Вошедший без прав всё же
      видит диалог — иначе ему нечем было бы выйти. */
@@ -4329,6 +4335,10 @@ async function refreshSession() {
       link.textContent = (window.MathTasks.t || (k => k))('open_admin_panel');
       adminPanelSlot.append(link);
     }
+  }
+
+  if (currentActiveTopic && currentTopicTasks.length > 0) {
+    renderPrintActions(currentTopicTasks);
   }
 }
 window.addEventListener('math-tasks:authenticated', refreshSession);

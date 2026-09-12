@@ -2368,29 +2368,29 @@
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "algebra",
-    "position": 11,
-    "title_ru": "9.11. Олимпиадные методы, инварианты и диофантовы уравнения",
-    "title_lv": "9.11. Olimpiāžu metodes, invarianti un Diofanta vienādojumi",
+    "position": 9,
+    "title_ru": "9.9. Олимпиадные методы, инварианты и диофантовы уравнения",
+    "title_lv": "9.9. Olimpiāžu metodes, invarianti un Diofanta vienādojumi",
     "description_ru": "Приёмы олимпиадных задач: инварианты и полуинварианты, принцип Дирихле, чётность, уравнения в целых числах и оценки.",
     "description_lv": "Olimpiāžu uzdevumu paņēmieni: invarianti un pusinvarianti, Dirihlē princips, pāra un nepāra skaitļi, vienādojumi veselos skaitļos un novērtējumi.",
     "subtopics": [
       {
-        "num": "9.11.1",
+        "num": "9.9.1",
         "ru": "Инварианты и раскраски",
         "lv": "Invarianti un krāsojumi"
       },
       {
-        "num": "9.11.2",
+        "num": "9.9.2",
         "ru": "Принцип Дирихле",
         "lv": "Dirihlē princips"
       },
       {
-        "num": "9.11.3",
+        "num": "9.9.3",
         "ru": "Диофантовы уравнения в целых числах",
         "lv": "Diofanta vienadojumi veselos skaitlos"
       },
       {
-        "num": "9.11.4",
+        "num": "9.9.4",
         "ru": "Оценка и пример в олимпиадной задаче",
         "lv": "Novertejums un piemers olimpiades uzdevuma"
       }

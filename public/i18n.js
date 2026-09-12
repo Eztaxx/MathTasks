@@ -184,13 +184,20 @@
       filter_unsolved_title: 'Rādīt tikai vēl neatrisinātos uzdevumus',
       all_tasks_solved: '🎉 Visi uzdevumi šajā tēmā ir atrisināti! Lielisks darbs!',
       sort_label: 'Kārtošana:',
-      sort_default: 'Pēc secības (noklusējums)',
+      sort_default: 'Pēc secības (1→N)',
+      sort_num_desc: 'Apgrieztā secībā (N→1)',
+      sort_subtopic: 'Pēc apakštēmām',
       sort_diff_asc: 'Vispirms vienkāršākie',
       sort_diff_desc: 'Vispirms sarežģītākie',
       sort_unsolved: 'Vispirms neatrisinātie',
       sort_solved: 'Vispirms atrisinātie',
       sort_shuffle: 'Sajaukt nejauši 🎲',
       sort_reshuffle: 'Sajaukt vēlreiz 🔀',
+      admin_renumber: 'Pārnumurēt (1..N)',
+      admin_renumber_tooltip: 'Pārnumurēt šīs tēmas uzdevumus pēc kārtas (1..N)',
+      admin_renumber_confirm: 'Vai pārnumurēt visus {count} šīs tēmas uzdevumus pēc kārtas (1..N) bez izlaidumiem?',
+      admin_renumber_already_perfect: 'Visiem uzdevumiem šajā tēmā jau ir pareiza numerācija (1..N).',
+      admin_renumber_success: '✓ Uzdevumi veiksmīgi pārnumurēti!',
 
       // Taimeris
       timer_title: 'Eksāmena taimeris',
@@ -460,7 +467,21 @@
       mock_status_pill: 'Struktūras sagatave',
       mock_no_calc: '🚫 Bez kalkulatora',
       mock_has_calc: '📱 Ar kalkulatoru',
-      mock_footer: 'MathTasks — uzziņu un treniņu platforma pēc Skola2030 standarta (Latvija).'
+      mock_footer: 'MathTasks — uzziņu un treniņu platforma pēc Skola2030 standarta (Latvija).',
+
+      // Pārnumurēšana
+      admin_renumber_tasks: '🔢 Pārnumurēt uzdevumus',
+      admin_renumber_tasks_tooltip: 'Automātiski sakārtot uzdevumu numurus (1..N) bez izlaidumiem',
+      admin_renumber_topics: '🔢 Pārnumurēt tēmas',
+      admin_renumber_topics_tooltip: 'Automātiski sakārtot tēmu kārtas numurus (1..N) katrā klasē',
+      admin_renumber_subtopics: '🔢 Pārnumurēt apakštēmas',
+      admin_renumber_subtopics_tooltip: 'Automātiski sakārtot apakštēmas (1..M) un atjaunināt Skola2030 kodus',
+      admin_renumber_confirm: 'Vai tiešām vēlaties pārnumurēt {count} vienumus? Tas atjauninās secību datubāzē.',
+      admin_renumber_already_perfect: 'Numurācija jau ir ideālā secībā (1..N), izmaiņas nav nepieciešamas.',
+      admin_renumber_success: 'Veiksmīgi pārnumurēti {count} vienumi!',
+      topic_renumber_tasks_btn: '🔢 Pārnumurēt (1..N)',
+      topic_renumber_tasks_tooltip: 'Pārnumurēt šīs tēmas uzdevumus pēc kārtas (pieejams administratoriem)',
+      topic_renumber_confirm: 'Pārnumurēt {count} šīs tēmas uzdevumus (1..{count}) pēc kārtas?'
     },
 
     ru: {
@@ -640,13 +661,20 @@
       filter_unsolved_title: 'Показывать только задачи, которые ещё не решены',
       all_tasks_solved: '🎉 Все задачи в этой теме уже решены! Отличная работа!',
       sort_label: 'Сортировка:',
-      sort_default: 'По порядку (по умолчанию)',
+      sort_default: 'По порядку (1→N)',
+      sort_num_desc: 'В обратном порядке (N→1)',
+      sort_subtopic: 'По подтемам',
       sort_diff_asc: 'Сначала простые',
       sort_diff_desc: 'Сначала сложные',
       sort_unsolved: 'Сначала нерешённые',
       sort_solved: 'Сначала решённые',
       sort_shuffle: 'Перемешать случайно 🎲',
       sort_reshuffle: 'Перемешать ещё раз 🔀',
+      admin_renumber: 'Перенумеровать (1..N)',
+      admin_renumber_tooltip: 'Перенумеровать задачи этой темы по порядку (1..N)',
+      admin_renumber_confirm: 'Перенумеровать все {count} задач в этой теме строго по порядку (1..N) без пропусков?',
+      admin_renumber_already_perfect: 'Все задачи в этой теме уже имеют правильные порядковые номера (1..N).',
+      admin_renumber_success: '✓ Задачи успешно перенумерованы!',
 
       // Таймер
       timer_title: 'Экзаменационный таймер',
@@ -916,7 +944,21 @@
       mock_status_pill: 'Заготовка структуры',
       mock_no_calc: '🚫 Без калькулятора',
       mock_has_calc: '📱 С калькулятором',
-      mock_footer: 'MathTasks — справочно-тренировочная платформа по стандарту Skola2030 (Латвия).'
+      mock_footer: 'MathTasks — справочно-тренировочная платформа по стандарту Skola2030 (Латвия).',
+
+      // Перенумерация
+      admin_renumber_tasks: '🔢 Перенумеровать задачи',
+      admin_renumber_tasks_tooltip: 'Автоматически выставить последовательные номера 1..N без пропусков',
+      admin_renumber_topics: '🔢 Перенумеровать темы',
+      admin_renumber_topics_tooltip: 'Автоматически выставить последовательные номера тем (1..N) внутри каждого класса',
+      admin_renumber_subtopics: '🔢 Перенумеровать подтемы',
+      admin_renumber_subtopics_tooltip: 'Автоматически упорядочить подтемы (1..M) и обновить коды Skola2030',
+      admin_renumber_confirm: 'Вы уверены, что хотите перенумеровать {count} элементов? Это обновит позиции в базе данных.',
+      admin_renumber_already_perfect: 'Нумерация уже идеальна (1..N), изменений не требуется.',
+      admin_renumber_success: 'Успешно перенумеровано {count} элементов!',
+      topic_renumber_tasks_btn: '🔢 Перенумеровать (1..N)',
+      topic_renumber_tasks_tooltip: 'Перенумеровать задачи этой темы подряд (доступно администратору)',
+      topic_renumber_confirm: 'Перенумеровать {count} задач этой темы подряд (1..{count})?'
     }
   };
 
@@ -957,6 +999,8 @@
     } catch {}
     if (typeof document !== 'undefined') {
       document.documentElement.lang = lang;
+      document.documentElement.setAttribute('data-lang', lang);
+      document.documentElement.classList.remove('i18n-pending');
       updateSwitcherUI();
       applyTranslations(document);
       window.dispatchEvent(new CustomEvent('languagechange', { detail: { lang } }));
@@ -984,8 +1028,36 @@
     });
   }
 
+  function translateElement(el) {
+    if (!el || el.nodeType !== 1) return;
+    if (el.dataset.i18n) {
+      const translated = t(el.dataset.i18n);
+      if (translated) el.textContent = translated;
+    }
+    if (el.dataset.i18nHtml) {
+      const translated = t(el.dataset.i18nHtml);
+      if (translated) el.innerHTML = translated;
+    }
+    if (el.dataset.i18nPlaceholder) {
+      const translated = t(el.dataset.i18nPlaceholder);
+      if (translated) el.placeholder = translated;
+    }
+    if (el.dataset.i18nTitle) {
+      const translated = t(el.dataset.i18nTitle);
+      if (translated) el.title = translated;
+    }
+    if (el.dataset.i18nAria) {
+      const translated = t(el.dataset.i18nAria);
+      if (translated) el.setAttribute('aria-label', translated);
+    }
+  }
+
   function applyTranslations(root = document) {
     if (!root) return;
+
+    if (root.nodeType === 1) {
+      translateElement(root);
+    }
 
     // Текстовое содержимое
     root.querySelectorAll('[data-i18n]').forEach(el => {
@@ -1041,9 +1113,29 @@
     window.MathTasks.setLang = setLang;
     window.MathTasks.applyTranslations = applyTranslations;
 
+    // Стриминговый перевод в процессе парсинга DOM (предотвращает даже малейшее мигание)
+    let streamingObserver = null;
+    if (typeof MutationObserver !== 'undefined' && typeof document !== 'undefined' && document.readyState === 'loading') {
+      streamingObserver = new MutationObserver(mutations => {
+        for (const m of mutations) {
+          for (const node of m.addedNodes) {
+            if (node.nodeType === 1) {
+              applyTranslations(node);
+            }
+          }
+        }
+      });
+      streamingObserver.observe(document.documentElement, { childList: true, subtree: true });
+    }
+
     // Auto-init on DOMContentLoaded for any page including i18n.js
     function autoInitI18n() {
+      if (streamingObserver) {
+        streamingObserver.disconnect();
+        streamingObserver = null;
+      }
       applyTranslations(document);
+      document.documentElement.classList.remove('i18n-pending');
       updateSwitcherUI();
       document.addEventListener('click', (e) => {
         const btn = e.target.closest('.lang-btn');

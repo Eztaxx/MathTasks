@@ -40,13 +40,19 @@
   const bulkDialogClose = document.querySelector('#bulk-dialog-close');
   const bulkDialogCancel = document.querySelector('#bulk-dialog-cancel');
   const btnExportTasks = document.querySelector('#btn-export-tasks');
+  const btnExportCsv = document.querySelector('#btn-export-csv');
   const btnImportTasks = document.querySelector('#btn-import-tasks');
   const bulkFileInput = document.querySelector('#bulk-file-input');
   const bulkDialogFileInput = document.querySelector('#bulk-dialog-file-input');
   const btnUploadFileTasks = document.querySelector('#btn-upload-file-tasks');
   const bulkDialogPickFileBtn = document.querySelector('#bulk-dialog-pick-file-btn');
   const bulkDialogTemplateBtn = document.querySelector('#bulk-dialog-template-btn');
+  const bulkDialogCsvTemplateBtn = document.querySelector('#bulk-dialog-csv-template-btn');
+  const bulkDialogAiPromptBtn = document.querySelector('#bulk-dialog-ai-prompt-btn');
   const aiGenCount = document.querySelector('#ai-gen-count');
+  const btnRenumberTasks = document.querySelector('#btn-renumber-tasks');
+  const btnRenumberTopics = document.querySelector('#btn-renumber-topics');
+  const btnRenumberSubtopics = document.querySelector('#btn-renumber-subtopics');
 
   const btnToggleMathGuide = document.querySelector('#btn-toggle-math-guide');
   const btnCloseMathGuide = document.querySelector('#btn-close-math-guide');
@@ -58,6 +64,20 @@
   const btnInsertSampleToDialog = document.querySelector('#btn-insert-sample-to-dialog');
   const jsonSampleCard = document.querySelector('#json-sample-card');
   const jsonSampleCode = document.querySelector('#json-sample-code');
+
+  const btnToggleSampleCsv = document.querySelector('#btn-toggle-sample-csv');
+  const btnCloseSampleCsv = document.querySelector('#btn-close-sample-csv');
+  const btnCopySampleCsv = document.querySelector('#btn-copy-sample-csv');
+  const btnInsertSampleCsvToDialog = document.querySelector('#btn-insert-sample-csv-to-dialog');
+  const csvSampleCard = document.querySelector('#csv-sample-card');
+  const csvSampleCode = document.querySelector('#csv-sample-code');
+
+  const btnShowAiPrompt = document.querySelector('#btn-show-ai-prompt');
+  const aiPromptDialog = document.querySelector('#ai-prompt-dialog');
+  const aiPromptDialogClose = document.querySelector('#ai-prompt-dialog-close');
+  const aiPromptCloseBtn = document.querySelector('#ai-prompt-close-btn');
+  const aiPromptCopyBtn = document.querySelector('#ai-prompt-copy-btn');
+  const aiPromptTextarea = document.querySelector('#ai-prompt-textarea');
 
   /* Белый список колонок защищает от PGRST204, если миграция 007 ещё не
      выполнена. Латышские колонки добавляются в него на лету: без этого
@@ -202,9 +222,81 @@
   };
   const subjectTitle = id => subjects.find(item => item.id === id)?.title || 'Без раздела';
 
+  /* ── Сворачивание / разворачивание отделов админ-панели ───────────── */
+  const COLLAPSED_STORAGE_KEY = 'math-tasks:admin-collapsed-sections';
+  function getCollapsedSections() {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(COLLAPSED_STORAGE_KEY) || '[]'));
+    } catch {
+      return new Set();
+    }
+  }
+  function saveCollapsedSections(set) {
+    try {
+      localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify([...set]));
+    } catch {}
+  }
+
+  function applySectionCollapsed(section, toggleBtn, collapsed) {
+    if (!section) return;
+    section.classList.toggle('is-collapsed', collapsed);
+    if (toggleBtn) {
+      toggleBtn.setAttribute('aria-expanded', String(!collapsed));
+      const icon = toggleBtn.querySelector('.toggle-icon');
+      const text = toggleBtn.querySelector('.toggle-text');
+      if (icon) icon.textContent = collapsed ? '▼' : '▲';
+      if (text) text.textContent = collapsed ? 'Развернуть' : 'Свернуть';
+      toggleBtn.title = collapsed ? 'Развернуть отдел' : 'Свернуть отдел';
+    }
+  }
+
+  function ensureSectionExpanded(sectionId) {
+    const section = document.querySelector('#' + sectionId);
+    if (!section || !section.classList.contains('is-collapsed')) return;
+    const toggleBtn = section.querySelector('.admin-section-toggle');
+    applySectionCollapsed(section, toggleBtn, false);
+    const currentSet = getCollapsedSections();
+    currentSet.delete(sectionId);
+    saveCollapsedSections(currentSet);
+  }
+
+  function initCollapsibleSections() {
+    const collapsedSet = getCollapsedSections();
+    document.querySelectorAll('.admin-section').forEach(section => {
+      const sectionId = section.id;
+      const toggleBtn = section.querySelector('.admin-section-toggle');
+      if (!toggleBtn) return;
+
+      const isCollapsed = collapsedSet.has(sectionId);
+      applySectionCollapsed(section, toggleBtn, isCollapsed);
+
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const nextCollapsed = !section.classList.contains('is-collapsed');
+        applySectionCollapsed(section, toggleBtn, nextCollapsed);
+        const currentSet = getCollapsedSections();
+        if (nextCollapsed) currentSet.add(sectionId);
+        else currentSet.delete(sectionId);
+        saveCollapsedSections(currentSet);
+      });
+
+      // При клике на свернутую шапку разворачиваем отдел
+      const head = section.querySelector('.admin-feature-head');
+      head?.addEventListener('click', (e) => {
+        if (section.classList.contains('is-collapsed') && !e.target.closest('button, input, select, a')) {
+          applySectionCollapsed(section, toggleBtn, false);
+          const currentSet = getCollapsedSections();
+          currentSet.delete(sectionId);
+          saveCollapsedSections(currentSet);
+        }
+      });
+    });
+  }
+
   /* ── Разделы ──────────────────────────────────────────────────────── */
 
   function setSubjectMode(subject) {
+    if (subject) ensureSectionExpanded('section-subjects');
     editingSubjectId = subject?.id ?? null;
     document.querySelector('#subject-form-title').textContent = subject ? `Редактировать раздел: ${subject.title}` : 'Разделы математики';
     document.querySelector('#subject-submit').textContent = subject ? 'Сохранить раздел' : 'Добавить раздел';
@@ -271,6 +363,7 @@
   /* ── Темы ─────────────────────────────────────────────────────────── */
 
   function setTopicMode(topic) {
+    if (topic) ensureSectionExpanded('section-topics');
     editingTopicId = topic?.id ?? null;
     document.querySelector('#topic-form-title').textContent = topic ? `Редактировать тему: ${topic.title}` : 'Темы и программа Skola2030';
     document.querySelector('#topic-submit').textContent = topic ? 'Сохранить тему' : 'Добавить тему';
@@ -286,15 +379,97 @@
     if (topic) topicForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  /* Соседи темы — темы того же класса в том же разделе: именно внутри
-     этой пары идёт нумерация, поэтому и стрелки переставляют внутри неё. */
-  const topicSiblingsOf = topic => topics
-    .filter(t => (t.grade ?? null) === (topic.grade ?? null)
-              && (t.subject_id ?? null) === (topic.subject_id ?? null))
-    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+  const cleanTitlePrefix = s => String(s || '').replace(/^\s*\d+(\.\d+)*\.?\s*/, '').trim();
+  const updateTitlePrefix = (title, grade, newPos) => {
+    if (!title) return title;
+    if (!/^\s*\d+(\.\d+)*\.?\s+/.test(title)) return title;
+    const clean = cleanTitlePrefix(title);
+    if (!clean) return title;
+    const g = parseFormGrade(grade);
+    const prefix = (g != null && g > 0) ? `${g}.${newPos}. ` : `${newPos}. `;
+    return `${prefix}${clean}`;
+  };
 
-  /* После перестановки перенумеровываем группу подряд: у старых тем
-     позиции могли совпадать, и простой обмен значениями ничего бы не дал. */
+  /* Соседи темы — темы того же класса (в стандарте Skola2030 нумерация 1..N сквозная в пределах класса). */
+  const topicSiblingsOf = topicOrGrade => {
+    const g = (topicOrGrade && typeof topicOrGrade === 'object') ? topicOrGrade.grade : topicOrGrade;
+    const parsedG = parseFormGrade(g);
+    return topics
+      .filter(t => parseFormGrade(t.grade) === parsedG)
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+  };
+
+  /* Синхронизирует префиксы кодов подтем при изменении позиции родительской темы */
+  async function syncSubtopicCodesForTopic(topicId, topicPosition, grade) {
+    const subs = subtopics
+      .filter(s => s.topic_id === topicId)
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+    const g = grade != null ? grade : (topics.find(t => t.id === topicId)?.grade ?? '');
+    for (let i = 0; i < subs.length; i++) {
+      const s = subs[i];
+      const subPos = s.position || (i + 1);
+      const expectedCode = (g != null && g !== '') ? `${g}.${topicPosition}.${subPos}` : `${topicPosition}.${subPos}`;
+      if (s.code && /^\d+(\.\d+)*$/.test(s.code) && s.code !== expectedCode) {
+        const { error } = await db.from('subtopics').update({ code: expectedCode }).eq('id', s.id);
+        if (!error) {
+          s.code = expectedCode;
+        }
+      }
+    }
+  }
+
+  /* Ребалансировка тем класса 1..N: автосдвиг при вставке в середину или удалении */
+  async function rebalanceTopicPositions(grade, targetTopicId = null, desiredPosition = null) {
+    const parsedG = parseFormGrade(grade);
+    let siblings = topics
+      .filter(t => parseFormGrade(t.grade) === parsedG)
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+
+    if (targetTopicId != null && desiredPosition != null) {
+      const existingIdx = siblings.findIndex(t => String(t.id) === String(targetTopicId));
+      let targetItem;
+      if (existingIdx >= 0) {
+        targetItem = siblings.splice(existingIdx, 1)[0];
+      } else {
+        const found = topics.find(t => String(t.id) === String(targetTopicId));
+        targetItem = found || { id: targetTopicId, grade: parsedG, position: desiredPosition };
+      }
+      const insertIdx = Math.max(0, Math.min(desiredPosition - 1, siblings.length));
+      siblings.splice(insertIdx, 0, targetItem);
+    }
+
+    const updates = siblings
+      .map((item, index) => {
+        const newPos = index + 1;
+        const newTitleRu = updateTitlePrefix(item.title, parsedG, newPos);
+        const newTitleLv = updateTitlePrefix(item.title_lv, parsedG, newPos);
+        return { item, position: newPos, title: newTitleRu, title_lv: newTitleLv };
+      })
+      .filter(({ item, position, title, title_lv }) => item.position !== position || item.title !== title || item.title_lv !== title_lv);
+
+    for (const { item, position, title, title_lv } of updates) {
+      const patch = { position };
+      if (title !== item.title) patch.title = title;
+      if (title_lv !== item.title_lv) patch.title_lv = title_lv;
+      const { error } = await db.from('topics').update(patch).eq('id', item.id);
+      if (error) {
+        console.warn('Ошибка обновления позиции темы:', item.id, error.message);
+      } else {
+        item.position = position;
+        if (title !== item.title) item.title = title;
+        if (title_lv !== item.title_lv) item.title_lv = title_lv;
+        const inTopics = topics.find(t => t.id === item.id);
+        if (inTopics) {
+          inTopics.position = position;
+          if (title !== item.title) inTopics.title = title;
+          if (title_lv !== item.title_lv) inTopics.title_lv = title_lv;
+        }
+        await syncSubtopicCodesForTopic(item.id, position, parsedG);
+      }
+    }
+  }
+
+  /* Перестановка тем стрелочками вверх/вниз */
   async function moveTopic(topicId, direction) {
     const topic = topics.find(t => String(t.id) === String(topicId));
     if (!topic) return;
@@ -304,24 +479,43 @@
     if (to < 0 || to >= siblings.length) return;
     siblings.splice(to, 0, siblings.splice(from, 1)[0]);
 
+    const grade = parseFormGrade(topic.grade);
     const updates = siblings
-      .map((item, index) => ({ item, position: index + 1 }))
-      .filter(({ item, position }) => item.position !== position);
-    for (const { item, position } of updates) {
-      const { error } = await db.from('topics').update({ position }).eq('id', item.id);
+      .map((item, index) => {
+        const newPos = index + 1;
+        const newTitleRu = updateTitlePrefix(item.title, grade, newPos);
+        const newTitleLv = updateTitlePrefix(item.title_lv, grade, newPos);
+        return { item, position: newPos, title: newTitleRu, title_lv: newTitleLv };
+      })
+      .filter(({ item, position, title, title_lv }) => item.position !== position || item.title !== title || item.title_lv !== title_lv);
+
+    for (const { item, position, title, title_lv } of updates) {
+      const patch = { position };
+      if (title !== item.title) patch.title = title;
+      if (title_lv !== item.title_lv) patch.title_lv = title_lv;
+      const { error } = await db.from('topics').update(patch).eq('id', item.id);
       if (error) { topicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+      item.position = position;
+      if (title !== item.title) item.title = title;
+      if (title_lv !== item.title_lv) item.title_lv = title_lv;
+      const inTopics = topics.find(t => t.id === item.id);
+      if (inTopics) {
+        inTopics.position = position;
+        if (title !== item.title) inTopics.title = title;
+        if (title_lv !== item.title_lv) inTopics.title_lv = title_lv;
+      }
+      await syncSubtopicCodesForTopic(item.id, position, grade);
     }
     topicSuccess.textContent = 'Порядок тем изменён.';
-    await loadCatalog();
+    renderTopicList();
   }
 
-  /* Новая тема встаёт в конец своей группы, а не в начало: иначе
-     каждая добавленная тема оказывалась бы выше всех уже расставленных. */
+  /* Новая тема встаёт в конец своей группы, а не в начало */
   function nextTopicPosition(grade, subjectId, rawValue) {
     const typed = Number(rawValue);
     if (editingTopicId && Number.isFinite(typed) && typed >= 1) return typed;
     if (Number.isFinite(typed) && typed >= 1) return typed;
-    const siblings = topicSiblingsOf({ grade, subject_id: subjectId });
+    const siblings = topicSiblingsOf(grade);
     return siblings.length ? Math.max(...siblings.map(t => t.position ?? 1)) + 1 : 1;
   }
 
@@ -375,24 +569,48 @@
     }).join('');
   }
 
+  document.querySelector('#topic-grade')?.addEventListener('change', () => {
+    if (!editingTopicId && topicForm?.elements.position) {
+      topicForm.elements.position.value = nextTopicPosition(parseFormGrade(topicForm.elements.grade.value), null, null);
+    }
+  });
+
   topicForm.addEventListener('submit', async event => {
     event.preventDefault();
     topicSuccess.textContent = '';
     const form = new FormData(topicForm);
     const title = form.get('title').trim();
+    const grade = parseFormGrade(form.get('grade'));
+    const subjectId = form.get('subject_id') ? Number(form.get('subject_id')) : null;
+    const rawPos = Number(form.get('position'));
+    const desiredPos = Number.isFinite(rawPos) && rawPos >= 1 ? rawPos : nextTopicPosition(grade, subjectId, null);
+
     const payload = sanitizeTopicPayload({
       title,
       title_lv: form.get('title_lv')?.trim() || null,
-      subject_id: form.get('subject_id') ? Number(form.get('subject_id')) : null,
-      grade: parseFormGrade(form.get('grade')),
-      position: nextTopicPosition(parseFormGrade(form.get('grade')), form.get('subject_id') ? Number(form.get('subject_id')) : null, form.get('position')),
+      subject_id: subjectId,
+      grade,
+      position: desiredPos,
       description: form.get('description')?.trim() || null,
       description_lv: form.get('description_lv')?.trim() || null,
     });
-    const { error } = editingTopicId
-      ? await db.from('topics').update(payload).eq('id', editingTopicId)
-      : await db.from('topics').insert({ ...payload, slug: `${makeSlug(title)}-${Date.now()}` });
-    if (error) { topicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+
+    let savedTopicId = editingTopicId;
+    if (editingTopicId) {
+      const { error } = await db.from('topics').update(payload).eq('id', editingTopicId);
+      if (error) { topicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    } else {
+      const newSlug = `${makeSlug(title)}-${Date.now()}`;
+      const { data: inserted, error } = await db.from('topics').insert({ ...payload, slug: newSlug }).select().single();
+      if (error) { topicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+      savedTopicId = inserted?.id;
+      if (inserted) topics.push(inserted);
+    }
+
+    if (savedTopicId) {
+      await rebalanceTopicPositions(grade, savedTopicId, desiredPos);
+    }
+
     topicSuccess.textContent = editingTopicId ? 'Тема сохранена.' : 'Тема добавлена.';
     topicForm.reset();
     setTopicMode(null);
@@ -418,10 +636,91 @@
     if (!confirm(`Удалить тему «${topic.title}»? Задачи этой темы останутся, но потеряют привязку.`)) return;
     const { error } = await db.from('topics').delete().eq('id', deleteId);
     if (error) { topicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    topics = topics.filter(t => String(t.id) !== deleteId);
+    if (topic?.grade != null) {
+      await rebalanceTopicPositions(topic.grade);
+    }
     if (String(editingTopicId) === deleteId) { topicForm.reset(); setTopicMode(null); }
     topicSuccess.textContent = 'Тема удалена.';
     await loadCatalog();
   });
+
+  /* Автоматическая перенумерация тем (1..N) внутри каждого класса */
+  async function handleRenumberTopics() {
+    if (!topics || !topics.length) {
+      alert('Список тем пуст.');
+      return;
+    }
+    const computeFn = window.MathTasksLib?.computeTopicRenumbering;
+    if (!computeFn) return;
+    const plan = computeFn(topics);
+
+    const itemsToUpdate = [];
+    for (const item of plan) {
+      const t = item.topic;
+      const parsedG = parseFormGrade(item.grade);
+      const newTitleRu = updateTitlePrefix(t.title, parsedG, item.newPosition);
+      const newTitleLv = updateTitlePrefix(t.title_lv, parsedG, item.newPosition);
+      const titleChanged = (newTitleRu && newTitleRu !== t.title) || (newTitleLv && newTitleLv !== t.title_lv);
+      if (item.changed || titleChanged) {
+        itemsToUpdate.push({
+          ...item,
+          newTitleRu: newTitleRu || t.title,
+          newTitleLv: newTitleLv || t.title_lv,
+          titleChanged
+        });
+      }
+    }
+
+    if (!itemsToUpdate.length) {
+      alert('Все темы уже упорядочены (1..N), изменений не требуется.');
+      return;
+    }
+
+    if (!confirm(`Перенумеровать темы по порядку (1..N внутри каждого класса)? Будут обновлены ${itemsToUpdate.length} тем.`)) {
+      return;
+    }
+
+    if (btnRenumberTopics) {
+      btnRenumberTopics.disabled = true;
+      btnRenumberTopics.textContent = '⏳ Перенумерация...';
+    }
+
+    try {
+      for (const item of itemsToUpdate) {
+        const patch = { position: item.newPosition };
+        if (item.newTitleRu !== item.topic.title) patch.title = item.newTitleRu;
+        if (item.newTitleLv !== item.topic.title_lv) patch.title_lv = item.newTitleLv;
+        const { error } = await db.from('topics').update(patch).eq('id', item.id);
+        if (error) {
+          console.warn('Ошибка обновления темы:', item.id, error.message);
+        } else {
+          item.topic.position = item.newPosition;
+          if (patch.title) item.topic.title = patch.title;
+          if (patch.title_lv) item.topic.title_lv = patch.title_lv;
+          const inTopics = topics.find(t => t.id === item.id);
+          if (inTopics) {
+            inTopics.position = item.newPosition;
+            if (patch.title) inTopics.title = patch.title;
+            if (patch.title_lv) inTopics.title_lv = patch.title_lv;
+          }
+          await syncSubtopicCodesForTopic(item.id, item.newPosition, item.grade);
+        }
+      }
+      topicSuccess.textContent = `Успешно перенумеровано тем: ${itemsToUpdate.length}.`;
+      renderTopicList();
+      renderSubtopics();
+    } catch (err) {
+      topicSuccess.textContent = 'Ошибка перенумерации тем: ' + err.message;
+    } finally {
+      if (btnRenumberTopics) {
+        btnRenumberTopics.disabled = false;
+        btnRenumberTopics.textContent = '🔢 Перенумеровать темы';
+      }
+    }
+  }
+
+  btnRenumberTopics?.addEventListener('click', handleRenumberTopics);
 
   /* ── Подтемы ──────────────────────────────────────────────────────── */
 
@@ -429,48 +728,233 @@
   const subtopicList = document.querySelector('#subtopic-list');
   const subtopicSuccess = document.querySelector('#subtopic-success');
   const subtopicTopicSelect = document.querySelector('#subtopic-topic-select');
+  const subtopicFormGrade = document.querySelector('#subtopic-form-grade');
   const subtopicFilterTopic = document.querySelector('#subtopic-filter-topic');
+  const subtopicFilterGrade = document.querySelector('#subtopic-filter-grade');
+  const subtopicFilterSort = document.querySelector('#subtopic-filter-sort');
   let editingSubtopicId = null;
   let subtopicsShown = false;
 
   const topicLabel = topic => `${topic.title}${topic.grade ? ` (${gradeText(topic.grade)})` : ''}`;
   const subtopicLabel = s => `${s.code ? s.code + '. ' : ''}${s.title}`;
 
-  /* Оба выпадающих списка тем живут рядом с подтемами и обновляются вместе
-     с каталогом: тему могли только что завести или переименовать. */
-  function fillSubtopicTopicSelects() {
-    if (!subtopicTopicSelect) return;
-    const sorted = [...topics].sort((a, b) => (a.grade ?? 99) - (b.grade ?? 99) || (a.position ?? 0) - (b.position ?? 0));
-    const options = sorted.map(t => `<option value="${t.id}">${escapeHtml(topicLabel(t))}</option>`).join('');
-    const keepForm = subtopicTopicSelect.value;
-    subtopicTopicSelect.innerHTML = options;
-    if (keepForm) subtopicTopicSelect.value = keepForm;
-    if (subtopicFilterTopic) {
-      const keepFilter = subtopicFilterTopic.value;
-      subtopicFilterTopic.innerHTML = '<option value="">Все темы</option>' + options;
-      subtopicFilterTopic.value = keepFilter;
+  /* Соседи подтемы — подтемы той же темы */
+  const subtopicSiblingsOf = topicId => subtopics
+    .filter(s => s.topic_id === Number(topicId))
+    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+
+  /* Стрелочки вверх/вниз для подтем */
+  function subtopicArrows(sub) {
+    const siblings = subtopicSiblingsOf(sub.topic_id);
+    if (siblings.length < 2) return '';
+    const index = siblings.findIndex(s => s.id === sub.id);
+    return `<span class="admin-move">
+      <button class="move-button" type="button" data-move-subtopic="${sub.id}" data-dir="up" ${index === 0 ? 'disabled' : ''} aria-label="Выше в теме">↑</button>
+      <button class="move-button" type="button" data-move-subtopic="${sub.id}" data-dir="down" ${index === siblings.length - 1 ? 'disabled' : ''} aria-label="Ниже в теме">↓</button>
+    </span>`;
+  }
+
+  /* Перемещение подтемы вверх/вниз со сквозной перенумерацией кодов и позиций */
+  async function moveSubtopic(subtopicId, direction) {
+    const sub = subtopics.find(s => String(s.id) === String(subtopicId));
+    if (!sub) return;
+    const siblings = subtopicSiblingsOf(sub.topic_id);
+    const from = siblings.findIndex(s => s.id === sub.id);
+    const to = direction === 'up' ? from - 1 : from + 1;
+    if (to < 0 || to >= siblings.length) return;
+    siblings.splice(to, 0, siblings.splice(from, 1)[0]);
+
+    const parentTopic = topics.find(t => t.id === sub.topic_id);
+    const grade = parentTopic ? parseFormGrade(parentTopic.grade) : null;
+    const topicPos = parentTopic ? (parentTopic.position ?? 1) : 1;
+
+    const updates = siblings
+      .map((item, index) => {
+        const newPos = index + 1;
+        const expectedCode = (grade != null && grade !== '')
+          ? `${grade}.${topicPos}.${newPos}`
+          : `${topicPos}.${newPos}`;
+        const shouldUpdateCode = !item.code || /^\d+(\.\d+)*$/.test(item.code);
+        const newCode = shouldUpdateCode ? expectedCode : item.code;
+        return { item, position: newPos, code: newCode };
+      })
+      .filter(({ item, position, code }) => item.position !== position || item.code !== code);
+
+    for (const { item, position, code } of updates) {
+      const { error } = await db.from('subtopics').update({ position, code }).eq('id', item.id);
+      if (error) { subtopicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+      item.position = position;
+      item.code = code;
+      const inSubs = subtopics.find(s => s.id === item.id);
+      if (inSubs) {
+        inSubs.position = position;
+        inSubs.code = code;
+      }
+    }
+    subtopicSuccess.textContent = 'Порядок подтем изменён.';
+    renderSubtopics();
+  }
+
+  /* Ребалансировка подтем 1..M: автосдвиг при вставке в середину или удалении */
+  async function rebalanceSubtopicPositions(topicId, targetSubtopicId = null, desiredPosition = null) {
+    const tId = Number(topicId);
+    if (!tId) return;
+    const parentTopic = topics.find(t => t.id === tId);
+    const grade = parentTopic ? parseFormGrade(parentTopic.grade) : null;
+    const topicPos = parentTopic ? (parentTopic.position ?? 1) : 1;
+
+    let siblings = subtopicSiblingsOf(tId);
+
+    if (targetSubtopicId != null && desiredPosition != null) {
+      const existingIdx = siblings.findIndex(s => String(s.id) === String(targetSubtopicId));
+      let targetItem;
+      if (existingIdx >= 0) {
+        targetItem = siblings.splice(existingIdx, 1)[0];
+      } else {
+        const found = subtopics.find(s => String(s.id) === String(targetSubtopicId));
+        targetItem = found || { id: targetSubtopicId, topic_id: tId, position: desiredPosition };
+      }
+      const insertIdx = Math.max(0, Math.min(desiredPosition - 1, siblings.length));
+      siblings.splice(insertIdx, 0, targetItem);
+    }
+
+    const updates = siblings
+      .map((item, index) => {
+        const newPos = index + 1;
+        const expectedCode = (grade != null && grade !== '')
+          ? `${grade}.${topicPos}.${newPos}`
+          : `${topicPos}.${newPos}`;
+        const shouldUpdateCode = !item.code || /^\d+(\.\d+)*$/.test(item.code);
+        const newCode = shouldUpdateCode ? expectedCode : item.code;
+        return { item, position: newPos, code: newCode };
+      })
+      .filter(({ item, position, code }) => item.position !== position || item.code !== code);
+
+    for (const { item, position, code } of updates) {
+      const { error } = await db.from('subtopics').update({ position, code }).eq('id', item.id);
+      if (error) {
+        console.warn('Ошибка обновления подтемы:', item.id, error.message);
+      } else {
+        item.position = position;
+        item.code = code;
+        const inSubs = subtopics.find(s => s.id === item.id);
+        if (inSubs) {
+          inSubs.position = position;
+          inSubs.code = code;
+        }
+      }
     }
   }
 
+  function updateSubtopicFormDefaults() {
+    if (editingSubtopicId) return;
+    const topicId = Number(subtopicTopicSelect?.value);
+    if (!topicId) return;
+    const parentTopic = topics.find(t => t.id === topicId);
+    if (!parentTopic) return;
+    const siblings = subtopicSiblingsOf(topicId);
+    const nextPos = siblings.length + 1;
+    if (subtopicForm?.elements.position) {
+      subtopicForm.elements.position.value = nextPos;
+    }
+    if (subtopicForm?.elements.code) {
+      const g = parseFormGrade(parentTopic.grade);
+      const tPos = parentTopic.position ?? 1;
+      subtopicForm.elements.code.value = (g != null && g !== '')
+        ? `${g}.${tPos}.${nextPos}`
+        : `${tPos}.${nextPos}`;
+    }
+  }
+
+  function fillSubtopicFormTopicSelect() {
+    if (!subtopicTopicSelect) return;
+    const gradeVal = parseFormGrade(subtopicFormGrade?.value);
+    const sorted = [...topics]
+      .filter(t => gradeVal === null || parseFormGrade(t.grade) === gradeVal)
+      .sort((a, b) => (a.grade ?? 99) - (b.grade ?? 99) || (a.position ?? 0) - (b.position ?? 0));
+    const options = sorted.map(t => `<option value="${t.id}">${escapeHtml(topicLabel(t))}</option>`).join('');
+    const keepForm = subtopicTopicSelect.value;
+    subtopicTopicSelect.innerHTML = '<option value="">Выберите тему...</option>' + options;
+    if (keepForm && sorted.some(t => String(t.id) === String(keepForm))) {
+      subtopicTopicSelect.value = keepForm;
+    }
+  }
+
+  function fillSubtopicFilterTopicSelect() {
+    if (!subtopicFilterTopic) return;
+    const gradeVal = parseFormGrade(subtopicFilterGrade?.value);
+    const sorted = [...topics]
+      .filter(t => gradeVal === null || parseFormGrade(t.grade) === gradeVal)
+      .sort((a, b) => (a.grade ?? 99) - (b.grade ?? 99) || (a.position ?? 0) - (b.position ?? 0));
+    const options = sorted.map(t => `<option value="${t.id}">${escapeHtml(topicLabel(t))}</option>`).join('');
+    const keepFilter = subtopicFilterTopic.value;
+    subtopicFilterTopic.innerHTML = '<option value="">Все темы</option>' + options;
+    if (keepFilter && sorted.some(t => String(t.id) === String(keepFilter))) {
+      subtopicFilterTopic.value = keepFilter;
+    } else {
+      subtopicFilterTopic.value = '';
+    }
+  }
+
+  /* Оба выпадающих списка тем живут рядом с подтемами и обновляются вместе
+     с каталогом: тему могли только что завести или переименовать. */
+  function fillSubtopicTopicSelects() {
+    fillSubtopicFormTopicSelect();
+    fillSubtopicFilterTopicSelect();
+  }
+
   function setSubtopicMode(sub) {
+    if (sub) ensureSectionExpanded('section-subtopics');
     editingSubtopicId = sub?.id ?? null;
     document.querySelector('#subtopic-form-title').textContent = sub ? `Редактировать подтему: ${subtopicLabel(sub)}` : 'Подтемы';
     document.querySelector('#subtopic-submit').textContent = sub ? 'Сохранить подтему' : 'Добавить подтему';
     document.querySelector('#subtopic-cancel').hidden = !sub;
-    if (sub?.topic_id) subtopicTopicSelect.value = String(sub.topic_id);
+    if (sub?.topic_id) {
+      const parentTopic = topics.find(t => t.id === sub.topic_id);
+      if (parentTopic && subtopicFormGrade) {
+        subtopicFormGrade.value = toAdminGradeVal(parentTopic.grade);
+      }
+      fillSubtopicFormTopicSelect();
+      subtopicTopicSelect.value = String(sub.topic_id);
+    } else {
+      fillSubtopicFormTopicSelect();
+    }
     subtopicForm.elements.code.value = sub?.code || '';
     subtopicForm.elements.position.value = Math.max(1, sub?.position ?? 1);
     subtopicForm.elements.title.value = sub?.title || '';
     if (subtopicForm.elements.title_lv) subtopicForm.elements.title_lv.value = sub?.title_lv || '';
+    if (!sub) {
+      updateSubtopicFormDefaults();
+    }
     if (sub) subtopicForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   function renderSubtopics() {
     if (!subtopicList || !subtopicsShown) return;
+    const gradeVal = parseFormGrade(subtopicFilterGrade?.value);
     const topicVal = subtopicFilterTopic?.value ? Number(subtopicFilterTopic.value) : null;
+    const sortMode = subtopicFilterSort?.value || 'position';
+    const taskCount = sub => taskIndex.filter(t => t.subtopic_id === sub.id).length;
     const filtered = subtopics
-      .filter(s => topicVal === null || s.topic_id === topicVal)
+      .filter(s => {
+        const t = topics.find(item => item.id === s.topic_id);
+        if (gradeVal !== null && parseFormGrade(t?.grade) !== gradeVal) return false;
+        if (topicVal !== null && s.topic_id !== topicVal) return false;
+        return true;
+      })
       .sort((a, b) => {
+        if (sortMode === 'code') {
+          return byText(a.code, b.code) || (a.position ?? 0) - (b.position ?? 0);
+        }
+        if (sortMode === 'title') {
+          return byText(a.title, b.title);
+        }
+        if (sortMode === 'tasks_desc') {
+          return taskCount(b) - taskCount(a) || (a.position ?? 0) - (b.position ?? 0);
+        }
+        if (sortMode === 'tasks_asc') {
+          return taskCount(a) - taskCount(b) || (a.position ?? 0) - (b.position ?? 0);
+        }
         const ta = topics.find(t => t.id === a.topic_id), tb = topics.find(t => t.id === b.topic_id);
         return (ta?.grade ?? 99) - (tb?.grade ?? 99)
           || (ta?.position ?? 0) - (tb?.position ?? 0)
@@ -479,7 +963,7 @@
     const countEl = document.querySelector('#subtopic-filter-count');
     if (countEl) countEl.textContent = `Подтем: ${filtered.length} из ${subtopics.length}`;
     if (!filtered.length) {
-      subtopicList.innerHTML = '<p class="admin-empty">Подтем нет. Заведите первую в форме выше.</p>';
+      subtopicList.innerHTML = '<p class="admin-empty">Подтем не найдено по выбранным фильтрам. Заведите первую в форме выше.</p>';
       return;
     }
     subtopicList.innerHTML = filtered.map(s => {
@@ -487,6 +971,7 @@
       const count = taskIndex.filter(t => t.subtopic_id === s.id).length;
       return `<div class="admin-row">
         <span class="admin-row-main"><strong>${escapeHtml(subtopicLabel(s))}</strong><small>${escapeHtml(topic ? topicLabel(topic) : 'тема не найдена')} · задач: ${count}</small></span>
+        ${subtopicArrows(s)}
         <button class="text-button" type="button" data-edit-subtopic="${s.id}">Изменить</button>
         <button class="text-button danger" type="button" data-delete-subtopic="${s.id}">Удалить</button>
       </div>`;
@@ -495,14 +980,27 @@
 
   function setSubtopicsShown(shown) {
     subtopicsShown = shown;
-    subtopicList.hidden = !shown;
+    if (subtopicList) subtopicList.hidden = !shown;
     const defer = document.querySelector('#subtopic-list-defer');
     if (defer) defer.hidden = shown;
+    const closeTop = document.querySelector('#subtopic-list-close');
+    if (closeTop) closeTop.hidden = !shown;
     if (shown) renderSubtopics();
   }
 
   document.querySelector('#btn-load-subtopics')?.addEventListener('click', () => setSubtopicsShown(true));
+  document.querySelector('#btn-hide-subtopics')?.addEventListener('click', () => setSubtopicsShown(false));
+  subtopicFilterGrade?.addEventListener('change', () => {
+    fillSubtopicFilterTopicSelect();
+    renderSubtopics();
+  });
   subtopicFilterTopic?.addEventListener('change', renderSubtopics);
+  subtopicFilterSort?.addEventListener('change', renderSubtopics);
+  subtopicFormGrade?.addEventListener('change', () => {
+    fillSubtopicFormTopicSelect();
+    updateSubtopicFormDefaults();
+  });
+  subtopicTopicSelect?.addEventListener('change', updateSubtopicFormDefaults);
 
   subtopicForm?.addEventListener('submit', async event => {
     event.preventDefault();
@@ -511,28 +1009,56 @@
     const topicId = Number(form.get('topic_id'));
     const title = form.get('title').trim();
     if (!topicId) { subtopicSuccess.textContent = 'Выберите тему.'; return; }
+
+    const rawPos = Number(form.get('position'));
+    const siblings = subtopicSiblingsOf(topicId);
+    const desiredPos = (Number.isFinite(rawPos) && rawPos >= 1)
+      ? rawPos
+      : (siblings.length + 1);
+
     const payload = {
       topic_id: topicId,
       title,
       title_lv: form.get('title_lv')?.trim() || null,
       code: form.get('code')?.trim() || null,
-      position: Math.max(1, Number(form.get('position')) || 1),
+      position: desiredPos,
     };
-    const { error } = editingSubtopicId
-      ? await db.from('subtopics').update(payload).eq('id', editingSubtopicId)
-      /* Слаг стоит в адресе /subtopic/<slug> и обязан быть уникальным;
-         хвост из времени спасает от совпадения названий в разных темах. */
-      : await db.from('subtopics').insert({ ...payload, slug: `${makeSlug(title)}-${Date.now()}` });
-    if (error) { subtopicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+
+    let savedSubtopicId = editingSubtopicId;
+    if (editingSubtopicId) {
+      const { error } = await db.from('subtopics').update(payload).eq('id', editingSubtopicId);
+      if (error) { subtopicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    } else {
+      const newSlug = `${makeSlug(title)}-${Date.now()}`;
+      const { data: inserted, error } = await db.from('subtopics').insert({ ...payload, slug: newSlug }).select().single();
+      if (error) { subtopicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+      savedSubtopicId = inserted?.id;
+      if (inserted) subtopics.push(inserted);
+    }
+
+    if (savedSubtopicId) {
+      await rebalanceSubtopicPositions(topicId, savedSubtopicId, desiredPos);
+    }
+
     subtopicSuccess.textContent = editingSubtopicId ? 'Подтема сохранена.' : 'Подтема добавлена.';
     subtopicForm.reset();
     setSubtopicMode(null);
     await loadCatalog();
   });
 
-  document.querySelector('#subtopic-cancel')?.addEventListener('click', () => { subtopicForm.reset(); setSubtopicMode(null); });
+  document.querySelector('#subtopic-cancel')?.addEventListener('click', () => {
+    subtopicForm.reset();
+    if (subtopicFormGrade) subtopicFormGrade.value = '';
+    setSubtopicMode(null);
+  });
 
   subtopicList?.addEventListener('click', async event => {
+    const moveSubBtn = event.target.closest('[data-move-subtopic]');
+    if (moveSubBtn) {
+      await moveSubtopic(moveSubBtn.dataset.moveSubtopic, moveSubBtn.dataset.dir);
+      return;
+    }
+
     const editId = event.target.closest('[data-edit-subtopic]')?.dataset.editSubtopic;
     if (editId) {
       const full = await fetchFullRow('subtopics', editId);
@@ -547,10 +1073,84 @@
     if (!confirm(`Удалить подтему «${subtopicLabel(sub)}»?${count ? ` ${count} задач останутся в теме, но потеряют подтему.` : ''}`)) return;
     const { error } = await db.from('subtopics').delete().eq('id', deleteId);
     if (error) { subtopicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    subtopics = subtopics.filter(s => String(s.id) !== deleteId);
+    if (sub?.topic_id) {
+      await rebalanceSubtopicPositions(sub.topic_id);
+    }
     if (String(editingSubtopicId) === deleteId) { subtopicForm.reset(); setSubtopicMode(null); }
     subtopicSuccess.textContent = 'Подтема удалена.';
     await loadCatalog();
   });
+
+  /* Автоматическая перенумерация подтем (1..M) и кодов Skola2030 */
+  async function handleRenumberSubtopics() {
+    if (!subtopics || !subtopics.length) {
+      alert('Список подтем пуст.');
+      return;
+    }
+    const computeFn = window.MathTasksLib?.computeSubtopicRenumbering;
+    if (!computeFn) return;
+
+    const selectedTopicId = Number(subtopicFilterTopic?.value) || null;
+    const targetTopicIds = selectedTopicId ? [selectedTopicId] : [...new Set(subtopics.map(s => s.topic_id).filter(Boolean))];
+
+    const itemsToUpdate = [];
+    for (const tId of targetTopicIds) {
+      const topicSubs = subtopics.filter(s => s.topic_id === tId);
+      const parentTopic = topics.find(t => t.id === tId);
+      const plan = computeFn(topicSubs, parentTopic);
+      for (const item of plan) {
+        if (item.changed) itemsToUpdate.push(item);
+      }
+    }
+
+    if (!itemsToUpdate.length) {
+      alert('Все подтемы уже упорядочены (1..M) с корректными кодами Skola2030, изменений не требуется.');
+      return;
+    }
+
+    const scopeMsg = selectedTopicId
+      ? 'подтемы выбранной темы'
+      : 'все подтемы во всех темах';
+    if (!confirm(`Перенумеровать ${scopeMsg} (1..M) и обновить коды Skola2030? Будут обновлены ${itemsToUpdate.length} подтем.`)) {
+      return;
+    }
+
+    if (btnRenumberSubtopics) {
+      btnRenumberSubtopics.disabled = true;
+      btnRenumberSubtopics.textContent = '⏳ Перенумерация...';
+    }
+
+    try {
+      for (const item of itemsToUpdate) {
+        const patch = { position: item.newPosition };
+        if (item.newCode) patch.code = item.newCode;
+        const { error } = await db.from('subtopics').update(patch).eq('id', item.id);
+        if (error) {
+          console.warn('Ошибка обновления подтемы:', item.id, error.message);
+        } else {
+          item.subtopic.position = item.newPosition;
+          if (item.newCode) item.subtopic.code = item.newCode;
+          const inSubs = subtopics.find(s => s.id === item.id);
+          if (inSubs) {
+            inSubs.position = item.newPosition;
+            if (item.newCode) inSubs.code = item.newCode;
+          }
+        }
+      }
+      subtopicSuccess.textContent = `Успешно перенумеровано подтем: ${itemsToUpdate.length}.`;
+      renderSubtopics();
+    } catch (err) {
+      subtopicSuccess.textContent = 'Ошибка перенумерации подтем: ' + err.message;
+    } finally {
+      if (btnRenumberSubtopics) {
+        btnRenumberSubtopics.disabled = false;
+        btnRenumberSubtopics.textContent = '🔢 Перенумеровать подтемы';
+      }
+    }
+  }
+
+  btnRenumberSubtopics?.addEventListener('click', handleRenumberSubtopics);
 
   /* ── Задачи ───────────────────────────────────────────────────────── */
 
@@ -1245,6 +1845,7 @@ ${JSON.stringify(texts)}`;
   }
 
   function setTaskMode(task) {
+    if (task) ensureSectionExpanded('section-task-form');
     editingTaskId = task?.id ?? null;
     document.querySelector('#task-form-title').textContent = task ? `Редактировать задачу №${task.position ?? task.id}` : 'Создание и редактирование задачи';
     document.querySelector('#task-submit').textContent = task ? 'Сохранить задачу' : 'Добавить задачу';
@@ -1327,6 +1928,7 @@ ${JSON.stringify(texts)}`;
   function sortTasks(list) {
     const mode = taskFilterSort?.value || 'recent';
     const topicOf = task => topics.find(t => t.id === task.topic_id);
+    const subOf = task => subtopics.find(s => s.id === task.subtopic_id);
     const copy = [...list];
     switch (mode) {
       case 'title':
@@ -1339,9 +1941,27 @@ ${JSON.stringify(texts)}`;
         return copy.sort((a, b) =>
           byText(topicOf(a)?.title || 'яяя', topicOf(b)?.title || 'яяя')
           || (a.position ?? 0) - (b.position ?? 0));
+      case 'subtopic':
+        return copy.sort((a, b) =>
+          byText(topicOf(a)?.title || 'яяя', topicOf(b)?.title || 'яяя')
+          || (subOf(a)?.position ?? 9999) - (subOf(b)?.position ?? 9999)
+          || byText(subOf(a)?.code, subOf(b)?.code)
+          || (a.position ?? 0) - (b.position ?? 0)
+          || byText(a.title, b.title));
+      case 'num_asc':
+        return copy.sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || byText(a.title, b.title));
+      case 'num_desc':
+        return copy.sort((a, b) => (b.position ?? 0) - (a.position ?? 0) || byText(a.title, b.title));
+      case 'diff_asc':
       case 'difficulty':
         return copy.sort((a, b) =>
           (DIFFICULTY_RANK[a.difficulty] || 9) - (DIFFICULTY_RANK[b.difficulty] || 9)
+          || (a.position ?? 0) - (b.position ?? 0)
+          || byText(a.title, b.title));
+      case 'diff_desc':
+        return copy.sort((a, b) =>
+          (DIFFICULTY_RANK[b.difficulty] || 9) - (DIFFICULTY_RANK[a.difficulty] || 9)
+          || (a.position ?? 0) - (b.position ?? 0)
           || byText(a.title, b.title));
       case 'status':
         // Черновики сверху: именно их обычно и ищут, чтобы доделать.
@@ -1502,6 +2122,41 @@ ${JSON.stringify(texts)}`;
     }).join('');
   }
 
+  /* Ребалансировка задач темы 1..N: автосдвиг при вставке в середину или удалении */
+  async function rebalanceTaskPositions(topicId, targetTaskId = null, desiredPosition = null) {
+    if (!topicId) return;
+    let siblings = taskIndex
+      .filter(task => (task.topic_id ?? null) === (topicId ?? null))
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+
+    if (targetTaskId != null && desiredPosition != null) {
+      const existingIdx = siblings.findIndex(t => String(t.id) === String(targetTaskId));
+      let targetItem;
+      if (existingIdx >= 0) {
+        targetItem = siblings.splice(existingIdx, 1)[0];
+      } else {
+        targetItem = { id: targetTaskId, topic_id: topicId, position: desiredPosition };
+      }
+      const insertIdx = Math.max(0, Math.min(desiredPosition - 1, siblings.length));
+      siblings.splice(insertIdx, 0, targetItem);
+    }
+
+    const updates = siblings
+      .map((item, index) => ({ item, position: index + 1 }))
+      .filter(({ item, position }) => item.position !== position);
+
+    for (const { item, position } of updates) {
+      const { error } = await db.from('tasks').update({ position }).eq('id', item.id);
+      if (!error) {
+        item.position = position;
+        const inIdx = taskIndex.find(t => String(t.id) === String(item.id));
+        if (inIdx) inIdx.position = position;
+        const inTasks = tasks.find(t => String(t.id) === String(item.id));
+        if (inTasks) inTasks.position = position;
+      }
+    }
+  }
+
   /* После перестановки перенумеровываем всю тему подряд: если у соседей
      позиции совпадали (а у старых задач это ноль), простой обмен значениями
      ничего бы не изменил. */
@@ -1562,7 +2217,16 @@ ${JSON.stringify(texts)}`;
       const { data: inserted, error } = await db.from('tasks').insert(payload).select('id').maybeSingle();
       if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
       savedTaskId = inserted?.id;
+      if (savedTaskId) {
+        taskIndex.push({ id: savedTaskId, topic_id: payload.topic_id ?? null, position: payload.position });
+      }
     }
+
+    // Автосдвиг задач внутри темы при вставке в середину
+    if (savedTaskId && topicId) {
+      await rebalanceTaskPositions(topicId, savedTaskId, taskPos);
+    }
+
     // Синхронизируем кросс-теги в task_tags
     if (savedTaskId && tagsReady) {
       try {
@@ -1657,6 +2321,10 @@ ${JSON.stringify(texts)}`;
     // Задачи нет — её чертежам в бакете делать нечего.
     await removeFile(task.condition_image);
     await removeFile(task.solution_image);
+    if (task?.topic_id) {
+      taskIndex = taskIndex.filter(t => String(t.id) !== deleteId);
+      await rebalanceTaskPositions(task.topic_id);
+    }
     if (String(editingTaskId) === deleteId) { taskForm.reset(); setTaskMode(null); }
     taskSuccess.textContent = 'Задача удалена.';
     await refreshTasks();
@@ -1692,7 +2360,32 @@ ${JSON.stringify(texts)}`;
       bulkDialogStatus.hidden = true;
       bulkDialogStatus.textContent = '';
     }
-    if (mode === 'export') {
+    if (mode === 'export_csv') {
+      if (!tasksLoaded) await loadTasks();
+      const filtered = getFilteredTasks();
+      const ids = filtered.map(t => t.id);
+      let fullById = {};
+      if (ids.length) {
+        const { data, error } = await db.from('tasks').select('*').in('id', ids);
+        if (error) {
+          bulkDialogTitle.textContent = 'Экспорт в Excel / CSV';
+          bulkDialogDesc.textContent = 'Не удалось получить полные тексты задач: ' + error.message;
+          bulkDialogTextarea.value = '';
+          bulkDialogSubmit.textContent = 'Закрыть';
+          bulkDialog?.showModal();
+          return;
+        }
+        fullById = Object.fromEntries((data || []).map(row => [row.id, row]));
+      }
+      const fullTasks = filtered.map(light => fullById[light.id] || light);
+      const csvContent = window.MathTasksLib?.exportTasksToCsv ? window.MathTasksLib.exportTasksToCsv(fullTasks, topics, subtopics) : '';
+      bulkDialogTitle.textContent = `Экспорт в Excel / CSV (${fullTasks.length} шт.)`;
+      bulkDialogDesc.innerHTML = 'Экспорт текущих отфильтрованных задач в формате CSV (с меткой UTF-8 BOM). Файл можно скачать и сразу открыть в Excel или Google Таблицах.';
+      bulkDialogTextarea.value = csvContent;
+      bulkDialogSubmit.textContent = 'Скачать tasks-export.csv';
+      bulkDialogCopy.hidden = false;
+      if (bulkDialogTagList) bulkDialogTagList.hidden = true;
+    } else if (mode === 'export') {
       /* Списки в панели укорочены до заголовков, поэтому перед выгрузкой
          добираем полные строки: иначе резервная копия молча вышла бы
          без условий, ответов и решений. */
@@ -1748,12 +2441,10 @@ ${JSON.stringify(texts)}`;
       bulkDialogCopy.hidden = false;
       if (bulkDialogTagList) bulkDialogTagList.hidden = true;
     } else {
-      bulkDialogTitle.textContent = 'Массовый импорт задач (JSON)';
-      bulkDialogDesc.innerHTML = 'Загрузите <code>.json</code> файл или вставьте массив. Недостающие темы создаются автоматически. Обязательны только <code>title</code> и <code>condition_latex</code>, остальное — по желанию. Кнопка «Вставить образец» подставляет одну задачу со всеми полями сразу: латышские версии, подсказка, теги, сложность и порядок.';
+      bulkDialogTitle.textContent = 'Массовый импорт задач (JSON / CSV / Таблица)';
+      bulkDialogDesc.innerHTML = 'Загрузите файл <code>.json</code>, <code>.csv</code>, <code>.tsv</code> или вставьте скопированную таблицу из Excel / Google Таблиц прямо в поле ниже. Формат определится автоматически. Недостающие темы и подтемы создаются автоматически.';
       bulkDialogTextarea.value = '';
-      bulkDialogTextarea.placeholder = 'Вставьте сюда массив JSON или нажмите «Вставить образец».';
-      /* Словарь тегов закрытый, и угадать слаг невозможно — показываем
-         его прямо под полем, рядом с местом, где его вводят. */
+      bulkDialogTextarea.placeholder = 'Вставьте сюда JSON, CSV или скопированные из Google Таблиц / Excel ячейки...';
       const vocab = (allTags.length ? allTags : (window.MathTasksLib?.CROSS_TAGS || []));
       if (bulkDialogTagList) {
         bulkDialogTagList.innerHTML = vocab.length
@@ -1991,11 +2682,95 @@ ${JSON.stringify(texts)}`;
   }
 
   btnExportTasks?.addEventListener('click', () => { openBulkDialog('export').catch(e => console.error('экспорт:', e)); });
+  btnExportCsv?.addEventListener('click', () => { openBulkDialog('export_csv').catch(e => console.error('экспорт csv:', e)); });
   btnImportTasks?.addEventListener('click', () => { openBulkDialog('import').catch(e => console.error('импорт:', e)); });
+
+  /* Автоматическая перенумерация задач (1..N) без пропусков */
+  async function handleRenumberTasks() {
+    const computeFn = window.MathTasksLib?.computeTaskRenumbering;
+    if (!computeFn) return;
+
+    if (!tasksLoaded) {
+      if (btnRenumberTasks) {
+        btnRenumberTasks.disabled = true;
+        btnRenumberTasks.textContent = '⏳ Загрузка задач...';
+      }
+      try {
+        await loadTasks();
+      } finally {
+        if (btnRenumberTasks) {
+          btnRenumberTasks.disabled = false;
+          btnRenumberTasks.textContent = '🔢 Перенумеровать задачи';
+        }
+      }
+    }
+
+    if (!tasks || !tasks.length) {
+      alert('Список задач пуст.');
+      return;
+    }
+
+    const selectedTopicId = Number(taskFilterTopic?.value) || null;
+    const targetTopicIds = selectedTopicId ? [selectedTopicId] : [...new Set(tasks.map(t => t.topic_id).filter(Boolean))];
+
+    const itemsToUpdate = [];
+    for (const tId of targetTopicIds) {
+      const topicTasks = tasks.filter(t => t.topic_id === tId);
+      const plan = computeFn(topicTasks, subtopics);
+      for (const item of plan) {
+        if (item.changed) itemsToUpdate.push(item);
+      }
+    }
+
+    if (!itemsToUpdate.length) {
+      alert('Все задачи уже упорядочены подряд (1..N), изменений не требуется.');
+      return;
+    }
+
+    const topicObj = selectedTopicId ? topics.find(t => t.id === selectedTopicId) : null;
+    const scopeMsg = topicObj
+      ? `задачи темы «${topicObj.title}»`
+      : 'задачи во всех темах';
+
+    if (!confirm(`Перенумеровать ${scopeMsg} подряд (1..N)? Будут обновлены позиции у ${itemsToUpdate.length} задач.`)) {
+      return;
+    }
+
+    if (btnRenumberTasks) {
+      btnRenumberTasks.disabled = true;
+      btnRenumberTasks.textContent = '⏳ Перенумерация...';
+    }
+
+    try {
+      for (const item of itemsToUpdate) {
+        const { error } = await db.from('tasks').update({ position: item.newPosition }).eq('id', item.id);
+        if (error) {
+          console.warn('Ошибка обновления задачи:', item.id, error.message);
+        } else {
+          item.task.position = item.newPosition;
+          const inTasks = tasks.find(t => t.id === item.id);
+          if (inTasks) inTasks.position = item.newPosition;
+          const inIndex = taskIndex.find(t => t.id === item.id);
+          if (inIndex) inIndex.position = item.newPosition;
+        }
+      }
+      taskSuccess.textContent = `Успешно перенумеровано задач: ${itemsToUpdate.length}.`;
+      renderTaskList();
+    } catch (err) {
+      taskSuccess.textContent = 'Ошибка перенумерации задач: ' + err.message;
+    } finally {
+      if (btnRenumberTasks) {
+        btnRenumberTasks.disabled = false;
+        btnRenumberTasks.textContent = '🔢 Перенумеровать задачи';
+      }
+    }
+  }
+
+  btnRenumberTasks?.addEventListener('click', handleRenumberTasks);
   bulkDialogClose?.addEventListener('click', () => bulkDialog?.close());
   bulkDialogCancel?.addEventListener('click', () => bulkDialog?.close());
 
-  // Выбор файла .json с диска
+  // Выбор файла .json, .csv или .tsv с диска
   const handleBulkFile = event => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -2005,15 +2780,18 @@ ${JSON.stringify(texts)}`;
       openBulkDialog('import');
       bulkDialogTextarea.value = content;
       try {
-        const { uniqueTopics, uniqueSubtopics, tasks: parsedTasks } = parseMultiTopicJson(content);
+        const parseFn = window.MathTasksLib?.parseTasksImport || parseMultiTopicJson;
+        const result = parseFn(content);
+        const isCsv = result.format === 'csv';
+        const { uniqueTopics, uniqueSubtopics, tasks: parsedTasks } = result;
         bulkDialogStatus.className = 'bulk-dialog-status success';
-        bulkDialogStatus.innerHTML = `📁 Файл <strong>${escapeHtml(file.name)}</strong> загружен!<br>` +
+        bulkDialogStatus.innerHTML = `📁 Файл <strong>${escapeHtml(file.name)}</strong> (${isCsv ? 'Таблица CSV/TSV' : 'JSON'}) загружен!<br>` +
           `Обнаружено: тем: <strong>${uniqueTopics.length}</strong>, подтем: <strong>${uniqueSubtopics.length}</strong>, задач: <strong>${parsedTasks.length}</strong>.<br>` +
-          `Нажмите <strong>«Импортировать в базу»</strong>, чтобы сохранить данные в Supabase.`;
+          `Нажмите <strong>«Выполнить импорт»</strong>, чтобы сохранить данные в Supabase.`;
         bulkDialogStatus.hidden = false;
       } catch (err) {
         bulkDialogStatus.className = 'bulk-dialog-status error';
-        bulkDialogStatus.textContent = 'Ошибка синтаксиса JSON в выбранном файле: ' + err.message;
+        bulkDialogStatus.textContent = 'Ошибка синтаксиса в выбранном файле: ' + err.message;
         bulkDialogStatus.hidden = false;
       }
     };
@@ -2182,7 +2960,7 @@ ${JSON.stringify(texts)}`;
     bulkDialogStatus.hidden = false;
   });
 
-  // Подсчёт тем, подтем и задач при вводе в поле
+  // Подсчёт тем, подтем и задач при вводе в поле (JSON / CSV / TSV)
   bulkDialogTextarea?.addEventListener('input', () => {
     if (bulkMode !== 'import') return;
     const val = bulkDialogTextarea.value.trim();
@@ -2191,15 +2969,101 @@ ${JSON.stringify(texts)}`;
       return;
     }
     try {
-      const { uniqueTopics, uniqueSubtopics, tasks: parsedTasks } = parseMultiTopicJson(val);
+      const parseFn = window.MathTasksLib?.parseTasksImport || parseMultiTopicJson;
+      const result = parseFn(val);
+      const { uniqueTopics, uniqueSubtopics, tasks: parsedTasks, format } = result;
       if (parsedTasks.length > 0 || uniqueTopics.length > 0) {
         bulkDialogStatus.className = 'bulk-dialog-status';
-        bulkDialogStatus.innerHTML = `📊 Обнаружено: тем: <strong>${uniqueTopics.length}</strong>, подтем: <strong>${uniqueSubtopics.length}</strong>, задач: <strong>${parsedTasks.length}</strong>. Нажмите «Импортировать в базу».`;
+        const formatBadge = format === 'csv' ? 'Таблица CSV / TSV' : 'JSON';
+        bulkDialogStatus.innerHTML = `📊 Обнаружено (<strong>${formatBadge}</strong>): тем: <strong>${uniqueTopics.length}</strong>, подтем: <strong>${uniqueSubtopics.length}</strong>, задач: <strong>${parsedTasks.length}</strong>. Нажмите «Выполнить импорт».`;
         bulkDialogStatus.hidden = false;
       }
     } catch {
       // Игнорируем промежуточные синтаксические ошибки при ручном наборе
     }
+  });
+
+  /* 📊 Образец таблицы CSV / Excel / Google Таблиц */
+  btnToggleSampleCsv?.addEventListener('click', () => {
+    if (!csvSampleCard) return;
+    csvSampleCard.hidden = !csvSampleCard.hidden;
+  });
+
+  btnCloseSampleCsv?.addEventListener('click', () => {
+    if (csvSampleCard) csvSampleCard.hidden = true;
+  });
+
+  btnCopySampleCsv?.addEventListener('click', async () => {
+    const text = csvSampleCode?.textContent?.trim() || '';
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    const orig = btnCopySampleCsv.textContent;
+    btnCopySampleCsv.textContent = '✓ Скопировано!';
+    setTimeout(() => { btnCopySampleCsv.textContent = orig; }, 2000);
+  });
+
+  const insertCsvSampleToDialog = () => {
+    const text = csvSampleCode?.textContent?.trim() || '';
+    openBulkDialog('import');
+    bulkDialogTextarea.value = text;
+    bulkDialogStatus.className = 'bulk-dialog-status success';
+    bulkDialogStatus.innerHTML = '📊 Образец таблицы CSV вставлен в окно! Нажмите «Выполнить импорт» для добавления.';
+    bulkDialogStatus.hidden = false;
+  };
+
+  btnInsertSampleCsvToDialog?.addEventListener('click', insertCsvSampleToDialog);
+  bulkDialogCsvTemplateBtn?.addEventListener('click', insertCsvSampleToDialog);
+
+  /* 🤖 Промпт для ИИ (30-50 задач за один запрос) */
+  const AI_PROMPT_TEXT = `Составь 30 математических задач по теме [НАЗВАНИЕ ТЕМЫ], класс [КЛАСС], согласно латвийскому стандарту Skola2030.
+
+Выведи результат СТРОГО в виде таблицы, где столбцы разделены символом ТАБУЛЯЦИИ, а не запятой: запятая стоит в каждой десятичной дроби ($0{,}5$) и во многих формулах, и таблица через запятую при вставке разъезжается по столбцам. Первая строка — заголовки:
+grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_latex_lv\tanswer_latex\tanswer_latex_lv\tsolution_latex\tsolution_latex_lv\tdifficulty\ttags
+
+Каждая задача на двух языках: столбцы с суффиксом _lv — латышская версия того же условия, ответа и решения на терминологии Skola2030. Числа, формулы и знаки $ в обеих версиях совпадают до символа, расходится только текст.
+
+Требования к оформлению:
+1. Формулы и математические выражения пиши в LaTeX с долларами: $x^2 + 5x = 0$, $\\frac{a}{b}$, $\\sqrt{x}$.
+2. Внутри ячейки не должно быть табуляции. Если в ячейке нужен перевод строки (многошаговое решение) — оберни всю ячейку в двойные кавычки "...". Если внутри кавычек встречается кавычка, удваивай её: """".
+3. difficulty: Лёгкий, Средний или Сложный.
+4. subtopic_code: номер подтемы по стандарту (например 7.1.1, 8.2.3 и т.д.).
+5. tags: список тегов через точку с запятой (например: vienadojumi; algebriskie-parveidojumi).
+6. Выведи сразу 30 задач одной непрерывной таблицей без лишнего вступительного и заключительного текста, чтобы я мог скопировать её в один клик.`;
+
+  function showAiPromptModal() {
+    if (!aiPromptDialog) return;
+    if (aiPromptTextarea) aiPromptTextarea.value = AI_PROMPT_TEXT;
+    aiPromptDialog.showModal();
+  }
+
+  btnShowAiPrompt?.addEventListener('click', showAiPromptModal);
+  bulkDialogAiPromptBtn?.addEventListener('click', showAiPromptModal);
+  aiPromptDialogClose?.addEventListener('click', () => aiPromptDialog?.close());
+  aiPromptCloseBtn?.addEventListener('click', () => aiPromptDialog?.close());
+  aiPromptCopyBtn?.addEventListener('click', async () => {
+    const text = aiPromptTextarea?.value || AI_PROMPT_TEXT;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    const orig = aiPromptCopyBtn.textContent;
+    aiPromptCopyBtn.textContent = '✓ Промпт скопирован!';
+    setTimeout(() => { aiPromptCopyBtn.textContent = orig; }, 2000);
   });
 
   /* Образец лежит отдельным файлом, а не строкой в коде: его удобно
@@ -2222,59 +3086,65 @@ ${JSON.stringify(texts)}`;
   });
 
   bulkDialogCopy?.addEventListener('click', async () => {
+    const isCsv = bulkMode === 'export_csv';
+    const label = isCsv ? 'Таблица CSV' : 'Текст';
     try {
       await navigator.clipboard.writeText(bulkDialogTextarea.value);
       bulkDialogStatus.className = 'bulk-dialog-status success';
-      bulkDialogStatus.textContent = '✓ JSON скопирован в буфер обмена!';
+      bulkDialogStatus.textContent = `✓ ${label} скопирован(а) в буфер обмена!`;
       bulkDialogStatus.hidden = false;
     } catch {
       bulkDialogTextarea.select();
       document.execCommand('copy');
       bulkDialogStatus.className = 'bulk-dialog-status success';
-      bulkDialogStatus.textContent = '✓ JSON скопирован в буфер обмена!';
+      bulkDialogStatus.textContent = `✓ ${label} скопирован(а) в буфер обмена!`;
       bulkDialogStatus.hidden = false;
     }
   });
 
   bulkDialogSubmit?.addEventListener('click', async () => {
-    if (bulkMode === 'export') {
-      const blob = new Blob([bulkDialogTextarea.value], { type: 'application/json' });
+    if (bulkMode === 'export' || bulkMode === 'export_csv') {
+      const isCsv = bulkMode === 'export_csv';
+      const type = isCsv ? 'text/csv;charset=utf-8;' : 'application/json';
+      const ext = isCsv ? 'csv' : 'json';
+      const blob = new Blob([bulkDialogTextarea.value], { type });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `math-tasks-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `math-tasks-export-${new Date().toISOString().slice(0, 10)}.${ext}`;
       a.click();
       URL.revokeObjectURL(url);
       bulkDialogStatus.className = 'bulk-dialog-status success';
-      bulkDialogStatus.textContent = '✓ Файл tasks-export.json сохранён!';
+      bulkDialogStatus.textContent = `✓ Файл tasks-export.${ext} сохранён!`;
       bulkDialogStatus.hidden = false;
       return;
     }
 
-    // Режим импорта
+    // Режим импорта (JSON / CSV / TSV)
     bulkDialogStatus.hidden = true;
     const raw = bulkDialogTextarea.value.trim();
     if (!raw) {
       bulkDialogStatus.className = 'bulk-dialog-status error';
-      bulkDialogStatus.textContent = 'Вставьте JSON или выберите файл для импорта.';
+      bulkDialogStatus.textContent = 'Вставьте JSON, CSV или выберите файл для импорта.';
       bulkDialogStatus.hidden = false;
       return;
     }
 
     let parsedResult;
     try {
-      parsedResult = parseMultiTopicJson(raw);
+      const parseFn = window.MathTasksLib?.parseTasksImport || parseMultiTopicJson;
+      parsedResult = parseFn(raw);
     } catch (e) {
       bulkDialogStatus.className = 'bulk-dialog-status error';
-      bulkDialogStatus.textContent = 'Ошибка формата JSON: ' + e.message;
+      bulkDialogStatus.textContent = 'Ошибка синтаксиса: ' + e.message;
       bulkDialogStatus.hidden = false;
       return;
     }
 
-    const { uniqueTopics, uniqueSubtopics, tasks: items } = parsedResult;
+    const { uniqueTopics, uniqueSubtopics, tasks: items, format } = parsedResult;
     if (!items.length) {
       bulkDialogStatus.className = 'bulk-dialog-status error';
-      bulkDialogStatus.textContent = 'В JSON не найдено задач для импорта.';
+      bulkDialogStatus.textContent = 'В данных не найдено задач для импорта (проверьте формат JSON или CSV).';
       bulkDialogStatus.hidden = false;
       return;
     }
@@ -2309,7 +3179,9 @@ ${JSON.stringify(texts)}`;
           title_lv: top.title_lv || null,
           subject_id: targetSubjectId,
           grade: top.grade,
-          position: 0,
+          /* В конец своего класса, а не нулём: нулевая позиция выпадала из
+             нумерации 1..N, и у темы на сайте не было номера. */
+          position: nextTopicPosition(top.grade, targetSubjectId, null),
           slug: `${makeSlug(top.title)}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
           description: top.description || null,
           description_lv: top.description_lv || null
@@ -2365,6 +3237,10 @@ ${JSON.stringify(texts)}`;
     // 2. Добавляем задачи
     let successCount = 0;
     const warnings = [];
+    let withoutTopic = 0;
+    /* Предупреждения разбора — например, сдвиг столбцов из-за запятой
+       в формуле без кавычек — показываем вместе с остальными. */
+    if (Array.isArray(parsedResult.warnings)) warnings.push(...parsedResult.warnings);
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       if (!item.condition_latex) {
@@ -2400,6 +3276,7 @@ ${JSON.stringify(texts)}`;
         else warnings.push(`Задача #${i + 1}: подтема «${code || sNeedle || sNeedleLv}» не найдена, задача легла прямо в тему.`);
       }
 
+      if (!topicId) withoutTopic++;
       const taskPos = nextPosition(topicId, null);
       const titleVal = item.title ? String(item.title).trim() : `Задача №${taskPos}`;
 
@@ -2470,6 +3347,12 @@ ${JSON.stringify(texts)}`;
       }
     }
 
+    /* Без темы задача не видна на страницах тем — только в поиске и общем
+       списке. Сохраняем, но говорим прямо, а не молча. */
+    if (withoutTopic) {
+      warnings.unshift(`Задач без темы: ${withoutTopic}. В файле нет столбца темы или её название не совпало ни с одной темой — на страницах тем их не будет.`);
+    }
+
     bulkDialogSubmit.disabled = false;
     bulkDialogSubmit.textContent = 'Импортировать в базу';
 
@@ -2498,10 +3381,7 @@ ${JSON.stringify(texts)}`;
   });
 
   /* ── Skola2030 Помощник тем и AI Генератор задач ────────────────── */
-  const skolaPresetGrade = document.querySelector('#skola-preset-grade');
-  const skolaPresetTopic = document.querySelector('#skola-preset-topic');
-  const btnApplySkolaPreset = document.querySelector('#btn-apply-skola-preset');
-  const btnBatchSeedTopics = document.querySelector('#btn-batch-seed-topics');
+  const btnApplySkolaSample = document.querySelector('#btn-apply-skola-sample');
   const skolaPresetStatus = document.querySelector('#skola-preset-status');
 
   const aiGenGrade = document.querySelector('#ai-gen-grade');
@@ -2513,16 +3393,13 @@ ${JSON.stringify(texts)}`;
   const aiGenPrompt = document.querySelector('#ai-gen-prompt');
   const topicListDefer = document.querySelector('#topic-list-defer');
   const topicListCloseTop = document.querySelector('#topic-list-close');
-  const topicListCloseBottom = document.querySelector('#topic-list-close-bottom');
   const taskListCloseTop = document.querySelector('#task-list-close');
-  const taskListCloseBottom = document.querySelector('#task-list-close-bottom');
 
   function setTopicsShown(shown) {
     topicsShown = shown;
     if (topicListDefer) topicListDefer.hidden = shown;
     if (topicList) topicList.hidden = !shown;
     if (topicListCloseTop) topicListCloseTop.hidden = !shown;
-    if (topicListCloseBottom) topicListCloseBottom.hidden = !shown;
     if (shown) renderTopicList();
   }
 
@@ -2530,14 +3407,11 @@ ${JSON.stringify(texts)}`;
     if (taskListDefer) taskListDefer.hidden = shown;
     if (taskList) taskList.hidden = !shown;
     if (taskListCloseTop) taskListCloseTop.hidden = !shown;
-    if (taskListCloseBottom) taskListCloseBottom.hidden = !shown;
   }
 
   document.querySelector('#btn-load-topics')?.addEventListener('click', () => setTopicsShown(true));
   document.querySelector('#btn-hide-topics')?.addEventListener('click', () => setTopicsShown(false));
-  document.querySelector('#btn-hide-topics-bottom')?.addEventListener('click', () => setTopicsShown(false));
   document.querySelector('#btn-hide-tasks')?.addEventListener('click', () => setTasksShown(false));
-  document.querySelector('#btn-hide-tasks-bottom')?.addEventListener('click', () => setTasksShown(false));
 
   const taskListDefer = document.querySelector('#task-list-defer');
   const btnLoadTasks = document.querySelector('#btn-load-tasks');
@@ -2646,15 +3520,6 @@ ${JSON.stringify(texts)}`;
     }
     setupSkolaPresetControls();
     setupAiGeneratorControls();
-    checkSkolaTopicsSeeded();
-  }
-
-  function checkSkolaTopicsSeeded() {
-    if (!btnBatchSeedTopics) return;
-    const isSeeded = topics.length >= 81 || (skola2030Catalog.length > 0 && skola2030Catalog.every(ct => topics.some(t => t.slug === ct.slug || t.title.toLowerCase() === ct.title_ru.toLowerCase())));
-    // Кнопку загрузки прячем, когда всё уже залито; отдельной плашки об этом
-    // не показываем — она только занимала место в шапке блока.
-    btnBatchSeedTopics.hidden = isSeeded;
   }
 
   /* ── Кастомный rich-dropdown поверх нативного <select> ─────────── */
@@ -2822,120 +3687,40 @@ ${JSON.stringify(texts)}`;
   }
 
   function setupSkolaPresetControls() {
-    if (!skolaPresetGrade || !skolaPresetTopic) return;
-    fillGradeSelect(skolaPresetGrade, 'Все классы и курсы', { numeric: true });
+    if (!btnApplySkolaSample) return;
 
-    createRichSelect(skolaPresetGrade, {
-      searchable: false,
-      renderItem(val, text) {
-        const g = parseFormGrade(val);
-        if (g === null) return { main: 'Все классы и курсы', sub: 'Полный каталог Skola2030 (81 тема)' };
-        const gradePrefix = g <= 9 ? `${g}. klase (${g} класс)` : (g === 10 ? 'Vispārīgais (10 кл)' : (g === 11 ? 'Matemātika I (11 кл)' : 'Matemātika II (12 кл)'));
-        return { main: gradePrefix, sub: '' };
-      }
-    });
+    btnApplySkolaSample.addEventListener('click', () => {
+      // Подставляем качественный образец темы Skola2030 для удобства заполнения
+      const sample = (skola2030Catalog && skola2030Catalog.length > 0)
+        ? skola2030Catalog[0]
+        : {
+            title_ru: 'Линейные уравнения и неравенства с одной переменной',
+            title_lv: 'Lineāri vienādojumi un nevienādības ar vienu mainīgo',
+            grade: 7,
+            subject_slug: 'algebra',
+            position: 1,
+            description_ru: 'Решение линейных уравнений, числовые промежутки, линейные неравенства.',
+            description_lv: 'Lineāru vienādojumu risināšana, skaitļu intervāli, lineāras nevienādības.'
+          };
 
-    function refreshPresetTopics() {
-      const g = parseFormGrade(skolaPresetGrade.value);
-      const list = g !== null ? skola2030Catalog.filter(t => t.grade === g) : skola2030Catalog;
-      skolaPresetTopic.innerHTML = list.length
-        ? list.map(t => {
-            const gradePrefix = t.grade <= 9 ? `${t.grade} кл` : (t.grade === 10 ? 'Vispārīgais' : (t.grade === 11 ? 'Matemātika I' : 'Matemātika II'));
-            return `<option value="${t.slug}">${gradePrefix}: ${escapeHtml(t.title_ru)} (${escapeHtml(t.title_lv)})</option>`;
-          }).join('')
-        : '<option value="">Тем не найдено</option>';
+      topicForm.elements.title.value = sample.title_ru || sample.title || '';
+      if (topicForm.elements.title_lv) topicForm.elements.title_lv.value = sample.title_lv || '';
+      topicForm.elements.grade.value = String(sample.grade ?? 7);
 
-      createRichSelect(skolaPresetTopic, {
-        searchable: true,
-        renderItem(slug) {
-          const t = skola2030Catalog.find(item => item.slug === slug);
-          if (t) {
-            const gradePrefix = t.grade <= 9 ? `${t.grade} кл` : (t.grade === 10 ? 'Visp' : (t.grade === 11 ? 'Opt' : 'Augst'));
-            return {
-              main: `[${gradePrefix}] ${t.title_ru}`,
-              sub: t.title_lv,
-              triggerHtml: `[${gradePrefix}] ${escapeHtml(t.title_ru)} <span class="cs-sub">${escapeHtml(t.title_lv)}</span>`
-            };
-          }
-          return { main: slug, sub: '' };
-        }
-      });
-    }
-
-    skolaPresetGrade.addEventListener('change', refreshPresetTopics);
-    refreshPresetTopics();
-    checkSkolaTopicsSeeded();
-
-    btnApplySkolaPreset?.addEventListener('click', () => {
-      const slug = skolaPresetTopic.value;
-      const topicData = skola2030Catalog.find(t => t.slug === slug);
-      if (!topicData) return;
-
-      topicForm.elements.title.value = topicData.title_ru;
-      if (topicForm.elements.title_lv) topicForm.elements.title_lv.value = topicData.title_lv;
-      topicForm.elements.grade.value = String(topicData.grade);
-
-      const matchingSubj = resolveSubject(topicData.subject_slug, subjects) || subjects[0];
+      const matchingSubj = resolveSubject(sample.subject_slug, subjects) || subjects[0];
       if (matchingSubj) topicForm.elements.subject_id.value = String(matchingSubj.id);
 
-      topicForm.elements.position.value = topicData.position || 0;
-      topicForm.elements.description.value = topicData.description_ru || '';
-      if (topicForm.elements.description_lv) topicForm.elements.description_lv.value = topicData.description_lv || '';
+      topicForm.elements.position.value = sample.position || 1;
+      topicForm.elements.description.value = sample.description_ru || sample.description || '';
+      if (topicForm.elements.description_lv) topicForm.elements.description_lv.value = sample.description_lv || '';
 
-      skolaPresetStatus.className = 'skola-preset-status success';
-      skolaPresetStatus.textContent = `✨ Тема «${topicData.title_ru}» успешно заполнена в форме! Нажмите «Добавить тему».`;
-      skolaPresetStatus.hidden = false;
-      setTimeout(() => { skolaPresetStatus.hidden = true; }, 5000);
+      if (skolaPresetStatus) {
+        skolaPresetStatus.className = 'skola-preset-status success';
+        skolaPresetStatus.textContent = `✨ Образец темы «${sample.title_ru || sample.title}» подставлен в форму! Нажмите «Добавить тему».`;
+        skolaPresetStatus.hidden = false;
+        setTimeout(() => { skolaPresetStatus.hidden = true; }, 4000);
+      }
       topicForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-
-    btnBatchSeedTopics?.addEventListener('click', async () => {
-      if (!skola2030Catalog.length) {
-        alert('Каталог Skola2030 ещё загружается. Подождите пару секунд.');
-        return;
-      }
-      if (!confirm(`Импортировать все ${skola2030Catalog.length} тем стандарта Skola2030 в базу данных Supabase?`)) return;
-
-      btnBatchSeedTopics.disabled = true;
-      skolaPresetStatus.className = 'skola-preset-status';
-      skolaPresetStatus.textContent = `⏳ Загрузка тем в базу Supabase (0 из ${skola2030Catalog.length})…`;
-      skolaPresetStatus.hidden = false;
-
-      let insertedCount = 0;
-      let errorCount = 0;
-
-      for (let i = 0; i < skola2030Catalog.length; i++) {
-        const item = skola2030Catalog[i];
-        const matchingSubj = resolveSubject(item.subject_slug, subjects) || subjects[0];
-        const payload = sanitizeTopicPayload({
-          title: item.title_ru,
-          title_lv: item.title_lv,
-          slug: item.slug,
-          subject_id: matchingSubj ? matchingSubj.id : null,
-          grade: item.grade,
-          position: item.position,
-          description: item.description_ru,
-          description_lv: item.description_lv
-        });
-
-        const { error } = await db.from('topics').upsert(payload, { onConflict: 'slug' });
-        if (error) {
-          console.warn('Ошибка темы:', item.slug, error.message);
-          errorCount++;
-        } else {
-          insertedCount++;
-        }
-
-        if ((i + 1) % 15 === 0 || i === skola2030Catalog.length - 1) {
-          skolaPresetStatus.textContent = `⏳ Загружено ${insertedCount} из ${skola2030Catalog.length} тем…`;
-        }
-      }
-
-      btnBatchSeedTopics.disabled = false;
-      skolaPresetStatus.className = 'skola-preset-status success';
-      skolaPresetStatus.innerHTML = `🎉 Готово! Успешно загружено тем в Supabase: <strong>${insertedCount}</strong>.${errorCount ? ` Ошибок: ${errorCount}.` : ''}`;
-      await loadCatalog();
-      checkSkolaTopicsSeeded();
     });
   }
 
@@ -3444,8 +4229,6 @@ ${JSON.stringify(texts)}`;
        упало бы на неизвестной колонке. */
     subtopics = subtopicResult?.error ? [] : (subtopicResult?.data || []);
     if (!subtopicResult?.error) supportedTaskCols.add('subtopic_id');
-    fillSubtopicTopicSelects();
-    renderSubtopics();
     if (subtopicSelect) subtopicSelect.title = subtopicResult?.error ? 'Недоступно: не выполнена миграция 020_subtopics.sql' : '';
     if (subjectResult.error || topicResult.error) {
       const message = (subjectResult.error || topicResult.error).message;
@@ -3457,6 +4240,8 @@ ${JSON.stringify(texts)}`;
     if (topics.length > 0 && topics[0]) {
       Object.keys(topics[0]).forEach(k => supportedTopicCols.add(k));
     }
+    fillSubtopicTopicSelects();
+    renderSubtopics();
 
     const keepSubject = subjectSelect.value;
     subjectSelect.innerHTML = '<option value="">Без раздела</option>' +
@@ -3495,10 +4280,16 @@ ${JSON.stringify(texts)}`;
     updateTaskTopicDropdown();
     updateFilterTopicDropdown();
 
+    if (subtopicFormGrade && subtopicFormGrade.children.length <= 1) {
+      fillGradeSelect(subtopicFormGrade, 'Все классы и курсы', { numeric: true });
+    }
+    if (subtopicFilterGrade && subtopicFilterGrade.children.length <= 1) {
+      fillGradeSelect(subtopicFilterGrade, 'Все классы и курсы', { numeric: true });
+    }
+
     renderSubjectList();
     renderTopicList();
     renderTaskList();
-    checkSkolaTopicsSeeded();
   }
 
   async function loadTaskIndex() {
@@ -3546,8 +4337,11 @@ ${JSON.stringify(texts)}`;
     document.querySelector('#admin-email').textContent = user.email || '';
     gate.hidden = true;
     content.hidden = false;
+    initCollapsibleSections();
     fillGradeSelect(document.querySelector('#topic-grade'), 'Без класса', { numeric: true });
     fillGradeSelect(document.querySelector('#task-grade'), 'Без класса', { numeric: true });
+    if (subtopicFormGrade) fillGradeSelect(subtopicFormGrade, 'Все классы и курсы', { numeric: true });
+    if (subtopicFilterGrade) fillGradeSelect(subtopicFilterGrade, 'Все классы и курсы', { numeric: true });
     setSubjectMode(null);
     setTopicMode(null);
     setTaskMode(null);

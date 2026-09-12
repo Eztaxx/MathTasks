@@ -313,12 +313,82 @@
     }
 
     const normalizedTopics = [];
+    const normalizedSubtopics = [];
     const normalizedTasks = [];
 
     for (const item of parsed) {
       if (!item) continue;
-      // Вложенный массив tasks
-      if (Array.isArray(item.tasks)) {
+      // Вариант 1: Объект темы со вложенным списком подтем subtopics: [...]
+      if (Array.isArray(item.subtopics)) {
+        const topicInfo = {
+          title: String(item.topic_title || item.title || item.name || '').trim(),
+          title_lv: item.topic_title_lv || item.title_lv ? String(item.topic_title_lv || item.title_lv).trim() : null,
+          grade: parseFormGrade(item.grade),
+          subject_id: item.subject_id ? Number(item.subject_id) : null,
+          subject_slug: item.subject_slug ? String(item.subject_slug).trim() : null,
+          subject_title: item.subject_title ? String(item.subject_title).trim() : null,
+          description: item.description ? String(item.description).trim() : null,
+          description_lv: item.description_lv ? String(item.description_lv).trim() : null
+        };
+        if (topicInfo.title) {
+          normalizedTopics.push(topicInfo);
+        }
+
+        for (const sub of item.subtopics) {
+          if (!sub) continue;
+          const subInfo = {
+            topic_title: topicInfo.title,
+            topic_title_lv: topicInfo.title_lv,
+            title: String(sub.title || sub.name || sub.subtopic_title || '').trim(),
+            title_lv: sub.title_lv || sub.subtopic_title_lv ? String(sub.title_lv || sub.subtopic_title_lv).trim() : null,
+            code: sub.code || sub.subtopic_code ? String(sub.code || sub.subtopic_code).trim() : null,
+            position: Number(sub.position) || null
+          };
+          if (subInfo.title || subInfo.code) {
+            normalizedSubtopics.push(subInfo);
+          }
+          if (Array.isArray(sub.tasks)) {
+            for (const t of sub.tasks) {
+              if (!t) continue;
+              normalizedTasks.push({
+                ...t,
+                topic_title: t.topic_title || topicInfo.title,
+                topic_title_lv: t.topic_title_lv || topicInfo.title_lv,
+                subtopic_title: t.subtopic_title || subInfo.title,
+                subtopic_title_lv: t.subtopic_title_lv || subInfo.title_lv,
+                subtopic_code: t.subtopic_code || subInfo.code,
+                grade: t.grade !== undefined ? parseFormGrade(t.grade) : topicInfo.grade,
+                subject_id: t.subject_id ? Number(t.subject_id) : topicInfo.subject_id
+              });
+            }
+          }
+        }
+
+        if (Array.isArray(item.tasks)) {
+          for (const t of item.tasks) {
+            if (!t) continue;
+            const subTitle = String(t.subtopic_title || t.subtopic || '').trim();
+            const subCode = String(t.subtopic_code || '').trim();
+            if (subTitle || subCode) {
+              normalizedSubtopics.push({
+                topic_title: topicInfo.title,
+                topic_title_lv: topicInfo.title_lv,
+                title: subTitle,
+                title_lv: t.subtopic_title_lv ? String(t.subtopic_title_lv).trim() : null,
+                code: subCode || null
+              });
+            }
+            normalizedTasks.push({
+              ...t,
+              topic_title: t.topic_title || topicInfo.title,
+              topic_title_lv: t.topic_title_lv || topicInfo.title_lv,
+              grade: t.grade !== undefined ? parseFormGrade(t.grade) : topicInfo.grade,
+              subject_id: t.subject_id ? Number(t.subject_id) : topicInfo.subject_id
+            });
+          }
+        }
+      } else if (Array.isArray(item.tasks)) {
+        // Вариант 2: Объект темы со вложенным массивом tasks
         const topicInfo = {
           title: String(item.topic_title || item.title || item.name || '').trim(),
           title_lv: item.topic_title_lv || item.title_lv ? String(item.topic_title_lv || item.title_lv).trim() : null,
@@ -334,6 +404,17 @@
         }
         for (const t of item.tasks) {
           if (!t) continue;
+          const subTitle = String(t.subtopic_title || t.subtopic || '').trim();
+          const subCode = String(t.subtopic_code || '').trim();
+          if (subTitle || subCode) {
+            normalizedSubtopics.push({
+              topic_title: topicInfo.title,
+              topic_title_lv: topicInfo.title_lv,
+              title: subTitle,
+              title_lv: t.subtopic_title_lv ? String(t.subtopic_title_lv).trim() : null,
+              code: subCode || null
+            });
+          }
           normalizedTasks.push({
             ...t,
             topic_title: t.topic_title || topicInfo.title,
@@ -343,7 +424,7 @@
           });
         }
       } else {
-        // Плоская запись задачи
+        // Вариант 3: Плоская запись задачи
         const t = item;
         const topicTitle = String(t.topic_title || t.topic || '').trim();
         if (topicTitle) {
@@ -358,22 +439,387 @@
             description_lv: null
           });
         }
+        const subTitle = String(t.subtopic_title || t.subtopic || '').trim();
+        const subCode = String(t.subtopic_code || '').trim();
+        if (subTitle || subCode) {
+          normalizedSubtopics.push({
+            topic_title: topicTitle,
+            topic_title_lv: t.topic_title_lv ? String(t.topic_title_lv).trim() : null,
+            title: subTitle,
+            title_lv: t.subtopic_title_lv ? String(t.subtopic_title_lv).trim() : null,
+            code: subCode || null
+          });
+        }
         normalizedTasks.push(t);
       }
     }
 
     // Дедупликация тем по названию (case-insensitive)
     const uniqueTopics = [];
-    const seen = new Set();
+    const seenTopics = new Set();
     for (const top of normalizedTopics) {
       const key = top.title.toLowerCase();
-      if (key && !seen.has(key)) {
-        seen.add(key);
+      if (key && !seenTopics.has(key)) {
+        seenTopics.add(key);
         uniqueTopics.push(top);
       }
     }
 
-    return { uniqueTopics, tasks: normalizedTasks };
+    // Дедупликация подтем по коду или связке тема:::название
+    const uniqueSubtopics = [];
+    const seenSubs = new Set();
+    for (const sub of normalizedSubtopics) {
+      const key = sub.code
+        ? `${(sub.topic_title || '').toLowerCase()}:::code:${sub.code.toLowerCase()}`
+        : `${(sub.topic_title || '').toLowerCase()}:::title:${sub.title.toLowerCase()}`;
+      if (!seenSubs.has(key)) {
+        seenSubs.add(key);
+        uniqueSubtopics.push(sub);
+      }
+    }
+
+    return { uniqueTopics, uniqueSubtopics, tasks: normalizedTasks };
+  };
+
+  /* ── Парсер строк CSV / TSV с поддержкой кавычек RFC 4180 и переносов строк ── */
+  const parseCsvRows = (text, delimiter) => {
+    if (!text) return [];
+    if (!delimiter) {
+      const firstLine = text.split(/\r?\n/).find(l => l.trim().length > 0) || '';
+      const tabs = (firstLine.match(/\t/g) || []).length;
+      const semicolons = (firstLine.match(/;/g) || []).length;
+      const commas = (firstLine.match(/,/g) || []).length;
+      if (tabs > 0) delimiter = '\t';
+      else if (semicolons > commas) delimiter = ';';
+      else delimiter = ',';
+    }
+
+    const rows = [];
+    let currentRow = [];
+    let currentCell = '';
+    let inQuotes = false;
+    let i = 0;
+
+    while (i < text.length) {
+      const char = text[i];
+      const nextChar = text[i + 1];
+
+      if (inQuotes) {
+        if (char === '"') {
+          if (nextChar === '"') {
+            currentCell += '"';
+            i += 2;
+            continue;
+          } else {
+            inQuotes = false;
+            i++;
+            continue;
+          }
+        } else {
+          currentCell += char;
+          i++;
+          continue;
+        }
+      } else {
+        if (char === '"') {
+          inQuotes = true;
+          i++;
+          continue;
+        } else if (char === delimiter) {
+          currentRow.push(currentCell.trim());
+          currentCell = '';
+          i++;
+          continue;
+        } else if (char === '\r') {
+          if (nextChar === '\n') i++;
+          currentRow.push(currentCell.trim());
+          rows.push(currentRow);
+          currentRow = [];
+          currentCell = '';
+          i++;
+          continue;
+        } else if (char === '\n') {
+          currentRow.push(currentCell.trim());
+          rows.push(currentRow);
+          currentRow = [];
+          currentCell = '';
+          i++;
+          continue;
+        } else {
+          currentCell += char;
+          i++;
+          continue;
+        }
+      }
+    }
+
+    if (currentCell.length > 0 || currentRow.length > 0) {
+      currentRow.push(currentCell.trim());
+      rows.push(currentRow);
+    }
+
+    return rows.filter(r => r.some(c => c && c.length > 0));
+  };
+
+  const CSV_KNOWN_COLUMNS = {
+    grade: ['grade', 'класс', 'klase', 'kurs', 'курс', 'grade_id'],
+    topic_title: ['topic_title', 'topic', 'тема', 'tēma', 'tema', 'название темы', 'tēmas nosaukums', 'temats'],
+    topic_title_lv: ['topic_title_lv', 'тема lv', 'tēma lv', 'tema lv', 'topic lv'],
+    subtopic_code: ['subtopic_code', 'code', 'код', 'kods', 'код подтемы', 'номер подтемы', 'apakštēmas kods', 'apakstēmas kods', 'apakštēmas numurs', 'subtopic code'],
+    subtopic_title: ['subtopic_title', 'subtopic', 'подтема', 'apakštēma', 'apakstema', 'название подтемы', 'subtopic title'],
+    subtopic_title_lv: ['subtopic_title_lv', 'подтема lv', 'apakštēma lv', 'apakstema lv', 'subtopic lv'],
+    condition_latex: ['condition_latex', 'condition', 'условие', 'uzdevums', 'nosacījums', 'nosacijums', 'текст', 'текст задачи', 'задача', 'question'],
+    condition_latex_lv: ['condition_latex_lv', 'условие lv', 'uzdevums lv', 'nosacījums lv', 'condition lv'],
+    answer_latex: ['answer_latex', 'answer', 'ответ', 'atbilde'],
+    answer_latex_lv: ['answer_latex_lv', 'ответ lv', 'atbilde lv', 'answer lv'],
+    solution_latex: ['solution_latex', 'solution', 'решение', 'atrisinājums', 'atrisinajums', 'разбор'],
+    solution_latex_lv: ['solution_latex_lv', 'решение lv', 'atrisinājums lv', 'solution lv'],
+    hint_latex: ['hint_latex', 'hint', 'подсказка', 'padoms', 'ieteikums'],
+    hint_latex_lv: ['hint_latex_lv', 'подсказка lv', 'padoms lv', 'hint lv'],
+    difficulty: ['difficulty', 'сложность', 'grūtība', 'grutiba', 'уровень'],
+    tags: ['tags', 'теги', 'birkas', 'cross_tags', 'метки'],
+    position: ['position', 'номер', 'позиция', 'nr', 'num'],
+    /* Служебные столбцы выгрузок базы. Их узнаём, чтобы они не сработали
+       как префикс: «topic_id» начинается с «topic» и без этой строки
+       попадал бы в название темы. Значения не читаются. */
+    ignore: ['id', 'topic_id', 'subtopic_id', 'task_id', 'created_at', 'updated_at', 'slug']
+  };
+
+  /* Скобки и точка в конце заголовка — оформление, а не часть имени:
+     «Условие (LV)» и «Nr.» должны узнаваться так же, как «условие lv» и «nr». */
+  const normalizeCsvHeader = value => String(value).trim().toLowerCase()
+    .replace(/[()[\]]/g, ' ')
+    .replace(/[_\s-]+/g, '_')
+    .replace(/^_+|[_.:]+$/g, '');
+
+  /* Точное совпадение важнее префиксного. Раньше побеждал первый ключ,
+     чей синоним был началом заголовка, и «condition_latex_lv» уходил в
+     «condition_latex»: латышский текст затирал русский, а задача без
+     перевода при повторной загрузке выгрузки пропадала целиком — русское
+     условие оказывалось пустым. Префикс оставлен для заголовков вроде
+     «Условие задачи», но только по границе слова и самый длинный. */
+  const matchCsvColumnHeader = rawHeader => {
+    if (!rawHeader) return null;
+    const clean = normalizeCsvHeader(rawHeader);
+    if (!clean) return null;
+    let best = null;
+    let bestLength = 0;
+    for (const [key, aliases] of Object.entries(CSV_KNOWN_COLUMNS)) {
+      for (const alias of aliases) {
+        const a = normalizeCsvHeader(alias);
+        if (a === clean) return key;
+        if (clean.startsWith(a + '_') && a.length > bestLength) {
+          best = key;
+          bestLength = a.length;
+        }
+      }
+    }
+    return best;
+  };
+
+  /* ── Парсер CSV / TSV в структурированные темы, подтемы и задачи ── */
+  const parseCsvToTasks = csvText => {
+    if (!csvText || typeof csvText !== 'string') {
+      return { uniqueTopics: [], uniqueSubtopics: [], tasks: [] };
+    }
+    const cleanText = csvText.replace(/^\uFEFF/, '').trim();
+    const rows = parseCsvRows(cleanText);
+    if (!rows.length) return { uniqueTopics: [], uniqueSubtopics: [], tasks: [] };
+
+    const firstRow = rows[0];
+    const headerMap = {};
+    let matchedCount = 0;
+
+    firstRow.forEach((cell, idx) => {
+      const matched = matchCsvColumnHeader(cell);
+      /* Первый столбец с этим смыслом остаётся за ним: второй такой же
+         не должен молча перехватить место. */
+      if (matched && matched !== 'ignore' && headerMap[matched] === undefined) {
+        headerMap[matched] = idx;
+        matchedCount++;
+      }
+    });
+
+    const isHeaderRow = matchedCount >= 2;
+    const dataRows = isHeaderRow ? rows.slice(1) : rows;
+
+    if (!isHeaderRow) {
+      const defaultCols = [
+        'grade', 'topic_title', 'subtopic_code', 'subtopic_title',
+        'condition_latex', 'answer_latex', 'solution_latex', 'difficulty'
+      ];
+      defaultCols.forEach((col, idx) => { headerMap[col] = idx; });
+    }
+
+    const tasks = [];
+    const warnings = [];
+    const topicsMap = new Map();
+    const subtopicsMap = new Map();
+
+    for (let rIdx = 0; rIdx < dataRows.length; rIdx++) {
+      const row = dataRows[rIdx];
+      /* Строка шире заголовка — почти всегда запятая внутри формулы без
+         кавычек: ответ уезжает в решение, решение — в сложность. Молча
+         такое импортировать нельзя. */
+      if (isHeaderRow && row.length > firstRow.length) {
+        warnings.push(`Строка ${rIdx + 2}: ячеек ${row.length}, а столбцов в заголовке ${firstRow.length} — вероятно, запятая внутри формулы без кавычек. Проверьте, не съехали ли столбцы.`);
+      }
+      const getVal = colKey => {
+        const idx = headerMap[colKey];
+        return (idx !== undefined && row[idx] !== undefined) ? String(row[idx]).trim() : '';
+      };
+
+      const cond = getVal('condition_latex');
+      if (!cond) continue;
+
+      const gradeVal = parseFormGrade(getVal('grade'));
+      /* Без столбца темы тему не придумываем. Раньше подставлялось «Без
+         темы», и импорт заводил в базе настоящую тему с таким названием. */
+      const topicTitle = getVal('topic_title');
+      const topicTitleLv = getVal('topic_title_lv') || null;
+      const subCode = getVal('subtopic_code') || '';
+      const subTitle = getVal('subtopic_title') || '';
+      const subTitleLv = getVal('subtopic_title_lv') || null;
+      const ans = getVal('answer_latex') || null;
+      const ansLv = getVal('answer_latex_lv') || null;
+      const sol = getVal('solution_latex') || null;
+      const solLv = getVal('solution_latex_lv') || null;
+      const hint = getVal('hint_latex') || null;
+      const hintLv = getVal('hint_latex_lv') || null;
+      const diff = getVal('difficulty') || 'Средний';
+      const pos = Number(getVal('position')) || (rIdx + 1);
+      const rawTags = getVal('tags');
+      const tags = rawTags ? rawTags.split(/[,;]+/).map(t => t.trim()).filter(Boolean) : [];
+
+      if (topicTitle && !topicsMap.has(topicTitle.toLowerCase())) {
+        topicsMap.set(topicTitle.toLowerCase(), {
+          title: topicTitle,
+          title_lv: topicTitleLv,
+          grade: gradeVal
+        });
+      }
+
+      const subKey = `${topicTitle.toLowerCase()}:::${(subCode || subTitle).toLowerCase()}`;
+      if ((subCode || subTitle) && !subtopicsMap.has(subKey)) {
+        subtopicsMap.set(subKey, {
+          topic_title: topicTitle,
+          topic_title_lv: topicTitleLv,
+          code: subCode || null,
+          title: subTitle || subCode,
+          title_lv: subTitleLv
+        });
+      }
+
+      tasks.push({
+        grade: gradeVal,
+        topic_title: topicTitle,
+        topic_title_lv: topicTitleLv,
+        subtopic_code: subCode || null,
+        subtopic_title: subTitle || null,
+        subtopic_title_lv: subTitleLv,
+        condition_latex: cond,
+        condition_latex_lv: getVal('condition_latex_lv') || null,
+        answer_latex: ans,
+        answer_latex_lv: ansLv,
+        solution_latex: sol,
+        solution_latex_lv: solLv,
+        hint_latex: hint,
+        hint_latex_lv: hintLv,
+        difficulty: diff,
+        position: pos,
+        tags
+      });
+    }
+
+    return {
+      uniqueTopics: Array.from(topicsMap.values()),
+      uniqueSubtopics: Array.from(subtopicsMap.values()),
+      tasks,
+      warnings
+    };
+  };
+
+  /* ── Универсальный парсер импорта (автоопределение JSON / CSV / TSV) ── */
+  const parseTasksImport = rawText => {
+    if (!rawText || typeof rawText !== 'string') {
+      return { uniqueTopics: [], uniqueSubtopics: [], tasks: [], format: 'empty' };
+    }
+    const trimmed = rawText.trim();
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      try {
+        const jsonResult = parseMultiTopicJson(trimmed);
+        return { ...jsonResult, format: 'json' };
+      } catch (e) {
+        // Если не JSON — пробуем CSV
+      }
+    }
+    const csvResult = parseCsvToTasks(trimmed);
+    return { ...csvResult, format: 'csv' };
+  };
+
+  /* ── Экспорт задач в Excel / Google Таблицы (CSV с UTF-8 BOM) ── */
+  const exportTasksToCsv = (taskList = [], topicsList = [], subtopicsList = []) => {
+    const headers = [
+      'grade',
+      'topic_title',
+      'topic_title_lv',
+      'subtopic_code',
+      'subtopic_title',
+      'subtopic_title_lv',
+      'condition_latex',
+      'condition_latex_lv',
+      'answer_latex',
+      'answer_latex_lv',
+      'solution_latex',
+      'solution_latex_lv',
+      'hint_latex',
+      'hint_latex_lv',
+      'difficulty',
+      'tags'
+    ];
+
+    const escapeCsv = val => {
+      if (val === null || val === undefined) return '';
+      const str = String(val);
+      if (str.includes('"') || str.includes(',') || str.includes('\n') || str.includes('\r') || str.includes(';')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    /* Точка с запятой, а не запятая: латышский и русский Excel ждут её как
+       разделитель списка и открывают выгрузку через запятую одним столбцом.
+       Google Таблицы и наш разбор разделитель определяют сами. */
+    const SEP = ';';
+    const lines = [headers.join(SEP)];
+
+    for (const task of taskList) {
+      const topic = topicsList.find(t => t.id === task.topic_id);
+      const sub = subtopicsList.find(s => s.id === task.subtopic_id);
+      const tags = (task.task_tags || []).map(tt => tt.tags?.slug || tt.slug).filter(Boolean);
+
+      const row = [
+        escapeCsv(task.grade ?? topic?.grade ?? ''),
+        escapeCsv(topic?.title || task.topic_title || ''),
+        escapeCsv(topic?.title_lv || task.topic_title_lv || ''),
+        escapeCsv(sub?.code || task.subtopic_code || ''),
+        escapeCsv(sub?.title || task.subtopic_title || ''),
+        escapeCsv(sub?.title_lv || task.subtopic_title_lv || ''),
+        escapeCsv(task.condition_latex || ''),
+        escapeCsv(task.condition_latex_lv || ''),
+        escapeCsv(task.answer_latex || ''),
+        escapeCsv(task.answer_latex_lv || ''),
+        escapeCsv(task.solution_latex || ''),
+        escapeCsv(task.solution_latex_lv || ''),
+        escapeCsv(task.hint_latex || ''),
+        escapeCsv(task.hint_latex_lv || ''),
+        escapeCsv(task.difficulty || 'Средний'),
+        escapeCsv(tags.join('; '))
+      ];
+      lines.push(row.join(SEP));
+    }
+
+    return '\uFEFF' + lines.join('\r\n');
   };
 
 
@@ -619,6 +1065,25 @@
           return false;
         });
 
+    const subtopicRankMap = new Map();
+    if (Array.isArray(options.subtopics)) {
+      options.subtopics.forEach((sub, idx) => {
+        const rank = (typeof sub.position === 'number' && sub.position > 0) ? sub.position : (idx + 1);
+        if (sub.id != null) subtopicRankMap.set(String(sub.id), rank);
+        if (sub.code) subtopicRankMap.set(String(sub.code).trim().toLowerCase(), rank);
+      });
+    }
+
+    const getSubtopicRank = task => {
+      if (task.subtopic_id && subtopicRankMap.has(String(task.subtopic_id))) {
+        return subtopicRankMap.get(String(task.subtopic_id));
+      }
+      if (task.subtopic_code && subtopicRankMap.has(String(task.subtopic_code).trim().toLowerCase())) {
+        return subtopicRankMap.get(String(task.subtopic_code).trim().toLowerCase());
+      }
+      return 9999;
+    };
+
     const decorated = tasks.map((task, index) => {
       const pos = Number(task.position);
       return {
@@ -626,12 +1091,18 @@
         index,
         position: Number.isFinite(pos) && pos > 0 ? pos : index + 1,
         diffWeight: getDifficultyWeight(task.difficulty),
-        isSolved: isSolvedFn(task.id) ? 1 : 0
+        isSolved: isSolvedFn(task.id) ? 1 : 0,
+        subtopicRank: getSubtopicRank(task)
       };
     });
 
     decorated.sort((a, b) => {
-      if (sortBy === 'diff_asc') {
+      if (sortBy === 'num_desc') {
+        if (a.position !== b.position) return b.position - a.position;
+      } else if (sortBy === 'subtopic') {
+        if (a.subtopicRank !== b.subtopicRank) return a.subtopicRank - b.subtopicRank;
+        if (a.position !== b.position) return a.position - b.position;
+      } else if (sortBy === 'diff_asc') {
         if (a.diffWeight !== b.diffWeight) return a.diffWeight - b.diffWeight;
       } else if (sortBy === 'diff_desc') {
         if (a.diffWeight !== b.diffWeight) return b.diffWeight - a.diffWeight;
@@ -640,12 +1111,134 @@
       } else if (sortBy === 'solved') {
         if (a.isSolved !== b.isSolved) return b.isSolved - a.isSolved; // 1 (solved) first
       }
-      // Вторичный / дефолтный критерий: по порядку позиции в теме
+      // Вторичный / дефолтный критерий (num_asc): по порядку позиции в теме
       if (a.position !== b.position) return a.position - b.position;
       return a.index - b.index;
     });
 
     return decorated.map(item => item.task);
+  };
+
+  /* Расчет нового непрерывного порядка задач (1..N) внутри темы:
+     порядок: подтема (subtopic.position) -> текущая позиция (task.position) -> дата создания (created_at) -> id */
+  const computeTaskRenumbering = (tasks = [], subtopics = []) => {
+    if (!Array.isArray(tasks) || !tasks.length) return [];
+    const subMap = new Map();
+    if (Array.isArray(subtopics)) {
+      subtopics.forEach((s, idx) => {
+        const pos = Number(s.position);
+        subMap.set(s.id, Number.isFinite(pos) && pos > 0 ? pos : idx + 1);
+      });
+    }
+
+    const copy = [...tasks];
+    copy.sort((a, b) => {
+      const subA = a.subtopic_id ? (subMap.get(a.subtopic_id) ?? 9999) : 9999;
+      const subB = b.subtopic_id ? (subMap.get(b.subtopic_id) ?? 9999) : 9999;
+      if (subA !== subB) return subA - subB;
+
+      const posA = Number(a.position);
+      const posB = Number(b.position);
+      const validA = Number.isFinite(posA) && posA > 0;
+      const validB = Number.isFinite(posB) && posB > 0;
+      if (validA && validB && posA !== posB) return posA - posB;
+      if (validA && !validB) return -1;
+      if (!validA && validB) return 1;
+
+      const timeA = String(a.created_at || '');
+      const timeB = String(b.created_at || '');
+      if (timeA && timeB && timeA !== timeB) return timeA.localeCompare(timeB);
+
+      return (a.id || 0) - (b.id || 0);
+    });
+
+    return copy.map((task, idx) => {
+      const newPosition = idx + 1;
+      const oldPosition = Number(task.position);
+      return {
+        id: task.id,
+        oldPosition: Number.isFinite(oldPosition) ? oldPosition : null,
+        newPosition,
+        changed: oldPosition !== newPosition,
+        task
+      };
+    });
+  };
+
+  /* Расчет нового непрерывного порядка тем (1..N) внутри каждого класса */
+  const computeTopicRenumbering = (topics = []) => {
+    if (!Array.isArray(topics) || !topics.length) return [];
+    const byGrade = new Map();
+    topics.forEach(t => {
+      const g = t.grade ?? 0;
+      if (!byGrade.has(g)) byGrade.set(g, []);
+      byGrade.get(g).push(t);
+    });
+
+    const results = [];
+    for (const [grade, list] of byGrade.entries()) {
+      list.sort((a, b) => {
+        const posA = Number(a.position);
+        const posB = Number(b.position);
+        const validA = Number.isFinite(posA) && posA > 0;
+        const validB = Number.isFinite(posB) && posB > 0;
+        if (validA && validB && posA !== posB) return posA - posB;
+        if (validA && !validB) return -1;
+        if (!validA && validB) return 1;
+        return (a.id || 0) - (b.id || 0);
+      });
+
+      list.forEach((t, idx) => {
+        const newPosition = idx + 1;
+        const oldPosition = Number(t.position);
+        results.push({
+          id: t.id,
+          grade,
+          oldPosition: Number.isFinite(oldPosition) ? oldPosition : null,
+          newPosition,
+          changed: oldPosition !== newPosition,
+          topic: t
+        });
+      });
+    }
+    return results;
+  };
+
+  /* Расчет нового непрерывного порядка подтем (1..M) внутри темы и кодов Skola2030 */
+  const computeSubtopicRenumbering = (subtopics = [], topic = null) => {
+    if (!Array.isArray(subtopics) || !subtopics.length) return [];
+    const copy = [...subtopics];
+    copy.sort((a, b) => {
+      const posA = Number(a.position);
+      const posB = Number(b.position);
+      const validA = Number.isFinite(posA) && posA > 0;
+      const validB = Number.isFinite(posB) && posB > 0;
+      if (validA && validB && posA !== posB) return posA - posB;
+      if (validA && !validB) return -1;
+      if (!validA && validB) return 1;
+      return String(a.code || '').localeCompare(String(b.code || '')) || (a.id || 0) - (b.id || 0);
+    });
+
+    const topicPos = topic ? Number(topic.position) : null;
+    const topicGrade = topic ? topic.grade : null;
+
+    return copy.map((sub, idx) => {
+      const newPosition = idx + 1;
+      const oldPosition = Number(sub.position);
+      let expectedCode = sub.code || null;
+      if (topicGrade != null && Number.isFinite(Number(topicGrade)) && topicPos != null && Number.isFinite(topicPos)) {
+        expectedCode = `${topicGrade}.${topicPos}.${newPosition}`;
+      }
+      return {
+        id: sub.id,
+        oldPosition: Number.isFinite(oldPosition) ? oldPosition : null,
+        newPosition,
+        oldCode: sub.code || null,
+        newCode: expectedCode,
+        changed: oldPosition !== newPosition || (expectedCode && sub.code !== expectedCode),
+        subtopic: sub
+      };
+    });
   };
 
   /* Проверка, относится ли задача к контрольной работе (по тегам или префиксу названия) */
@@ -1011,7 +1604,14 @@
     selectControlWorkTasks,
     calculateControlWorkGrade,
     createExamTimer,
-    initExamTimerUi
+    initExamTimerUi,
+    parseCsvRows,
+    parseCsvToTasks,
+    parseTasksImport,
+    exportTasksToCsv,
+    computeTaskRenumbering,
+    computeTopicRenumbering,
+    computeSubtopicRenumbering
   };
   if (typeof globalThis !== 'undefined' && typeof globalThis.window !== 'undefined') {
     globalThis.window.MathTasksLib = api;

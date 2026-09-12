@@ -19,7 +19,9 @@
     "backup:check": "node scripts/backup.mjs --check",
     "restore": "node scripts/restore.mjs",
     "renumber": "node scripts/renumber-tasks.mjs",
-    "renumber:apply": "node scripts/renumber-tasks.mjs --apply"
+    "renumber:apply": "node scripts/renumber-tasks.mjs --apply",
+    "renumber:topics": "node scripts/renumber-topics.mjs",
+    "renumber:topics:apply": "node scripts/renumber-topics.mjs --apply"
   },
   "devDependencies": {
     "vite": "^7.1.3",

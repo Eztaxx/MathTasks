@@ -51,6 +51,9 @@
               <p class="admin-feature-desc">Верхний уровень каталога и бокового меню: Алгебра, Геометрия, Анализ и др.</p>
             </div>
           </div>
+          <div class="admin-feature-actions">
+            <button type="button" class="admin-section-toggle" aria-expanded="true" title="Свернуть / развернуть отдел"><span class="toggle-icon">▲</span> <span class="toggle-text">Свернуть</span></button>
+          </div>
         </div>
         <form class="topic-form" id="subject-form">
           <label>Название<input name="title" required placeholder="Например: Тригонометрия" /></label>
@@ -73,24 +76,16 @@
               <p class="admin-feature-desc">Темы внутри разделов, готовый каталог 81 темы стандартов Латвии, список и сортировка.</p>
             </div>
           </div>
+          <div class="admin-feature-actions">
+            <button type="button" class="admin-section-toggle" aria-expanded="true" title="Свернуть / развернуть отдел"><span class="toggle-icon">▲</span> <span class="toggle-text">Свернуть</span></button>
+          </div>
         </div>
         
         <!-- Помощник выбора темы из стандарта Skola2030 -->
         <div class="skola-preset-box">
           <div class="skola-preset-head">
-            <strong>📋 Выбрать готовую тему из стандарта Skola2030 (1–12 классы):</strong>
-            <button type="button" class="text-button" id="btn-batch-seed-topics" title="Импортировать все 81 тему Skola2030 прямо в базу Supabase">
-              🚀 Загрузить все 81 тему в Supabase
-            </button>
-          </div>
-          <div class="skola-preset-controls">
-            <select id="skola-preset-grade" class="admin-select-filter">
-              <option value="">Выберите класс...</option>
-            </select>
-            <select id="skola-preset-topic" class="admin-select-filter">
-              <option value="">Сначала выберите класс</option>
-            </select>
-            <button type="button" class="admin-tool-btn" id="btn-apply-skola-preset">Заполнить поля темы</button>
+            <strong>📋 Пример заполнения темы:</strong>
+            <button type="button" class="admin-tool-btn" id="btn-apply-skola-sample">Вставить образец для подстановки</button>
           </div>
           <div class="skola-preset-status" id="skola-preset-status" hidden></div>
         </div>
@@ -133,6 +128,7 @@
               </select>
             </label>
             <span class="admin-filter-count" id="topic-filter-count"></span>
+            <button class="admin-tool-btn" type="button" id="btn-renumber-topics" data-i18n="admin_renumber_topics" data-i18n-title="admin_renumber_topics_tooltip" title="Автоматически выставить последовательные номера тем (1..N) внутри каждого класса">🔢 Перенумеровать темы</button>
             <button class="text-button" type="button" id="topic-filter-reset" hidden>Сбросить</button>
           </div>
         </div>
@@ -144,9 +140,6 @@
           <button class="text-button" type="button" id="btn-hide-topics">▲ Свернуть список тем</button>
         </div>
         <div class="admin-list" id="topic-list" hidden></div>
-        <div class="admin-list-close admin-list-close-bottom" id="topic-list-close-bottom" hidden>
-          <button class="text-button" type="button" id="btn-hide-topics-bottom">▲ Свернуть список тем</button>
-        </div>
       </div>
 
       <div class="admin-section" id="section-subtopics">
@@ -158,9 +151,13 @@
               <p class="admin-feature-desc">Третий уровень каталога: тема → подтема → задача. Номер вида 7.5.2 показывается на сайте и задаёт порядок.</p>
             </div>
           </div>
+          <div class="admin-feature-actions">
+            <button type="button" class="admin-section-toggle" aria-expanded="true" title="Свернуть / развернуть отдел"><span class="toggle-icon">▲</span> <span class="toggle-text">Свернуть</span></button>
+          </div>
         </div>
 
         <form class="topic-form" id="subtopic-form">
+          <label>Класс / курс<select id="subtopic-form-grade"><option value="">Все классы и курсы</option></select></label>
           <label>Тема<select name="topic_id" id="subtopic-topic-select" required></select></label>
           <label>Номер <span>например 7.5.2</span><input name="code" id="subtopic-code" placeholder="7.5.2" /></label>
           <label>Порядок <span>внутри темы</span><input name="position" type="number" value="1" min="1" /></label>
@@ -174,17 +171,37 @@
         <div class="admin-list-toolbar">
           <div class="admin-filters-row">
             <label class="admin-filter-field">
+              <span>Класс / курс</span>
+              <select id="subtopic-filter-grade" class="admin-select-filter">
+                <option value="">Все классы и курсы</option>
+              </select>
+            </label>
+            <label class="admin-filter-field">
               <span>Показать подтемы темы</span>
               <select id="subtopic-filter-topic" class="admin-select-filter">
                 <option value="">Все темы</option>
               </select>
             </label>
+            <label class="admin-filter-field">
+              <span>Сортировка</span>
+              <select id="subtopic-filter-sort" class="admin-select-filter">
+                <option value="position">По порядку (1→N)</option>
+                <option value="code">По номеру (коду)</option>
+                <option value="title">По названию (А→Я)</option>
+                <option value="tasks_desc">По кол-ву задач (убывание)</option>
+                <option value="tasks_asc">По кол-ву задач (возрастание)</option>
+              </select>
+            </label>
             <span class="admin-filter-count" id="subtopic-filter-count"></span>
+            <button class="admin-tool-btn" type="button" id="btn-renumber-subtopics" data-i18n="admin_renumber_subtopics" data-i18n-title="admin_renumber_subtopics_tooltip" title="Автоматически упорядочить подтемы (1..M) и обновить коды Skola2030">🔢 Перенумеровать подтемы</button>
           </div>
         </div>
         <div class="admin-list-defer" id="subtopic-list-defer">
           <p>Подтем в базе несколько сотен — список открывается по кнопке.</p>
           <button class="secondary-button" type="button" id="btn-load-subtopics">Показать подтемы</button>
+        </div>
+        <div class="admin-list-close admin-list-close-top" id="subtopic-list-close" hidden>
+          <button class="text-button" type="button" id="btn-hide-subtopics">▲ Свернуть список подтем</button>
         </div>
         <div class="admin-list" id="subtopic-list" hidden></div>
       </div>
@@ -199,7 +216,10 @@
               <p class="admin-feature-desc">Автоматическое составление задач строго по стандартам Skola2030 с формулами KaTeX, ответом и пошаговым разбором.</p>
             </div>
           </div>
-          <button type="button" class="text-button" id="btn-toggle-ai-settings" title="Настройки API">⚙️ Настройки AI</button>
+          <div class="admin-feature-actions">
+            <button type="button" class="text-button" id="btn-toggle-ai-settings" title="Настройки API">⚙️ Настройки AI</button>
+            <button type="button" class="admin-section-toggle" aria-expanded="true" title="Свернуть / развернуть отдел"><span class="toggle-icon">▲</span> <span class="toggle-text">Свернуть</span></button>
+          </div>
         </div>
 
         <div class="ai-settings-card" id="ai-settings-card" hidden>
@@ -328,7 +348,10 @@
               <p class="admin-feature-desc">Условие, перевод RU ↔ LV, формулы KaTeX, чертежи и кросс-теги стандарта Skola2030.</p>
             </div>
           </div>
-          <button type="button" class="text-button" id="btn-toggle-math-guide">📚 Руководство по формулам</button>
+          <div class="admin-feature-actions">
+            <button type="button" class="text-button" id="btn-toggle-math-guide">📚 Руководство по формулам</button>
+            <button type="button" class="admin-section-toggle" aria-expanded="true" title="Свернуть / развернуть отдел"><span class="toggle-icon">▲</span> <span class="toggle-text">Свернуть</span></button>
+          </div>
         </div>
 
         <!-- 📚 Справочник и руководство по написанию формул и индексов -->
@@ -485,6 +508,9 @@
               <p class="admin-feature-desc">Поиск по условию и названию, фильтрация по статусам и классам, пакетный импорт и экспорт в JSON.</p>
             </div>
           </div>
+          <div class="admin-feature-actions">
+            <button type="button" class="admin-section-toggle" aria-expanded="true" title="Свернуть / развернуть отдел"><span class="toggle-icon">▲</span> <span class="toggle-text">Свернуть</span></button>
+          </div>
         </div>
 
         <div class="admin-toolbar" id="task-toolbar">
@@ -494,14 +520,35 @@
               <input type="search" id="task-search-input" class="admin-search-input" placeholder="Поиск по названию или условию задачи…" />
             </div>
             <div class="admin-bulk-actions">
-              <label class="admin-tool-btn" id="btn-upload-file-tasks-label" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Загрузить готовый файл .json с темами и задачами с вашего компьютера">
-                📁 Загрузить файл .json
-                <input type="file" id="bulk-file-input" accept=".json,application/json" style="display:none" />
+              <label class="admin-tool-btn" id="btn-upload-file-tasks-label" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Загрузить готовый файл (.json / .csv / .tsv) с вашего компьютера">
+                📁 Загрузить файл (.json / .csv)
+                <input type="file" id="bulk-file-input" accept=".json,.csv,.tsv,text/csv,text/tab-separated-values,application/json" style="display:none" />
               </label>
-              <button class="admin-tool-btn" type="button" id="btn-toggle-sample-json" title="Посмотреть образец структуры JSON-файла для загрузки">📄 Образец JSON</button>
+              <button class="admin-tool-btn" type="button" id="btn-export-csv" title="Скачать задачи в формате Excel / Google Таблицы (CSV с UTF-8 BOM)">📊 Экспорт Excel / CSV</button>
               <button class="admin-tool-btn" type="button" id="btn-export-tasks" title="Скачать или скопировать задачи в JSON">📥 Экспорт JSON</button>
-              <button class="admin-tool-btn" type="button" id="btn-import-tasks" title="Вставить JSON вручную в текстовое поле">📤 Вставить JSON</button>
+              <button class="admin-tool-btn" type="button" id="btn-import-tasks" title="Вставить JSON или таблицу (CSV / скопированные строки из Excel)">📤 Вставить JSON / CSV</button>
+              <button class="admin-tool-btn" type="button" id="btn-toggle-sample-csv" title="Посмотреть образец таблицы для Excel / Google Таблиц">📊 Образец CSV</button>
+              <button class="admin-tool-btn" type="button" id="btn-toggle-sample-json" title="Посмотреть образец структуры JSON-файла для загрузки">📄 Образец JSON</button>
+              <button class="admin-tool-btn" type="button" id="btn-show-ai-prompt" title="Готовый промпт для генерации 30+ задач через нейросеть за один запрос">🤖 Промпт для ИИ (30+ задач)</button>
+              <button class="admin-tool-btn" type="button" id="btn-renumber-tasks" data-i18n="admin_renumber_tasks" data-i18n-title="admin_renumber_tasks_tooltip" title="Автоматически выставить последовательные номера 1..N без пропусков">🔢 Перенумеровать задачи</button>
             </div>
+          </div>
+
+          <!-- 📊 Образец формата таблицы CSV / Excel / Google Таблиц -->
+          <div class="json-sample-card" id="csv-sample-card" hidden>
+            <div class="json-sample-head">
+              <strong>📊 Образец таблицы для Excel / Google Таблиц / CSV (Удобно для создания 30–50+ задач в ИИ)</strong>
+              <div class="json-sample-head-actions">
+                <button type="button" class="admin-tool-btn" id="btn-copy-sample-csv">📋 Скопировать CSV</button>
+                <button type="button" class="admin-tool-btn" id="btn-insert-sample-csv-to-dialog">📤 Вставить в окно импорта</button>
+                <button type="button" class="text-button" id="btn-close-sample-csv">Закрыть</button>
+              </div>
+            </div>
+            <p class="admin-hint">Табличный формат позволяет нейросетям (ChatGPT, Claude, Gemini) генерировать по <strong>30–50+ задач за один промпт</strong> (JSON обрывается уже на 10 задачах из-за перегруза токенами). Вы можете скопировать эту таблицу, открыть в Excel / Google Таблицах, отредактировать и просто вставить скопированные строки обратно!</p>
+            <pre class="json-sample-pre"><code id="csv-sample-code">grade,topic_title,subtopic_code,subtopic_title,condition_latex,answer_latex,solution_latex,difficulty,tags
+8,Квадратные уравнения,8.1.1,Неполные квадратные уравнения,Решите уравнение $x^2 - 9 = 0$.,"$x = \pm 3$","Разложим разность квадратов: $$(x - 3)(x + 3) = 0$$, откуда $x_1 = 3,\; x_2 = -3$.",Лёгкий,"vienadojumi; algebriskie-parveidojumi"
+8,Квадратные уравнения,8.1.2,Полные квадратные уравнения,Решите уравнение $x^2 - 5x + 6 = 0$.,"$x_1 = 2,\; x_2 = 3$","По формуле корней: $$D = (-5)^2 - 4 \cdot 1 \cdot 6 = 1$$, $$x = \frac{5 \pm 1}{2}$$.",Средний,vienadojumi
+8,Теорема Пифагора,8.2.1,Прямоугольный треугольник,В прямоугольном треугольнике катеты равны $a = 3\text{ см}$ и $b = 4\text{ см}$. Найдите гипотенузу $c$.,"$c = 5\text{ см}$","По теореме Пифагора: $$c = \sqrt{3^2 + 4^2} = \sqrt{25} = 5\text{ см}$$.",Лёгкий,"planimetrija; merijumi"</code></pre>
           </div>
 
           <!-- 📄 Образец иерархического формата JSON прямо рядом с кнопками загрузки (Требование 5) -->
@@ -600,9 +647,13 @@
               <select id="task-filter-sort" class="admin-select-filter">
                 <option value="recent">Сначала новые</option>
                 <option value="topic">По теме и порядку</option>
+                <option value="subtopic">По подтемам</option>
+                <option value="num_asc">По номеру (1→N)</option>
+                <option value="num_desc">По номеру (N→1)</option>
+                <option value="diff_asc">По возрастанию сложности</option>
+                <option value="diff_desc">По убыванию сложности</option>
                 <option value="title">По названию (А→Я)</option>
                 <option value="grade">По классу</option>
-                <option value="difficulty">По сложности</option>
                 <option value="status">Черновики сверху</option>
               </select>
             </label>
@@ -629,9 +680,6 @@
           <button class="text-button" type="button" id="btn-hide-tasks">▲ Свернуть список задач</button>
         </div>
         <div class="admin-list" id="task-list" hidden></div>
-        <div class="admin-list-close admin-list-close-bottom" id="task-list-close-bottom" hidden>
-          <button class="text-button" type="button" id="btn-hide-tasks-bottom">▲ Свернуть список задач</button>
-        </div>
 
         <!-- Модальное окно массового импорта / экспорта (4.3) -->
         <dialog class="bulk-dialog" id="bulk-dialog">
@@ -639,15 +687,17 @@
             <h3 id="bulk-dialog-title">Импорт / Экспорт задач</h3>
             <button type="button" class="bulk-dialog-close" id="bulk-dialog-close" aria-label="Закрыть">&times;</button>
           </div>
-          <p class="bulk-dialog-desc" id="bulk-dialog-desc">Поддерживается загрузка файла .json с несколькими темами и задачами или плоский список задач.</p>
+          <p class="bulk-dialog-desc" id="bulk-dialog-desc">Поддерживается загрузка файлов .json, .csv, .tsv, а также прямая вставка скопированных ячеек из Excel или Google Таблиц. Формат определяется автоматически.</p>
           <div class="bulk-dialog-toolbar" style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-            <label class="admin-tool-btn" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Выбрать файл .json с компьютера">
-              📁 Выбрать файл с диска (.json)
-              <input type="file" id="bulk-dialog-file-input" accept=".json,application/json" style="display:none" />
+            <label class="admin-tool-btn" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Выбрать файл .json, .csv или .tsv с компьютера">
+              📁 Выбрать файл с диска (.json / .csv)
+              <input type="file" id="bulk-dialog-file-input" accept=".json,.csv,.tsv,text/csv,text/tab-separated-values,application/json" style="display:none" />
             </label>
-            <button type="button" class="admin-tool-btn" id="bulk-dialog-template-btn">📋 Вставить образец формата с несколькими темами</button>
+            <button type="button" class="admin-tool-btn" id="bulk-dialog-template-btn">📋 Вставить образец JSON</button>
+            <button type="button" class="admin-tool-btn" id="bulk-dialog-csv-template-btn">📊 Вставить образец CSV</button>
+            <button type="button" class="admin-tool-btn" id="bulk-dialog-ai-prompt-btn">🤖 Промпт для ИИ (30+ задач)</button>
           </div>
-          <textarea class="bulk-dialog-textarea" id="bulk-dialog-textarea" rows="12" spellcheck="false" placeholder="Вставьте JSON или выберите файл выше..."></textarea>
+          <textarea class="bulk-dialog-textarea" id="bulk-dialog-textarea" rows="12" spellcheck="false" placeholder="Вставьте JSON, CSV или скопированные из Excel / Google Таблиц строки..."></textarea>
           <div class="bulk-dialog-status" id="bulk-dialog-status" hidden></div>
           <div class="bulk-dialog-actions">
             <button type="button" class="primary-button" id="bulk-dialog-submit">Выполнить импорт</button>
@@ -655,6 +705,20 @@
             <button type="button" class="text-button" id="bulk-dialog-example">Вставить образец</button>
             <button type="button" class="text-button" id="bulk-dialog-copy">Скопировать всё</button>
             <button type="button" class="text-button" id="bulk-dialog-cancel">Закрыть</button>
+          </div>
+        </dialog>
+
+        <!-- Модальное окно готового промпта для ИИ (30-50 задач за раз) -->
+        <dialog class="bulk-dialog" id="ai-prompt-dialog">
+          <div class="bulk-dialog-header">
+            <h3>🤖 Готовый промпт для нейросети (30+ задач за один запрос)</h3>
+            <button type="button" class="bulk-dialog-close" id="ai-prompt-dialog-close" aria-label="Закрыть">&times;</button>
+          </div>
+          <p class="bulk-dialog-desc">Скопируйте этот промпт, вставьте в <strong>ChatGPT, Claude или Gemini</strong>, указав нужную тему. Нейросеть сгенерирует таблицу из 30–50 задач. Скопируйте её ответ и нажмите «Выполнить импорт»!</p>
+          <textarea class="bulk-dialog-textarea" id="ai-prompt-textarea" rows="12" readonly spellcheck="false"></textarea>
+          <div class="bulk-dialog-actions">
+            <button type="button" class="primary-button" id="ai-prompt-copy-btn">📋 Скопировать промпт</button>
+            <button type="button" class="text-button" id="ai-prompt-close-btn">Закрыть</button>
           </div>
         </dialog>
       </div>
