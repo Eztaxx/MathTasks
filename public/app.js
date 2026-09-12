@@ -154,7 +154,8 @@ const gradeLabelShort = grade => {
 
 const gradeLabel = grade => {
   const tr = window.MathTasks.t || (k => k);
-  if (!grade) return tr('all_grades') !== 'all_grades' ? tr('all_grades') : 'Все классы';
+  const isLv = (window.MathTasksI18n?.getLang?.() === 'lv');
+  if (!grade) return tr('all_grades') !== 'all_grades' ? tr('all_grades') : (isLv ? 'Visas klases' : 'Все классы');
   if (grade === 'visparigais' || grade === 'vispārīgais') return tr('grade_visparigais') !== 'grade_visparigais' ? tr('grade_visparigais') : 'Vispārīgais līmenis';
   if (grade === 'matematika-1') return tr('grade_matematika_1') !== 'grade_matematika_1' ? tr('grade_matematika_1') : 'Matemātika I (Optimālais)';
   if (grade === 'matematika-2') return tr('grade_matematika_2') !== 'grade_matematika_2' ? tr('grade_matematika_2') : 'Matemātika II (Augstākais)';
@@ -163,7 +164,7 @@ const gradeLabel = grade => {
   if (translated && translated !== key) return translated;
   const nForm = tr('grade_N', { n: grade });
   if (nForm && nForm !== 'grade_N') return nForm;
-  return `${grade} класс`;
+  return isLv ? `${grade}. klase` : `${grade} класс`;
 };
 
 function isTopicInGrade(topic, grade) {
@@ -606,36 +607,36 @@ function markActiveNav(activeTopicSlug = null) {
 /* ── Справочник формул Skola2030 ──────────────────────────────────── */
 const FORMULAS_DATA = {
   algebra: [
-    { title: 'Квадратное уравнение', math: 'ax^2 + bx + c = 0 \\implies D = b^2 - 4ac, \\; x_{1,2} = \\frac{-b \\pm \\sqrt{D}}{2a}' },
-    { title: 'Теорема Виета', math: 'x_1 + x_2 = -\\frac{b}{a}, \\quad x_1 \\cdot x_2 = \\frac{c}{a}' },
-    { title: 'Формулы сокращенного умножения', math: '(a \\pm b)^2 = a^2 \\pm 2ab + b^2, \\quad a^2 - b^2 = (a-b)(a+b)' },
-    { title: 'Разность и сумма кубов', math: 'a^3 \\pm b^3 = (a \\pm b)(a^2 \\mp ab + b^2)' },
-    { title: 'Арифметическая прогрессия', math: 'a_n = a_1 + (n-1)d, \\quad S_n = \\frac{a_1 + a_n}{2} \\cdot n' },
-    { title: 'Геометрическая прогрессия', math: 'b_n = b_1 \\cdot q^{n-1}, \\quad S_n = \\frac{b_1(q^n - 1)}{q - 1} \\; (q \\ne 1)' },
-    { title: 'Свойства логарифмов', math: '\\log_a(xy) = \\log_a x + \\log_a y, \\quad \\log_a\\left(\\frac{x}{y}\\right) = \\log_a x - \\log_a y, \\quad \\log_a(x^k) = k\\log_a x' }
+    { title: 'Квадратное уравнение', title_lv: 'Kvadrātvienādojums', math: 'ax^2 + bx + c = 0 \\implies D = b^2 - 4ac, \\; x_{1,2} = \\frac{-b \\pm \\sqrt{D}}{2a}' },
+    { title: 'Теорема Виета', title_lv: 'Vjeta teorēma', math: 'x_1 + x_2 = -\\frac{b}{a}, \\quad x_1 \\cdot x_2 = \\frac{c}{a}' },
+    { title: 'Формулы сокращенного умножения', title_lv: 'Saīsinātās reizināšanas formulas', math: '(a \\pm b)^2 = a^2 \\pm 2ab + b^2, \\quad a^2 - b^2 = (a-b)(a+b)' },
+    { title: 'Разность и сумма кубов', title_lv: 'Kubu starpība un summa', math: 'a^3 \\pm b^3 = (a \\pm b)(a^2 \\mp ab + b^2)' },
+    { title: 'Арифметическая прогрессия', title_lv: 'Aritmētiskā progresija', math: 'a_n = a_1 + (n-1)d, \\quad S_n = \\frac{a_1 + a_n}{2} \\cdot n' },
+    { title: 'Геометрическая прогрессия', title_lv: 'Ģeometriskā progresija', math: 'b_n = b_1 \\cdot q^{n-1}, \\quad S_n = \\frac{b_1(q^n - 1)}{q - 1} \\; (q \\ne 1)' },
+    { title: 'Свойства логарифмов', title_lv: 'Logaritmu īpašības', math: '\\log_a(xy) = \\log_a x + \\log_a y, \\quad \\log_a\\left(\\frac{x}{y}\\right) = \\log_a x - \\log_a y, \\quad \\log_a(x^k) = k\\log_a x' }
   ],
   geometry: [
-    { title: 'Теорема Пифагора', math: 'a^2 + b^2 = c^2 \\quad (\\text{для прямого угла})' },
-    { title: 'Площадь треугольника', math: 'S = \\frac{1}{2}ah = \\frac{1}{2}ab \\sin \\gamma = \\sqrt{p(p-a)(p-b)(p-c)}' },
-    { title: 'Теорема косинусов', math: 'c^2 = a^2 + b^2 - 2ab \\cos \\gamma' },
-    { title: 'Теорема синусов', math: '\\frac{a}{\\sin \\alpha} = \\frac{b}{\\sin \\beta} = \\frac{c}{\\sin \\gamma} = 2R' },
-    { title: 'Площадь параллелограмма и ромба', math: 'S = ah = ab \\sin \\alpha, \\quad S_{\\text{ромба}} = \\frac{1}{2}d_1 d_2' },
-    { title: 'Площадь трапеции', math: 'S = \\frac{a + b}{2} \\cdot h' },
-    { title: 'Окружность и круг', math: 'C = 2\\pi r, \\quad S = \\pi r^2, \\quad l_{\\text{дуги}} = \\frac{\\pi r \\alpha}{180^\\circ}' }
+    { title: 'Теорема Пифагора', title_lv: 'Pitagora teorēma', math: 'a^2 + b^2 = c^2 \\quad (\\text{для прямого угла})' },
+    { title: 'Площадь треугольника', title_lv: 'Trijstūra laukums', math: 'S = \\frac{1}{2}ah = \\frac{1}{2}ab \\sin \\gamma = \\sqrt{p(p-a)(p-b)(p-c)}' },
+    { title: 'Теорема косинусов', title_lv: 'Kosinusu teorēma', math: 'c^2 = a^2 + b^2 - 2ab \\cos \\gamma' },
+    { title: 'Теорема синусов', title_lv: 'Sinusu teorēma', math: '\\frac{a}{\\sin \\alpha} = \\frac{b}{\\sin \\beta} = \\frac{c}{\\sin \\gamma} = 2R' },
+    { title: 'Площадь параллелограмма и ромба', title_lv: 'Paralelograma un romba laukums', math: 'S = ah = ab \\sin \\alpha, \\quad S_{\\text{ромба}} = \\frac{1}{2}d_1 d_2' },
+    { title: 'Площадь трапеции', title_lv: 'Trapeces laukums', math: 'S = \\frac{a + b}{2} \\cdot h' },
+    { title: 'Окружность и круг', title_lv: 'Riņķa līnija un riņķis', math: 'C = 2\\pi r, \\quad S = \\pi r^2, \\quad l_{\\text{дуги}} = \\frac{\\pi r \\alpha}{180^\\circ}' }
   ],
   trig: [
-    { title: 'Основное тригонометрическое тождество', math: '\\sin^2 \\alpha + \\cos^2 \\alpha = 1, \\quad \\tan \\alpha = \\frac{\\sin \\alpha}{\\cos \\alpha}' },
-    { title: 'Связь тангенса и косинуса', math: '1 + \\tan^2 \\alpha = \\frac{1}{\\cos^2 \\alpha}, \\quad 1 + \\cot^2 \\alpha = \\frac{1}{\\sin^2 \\alpha}' },
-    { title: 'Формулы двойного угла', math: '\\sin 2\\alpha = 2\\sin\\alpha\\cos\\alpha, \\quad \\cos 2\\alpha = \\cos^2\\alpha - \\sin^2\\alpha' },
-    { title: 'Формулы сложения', math: '\\sin(\\alpha \\pm \\beta) = \\sin\\alpha\\cos\\beta \\pm \\cos\\alpha\\sin\\beta' },
-    { title: 'Значения (30°, 45°, 60°)', math: '\\sin 30^\\circ = \\frac{1}{2}, \\; \\cos 30^\\circ = \\frac{\\sqrt{3}}{2}, \\; \\tan 45^\\circ = 1' }
+    { title: 'Основное тригонометрическое тождество', title_lv: 'Trigonometriskā pamatidentitāte', math: '\\sin^2 \\alpha + \\cos^2 \\alpha = 1, \\quad \\tan \\alpha = \\frac{\\sin \\alpha}{\\cos \\alpha}' },
+    { title: 'Связь тангенса и косинуса', title_lv: 'Tangensa un kosinusa sakarība', math: '1 + \\tan^2 \\alpha = \\frac{1}{\\cos^2 \\alpha}, \\quad 1 + \\cot^2 \\alpha = \\frac{1}{\\sin^2 \\alpha}' },
+    { title: 'Формулы двойного угла', title_lv: 'Divkāršā leņķa formulas', math: '\\sin 2\\alpha = 2\\sin\\alpha\\cos\\alpha, \\quad \\cos 2\\alpha = \\cos^2\\alpha - \\sin^2\\alpha' },
+    { title: 'Формулы сложения', title_lv: 'Saskaitīšanas formulas', math: '\\sin(\\alpha \\pm \\beta) = \\sin\\alpha\\cos\\beta \\pm \\cos\\alpha\\sin\\beta' },
+    { title: 'Значения (30°, 45°, 60°)', title_lv: 'Vērtības (30°, 45°, 60°)', math: '\\sin 30^\\circ = \\frac{1}{2}, \\; \\cos 30^\\circ = \\frac{\\sqrt{3}}{2}, \\; \\tan 45^\\circ = 1' }
   ],
   analysis: [
-    { title: 'Таблица производных', math: '(x^n)\' = n x^{n-1}, \\quad (\\sin x)\' = \\cos x, \\quad (\\cos x)\' = -\\sin x, \\quad (e^x)\' = e^x' },
-    { title: 'Правила дифференцирования', math: '(u \\pm v)\' = u\' \\pm v\', \\quad (uv)\' = u\'v + uv\', \\quad \\left(\\frac{u}{v}\\right)\' = \\frac{u\'v - uv\'}{v^2}' },
-    { title: 'Геометрический смысл производной', math: 'k = f\'(x_0) = \\tan \\alpha, \\quad y = f(x_0) + f\'(x_0)(x - x_0)' },
-    { title: 'Первообразные и интегралы', math: '\\int x^n dx = \\frac{x^{n+1}}{n+1} + C, \\quad \\int_a^b f(x)dx = F(b) - F(a)' },
-    { title: 'Схема Бернулли (вероятность)', math: 'P_n(k) = C_n^k p^k (1-p)^{n-k}, \\quad C_n^k = \\frac{n!}{k!(n-k)!}' }
+    { title: 'Таблица производных', title_lv: 'Atvasinājumu tabula', math: '(x^n)\' = n x^{n-1}, \\quad (\\sin x)\' = \\cos x, \\quad (\\cos x)\' = -\\sin x, \\quad (e^x)\' = e^x' },
+    { title: 'Правила дифференцирования', title_lv: 'Diferencēšanas likumi', math: '(u \\pm v)\' = u\' \\pm v\', \\quad (uv)\' = u\'v + uv\', \\quad \\left(\\frac{u}{v}\\right)\' = \\frac{u\'v - uv\'}{v^2}' },
+    { title: 'Геометрический смысл производной', title_lv: 'Atvasinājuma ģeometriskā jēga', math: 'k = f\'(x_0) = \\tan \\alpha, \\quad y = f(x_0) + f\'(x_0)(x - x_0)' },
+    { title: 'Первообразные и интегралы', title_lv: 'Primitīvās funkcijas un integrāļi', math: '\\int x^n dx = \\frac{x^{n+1}}{n+1} + C, \\quad \\int_a^b f(x)dx = F(b) - F(a)' },
+    { title: 'Схема Бернулли (вероятность)', title_lv: 'Bernulli shēma (varbūtība)', math: 'P_n(k) = C_n^k p^k (1-p)^{n-k}, \\quad C_n^k = \\frac{n!}{k!(n-k)!}' }
   ]
 };
 
@@ -643,9 +644,10 @@ function renderFormulasTab(category = 'algebra') {
   const container = document.querySelector('#formulas-content');
   if (!container) return;
   const items = FORMULAS_DATA[category] || [];
+  const isLv = (window.MathTasksI18n?.getLang?.() === 'lv');
   container.innerHTML = items.map(item => `
     <div class="formula-card">
-      <div class="formula-card-title">${escapeHtml(item.title)}</div>
+      <div class="formula-card-title">${escapeHtml(isLv && item.title_lv ? item.title_lv : item.title)}</div>
       <div class="formula-card-math">$${item.math}$</div>
     </div>
   `).join('');

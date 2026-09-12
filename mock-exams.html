@@ -51,7 +51,7 @@
         <div class="timer-dropdown" id="timer-dropdown" hidden>
           <div class="timer-dropdown-header">
             <span class="timer-dropdown-title" data-i18n="timer_title">Экзаменационный таймер</span>
-            <button class="timer-close-btn" id="timer-close-btn" type="button" aria-label="Закрыть">×</button>
+            <button class="timer-close-btn" id="timer-close-btn" type="button" aria-label="Закрыть" data-i18n-aria="dialog_close">×</button>
           </div>
           <div class="timer-big-display" id="timer-big-display">00:00</div>
           <div class="timer-presets">
@@ -73,7 +73,7 @@
         <button class="lang-btn" data-lang="ru" type="button" aria-label="Русский язык">RU</button>
       </div>
 
-      <button class="theme-switch" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Переключить тему" title="Переключить тему">
+      <button class="theme-switch" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Переключить тему" data-i18n-aria="theme_toggle" title="Переключить тему" data-i18n-title="theme_toggle">
         <span class="theme-switch-track" aria-hidden="true">
           <span class="theme-switch-thumb">
             <svg class="theme-switch-sun" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -128,14 +128,14 @@
             </div>
             <p class="col-desc" data-i18n="mock_has_desc">Эти формулы не нужно зубрить — нужно лишь уметь быстро их находить и подставлять числа:</p>
             <ul class="formula-check-list">
-              <li><strong>Формулы сокр. умножения:</strong> $(a \pm b)^2 = a^2 \pm 2ab + b^2$, $a^2 - b^2 = (a-b)(a+b)$.</li>
-              <li><strong>Свойства степеней и корней:</strong> $a^m \cdot a^n$, $(a^m)^n$, $\sqrt{a \cdot b}$, $\sqrt[n]{a}$.</li>
-              <li><strong>Квадратное уравнение:</strong> формула дискриминанта $D = b^2 - 4ac$ и корней $x_{1,2} = \frac{-b \pm \sqrt{D}}{2a}$.</li>
-              <li><strong>Тригонометрия в треугольнике:</strong> $\sin \alpha, \cos \alpha, \tan \alpha$, значения для 30°, 45°, 60°.</li>
-              <li><strong>Планиметрия (Площади):</strong> треугольник ($S = \frac{1}{2}ah$, формула Герона), трапеция, параллелограмм, круг ($S = \pi R^2, C = 2\pi R$).</li>
-              <li><strong>Стереометрия (Объёмы и площади):</strong> призма, цилиндр, пирамида, конус, шар ($V = \frac{4}{3}\pi R^3$).</li>
-              <li><strong>Для Optimālais (Mat I):</strong> единичный круг, теоремы синусов и косинусов, комбинаторика ($n!, C_n^k, A_n^k$), тригонометрические тождества.</li>
-              <li><strong>Для Augstākais (Mat II):</strong> таблица производных и первообразных, бином Ньютона, объёмы тел вращения.</li>
+              <li data-i18n-html="mock_has_mult"><strong>Формулы сокр. умножения:</strong> $(a \pm b)^2 = a^2 \pm 2ab + b^2$, $a^2 - b^2 = (a-b)(a+b)$.</li>
+              <li data-i18n-html="mock_has_powers"><strong>Свойства степеней и корней:</strong> $a^m \cdot a^n$, $(a^m)^n$, $\sqrt{a \cdot b}$, $\sqrt[n]{a}$.</li>
+              <li data-i18n-html="mock_has_quad"><strong>Квадратное уравнение:</strong> формула дискриминанта $D = b^2 - 4ac$ и корней $x_{1,2} = \frac{-b \pm \sqrt{D}}{2a}$.</li>
+              <li data-i18n-html="mock_has_trig"><strong>Тригонометрия в треугольнике:</strong> $\sin \alpha, \cos \alpha, \tan \alpha$, значения для 30°, 45°, 60°.</li>
+              <li data-i18n-html="mock_has_planimetry"><strong>Планиметрия (Площади):</strong> треугольник ($S = \frac{1}{2}ah$, формула Герона), трапеция, параллелограмм, круг ($S = \pi R^2, C = 2\pi R$).</li>
+              <li data-i18n-html="mock_rule_stereometry"><strong>Стереометрия (Объёмы и площади):</strong> призма, цилиндр, пирамида, конус, шар ($V = \frac{4}{3}\pi R^3$).</li>
+              <li data-i18n-html="mock_rule_mat1"><strong>Для Optimālais (Mat I):</strong> единичный круг, теоремы синусов и косинусов, комбинаторика ($n!, C_n^k, A_n^k$), тригонометрические тождества.</li>
+              <li data-i18n-html="mock_rule_mat2"><strong>Для Augstākais (Mat II):</strong> таблица производных и первообразных, бином Ньютона, объёмы тел вращения.</li>
             </ul>
           </div>
 
@@ -147,14 +147,14 @@
             </div>
             <p class="col-desc" data-i18n="mock_missing_desc">Эти правила составители экзамена считают базовыми, их в листе <strong>нет</strong>:</p>
             <ul class="formula-cross-list">
-              <li><strong>Теорема Виета:</strong> $x_1 + x_2 = -\frac{b}{a}$, $x_1 \cdot x_2 = \frac{c}{a}$ (для быстрого счёта корней).</li>
-              <li><strong>Смена знака в неравенствах:</strong> при умножении или делении обеих частей на <em>отрицательное</em> число знак строго переворачивается!</li>
-              <li><strong>Правила работы с дробями:</strong> приведение к общему знаменателю, сокращение дробей, деление через умножение на обратную дробь.</li>
-              <li><strong>Свойства логарифмов (базовые):</strong> определение $\log_a b = c \iff a^c = b$, ограничение ОДЗ ($b > 0, a > 0, a \neq 1$).</li>
-              <li><strong>Теорема о внешнем угле:</strong> внешний угол треугольника равен сумме двух внутренних, не смежных с ним.</li>
-              <li><strong>Вписанные и центральные углы:</strong> вписанный угол равен половине центрального, опирающегося на ту же дугу.</li>
-              <li><strong>Вероятность противоположного события:</strong> $P(\bar{A}) = 1 - P(A)$.</li>
-              <li><strong>Линейная функция:</strong> угловой коэффициент $k = \tan \alpha$, условие параллельности прямых ($k_1 = k_2$).</li>
+              <li data-i18n-html="mock_rule_vieta"><strong>Теорема Виета:</strong> $x_1 + x_2 = -\frac{b}{a}$, $x_1 \cdot x_2 = \frac{c}{a}$ (для быстрого счёта корней).</li>
+              <li data-i18n-html="mock_rule_ineq_sign"><strong>Смена знака в неравенствах:</strong> при умножении или делении обеих частей на <em>отрицательное</em> число знак строго переворачивается!</li>
+              <li data-i18n-html="mock_rule_fractions"><strong>Правила работы с дробями:</strong> приведение к общему знаменателю, сокращение дробей, деление через умножение на обратную дробь.</li>
+              <li data-i18n-html="mock_rule_logs"><strong>Свойства логарифмов (базовые):</strong> определение $\log_a b = c \iff a^c = b$, ограничение ОДЗ ($b > 0, a > 0, a \neq 1$).</li>
+              <li data-i18n-html="mock_rule_ext_angle"><strong>Теорема о внешнем угле:</strong> внешний угол треугольника равен сумме двух внутренних, не смежных с ним.</li>
+              <li data-i18n-html="mock_rule_angles_arc"><strong>Вписанные и центральные углы:</strong> вписанный угол равен половине центрального, опирающегося на ту же дугу.</li>
+              <li data-i18n-html="mock_rule_prob_opposite"><strong>Вероятность противоположного события:</strong> $P(\bar{A}) = 1 - P(A)$.</li>
+              <li data-i18n-html="mock_rule_linear_func"><strong>Линейная функция:</strong> угловой коэффициент $k = \tan \alpha$, условие параллельности прямых ($k_1 = k_2$).</li>
             </ul>
           </div>
         </div>
@@ -184,39 +184,39 @@
           <div class="mock-card-top">
             <div class="mock-meta">
               <span class="exam-badge badge-gold">Pamatskola</span>
-              <span class="mock-time">⏱️ 120 минут (2 часа)</span>
-              <span class="mock-points">⭐ 50 баллов суммарно</span>
+              <span class="mock-time" data-i18n="mock_time_120">⏱️ 120 минут (2 часа)</span>
+              <span class="mock-points" data-i18n="mock_points_50">⭐ 50 баллов суммарно</span>
             </div>
             <span class="mock-status-pill" data-i18n="mock_status_pill">Заготовка структуры</span>
           </div>
 
-          <h3>Государственный экзамен основной школы (Pamatskola)</h3>
-          <p class="mock-summary">
+          <h3 data-i18n="mock_pamatskola_title">Государственный экзамен основной школы (Pamatskola)</h3>
+          <p class="mock-summary" data-i18n="mock_pamatskola_sub">
             Проверяет базовые математические навыки за весь курс основной школы. Обязателен для получения аттестата.
           </p>
 
           <div class="mock-parts-grid">
             <div class="mock-part">
               <div class="mock-part-head">
-                <span class="part-tag">1. daļa • Часть 1</span>
-                <span class="part-calc-badge no-calc">🚫 Без калькулятора</span>
+                <span class="part-tag" data-i18n="mock_part1_tag">1. daļa • Часть 1</span>
+                <span class="part-calc-badge no-calc" data-i18n="mock_no_calc">🚫 Без калькулятора</span>
               </div>
               <ul class="part-points">
-                <li><strong>Формат:</strong> 25 заданий с кратким ответом или выбором варианта (1 балл за задание).</li>
-                <li><strong>Время:</strong> ~40 минут.</li>
-                <li><strong>Темы:</strong> арифметика целых чисел и дробей, проценты, действия со степенями, преобразование одночленов и многочленов, чтение линейных графиков, простейшая вероятность.</li>
+                <li data-i18n-html="mock_pamatskola_p1_format"><strong>Формат:</strong> 25 заданий с кратким ответом или выбором варианта (1 балл за задание).</li>
+                <li data-i18n-html="mock_pamatskola_p1_time"><strong>Время:</strong> ~40 минут.</li>
+                <li data-i18n-html="mock_pamatskola_p1_topics"><strong>Темы:</strong> арифметика целых чисел и дробей, проценты, действия со степенями, преобразование одночленов и многочленов, чтение линейных графиков, простейшая вероятность.</li>
               </ul>
             </div>
 
             <div class="mock-part">
               <div class="mock-part-head">
-                <span class="part-tag">2. daļa • Часть 2</span>
-                <span class="part-calc-badge has-calc">📱 С калькулятором</span>
+                <span class="part-tag" data-i18n="mock_part2_tag">2. daļa • Часть 2</span>
+                <span class="part-calc-badge has-calc" data-i18n="mock_has_calc">📱 С калькулятором</span>
               </div>
               <ul class="part-points">
-                <li><strong>Формат:</strong> 8–10 развёрнутых задач с полным пошаговым решением (2–5 баллов за задачу).</li>
-                <li><strong>Время:</strong> ~80 минут.</li>
-                <li><strong>Темы:</strong> текстовые прикладные задачи (движение, смеси, работа), системы уравнений, планиметрия (подобие, прямоугольные треугольники), многогранники.</li>
+                <li data-i18n-html="mock_pamatskola_p2_format"><strong>Формат:</strong> 8–10 развёрнутых задач с полным пошаговым решением (2–5 баллов за задачу).</li>
+                <li data-i18n-html="mock_pamatskola_p2_time"><strong>Время:</strong> ~80 минут.</li>
+                <li data-i18n-html="mock_pamatskola_p2_topics"><strong>Темы:</strong> текстовые прикладные задачи (движение, смеси, работа), системы уравнений, планиметрия (подобие, прямоугольные треугольники), многогранники.</li>
               </ul>
             </div>
           </div>
@@ -227,37 +227,37 @@
           <div class="mock-card-top">
             <div class="mock-meta">
               <span class="exam-badge badge-blue">Optimālais (Mat I)</span>
-              <span class="mock-time">⏱️ 180 минут (3 часа)</span>
-              <span class="mock-points">⭐ 70 баллов суммарно</span>
+              <span class="mock-time" data-i18n="mock_time_180">⏱️ 180 минут (3 часа)</span>
+              <span class="mock-points" data-i18n="mock_points_70">⭐ 70 баллов суммарно</span>
             </div>
             <span class="mock-status-pill" data-i18n="mock_status_pill">Заготовка структуры</span>
           </div>
 
-          <h3>Оптимальный уровень — Matemātika I</h3>
-          <p class="mock-summary">
+          <h3 data-i18n="mock_mat1_title">Оптимальный уровень — Matemātika I</h3>
+          <p class="mock-summary" data-i18n="mock_mat1_sub">
             Централизованный экзамен среднего образования для поступления в латвийские и европейские университеты.
           </p>
 
           <div class="mock-parts-grid">
             <div class="mock-part">
               <div class="mock-part-head">
-                <span class="part-tag">1. daļa • 30 баллов</span>
+                <span class="part-tag" data-i18n="mock_mat1_p1_tag">1. daļa • 30 баллов</span>
                 <span class="part-calc-badge no-calc" data-i18n="mock_no_calc">🚫 Без калькулятора</span>
               </div>
               <ul class="part-points">
-                <li><strong>Задания:</strong> преобразование выражений с корнями и логарифмами, тригонометрические значения на круге, геометрические свойства векторов.</li>
-                <li><strong>Навык:</strong> математическая строгость, понимание определений и свойств функций без подсказок техники.</li>
+                <li data-i18n-html="mock_mat1_p1_tasks"><strong>Задания:</strong> преобразование выражений с корнями и логарифмами, тригонометрические значения на круге, геометрические свойства векторов.</li>
+                <li data-i18n-html="mock_mat1_p1_skill"><strong>Навык:</strong> математическая строгость, понимание определений и свойств функций без подсказок техники.</li>
               </ul>
             </div>
 
             <div class="mock-part">
               <div class="mock-part-head">
-                <span class="part-tag">2. daļa • 40 баллов</span>
+                <span class="part-tag" data-i18n="mock_mat1_p2_tag">2. daļa • 40 баллов</span>
                 <span class="part-calc-badge has-calc" data-i18n="mock_has_calc">📱 С калькулятором</span>
               </div>
               <ul class="part-points">
-                <li><strong>Задания:</strong> комплексные задачи на стереометрию (сечения призм и пирамид), тригонометрические уравнения, реальные модели (экспоненциальный рост, сложные проценты), комбинаторика.</li>
-                <li><strong>Критерии:</strong> оценивается логика рассуждений, обоснование формул и точность округления.</li>
+                <li data-i18n-html="mock_mat1_p2_tasks"><strong>Задания:</strong> комплексные задачи на стереометрию (сечения призм и пирамид), тригонометрические уравнения, реальные модели (экспоненциальный рост, сложные проценты), комбинаторика.</li>
+                <li data-i18n-html="mock_mat1_p2_criteria"><strong>Критерии:</strong> оценивается логика рассуждений, обоснование формул и точность округления.</li>
               </ul>
             </div>
           </div>
@@ -268,35 +268,35 @@
           <div class="mock-card-top">
             <div class="mock-meta">
               <span class="exam-badge badge-purple">Augstākais (Mat II)</span>
-              <span class="mock-time">⏱️ 210 минут (3.5 часа)</span>
-              <span class="mock-points">⭐ 80 баллов суммарно</span>
+              <span class="mock-time" data-i18n="mock_time_210">⏱️ 210 минут (3.5 часа)</span>
+              <span class="mock-points" data-i18n="mock_points_80">⭐ 80 баллов суммарно</span>
             </div>
             <span class="mock-status-pill" data-i18n="mock_status_pill">Заготовка структуры</span>
           </div>
 
-          <h3>Высший уровень — Matemātika II (Padziļinātais kurss)</h3>
-          <p class="mock-summary">
+          <h3 data-i18n="mock_mat2_title">Высший уровень — Matemātika II (Padziļinātais kurss)</h3>
+          <p class="mock-summary" data-i18n="mock_mat2_sub">
             Углублённый профильный экзамен по высшей математике для технических и естественных специальностей (RTU, LU DF, RSU).
           </p>
 
           <div class="mock-parts-grid">
             <div class="mock-part">
               <div class="mock-part-head">
-                <span class="part-tag">1. daļa • 25 баллов</span>
+                <span class="part-tag" data-i18n="mock_mat2_p1_tag">1. daļa • 25 баллов</span>
                 <span class="part-calc-badge no-calc" data-i18n="mock_no_calc">🚫 Без калькулятора</span>
               </div>
               <ul class="part-points">
-                <li><strong>Темы:</strong> вычисление пределов последовательностей и функций, производные элементарных и сложных функций, геометрия векторов в $\mathbb{R}^3$.</li>
+                <li data-i18n-html="mock_mat2_p1_topics"><strong>Темы:</strong> вычисление пределов последовательностей и функций, производные элементарных и сложных функций, геометрия векторов в $\mathbb{R}^3$.</li>
               </ul>
             </div>
 
             <div class="mock-part">
               <div class="mock-part-head">
-                <span class="part-tag">2. daļa • 55 баллов</span>
+                <span class="part-tag" data-i18n="mock_mat2_p2_tag">2. daļa • 55 баллов</span>
                 <span class="part-calc-badge has-calc" data-i18n="mock_has_calc">📱 С калькулятором</span>
               </div>
               <ul class="part-points">
-                <li><strong>Темы:</strong> интегральное исчисление (определённый интеграл, площади криволинейных трапеций, объёмы тел вращения), метод математической индукции, бином Ньютона, стереометрические доказательства.</li>
+                <li data-i18n-html="mock_mat2_p2_topics"><strong>Темы:</strong> интегральное исчисление (определённый интеграл, площади криволинейных трапеций, объёмы тел вращения), метод математической индукции, бином Ньютона, стереометрические доказательства.</li>
               </ul>
             </div>
           </div>
@@ -307,8 +307,8 @@
     <!-- Шкала оценивания -->
     <section class="mock-grading-section">
       <div class="section-title-wrap">
-        <h2>📊 Шкала оценивания и пороги сдачи (VISC)</h2>
-        <p>Согласно государственному регламенту Министерства образования Латвии.</p>
+        <h2 data-i18n="mock_scale_title">📊 Шкала оценивания и пороги сдачи (VISC)</h2>
+        <p data-i18n="mock_scale_desc">Согласно государственному регламенту Министерства образования Латвии.</p>
       </div>
 
       <div class="grading-card">
@@ -316,31 +316,31 @@
           <table class="grading-table">
             <thead>
               <tr>
-                <th>Процент выполнения</th>
-                <th>Уровень освоения</th>
-                <th>Характеристика результата</th>
+                <th data-i18n="mock_th_percent">Процент выполнения</th>
+                <th data-i18n="mock_th_level">Уровень освоения</th>
+                <th data-i18n="mock_th_desc">Характеристика результата</th>
               </tr>
             </thead>
             <tbody>
               <tr class="fail-row">
                 <td>0% — 14%</td>
-                <td>Не сдано (Zem sliekšņa)</td>
-                <td>Минимальный порог сдачи не достигнут. Сертификат не выдаётся.</td>
+                <td data-i18n="mock_lvl_fail">Не сдано (Zem sliekšņa)</td>
+                <td data-i18n="mock_lvl_fail_desc">Минимальный порог сдачи не достигнут. Сертификат не выдаётся.</td>
               </tr>
               <tr>
                 <td>15% — 39%</td>
-                <td>Базовый (Pamata līmenis)</td>
-                <td>Удовлетворительное владение стандартными алгоритмами и правилами.</td>
+                <td data-i18n="mock_lvl_basic">Базовый (Pamata līmenis)</td>
+                <td data-i18n="mock_lvl_basic_desc">Удовлетворительное владение стандартными алгоритмами и правилами.</td>
               </tr>
               <tr>
                 <td>40% — 69%</td>
-                <td>Оптимальный (Optimālais līmenis)</td>
-                <td>Уверенное решение типовых и комбинированных задач с полным разбором.</td>
+                <td data-i18n="mock_lvl_optimal">Оптимальный (Optimālais līmenis)</td>
+                <td data-i18n="mock_lvl_optimal_desc">Уверенное решение типовых и комбинированных задач с полным разбором.</td>
               </tr>
               <tr class="success-row">
                 <td>70% — 100%</td>
-                <td>Высокий / Высший (Augstākais līmenis)</td>
-                <td>Глубокое понимание теории, математическое моделирование и строгие доказательства.</td>
+                <td data-i18n="mock_lvl_high">Высокий / Высший (Augstākais līmenis)</td>
+                <td data-i18n="mock_lvl_high_desc">Глубокое понимание теории, математическое моделирование и строгие доказательства.</td>
               </tr>
             </tbody>
           </table>

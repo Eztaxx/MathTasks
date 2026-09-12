@@ -48,11 +48,11 @@
         <button class="lang-btn" data-lang="ru" type="button" aria-label="Русский язык">RU</button>
       </div>
 
-      <button class="sound-toggle-btn" id="btn-sound-toggle" type="button" title="Включить / выключить звук" aria-label="Звук">
+      <button class="sound-toggle-btn" id="btn-sound-toggle" type="button" title="Включить / выключить звук" data-i18n-title="sound_toggle" aria-label="Звук" data-i18n-aria="sound_label">
         <span id="sound-icon">🔊</span>
       </button>
 
-      <button class="theme-switch" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Переключить тему" title="Переключить тему">
+      <button class="theme-switch" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Переключить тему" data-i18n-aria="theme_toggle" title="Переключить тему" data-i18n-title="theme_toggle">
         <span class="theme-switch-track" aria-hidden="true">
           <span class="theme-switch-thumb">
             <svg class="theme-switch-sun" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -71,11 +71,11 @@
     </div>
 
     <!-- Переключение формата: Куча примеров (Тренажёр) vs По одной карточке -->
-    <div class="trainer-view-tabs" role="tablist" aria-label="Формат отображения">
-      <button type="button" class="trainer-view-tab active" id="tab-view-sheet" data-view="sheet" role="tab" aria-selected="true" data-i18n="tab_sheet">
+    <div class="trainer-view-tabs" role="tablist" aria-label="Формат отображения" data-i18n-aria="trainer_view_tabs_label">
+      <button type="button" class="trainer-view-tab active" id="tab-view-sheet" data-view="sheet" role="tab" aria-selected="true" data-i18n="trainer_view_sheet">
         📋 Куча примеров на страницу (Тренажёр)
       </button>
-      <button type="button" class="trainer-view-tab" id="tab-view-card" data-view="card" role="tab" aria-selected="false" data-i18n="tab_card">
+      <button type="button" class="trainer-view-tab" id="tab-view-card" data-view="card" role="tab" aria-selected="false" data-i18n="trainer_view_card">
         🗂️ По одной карточке (Спринт / Марафон)
       </button>
     </div>
@@ -126,10 +126,10 @@
         </div>
 
         <div class="sheet-action-btns">
-          <button type="button" class="secondary-button" id="btn-sheet-refresh" data-i18n="btn_sheet_refresh" title="Сгенерировать новые случайные примеры">
+          <button type="button" class="secondary-button" id="btn-sheet-refresh" data-i18n="trainer_btn_new_sheet" title="Сгенерировать новые случайные примеры">
             🔄 Новый лист
           </button>
-          <button type="button" class="secondary-button" id="btn-sheet-check-all" data-i18n="btn_sheet_check_all" title="Проверить все введённые ответы">
+          <button type="button" class="secondary-button" id="btn-sheet-check-all" data-i18n="trainer_btn_check_all" title="Проверить все введённые ответы">
             ✓ Проверить всё
           </button>
         </div>
@@ -152,9 +152,9 @@
       <div class="sheet-completion-card" id="sheet-completion-card" hidden>
         <div class="completion-icon">🏆</div>
         <h3 data-i18n="sheet_completed_title">Отличная работа! Лист завершён!</h3>
-        <p id="sheet-completion-text">Все примеры решены верно!</p>
+        <p id="sheet-completion-text" data-i18n="trainer_sheet_completed">Все примеры решены верно!</p>
         <div class="completion-actions">
-          <button type="button" class="primary-button" id="btn-sheet-next-pack" data-i18n="sheet_completed_btn">
+          <button type="button" class="primary-button" id="btn-sheet-next-pack" data-i18n="trainer_btn_generate_new_sheet">
             🚀 Сгенерировать новый лист
           </button>
         </div>
@@ -165,7 +165,7 @@
     <div class="trainer-arena" id="trainer-arena" hidden>
       <!-- HUD / Статистика текущей сессии -->
       <div class="trainer-hud">
-        <div class="trainer-stat-badge streak-badge" id="hud-streak" title="Текущая серия правильных ответов подряд">
+        <div class="trainer-stat-badge streak-badge" id="hud-streak" title="Текущая серия правильных ответов подряд" data-i18n-title="trainer_hud_streak_title">
           <span class="streak-icon">🔥</span>
           <span class="streak-val" id="val-streak">0</span>
           <span class="stat-caption" data-i18n="hud_streak">серия</span>
@@ -174,7 +174,7 @@
         <div class="trainer-stat-badge" id="hud-score">
           <span class="stat-icon">⭐</span>
           <span class="stat-val" id="val-score">0</span>
-          <span class="stat-caption" data-i18n="hud_score">решено</span>
+          <span class="stat-caption" data-i18n="hud_score">очки</span>
         </div>
 
         <div class="trainer-stat-badge" id="hud-accuracy">
@@ -186,7 +186,7 @@
         <div class="trainer-stat-badge timer-badge" id="hud-timer" hidden>
           <span class="timer-icon">⏱️</span>
           <span class="timer-val" id="val-timer">60s</span>
-          <span class="stat-caption">время</span>
+          <span class="stat-caption" data-i18n="trainer_caption_time">время</span>
         </div>
       </div>
 
@@ -210,6 +210,7 @@
               id="trainer-input" 
               class="trainer-input" 
               placeholder="Ответ..." 
+              data-i18n-placeholder="trainer_input_placeholder"
               autocomplete="off" 
               autocorrect="off" 
               autocapitalize="off" 
@@ -217,14 +218,14 @@
               inputmode="decimal"
               autofocus
             />
-            <button type="submit" class="primary-button trainer-submit-btn" id="btn-submit-answer">
+            <button type="submit" class="primary-button trainer-submit-btn" id="btn-submit-answer" data-i18n="trainer_btn_check">
               ↵ Проверить
             </button>
-            <button type="button" class="text-button trainer-skip-btn" id="btn-skip-question" title="Пропустить пример">
+            <button type="button" class="text-button trainer-skip-btn" id="btn-skip-question" title="Пропустить пример" data-i18n-title="trainer_skip_tooltip" data-i18n="trainer_btn_skip">
               Пропустить →
             </button>
           </div>
-          <p class="trainer-input-hint" id="trainer-input-hint">
+          <p class="trainer-input-hint" id="trainer-input-hint" data-i18n-html="trainer_fraction_hint">
             Подсказка: для обыкновенных дробей пишите <code>3/4</code>, для десятичных — через точку или запятую (<code>2.5</code> или <code>2,5</code>).
           </p>
         </form>
@@ -256,7 +257,7 @@
         <div class="trainer-feedback-card" id="feedback-card" hidden>
           <div class="feedback-status-row">
             <span class="feedback-icon" id="feedback-icon">✓</span>
-            <span class="feedback-text" id="feedback-text">Правильно!</span>
+            <span class="feedback-text" id="feedback-text" data-i18n="trainer_feedback_correct">Правильно!</span>
           </div>
         </div>
       </div>
@@ -265,32 +266,32 @@
     <!-- Модальное окно завершения спринта -->
     <dialog class="auth-dialog trainer-modal" id="sprint-modal">
       <div class="trainer-modal-head">
-        <h2>⏱️ Спринт завершён!</h2>
+        <h2 data-i18n="trainer_sprint_done_title">⏱️ Спринт завершён!</h2>
       </div>
-      <p class="trainer-modal-subtitle" id="sprint-subtitle">Отличный результат тренировки устного счёта!</p>
+      <p class="trainer-modal-subtitle" id="sprint-subtitle" data-i18n="trainer_sprint_done_subtitle">Отличный результат тренировки устного счёта!</p>
 
       <div class="sprint-stats-grid">
         <div class="sprint-stat-item highlight">
           <span class="sprint-stat-num" id="res-score">0</span>
-          <span class="sprint-stat-label">Решено правильно</span>
+          <span class="sprint-stat-label" data-i18n="trainer_sprint_stat_solved">Решено правильно</span>
         </div>
         <div class="sprint-stat-item">
           <span class="sprint-stat-num" id="res-accuracy">100%</span>
-          <span class="sprint-stat-label">Точность</span>
+          <span class="sprint-stat-label" data-i18n="trainer_sprint_stat_accuracy">Точность</span>
         </div>
         <div class="sprint-stat-item">
           <span class="sprint-stat-num" id="res-max-streak">0</span>
-          <span class="sprint-stat-label">Лучшая серия 🔥</span>
+          <span class="sprint-stat-label" data-i18n="trainer_sprint_stat_streak">Лучшая серия 🔥</span>
         </div>
         <div class="sprint-stat-item">
           <span class="sprint-stat-num" id="res-best-score">0</span>
-          <span class="sprint-stat-label">Личный рекорд 🏆</span>
+          <span class="sprint-stat-label" data-i18n="trainer_sprint_stat_record">Личный рекорд 🏆</span>
         </div>
       </div>
 
       <div class="form-actions" style="margin-top: 24px; justify-content: center; gap: 12px;">
-        <button type="button" class="primary-button" id="btn-restart-sprint">⚡ Попробовать снова</button>
-        <button type="button" class="secondary-button" id="btn-close-sprint">Вернуться к тренировке</button>
+        <button type="button" class="primary-button" id="btn-restart-sprint" data-i18n="trainer_btn_restart_sprint">⚡ Попробовать снова</button>
+        <button type="button" class="secondary-button" id="btn-close-sprint" data-i18n="trainer_btn_close_sprint">Вернуться к тренировке</button>
       </div>
     </dialog>
   </main>

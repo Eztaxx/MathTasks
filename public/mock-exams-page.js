@@ -19,7 +19,7 @@
 
 /* Формулы в тексте страницы записаны как $…$ — отрисовываем их разом.
    Долларов в ценах и прочем тут нет, так что перебирать нечего. */
-document.addEventListener('DOMContentLoaded', () => {
+function renderPageMath() {
   if (!window.renderMathInElement) return;
   window.renderMathInElement(document.body, {
     delimiters: [
@@ -28,4 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
     ],
     throwOnError: false
   });
+}
+
+document.addEventListener('DOMContentLoaded', renderPageMath);
+window.addEventListener('languagechange', () => {
+  setTimeout(renderPageMath, 20);
 });
