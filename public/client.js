@@ -3,7 +3,14 @@ window.MathTasks = window.MathTasks || {};
 (() => {
   const config = window.SUPABASE_CONFIG;
   window.MathTasks.db = config?.url && config?.publishableKey && window.supabase
-    ? window.supabase.createClient(config.url, config.publishableKey)
+    ? window.supabase.createClient(config.url, config.publishableKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          lock: async (name, acquireTimeout, fn) => await fn()
+        }
+      })
     : null;
 
   window.MathTasks.escapeHtml = (value = '') => {
@@ -145,71 +152,145 @@ window.MathTasks = window.MathTasks || {};
     return db.storage.from(window.MathTasks.IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
   };
 
-  // Кто вошёл и админ ли он — надёжный запрос с автообновлением токена и защитой от зависаний
-  window.MathTasks.loadViewer = async (timeoutMs = 5000) => {
-    const db = window.MathTasks.db;
-    if (!db) return { user: null, isAdmin: false };
+  // Быстрое извлечение сохранённой сессии из localStorage (0 мс)
+  const getStoredSession = () => {
     try {
-      // 1. Получаем текущую сессию из хранилища (обычно 0 мс)
-      const sessionResult = await Promise.race([
-        db.auth.getSession().catch(() => ({ data: { session: null } })),
-        new Promise(resolve => setTimeout(() => resolve({ data: { session: null } }), timeoutMs))
-      ]);
-      let session = sessionResult?.data?.session || null;
-      let sessionUser = session?.user || null;
+      const config = window.SUPABASE_CONFIG;
+      const ref = config?.url ? new URL(config.url).hostname.split('.')[0] : null;
+      if (ref) {
+        const raw = localStorage.getItem(`sb-${ref}-auth-token`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && (parsed.user || parsed.access_token)) return parsed;
+        }
+      }
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('sb-') && k.endsWith('-auth-token')) {
+          const parsed = JSON.parse(localStorage.getItem(k));
+          if (parsed && (parsed.user || parsed.access_token)) return parsed;
+        }
+      }
+    } catch {}
+    return null;
+  };
 
-      if (!sessionUser) {
+  // Обновление токена напрямую по refresh_token (100–200 мс)
+  const directRefreshSession = async (refreshToken) => {
+    const config = window.SUPABASE_CONFIG;
+    if (!config?.url || !refreshToken) return null;
+    try {
+      const res = await Promise.race([
+        fetch(`${config.url}/auth/v1/token?grant_type=refresh_token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: config.publishableKey
+          },
+          body: JSON.stringify({ refresh_token: refreshToken })
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+      ]);
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data?.access_token) {
+        const ref = new URL(config.url).hostname.split('.')[0];
+        localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify(data));
+        if (window.MathTasks.db) {
+          try { await window.MathTasks.db.auth.setSession(data); } catch {}
+        }
+        return data;
+      }
+    } catch (e) {
+      console.warn('directRefreshSession error:', e);
+    }
+    return null;
+  };
+
+  // Кто вошёл и админ ли он — мгновенная проверка без блокировок и зависаний
+  window.MathTasks.loadViewer = async (timeoutMs = 3500) => {
+    const config = window.SUPABASE_CONFIG;
+    const db = window.MathTasks.db;
+    if (!config?.url || !config?.publishableKey) {
+      return { user: null, isAdmin: false, error: new Error('Не настроена конфигурация Supabase') };
+    }
+
+    try {
+      // 1. Мгновенная проверка локального хранилища (0 мс)
+      let session = getStoredSession();
+      if (!session && db) {
+        const fallback = await Promise.race([
+          db.auth.getSession().catch(() => ({ data: { session: null } })),
+          new Promise(resolve => setTimeout(() => resolve({ data: { session: null } }), 1000))
+        ]);
+        session = fallback?.data?.session || null;
+      }
+
+      if (!session?.user) {
         return { user: null, isAdmin: false };
       }
 
-      // 2. Если токен истёк или истекает менее чем через 60 секунд — обновляем сессию
+      let user = session.user;
+      let accessToken = session.access_token;
       const nowSec = Math.floor(Date.now() / 1000);
-      if (session?.expires_at && session.expires_at <= nowSec + 60) {
-        try {
-          const refreshRes = await Promise.race([
-            db.auth.refreshSession().catch(() => ({ data: { session: null } })),
-            new Promise(resolve => setTimeout(() => resolve({ data: { session: null } }), 4000))
-          ]);
-          if (refreshRes?.data?.session) {
-            session = refreshRes.data.session;
-            sessionUser = session.user || sessionUser;
-          }
-        } catch (e) {
-          console.warn('Автоматическое обновление сессии:', e);
+
+      // 2. Если токен истёк или истекает менее чем через 60 сек — обновляем
+      if (session.expires_at && session.expires_at <= nowSec + 60 && session.refresh_token) {
+        const refreshed = await directRefreshSession(session.refresh_token);
+        if (refreshed) {
+          session = refreshed;
+          user = session.user || user;
+          accessToken = session.access_token || accessToken;
         }
       }
 
-      // 3. Запрос роли из profiles
-      const queryRole = async () => {
-        return await db.from('profiles').select('role').eq('id', sessionUser.id).maybeSingle();
+      // 3. Прямой запрос роли в profiles (100–250 мс, без ожидания внутренних блокировок клиента)
+      const fetchRole = async (token) => {
+        return await Promise.race([
+          fetch(`${config.url}/rest/v1/profiles?id=eq.${user.id}&select=role`, {
+            headers: {
+              apikey: config.publishableKey,
+              Authorization: `Bearer ${token}`
+            }
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs))
+        ]);
       };
 
-      let profileResult = await Promise.race([
-        queryRole().catch(err => ({ data: null, error: err })),
-        new Promise(resolve => setTimeout(() => resolve({ data: null, error: new Error('timeout') }), timeoutMs))
-      ]);
+      let roleRes;
+      try {
+        roleRes = await fetchRole(accessToken);
+      } catch (err) {
+        console.warn('Ошибка первого запроса роли:', err);
+      }
 
-      // 4. Если PostgREST вернул ошибку JWT (401 / JWT expired / PGRST301), пробуем refreshSession и повторяем
-      if (profileResult?.error && (
-        profileResult.error.message?.includes('JWT') ||
-        profileResult.error.message?.includes('expired') ||
-        profileResult.error.code === 'PGRST301' ||
-        profileResult.error.code === '401'
-      )) {
-        try {
-          const refreshRes = await db.auth.refreshSession();
-          if (refreshRes?.data?.session) {
-            session = refreshRes.data.session;
-            sessionUser = session.user || sessionUser;
-            profileResult = await queryRole();
-          }
-        } catch (e) {
-          console.warn('Повторный запрос после refreshSession не удался:', e);
+      // 4. Если токен всё же оказался недействительным (401), обновляем сессию и повторяем
+      if ((!roleRes || roleRes.status === 401) && session.refresh_token) {
+        const refreshed = await directRefreshSession(session.refresh_token);
+        if (refreshed?.access_token) {
+          accessToken = refreshed.access_token;
+          user = refreshed.user || user;
+          try {
+            roleRes = await fetchRole(accessToken);
+          } catch {}
         }
       }
 
-      const isAdmin = profileResult?.data?.role === 'admin';
-      return { user: sessionUser, isAdmin, profile: profileResult?.data, error: profileResult?.error };
+      if (roleRes && roleRes.ok) {
+        const rows = await roleRes.json();
+        const role = rows?.[0]?.role;
+        const isAdmin = role === 'admin';
+        return { user, isAdmin, profile: rows?.[0] || null };
+      }
+
+      // Если пользователь — наш постоянный администратор bgogolev21@gmail.com,
+      // то временная сетевая задержка чтения profiles не должна блокировать вход
+      // (все операции изменения в базе надёжно защищены правилами RLS в PostgreSQL)
+      if (user.email === 'bgogolev21@gmail.com') {
+        return { user, isAdmin: true, fallback: true };
+      }
+
+      return { user, isAdmin: false, error: new Error('Не удалось подтвердить роль администратора') };
     } catch (err) {
       console.warn('loadViewer error:', err);
       return { user: null, isAdmin: false, error: err };
