@@ -482,14 +482,14 @@ function renderHubSidebar() {
         <div class="track-card-badge orange">3. kl.</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('grade_3'))}</strong>
-          <span>${escapeHtml(tr('track_diag'))}</span>
+          <span>${escapeHtml(tr('track_diag_short'))}</span>
         </div>
       </a>
       <a class="sidebar-track-card${isGradeActive(6) ? ' active' : ''}" href="/grade/6" title="${escapeHtml(tr('grade_6'))}">
         <div class="track-card-badge green">6. kl.</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('grade_6'))}</strong>
-          <span>${escapeHtml(tr('track_diag'))}</span>
+          <span>${escapeHtml(tr('track_diag_short'))}</span>
         </div>
       </a>
     </div>
@@ -1459,11 +1459,21 @@ function renderGradeActions() {
   box.hidden = false;
 }
 
+/* «Популярные темы» без выбранного класса — самые наполненные темы, а не
+   весь каталог подряд: туда попадали и пустые темы с плашкой «Пока пусто». */
+const POPULAR_TOPICS_LIMIT = 8;
+function popularTopics(topics) {
+  return topics
+    .filter(t => (taskCounts.get(t.id) || 0) > 0)
+    .sort((a, b) => (taskCounts.get(b.id) || 0) - (taskCounts.get(a.id) || 0))
+    .slice(0, POPULAR_TOPICS_LIMIT);
+}
+
 async function loadHome() {
   renderGradeActions();
   const topics = topicsForGrade(allTopics);
   topicsElement.innerHTML = topics.length
-    ? topics.map((topic, index) => topicCard(topic, index, !selectedGrade)).join('')
+    ? (selectedGrade ? topics : popularTopics(topics)).map((topic, index) => topicCard(topic, index, !selectedGrade)).join('')
     : `<p class="empty-state">${selectedGrade ? `Тем для ${gradeLabel(selectedGrade)} пока нет.` : 'Темы ещё не добавлены.'}</p>`;
 
   let query = db.from('tasks').select(TASK_SELECT).eq('is_published', true).order('created_at', { ascending: false }).limit(10);
