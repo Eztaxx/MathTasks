@@ -349,7 +349,7 @@ window.MathTasks = window.MathTasks || {};
       let user = session.user;
       let accessToken = session.access_token;
       const nowSec = Math.floor(Date.now() / 1000);
-      const isKnownAdminEmail = (user.email || '').toLowerCase() === 'bgogolev21@gmail.com';
+
 
       // 2. Если токен истёк или истекает менее чем через 60 сек — обновляем
       if (session.expires_at && session.expires_at <= nowSec + 60 && session.refresh_token) {
@@ -396,17 +396,13 @@ window.MathTasks = window.MathTasks || {};
       if (roleRes && roleRes.ok) {
         const rows = await roleRes.json().catch(() => []);
         const role = rows?.[0]?.role;
-        const isAdmin = role === 'admin' || isKnownAdminEmail;
+        const isAdmin = role === 'admin';
         return { user, isAdmin, profile: rows?.[0] || null };
       }
 
-      // Если пользователь — наш постоянный администратор bgogolev21@gmail.com,
-      // то временная сетевая задержка чтения profiles не должна блокировать вход
-      // (все операции изменения в базе надёжно защищены правилами RLS в PostgreSQL)
-      if (isKnownAdminEmail) {
-        return { user, isAdmin: true, fallback: true };
-      }
-
+      /* Роль не прочиталась — админом не считаем. Экран доступа покажет
+         ошибку с кнопкой «Повторить». Адрес администратора в коде не
+         держим: файл открыт любому посетителю. */
       return { user, isAdmin: false, error: new Error('Не удалось подтвердить роль администратора') };
     } catch (err) {
       console.warn('loadViewer error:', err);

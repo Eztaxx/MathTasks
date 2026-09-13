@@ -214,11 +214,11 @@
           <form id="admin-gate-login-form">
             <label style="display:block;margin-bottom:12px;">
               <span style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Email</span>
-              <input type="email" id="admin-gate-email" required value="bgogolev21@gmail.com" style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border,#cbd5e1);border-radius:8px;font-size:14px;" autocomplete="username" />
+              <input type="email" id="admin-gate-email" required autofocus style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border,#cbd5e1);border-radius:8px;font-size:14px;" autocomplete="username" />
             </label>
             <label style="display:block;margin-bottom:14px;">
               <span style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Пароль</span>
-              <input type="password" id="admin-gate-password" required autofocus style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border,#cbd5e1);border-radius:8px;font-size:14px;" autocomplete="current-password" />
+              <input type="password" id="admin-gate-password" required style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border,#cbd5e1);border-radius:8px;font-size:14px;" autocomplete="current-password" />
             </label>
             <div id="admin-gate-login-error" style="color:#e53e3e;font-size:13px;margin-bottom:12px;" hidden></div>
             <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;">
@@ -267,8 +267,9 @@
           const user = loginRes.data?.user;
           const session = loginRes.data?.session;
 
-          const isKnownAdmin = (user?.email || email).toLowerCase() === 'bgogolev21@gmail.com';
-          let isAdmin = isKnownAdmin;
+          /* Права — только по роли в profiles. Адрес администратора в коде
+             не держим: этот файл открыт любому посетителю. */
+          let isAdmin = false;
 
           if (!isAdmin && session?.access_token && user?.id) {
             try {
