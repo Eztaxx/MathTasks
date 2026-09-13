@@ -41,6 +41,17 @@
   const bulkDialogCopy = document.querySelector('#bulk-dialog-copy');
   const bulkDialogTagList = document.querySelector('#bulk-dialog-taglist');
   const bulkDialogClose = document.querySelector('#bulk-dialog-close');
+  /* Эти семь объявлений однажды пропали при правке, а обращения к ним
+     остались. Обращение к необъявленной переменной — ReferenceError даже
+     через ?., и скрипт падал до initAdminApp: экран «Проверяем доступ…»
+     не сменялся формой входа. Тест admin-refs.test.js это ловит. */
+  const bulkDialogCancel = document.querySelector('#bulk-dialog-cancel');
+  const bulkDialogFileInput = document.querySelector('#bulk-dialog-file-input');
+  const btnUploadFileTasks = document.querySelector('#btn-upload-file-tasks');
+  const bulkDialogPickFileBtn = document.querySelector('#bulk-dialog-pick-file-btn');
+  const bulkDialogTemplateBtn = document.querySelector('#bulk-dialog-template-btn');
+  const bulkDialogCsvTemplateBtn = document.querySelector('#bulk-dialog-csv-template-btn');
+  const topicListCloseTop = document.querySelector('#topic-list-close');
   const bulkFileTasksLabel = document.querySelector('#btn-upload-file-tasks-label');
   const bulkFileInput = document.querySelector('#bulk-file-input');
   const btnExportCsv = document.querySelector('#btn-export-csv');
