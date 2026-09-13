@@ -544,12 +544,31 @@
                 <button type="button" class="text-button" id="btn-close-sample-csv">Закрыть</button>
               </div>
             </div>
-            <p class="admin-hint">Первая строка — названия столбцов, дальше одна задача на строку. Разделитель — точка с запятой или табуляция: так Excel и Google Таблицы копируют ячейки. Обязательны <code>topic_title</code> и <code>condition_latex</code>. Тема ищется по точному названию — номер «8.8.» можно оставить, он снимется; если название не совпало, заводится новая тема. Подтема — по полному коду: <code>8.8.3</code>, для уровней <code>11.10.2</code>. Чертёж — столбец <code>condition_svg</code> с SVG-кодом одной строкой: админка сама сохранит его файлом и привяжет к задаче. Импорт <strong>только добавляет</strong> задачи: загрузить свою же выгрузку обратно — значит продублировать каждую.</p>
-            <pre class="json-sample-pre"><code id="csv-sample-code">grade;topic_title;topic_title_lv;subtopic_code;subtopic_title;subtopic_title_lv;condition_latex;condition_latex_lv;answer_latex;answer_latex_lv;solution_latex;solution_latex_lv;hint_latex;hint_latex_lv;difficulty;tags
-8;"Как определяют неизвестную сторону прямоугольного треугольника, теорема Пифагора";Kā nosaka taisnleņķa trijstūra nezināmās malas garumu?;8.8.3;Теорема Пифагора;Pitagora teorēma;Катеты прямоугольного треугольника равны $6\text{ см}$ и $8\text{ см}$. Найдите гипотенузу.;Taisnleņķa trijstūra katetes ir $6\text{ cm}$ un $8\text{ cm}$. Aprēķiniet hipotenūzu.;$10\text{ см}$;$10\text{ cm}$;По теореме Пифагора: $$c=\sqrt{6^2+8^2}=\sqrt{100}=10\text{ см}$$;Pēc Pitagora teorēmas: $$c=\sqrt{6^2+8^2}=\sqrt{100}=10\text{ cm}$$;;;Лёгкий;"planimetrija; merijumi"
+            <p class="admin-hint">Первая строка — названия столбцов, дальше одна задача на строку. Разделитель — табуляция (так копируют Excel и Google Таблицы) или точка с запятой. Ячейку с переносом строки, «;» или кавычкой оберните в двойные кавычки, а кавычку внутри удвойте. Порядок столбцов любой, незнакомые столбцы пропускаются. Импорт <strong>только добавляет</strong> задачи и сохраняет их <strong>черновиками</strong> — на сайт они попадут после проверки.</p>
+            <div class="admin-spec-wrap">
+              <table class="admin-spec">
+                <thead><tr><th>Столбец</th><th>Что писать</th><th>Пример</th></tr></thead>
+                <tbody>
+                  <tr><td><code>grade</code></td><td>Класс 1–9. Уровни: 10 — Vispārīgais, 11 — Matemātika I, 12 — Matemātika II</td><td>8</td></tr>
+                  <tr><td><code>topic_title</code> *</td><td>Название темы дословно, как в админке. Номер «8.8.» можно оставить. Не нашлось — будет создана новая тема</td><td>Как определяют неизвестную сторону…</td></tr>
+                  <tr><td><code>topic_title_lv</code></td><td>Латышское название темы — по нему тема тоже находится</td><td>Kā nosaka taisnleņķa…</td></tr>
+                  <tr><td><code>subtopic_code</code></td><td>Полный номер подтемы</td><td>8.8.3 · 11.10.2</td></tr>
+                  <tr><td><code>subtopic_title</code>, <code>_lv</code></td><td>Нужны, только если заводите новую подтему</td><td>Теорема Пифагора</td></tr>
+                  <tr><td><code>condition_latex</code> *, <code>_lv</code></td><td>Условие на русском и латышском, формулы в долларах</td><td>Решите уравнение $2x+3=11$.</td></tr>
+                  <tr><td><code>answer_latex</code>, <code>_lv</code></td><td>Короткий ответ</td><td>$x=4$</td></tr>
+                  <tr><td><code>hint_latex</code>, <code>_lv</code></td><td>Подсказка — приём, без ответа</td><td>Перенесите числа вправо.</td></tr>
+                  <tr><td><code>solution_latex</code>, <code>_lv</code></td><td>Решение по шагам</td><td>1. … 2. …</td></tr>
+                  <tr><td><code>difficulty</code></td><td>Лёгкий, Средний или Сложный</td><td>Средний</td></tr>
+                  <tr><td><code>tags</code></td><td>1–3 слага кросс-тегов через «;»</td><td>planimetrija; merijumi</td></tr>
+                  <tr><td><code>condition_svg</code></td><td>Чертёж — SVG-код одной строкой, сохранится файлом сам</td><td>&lt;svg …&gt;…&lt;/svg&gt;</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="admin-hint">* — обязательные столбцы. Заголовки можно писать и по-русски или по-латышски: «Тема», «Условие», «Условие (LV)», «Ответ», «Подсказка», «Сложность», «Чертёж». Готовую таблицу под конкретную тему проще всего получить кнопкой «🤖 Промпт для ИИ».</p>            <pre class="json-sample-pre"><code id="csv-sample-code">grade;topic_title;topic_title_lv;subtopic_code;subtopic_title;subtopic_title_lv;condition_latex;condition_latex_lv;answer_latex;answer_latex_lv;solution_latex;solution_latex_lv;hint_latex;hint_latex_lv;difficulty;tags;condition_svg
+8;"Как определяют неизвестную сторону прямоугольного треугольника, теорема Пифагора";Kā nosaka taisnleņķa trijstūra nezināmās malas garumu?;8.8.3;Теорема Пифагора;Pitagora teorēma;Катеты прямоугольного треугольника равны $6\text{ см}$ и $8\text{ см}$. Найдите гипотенузу.;Taisnleņķa trijstūra katetes ir $6\text{ cm}$ un $8\text{ cm}$. Aprēķiniet hipotenūzu.;$10\text{ см}$;$10\text{ cm}$;По теореме Пифагора: $$c=\sqrt{6^2+8^2}=\sqrt{100}=10\text{ см}$$;Pēc Pitagora teorēmas: $$c=\sqrt{6^2+8^2}=\sqrt{100}=10\text{ cm}$$;Катеты и гипотенуза связаны теоремой Пифагора.;Katetes un hipotenūzu saista Pitagora teorēma.;Лёгкий;"planimetrija; merijumi";&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'&gt;&lt;g stroke='#000' stroke-width='2' fill='none'&gt;&lt;polygon points='80,240 320,240 80,60'/&gt;&lt;polyline points='80,218 102,218 102,240'/&gt;&lt;/g&gt;&lt;/svg&gt;
 7;"Каковы приемы определения неизвестного, линейное уравнение";Kādi ir paņēmieni nezināmā noteikšanai?;7.8.1;Линейное уравнение и его решение;Lineārs vienādojums un tā atrisināšana;Решите уравнение $3(x-2)=2x+5$.;Atrisiniet vienādojumu $3(x-2)=2x+5$.;$x=11$;$x=11$;"1. Раскроем скобки: $3x-6=2x+5$.
-2. Перенесём неизвестные влево: $x=11$.";"1. Atveram iekavas: $3x-6=2x+5$.
-2. Pārnesam nezināmos pa kreisi: $x=11$.";;;Средний;vienadojumi</code></pre>
+2. Перенесём неизвестные влево, числа вправо: $3x-2x=5+6$, откуда $x=11$.";"1. Atveram iekavas: $3x-6=2x+5$.
+2. Nezināmos pārnesam pa kreisi, skaitļus pa labi: $3x-2x=5+6$, tātad $x=11$.";Сначала раскройте скобки.;Vispirms atveriet iekavas.;Средний;vienadojumi;</code></pre>
           </div>
 
           <!-- 📄 Образец иерархического формата JSON прямо рядом с кнопками загрузки (Требование 5) -->
@@ -663,12 +682,13 @@
               <select id="task-filter-status" class="admin-select-filter">
                 <option value="">Все статусы</option>
                 <option value="published">Опубликованные</option>
-                <option value="draft">Черновики</option>
+                <option value="draft">На проверке (черновики)</option>
                 <option value="no_solution">Без решений</option>
                 <option value="with_image">С чертежами</option>
               </select>
             </label>
             <span class="admin-filter-count" id="task-filter-count"></span>
+            <button class="admin-review-chip" type="button" id="task-review-chip" title="Показать черновики, которые ждут проверки" hidden></button>
             <button class="text-button" type="button" id="task-filter-reset" hidden>Сбросить</button>
           </div>
         </div>
@@ -699,6 +719,10 @@
             <button type="button" class="admin-tool-btn" id="bulk-dialog-ai-prompt-btn">🤖 Промпт для ИИ (30+ задач)</button>
           </div>
           <textarea class="bulk-dialog-textarea" id="bulk-dialog-textarea" rows="12" spellcheck="false" placeholder="Вставьте JSON, CSV или скопированные из Excel / Google Таблиц строки..."></textarea>
+          <label class="bulk-dialog-publish-row" id="bulk-dialog-publish-row" hidden>
+            <input type="checkbox" id="bulk-dialog-publish" />
+            <span>Опубликовать сразу, без проверки <small>— по умолчанию задачи сохраняются черновиками и ждут проверки</small></span>
+          </label>
           <div class="bulk-dialog-status" id="bulk-dialog-status" hidden></div>
           <div class="bulk-dialog-actions">
             <button type="button" class="primary-button" id="bulk-dialog-submit">Выполнить импорт</button>
@@ -715,8 +739,14 @@
             <h3>🤖 Готовый промпт для нейросети (30+ задач за один запрос)</h3>
             <button type="button" class="bulk-dialog-close" id="ai-prompt-dialog-close" aria-label="Закрыть">&times;</button>
           </div>
-          <p class="bulk-dialog-desc">Скопируйте этот промпт, вставьте в <strong>ChatGPT, Claude или Gemini</strong>, указав нужную тему. Нейросеть сгенерирует таблицу из 30–50 задач. Скопируйте её ответ и нажмите «Выполнить импорт»!</p>
-          <textarea class="bulk-dialog-textarea" id="ai-prompt-textarea" rows="12" readonly spellcheck="false"></textarea>
+          <p class="bulk-dialog-desc">Выберите класс, тему и, если нужно, подтему — промпт подставит точные названия из базы, номера подтем и список тегов. Скопируйте его в <strong>ChatGPT, Claude или Gemini</strong>, а ответ-таблицу вставьте в окно импорта. Задачи сохранятся черновиками: после проверки опубликуйте их.</p>
+          <div class="ai-form-row ai-prompt-controls">
+            <label class="field-grade">Класс / курс <select id="ai-prompt-grade"></select></label>
+            <label class="field-topic">Тема <select id="ai-prompt-topic"></select></label>
+            <label class="field-subtopic">Подтема <select id="ai-prompt-subtopic"></select></label>
+            <label class="field-count">Задач <input type="number" id="ai-prompt-count" value="30" min="1" max="60" /></label>
+          </div>
+          <textarea class="bulk-dialog-textarea" id="ai-prompt-textarea" rows="14" spellcheck="false"></textarea>
           <div class="bulk-dialog-actions">
             <button type="button" class="primary-button" id="ai-prompt-copy-btn">📋 Скопировать промпт</button>
             <button type="button" class="text-button" id="ai-prompt-close-btn">Закрыть</button>

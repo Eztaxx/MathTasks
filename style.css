@@ -5296,3 +5296,17 @@ body.dark .cw-cat-pill.done {
   color: #86efac;
 }
 
+/* ── Админка: справка по столбцам CSV, очередь проверки, окно промпта ── */
+.admin-spec-wrap{overflow-x:auto;margin:6px 0 10px}
+.admin-spec{width:100%;border-collapse:collapse;font-size:12.5px}
+.admin-spec th,.admin-spec td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.admin-spec th{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.admin-spec td:first-child,.admin-spec td:last-child{white-space:nowrap}
+.admin-review-chip{border:1px solid #f5d27a;background:#fff7e0;color:#8a5a00;border-radius:999px;padding:4px 11px;font-size:12px;font-weight:700;cursor:pointer}
+.admin-review-chip:hover{border-color:#e9b949}
+.admin-review-chip[hidden]{display:none}
+body.dark .admin-review-chip{background:#3a2908;border-color:#5c4312;color:#ffce6b}
+.bulk-dialog-publish-row{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:13px;cursor:pointer}
+.bulk-dialog-publish-row[hidden]{display:none}
+.bulk-dialog-publish-row small{color:var(--muted);font-size:12px}
+.ai-prompt-controls{margin:4px 0 10px}

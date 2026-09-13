@@ -752,6 +752,86 @@
     };
   };
 
+  /* ── Промпт для нейросети: таблица задач под конкретную тему ──
+     Промпт собирается из базы: точные названия темы (по ним импорт
+     находит тему), настоящие номера подтем и закрытый список тегов.
+     С общим промптом модель выдумывала номера и теги, и импорт отвечал
+     предупреждениями. Столбцы — ровно те, что узнаёт parseCsvToTasks. */
+  const TASK_PROMPT_COLUMNS = [
+    'grade', 'topic_title', 'topic_title_lv', 'subtopic_code',
+    'condition_latex', 'condition_latex_lv', 'answer_latex', 'answer_latex_lv',
+    'hint_latex', 'hint_latex_lv', 'solution_latex', 'solution_latex_lv',
+    'difficulty', 'tags', 'condition_svg'
+  ];
+  const DEFAULT_TAG_SLUGS = [
+    'algebriskie-parveidojumi', 'vienadojumi', 'nevienadibas', 'funkcijas', 'grafiki',
+    'koordinatu-metode', 'vektori', 'trigonometrija', 'planimetrija', 'stereometrija',
+    'merijumi', 'dalas-procenti', 'dalamiba', 'pakapes-saknes', 'logaritmi',
+    'virknes', 'kombinatorika', 'varbutiba', 'statistika', 'matematiska-analize',
+    'modelesana', 'teksta-uzdevumi', 'pieradijumi'
+  ];
+
+  const buildTaskPrompt = ({ grade = null, gradeLabel = '', topic = null, subtopics = [], subtopic = null, count = 30, tags = [] } = {}) => {
+    const n = Math.max(1, Math.min(60, Number(count) || 30));
+    const tagSlugs = (tags && tags.length ? tags : DEFAULT_TAG_SLUGS).filter(Boolean);
+    const coded = (subtopics || []).filter(s => s && s.code);
+    const lines = [];
+    const push = (...xs) => lines.push(...xs);
+
+    push(`Составь ${n} задач по математике для MathTasks — двуязычного (русский и латышский) решебника по латвийскому стандарту Skola2030.`, '');
+
+    push('ЧТО СОСТАВИТЬ');
+    if (grade) push(`Класс / курс: ${gradeLabel || grade} — в столбце grade везде пиши ${grade}.`);
+    else push('Класс / курс: [КЛАСС] — число в столбце grade: 1–9 для классов, 10 — Vispārīgais, 11 — Matemātika I, 12 — Matemātika II.');
+    if (topic) {
+      push(`Тема: «${topic.title}»${topic.title_lv ? ` / «${topic.title_lv}»` : ''}. Копируй в topic_title${topic.title_lv ? ' и topic_title_lv' : ''} дословно — по названию задача найдёт свою тему.`);
+    } else {
+      push('Тема: [НАЗВАНИЕ ТЕМЫ] — впиши в topic_title точное название темы, как на сайте, в topic_title_lv — латышское.');
+    }
+    if (subtopic && subtopic.code) {
+      push(`Все задачи — на подтему ${subtopic.code} «${subtopic.title}»${subtopic.title_lv ? ` (${subtopic.title_lv})` : ''}. В subtopic_code везде пиши ${subtopic.code}.`);
+    } else if (coded.length) {
+      push('Распредели задачи между подтемами темы. В subtopic_code пиши номер из этого списка и никакой другой:');
+      for (const s of coded) push(`- ${s.code} — ${s.title}${s.title_lv ? ` / ${s.title_lv}` : ''}`);
+    } else if (topic) {
+      push('Подтем с номерами у темы нет — столбец subtopic_code оставь пустым.');
+    } else {
+      push('subtopic_code — полный номер подтемы из справочника Skola2030 (например 8.8.3, для уровней 11.10.2). Не знаешь номер — оставь ячейку пустой, не выдумывай.');
+    }
+    push('Сложность — от простого к сложному: примерно 40% «Лёгкий», 40% «Средний», 20% «Сложный». Порядок строк станет нумерацией задач в теме.', '');
+
+    push('ФОРМАТ ОТВЕТА');
+    push('Только таблица: столбцы разделены ТАБУЛЯЦИЕЙ, не запятой — запятая стоит в десятичных дробях и формулах. Первая строка — ровно эти заголовки:');
+    push(TASK_PROMPT_COLUMNS.join('\t'));
+    push('Одна строка — одна задача. Табуляции внутри ячейки нет. Если в ячейке нужен перенос строки (шаги решения), оберни всю ячейку в двойные кавычки "…", а кавычку внутри удвой: "".');
+    push('Без вступления и заключения. Если задачи не помещаются в один ответ, остановись на конце целой строки и допиши отдельной строкой: ПРОДОЛЖЕНИЕ СЛЕДУЕТ. Когда я напишу «дальше», продолжи со следующей задачи и снова начни со строки заголовков.', '');
+
+    push('СТОЛБЦЫ');
+    push('- condition_latex / condition_latex_lv — условие на русском и то же условие на латышском.');
+    push('- answer_latex / answer_latex_lv — короткий ответ без разбора. Если в ответе нет слов, обе ячейки одинаковые: $x = 4$.');
+    push('- hint_latex / hint_latex_lv — подсказка: какой приём или теорему применить. Ответа и промежуточных чисел в ней нет.');
+    push('- solution_latex / solution_latex_lv — решение по шагам «1. …», «2. …», каждый шаг с новой строки, в конце — ответ. Не пиши «очевидно» — называй теорему или свойство.');
+    push('- difficulty — ровно одно слово: Лёгкий, Средний или Сложный.');
+    push(`- tags — от 1 до 3 слагов через точку с запятой, только из этого списка: ${tagSlugs.join(', ')}. Тег ставится по приёму решения, а не только по разделу.`);
+    push('- condition_svg — чертёж по правилам ниже или пустая ячейка.', '');
+
+    push('ЯЗЫКИ И ФОРМУЛЫ');
+    push('- Латышский — не машинный перевод, а формулировка на терминологии Skola2030. Английского нет нигде.');
+    push('- Формулы — в $…$ внутри строки или $$…$$ отдельной строкой; обычный текст — вне долларов.');
+    push('- Десятичная запятая: 0{,}5. Единицы — в \\text{}: в русской версии $12\\text{ см}$, в латышской $12\\text{ cm}$ (см→cm, км→km, м→m, кг→kg, ч→h, мин→min, НОД→LKD, НОК→MKD).');
+    push('- Числа, формулы и знаки $ в обеих версиях совпадают до символа — расходится только текст.');
+    push('- Сюжеты латвийские и современные: евро и центы, километры, латышские имена.');
+    push('- Проверь арифметику до выдачи: ответ получается из условия, решение ровно одно. Не сошлось — переделай задачу, а не подгоняй ответ.', '');
+
+    push('ЧЕРТЁЖ (condition_svg)');
+    push('Обязателен в каждой задаче, где есть фигура, тело, график, точки на координатной плоскости, числовая прямая или диаграмма. В остальных задачах ячейка пустая.');
+    push("- SVG одной строкой, атрибуты в одинарных кавычках: <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'>…</svg>, без width и height.");
+    push("- Только line, polyline, polygon, path, circle, ellipse, text, g. Линии stroke='#000' stroke-width='2' fill='none'.");
+    push("- Подписаны ТОЛЬКО вершины — заглавными латинскими буквами: <text> с fill='#000' font-family='system-ui, sans-serif' font-size='15', снаружи фигуры рядом с точкой, не ближе 20 к краю. Никаких длин, углов, «?» — все данные в условии. Если вершины в условии не названы, чертёж без подписей.");
+    push("- Схема, а не масштаб: прямой угол — маленький квадрат в вершине; высоты, медианы и диагонали — пунктиром stroke-dasharray='5 4'. Ответ на чертеже не показывай.");
+    return lines.join('\n');
+  };
+
   /* ── Чтение таблиц целиком ──
      Supabase отдаёт не больше 1000 строк за запрос и режет молча: ни
      ошибки, ни признака обрезки в ответе. Всё, что читает таблицу целиком,
@@ -1685,6 +1765,8 @@
     sanitizeSvg,
     fetchAllRows,
     fetchByIdChunks,
+    buildTaskPrompt,
+    TASK_PROMPT_COLUMNS,
     computeTaskRenumbering,
     computeTopicRenumbering,
     computeSubtopicRenumbering

@@ -92,7 +92,7 @@
      и импорту — без него тема по латышскому названию не находилась, и
      вместо совпадения заводился дубль. */
   const TOPIC_LIST_COLS = 'id,title,title_lv,subject_id,grade,position,slug';
-  const TASK_INDEX_COLS = 'id,topic_id,subtopic_id,position';
+  const TASK_INDEX_COLS = 'id,topic_id,subtopic_id,position,is_published';
 
   /* Указатель — три колонки на задачу (3 КБ на 81 задачу). Его хватает,
      чтобы показать «задач: N» у темы и посчитать номер новой задачи,
@@ -2136,6 +2136,7 @@ ${JSON.stringify(texts)}`;
           <small>${escapeHtml(gradeText(grade))}${sub ? ` · ${escapeHtml(sub.code ? sub.code + ' ' : '')}${escapeHtml(sub.title)}` : ''}${conditionSnippet ? ` · <em>${escapeHtml(conditionSnippet)}</em>` : ''}</small>
           <div class="admin-badge-group">${badges}</div>
         </div>
+        ${task.is_published ? '' : `<button class="text-button" type="button" data-publish-task="${task.id}" title="Проверил — опубликовать на сайте">Опубликовать</button>`}
         <button class="text-button" type="button" data-edit-task="${task.id}" title="Редактировать">Изменить</button>
         <button class="text-button" type="button" data-clone-task="${task.id}" title="Создать копию задачи в форме (4.2)">Клонировать</button>
         <button class="text-button danger" type="button" data-delete-task="${task.id}" title="Удалить">Удалить</button>
@@ -2285,6 +2286,19 @@ ${JSON.stringify(texts)}`;
   taskList.addEventListener('click', async event => {
     const move = event.target.closest('[data-move]');
     if (move) { await moveTask(move.dataset.move, move.dataset.dir); return; }
+    /* Проверил черновик — публикуем одной кнопкой, без захода в форму. */
+    const publishId = event.target.closest('[data-publish-task]')?.dataset.publishTask;
+    if (publishId) {
+      const { error } = await db.from('tasks').update({ is_published: true }).eq('id', publishId);
+      if (error) { taskSuccess.textContent = 'Не удалось опубликовать: ' + error.message; return; }
+      for (const list of [tasks, taskIndex]) {
+        const row = list.find(item => String(item.id) === String(publishId));
+        if (row) row.is_published = true;
+      }
+      renderTaskList();
+      updateReviewChip();
+      return;
+    }
     const editId = event.target.closest('[data-edit-task]')?.dataset.editTask;
     if (editId) {
       const full = await fetchFullRow('tasks', editId);
@@ -2377,6 +2391,10 @@ ${JSON.stringify(texts)}`;
   async function openBulkDialog(mode) {
     if (!bulkDialog) return;
     bulkMode = mode;
+    const publishRow = document.querySelector('#bulk-dialog-publish-row');
+    if (publishRow) publishRow.hidden = mode !== 'import';
+    const publishBox = document.querySelector('#bulk-dialog-publish');
+    if (publishBox) publishBox.checked = false;
     if (bulkDialogStatus) {
       bulkDialogStatus.hidden = true;
       bulkDialogStatus.textContent = '';
@@ -3052,35 +3070,78 @@ ${JSON.stringify(texts)}`;
   btnInsertSampleCsvToDialog?.addEventListener('click', insertCsvSampleToDialog);
   bulkDialogCsvTemplateBtn?.addEventListener('click', insertCsvSampleToDialog);
 
-  /* 🤖 Промпт для ИИ (30-50 задач за один запрос) */
-  const AI_PROMPT_TEXT = `Составь 30 математических задач по теме [НАЗВАНИЕ ТЕМЫ], класс [КЛАСС], согласно латвийскому стандарту Skola2030.
+  /* 🤖 Промпт для ИИ: собирается под выбранные класс, тему и подтему — с
+     точными названиями из базы, настоящими номерами подтем и закрытым
+     списком тегов (lib.buildTaskPrompt). С общим промптом модель выдумывала
+     номера и теги, и импорт отвечал предупреждениями. */
+  const aiPromptGrade = document.querySelector('#ai-prompt-grade');
+  const aiPromptTopic = document.querySelector('#ai-prompt-topic');
+  const aiPromptSubtopic = document.querySelector('#ai-prompt-subtopic');
+  const aiPromptCount = document.querySelector('#ai-prompt-count');
+  const byPosition = (a, b) => (a.position ?? 0) - (b.position ?? 0);
 
-Выведи результат СТРОГО в виде таблицы, где столбцы разделены символом ТАБУЛЯЦИИ, а не запятой: запятая стоит в каждой десятичной дроби ($0{,}5$) и во многих формулах, и таблица через запятую при вставке разъезжается по столбцам. Первая строка — заголовки:
-grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_latex_lv\tanswer_latex\tanswer_latex_lv\tsolution_latex\tsolution_latex_lv\tdifficulty\ttags\tcondition_svg
+  function fillAiPromptTopics() {
+    if (!aiPromptTopic) return;
+    const g = parseFormGrade(aiPromptGrade?.value);
+    const list = topics.filter(t => !g || t.grade === g)
+      .sort((a, b) => (a.grade ?? 0) - (b.grade ?? 0) || byPosition(a, b));
+    const prev = aiPromptTopic.value;
+    aiPromptTopic.innerHTML = '<option value="">— тема не выбрана —</option>' + list.map(t =>
+      `<option value="${t.id}">${escapeHtml(`${g ? '' : gradeText(t.grade) + ' · '}${t.position ? t.position + '. ' : ''}${t.title}`)}</option>`).join('');
+    if (list.some(t => String(t.id) === prev)) aiPromptTopic.value = prev;
+  }
 
-Каждая задача на двух языках: столбцы с суффиксом _lv — латышская версия того же условия, ответа и решения на терминологии Skola2030. Числа, формулы и знаки $ в обеих версиях совпадают до символа, расходится только текст.
+  function aiPromptTopicSubtopics() {
+    const topicId = Number(aiPromptTopic?.value) || null;
+    return topicId ? subtopics.filter(s => s.topic_id === topicId).sort(byPosition) : [];
+  }
 
-Требования к оформлению:
-1. Формулы и математические выражения пиши в LaTeX с долларами: $x^2 + 5x = 0$, $\\frac{a}{b}$, $\\sqrt{x}$.
-2. Внутри ячейки не должно быть табуляции. Если в ячейке нужен перевод строки (многошаговое решение) — оберни всю ячейку в двойные кавычки "...". Если внутри кавычек встречается кавычка, удваивай её: """".
-3. difficulty: Лёгкий, Средний или Сложный.
-4. subtopic_code: номер подтемы по стандарту (например 7.1.1, 8.2.3 и т.д.).
-5. tags: список тегов через точку с запятой (например: vienadojumi; algebriskie-parveidojumi).
-6. Выведи задачи одной непрерывной таблицей без вступления и заключения. Если все не помещаются в один ответ, остановись на конце целой строки и допиши отдельной строкой: ПРОДОЛЖЕНИЕ СЛЕДУЕТ. Когда я напишу «дальше», продолжи со следующей задачи и снова начни с той же строки заголовков — без неё таблица не загрузится.
-7. condition_svg — чертёж к условию. Он обязателен в каждой задаче, где есть фигура, тело, график, точки на координатной плоскости, числовая прямая или диаграмма, даже простые. Пустая ячейка — только для задач без геометрического объекта: вычисления, уравнения, проценты, дроби. Чертёж — SVG-код одной строкой, без переводов строки и табуляции, атрибуты в одинарных кавычках: <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'>…</svg>, без width и height. Линии stroke='#000' stroke-width='2' fill='none'; подписи — <text> с fill='#000' font-family='system-ui, sans-serif' font-size='15', отступ от края не меньше 20. Подписывай ТОЛЬКО вершины заглавными латинскими буквами (A, B, C, O) — снаружи фигуры рядом с точкой, никогда не на линии. Никаких длин, единиц, углов, «?» и других надписей: все данные — в тексте условия. Прямой угол — маленький квадрат в вершине, высоты и диагонали — пунктиром. Ответ на чертеже не показывай.`;
+  function fillAiPromptSubtopics() {
+    if (!aiPromptSubtopic) return;
+    const list = aiPromptTopicSubtopics();
+    const prev = aiPromptSubtopic.value;
+    aiPromptSubtopic.innerHTML = '<option value="">Все подтемы темы</option>' + list.map(s =>
+      `<option value="${s.id}">${escapeHtml(`${s.code ? s.code + ' ' : ''}${s.title}`)}</option>`).join('');
+    aiPromptSubtopic.disabled = !list.length;
+    if (list.some(s => String(s.id) === prev)) aiPromptSubtopic.value = prev;
+  }
+
+  function renderAiPrompt() {
+    if (!aiPromptTextarea) return;
+    const topic = topics.find(t => t.id === Number(aiPromptTopic?.value)) || null;
+    const topicSubs = aiPromptTopicSubtopics();
+    const subtopic = topicSubs.find(s => s.id === Number(aiPromptSubtopic?.value)) || null;
+    const grade = topic?.grade ?? parseFormGrade(aiPromptGrade?.value) ?? null;
+    aiPromptTextarea.value = window.MathTasksLib.buildTaskPrompt({
+      grade,
+      gradeLabel: grade ? gradeText(grade) : '',
+      topic,
+      subtopics: topicSubs,
+      subtopic,
+      count: Number(aiPromptCount?.value) || 30,
+      tags: (allTags || []).map(t => t.slug).filter(Boolean)
+    });
+  }
 
   function showAiPromptModal() {
     if (!aiPromptDialog) return;
-    if (aiPromptTextarea) aiPromptTextarea.value = AI_PROMPT_TEXT;
+    if (aiPromptGrade && aiPromptGrade.children.length <= 1) fillGradeSelect(aiPromptGrade, 'Все классы и курсы', { numeric: true });
+    fillAiPromptTopics();
+    fillAiPromptSubtopics();
+    renderAiPrompt();
     aiPromptDialog.showModal();
   }
 
+  aiPromptGrade?.addEventListener('change', () => { fillAiPromptTopics(); fillAiPromptSubtopics(); renderAiPrompt(); });
+  aiPromptTopic?.addEventListener('change', () => { fillAiPromptSubtopics(); renderAiPrompt(); });
+  aiPromptSubtopic?.addEventListener('change', renderAiPrompt);
+  aiPromptCount?.addEventListener('input', renderAiPrompt);
   btnShowAiPrompt?.addEventListener('click', showAiPromptModal);
   bulkDialogAiPromptBtn?.addEventListener('click', showAiPromptModal);
   aiPromptDialogClose?.addEventListener('click', () => aiPromptDialog?.close());
   aiPromptCloseBtn?.addEventListener('click', () => aiPromptDialog?.close());
   aiPromptCopyBtn?.addEventListener('click', async () => {
-    const text = aiPromptTextarea?.value || AI_PROMPT_TEXT;
+    const text = aiPromptTextarea?.value || '';
     try {
       await navigator.clipboard.writeText(text);
     } catch {
@@ -3269,6 +3330,9 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
     const warnings = [];
     let withoutTopic = 0;
     let uploadedFigures = 0;
+    /* Импорт — непроверенный текст, чаще всего от нейросети. На сайт он
+       уходит только по явному флажку, иначе черновиками — в очередь проверки. */
+    const publishNow = Boolean(document.querySelector('#bulk-dialog-publish')?.checked);
     /* Предупреждения разбора — например, сдвиг столбцов из-за запятой
        в формуле без кавычек — показываем вместе с остальными. */
     if (Array.isArray(parsedResult.warnings)) warnings.push(...parsedResult.warnings);
@@ -3345,7 +3409,7 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
            единицей, и все задачи темы слипались в один номер. Номер внутри
            темы назначаем сами, по порядку добавления. */
         position: taskPos,
-        is_published: item.is_published !== undefined ? Boolean(item.is_published) : true
+        is_published: publishNow && item.is_published !== false
       });
 
       const { data: insertedTask, error } = await db.from('tasks').insert(payload).select('id').maybeSingle();
@@ -3360,7 +3424,7 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
            задача считает свой номер по нему, и без этой строки все задачи
            одной темы получили бы одну и ту же позицию — ровно то, из-за чего
            пришлось перенумеровывать весь каталог. */
-        taskIndex.push({ id: newTaskId, topic_id: payload.topic_id ?? null, position: payload.position });
+        taskIndex.push({ id: newTaskId, topic_id: payload.topic_id ?? null, position: payload.position, is_published: payload.is_published });
         // Привязываем кросс-теги Skola2030 если они переданы в массиве tags
         if (newTaskId && Array.isArray(item.tags) && item.tags.length) {
           if (!tagsReady) {
@@ -3402,6 +3466,9 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
     bulkDialogSubmit.disabled = false;
     bulkDialogSubmit.textContent = 'Импортировать в базу';
 
+    const draftNote = successCount && !publishNow
+      ? '<br>Задачи сохранены <strong>черновиками</strong> и на сайте не видны. Проверьте и опубликуйте их: кнопка «🟡 На проверке» над списком задач.'
+      : '';
     const warnBlock = warnings.length
       ? `<br><br><strong>Предупреждения (${warnings.length}):</strong><br>${warnings.slice(0, 12).map(escapeHtml).join('<br>')}${warnings.length > 12 ? '<br>…' : ''}`
       : '';
@@ -3419,7 +3486,7 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
       bulkDialogStatus.innerHTML = `🎉 Успешно импортировано! Тем обработано: <strong>${uniqueTopics.length}</strong> (создано новых: ${createdTopicsCount}), ` +
         `подтем: <strong>${uniqueSubtopics.length}</strong>` + (createdSubtopicsCount ? ` (создано новых: ${createdSubtopicsCount})` : '') + `, ` +
         `задач сохранено: <strong>${successCount}</strong> из ${items.length}` +
-        (uploadedFigures ? `, чертежей: <strong>${uploadedFigures}</strong>` : '') + '!' + warnBlock;
+        (uploadedFigures ? `, чертежей: <strong>${uploadedFigures}</strong>` : '') + '!' + draftNote + warnBlock;
       bulkDialogStatus.hidden = false;
       setTimeout(() => bulkDialog?.close(), 2200);
     }
@@ -4399,16 +4466,33 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
     renderTaskList();
   }
 
+  /* «На проверке: N» — черновики, которые ждут вычитки. Считается по
+     указателю, чтобы счётчик был виден сразу, без загрузки полного списка. */
+  const taskReviewChip = document.querySelector('#task-review-chip');
+  function updateReviewChip() {
+    if (!taskReviewChip) return;
+    const drafts = taskIndex.filter(t => t.is_published === false).length;
+    taskReviewChip.hidden = !drafts;
+    taskReviewChip.textContent = `🟡 На проверке: ${drafts}`;
+  }
+  taskReviewChip?.addEventListener('click', async () => {
+    if (taskFilterStatus) taskFilterStatus.value = 'draft';
+    if (!tasksLoaded) { await loadTasks(); return; }
+    setTasksShown(true);
+    renderTaskList();
+  });
+
   async function loadTaskIndex() {
     /* Страницами: одним запросом указатель обрезался бы на тысяче задач, и
        новые задачи получали бы уже занятые номера. */
     const pages = cols => window.MathTasksLib.fetchAllRows(() => db.from('tasks').select(cols).order('id'));
     const { data, error } = await pages(TASK_INDEX_COLS);
-    if (!error) { taskIndex = data || []; return; }
+    if (!error) { taskIndex = data || []; updateReviewChip(); return; }
     /* Колонка subtopic_id появляется миграцией 020. Без отката весь указатель
        оставался бы пустым, и у каждой темы значилось бы «задач: 0». */
     const retry = await pages('id,topic_id,position');
     taskIndex = retry.error ? [] : (retry.data || []);
+    updateReviewChip();
   }
 
   /* После правки всегда обновляем указатель, а список — только если

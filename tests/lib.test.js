@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { buildTaskPrompt as buildTaskPromptForTest, TASK_PROMPT_COLUMNS as PROMPT_COLUMNS_FOR_TEST, parseCsvToTasks as parseCsvForPromptTest } from '../public/lib.js';
 import { fetchAllRows as fetchAllRowsForTest, fetchByIdChunks as fetchByIdChunksForTest } from '../public/lib.js';
 import { sanitizeSvg as sanitizeSvgForTest, parseCsvRows as parseCsvRowsForSvg, parseCsvToTasks as parseCsvToTasksForSvg } from '../public/lib.js';
 import i18n from '../public/i18n.js';
@@ -1683,5 +1684,64 @@ describe('fetchByIdChunks: длинный список id', () => {
     const { data, error } = await fetchByIdChunksForTest([1, 2, 3], async () => ({ data: null, error: { message: 'сбой' } }), 2);
     expect(data).toBe(null);
     expect(error.message).toBe('сбой');
+  });
+});
+
+describe('buildTaskPrompt: промпт под тему', () => {
+  const topic = { title: 'Теорема Пифагора', title_lv: 'Pitagora teorēma' };
+  const subs = [
+    { code: '8.8.1', title: 'Катеты', title_lv: 'Katetes' },
+    { code: '8.8.3', title: 'Гипотенуза', title_lv: 'Hipotenūza' },
+    { code: null, title: 'Без номера' }
+  ];
+
+  it('подставляет класс, тему, номера подтем, число задач и теги', () => {
+    const p = buildTaskPromptForTest({ grade: 8, gradeLabel: '8 класс', topic, subtopics: subs, count: 12, tags: ['planimetrija', 'merijumi'] });
+    expect(p).toContain('Составь 12 задач');
+    expect(p).toContain('в столбце grade везде пиши 8');
+    expect(p).toContain('«Теорема Пифагора» / «Pitagora teorēma»');
+    expect(p).toContain('- 8.8.1 — Катеты / Katetes');
+    expect(p).toContain('- 8.8.3 — Гипотенуза / Hipotenūza');
+    expect(p).not.toContain('Без номера');
+    expect(p).toContain('только из этого списка: planimetrija, merijumi');
+  });
+
+  it('выбранная подтема — все задачи на неё', () => {
+    const p = buildTaskPromptForTest({ grade: 8, topic, subtopics: subs, subtopic: subs[1] });
+    expect(p).toContain('В subtopic_code везде пиши 8.8.3');
+    expect(p).not.toContain('- 8.8.1');
+  });
+
+  it('без темы — заполнители и общий список тегов', () => {
+    const p = buildTaskPromptForTest({});
+    expect(p).toContain('[КЛАСС]');
+    expect(p).toContain('[НАЗВАНИЕ ТЕМЫ]');
+    expect(p).toContain('Составь 30 задач');
+    expect(p).toContain('teksta-uzdevumi');
+  });
+
+  it('число задач ограничено 1…60', () => {
+    expect(buildTaskPromptForTest({ count: 500 })).toContain('Составь 60 задач');
+    expect(buildTaskPromptForTest({ count: -3 })).toContain('Составь 1 задач');
+  });
+
+  it('строку заголовков из промпта импорт разбирает целиком', () => {
+    const p = buildTaskPromptForTest({ grade: 8, topic });
+    const header = p.split('\n').find(line => line.startsWith('grade\t'));
+    expect(header.split('\t')).toEqual(PROMPT_COLUMNS_FOR_TEST);
+    const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'></svg>";
+    const row = ['8', 'Теорема Пифагора', 'Pitagora teorēma', '8.8.3', 'Найдите $c$.', 'Atrodiet $c$.', '$5$', '$5$',
+      'Примените теорему.', 'Izmantojiet teorēmu.', '"1. Шаг.\n2. Ответ."', '"1. Solis.\n2. Atbilde."',
+      'Средний', 'planimetrija; merijumi', svg].join('\t');
+    const { tasks, warnings } = parseCsvForPromptTest(`${header}\n${row}`);
+    expect(warnings).toEqual([]);
+    expect(tasks[0]).toMatchObject({
+      topic_title: 'Теорема Пифагора', topic_title_lv: 'Pitagora teorēma', subtopic_code: '8.8.3',
+      condition_latex: 'Найдите $c$.', condition_latex_lv: 'Atrodiet $c$.',
+      answer_latex: '$5$', answer_latex_lv: '$5$',
+      hint_latex: 'Примените теорему.', hint_latex_lv: 'Izmantojiet teorēmu.',
+      solution_latex: '1. Шаг.\n2. Ответ.', solution_latex_lv: '1. Solis.\n2. Atbilde.',
+      difficulty: 'Средний', tags: ['planimetrija', 'merijumi'], condition_svg: svg
+    });
   });
 });
