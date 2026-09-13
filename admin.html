@@ -544,11 +544,12 @@
                 <button type="button" class="text-button" id="btn-close-sample-csv">Закрыть</button>
               </div>
             </div>
-            <p class="admin-hint">Табличный формат позволяет нейросетям (ChatGPT, Claude, Gemini) генерировать по <strong>30–50+ задач за один промпт</strong> (JSON обрывается уже на 10 задачах из-за перегруза токенами). Вы можете скопировать эту таблицу, открыть в Excel / Google Таблицах, отредактировать и просто вставить скопированные строки обратно!</p>
-            <pre class="json-sample-pre"><code id="csv-sample-code">grade,topic_title,subtopic_code,subtopic_title,condition_latex,answer_latex,solution_latex,difficulty,tags
-8,Квадратные уравнения,8.1.1,Неполные квадратные уравнения,Решите уравнение $x^2 - 9 = 0$.,"$x = \pm 3$","Разложим разность квадратов: $$(x - 3)(x + 3) = 0$$, откуда $x_1 = 3,\; x_2 = -3$.",Лёгкий,"vienadojumi; algebriskie-parveidojumi"
-8,Квадратные уравнения,8.1.2,Полные квадратные уравнения,Решите уравнение $x^2 - 5x + 6 = 0$.,"$x_1 = 2,\; x_2 = 3$","По формуле корней: $$D = (-5)^2 - 4 \cdot 1 \cdot 6 = 1$$, $$x = \frac{5 \pm 1}{2}$$.",Средний,vienadojumi
-8,Теорема Пифагора,8.2.1,Прямоугольный треугольник,В прямоугольном треугольнике катеты равны $a = 3\text{ см}$ и $b = 4\text{ см}$. Найдите гипотенузу $c$.,"$c = 5\text{ см}$","По теореме Пифагора: $$c = \sqrt{3^2 + 4^2} = \sqrt{25} = 5\text{ см}$$.",Лёгкий,"planimetrija; merijumi"</code></pre>
+            <p class="admin-hint">Первая строка — названия столбцов, дальше одна задача на строку. Разделитель — точка с запятой или табуляция: так Excel и Google Таблицы копируют ячейки. Обязательны <code>topic_title</code> и <code>condition_latex</code>. Тема ищется по точному названию — номер «8.8.» можно оставить, он снимется; если название не совпало, заводится новая тема. Подтема — по полному коду: <code>8.8.3</code>, для уровней <code>11.10.2</code>. Чертёж — столбец <code>condition_svg</code> с SVG-кодом одной строкой: админка сама сохранит его файлом и привяжет к задаче. Импорт <strong>только добавляет</strong> задачи: загрузить свою же выгрузку обратно — значит продублировать каждую.</p>
+            <pre class="json-sample-pre"><code id="csv-sample-code">grade;topic_title;topic_title_lv;subtopic_code;subtopic_title;subtopic_title_lv;condition_latex;condition_latex_lv;answer_latex;answer_latex_lv;solution_latex;solution_latex_lv;hint_latex;hint_latex_lv;difficulty;tags
+8;"Как определяют неизвестную сторону прямоугольного треугольника, теорема Пифагора";Kā nosaka taisnleņķa trijstūra nezināmās malas garumu?;8.8.3;Теорема Пифагора;Pitagora teorēma;Катеты прямоугольного треугольника равны $6\text{ см}$ и $8\text{ см}$. Найдите гипотенузу.;Taisnleņķa trijstūra katetes ir $6\text{ cm}$ un $8\text{ cm}$. Aprēķiniet hipotenūzu.;$10\text{ см}$;$10\text{ cm}$;По теореме Пифагора: $$c=\sqrt{6^2+8^2}=\sqrt{100}=10\text{ см}$$;Pēc Pitagora teorēmas: $$c=\sqrt{6^2+8^2}=\sqrt{100}=10\text{ cm}$$;;;Лёгкий;"planimetrija; merijumi"
+7;"Каковы приемы определения неизвестного, линейное уравнение";Kādi ir paņēmieni nezināmā noteikšanai?;7.8.1;Линейное уравнение и его решение;Lineārs vienādojums un tā atrisināšana;Решите уравнение $3(x-2)=2x+5$.;Atrisiniet vienādojumu $3(x-2)=2x+5$.;$x=11$;$x=11$;"1. Раскроем скобки: $3x-6=2x+5$.
+2. Перенесём неизвестные влево: $x=11$.";"1. Atveram iekavas: $3x-6=2x+5$.
+2. Pārnesam nezināmos pa kreisi: $x=11$.";;;Средний;vienadojumi</code></pre>
           </div>
 
           <!-- 📄 Образец иерархического формата JSON прямо рядом с кнопками загрузки (Требование 5) -->
@@ -561,7 +562,7 @@
                 <button type="button" class="text-button" id="btn-close-sample-json">Закрыть</button>
               </div>
             </div>
-            <p class="admin-hint">Вы можете сохранить этот пример как файл <code>tasks.json</code> на компьютере, заполнить своими задачами и нажать «📁 Загрузить файл .json». Недостающие темы, латышские переводы и кросс-теги Skola2030 привяжутся автоматически.</p>
+            <p class="admin-hint">Вы можете сохранить этот пример как файл <code>tasks.json</code> на компьютере, заполнить своими задачами и нажать «📁 Загрузить файл .json». Недостающие темы, латышские переводы и кросс-теги Skola2030 привяжутся автоматически. Чертёж к задаче — поле <code>condition_svg</code> (к решению — <code>solution_svg</code>) с SVG-кодом: он сохранится файлом сам.</p>
             <pre class="json-sample-pre"><code id="json-sample-code">[
   {
     "topic_title": "Квадратные уравнения",
@@ -729,10 +730,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/lib.js?v=20260907-4"></script>
-  <script src="/i18n.js?v=20260907-4"></script>
-  <script src="/client.js?v=20260907-4"></script>
-  <script src="/ai-generator.js?v=20260907-4"></script>
-  <script src="/admin.js?v=20260907-4"></script>
+  <script src="/lib.js?v=20260913-1"></script>
+  <script src="/i18n.js?v=20260913-1"></script>
+  <script src="/client.js?v=20260913-1"></script>
+  <script src="/ai-generator.js?v=20260913-1"></script>
+  <script src="/admin.js?v=20260913-1"></script>
 </body>
 </html>

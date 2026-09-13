@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { sanitizeSvg as sanitizeSvgForTest, parseCsvRows as parseCsvRowsForSvg, parseCsvToTasks as parseCsvToTasksForSvg } from '../public/lib.js';
 import i18n from '../public/i18n.js';
 import {
   makeSlug,
@@ -1355,6 +1356,26 @@ describe('parseCsvToTasks', () => {
   });
 });
 
+describe('parseCsvToTasks: номер темы в названии', () => {
+  /* На сайте тема подписана «8.8. …», в базе — без номера. */
+  it('снимает номер, скопированный вместе с названием темы', () => {
+    const t = parseCsvToTasks('topic_title\ttopic_title_lv\tcondition_latex\n' +
+      '8.8. Теорема Пифагора\t8.8. Pitagora teorēma\tНайдите $c$').tasks[0];
+    expect(t.topic_title).toBe('Теорема Пифагора');
+    expect(t.topic_title_lv).toBe('Pitagora teorēma');
+  });
+
+  it('снимает номер темы уровня вида «1.»', () => {
+    const t = parseCsvToTasks('topic_title\tcondition_latex\n1. Числовые расчеты\tНайдите $x$').tasks[0];
+    expect(t.topic_title).toBe('Числовые расчеты');
+  });
+
+  it('не трогает число, которое не номер', () => {
+    const t = parseCsvToTasks('topic_title\tcondition_latex\n10 задач на проценты\tНайдите $x$').tasks[0];
+    expect(t.topic_title).toBe('10 задач на проценты');
+  });
+});
+
 describe('parseTasksImport: универсальный детектор JSON / CSV', () => {
   it('распознаёт JSON формат', () => {
     const jsonStr = JSON.stringify([
@@ -1532,3 +1553,60 @@ describe('computeSubtopicRenumbering', () => {
   });
 });
 
+describe('sanitizeSvg: чертёж из импорта и от генератора', () => {
+  const ok = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><polygon points='60,240 340,240 60,60' fill='none' stroke='#4a6fa5'/><text x='44' y='255'>A</text></svg>";
+
+  it('пропускает обычный чертёж без изменений', () => {
+    expect(sanitizeSvgForTest(ok)).toEqual({ svg: ok });
+  });
+
+  it('вырезает скрипты, foreignObject и обработчики событий', () => {
+    const { svg } = sanitizeSvgForTest("<svg xmlns='http://www.w3.org/2000/svg' onload='alert(1)'><script>alert(2)</script><foreignObject><div>x</div></foreignObject><circle r='5' onclick=\"alert(3)\"/></svg>");
+    expect(svg).not.toMatch(/script|foreignObject|onload|onclick|alert/i);
+    expect(svg).toContain("<circle r='5'/>");
+  });
+
+  it('вырезает javascript: в ссылках', () => {
+    const { svg } = sanitizeSvgForTest('<svg xmlns="http://www.w3.org/2000/svg"><a href="javascript:alert(1)"><text>A</text></a></svg>');
+    expect(svg).not.toMatch(/javascript/i);
+  });
+
+  it('добавляет xmlns — без него браузер не покажет SVG в теге img', () => {
+    const { svg } = sanitizeSvgForTest('<svg viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10"/></svg>');
+    expect(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">')).toBe(true);
+  });
+
+  it('снимает XML-пролог и комментарии', () => {
+    expect(sanitizeSvgForTest('<?xml version="1.0"?>\n<!-- чертёж -->\n' + ok).svg).toBe(ok);
+  });
+
+  it('отказывает не-SVG, пустому и пути вместо разметки', () => {
+    expect(sanitizeSvgForTest('<div>нет</div>').error).toBeTruthy();
+    expect(sanitizeSvgForTest('').error).toBeTruthy();
+    expect(sanitizeSvgForTest('condition/task-1.svg').error).toBeTruthy();
+  });
+});
+
+describe('CSV: чертёж в ячейке', () => {
+  it('кавычки атрибутов внутри ячейки не съедаются', () => {
+    const rows = parseCsvRowsForSvg('a\tb\n1\t<svg viewBox="0 0 10 10"></svg>');
+    expect(rows[1][1]).toBe('<svg viewBox="0 0 10 10"></svg>');
+  });
+
+  it('кавычка в начале ячейки по-прежнему экранирует', () => {
+    const rows = parseCsvRowsForSvg('a;b\n1;"x;y ""z"""');
+    expect(rows[1][1]).toBe('x;y "z"');
+  });
+
+  it('столбец condition_svg доходит до задачи', () => {
+    const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><text x='20' y='20'>A</text></svg>";
+    const t = parseCsvToTasksForSvg('topic_title\tcondition_latex\tcondition_svg\nТреугольники\tНайдите $AB$\t' + svg).tasks[0];
+    expect(t.condition_svg).toBe(svg);
+  });
+
+  it('заголовок «Чертёж решения» узнаётся', () => {
+    const t = parseCsvToTasksForSvg('тема\tусловие\tчертёж решения\nТ\tУ\t<svg></svg>').tasks[0];
+    expect(t.solution_svg).toBe('<svg></svg>');
+    expect(t.condition_svg).toBe(null);
+  });
+});

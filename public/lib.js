@@ -521,7 +521,10 @@
           continue;
         }
       } else {
-        if (char === '"') {
+        /* Кавычка открывает экранирование только в начале ячейки, как в
+           RFC 4180. В середине это обычный символ: SVG-чертёж в ячейке полон
+           кавычек атрибутов, и раньше они съедались, а разметка ломалась. */
+        if (char === '"' && currentCell.trim() === '') {
           inQuotes = true;
           i++;
           continue;
@@ -578,6 +581,9 @@
     hint_latex_lv: ['hint_latex_lv', 'подсказка lv', 'padoms lv', 'hint lv'],
     difficulty: ['difficulty', 'сложность', 'grūtība', 'grutiba', 'уровень'],
     tags: ['tags', 'теги', 'birkas', 'cross_tags', 'метки'],
+    /* Чертёж — SVG-разметкой в ячейке; админка сама сохранит его файлом. */
+    condition_svg: ['condition_svg', 'svg', 'чертёж', 'чертеж', 'рисунок', 'zīmējums', 'zimejums', 'figure'],
+    solution_svg: ['solution_svg', 'чертёж решения', 'чертеж решения', 'рисунок решения', 'zīmējums atrisinājumam', 'solution figure'],
     position: ['position', 'номер', 'позиция', 'nr', 'num'],
     /* Служебные столбцы выгрузок базы. Их узнаём, чтобы они не сработали
        как префикс: «topic_id» начинается с «topic» и без этой строки
@@ -675,8 +681,13 @@
       const gradeVal = parseFormGrade(getVal('grade'));
       /* Без столбца темы тему не придумываем. Раньше подставлялось «Без
          темы», и импорт заводил в базе настоящую тему с таким названием. */
-      const topicTitle = getVal('topic_title');
-      const topicTitleLv = getVal('topic_title_lv') || null;
+      /* Номер темы — оформление сайта, в базе названия без него. Название,
+         скопированное со страницы («8.8. Как определяют…»), иначе не нашло
+         бы свою тему, и импорт завёл бы дубль. Просто число в начале
+         («10 задач на проценты») номером не считается. */
+      const stripTopicNumber = s => s.replace(/^\s*(?:\d+(?:\.\d+)+\.?|\d+\.)\s+/, '');
+      const topicTitle = stripTopicNumber(getVal('topic_title'));
+      const topicTitleLv = stripTopicNumber(getVal('topic_title_lv')) || null;
       const subCode = getVal('subtopic_code') || '';
       const subTitle = getVal('subtopic_title') || '';
       const subTitleLv = getVal('subtopic_title_lv') || null;
@@ -727,7 +738,9 @@
         hint_latex_lv: hintLv,
         difficulty: diff,
         position: pos,
-        tags
+        tags,
+        condition_svg: getVal('condition_svg') || null,
+        solution_svg: getVal('solution_svg') || null
       });
     }
 
@@ -737,6 +750,36 @@
       tasks,
       warnings
     };
+  };
+
+  /* ── Чертёж SVG из импорта или от нейросети ──
+     Чужая разметка. На сайте она идёт через img, где скрипты не
+     выполняются, но в хранилище лежит публичным файлом, а по прямой ссылке
+     SVG открывается как живой документ. Поэтому всё исполняемое вырезаем
+     до загрузки. Размеры не трогаем: без width и height чертёж тянется по
+     ширине карточки. */
+  const MAX_SVG_CHARS = 200000;
+  const sanitizeSvg = raw => {
+    let s = String(raw || '').trim()
+      .replace(/^<\?xml[^>]*\?>\s*/i, '')
+      .replace(/<!DOCTYPE[^>]*>\s*/i, '')
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .trim();
+    if (!s) return { error: 'пустой чертёж' };
+    if (!/^<svg[\s>]/i.test(s) || !/<\/svg>$/i.test(s)) {
+      return { error: 'разметка должна начинаться с <svg и заканчиваться </svg>' };
+    }
+    if (s.length > MAX_SVG_CHARS) {
+      return { error: `чертёж ${Math.round(s.length / 1024)} КБ — больше допустимых ${MAX_SVG_CHARS / 1000} КБ` };
+    }
+    s = s
+      .replace(/<(script|foreignObject|iframe|object|embed|audio|video)\b[\s\S]*?<\/\1\s*>/gi, '')
+      .replace(/<\/?(script|foreignObject|iframe|object|embed|audio|video)\b[^>]*>/gi, '')
+      .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+      .replace(/\s(?:xlink:)?href\s*=\s*("\s*javascript:[^"]*"|'\s*javascript:[^']*')/gi, '');
+    /* Без xmlns браузер не покажет SVG в теге img вовсе. */
+    if (!/^<svg\b[^>]*\sxmlns\s*=/i.test(s)) s = s.replace(/^<svg\b/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+    return { svg: s };
   };
 
   /* ── Универсальный парсер импорта (автоопределение JSON / CSV / TSV) ── */
@@ -1609,6 +1652,7 @@
     parseCsvToTasks,
     parseTasksImport,
     exportTasksToCsv,
+    sanitizeSvg,
     computeTaskRenumbering,
     computeTopicRenumbering,
     computeSubtopicRenumbering

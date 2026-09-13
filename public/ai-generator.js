@@ -586,25 +586,48 @@ ${customPrompt ? `Дополнительные математические тр
     "answer_latex": "Ответ на русском, например: $x = 4$ или $c = 10\\\\text{ см}$",
     "answer_latex_lv": "Ответ на латышском, например: $x = 4$ или $c = 10\\\\text{ cm}$",
     "solution_latex_ru": "Пошаговое понятное решение с формулами",
-    "solution_latex_lv": "Soli pa solim atrisinājums latviski"
+    "solution_latex_lv": "Soli pa solim atrisinājums latviski",
+    "condition_svg": "SVG-чертёж одной строкой или пустая строка, если чертёж не нужен"
   }
-]`;
+]
+
+Чертежи (поле condition_svg):
+- Чертёж ОБЯЗАТЕЛЕН в каждой задаче, где в условии есть фигура или тело (треугольник, прямоугольник, ромб, трапеция, окружность, призма), график, точки на координатной плоскости, числовая прямая, диаграмма или схема движения — даже если фигура простая и полностью описана словами. Ученику чертёж нужен, чтобы увидеть, что дано и что найти. Пустая строка "" — только для задач без геометрического объекта: вычисления, уравнения, проценты, дроби.
+- Формат: SVG одной строкой, атрибуты в ОДИНАРНЫХ кавычках, чтобы не экранировать кавычки в JSON: <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'>…</svg>. Атрибуты width и height не ставь.
+- Только line, polyline, polygon, path, circle, ellipse, text, g. Без скриптов, image, foreignObject и внешних ссылок. Не больше 4 КБ.
+- Линии: stroke='#000' stroke-width='2' fill='none'. Подписи: <text> с fill='#000' font-family='system-ui, sans-serif' font-size='15'. Отступ от края не меньше 20.
+- ПОДПИСЫВАЙ ТОЛЬКО ВЕРШИНЫ заглавными латинскими буквами (A, B, C, O…). Никаких длин, единиц, углов, «?», «h», «d», «a» и других надписей: все данные — в тексте условия. Если в условии вершины не названы, чертёж идёт без подписей.
+- Буква вершины — снаружи фигуры рядом с точкой, никогда не на линии: слева от точки text-anchor='end' и x на 8 левее, справа — x на 8 правее, снизу — y на 18 ниже, сверху — y на 8 выше.
+- Схема, а не масштаб: прямой угол — маленький квадрат в вершине (в том числе у касательной и высоты), точка на отрезке — между его концами. Высоты, медианы и диагонали — пунктиром stroke-dasharray='5 4'. Оси: x вправо, y вверх, стрелки на концах, у осей буквы x, y и O; точки на плоскости — только буквой, без координат.
+- Ответ на чертеже не показывай.`;
 
     const requestBody = JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.3,
-        /* Десять задач с решениями на двух языках — это около пяти тысяч
-           токенов, а с длинными разборами и все восемь. При потолке в
-           8192 ответ обрывался на середине JSON, разбор падал, и пачка
-           терялась целиком — десять задач за раз. Запас нужен кратный. */
-        maxOutputTokens: 32768
+        /* Пачка до 30 задач с решениями на двух языках — 14–20 тысяч
+           токенов ответа. Потолок моделей 65 536; при 8192 и 32768 ответ
+           обрывался на середине JSON, и пачка терялась целиком. */
+        maxOutputTokens: 65536,
+        /* Размышление по умолчанию съедало в 5–6 раз больше токенов, чем
+           сам ответ: оно оплачивается как выход и занимает тот же потолок,
+           из-за чего большая пачка обрывалась. «low» принимают все модели
+           цепочки (проверено запросом); minimal и thinkingBudget: 0 — не все. */
+        thinkingConfig: { thinkingLevel: 'low' }
       }
+    });
+    /* Та же пачка без настройки размышления — для модели, которая её не
+       принимает и отвечает 400: повторяем её, а не бросаем пачку. */
+    const requestBodyPlain = JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json', temperature: 0.3, maxOutputTokens: 65536 }
     });
 
     const candidateModels = ['gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest', 'gemini-3.5-flash'];
-    const REQUEST_TIMEOUT_MS = 90000;
+    /* 30 задач — минута-полторы генерации; 90 секунд обрывали пачку на
+       подходе к концу. */
+    const REQUEST_TIMEOUT_MS = 240000;
     const RETRYABLE = new Set([408, 429, 500, 502, 503, 504]);
     const MAX_ATTEMPTS = 4;
     const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -615,6 +638,7 @@ ${customPrompt ? `Дополнительные математические тр
     outer:
     for (const model of candidateModels) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      let body = requestBody;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         const control = new AbortController();
@@ -623,11 +647,17 @@ ${customPrompt ? `Дополнительные математические тр
           const r = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: requestBody,
+            body,
             signal: control.signal
           });
 
           if (r.ok) { res = r; break outer; }
+
+          if (r.status === 400 && body === requestBody) {
+            body = requestBodyPlain;
+            attempt--;
+            continue;
+          }
 
           const errText = await r.text();
           lastError = new Error(`Ошибка модели ${model} (${r.status}): ${errText.slice(0, 300)}`);

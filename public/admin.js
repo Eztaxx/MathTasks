@@ -88,7 +88,10 @@
      108 КБ, без них — 17 КБ. Полную строку забираем по одной, когда
      задачу открывают на правку. */
   const TASK_LIST_COLS = 'id,title,topic_id,grade,difficulty,is_published,position';
-  const TOPIC_LIST_COLS = 'id,title,subject_id,grade,position,slug';
+  /* title_lv нужен выгрузке (иначе столбец topic_title_lv пуст у всех задач)
+     и импорту — без него тема по латышскому названию не находилась, и
+     вместо совпадения заводился дубль. */
+  const TOPIC_LIST_COLS = 'id,title,title_lv,subject_id,grade,position,slug';
   const TASK_INDEX_COLS = 'id,topic_id,subtopic_id,position';
 
   /* Указатель — три колонки на задачу (3 КБ на 81 задачу). Его хватает,
@@ -1496,6 +1499,24 @@ ${JSON.stringify(texts)}`;
     if (error) console.warn('Не удалось удалить файл из хранилища:', path, error.message);
   };
 
+  /* Чертёж разметкой — из импорта или от генератора — ложится в хранилище
+     тем же путём, что и загруженный файл. Перед загрузкой вычищаем и
+     проверяем разбором: SVG с одной неэкранированной «&» в подписи браузер
+     не покажет вовсе, и узнать об этом лучше при импорте, чем на сайте. */
+  async function uploadSvgMarkup(kind, markup) {
+    const clean = window.MathTasksLib.sanitizeSvg(markup);
+    if (clean.error) return { error: clean.error };
+    const doc = new DOMParser().parseFromString(clean.svg, 'image/svg+xml');
+    if (doc.querySelector('parsererror') || doc.documentElement.nodeName.toLowerCase() !== 'svg') {
+      return { error: 'в разметке ошибка, браузер её не покажет' };
+    }
+    const path = `${kind}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.svg`;
+    const blob = new Blob([clean.svg], { type: 'image/svg+xml' });
+    const { error } = await storage().upload(path, blob, { contentType: 'image/svg+xml' });
+    if (error) return { error: 'не удалось загрузить: ' + error.message };
+    return { path };
+  }
+
   function paintImage(kind) {
     const thumb = document.querySelector(`#${kind}-image-thumb`);
     const url = window.MathTasks.imageUrl(images[kind].current);
@@ -2366,7 +2387,8 @@ ${JSON.stringify(texts)}`;
       const ids = filtered.map(t => t.id);
       let fullById = {};
       if (ids.length) {
-        const { data, error } = await db.from('tasks').select('*').in('id', ids);
+        /* Без связи с тегами столбец tags в выгрузке был пуст всегда. */
+        const { data, error } = await db.from('tasks').select(tagsReady ? '*,task_tags(tags(slug))' : '*').in('id', ids);
         if (error) {
           bulkDialogTitle.textContent = 'Экспорт в Excel / CSV';
           bulkDialogDesc.textContent = 'Не удалось получить полные тексты задач: ' + error.message;
@@ -2394,7 +2416,8 @@ ${JSON.stringify(texts)}`;
       const ids = filtered.map(t => t.id);
       let fullById = {};
       if (ids.length) {
-        const { data, error } = await db.from('tasks').select('*').in('id', ids);
+        /* Без связи с тегами столбец tags в выгрузке был пуст всегда. */
+        const { data, error } = await db.from('tasks').select(tagsReady ? '*,task_tags(tags(slug))' : '*').in('id', ids);
         if (error) {
           bulkDialogTitle.textContent = 'Экспорт задач';
           bulkDialogDesc.textContent = 'Не удалось получить полные тексты задач: ' + error.message;
@@ -3027,7 +3050,7 @@ ${JSON.stringify(texts)}`;
   const AI_PROMPT_TEXT = `Составь 30 математических задач по теме [НАЗВАНИЕ ТЕМЫ], класс [КЛАСС], согласно латвийскому стандарту Skola2030.
 
 Выведи результат СТРОГО в виде таблицы, где столбцы разделены символом ТАБУЛЯЦИИ, а не запятой: запятая стоит в каждой десятичной дроби ($0{,}5$) и во многих формулах, и таблица через запятую при вставке разъезжается по столбцам. Первая строка — заголовки:
-grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_latex_lv\tanswer_latex\tanswer_latex_lv\tsolution_latex\tsolution_latex_lv\tdifficulty\ttags
+grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_latex_lv\tanswer_latex\tanswer_latex_lv\tsolution_latex\tsolution_latex_lv\tdifficulty\ttags\tcondition_svg
 
 Каждая задача на двух языках: столбцы с суффиксом _lv — латышская версия того же условия, ответа и решения на терминологии Skola2030. Числа, формулы и знаки $ в обеих версиях совпадают до символа, расходится только текст.
 
@@ -3037,7 +3060,8 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
 3. difficulty: Лёгкий, Средний или Сложный.
 4. subtopic_code: номер подтемы по стандарту (например 7.1.1, 8.2.3 и т.д.).
 5. tags: список тегов через точку с запятой (например: vienadojumi; algebriskie-parveidojumi).
-6. Выведи сразу 30 задач одной непрерывной таблицей без лишнего вступительного и заключительного текста, чтобы я мог скопировать её в один клик.`;
+6. Выведи задачи одной непрерывной таблицей без вступления и заключения. Если все не помещаются в один ответ, остановись на конце целой строки и допиши отдельной строкой: ПРОДОЛЖЕНИЕ СЛЕДУЕТ. Когда я напишу «дальше», продолжи со следующей задачи и снова начни с той же строки заголовков — без неё таблица не загрузится.
+7. condition_svg — чертёж к условию. Он обязателен в каждой задаче, где есть фигура, тело, график, точки на координатной плоскости, числовая прямая или диаграмма, даже простые. Пустая ячейка — только для задач без геометрического объекта: вычисления, уравнения, проценты, дроби. Чертёж — SVG-код одной строкой, без переводов строки и табуляции, атрибуты в одинарных кавычках: <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'>…</svg>, без width и height. Линии stroke='#000' stroke-width='2' fill='none'; подписи — <text> с fill='#000' font-family='system-ui, sans-serif' font-size='15', отступ от края не меньше 20. Подписывай ТОЛЬКО вершины заглавными латинскими буквами (A, B, C, O) — снаружи фигуры рядом с точкой, никогда не на линии. Никаких длин, единиц, углов, «?» и других надписей: все данные — в тексте условия. Прямой угол — маленький квадрат в вершине, высоты и диагонали — пунктиром. Ответ на чертеже не показывай.`;
 
   function showAiPromptModal() {
     if (!aiPromptDialog) return;
@@ -3238,6 +3262,7 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
     let successCount = 0;
     const warnings = [];
     let withoutTopic = 0;
+    let uploadedFigures = 0;
     /* Предупреждения разбора — например, сдвиг столбцов из-за запятой
        в формуле без кавычек — показываем вместе с остальными. */
     if (Array.isArray(parsedResult.warnings)) warnings.push(...parsedResult.warnings);
@@ -3280,6 +3305,19 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
       const taskPos = nextPosition(topicId, null);
       const titleVal = item.title ? String(item.title).trim() : `Задача №${taskPos}`;
 
+      /* Чертёж разметкой (condition_svg / solution_svg) сохраняем файлом в
+         хранилище и подставляем путь, как при загрузке через форму. Не
+         вышло — задача всё равно сохраняется, без рисунка, и об этом
+         говорим. Готовый путь в condition_image важнее разметки. */
+      const figurePaths = {};
+      for (const kind of ['condition', 'solution']) {
+        const markup = item[`${kind}_svg`];
+        if (!markup || item[`${kind}_image`]) continue;
+        const uploaded = await uploadSvgMarkup(kind, markup);
+        if (uploaded.path) figurePaths[kind] = uploaded.path;
+        else warnings.push(`Задача #${i + 1}: чертёж ${kind === 'condition' ? 'условия' : 'решения'} не сохранён — ${uploaded.error}.`);
+      }
+
       const payload = sanitizeTaskPayload({
         subtopic_id: subtopicId,
         title: titleVal,
@@ -3291,8 +3329,8 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
         solution_latex: item.solution_latex ? String(item.solution_latex).trim() : null,
         solution_latex_lv: item.solution_latex_lv ? String(item.solution_latex_lv).trim() : null,
         hint_latex: item.hint_latex ? String(item.hint_latex).trim() : null,
-        condition_image: item.condition_image ? String(item.condition_image).trim() : null,
-        solution_image: item.solution_image ? String(item.solution_image).trim() : null,
+        condition_image: figurePaths.condition || (item.condition_image ? String(item.condition_image).trim() : null),
+        solution_image: figurePaths.solution || (item.solution_image ? String(item.solution_image).trim() : null),
         hint_latex_lv: item.hint_latex_lv ? String(item.hint_latex_lv).trim() : null,
         difficulty: item.difficulty || 'Средний',
         grade: parseFormGrade(item.grade),
@@ -3307,8 +3345,10 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
       const { data: insertedTask, error } = await db.from('tasks').insert(payload).select('id').maybeSingle();
       if (error) {
         errors.push(`Задача #${i + 1}: ${error.message}`);
+        for (const path of Object.values(figurePaths)) await removeFile(path);
       } else {
         successCount++;
+        uploadedFigures += Object.keys(figurePaths).length;
         const newTaskId = insertedTask?.id;
         /* Указатель пополняем сразу, не дожидаясь конца импорта: следующая
            задача считает свой номер по нему, и без этой строки все задачи
@@ -3364,14 +3404,16 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
       bulkDialogStatus.className = 'bulk-dialog-status ' + (successCount > 0 ? 'warning' : 'error');
       bulkDialogStatus.innerHTML = `Обработано тем: <strong>${uniqueTopics.length}</strong> (создано новых: ${createdTopicsCount}), ` +
         `подтем: <strong>${uniqueSubtopics.length}</strong>` + (createdSubtopicsCount ? ` (создано новых: ${createdSubtopicsCount})` : '') + `.<br>` +
-        `Успешно сохранено задач: <strong>${successCount}</strong> из ${items.length}.<br>` + warnBlock +
+        `Успешно сохранено задач: <strong>${successCount}</strong> из ${items.length}` +
+        (uploadedFigures ? `, чертежей: ${uploadedFigures}` : '') + `.<br>` + warnBlock +
         `Ошибки:<br>${errors.map(escapeHtml).join('<br>')}`;
       bulkDialogStatus.hidden = false;
     } else {
       bulkDialogStatus.className = 'bulk-dialog-status success';
       bulkDialogStatus.innerHTML = `🎉 Успешно импортировано! Тем обработано: <strong>${uniqueTopics.length}</strong> (создано новых: ${createdTopicsCount}), ` +
         `подтем: <strong>${uniqueSubtopics.length}</strong>` + (createdSubtopicsCount ? ` (создано новых: ${createdSubtopicsCount})` : '') + `, ` +
-        `задач сохранено: <strong>${successCount}</strong> из ${items.length}!` + warnBlock;
+        `задач сохранено: <strong>${successCount}</strong> из ${items.length}` +
+        (uploadedFigures ? `, чертежей: <strong>${uploadedFigures}</strong>` : '') + '!' + warnBlock;
       bulkDialogStatus.hidden = false;
       setTimeout(() => bulkDialog?.close(), 2200);
     }
@@ -3972,8 +4014,10 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
         aiGenCancelled = false;
         if (btnCancelAiGenerator) btnCancelAiGenerator.hidden = false;
 
-        // Определяем размер пакета (для Gemini: до 10 задач за 1 запрос)
-        const BATCH_SIZE = usingGemini ? 10 : 10;
+        /* 30 задач за запрос: в потолок ответа модели (65 536 токенов) их
+           помещается около 60, а запросов втрое меньше, чем по 10, — реже
+           упираемся в минутный лимит бесплатного тарифа. */
+        const BATCH_SIZE = usingGemini ? 30 : 10;
         const totalBatches = Math.ceil(count / BATCH_SIZE);
 
         for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
@@ -4028,6 +4072,37 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
             }
           } catch (batchErr) {
             console.warn(`Ошибка в пакете ${batchIdx + 1}:`, batchErr);
+            /* Большая пачка, оборванная по длине или по времени, делится
+               пополам и запрашивается заново: иначе один сбой терял бы все
+               30 задач разом. */
+            if (batchCount > 10 && /оборван|не ответила/.test(String(batchErr?.message))) {
+              let recovered = 0;
+              for (const part of [Math.ceil(batchCount / 2), Math.floor(batchCount / 2)]) {
+                if (aiGenCancelled) break;
+                try {
+                  aiGenStatus.innerHTML = `<span>⏳</span> Пакет ${batchIdx + 1} оборвался — запрашиваем по ${part} задач…`;
+                  const partTasks = await generator.generateTasksBatch({
+                    grade: g, topicTitle: batchTopics[0] || topicTitle, topicsList: batchTopics, count: part,
+                    subtopic, subtopicCode, difficulty: selectedDifficulty, taskType, context, customPrompt,
+                    apiKey, useGemini: usingGemini
+                  });
+                  for (const task of partTasks) {
+                    const diff = task.difficulty || 'Средний';
+                    generatedResults.push({ result: task, difficulty: diff });
+                    if (diff === 'Лёгкий') easyCount++;
+                    else if (diff === 'Средний') medCount++;
+                    else hardCount++;
+                    recovered++;
+                  }
+                } catch (partErr) {
+                  console.warn(`Половина пакета ${batchIdx + 1} не удалась:`, partErr);
+                }
+              }
+              for (let k = 0; k < batchCount - recovered; k++) {
+                failures.push({ index: generatedResults.length + k + 1, message: batchErr.message });
+              }
+              continue;
+            }
             /* Считаем потерянные задачи, а не пачки: иначе сорванный
                пакет из десяти показывался как «не вышло: 1», и итог
                «40 из 50» выглядел необъяснимо. */
@@ -4088,6 +4163,28 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
 
         updatePreviews();
 
+        /* Одиночная задача идёт в форму — её чертёж ставим в поле рисунка,
+           как если бы его загрузили файлом; сохранение формы привяжет его.
+           В пакете чертежи сохранит импорт, а форма лишь показывает первую
+           задачу: загружать туда второй экземпляр незачем. */
+        if (count === 1) {
+          for (const kind of ['condition', 'solution']) {
+            const markup = first.result[`${kind}_svg`];
+            if (!markup) continue;
+            const errorElement = document.querySelector(`#${kind}-image-error`);
+            const uploaded = await uploadSvgMarkup(kind, markup);
+            if (!uploaded.path) {
+              errorElement.textContent = 'Чертёж от генератора не подошёл: ' + uploaded.error;
+              continue;
+            }
+            const previous = images[kind].current;
+            images[kind].current = uploaded.path;
+            if (previous && previous !== images[kind].saved) await removeFile(previous);
+            errorElement.textContent = '';
+            paintImage(kind);
+          }
+        }
+
         if (count === 1) {
           aiGenStatus.className = 'ai-gen-status success';
           aiGenStatus.innerHTML = `🎉 Задача сгенерирована [${first.difficulty}] и перенесена в форму ниже!`;
@@ -4123,6 +4220,8 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
               answer_latex_lv: r.answer_latex_lv || null,
               solution_latex: r.solution_latex_ru || r.solution_latex || null,
               solution_latex_lv: r.solution_latex_lv || null,
+              condition_svg: r.condition_svg || null,
+              solution_svg: r.solution_svg || null,
               difficulty: diff,
               grade: g,
               topic_id: topicId,
@@ -4186,6 +4285,8 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
               answer_latex_lv: r.answer_latex_lv || null,
               solution_latex: r.solution_latex_ru || r.solution_latex || null,
               solution_latex_lv: r.solution_latex_lv || null,
+              condition_svg: r.condition_svg || null,
+              solution_svg: r.solution_svg || null,
               difficulty: diff,
               grade: g,
               topic_id: dbMatchingTopic ? dbMatchingTopic.id : null,
