@@ -28,6 +28,9 @@
   const topicFilterReset = document.querySelector('#topic-filter-reset');
   const taskFilterCount = document.querySelector('#task-filter-count');
   const taskFilterReset = document.querySelector('#task-filter-reset');
+  const taskListDefer = document.querySelector('#task-list-defer');
+  const btnLoadTasks = document.querySelector('#btn-load-tasks');
+  const taskListCloseTop = document.querySelector('#task-list-close');
 
   const bulkDialog = document.querySelector('#bulk-dialog');
   const bulkDialogTitle = document.querySelector('#bulk-dialog-title');
@@ -38,16 +41,11 @@
   const bulkDialogCopy = document.querySelector('#bulk-dialog-copy');
   const bulkDialogTagList = document.querySelector('#bulk-dialog-taglist');
   const bulkDialogClose = document.querySelector('#bulk-dialog-close');
-  const bulkDialogCancel = document.querySelector('#bulk-dialog-cancel');
-  const btnExportTasks = document.querySelector('#btn-export-tasks');
-  const btnExportCsv = document.querySelector('#btn-export-csv');
-  const btnImportTasks = document.querySelector('#btn-import-tasks');
+  const bulkFileTasksLabel = document.querySelector('#btn-upload-file-tasks-label');
   const bulkFileInput = document.querySelector('#bulk-file-input');
-  const bulkDialogFileInput = document.querySelector('#bulk-dialog-file-input');
-  const btnUploadFileTasks = document.querySelector('#btn-upload-file-tasks');
-  const bulkDialogPickFileBtn = document.querySelector('#bulk-dialog-pick-file-btn');
-  const bulkDialogTemplateBtn = document.querySelector('#bulk-dialog-template-btn');
-  const bulkDialogCsvTemplateBtn = document.querySelector('#bulk-dialog-csv-template-btn');
+  const btnExportCsv = document.querySelector('#btn-export-csv');
+  const btnExportTasks = document.querySelector('#btn-export-tasks');
+  const btnImportTasks = document.querySelector('#btn-import-tasks');
   const bulkDialogAiPromptBtn = document.querySelector('#bulk-dialog-ai-prompt-btn');
   const aiGenCount = document.querySelector('#ai-gen-count');
   const btnRenumberTasks = document.querySelector('#btn-renumber-tasks');
@@ -83,11 +81,9 @@
      выполнена. Латышские колонки добавляются в него на лету: без этого
      миграцию можно было выполнить, а перевод из админки всё равно
      не сохранялся бы — молча, потому что поле просто отбрасывалось. */
-  /* Списки в панели показывают только заголовки, а условие и решение
-     занимают почти весь вес строки: 81 задача с полными текстами — это
-     108 КБ, без них — 17 КБ. Полную строку забираем по одной, когда
-     задачу открывают на правку. */
-  const TASK_LIST_COLS = 'id,title,topic_id,grade,difficulty,is_published,position';
+  /* Колонки для списка задач: нужны для поиска по условию, фильтрации по чертежам,
+     решениям, сортировки по дате и подтемам. */
+  const TASK_LIST_COLS = 'id,title,topic_id,subtopic_id,grade,difficulty,is_published,position,condition_image,solution_image,condition_latex,solution_latex,created_at';
   /* title_lv нужен выгрузке (иначе столбец topic_title_lv пуст у всех задач)
      и импорту — без него тема по латышскому названию не находилась, и
      вместо совпадения заводился дубль. */
@@ -2133,8 +2129,8 @@ ${JSON.stringify(texts)}`;
 
     return tasks.filter(task => {
       if (query) {
-        const titleStr = (task.title || '').toLowerCase();
-        const condStr = (task.condition_latex || '').toLowerCase();
+        const titleStr = `${task.title || ''} ${task.title_lv || ''}`.toLowerCase();
+        const condStr = `${task.condition_latex || ''} ${task.condition_latex_lv || ''}`.toLowerCase();
         if (!titleStr.includes(query) && !condStr.includes(query)) return false;
       }
       if (gradeVal !== null) {
@@ -2144,8 +2140,11 @@ ${JSON.stringify(texts)}`;
       if (topicVal !== null && task.topic_id !== topicVal) return false;
       if (statusVal === 'published' && !task.is_published) return false;
       if (statusVal === 'draft' && task.is_published) return false;
-      if (statusVal === 'no_solution' && (task.solution_latex || task.solution_image)) return false;
-      if (statusVal === 'with_image' && !task.condition_image && !task.solution_image) return false;
+      const hasSolution = Boolean((task.solution_latex && task.solution_latex.trim()) || (task.solution_image && task.solution_image.trim()));
+      if (statusVal === 'no_solution' && hasSolution) return false;
+      const hasImage = Boolean((task.condition_image && task.condition_image.trim()) || (task.solution_image && task.solution_image.trim()));
+      if (statusVal === 'with_image' && !hasImage) return false;
+      if (statusVal === 'without_image' && hasImage) return false;
       return true;
     });
   }
@@ -2466,10 +2465,45 @@ ${JSON.stringify(texts)}`;
   topicFilterReset?.addEventListener('click', resetTopicFilters);
   [taskFilterSort, topicFilterSort].forEach(el => el?.addEventListener('change', saveSort));
 
+  let tasksLoadingPromise = null;
+  async function ensureTasksLoaded() {
+    if (tasksLoaded) {
+      setTasksShown(true);
+      renderTaskList();
+      return;
+    }
+    if (tasksLoadingPromise) {
+      await tasksLoadingPromise;
+      setTasksShown(true);
+      renderTaskList();
+      return;
+    }
+    if (btnLoadTasks) {
+      btnLoadTasks.disabled = true;
+      btnLoadTasks.textContent = 'Загружаю…';
+    }
+    try {
+      await loadTasks();
+    } finally {
+      if (btnLoadTasks) {
+        btnLoadTasks.disabled = false;
+        btnLoadTasks.textContent = 'Показать задачи';
+      }
+    }
+  }
+
   /* ── Фильтры задач (4.1) ─────────────────────────────────────────── */
+  const showTasksThenRender = () => {
+    if (!tasksLoaded) {
+      ensureTasksLoaded();
+    } else {
+      setTasksShown(true);
+      renderTaskList();
+    }
+  };
   [taskSearchInput, taskFilterGrade, taskFilterTopic, taskFilterStatus, taskFilterSort].forEach(el => {
-    el?.addEventListener('input', renderTaskList);
-    el?.addEventListener('change', renderTaskList);
+    el?.addEventListener('input', showTasksThenRender);
+    el?.addEventListener('change', showTasksThenRender);
   });
   taskFilterReset?.addEventListener('click', resetTaskFilters);
 
@@ -3595,9 +3629,6 @@ ${JSON.stringify(texts)}`;
   const aiGenContext = document.querySelector('#ai-gen-context');
   const aiGenPrompt = document.querySelector('#ai-gen-prompt');
   const topicListDefer = document.querySelector('#topic-list-defer');
-  const topicListCloseTop = document.querySelector('#topic-list-close');
-  const taskListCloseTop = document.querySelector('#task-list-close');
-
   function setTopicsShown(shown) {
     topicsShown = shown;
     if (topicListDefer) topicListDefer.hidden = shown;
@@ -3616,15 +3647,7 @@ ${JSON.stringify(texts)}`;
   document.querySelector('#btn-hide-topics')?.addEventListener('click', () => setTopicsShown(false));
   document.querySelector('#btn-hide-tasks')?.addEventListener('click', () => setTasksShown(false));
 
-  const taskListDefer = document.querySelector('#task-list-defer');
-  const btnLoadTasks = document.querySelector('#btn-load-tasks');
-  btnLoadTasks?.addEventListener('click', async () => {
-    btnLoadTasks.disabled = true;
-    btnLoadTasks.textContent = 'Загружаю…';
-    await loadTasks();
-    btnLoadTasks.disabled = false;
-    btnLoadTasks.textContent = 'Показать задачи';
-  });
+  btnLoadTasks?.addEventListener('click', () => ensureTasksLoaded());
 
   const btnRunAiGenerator = document.querySelector('#btn-run-ai-generator');
   const btnCancelAiGenerator = document.querySelector('#btn-cancel-ai-generator');
@@ -4633,9 +4656,7 @@ ${JSON.stringify(texts)}`;
   }
   taskReviewChip?.addEventListener('click', async () => {
     if (taskFilterStatus) taskFilterStatus.value = 'draft';
-    if (!tasksLoaded) { await loadTasks(); return; }
-    setTasksShown(true);
-    renderTaskList();
+    await ensureTasksLoaded();
   });
 
   async function loadTaskIndex() {
@@ -4660,21 +4681,28 @@ ${JSON.stringify(texts)}`;
   }
 
   async function loadTasks() {
-    let selectCols = TASK_LIST_COLS;
-    if (tagsReady) selectCols += ',task_tags(tags(slug,title,title_lv))';
-    /* id в конце порядка — чтобы страницы не теряли и не повторяли задачи
-       с одинаковыми темой, номером и временем. */
-    const { data, error } = await window.MathTasksLib.fetchAllRows(() => db.from('tasks').select(selectCols)
-      .order('topic_id').order('position').order('created_at', { ascending: true }).order('id'));
-    if (error) { taskList.innerHTML = `<p class="admin-empty">Не удалось загрузить задачи: ${escapeHtml(error.message)}</p>`; return; }
-    tasks = data || [];
-    tasksLoaded = true;
-    setTasksShown(true);
-    if (tasks.length > 0 && tasks[0]) {
-      Object.keys(tasks[0]).forEach(k => supportedTaskCols.add(k));
-    }
-    renderTaskList();
-    renderTopicList();
+    if (tasksLoadingPromise) return tasksLoadingPromise;
+    tasksLoadingPromise = (async () => {
+      let selectCols = TASK_LIST_COLS;
+      if (multilingualReady) selectCols += ',title_lv,condition_latex_lv,solution_latex_lv';
+      if (tagsReady) selectCols += ',task_tags(tags(slug,title,title_lv))';
+      /* id в конце порядка — чтобы страницы не теряли и не повторяли задачи
+         с одинаковыми темой, номером и временем. */
+      const { data, error } = await window.MathTasksLib.fetchAllRows(() => db.from('tasks').select(selectCols)
+        .order('topic_id').order('position').order('created_at', { ascending: true }).order('id'));
+      if (error) { taskList.innerHTML = `<p class="admin-empty">Не удалось загрузить задачи: ${escapeHtml(error.message)}</p>`; return; }
+      tasks = data || [];
+      tasksLoaded = true;
+      setTasksShown(true);
+      if (tasks.length > 0 && tasks[0]) {
+        Object.keys(tasks[0]).forEach(k => supportedTaskCols.add(k));
+      }
+      renderTaskList();
+      renderTopicList();
+    })().finally(() => {
+      tasksLoadingPromise = null;
+    });
+    return tasksLoadingPromise;
   }
 
   document.querySelectorAll('[data-sign-out]').forEach(button => button.addEventListener('click', async () => {
