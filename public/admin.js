@@ -229,6 +229,8 @@
           </form>
         </div>
       `;
+      // autofocus не срабатывает у формы, вставленной после загрузки страницы.
+      document.querySelector('#admin-gate-email')?.focus();
       const loginForm = document.querySelector('#admin-gate-login-form');
       loginForm?.addEventListener('submit', async ev => {
         ev.preventDefault();
