@@ -2202,8 +2202,8 @@ ${JSON.stringify(texts)}`;
       // Бейджи статусов и индикация черновиков / ошибок (4.4)
       const badges = [
         task.is_published
-          ? '<span class="admin-status-badge published">✓ Опубликована</span>'
-          : '<span class="admin-status-badge draft">🟡 Черновик</span>',
+          ? '<span class="admin-status-badge published" title="Задача проверена и опубликована на сайте">✓ Проверено</span>'
+          : '<span class="admin-status-badge draft" title="Задача ожидает проверки">🟡 На проверке</span>',
         !task.topic_id ? '<span class="admin-status-badge danger">Без темы</span>' : '',
         (!task.solution_latex && !task.solution_image) ? '<span class="admin-status-badge warning">Без решения</span>' : '',
         (task.condition_image || task.solution_image) ? `<span class="admin-status-badge info" title="${escapeHtml(task.condition_image || task.solution_image)}">🖼️ ${escapeHtml((task.condition_image || task.solution_image).split('/').pop())}</span>` : '',
@@ -2221,7 +2221,9 @@ ${JSON.stringify(texts)}`;
           <small>${escapeHtml(gradeText(grade))}${sub ? ` · ${escapeHtml(sub.code ? sub.code + ' ' : '')}${escapeHtml(sub.title)}` : ''}${conditionSnippet ? ` · <em>${escapeHtml(conditionSnippet)}</em>` : ''}</small>
           <div class="admin-badge-group">${badges}</div>
         </div>
-        ${task.is_published ? '' : `<button class="text-button" type="button" data-publish-task="${task.id}" title="Проверил — опубликовать на сайте">Опубликовать</button>`}
+        ${task.is_published
+          ? `<button class="text-button" type="button" data-unpublish-task="${task.id}" title="Снять отметку проверки — вернуть задачу на проверку">На проверку</button>`
+          : `<button class="text-button success" type="button" data-publish-task="${task.id}" title="Поставить отметку «Проверено» и опубликовать на сайте">✓ Проверено</button>`}
         <button class="text-button" type="button" data-edit-task="${task.id}" title="Редактировать">Изменить</button>
         <button class="text-button" type="button" data-clone-task="${task.id}" title="Создать копию задачи в форме (4.2)">Клонировать</button>
         <button class="text-button danger" type="button" data-delete-task="${task.id}" title="Удалить">Удалить</button>
@@ -2373,15 +2375,29 @@ ${JSON.stringify(texts)}`;
   taskList.addEventListener('click', async event => {
     const move = event.target.closest('[data-move]');
     if (move) { await moveTask(move.dataset.move, move.dataset.dir); return; }
-    /* Проверил черновик — публикуем одной кнопкой, без захода в форму. */
+    /* Отметить как проверенную (опубликовать) или вернуть на проверку */
     const publishId = event.target.closest('[data-publish-task]')?.dataset.publishTask;
     if (publishId) {
       const { error } = await db.from('tasks').update({ is_published: true }).eq('id', publishId);
-      if (error) { taskSuccess.textContent = 'Не удалось опубликовать: ' + error.message; return; }
+      if (error) { taskSuccess.textContent = 'Не удалось отметить: ' + error.message; return; }
       for (const list of [tasks, taskIndex]) {
         const row = list.find(item => String(item.id) === String(publishId));
         if (row) row.is_published = true;
       }
+      taskSuccess.textContent = `Задача #${publishId} отмечена как проверенная.`;
+      renderTaskList();
+      updateReviewChip();
+      return;
+    }
+    const unpublishId = event.target.closest('[data-unpublish-task]')?.dataset.unpublishTask;
+    if (unpublishId) {
+      const { error } = await db.from('tasks').update({ is_published: false }).eq('id', unpublishId);
+      if (error) { taskSuccess.textContent = 'Не удалось вернуть на проверку: ' + error.message; return; }
+      for (const list of [tasks, taskIndex]) {
+        const row = list.find(item => String(item.id) === String(unpublishId));
+        if (row) row.is_published = false;
+      }
+      taskSuccess.textContent = `Задача #${unpublishId} возвращена на проверку.`;
       renderTaskList();
       updateReviewChip();
       return;

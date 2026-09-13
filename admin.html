@@ -513,7 +513,7 @@
               </div>
             </details>
           </div>
-          <label class="checkbox"><input name="is_published" type="checkbox" checked /> Опубликовать сразу</label>
+          <label class="checkbox"><input name="is_published" type="checkbox" checked /> Отметка «Проверено» (опубликовать на сайте)</label>
           <div class="wide form-actions"><button class="primary-button" type="submit" id="task-submit">Добавить задачу</button><button class="text-button" type="button" id="task-cancel" hidden>Отменить</button><span class="form-success" id="task-success"></span></div>
         </form>
       </div>
@@ -711,14 +711,14 @@
                 <option value="diff_desc">По убыванию сложности</option>
                 <option value="title">По названию (А→Я)</option>
                 <option value="grade">По классу</option>
-                <option value="status">Черновики сверху</option>
+                <option value="status">На проверке сверху</option>
               </select>
             </label>
             <label class="admin-filter-field">
               <span>Статус</span>
               <select id="task-filter-status" class="admin-select-filter">
                 <option value="">Все статусы</option>
-                <option value="published">Опубликованные</option>
+                <option value="published">Проверенные (опубликованы)</option>
                 <option value="draft">На проверке (черновики)</option>
                 <option value="no_solution">Без решений</option>
                 <option value="with_image">С чертежами</option>
@@ -748,9 +748,9 @@
           </div>
           <p class="bulk-dialog-desc" id="bulk-dialog-desc">Поддерживается загрузка файлов .json, .csv, .tsv, а также прямая вставка скопированных ячеек из Excel или Google Таблиц. Формат определяется автоматически.</p>
           <div class="bulk-dialog-toolbar" style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-            <label class="admin-tool-btn" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Выбрать файл .json, .csv или .tsv с компьютера">
+            <label class="admin-tool-btn" id="btn-upload-file-tasks-label" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Выбрать файл .json, .csv или .tsv с компьютера">
               📁 Выбрать файл с диска (.json / .csv)
-              <input type="file" id="bulk-dialog-file-input" accept=".json,.csv,.tsv,text/csv,text/tab-separated-values,application/json" style="display:none" />
+              <input type="file" id="bulk-file-input" accept=".json,.csv,.tsv,text/csv,text/tab-separated-values,application/json" style="display:none" />
             </label>
             <button type="button" class="admin-tool-btn" id="bulk-dialog-template-btn">📋 Вставить образец JSON</button>
             <button type="button" class="admin-tool-btn" id="bulk-dialog-csv-template-btn">📊 Вставить образец CSV</button>
@@ -759,7 +759,7 @@
           <textarea class="bulk-dialog-textarea" id="bulk-dialog-textarea" rows="12" spellcheck="false" placeholder="Вставьте JSON, CSV или скопированные из Excel / Google Таблиц строки..."></textarea>
           <label class="bulk-dialog-publish-row" id="bulk-dialog-publish-row" hidden>
             <input type="checkbox" id="bulk-dialog-publish" />
-            <span>Опубликовать сразу, без проверки <small>— по умолчанию задачи сохраняются черновиками и ждут проверки</small></span>
+            <span>Отметить как проверенные и опубликовать сразу <small>— по умолчанию задачи сохраняются как «На проверке»</small></span>
           </label>
           <div class="bulk-dialog-status" id="bulk-dialog-status" hidden></div>
           <div class="bulk-dialog-actions">
