@@ -35,10 +35,87 @@
     <div class="admin-gate" id="admin-gate"><p>Проверяем доступ…</p></div>
 
     <div id="admin-content" hidden>
-      <div class="admin-heading">
-        <div>
-          <h2>Управление контентом</h2>
-          <p>Новая задача появится у посетителей только после публикации. Вы вошли как <strong id="admin-email"></strong>.</p>
+      <!-- Каркас: меню слева и экраны. Разделы ниже остаются в разметке на
+           своих местах — при загрузке admin.js переносит их на экраны. -->
+      <div class="adm-shell">
+        <aside class="adm-side" aria-label="Меню админки">
+          <div class="adm-brand">
+            <div class="adm-brand-title">Задачник · админка</div>
+            <div class="adm-brand-sub">Skola2030 · RU / LV</div>
+          </div>
+          <nav class="adm-nav">
+            <div class="adm-nav-group">Каждый день</div>
+            <a class="adm-nav-item" href="#home" data-view-link="home"><span>Обзор</span></a>
+            <a class="adm-nav-item" href="#review" data-view-link="review"><span>Проверка</span><span class="adm-count warn" id="adm-count-review" hidden></span></a>
+            <a class="adm-nav-item" href="#reports" data-view-link="reports"><span>Сообщения об ошибках</span><span class="adm-count bad" id="adm-count-reports" hidden></span></a>
+            <a class="adm-nav-item" href="#import" data-view-link="import"><span>Импорт и экспорт</span></a>
+            <div class="adm-nav-group">Контент</div>
+            <a class="adm-nav-item" href="#new" data-view-link="new"><span>Редактор задачи</span><kbd title="Клавиша N — новая задача">N</kbd></a>
+            <a class="adm-nav-item" href="#tasks" data-view-link="tasks"><span>Каталог задач</span><span class="adm-count plain" id="adm-count-tasks"></span></a>
+            <a class="adm-nav-item" href="#ai" data-view-link="ai"><span>Генератор задач</span></a>
+            <a class="adm-nav-item" href="#catalog" data-view-link="catalog"><span>Разделы, темы, подтемы</span></a>
+          </nav>
+          <div class="adm-side-foot">
+            <button class="adm-theme-btn" type="button" id="adm-theme-btn"><span id="adm-theme-label">Тема</span><small>сменить</small></button>
+            <div class="adm-user"><span class="adm-avatar" id="adm-avatar" aria-hidden="true">·</span><strong id="admin-email"></strong></div>
+            <div class="adm-side-links"><a href="/">← На сайт</a><button class="adm-link-btn" type="button" data-sign-out>Выйти</button></div>
+          </div>
+        </aside>
+
+        <div class="adm-main">
+          <header class="adm-top">
+            <input type="search" id="adm-global-search" placeholder="Поиск по условию или названию задачи…" aria-label="Поиск задач" />
+            <div class="adm-top-actions">
+              <a class="adm-btn soft" href="#ai">Сгенерировать</a>
+              <button class="adm-btn primary" type="button" id="adm-new-task">+ Новая задача</button>
+            </div>
+          </header>
+
+          <div class="adm-views">
+            <section class="adm-view" data-view="home" hidden>
+              <div class="adm-view-head"><div><h1>Обзор</h1><p>Задача появляется у посетителей только после публикации. Главная работа здесь — проверить очередь и разобрать сообщения.</p></div></div>
+              <div class="adm-stats">
+                <a class="adm-stat warn" href="#review"><div class="adm-stat-label">На проверке</div><div class="adm-stat-value" id="adm-stat-drafts">—</div><div class="adm-stat-note">проверить →</div></a>
+                <a class="adm-stat" href="#reports"><div class="adm-stat-label">Сообщения об ошибках</div><div class="adm-stat-value" id="adm-stat-reports">—</div><div class="adm-stat-note">от посетителей →</div></a>
+                <div class="adm-stat"><div class="adm-stat-label">Опубликовано</div><div class="adm-stat-value" id="adm-stat-published">—</div><div class="adm-stat-note">видно на сайте</div></div>
+                <a class="adm-stat" href="#tasks" data-status-filter="no_lv"><div class="adm-stat-label">Без перевода LV</div><div class="adm-stat-value" id="adm-stat-nolv">—</div><div class="adm-stat-note">показать в каталоге →</div></a>
+              </div>
+              <section class="adm-panel">
+                <div class="adm-panel-head"><h2>Ближайшее в очереди</h2><a href="#review">Открыть проверку</a></div>
+                <div id="adm-queue-peek"><p class="adm-empty">Загружаем…</p></div>
+              </section>
+            </section>
+
+            <section class="adm-view" data-view="reports" data-single hidden>
+              <div class="adm-view-head"><div><h1>Сообщения об ошибках</h1><p>Что написал посетитель — рядом с задачей. Исправили задачу — нажмите «Решено».</p></div></div>
+              <div class="adm-view-body"></div>
+            </section>
+
+            <section class="adm-view" data-view="import" hidden>
+              <div class="adm-view-head"><div><h1>Импорт и экспорт</h1><p>Файл или вставленная таблица → разбор → импорт. Всё импортированное попадает на проверку черновиками, на сайт — только после публикации.</p></div></div>
+              <div class="adm-view-body"><div class="adm-panel adm-pad" data-slot="import-tools"></div></div>
+            </section>
+
+            <section class="adm-view" data-view="new" data-single hidden>
+              <div class="adm-view-head"><div data-slot="new-title"><p>Формулы — между знаками <code>$…$</code>. Под полями — ровно то, что увидит посетитель.</p></div><div class="adm-view-actions" data-slot="new-actions"></div></div>
+              <div class="adm-view-body"></div>
+            </section>
+
+            <section class="adm-view" data-view="tasks" data-single hidden>
+              <div class="adm-view-head"><div><h1>Каталог задач</h1><p>Поиск и фильтры сверху, правка — в строке. Черновики на сайте не видны.</p></div><div class="adm-view-actions" data-slot="tasks-actions"></div></div>
+              <div class="adm-view-body"></div>
+            </section>
+
+            <section class="adm-view" data-view="ai" data-single hidden>
+              <div class="adm-view-head"><div><h1>Генератор задач</h1><p>Строго по стандарту Skola2030: формулы, ответ и разбор. Результат уходит на проверку, а не на сайт.</p></div></div>
+              <div class="adm-view-body"></div>
+            </section>
+
+            <section class="adm-view" data-view="catalog" hidden>
+              <div class="adm-view-head"><div><h1>Разделы, темы, подтемы</h1><p>Каталог в три уровня. Номера и порядок выставляют кнопки «Перенумеровать».</p></div></div>
+              <div class="adm-view-body"></div>
+            </section>
+          </div>
         </div>
       </div>
 
@@ -723,6 +800,7 @@
                 <option value="no_solution">Без решений</option>
                 <option value="with_image">С чертежами</option>
                 <option value="without_image">Без чертежей</option>
+                <option value="no_lv">Без перевода LV</option>
               </select>
             </label>
             <span class="admin-filter-count" id="task-filter-count"></span>

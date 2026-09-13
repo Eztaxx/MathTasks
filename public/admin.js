@@ -94,7 +94,7 @@
      не сохранялся бы — молча, потому что поле просто отбрасывалось. */
   /* Колонки для списка задач: нужны для поиска по условию, фильтрации по чертежам,
      решениям, сортировки по дате и подтемам. */
-  const TASK_LIST_COLS = 'id,title,topic_id,subtopic_id,grade,difficulty,is_published,position,condition_image,solution_image,condition_latex,solution_latex,created_at';
+  const TASK_LIST_COLS = 'id,title,topic_id,subtopic_id,grade,difficulty,is_published,position,condition_image,solution_image,condition_latex,condition_latex_lv,solution_latex,created_at';
   /* title_lv нужен выгрузке (иначе столбец topic_title_lv пуст у всех задач)
      и импорту — без него тема по латышскому названию не находилась, и
      вместо совпадения заводился дубль. */
@@ -404,6 +404,8 @@
 
   function ensureSectionExpanded(sectionId) {
     const section = document.querySelector('#' + sectionId);
+    // В каркасе «развернуть раздел» значит «открыть его экран».
+    showViewOfElement(section);
     if (!section || !section.classList.contains('is-collapsed')) return;
     const toggleBtn = section.querySelector('.admin-section-toggle');
     applySectionCollapsed(section, toggleBtn, false);
@@ -413,6 +415,12 @@
   }
 
   function initCollapsibleSections() {
+    /* На экранах сворачивать нечего: у каждого раздела свой экран. Раздел,
+       свёрнутый ещё в старой ленте, иначе так и остался бы пустым. */
+    if (document.querySelector('.adm-shell')) {
+      document.querySelectorAll('.admin-section.is-collapsed').forEach(section => section.classList.remove('is-collapsed'));
+      return;
+    }
     const collapsedSet = getCollapsedSections();
     document.querySelectorAll('.admin-section').forEach(section => {
       const sectionId = section.id;
@@ -2298,6 +2306,7 @@ ${JSON.stringify(texts)}`;
       const hasImage = Boolean((task.condition_image && task.condition_image.trim()) || (task.solution_image && task.solution_image.trim()));
       if (statusVal === 'with_image' && !hasImage) return false;
       if (statusVal === 'without_image' && hasImage) return false;
+      if (statusVal === 'no_lv' && (task.condition_latex_lv || '').trim()) return false;
       return true;
     });
   }
@@ -4781,6 +4790,7 @@ ${JSON.stringify(texts)}`;
   }
 
   function renderReports() {
+    updateShellCounts();
     if (reportCount) reportCount.textContent = reports.length ? `(${reports.length})` : '';
     if (!reports.length) {
       reportList.innerHTML = '<p class="admin-empty">Открытых сообщений нет.</p>';
@@ -4824,6 +4834,7 @@ ${JSON.stringify(texts)}`;
      указателю, чтобы счётчик был виден сразу, без загрузки полного списка. */
   const taskReviewChip = document.querySelector('#task-review-chip');
   function updateReviewChip() {
+    updateShellCounts();
     if (!taskReviewChip) return;
     const drafts = taskIndex.filter(t => t.is_published === false).length;
     taskReviewChip.hidden = !drafts;
@@ -4920,6 +4931,8 @@ ${JSON.stringify(texts)}`;
       renderTopicList();
       // Без await: раздел сообщений не должен задерживать остальную панель.
       loadReports();
+      loadOverview();
+      activateCurrentView();
     } catch (err) {
       console.error('Ошибка загрузки данных каталога:', err);
     }
@@ -4956,6 +4969,221 @@ ${JSON.stringify(texts)}`;
 
     await startAdminApp();
   }
+
+  /* ── Каркас: боковое меню и экраны ─────────────────────────────────
+     Админка была одной длинной лентой разделов. Теперь у каждой части
+     свой экран, как в макете «Админка Skola2030»: меню слева, наверху
+     поиск и «+ Новая задача». Разделы остаются в разметке на своих
+     местах и при загрузке переезжают на экраны — их id и обработчики не
+     меняются. Экран выбирается адресом (#new, #tasks…): работают «назад»
+     в браузере и прямые ссылки. */
+  const shell = document.querySelector('.adm-shell');
+  const viewEls = {};
+  document.querySelectorAll('.adm-view').forEach(el => { viewEls[el.dataset.view] = el; });
+  /* «Проверка» пока открывает каталог с фильтром черновиков; отдельный
+     экран проверки по одной задаче — следующий этап. */
+  const VIEW_ALIASES = { review: 'tasks' };
+  let currentView = null;
+  let reviewFilterApplied = false;
+
+  const byId = id => document.getElementById(id);
+  const slot = name => shell?.querySelector(`[data-slot="${name}"]`);
+  const viewBody = view => viewEls[view]?.querySelector('.adm-view-body');
+  const moveInto = (target, ...nodes) => {
+    if (target) nodes.filter(Boolean).forEach(node => target.appendChild(node));
+  };
+
+  if (shell) {
+    moveInto(viewBody('catalog'), byId('section-subjects'), byId('section-topics'), byId('section-subtopics'));
+    moveInto(viewBody('ai'), byId('ai-generator-section'));
+    moveInto(viewBody('new'), byId('section-task-form'));
+    moveInto(viewBody('reports'), byId('section-reports'));
+    moveInto(viewBody('tasks'), byId('section-tasks-database'));
+    // Кнопки загрузки, выгрузки, образцы и промпт — из тулбара каталога на экран импорта.
+    moveInto(slot('import-tools'), document.querySelector('#task-toolbar .admin-bulk-actions'));
+    moveInto(viewBody('import'), byId('csv-sample-card'), byId('json-sample-card'));
+    // Перенумерация — действие каталога, а не импорта.
+    moveInto(slot('tasks-actions'), byId('btn-renumber-tasks'));
+    // Заголовок формы меняет код («Редактировать задачу №…») — он и есть заголовок экрана.
+    const formTitle = byId('task-form-title');
+    if (formTitle) {
+      formTitle.classList.add('adm-view-title');
+      slot('new-title')?.prepend(formTitle);
+    }
+    moveInto(slot('new-actions'), byId('btn-toggle-math-guide'));
+    /* Модальные окна — в конец страницы: внутри скрытого экрана окно
+       могло не показаться. */
+    [bulkDialog, aiPromptDialog].forEach(dialog => dialog && document.body.appendChild(dialog));
+  }
+
+  function showView(view, { push = true } = {}) {
+    if (!shell) return;
+    if (!viewEls[view] && !VIEW_ALIASES[view]) view = 'home';
+    const target = VIEW_ALIASES[view] || view;
+    for (const [name, el] of Object.entries(viewEls)) el.hidden = name !== target;
+    shell.querySelectorAll('[data-view-link]').forEach(link => {
+      const on = link.dataset.viewLink === view;
+      link.classList.toggle('is-active', on);
+      if (on) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+    const changed = currentView !== view;
+    currentView = view;
+    if (push && location.hash !== '#' + view) window.history.pushState(null, '', '#' + view);
+    if (changed) window.scrollTo(0, 0);
+    activateCurrentView();
+  }
+
+  /* До входа ничего не грузим: список, запрошенный без прав админа,
+     закешировался бы без черновиков. */
+  function activateCurrentView() {
+    if (!adminAppStarted || !shell) return;
+    if (currentView === 'review' && taskFilterStatus) {
+      taskFilterStatus.value = 'draft';
+      reviewFilterApplied = true;
+      showTasksThenRender();
+    } else if (currentView === 'tasks') {
+      if (reviewFilterApplied && taskFilterStatus?.value === 'draft') taskFilterStatus.value = '';
+      reviewFilterApplied = false;
+      showTasksThenRender();
+    } else if (currentView === 'home') {
+      scheduleOverview();
+    }
+  }
+
+  function showViewOfElement(el) {
+    const view = el?.closest?.('.adm-view')?.dataset.view;
+    if (view && view !== (VIEW_ALIASES[currentView] || currentView)) showView(view);
+  }
+  /* Код, который открывает задачу в форме (генератор, «Клонировать»,
+     «Открыть задачу»), прокручивает к ней страницу. Элемент на скрытом
+     экране сначала показываем — иначе прокрутка вела в пустоту. */
+  const nativeScrollIntoView = Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView = function (...args) {
+    showViewOfElement(this);
+    return nativeScrollIntoView.apply(this, args);
+  };
+
+  window.addEventListener('hashchange', () => showView(location.hash.slice(1) || 'home', { push: false }));
+
+  shell?.addEventListener('click', event => {
+    const filterLink = event.target.closest('[data-status-filter]');
+    if (filterLink && taskFilterStatus) {
+      taskFilterStatus.value = filterLink.dataset.statusFilter;
+      reviewFilterApplied = false;
+      if (currentView === 'tasks') showTasksThenRender();
+    }
+  });
+
+  async function startNewTask() {
+    if (editingTaskId && !confirm('Бросить правку текущей задачи и начать новую?')) return;
+    await discardPendingImages();
+    taskForm.reset();
+    setTaskMode(null);
+    showView('new');
+    conditionInput?.focus();
+  }
+  byId('adm-new-task')?.addEventListener('click', startNewTask);
+  document.addEventListener('keydown', event => {
+    if (!shell || content.hidden || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (!['n', 'N', 'т', 'Т'].includes(event.key)) return;
+    if (event.target.closest?.('input, textarea, select, [contenteditable="true"]') || document.querySelector('dialog[open]')) return;
+    event.preventDefault();
+    startNewTask();
+  });
+
+  const globalSearch = byId('adm-global-search');
+  globalSearch?.addEventListener('input', () => {
+    if (taskSearchInput) {
+      taskSearchInput.value = globalSearch.value;
+      taskSearchInput.dispatchEvent(new Event('input'));
+    }
+    if (currentView !== 'tasks') showView('tasks');
+  });
+
+  const paintThemeLabel = () => {
+    const label = byId('adm-theme-label');
+    if (label) label.textContent = document.body.classList.contains('dark') ? 'Тёмная тема' : 'Светлая тема';
+  };
+  byId('adm-theme-btn')?.addEventListener('click', () => {
+    // Тему переключает переключатель сайта — он в скрытой шапке страницы входа.
+    document.querySelector('#theme-toggle')?.click();
+    paintThemeLabel();
+  });
+  new MutationObserver(paintThemeLabel).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  paintThemeLabel();
+
+  const setShellText = (selector, value) => {
+    const el = shell?.querySelector(selector);
+    if (el) el.textContent = value;
+  };
+  const setShellBadge = (selector, value) => {
+    const el = shell?.querySelector(selector);
+    if (!el) return;
+    el.textContent = value;
+    el.hidden = !value;
+  };
+
+  function updateShellCounts() {
+    if (!shell) return;
+    const drafts = taskIndex.filter(t => t.is_published === false).length;
+    setShellBadge('#adm-count-review', drafts);
+    setShellBadge('#adm-count-reports', reports.length);
+    setShellText('#adm-count-tasks', taskIndex.length || '');
+    setShellText('#adm-stat-drafts', drafts);
+    setShellText('#adm-stat-reports', reports.length);
+    setShellText('#adm-stat-published', taskIndex.length - drafts);
+    scheduleOverview();
+  }
+
+  let overviewTimer = null;
+  function scheduleOverview() {
+    clearTimeout(overviewTimer);
+    overviewTimer = setTimeout(loadOverview, 300);
+  }
+
+  /* Обзор: задачи без латышского условия и четыре свежих черновика —
+     два маленьких запроса; остальные числа уже есть в указателе. */
+  async function loadOverview() {
+    if (!shell || !adminAppStarted || !db) return;
+    const email = byId('admin-email')?.textContent.trim() || '';
+    setShellText('#adm-avatar', email ? email[0] : '·');
+    const [noLv, drafts] = await Promise.all([
+      db.from('tasks').select('id', { count: 'exact', head: true }).or('condition_latex_lv.is.null,condition_latex_lv.eq.'),
+      db.from('tasks').select('id,title,topic_id,subtopic_id,grade,condition_latex_lv')
+        .eq('is_published', false).order('created_at', { ascending: false }).limit(4)
+    ]);
+    setShellText('#adm-stat-nolv', noLv.error ? '—' : (noLv.count ?? '—'));
+    const peek = byId('adm-queue-peek');
+    if (!peek) return;
+    if (drafts.error) {
+      peek.innerHTML = `<p class="adm-empty">Очередь не загрузилась: ${escapeHtml(drafts.error.message)}</p>`;
+      return;
+    }
+    const rows = drafts.data || [];
+    peek.innerHTML = rows.length ? rows.map(row => {
+      const topic = topics.find(t => t.id === row.topic_id);
+      const sub = row.subtopic_id ? subtopics.find(s => s.id === row.subtopic_id) : null;
+      const grade = row.grade ?? topic?.grade;
+      const path = [grade ? gradeText(grade) : '', topic?.title || 'без темы', sub?.code || ''].filter(Boolean).join(' · ');
+      const hasLv = Boolean((row.condition_latex_lv || '').trim());
+      return `<button type="button" class="adm-queue-row" data-open-task="${row.id}">
+        <span class="adm-queue-id">#${row.id}</span>
+        <span class="adm-queue-title">${escapeHtml(row.title || `Задача #${row.id}`)}</span>
+        <span class="adm-queue-path">${escapeHtml(path)}</span>
+        <span class="adm-chip ${hasLv ? 'ok' : 'warn'}">${hasLv ? 'RU + LV' : 'только RU'}</span>
+      </button>`;
+    }).join('') : '<p class="adm-empty">Очередь пуста — всё опубликовано.</p>';
+  }
+
+  byId('adm-queue-peek')?.addEventListener('click', async event => {
+    const id = event.target.closest('[data-open-task]')?.dataset.openTask;
+    if (!id) return;
+    const full = await fetchFullRow('tasks', id);
+    if (full) setTaskMode(full);
+  });
+
+  if (shell) showView(location.hash.slice(1) || 'home', { push: false });
 
   initAdminApp();
 })();
