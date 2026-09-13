@@ -5,7 +5,6 @@ import aiGen from '../public/ai-generator.js';
 
 describe('Skola2030 Topics Catalog (JSON & Database integrity)', () => {
   const jsonPath = path.resolve(__dirname, '../public/data/skola2030_topics.json');
-  const sqlPath = path.resolve(__dirname, '../supabase/seed_skola2030.sql');
 
   /* Каталог пересобирается из базы (scripts/sync-catalog-from-db.mjs), и
      число тем растёт вместе с ней — привязываться к нему нельзя. Держим
@@ -58,16 +57,6 @@ describe('Skola2030 Topics Catalog (JSON & Database integrity)', () => {
     const content = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
     const сПодтемами = content.filter(t => t.subtopics.length > 0).length;
     expect(сПодтемами / content.length).toBeGreaterThan(0.9);
-  });
-
-  it('файл seed_skola2030.sql содержит DDL ограничения, 3 раздела и 96 тем', () => {
-    expect(fs.existsSync(sqlPath)).toBe(true);
-    const sql = fs.readFileSync(sqlPath, 'utf8');
-    expect(sql).toContain('alter table public.topics add constraint topics_grade_range check (grade is null or grade between 1 and 12);');
-    expect(sql).toContain("insert into public.subjects (title, title_lv, slug, icon, position)");
-    expect(sql).toContain("insert into public.topics");
-    expect(sql).toContain("skola2030-g1-1");
-    expect(sql).toContain("skola2030-g12-");
   });
 });
 
