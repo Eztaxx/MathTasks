@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { fetchAllRows as fetchAllRowsForTest, fetchByIdChunks as fetchByIdChunksForTest } from '../public/lib.js';
 import { sanitizeSvg as sanitizeSvgForTest, parseCsvRows as parseCsvRowsForSvg, parseCsvToTasks as parseCsvToTasksForSvg } from '../public/lib.js';
 import i18n from '../public/i18n.js';
 import {
@@ -1608,5 +1609,79 @@ describe('CSV: чертёж в ячейке', () => {
     const t = parseCsvToTasksForSvg('тема\tусловие\tчертёж решения\nТ\tУ\t<svg></svg>').tasks[0];
     expect(t.solution_svg).toBe('<svg></svg>');
     expect(t.condition_svg).toBe(null);
+  });
+});
+
+describe('fetchAllRows: таблица больше 1000 строк', () => {
+  /* Подставная таблица: .range(a, b) отдаёт строки a…b, как PostgREST,
+     но не больше pageLimit за раз — как предел Supabase. */
+  const fakeTable = (total, { failOnCall } = {}) => {
+    const calls = [];
+    const make = () => ({
+      range: async (a, b) => {
+        calls.push([a, b]);
+        if (failOnCall === calls.length) return { data: null, error: { message: 'сбой' } };
+        const last = Math.min(b, total - 1);
+        return { data: Array.from({ length: Math.max(0, last - a + 1) }, (_, i) => ({ id: a + i + 1 })), error: null };
+      }
+    });
+    return { make, calls };
+  };
+
+  it('читает 2500 строк тремя страницами без потерь и повторов', async () => {
+    const t = fakeTable(2500);
+    const { data, error } = await fetchAllRowsForTest(t.make);
+    expect(error).toBe(null);
+    expect(data).toHaveLength(2500);
+    expect(new Set(data.map(r => r.id)).size).toBe(2500);
+    expect(t.calls).toEqual([[0, 999], [1000, 1999], [2000, 2999]]);
+  });
+
+  it('ровно 2000 строк — третья страница пустая, лишнего нет', async () => {
+    const t = fakeTable(2000);
+    const { data } = await fetchAllRowsForTest(t.make);
+    expect(data).toHaveLength(2000);
+    expect(t.calls).toHaveLength(3);
+  });
+
+  it('маленькая таблица — один запрос', async () => {
+    const t = fakeTable(532);
+    const { data } = await fetchAllRowsForTest(t.make);
+    expect(data).toHaveLength(532);
+    expect(t.calls).toHaveLength(1);
+  });
+
+  it('сбой на второй странице — ошибка, а не половина данных', async () => {
+    const t = fakeTable(2500, { failOnCall: 2 });
+    const { data, error } = await fetchAllRowsForTest(t.make);
+    expect(data).toBe(null);
+    expect(error.message).toBe('сбой');
+  });
+});
+
+describe('fetchByIdChunks: длинный список id', () => {
+  it('режет 450 id на пачки 200, 200, 50 и склеивает ответ', async () => {
+    const sizes = [];
+    const ids = Array.from({ length: 450 }, (_, i) => i + 1);
+    const { data, error } = await fetchByIdChunksForTest(ids, async chunk => {
+      sizes.push(chunk.length);
+      return { data: chunk.map(id => ({ id })), error: null };
+    });
+    expect(error).toBe(null);
+    expect(sizes).toEqual([200, 200, 50]);
+    expect(data.map(r => r.id)).toEqual(ids);
+  });
+
+  it('пустой список — ни одного запроса', async () => {
+    let calls = 0;
+    const { data } = await fetchByIdChunksForTest([], async () => { calls++; return { data: [], error: null }; });
+    expect(data).toEqual([]);
+    expect(calls).toBe(0);
+  });
+
+  it('сбой в пачке — ошибка, а не часть данных', async () => {
+    const { data, error } = await fetchByIdChunksForTest([1, 2, 3], async () => ({ data: null, error: { message: 'сбой' } }), 2);
+    expect(data).toBe(null);
+    expect(error.message).toBe('сбой');
   });
 });

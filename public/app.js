@@ -720,15 +720,19 @@ function toggleFavorite(taskId) {
 
 /* ── Случайная задача ─────────────────────────────────────────────── */
 async function openRandomTask() {
-  let query = db.from('tasks').select('id, title, topic_id, grade').eq('is_published', true);
-  if (selectedGrade) query = query.eq('grade', selectedGrade);
-  const { data, error } = await query;
-  if (error || !data || !data.length) {
+  /* Сначала число задач, потом одна строка по случайному смещению. Список
+     целиком обрезался бы на тысяче, и часть задач не выпадала бы никогда. */
+  const scoped = query => (selectedGrade ? query.eq('grade', selectedGrade) : query);
+  const { count, error: countError } = await scoped(
+    db.from('tasks').select('id', { count: 'exact', head: true }).eq('is_published', true));
+  if (countError || !count) {
     alert(selectedGrade ? `В ${selectedGrade} классе задач пока нет.` : 'Задач пока нет.');
     return;
   }
-  const randomTask = data[Math.floor(Math.random() * data.length)];
-  navigate(taskPath(randomTask));
+  const offset = Math.floor(Math.random() * count);
+  const { data } = await scoped(db.from('tasks').select('id, title, topic_id, grade').eq('is_published', true))
+    .order('id').range(offset, offset);
+  if (data && data[0]) navigate(taskPath(data[0]));
 }
 
 /* ── Подсветка ключевых слов в поиске ────────────────────────────── */
@@ -3129,14 +3133,20 @@ async function showTag(slug) {
       }
 
       if (tagId) {
-        const { data: links, error: linkErr } = await db.from('task_tags').select('task_id').eq('tag_id', tagId);
+        /* У ходового тега задач может быть больше тысячи: связи читаем
+           страницами, задачи — пачками id (тысяча id в адрес запроса не
+           влезет), порядок наводим сами. */
+        const lib = window.MathTasksLib;
+        const { data: links, error: linkErr } = await lib.fetchAllRows(
+          () => db.from('task_tags').select('task_id').eq('tag_id', tagId).order('task_id'));
         if (!linkErr && links && links.length > 0) {
           const taskIds = links.map(l => l.task_id);
-          const taskQuery = db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('id', taskIds);
-          const { data, error } = await taskQuery
-            .order('grade', { ascending: true })
-            .order('position', { ascending: true })
-            .order('created_at', { ascending: true });
+          const { data: unsorted, error } = await lib.fetchByIdChunks(taskIds,
+            chunk => db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('id', chunk));
+          const byCatalogOrder = (a, b) => (a.grade ?? 0) - (b.grade ?? 0)
+            || (a.position ?? 0) - (b.position ?? 0)
+            || String(a.created_at || '').localeCompare(String(b.created_at || ''));
+          const data = unsorted ? unsorted.sort(byCatalogOrder) : unsorted;
           if (!error && data) {
             tagTaskTotal = data.length;
             tasks = showAllGrades ? data : data.filter(inSelectedGrade);
@@ -4254,6 +4264,18 @@ window.addEventListener('keydown', event => {
 
 /* ── Загрузка справочников и сессия ───────────────────────────────── */
 
+/* Указатель опубликованных задач: тема и подтема каждой. По нему считаются
+   задачи тем и подтем и прогресс. Раньше это были два запроса на всю
+   таблицу, и после тысячи задач оба молча обрезались — счётчики врали. */
+let publishedTaskRows = [];
+async function fetchTaskIndexRows() {
+  const { fetchAllRows } = window.MathTasksLib;
+  const pages = cols => fetchAllRows(() => db.from('tasks').select(cols).eq('is_published', true).order('id'));
+  const withSubtopics = await pages('id, topic_id, subtopic_id');
+  // Колонка subtopic_id появляется миграцией 020 — без неё счёт по темам всё равно нужен.
+  return withSubtopics.error ? pages('id, topic_id') : withSubtopics;
+}
+
 async function loadCatalog() {
   await detectMultilingualColumns();
   /* Без config.js клиент Supabase не создаётся. Раньше каталог просто оставался
@@ -4269,7 +4291,7 @@ async function loadCatalog() {
   const [subjectResult, topicResult, countResult] = await Promise.all([
     db.from('subjects').select('*').order('position').order('title'),
     db.from('topics').select('*').order('position').order('title'),
-    db.from('tasks').select('id, topic_id').eq('is_published', true)
+    fetchTaskIndexRows()
   ]);
   if (subjectResult.error || topicResult.error) {
     console.warn('Схема ещё не готова: примените миграции из supabase/migrations.', subjectResult.error || topicResult.error);
@@ -4280,7 +4302,8 @@ async function loadCatalog() {
   // Счётчик задач и привязка по темам для трекинга прогресса
   taskCounts = new Map();
   topicTasksMap = new Map();
-  (countResult.data || []).forEach(({ id, topic_id: topicId }) => {
+  publishedTaskRows = countResult.data || [];
+  publishedTaskRows.forEach(({ id, topic_id: topicId }) => {
     if (topicId) {
       taskCounts.set(topicId, (taskCounts.get(topicId) || 0) + 1);
       if (!topicTasksMap.has(topicId)) topicTasksMap.set(topicId, []);
@@ -4306,8 +4329,9 @@ async function loadSubtopics() {
       if (!subtopicsByTopic.has(s.topic_id)) subtopicsByTopic.set(s.topic_id, []);
       subtopicsByTopic.get(s.topic_id).push(s);
     }
-    const { data: counts } = await db.from('tasks').select('id, subtopic_id').eq('is_published', true);
-    (counts || []).forEach(({ subtopic_id: id }) => {
+    /* Подтемы задач приходят вместе с указателем в loadCatalog — второй
+       проход по всей таблице задач не нужен. */
+    publishedTaskRows.forEach(({ subtopic_id: id }) => {
       if (id) subtopicCounts.set(id, (subtopicCounts.get(id) || 0) + 1);
     });
   } catch (err) {

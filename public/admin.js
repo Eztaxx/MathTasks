@@ -2388,7 +2388,10 @@ ${JSON.stringify(texts)}`;
       let fullById = {};
       if (ids.length) {
         /* Без связи с тегами столбец tags в выгрузке был пуст всегда. */
-        const { data, error } = await db.from('tasks').select(tagsReady ? '*,task_tags(tags(slug))' : '*').in('id', ids);
+        /* Пачками id: все id сразу — адрес длиннее допустимого и ответ,
+           обрезанный на тысяче строк. */
+        const { data, error } = await window.MathTasksLib.fetchByIdChunks(ids,
+          chunk => db.from('tasks').select(tagsReady ? '*,task_tags(tags(slug))' : '*').in('id', chunk));
         if (error) {
           bulkDialogTitle.textContent = 'Экспорт в Excel / CSV';
           bulkDialogDesc.textContent = 'Не удалось получить полные тексты задач: ' + error.message;
@@ -2417,7 +2420,10 @@ ${JSON.stringify(texts)}`;
       let fullById = {};
       if (ids.length) {
         /* Без связи с тегами столбец tags в выгрузке был пуст всегда. */
-        const { data, error } = await db.from('tasks').select(tagsReady ? '*,task_tags(tags(slug))' : '*').in('id', ids);
+        /* Пачками id: все id сразу — адрес длиннее допустимого и ответ,
+           обрезанный на тысяче строк. */
+        const { data, error } = await window.MathTasksLib.fetchByIdChunks(ids,
+          chunk => db.from('tasks').select(tagsReady ? '*,task_tags(tags(slug))' : '*').in('id', chunk));
         if (error) {
           bulkDialogTitle.textContent = 'Экспорт задач';
           bulkDialogDesc.textContent = 'Не удалось получить полные тексты задач: ' + error.message;
@@ -4394,11 +4400,14 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
   }
 
   async function loadTaskIndex() {
-    const { data, error } = await db.from('tasks').select(TASK_INDEX_COLS);
+    /* Страницами: одним запросом указатель обрезался бы на тысяче задач, и
+       новые задачи получали бы уже занятые номера. */
+    const pages = cols => window.MathTasksLib.fetchAllRows(() => db.from('tasks').select(cols).order('id'));
+    const { data, error } = await pages(TASK_INDEX_COLS);
     if (!error) { taskIndex = data || []; return; }
     /* Колонка subtopic_id появляется миграцией 020. Без отката весь указатель
        оставался бы пустым, и у каждой темы значилось бы «задач: 0». */
-    const retry = await db.from('tasks').select('id,topic_id,position');
+    const retry = await pages('id,topic_id,position');
     taskIndex = retry.error ? [] : (retry.data || []);
   }
 
@@ -4413,7 +4422,10 @@ grade\ttopic_title\ttopic_title_lv\tsubtopic_code\tcondition_latex\tcondition_la
   async function loadTasks() {
     let selectCols = TASK_LIST_COLS;
     if (tagsReady) selectCols += ',task_tags(tags(slug,title,title_lv))';
-    const { data, error } = await db.from('tasks').select(selectCols).order('topic_id').order('position').order('created_at', { ascending: true });
+    /* id в конце порядка — чтобы страницы не теряли и не повторяли задачи
+       с одинаковыми темой, номером и временем. */
+    const { data, error } = await window.MathTasksLib.fetchAllRows(() => db.from('tasks').select(selectCols)
+      .order('topic_id').order('position').order('created_at', { ascending: true }).order('id'));
     if (error) { taskList.innerHTML = `<p class="admin-empty">Не удалось загрузить задачи: ${escapeHtml(error.message)}</p>`; return; }
     tasks = data || [];
     tasksLoaded = true;

@@ -752,6 +752,36 @@
     };
   };
 
+  /* ── Чтение таблиц целиком ──
+     Supabase отдаёт не больше 1000 строк за запрос и режет молча: ни
+     ошибки, ни признака обрезки в ответе. Всё, что читает таблицу целиком,
+     читает её страницами. makeQuery строит запрос заново на каждую
+     страницу и обязан задавать однозначный порядок (хотя бы order('id')):
+     без него страницы на стыках теряют и повторяют строки. */
+  const FETCH_PAGE_SIZE = 1000;
+  const fetchAllRows = async (makeQuery, pageSize = FETCH_PAGE_SIZE) => {
+    const rows = [];
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await makeQuery().range(from, from + pageSize - 1);
+      if (error) return { data: null, error };
+      const chunk = data || [];
+      rows.push(...chunk);
+      if (chunk.length < pageSize) return { data: rows, error: null };
+    }
+  };
+
+  /* Выборка по списку id: тысяча id в .in() — это адрес длиннее, чем
+     пропустит сервер, и та же тысяча строк на ответ. Режем на пачки. */
+  const fetchByIdChunks = async (ids, makeQuery, chunkSize = 200) => {
+    const rows = [];
+    for (let i = 0; i < ids.length; i += chunkSize) {
+      const { data, error } = await makeQuery(ids.slice(i, i + chunkSize));
+      if (error) return { data: null, error };
+      rows.push(...(data || []));
+    }
+    return { data: rows, error: null };
+  };
+
   /* ── Чертёж SVG из импорта или от нейросети ──
      Чужая разметка. На сайте она идёт через img, где скрипты не
      выполняются, но в хранилище лежит публичным файлом, а по прямой ссылке
@@ -1653,6 +1683,8 @@
     parseTasksImport,
     exportTasksToCsv,
     sanitizeSvg,
+    fetchAllRows,
+    fetchByIdChunks,
     computeTaskRenumbering,
     computeTopicRenumbering,
     computeSubtopicRenumbering
