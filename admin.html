@@ -478,6 +478,16 @@
             </div>
             <img class="image-thumb" id="condition-image-thumb" alt="" hidden />
             <span class="form-error" id="condition-image-error"></span>
+            <details class="svg-code">
+              <summary>Код чертежа (SVG) — править прямо здесь</summary>
+              <div class="svg-code-grid">
+                <textarea id="condition-svg-code" rows="8" spellcheck="false" placeholder="&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'&gt;…&lt;/svg&gt;"></textarea>
+                <div class="svg-code-preview">
+                  <img id="condition-svg-preview" alt="Предпросмотр чертежа к условию" hidden />
+                  <span class="svg-code-status" id="condition-svg-status"></span>
+                </div>
+              </div>
+            </details>
           </div>
           <label class="wide">Ответ <span>необязательно; короткий математический ответ без разбора</span><textarea name="answer_latex" id="answer-input" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
           <label class="wide">Atbilde (LV) <span>neobligāti; īsa matemātiska atbilde bez risinājuma</span><textarea name="answer_latex_lv" id="answer-input-lv" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
@@ -492,10 +502,37 @@
             </div>
             <img class="image-thumb" id="solution-image-thumb" alt="" hidden />
             <span class="form-error" id="solution-image-error"></span>
+            <details class="svg-code">
+              <summary>Код рисунка (SVG) — править прямо здесь</summary>
+              <div class="svg-code-grid">
+                <textarea id="solution-svg-code" rows="8" spellcheck="false" placeholder="&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'&gt;…&lt;/svg&gt;"></textarea>
+                <div class="svg-code-preview">
+                  <img id="solution-svg-preview" alt="Предпросмотр рисунка к решению" hidden />
+                  <span class="svg-code-status" id="solution-svg-status"></span>
+                </div>
+              </div>
+            </details>
           </div>
           <label class="checkbox"><input name="is_published" type="checkbox" checked /> Опубликовать сразу</label>
           <div class="wide form-actions"><button class="primary-button" type="submit" id="task-submit">Добавить задачу</button><button class="text-button" type="button" id="task-cancel" hidden>Отменить</button><span class="form-success" id="task-success"></span></div>
         </form>
+      </div>
+
+      <!-- ⚑ Сообщения об ошибках от посетителей (миграция 023) -->
+      <div class="admin-section" id="section-reports" hidden>
+        <div class="admin-feature-head">
+          <div class="admin-feature-badge-title">
+            <span class="admin-feature-icon">⚑</span>
+            <div>
+              <h3 class="admin-feature-title">Сообщения об ошибках <span class="admin-reports-count" id="reports-count"></span></h3>
+              <p class="admin-feature-desc">Посетители отмечают ошибки в задачах кнопкой «Нашли ошибку?». Откройте задачу, исправьте её и нажмите «Решено».</p>
+            </div>
+          </div>
+          <div class="admin-feature-actions">
+            <button type="button" class="admin-section-toggle" aria-expanded="true" title="Свернуть / развернуть отдел"><span class="toggle-icon">▲</span> <span class="toggle-text">Свернуть</span></button>
+          </div>
+        </div>
+        <div class="admin-list" id="report-list"></div>
       </div>
 
       <!-- 📑 Каталог и база задач -->

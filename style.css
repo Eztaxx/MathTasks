@@ -5310,3 +5310,35 @@ body.dark .admin-review-chip{background:#3a2908;border-color:#5c4312;color:#ffce
 .bulk-dialog-publish-row[hidden]{display:none}
 .bulk-dialog-publish-row small{color:var(--muted);font-size:12px}
 .ai-prompt-controls{margin:4px 0 10px}
+
+/* ── Сообщить об ошибке: окно на сайте ── */
+.report-dialog{padding:0;border:1px solid var(--line);border-radius:14px;width:min(460px,calc(100vw - 32px));background:#fff;color:var(--ink);box-shadow:0 20px 50px #0b193540}
+.report-dialog::backdrop{background:#0b193566}
+.report-form{display:flex;flex-direction:column;gap:12px;padding:20px}
+.report-form h3{margin:0;font-size:17px;text-wrap:balance}
+.report-lead{margin:0;font-size:13px;color:var(--muted)}
+.report-kinds{border:0;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px}
+.report-kinds legend{font-size:12px;font-weight:700;margin-bottom:6px;padding:0}
+.report-kinds label{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--line);border-radius:999px;font-size:13px;cursor:pointer}
+.report-kinds label:has(input:checked){border-color:#1764ff;background:#eef4ff;color:#1255e2}
+.report-message{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700}
+.report-message textarea{font:inherit;font-weight:400;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:transparent;color:inherit;resize:vertical}
+.report-status{margin:0;font-size:13px;color:#c2410c}
+.report-status[hidden]{display:none}
+.report-actions{display:flex;gap:10px;align-items:center}
+body.dark .report-dialog{background:#111b2e;border-color:#2b3a58}
+body.dark .report-kinds label{border-color:#2b3a58}
+body.dark .report-kinds label:has(input:checked){background:#172554;color:#93c5fd;border-color:#1e3a8a}
+
+/* ── Админка: сообщения об ошибках и код чертежа ── */
+.admin-reports-count{font-weight:600;color:var(--muted)}
+.admin-report-message{margin:4px 0 0;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+.svg-code{margin-top:8px}
+.svg-code summary{cursor:pointer;font-size:12.5px;font-weight:700;color:#1764ff}
+.svg-code-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,240px);gap:10px;margin-top:8px}
+.svg-code textarea{width:100%;box-sizing:border-box;font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}
+.svg-code-preview{display:flex;flex-direction:column;gap:6px}
+.svg-code-preview img{max-width:100%;border:1px solid var(--line);border-radius:9px;background:#fff;padding:6px}
+.svg-code-preview img[hidden]{display:none}
+.svg-code-status{font-size:12px;color:var(--muted)}
+@media(max-width:720px){.svg-code-grid{grid-template-columns:1fr}}

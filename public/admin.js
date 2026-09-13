@@ -1525,6 +1525,89 @@ ${JSON.stringify(texts)}`;
     document.querySelector(`#${kind}-image-clear`).hidden = !url;
   }
 
+  /* ── Код чертежа: правка SVG прямо в форме ──────────────────────────
+     Поле с живым предпросмотром — так же, как увидит посетитель (через
+     img). При открытии задачи в поле подгружается текущий SVG. Изменённый
+     код сохраняется новым файлом при сохранении задачи, а старый файл
+     удаляется тем же путём, что и при замене загрузкой. Пустое поле
+     чертёж не убирает — для этого есть кнопка «Убрать». */
+  const SVG_CODE_HINT = 'Вставьте или измените SVG — предпросмотр обновится сразу.';
+  const svgCode = {};
+  for (const kind of ['condition', 'solution']) {
+    const area = document.querySelector(`#${kind}-svg-code`);
+    if (!area) continue;
+    svgCode[kind] = {
+      area,
+      preview: document.querySelector(`#${kind}-svg-preview`),
+      status: document.querySelector(`#${kind}-svg-status`),
+      loaded: ''
+    };
+    area.addEventListener('input', () => paintSvgCode(kind));
+  }
+
+  function paintSvgCode(kind) {
+    const box = svgCode[kind];
+    if (!box) return;
+    const code = box.area.value.trim();
+    const say = text => { if (box.status) box.status.textContent = text; };
+    if (!code) {
+      box.preview.hidden = true;
+      say(box.loaded ? 'Поле пустое — чертёж останется прежним. Убрать его — кнопка «Убрать».' : SVG_CODE_HINT);
+      return;
+    }
+    const clean = window.MathTasksLib.sanitizeSvg(code);
+    let problem = clean.error;
+    if (!problem && new DOMParser().parseFromString(clean.svg, 'image/svg+xml').querySelector('parsererror')) {
+      problem = 'в разметке ошибка — проверьте закрытые теги и кавычки';
+    }
+    if (problem) {
+      box.preview.hidden = true;
+      say('Не показать: ' + problem + '.');
+      return;
+    }
+    box.preview.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(clean.svg);
+    box.preview.hidden = false;
+    say(code === box.loaded ? 'Текущий чертёж.' : 'Изменено — сохранится вместе с задачей.');
+  }
+
+  async function loadSvgCode(kind, path) {
+    const box = svgCode[kind];
+    if (!box) return;
+    box.area.value = '';
+    box.loaded = '';
+    if (path && /\.svg$/i.test(path)) {
+      try {
+        const res = await fetch(window.MathTasks.imageUrl(path), { cache: 'no-store' });
+        const text = res.ok ? (await res.text()).trim() : '';
+        // Пока файл грузился, могли открыть другую задачу — чужой код не ставим.
+        if (text && images[kind].current === path) {
+          box.area.value = text;
+          box.loaded = text;
+        }
+      } catch (err) {
+        console.warn('Не удалось загрузить код чертежа:', err.message);
+      }
+    }
+    paintSvgCode(kind);
+  }
+
+  /* Перед сохранением: изменённый код — новым файлом, как при загрузке. */
+  async function applySvgCodeEdits() {
+    for (const kind of ['condition', 'solution']) {
+      const box = svgCode[kind];
+      const code = box?.area.value.trim();
+      if (!box || !code || code === box.loaded) continue;
+      const uploaded = await uploadSvgMarkup(kind, code);
+      if (!uploaded.path) return `Чертёж ${kind === 'condition' ? 'условия' : 'решения'} не сохранён: ${uploaded.error}.`;
+      const previous = images[kind].current;
+      images[kind].current = uploaded.path;
+      if (previous && previous !== images[kind].saved) await removeFile(previous);
+      box.loaded = code;
+      paintImage(kind);
+    }
+    return null;
+  }
+
   function setImages(task) {
     for (const kind of ['condition', 'solution']) {
       const path = task?.[`${kind}_image`] || null;
@@ -1532,6 +1615,7 @@ ${JSON.stringify(texts)}`;
       document.querySelector(`#${kind}-image-input`).value = '';
       document.querySelector(`#${kind}-image-error`).textContent = '';
       paintImage(kind);
+      loadSvgCode(kind, path);
     }
   }
 
@@ -1574,6 +1658,7 @@ ${JSON.stringify(texts)}`;
       images[kind].current = path;
       if (previous && previous !== images[kind].saved) await removeFile(previous);
       paintImage(kind);
+      loadSvgCode(kind, path);
     });
 
     document.querySelector(`#${kind}-image-clear`).addEventListener('click', async () => {
@@ -1583,6 +1668,7 @@ ${JSON.stringify(texts)}`;
       input.value = '';
       errorElement.textContent = '';
       paintImage(kind);
+      loadSvgCode(kind, null);
     });
   }
 
@@ -2205,6 +2291,8 @@ ${JSON.stringify(texts)}`;
   taskForm.addEventListener('submit', async event => {
     event.preventDefault();
     taskSuccess.textContent = '';
+    const svgProblem = await applySvgCodeEdits();
+    if (svgProblem) { taskSuccess.textContent = svgProblem; return; }
     const form = new FormData(taskForm);
     const topicId = form.get('topic_id') ? Number(form.get('topic_id')) : null;
     const taskPos = nextPosition(topicId, form.get('position'));
@@ -4255,6 +4343,7 @@ ${JSON.stringify(texts)}`;
             if (previous && previous !== images[kind].saved) await removeFile(previous);
             errorElement.textContent = '';
             paintImage(kind);
+            loadSvgCode(kind, uploaded.path);
           }
         }
 
@@ -4466,6 +4555,73 @@ ${JSON.stringify(texts)}`;
     renderTaskList();
   }
 
+  /* ── Сообщения об ошибках от посетителей (миграция 023) ─────────── */
+  const reportSection = document.querySelector('#section-reports');
+  const reportList = document.querySelector('#report-list');
+  const reportCount = document.querySelector('#reports-count');
+  const REPORT_KIND_LABELS = { condition: 'В условии', answer: 'В ответе', solution: 'В решении', figure: 'В чертеже', translation: 'В переводе', other: 'Другое' };
+  let reports = [];
+
+  async function loadReports() {
+    if (!reportSection || !reportList) return;
+    reportSection.hidden = false;
+    const { data, error } = await db.from('task_reports')
+      .select('id,task_id,kind,message,lang,created_at,tasks(position,topic_id)')
+      .eq('resolved', false)
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error) {
+      /* Таблицы нет, пока не применена миграция: говорим, что сделать,
+         а не прячем раздел — иначе о нём просто не узнать. */
+      reports = [];
+      if (reportCount) reportCount.textContent = '';
+      reportList.innerHTML = '<p class="admin-empty">Сообщения пока недоступны: примените миграцию <code>supabase/migrations/023_task_reports.sql</code> в SQL Editor Supabase.</p>';
+      return;
+    }
+    reports = data || [];
+    renderReports();
+  }
+
+  function renderReports() {
+    if (reportCount) reportCount.textContent = reports.length ? `(${reports.length})` : '';
+    if (!reports.length) {
+      reportList.innerHTML = '<p class="admin-empty">Открытых сообщений нет.</p>';
+      return;
+    }
+    reportList.innerHTML = reports.map(r => {
+      const topic = topics.find(t => t.id === r.tasks?.topic_id);
+      const when = new Date(r.created_at).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
+      const where = [r.tasks?.position ? `№${r.tasks.position}` : '', topic?.title || ''].filter(Boolean).join(' · ');
+      return `<div class="admin-row">
+        <div class="admin-row-main">
+          <strong>${escapeHtml(REPORT_KIND_LABELS[r.kind] || r.kind)} · задача #${r.task_id}${where ? ` <span style="font-weight:600;opacity:0.7">(${escapeHtml(where)})</span>` : ''}</strong>
+          <small>${escapeHtml(when)}${r.lang ? ' · ' + escapeHtml(r.lang.toUpperCase()) : ''}</small>
+          ${r.message ? `<p class="admin-report-message">${escapeHtml(r.message)}</p>` : ''}
+        </div>
+        <button class="text-button" type="button" data-report-open="${r.task_id}">Открыть задачу</button>
+        <button class="text-button" type="button" data-report-resolve="${r.id}">Решено</button>
+      </div>`;
+    }).join('');
+  }
+
+  reportList?.addEventListener('click', async event => {
+    const openId = event.target.closest('[data-report-open]')?.dataset.reportOpen;
+    if (openId) {
+      const full = await fetchFullRow('tasks', openId);
+      if (!full) { reportList.insertAdjacentHTML('afterbegin', '<p class="admin-empty">Задача не найдена — возможно, её удалили.</p>'); return; }
+      setTaskMode(full);
+      document.querySelector('#section-task-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    const resolveId = event.target.closest('[data-report-resolve]')?.dataset.reportResolve;
+    if (resolveId) {
+      const { error } = await db.from('task_reports').update({ resolved: true }).eq('id', resolveId);
+      if (error) { alert('Не удалось отметить: ' + error.message); return; }
+      reports = reports.filter(r => String(r.id) !== String(resolveId));
+      renderReports();
+    }
+  });
+
   /* «На проверке: N» — черновики, которые ждут вычитки. Считается по
      указателю, чтобы счётчик был виден сразу, без загрузки полного списка. */
   const taskReviewChip = document.querySelector('#task-review-chip');
@@ -4560,5 +4716,7 @@ ${JSON.stringify(texts)}`;
       loadTaskIndex()
     ]);
     renderTopicList();
+    // Без await: раздел сообщений не должен задерживать остальную панель.
+    loadReports();
   })();
 })();

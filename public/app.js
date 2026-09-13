@@ -923,6 +923,81 @@ function taskNumber(task, index) {
   return Number.isFinite(pos) && pos > 0 ? pos : index + 1;
 }
 
+/* ── Сообщить об ошибке ───────────────────────────────────────────────
+   Задачи во многом составлены нейросетью, и ошибки в них раньше всех
+   находят ученики. Сообщение ложится в task_reports (миграция 023), читает
+   его только администратор. Окно создаётся один раз — по первому нажатию,
+   поэтому разметку страниц трогать не нужно. */
+const REPORT_KINDS = ['condition', 'answer', 'solution', 'figure', 'translation', 'other'];
+let reportDialog = null;
+
+function openReportDialog(taskId) {
+  const tr = window.MathTasks.t || (k => k);
+  if (!reportDialog) {
+    reportDialog = document.createElement('dialog');
+    reportDialog.className = 'report-dialog';
+    document.body.appendChild(reportDialog);
+    reportDialog.addEventListener('submit', submitReport);
+    // Клик по затемнению вокруг окна и «Отмена» закрывают его.
+    reportDialog.addEventListener('click', event => {
+      if (event.target === reportDialog || event.target.closest('[data-report-close]')) reportDialog.close();
+    });
+  }
+  reportDialog.dataset.taskId = String(taskId);
+  reportDialog.innerHTML = `<form class="report-form" method="dialog">
+    <h3>${escapeHtml(tr('report_title'))}</h3>
+    <p class="report-lead">${escapeHtml(tr('report_lead'))}</p>
+    <fieldset class="report-kinds">
+      <legend>${escapeHtml(tr('report_kind_label'))}</legend>
+      ${REPORT_KINDS.map((kind, i) => `<label><input type="radio" name="kind" value="${kind}"${i === 0 ? ' checked' : ''} /> ${escapeHtml(tr('report_kind_' + kind))}</label>`).join('')}
+    </fieldset>
+    <label class="report-message">${escapeHtml(tr('report_message_label'))}
+      <textarea name="message" rows="4" maxlength="1000" placeholder="${escapeHtml(tr('report_message_placeholder'))}"></textarea>
+    </label>
+    <p class="report-status" hidden></p>
+    <div class="report-actions">
+      <button type="submit" class="primary-button">${escapeHtml(tr('report_send'))}</button>
+      <button type="button" class="text-button" data-report-close>${escapeHtml(tr('report_cancel'))}</button>
+    </div>
+  </form>`;
+  reportDialog.showModal();
+}
+
+async function submitReport(event) {
+  event.preventDefault();
+  const tr = window.MathTasks.t || (k => k);
+  const form = event.target;
+  const status = form.querySelector('.report-status');
+  const button = form.querySelector('[type="submit"]');
+  const data = new FormData(form);
+  const kind = String(data.get('kind') || 'other');
+  const message = String(data.get('message') || '').trim();
+  // «Другое» без слов ничего не сообщает — просим хотя бы пару слов.
+  if (kind === 'other' && !message) {
+    status.hidden = false;
+    status.textContent = tr('report_need_text');
+    return;
+  }
+  button.disabled = true;
+  /* Без .select(): посетитель читать task_reports не может, и запрос
+     с возвратом строки упал бы на правах, хотя запись прошла. */
+  const { error } = await db.from('task_reports').insert({
+    task_id: Number(reportDialog.dataset.taskId),
+    kind,
+    message,
+    lang: getLang() === 'lv' ? 'lv' : 'ru'
+  });
+  if (error) {
+    console.warn('Сообщение об ошибке не отправлено:', error.message);
+    status.hidden = false;
+    status.textContent = tr('report_failed');
+    button.disabled = false;
+    return;
+  }
+  reportDialog.close();
+  showToast(tr('report_thanks'));
+}
+
 function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number } = {}) {
   const tr = window.MathTasks.t || (k => k);
   currentTasksMap.set(task.id, task);
@@ -941,6 +1016,10 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
     <span>${escapeHtml(tr('copy_text'))}</span>
   </button>`;
+  const reportBtn = `<button class="task-action-btn report-btn" type="button" data-report-task="${task.id}" title="${escapeHtml(tr('report_title'))}" aria-label="${escapeHtml(tr('report_title'))}">
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4"/><path d="M4 4h12l-2 4 2 4H4"/></svg>
+    <span>${escapeHtml(tr('report_error'))}</span>
+  </button>`;
   const solved = isTaskSolved(task.id);
   const solvedBadge = solved ? `<span class="task-solved-badge">${escapeHtml(tr('solved_badge'))}</span>` : '';
   const meta = [
@@ -949,7 +1028,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
     difficultyBadge(task.difficulty),
     solvedBadge,
     topicLink,
-    `<div class="task-actions">${shareBtn}${copyBtn}${favBtn}</div>`
+    `<div class="task-actions">${shareBtn}${copyBtn}${favBtn}${reportBtn}</div>`
   ].filter(Boolean).join('');
 
   const selfCheck = task.answer_latex ? `
@@ -3886,6 +3965,14 @@ document.addEventListener('click', event => {
         }, 1800);
       }
     });
+    return;
+  }
+
+  // Сообщить об ошибке в задаче
+  const reportTaskBtn = event.target.closest('[data-report-task]');
+  if (reportTaskBtn) {
+    event.preventDefault();
+    openReportDialog(Number(reportTaskBtn.dataset.reportTask));
     return;
   }
 
