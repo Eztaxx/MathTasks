@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 250">
-  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <g stroke="#000" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
     <polygon points="100,190 300,190 100,40"/>
     <line x1="100" y1="190" x2="172" y2="94"/>
     <line x1="172" y1="94" x2="100" y2="94"/>
@@ -8,7 +8,7 @@
     <!-- Прямой угол E -->
     <polyline points="100,84 110,84 110,94"/>
   </g>
-  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+  <g fill="#000" font-family="system-ui, sans-serif" font-size="15">
     <text x="82" y="202">C</text>
     <text x="310" y="195">B</text>
     <text x="95" y="30">A</text>

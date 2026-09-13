@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 250">
-  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <g stroke="#000" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
     <polygon points="60,200 340,200 156.3,98.3"/>
     <!-- Биссектриса AD -->
     <line x1="156.3" y1="98.3" x2="172" y2="200"/>
@@ -7,7 +7,7 @@
     <path d="M 143,112 A 25 25 0 0 0 159,122"/>
     <path d="M 160,122 A 25 25 0 0 0 176,110"/>
   </g>
-  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+  <g fill="#000" font-family="system-ui, sans-serif" font-size="15">
     <text x="42" y="212">B</text>
     <text x="348" y="212">C</text>
     <text x="150" y="85">A</text>

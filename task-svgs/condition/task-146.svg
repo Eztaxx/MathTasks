@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 270">
-  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <g stroke="#000" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
     <!-- Нижнее основание -->
     <polygon points="70,200 200,200 260,150 130,150" stroke-dasharray="4 3"/>
     <!-- Верхнее основание -->
@@ -15,7 +15,7 @@
     <!-- Параллельный перенос D1C || A1B -->
     <line x1="130" y1="60" x2="260" y2="150" stroke-dasharray="4 3"/>
   </g>
-  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+  <g fill="#000" font-family="system-ui, sans-serif" font-size="15">
     <text x="52" y="212">A</text>
     <text x="205" y="212">B</text>
     <text x="268" y="158">C</text>

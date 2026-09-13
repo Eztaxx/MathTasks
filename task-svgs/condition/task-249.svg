@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250">
-  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <g stroke="#000" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
     <polygon points="92,200 308,200 254,80 146,80"/>
     <line x1="92" y1="200" x2="254" y2="80"/>
     <line x1="308" y1="200" x2="146" y2="80"/>
     <!-- Отрезок MN через O -->
     <line x1="128" y1="120" x2="272" y2="120" stroke-width="2.5"/>
-    <circle cx="200" cy="120" r="3" fill="#4a6fa5"/>
+    <circle cx="200" cy="120" r="3" fill="#000"/>
   </g>
-  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+  <g fill="#000" font-family="system-ui, sans-serif" font-size="15">
     <text x="75" y="212">A</text>
     <text x="315" y="212">D</text>
     <text x="135" y="70">B</text>

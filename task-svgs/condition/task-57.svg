@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">
-  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <g stroke="#000" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
     <polygon points="78,130 190,46 302,130 190,214"/>
     <line x1="78" y1="130" x2="302" y2="130" stroke-dasharray="4 3"/>
     <line x1="190" y1="46" x2="190" y2="214" stroke-dasharray="4 3"/>
     <polyline points="190,118 202,118 202,130"/>
   </g>
-  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+  <g fill="#000" font-family="system-ui, sans-serif" font-size="15">
     <text x="58" y="135">A</text>
     <text x="185" y="34">B</text>
     <text x="312" y="135">C</text>

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 260">
-  <g stroke="#4a6fa5" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <g stroke="#000" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round">
     <line x1="50" y1="215" x2="330" y2="215"/>
     <line x1="100" y1="215" x2="100" y2="45" stroke-width="3"/>
     <!-- Лестница с двумя направляющими и перекладинами -->
@@ -14,7 +14,7 @@
     <polyline points="100,200 115,200 115,215"/>
     <path d="M 155,215 A 25 25 0 0 0 167.5,193.4"/>
   </g>
-  <g fill="#4a6fa5" font-family="system-ui, sans-serif" font-size="15">
+  <g fill="#000" font-family="system-ui, sans-serif" font-size="15">
     <text x="145" y="190">60°</text>
     <text x="125" y="235">2 m</text>
     <text x="155" y="115">L = ?</text>
