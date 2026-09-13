@@ -145,33 +145,71 @@ window.MathTasks = window.MathTasks || {};
     return db.storage.from(window.MathTasks.IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
   };
 
-  // Кто вошёл и админ ли он — быстрый и надёжный запрос без зависаний
-  window.MathTasks.loadViewer = async (timeoutMs = 4500) => {
+  // Кто вошёл и админ ли он — надёжный запрос с автообновлением токена и защитой от зависаний
+  window.MathTasks.loadViewer = async (timeoutMs = 5000) => {
     const db = window.MathTasks.db;
     if (!db) return { user: null, isAdmin: false };
     try {
-      // 1. Быстрая проверка сессии из локального хранилища (0 мс, не висит на сети)
-      const sessionTimeout = new Promise(resolve => setTimeout(() => resolve({ data: { session: null } }), timeoutMs));
+      // 1. Получаем текущую сессию из хранилища (обычно 0 мс)
       const sessionResult = await Promise.race([
         db.auth.getSession().catch(() => ({ data: { session: null } })),
-        sessionTimeout
+        new Promise(resolve => setTimeout(() => resolve({ data: { session: null } }), timeoutMs))
       ]);
-      const sessionUser = sessionResult?.data?.session?.user || null;
+      let session = sessionResult?.data?.session || null;
+      let sessionUser = session?.user || null;
 
-      // Если в локальном хранилище нет сессии — пользователь не авторизован
       if (!sessionUser) {
         return { user: null, isAdmin: false };
       }
 
-      // 2. Проверяем роль админа в profiles с защитой по таймауту
-      const profileTimeout = new Promise(resolve => setTimeout(() => resolve({ data: null, error: new Error('timeout') }), timeoutMs));
-      const profileResult = await Promise.race([
-        db.from('profiles').select('role').eq('id', sessionUser.id).maybeSingle().catch(() => ({ data: null })),
-        profileTimeout
+      // 2. Если токен истёк или истекает менее чем через 60 секунд — обновляем сессию
+      const nowSec = Math.floor(Date.now() / 1000);
+      if (session?.expires_at && session.expires_at <= nowSec + 60) {
+        try {
+          const refreshRes = await Promise.race([
+            db.auth.refreshSession().catch(() => ({ data: { session: null } })),
+            new Promise(resolve => setTimeout(() => resolve({ data: { session: null } }), 4000))
+          ]);
+          if (refreshRes?.data?.session) {
+            session = refreshRes.data.session;
+            sessionUser = session.user || sessionUser;
+          }
+        } catch (e) {
+          console.warn('Автоматическое обновление сессии:', e);
+        }
+      }
+
+      // 3. Запрос роли из profiles
+      const queryRole = async () => {
+        return await db.from('profiles').select('role').eq('id', sessionUser.id).maybeSingle();
+      };
+
+      let profileResult = await Promise.race([
+        queryRole().catch(err => ({ data: null, error: err })),
+        new Promise(resolve => setTimeout(() => resolve({ data: null, error: new Error('timeout') }), timeoutMs))
       ]);
 
+      // 4. Если PostgREST вернул ошибку JWT (401 / JWT expired / PGRST301), пробуем refreshSession и повторяем
+      if (profileResult?.error && (
+        profileResult.error.message?.includes('JWT') ||
+        profileResult.error.message?.includes('expired') ||
+        profileResult.error.code === 'PGRST301' ||
+        profileResult.error.code === '401'
+      )) {
+        try {
+          const refreshRes = await db.auth.refreshSession();
+          if (refreshRes?.data?.session) {
+            session = refreshRes.data.session;
+            sessionUser = session.user || sessionUser;
+            profileResult = await queryRole();
+          }
+        } catch (e) {
+          console.warn('Повторный запрос после refreshSession не удался:', e);
+        }
+      }
+
       const isAdmin = profileResult?.data?.role === 'admin';
-      return { user: sessionUser, isAdmin };
+      return { user: sessionUser, isAdmin, profile: profileResult?.data, error: profileResult?.error };
     } catch (err) {
       console.warn('loadViewer error:', err);
       return { user: null, isAdmin: false, error: err };

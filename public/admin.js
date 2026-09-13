@@ -203,16 +203,17 @@
           <form id="admin-gate-login-form">
             <label style="display:block;margin-bottom:12px;">
               <span style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Email</span>
-              <input type="email" id="admin-gate-email" required style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border,#cbd5e1);border-radius:8px;font-size:14px;" autocomplete="username" />
+              <input type="email" id="admin-gate-email" required value="bgogolev21@gmail.com" style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border,#cbd5e1);border-radius:8px;font-size:14px;" autocomplete="username" />
             </label>
             <label style="display:block;margin-bottom:14px;">
               <span style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Пароль</span>
-              <input type="password" id="admin-gate-password" required style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border,#cbd5e1);border-radius:8px;font-size:14px;" autocomplete="current-password" />
+              <input type="password" id="admin-gate-password" required autofocus style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border,#cbd5e1);border-radius:8px;font-size:14px;" autocomplete="current-password" />
             </label>
             <div id="admin-gate-login-error" style="color:#e53e3e;font-size:13px;margin-bottom:12px;" hidden></div>
-            <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:16px;">
+            <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;">
               <button type="submit" class="primary-button" id="admin-gate-submit-btn">Войти</button>
-              <a href="/" style="font-size:13px;color:#1764ff;text-decoration:none;">Вернуться на сайт</a>
+              <button type="button" class="text-button" id="admin-gate-signout-btn" style="font-size:13px;" title="Очистить сохранённую сессию и кэш">Сбросить сессию</button>
+              <a href="/" style="font-size:13px;color:#1764ff;text-decoration:none;">На главную</a>
             </div>
           </form>
         </div>
@@ -230,21 +231,48 @@
           const { error } = await db.auth.signInWithPassword({ email, password });
           if (error) {
             if (errEl) { errEl.hidden = false; errEl.textContent = 'Не удалось войти: ' + error.message; }
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Войти'; }
             return;
           }
-          gate.innerHTML = '<p class="admin-gate">Проверяем доступ…</p>';
+          gate.innerHTML = '<p class="admin-gate" style="margin:40px auto;text-align:center;">Проверяем доступ…</p>';
           await initAdminApp();
         } catch (err) {
           if (errEl) { errEl.hidden = false; errEl.textContent = 'Ошибка подключения: ' + err.message; }
-        } finally {
           if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Войти'; }
         }
       });
+      document.querySelector('#admin-gate-signout-btn')?.addEventListener('click', async () => {
+        try { if (db) await db.auth.signOut(); } catch {}
+        try {
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i);
+            if (k && (k.includes('supabase') || k.includes('auth'))) localStorage.removeItem(k);
+          }
+        } catch {}
+        location.reload();
+      });
     } else {
-      gate.innerHTML = `${escapeHtml(message)} <button type="button" class="primary-button" style="margin-left:12px;" id="admin-retry-btn">Повторить</button> <a href="/" style="margin-left:12px;">Вернуться на сайт</a>`;
+      gate.innerHTML = `
+        <div style="max-width:440px;margin:40px auto;padding:20px;text-align:center;">
+          <p style="margin-bottom:16px;">${escapeHtml(message)}</p>
+          <button type="button" class="primary-button" id="admin-retry-btn">Повторить</button>
+          <button type="button" class="text-button" id="admin-signout-retry-btn" style="margin-left:8px;">Сбросить сессию</button>
+          <a href="/" style="margin-left:12px;font-size:14px;">На главную</a>
+        </div>
+      `;
       document.querySelector('#admin-retry-btn')?.addEventListener('click', () => {
-        gate.innerHTML = '<p class="admin-gate">Проверяем доступ…</p>';
+        gate.innerHTML = '<p class="admin-gate" style="margin:40px auto;text-align:center;">Проверяем доступ…</p>';
         initAdminApp();
+      });
+      document.querySelector('#admin-signout-retry-btn')?.addEventListener('click', async () => {
+        try { if (db) await db.auth.signOut(); } catch {}
+        try {
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const k = localStorage.key(i);
+            if (k && (k.includes('supabase') || k.includes('auth'))) localStorage.removeItem(k);
+          }
+        } catch {}
+        location.reload();
       });
     }
   };
@@ -2229,6 +2257,8 @@ ${JSON.stringify(texts)}`;
 
     if (!filtered.length) {
       const isImageFiltered = taskFilterStatus?.value === 'with_image';
+      const gradeVal = parseFormGrade(taskFilterGrade?.value);
+      const topicVal = taskFilterTopic?.value ? Number(taskFilterTopic.value) : null;
       const extraHint = isImageFiltered && (gradeVal !== null || topicVal !== null)
         ? '<br><small style="opacity:0.85;margin-top:6px;display:inline-block;">💡 В базе 41 чертёж (в 8, 9, 10, 11 и 12 классах). Сбросьте фильтр класса или темы, чтобы увидеть все 41 задачу с чертежами.</small>'
         : '';
@@ -4777,19 +4807,42 @@ ${JSON.stringify(texts)}`;
   }
 
   document.querySelectorAll('[data-sign-out]').forEach(button => button.addEventListener('click', async () => {
-    if (db) await db.auth.signOut();
+    try { if (db) await db.auth.signOut(); } catch {}
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && (k.includes('supabase') || k.includes('auth'))) localStorage.removeItem(k);
+      }
+    } catch {}
     location.href = 'index.html';
   }));
 
   async function initAdminApp() {
     if (!db) { deny('Сервис недоступен: не настроено подключение к Supabase.'); return; }
+    let viewer;
     try {
-      const { user, isAdmin } = await loadViewer();
-      if (!user) { deny('Нужно войти в аккаунт администратора.', true); return; }
-      if (!isAdmin) { deny('У этого аккаунта (' + (user.email || '') + ') нет прав администратора. Войдите под аккаунтом администратора.', true); return; }
-      document.querySelector('#admin-email').textContent = user.email || '';
-      gate.hidden = true;
-      content.hidden = false;
+      viewer = await loadViewer();
+    } catch (err) {
+      console.error('Ошибка проверки пользователя:', err);
+      deny('Не удалось связаться с сервером авторизации: ' + (err.message || 'таймаут соединения'), true);
+      return;
+    }
+    const { user, isAdmin, error: viewerErr } = viewer || {};
+    if (!user) {
+      deny('Нужно войти в аккаунт администратора.', true);
+      return;
+    }
+    if (!isAdmin) {
+      const detail = viewerErr?.message ? ` (${viewerErr.message})` : '';
+      deny(`У этого аккаунта (${user.email || ''}) нет прав администратора${detail}. Войдите под аккаунтом администратора:`, true);
+      return;
+    }
+
+    document.querySelector('#admin-email').textContent = user.email || '';
+    gate.hidden = true;
+    content.hidden = false;
+
+    try {
       initCollapsibleSections();
       fillGradeSelect(document.querySelector('#topic-grade'), 'Без класса', { numeric: true });
       fillGradeSelect(document.querySelector('#task-grade'), 'Без класса', { numeric: true });
@@ -4805,10 +4858,6 @@ ${JSON.stringify(texts)}`;
       const savedSort = loadSort();
       if (taskFilterSort && savedSort.tasks) taskFilterSort.value = savedSort.tasks;
       if (topicFilterSort && savedSort.topics) topicFilterSort.value = savedSort.topics;
-      /* Раньше эти три вызова шли по очереди, и органы управления
-         генератором включались последними — после того как приезжали все
-         задачи и темы целиком. Теперь запросы идут параллельно, задачи
-         представлены лёгким указателем, а сам список ждёт кнопки. */
       await Promise.all([
         detectTagsSupport(),
         loadSkola2030Catalog(),
@@ -4819,8 +4868,7 @@ ${JSON.stringify(texts)}`;
       // Без await: раздел сообщений не должен задерживать остальную панель.
       loadReports();
     } catch (err) {
-      console.error('Ошибка инициализации админ-панели:', err);
-      deny('Не удалось загрузить данные администратора: ' + (err.message || 'таймаут соединения'), true);
+      console.error('Ошибка загрузки данных каталога:', err);
     }
   }
 
