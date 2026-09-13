@@ -216,7 +216,8 @@
       // Pārbaudes darbi (Kontroldarbi)
       nav_control_works: 'Pārbaudes darbi',
       cw_too_few: 'Šajā tēmā vēl nav pietiekami daudz uzdevumu pārbaudes darbam — vajag vismaz {count}.',
-      nav_control_works_desc: 'Temata noslēguma darbi (40 min)',
+      nav_control_works_desc: 'Tematiskie darbi, 40 min',
+      task_prefix: 'Uzdevums',
       cw_badge: '📝 Pārbaudes darbs • Skola2030',
       cw_topic_card_title: 'Temata pārbaudes darbs',
       cw_topic_card_desc: 'Pārbaudiet savas zināšanas skolas stundas apstākļos bez priekšā teikšanas. Ieteicamais laiks: 40 minūtes.',
@@ -837,6 +838,7 @@
       nav_control_works: 'Контрольные работы',
       cw_too_few: 'В этой теме пока мало задач для контрольной — нужно хотя бы {count}.',
       nav_control_works_desc: 'Тематические работы, 40 мин',
+      task_prefix: 'Задача',
       cw_badge: '📝 Контрольная работа • Skola2030',
       cw_topic_card_title: 'Контрольная работа по теме',
       cw_topic_card_desc: 'Проверьте свои знания в условиях реального школьного урока без подсказок. Рекомендуемое время: 40 минут.',
