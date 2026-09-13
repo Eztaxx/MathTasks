@@ -90,7 +90,8 @@
           <button type="button" class="trainer-cat-chip" data-cat="multdiv" data-i18n="cat_multdiv">✖️ Умножение и деление</button>
           <button type="button" class="trainer-cat-chip" data-cat="fractions" data-i18n="cat_fractions">🍰 Обыкновенные дроби</button>
           <button type="button" class="trainer-cat-chip" data-cat="decimals" data-i18n="cat_decimals">🎯 Десятичные дроби</button>
-          <button type="button" class="trainer-cat-chip" data-cat="powers" data-i18n="cat_powers">⚡ Квадраты и корни</button>
+          <button type="button" class="trainer-cat-chip" data-cat="powers" data-i18n="cat_powers">⚡ Степени и корни</button>
+          <button type="button" class="trainer-cat-chip" data-cat="algebra_powers" data-i18n="cat_algebra_powers">🔤 Степени с переменными</button>
           <button type="button" class="trainer-cat-chip" data-cat="negatives" data-i18n="cat_negatives">❄️ Отрицательные числа</button>
           <button type="button" class="trainer-cat-chip" data-cat="mix" data-i18n="cat_mix">🎲 Микс (всё подряд)</button>
         </div>
@@ -248,9 +249,11 @@
           <button type="button" class="numpad-key op" data-key="-">-</button>
 
           <button type="button" class="numpad-key" data-key="0">0</button>
-          <button type="button" class="numpad-key" data-key=",">,</button>
           <button type="button" class="numpad-key" data-key=".">.</button>
-          <button type="button" class="numpad-key enter" data-key="enter">↵</button>
+          <button type="button" class="numpad-key op" data-key="x">x</button>
+          <button type="button" class="numpad-key op" data-key="^">^</button>
+
+          <button type="button" class="numpad-key enter" data-key="enter" style="grid-column: span 4;">↵ Проверить</button>
         </div>
 
         <!-- Карточка обратной связи -->
@@ -297,7 +300,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/trainer.js?v=20260908-1"></script>
-  <script src="/trainer-page.js?v=20260908-2"></script>
+  <script src="/trainer.js?v=20260913-4"></script>
+  <script src="/trainer-page.js?v=20260913-4"></script>
 </body>
 </html>

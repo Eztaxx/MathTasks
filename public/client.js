@@ -145,17 +145,36 @@ window.MathTasks = window.MathTasks || {};
     return db.storage.from(window.MathTasks.IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
   };
 
-  // Кто вошёл и админ ли он — один запрос для обеих страниц.
-  window.MathTasks.loadViewer = async () => {
+  // Кто вошёл и админ ли он — быстрый и надёжный запрос без зависаний
+  window.MathTasks.loadViewer = async (timeoutMs = 4500) => {
     const db = window.MathTasks.db;
     if (!db) return { user: null, isAdmin: false };
-    const { data: { user } } = await db.auth.getUser();
-    if (!user) return { user: null, isAdmin: false };
     try {
-      const { data: profile } = await db.from('profiles').select('role').eq('id', user.id).maybeSingle();
-      return { user, isAdmin: profile?.role === 'admin' };
-    } catch {
-      return { user, isAdmin: false };
+      // 1. Быстрая проверка сессии из локального хранилища (0 мс, не висит на сети)
+      const sessionTimeout = new Promise(resolve => setTimeout(() => resolve({ data: { session: null } }), timeoutMs));
+      const sessionResult = await Promise.race([
+        db.auth.getSession().catch(() => ({ data: { session: null } })),
+        sessionTimeout
+      ]);
+      const sessionUser = sessionResult?.data?.session?.user || null;
+
+      // Если в локальном хранилище нет сессии — пользователь не авторизован
+      if (!sessionUser) {
+        return { user: null, isAdmin: false };
+      }
+
+      // 2. Проверяем роль админа в profiles с защитой по таймауту
+      const profileTimeout = new Promise(resolve => setTimeout(() => resolve({ data: null, error: new Error('timeout') }), timeoutMs));
+      const profileResult = await Promise.race([
+        db.from('profiles').select('role').eq('id', sessionUser.id).maybeSingle().catch(() => ({ data: null })),
+        profileTimeout
+      ]);
+
+      const isAdmin = profileResult?.data?.role === 'admin';
+      return { user: sessionUser, isAdmin };
+    } catch (err) {
+      console.warn('loadViewer error:', err);
+      return { user: null, isAdmin: false, error: err };
     }
   };
 

@@ -118,7 +118,7 @@
         if (totalCountEl) totalCountEl.textContent = sheetState.count;
         if (solvedCountEl) solvedCountEl.textContent = '0';
 
-        const isTextMode = state.category === 'fractions' || state.category === 'negatives' || state.category === 'mix';
+        const isTextMode = state.category === 'fractions' || state.category === 'negatives' || state.category === 'mix' || state.category === 'algebra_powers' || state.category === 'powers';
         const inputModeVal = isTextMode ? 'text' : 'decimal';
 
         trainerSheetGrid.innerHTML = sheetState.questions.map((q, idx) => `
@@ -363,10 +363,27 @@
           }
         }
 
+        const isText = state.category === 'fractions' || state.category === 'negatives' || state.category === 'mix' || state.category === 'algebra_powers' || state.category === 'powers';
         if (trainerInput) {
+          trainerInput.setAttribute('inputmode', isText ? 'text' : 'decimal');
           trainerInput.value = '';
           trainerInput.focus();
         }
+
+        const hintEl = document.querySelector('#trainer-input-hint');
+        if (hintEl) {
+          const isLv = (window.MathTasks?.getLang && window.MathTasks.getLang() === 'lv') || document.documentElement.lang === 'lv';
+          if (state.category === 'algebra_powers') {
+            hintEl.innerHTML = isLv
+              ? 'Padoms: ievadiet mainīgos un pakāpes ar zīmi <code>^</code> (piemēram, <code>x^5</code>, <code>6x^7</code>, <code>1/x^2</code> vai <code>x^-2</code>).'
+              : 'Подсказка: вводите неизвестные и степени через знак <code>^</code> (например, <code>x^5</code>, <code>6x^7</code>, <code>1/x^2</code> или <code>x^-2</code>).';
+          } else {
+            hintEl.innerHTML = isLv
+              ? 'Padoms: parastajām daļām rakstiet <code>3/4</code>, decimāldaļām — ar punktu vai komatu (<code>2.5</code> vai <code>2,5</code>).'
+              : 'Подсказка: для обыкновенных дробей пишите <code>3/4</code>, для десятичных — через точку или запятую (<code>2.5</code> или <code>2,5</code>).';
+          }
+        }
+
         if (feedbackCard) feedbackCard.hidden = true;
         if (trainerCard) {
           trainerCard.classList.remove('correct-flash', 'wrong-flash');

@@ -81,13 +81,70 @@ describe('Mental Math Trainer Engine', () => {
     expect(Object.keys(counts).length).toBeGreaterThanOrEqual(4);
   });
 
-  it('генератор powers создаёт степени и корни', () => {
-    for (let i = 0; i < 50; i++) {
-      const q = trainer.generateQuestion('powers');
-      expect(q.category).toBe('powers');
-      const check = trainer.checkAnswer(q, q.answer);
-      expect(check.isCorrect).toBe(true);
-    }
+  it('генератор powers создаёт степени и корни разных степеней', () => {
+    ['normal', 'hard', 'expert'].forEach(diff => {
+      for (let i = 0; i < 40; i++) {
+        const q = trainer.generateQuestion('powers', diff);
+        expect(q.category).toBe('powers');
+        expect(q.latex).toBeTruthy();
+        expect(q.answer).toBeDefined();
+        const check = trainer.checkAnswer(q, q.answer);
+        expect(check.isCorrect).toBe(true);
+      }
+    });
+  });
+
+  it('генератор algebra_powers создаёт примеры со степенями и корнями неизвестных', () => {
+    ['normal', 'hard', 'expert'].forEach(diff => {
+      for (let i = 0; i < 40; i++) {
+        const q = trainer.generateQuestion('algebra_powers', diff);
+        expect(q.category).toBe('algebra_powers');
+        expect(q.type).toBe('algebra');
+        expect(q.latex).toBeTruthy();
+        expect(q.answer).toBeDefined();
+        const check = trainer.checkAnswer(q, q.answer);
+        expect(check.isCorrect).toBe(true);
+      }
+    });
+  });
+
+  it('проверка algebra_powers поддерживает различные варианты ввода (x^5, x⁵, 1x^5, 6x^7, 1/x^2)', () => {
+    const q1 = {
+      type: 'algebra',
+      variable: 'x',
+      resCoeff: 1,
+      resExp: 5,
+      answer: 'x^5'
+    };
+    expect(trainer.checkAnswer(q1, 'x^5').isCorrect).toBe(true);
+    expect(trainer.checkAnswer(q1, 'x⁵').isCorrect).toBe(true);
+    expect(trainer.checkAnswer(q1, '1x^5').isCorrect).toBe(true);
+    expect(trainer.checkAnswer(q1, 'x**5').isCorrect).toBe(true);
+    expect(trainer.checkAnswer(q1, 'x^4').isCorrect).toBe(false);
+
+    const q2 = {
+      type: 'algebra',
+      variable: 'x',
+      resCoeff: 6,
+      resExp: 7,
+      answer: '6x^7'
+    };
+    expect(trainer.checkAnswer(q2, '6x^7').isCorrect).toBe(true);
+    expect(trainer.checkAnswer(q2, '6*x^7').isCorrect).toBe(true);
+    expect(trainer.checkAnswer(q2, '6 x^7').isCorrect).toBe(true);
+    expect(trainer.checkAnswer(q2, '6x⁷').isCorrect).toBe(true);
+    expect(trainer.checkAnswer(q2, '5x^7').isCorrect).toBe(false);
+
+    const q3 = {
+      type: 'algebra',
+      variable: 'x',
+      resCoeff: 1,
+      resExp: -2,
+      answer: 'x^-2'
+    };
+    expect(trainer.checkAnswer(q3, 'x^-2').isCorrect).toBe(true);
+    expect(trainer.checkAnswer(q3, '1/x^2').isCorrect).toBe(true);
+    expect(trainer.checkAnswer(q3, '1/x²').isCorrect).toBe(true);
   });
 
   it('генератор negatives создаёт примеры с отрицательными числами', () => {
@@ -100,7 +157,7 @@ describe('Mental Math Trainer Engine', () => {
   });
 
   it('генераторы поддерживают различные уровни сложности (normal, hard, expert)', () => {
-    ['addsub2', 'addsub3', 'multdiv', 'fractions', 'decimals', 'powers', 'negatives', 'mix'].forEach(cat => {
+    ['addsub2', 'addsub3', 'multdiv', 'fractions', 'decimals', 'powers', 'algebra_powers', 'negatives', 'mix'].forEach(cat => {
       ['normal', 'hard', 'expert'].forEach(diff => {
         const q = trainer.generateQuestion(cat, diff);
         expect(q).toBeDefined();
