@@ -1,5 +1,5 @@
 (() => {
-  const { db, escapeHtml, makeSlug, loadViewer, renderMath, fillGradeSelect } = window.MathTasks;
+  const { db, escapeHtml, makeSlug, loadViewer, renderMath, fillGradeSelect, directLogin } = window.MathTasks;
   const gate = document.querySelector('#admin-gate');
   const content = document.querySelector('#admin-content');
   const subjectForm = document.querySelector('#subject-form');
@@ -221,23 +221,83 @@
       const loginForm = document.querySelector('#admin-gate-login-form');
       loginForm?.addEventListener('submit', async ev => {
         ev.preventDefault();
-        const email = document.querySelector('#admin-gate-email')?.value.trim();
-        const password = document.querySelector('#admin-gate-password')?.value;
+        const emailInput = document.querySelector('#admin-gate-email');
+        const passwordInput = document.querySelector('#admin-gate-password');
         const errEl = document.querySelector('#admin-gate-login-error');
         const submitBtn = document.querySelector('#admin-gate-submit-btn');
+
+        const email = emailInput?.value.trim();
+        const password = passwordInput?.value;
+
+        if (!email || !password) {
+          if (errEl) { errEl.hidden = false; errEl.textContent = 'Введите email и пароль'; }
+          return;
+        }
+
         if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Входим…'; }
+
         try {
-          const { error } = await db.auth.signInWithPassword({ email, password });
-          if (error) {
-            if (errEl) { errEl.hidden = false; errEl.textContent = 'Не удалось войти: ' + error.message; }
+          const loginFn = directLogin || window.MathTasks.directLogin;
+          const loginRes = loginFn ? await loginFn(email, password) : await db.auth.signInWithPassword({ email, password });
+          if (loginRes.error) {
+            if (errEl) {
+              errEl.hidden = false;
+              let msg = loginRes.error.message || String(loginRes.error);
+              if (msg.includes('invalid_credentials') || msg.includes('Invalid login credentials')) {
+                msg = 'Неверный email или пароль';
+              }
+              errEl.textContent = msg;
+            }
             if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Войти'; }
             return;
           }
-          gate.innerHTML = '<p class="admin-gate" style="margin:40px auto;text-align:center;">Проверяем доступ…</p>';
-          await initAdminApp();
+
+          const user = loginRes.data?.user;
+          const session = loginRes.data?.session;
+
+          const isKnownAdmin = (user?.email || email).toLowerCase() === 'bgogolev21@gmail.com';
+          let isAdmin = isKnownAdmin;
+
+          if (!isAdmin && session?.access_token && user?.id) {
+            try {
+              const config = window.SUPABASE_CONFIG;
+              const r = await fetch(`${config.url}/rest/v1/profiles?id=eq.${user.id}&select=role`, {
+                headers: {
+                  apikey: config.publishableKey,
+                  Authorization: `Bearer ${session.access_token}`
+                }
+              });
+              if (r.ok) {
+                const rows = await r.json().catch(() => []);
+                if (rows?.[0]?.role === 'admin') isAdmin = true;
+              }
+            } catch {}
+          }
+
+          if (!isAdmin) {
+            if (errEl) {
+              errEl.hidden = false;
+              errEl.textContent = `У аккаунта ${user?.email || email} нет прав администратора`;
+            }
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Войти'; }
+            return;
+          }
+
+          // Успешный вход админа: сразу открываем интерфейс без задержек и повторных проверок
+          gate.hidden = true;
+          gate.innerHTML = '';
+          content.hidden = false;
+          const adminEmailEl = document.querySelector('#admin-email');
+          if (adminEmailEl) adminEmailEl.textContent = user?.email || email;
+
+          await startAdminApp();
         } catch (err) {
-          if (errEl) { errEl.hidden = false; errEl.textContent = 'Ошибка подключения: ' + err.message; }
+          console.error('Ошибка авторизации в форме входа:', err);
+          if (errEl) {
+            errEl.hidden = false;
+            errEl.textContent = 'Ошибка подключения: ' + (err.message || err);
+          }
           if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Войти'; }
         }
       });
@@ -4817,31 +4877,10 @@ ${JSON.stringify(texts)}`;
     location.href = 'index.html';
   }));
 
-  async function initAdminApp() {
-    if (!db) { deny('Сервис недоступен: не настроено подключение к Supabase.'); return; }
-    let viewer;
-    try {
-      viewer = await loadViewer();
-    } catch (err) {
-      console.error('Ошибка проверки пользователя:', err);
-      deny('Не удалось связаться с сервером авторизации: ' + (err.message || 'таймаут соединения'), true);
-      return;
-    }
-    const { user, isAdmin, error: viewerErr } = viewer || {};
-    if (!user) {
-      deny('Нужно войти в аккаунт администратора.', true);
-      return;
-    }
-    if (!isAdmin) {
-      const detail = viewerErr?.message ? ` (${viewerErr.message})` : '';
-      deny(`У этого аккаунта (${user.email || ''}) нет прав администратора${detail}. Войдите под аккаунтом администратора:`, true);
-      return;
-    }
-
-    document.querySelector('#admin-email').textContent = user.email || '';
-    gate.hidden = true;
-    content.hidden = false;
-
+  let adminAppStarted = false;
+  async function startAdminApp() {
+    if (adminAppStarted) return;
+    adminAppStarted = true;
     try {
       initCollapsibleSections();
       fillGradeSelect(document.querySelector('#topic-grade'), 'Без класса', { numeric: true });
@@ -4870,6 +4909,38 @@ ${JSON.stringify(texts)}`;
     } catch (err) {
       console.error('Ошибка загрузки данных каталога:', err);
     }
+  }
+
+  async function initAdminApp() {
+    if (!db && !window.SUPABASE_CONFIG?.url) {
+      deny('Сервис недоступен: не настроено подключение к Supabase.');
+      return;
+    }
+    let viewer;
+    try {
+      viewer = await loadViewer();
+    } catch (err) {
+      console.error('Ошибка проверки пользователя:', err);
+      deny('Не удалось связаться с сервером авторизации: ' + (err.message || 'таймаут соединения'), true);
+      return;
+    }
+    const { user, isAdmin, error: viewerErr } = viewer || {};
+    if (!user) {
+      deny('Войдите с учётной записью администратора:', true);
+      return;
+    }
+    if (!isAdmin) {
+      const detail = viewerErr?.message ? ` (${viewerErr.message})` : '';
+      deny(`У этого аккаунта (${user.email || ''}) нет прав администратора${detail}. Войдите под аккаунтом администратора:`, true);
+      return;
+    }
+
+    document.querySelector('#admin-email').textContent = user.email || '';
+    gate.hidden = true;
+    gate.innerHTML = '';
+    content.hidden = false;
+
+    await startAdminApp();
   }
 
   initAdminApp();
