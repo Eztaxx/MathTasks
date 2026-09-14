@@ -512,6 +512,26 @@
     return summary;
   };
 
+  /* ── Варианты ответа для проверки (answer_check, миграция 024) ──────
+     Ученик видит answer_latex как есть («120 книг»), а сверка идёт и с
+     ним, и с вариантами из answer_check — по одному на строку («120»).
+     Так проверяются ответы со словами, которые сами по себе не сверить.
+     В ячейке таблицы перенос строки неудобен — там разделитель «||». */
+  const answerCheckVariants = raw => String(raw ?? '')
+    .split(/\r?\n|\s*\|\|\s*/)
+    .map(item => item.trim())
+    .filter(Boolean);
+
+  // Задача проверяется автоматически, если есть варианты или сам ответ сверяемый.
+  const isTaskAutoCheckable = (answer, variants = '') =>
+    answerCheckVariants(variants).length > 0 || isAnswerAutoCheckable(answer);
+
+  const checkTaskAnswer = (userAns, answer, variants = '') => {
+    if (!String(userAns ?? '').trim()) return false;
+    return answerCheckVariants(variants).some(variant => compareAnswers(userAns, variant))
+      || compareAnswers(userAns, answer);
+  };
+
   /* Подсчёт прогресса решения задач темы */
   const calcTopicProgress = (taskIds = [], solvedIds = []) => {
     if (!Array.isArray(taskIds) || taskIds.length === 0) {
@@ -954,7 +974,10 @@
     condition_latex_lv: ['condition_latex_lv', 'условие lv', 'uzdevums lv', 'nosacījums lv', 'condition lv'],
     answer_latex: ['answer_latex', 'answer', 'ответ', 'atbilde'],
     answer_latex_lv: ['answer_latex_lv', 'ответ lv', 'atbilde lv', 'answer lv'],
-    solution_latex: ['solution_latex', 'solution', 'решение', 'atrisinājums', 'atrisinajums', 'разбор'],
+    // Варианты для проверки (миграция 024), в ячейке — через «||».
+    answer_check: ['answer_check', 'варианты для проверки', 'варианты ответа', 'pārbaudes varianti'],
+    answer_check_lv: ['answer_check_lv', 'варианты для проверки lv', 'варианты ответа lv', 'pārbaudes varianti lv'],
+    solution_latex:['solution_latex', 'solution', 'решение', 'atrisinājums', 'atrisinajums', 'разбор'],
     solution_latex_lv: ['solution_latex_lv', 'решение lv', 'atrisinājums lv', 'solution lv'],
     hint_latex: ['hint_latex', 'hint', 'подсказка', 'padoms', 'ieteikums'],
     hint_latex_lv: ['hint_latex_lv', 'подсказка lv', 'padoms lv', 'hint lv'],
@@ -1111,6 +1134,8 @@
         condition_latex_lv: getVal('condition_latex_lv') || null,
         answer_latex: ans,
         answer_latex_lv: ansLv,
+        answer_check: getVal('answer_check') || null,
+        answer_check_lv: getVal('answer_check_lv') || null,
         solution_latex: sol,
         solution_latex_lv: solLv,
         hint_latex: hint,
@@ -1829,7 +1854,7 @@
     /* Контрольная сверяет ответы автоматически: задача, чей ответ так не
        сверить («Да, подобны»), всегда считалась бы ошибкой. Берём такие
        только если без них не набрать хотя бы трёх задач. */
-    const checkable = tasks.filter(t => isAnswerAutoCheckable(t.answer_latex));
+    const checkable = tasks.filter(t => isTaskAutoCheckable(t.answer_latex, t.answer_check));
     if (checkable.length >= Math.min(tasks.length, 3)) tasks = checkable;
 
     // 2. Если задач всего 5 или меньше — берём все
@@ -2393,6 +2418,9 @@
     parseFractionOrNumber,
     compareAnswers,
     isAnswerAutoCheckable,
+    answerCheckVariants,
+    isTaskAutoCheckable,
+    checkTaskAnswer,
     parseAnswerParts,
     localDateKey,
     computeStreak,

@@ -142,6 +142,26 @@
     if (multilingualReady) supportedTaskCols.add('hint_latex_lv');
   }
 
+  /* Варианты ответа для проверки — миграция 024. Пока колонок нет, поля в
+     форме заблокированы с пояснением, а в сохранение они не попадают. */
+  let answerCheckReady = false;
+  async function detectAnswerCheckColumn() {
+    const { error } = await db.from('tasks').select('answer_check').limit(1);
+    if (error) {
+      console.warn('Колонка answer_check не найдена — выполните supabase/migrations/024_answer_check.sql.');
+      for (const el of [answerCheckInput, answerCheckInputLv]) {
+        if (!el) continue;
+        el.disabled = true;
+        el.title = 'Недоступно: не выполнена миграция 024_answer_check.sql';
+        el.placeholder = 'Недоступно до применения миграции 024';
+      }
+      return;
+    }
+    answerCheckReady = true;
+    supportedTaskCols.add('answer_check');
+    if (multilingualReady) supportedTaskCols.add('answer_check_lv');
+  }
+
   async function detectMultilingualColumns() {
     const { error } = await db.from('topics').select('title_lv').limit(1);
     if (error) {
@@ -1365,6 +1385,8 @@
   const conditionInputLv = document.querySelector('#condition-input-lv');
   const answerInputLv = document.querySelector('#answer-input-lv');
   const solutionInputLv = document.querySelector('#solution-input-lv');
+  const answerCheckInput = document.querySelector('#answer-check-input');
+  const answerCheckInputLv = document.querySelector('#answer-check-input-lv');
   const conditionPreviewLv = document.querySelector('#condition-preview-lv');
   const solutionPreviewLv = document.querySelector('#solution-preview-lv');
 
@@ -1376,7 +1398,7 @@
     if (conditionPreviewLv && conditionInputLv) renderMath(conditionPreviewLv, conditionInputLv.value);
     if (solutionPreviewLv && solutionInputLv) renderMath(solutionPreviewLv, solutionInputLv.value);
   };
-  [conditionInput, answerInput, answerInputLv, solutionInput, conditionInputLv, solutionInputLv, hintInput, hintInputLv]
+  [conditionInput, answerInput, answerInputLv, solutionInput, conditionInputLv, solutionInputLv, hintInput, hintInputLv, answerCheckInput, answerCheckInputLv]
     .filter(Boolean)
     .forEach(input => input.addEventListener('input', () => {
       updatePreviews();
@@ -2482,8 +2504,12 @@ ${JSON.stringify(texts)}`;
     // 5. Подсказка для ученика (RU / LV). У задачи с полем ответа подсказка
     //    открывается после первой ошибки — без неё ученику нечего открыть до второй.
     const lib = window.MathTasksLib || {};
+    const checkRu = answerCheckInput?.value.trim() || '';
+    const checkLv = answerCheckInputLv?.value.trim() || '';
+    // Проверяема задача, у которой ответ сверяемый или есть варианты для проверки.
+    const canCheck = (answer, variants) => (lib.isTaskAutoCheckable ? lib.isTaskAutoCheckable(answer, variants) : true);
     const answerForField = ansRu || ansLv;
-    const hasAnswerField = Boolean(answerForField) && (!lib.isAnswerAutoCheckable || lib.isAnswerAutoCheckable(answerForField));
+    const hasAnswerField = Boolean(answerForField) && canCheck(answerForField, checkRu || checkLv);
     if (!hintRu && !hintLv) {
       chips.push(hasAnswerField
         ? { level: 'warn', text: 'Нет подсказки', action: 'focus-hint', title: 'Подсказка открывается после первой неверной попытки — без неё ученику нечего открыть до второй' }
@@ -2501,12 +2527,16 @@ ${JSON.stringify(texts)}`;
     }
 
     // 5а. Поля между собой: то, что не видно, пока смотришь на каждое поле отдельно.
-    if (lib.isAnswerAutoCheckable) {
-      const notCheckable = [[ansRu, 'focus-ans', ''], [ansLv, 'focus-ans-lv', ' (LV)']]
-        .find(([answer]) => answer && !lib.isAnswerAutoCheckable(answer));
+    if (lib.isTaskAutoCheckable) {
+      const notCheckable = [[ansRu, checkRu, 'focus-check', ''], [ansLv, checkLv || checkRu, 'focus-check-lv', ' (LV)']]
+        .find(([answer, variants]) => answer && !canCheck(answer, variants));
       if (notCheckable) {
-        chips.push({ level: 'warn', text: `Ответ не проверяется автоматически${notCheckable[2]}`, action: notCheckable[1],
-          title: 'У задачи не будет поля ответа: ответ и решение откроются сразу. Запишите ответ числом, выражением или списком значений — без слов («120», а не «120 книг»)' });
+        chips.push({ level: 'warn', text: `Ответ не проверяется автоматически${notCheckable[3]}`, action: notCheckable[2],
+          title: 'Вместо поля ответа у ученика будет самопроверка. Чтобы ответ проверялся, запишите его без слов («120», а не «120 книг») или впишите варианты для проверки' });
+      }
+      // Варианты со словами по-русски латышскому ученику не подойдут («да» ≠ «jā»).
+      if (condLv && checkRu && !checkLv && /[а-яё]{2,}/i.test(checkRu)) {
+        chips.push({ level: 'info', text: 'Нет вариантов на LV', action: 'focus-check-lv', title: 'В русских вариантах есть слова — для латышской версии нужны свои («jā» вместо «да»)' });
       }
     }
     if (lib.answersDisagree && lib.answersDisagree(ansRu, ansLv)) {
@@ -2529,12 +2559,12 @@ ${JSON.stringify(texts)}`;
           title: 'В подсказке уже записан результат («= …»). Подсказка даёт направление, а ответ открывается позже' });
       }
     }
-    const latvianInRu = [[condRu, 'focus-cond-ru'], [ansRu, 'focus-ans'], [solRu, 'focus-sol'], [hintRu, 'focus-hint']]
+    const latvianInRu = [[condRu, 'focus-cond-ru'], [ansRu, 'focus-ans'], [solRu, 'focus-sol'], [hintRu, 'focus-hint'], [checkRu, 'focus-check']]
       .find(([text]) => /[āčēģīķļņšūž]/i.test(text));
     if (latvianInRu) {
       chips.push({ level: 'warn', text: 'Латышские буквы в русском тексте', action: latvianInRu[1], title: 'Похоже, в русское поле попал латышский текст' });
     }
-    const cyrillicInLv = [[condLv, 'focus-cond-lv'], [ansLv, 'focus-ans-lv'], [solLv, 'focus-sol-lv'], [hintLv, 'focus-hint-lv']]
+    const cyrillicInLv = [[condLv, 'focus-cond-lv'], [ansLv, 'focus-ans-lv'], [solLv, 'focus-sol-lv'], [hintLv, 'focus-hint-lv'], [checkLv, 'focus-check-lv']]
       .find(([text]) => /[а-яё]/i.test(text));
     if (cyrillicInLv) {
       chips.push({ level: 'warn', text: 'Кириллица в латышском тексте', action: cyrillicInLv[1],
@@ -2988,6 +3018,16 @@ ${JSON.stringify(texts)}`;
         answerInput?.focus();
         answerInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         break;
+      case 'focus-check':
+        ensureLangVisible('ru');
+        answerCheckInput?.focus();
+        answerCheckInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'focus-check-lv':
+        ensureLangVisible('lv');
+        answerCheckInputLv?.focus();
+        answerCheckInputLv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
       case 'focus-ans-lv':
         ensureLangVisible('lv');
         answerInputLv?.focus();
@@ -3077,6 +3117,8 @@ ${JSON.stringify(texts)}`;
     if (conditionInputLv) conditionInputLv.value = task?.condition_latex_lv || '';
     answerInput.value = task?.answer_latex || '';
     if (answerInputLv) answerInputLv.value = task?.answer_latex_lv || '';
+    if (answerCheckInput) answerCheckInput.value = task?.answer_check || '';
+    if (answerCheckInputLv) answerCheckInputLv.value = task?.answer_check_lv || '';
     if (hintInput) hintInput.value = task?.hint_latex || '';
     if (hintInputLv) hintInputLv.value = task?.hint_latex_lv || '';
     solutionInput.value = task?.solution_latex || '';
@@ -3463,6 +3505,9 @@ ${JSON.stringify(texts)}`;
       condition_latex_lv: conditionInputLv?.value.trim() || null,
       answer_latex: answerInput.value.trim() || null,
       answer_latex_lv: answerInputLv?.value.trim() || null,
+      // Без миграции 024 эти поля отбросит sanitizeTaskPayload.
+      answer_check: answerCheckInput?.value.trim() || null,
+      answer_check_lv: answerCheckInputLv?.value.trim() || null,
       hint_latex: hintInput?.value.trim() || null,
       hint_latex_lv: hintInputLv?.value.trim() || null,
       solution_latex: solutionInput.value.trim() || null,
@@ -3612,6 +3657,8 @@ ${JSON.stringify(texts)}`;
       if (conditionInputLv) conditionInputLv.value = source.condition_latex_lv || '';
       answerInput.value = source.answer_latex || '';
       if (answerInputLv) answerInputLv.value = source.answer_latex_lv || '';
+      if (answerCheckInput) answerCheckInput.value = source.answer_check || '';
+      if (answerCheckInputLv) answerCheckInputLv.value = source.answer_check_lv || '';
       solutionInput.value = source.solution_latex || '';
       if (solutionInputLv) solutionInputLv.value = source.solution_latex_lv || '';
       taskForm.elements.is_published.checked = false; // Копия по умолчанию создаётся черновиком
@@ -3790,6 +3837,8 @@ ${JSON.stringify(texts)}`;
           condition_latex_lv: task.condition_latex_lv || null,
           answer_latex: task.answer_latex || null,
           answer_latex_lv: task.answer_latex_lv || null,
+          answer_check: task.answer_check || null,
+          answer_check_lv: task.answer_check_lv || null,
           solution_latex: task.solution_latex || null,
           solution_latex_lv: task.solution_latex_lv || null,
           hint_latex: task.hint_latex || null,
@@ -4689,6 +4738,8 @@ ${JSON.stringify(texts)}`;
         condition_latex_lv: item.condition_latex_lv ? String(item.condition_latex_lv).trim() : null,
         answer_latex: item.answer_latex ? String(item.answer_latex).trim() : null,
         answer_latex_lv: item.answer_latex_lv ? String(item.answer_latex_lv).trim() : null,
+        answer_check: item.answer_check ? String(item.answer_check).trim() : null,
+        answer_check_lv: item.answer_check_lv ? String(item.answer_check_lv).trim() : null,
         solution_latex: item.solution_latex ? String(item.solution_latex).trim() : null,
         solution_latex_lv: item.solution_latex_lv ? String(item.solution_latex_lv).trim() : null,
         hint_latex: item.hint_latex ? String(item.hint_latex).trim() : null,
@@ -5589,6 +5640,8 @@ ${JSON.stringify(texts)}`;
       condition_latex_lv: r.condition_latex_lv || null,
       answer_latex: r.answer_latex || null,
       answer_latex_lv: r.answer_latex_lv || null,
+      answer_check: r.answer_check || null,
+      answer_check_lv: r.answer_check_lv || null,
       solution_latex: r.solution_latex_ru || r.solution_latex || null,
       solution_latex_lv: r.solution_latex_lv || null,
       hint_latex: r.hint_latex_ru || r.hint_latex || null,
@@ -5679,6 +5732,8 @@ ${JSON.stringify(texts)}`;
     if (conditionInputLv) conditionInputLv.value = item.condition_latex_lv || '';
     answerInput.value = item.answer_latex || '';
     if (answerInputLv) answerInputLv.value = item.answer_latex_lv || '';
+    if (answerCheckInput) answerCheckInput.value = item.answer_check || '';
+    if (answerCheckInputLv) answerCheckInputLv.value = item.answer_check_lv || '';
     solutionInput.value = item.solution_latex || '';
     if (solutionInputLv) solutionInputLv.value = item.solution_latex_lv || '';
     if (hintInput) hintInput.value = item.hint_latex || '';
@@ -6077,6 +6132,7 @@ ${JSON.stringify(texts)}`;
       setTaskMode(null);
       await detectMultilingualColumns();
       await detectHintColumn();
+      await detectAnswerCheckColumn();
       markLatvianFieldsUnavailable();
       // Возвращаем режим сортировки, выбранный в прошлый раз.
       const savedSort = loadSort();
@@ -6325,6 +6381,7 @@ ${JSON.stringify(texts)}`;
     if (!shell || !adminAppStarted || !db) return;
     const email = byId('admin-email')?.textContent.trim() || '';
     setShellText('#adm-avatar', email ? email[0] : '·');
+    loadNoCheckList();
     const [noLv, drafts] = await Promise.all([
       db.from('tasks').select('id', { count: 'exact', head: true }).or('condition_latex_lv.is.null,condition_latex_lv.eq.'),
       db.from('tasks').select('id,title,topic_id,subtopic_id,grade,condition_latex_lv')
@@ -6352,6 +6409,58 @@ ${JSON.stringify(texts)}`;
       </button>`;
     }).join('') : '<p class="adm-empty">Очередь пуста — всё опубликовано.</p>';
   }
+
+  /* Задачи без автопроверки: ответа нет или он записан так, что его не
+     сверить, а вариантов для проверки нет. У ученика вместо поля ответа
+     будет самопроверка. Список на «Обзоре» — чтобы такие задачи доделать. */
+  async function loadNoCheckList() {
+    const list = byId('adm-nocheck-list');
+    const lib = window.MathTasksLib;
+    if (!list || !lib?.fetchAllRows || !lib.isTaskAutoCheckable) return;
+    const cols = ['id', 'title', 'topic_id', 'grade', 'answer_latex', 'answer_latex_lv'];
+    if (answerCheckReady) cols.push('answer_check', 'answer_check_lv');
+    const { data, error } = await lib.fetchAllRows(() => db.from('tasks').select(cols.join(',')).order('id'));
+    if (error) {
+      setShellText('#adm-stat-nocheck', '—');
+      list.innerHTML = `<p class="adm-empty">Список не загрузился: ${escapeHtml(error.message)}</p>`;
+      return;
+    }
+    const rows = [];
+    for (const row of data || []) {
+      const ru = (row.answer_latex || '').trim();
+      const lv = (row.answer_latex_lv || '').trim();
+      let reason = '';
+      if (!ru && !lv) reason = 'нет ответа';
+      else if (ru && !lib.isTaskAutoCheckable(ru, row.answer_check)) reason = 'ответ не сверить';
+      else if (lv && !lib.isTaskAutoCheckable(lv, row.answer_check_lv || row.answer_check)) reason = 'LV: ответ не сверить';
+      if (reason) rows.push({ ...row, reason, answer: ru || lv });
+    }
+    setShellText('#adm-stat-nocheck', rows.length);
+    list.innerHTML = rows.length ? rows.map(row => {
+      const topic = topics.find(t => t.id === row.topic_id);
+      const grade = row.grade ?? topic?.grade;
+      const path = [grade ? gradeText(grade) : '', topic?.title || 'без темы'].filter(Boolean).join(' · ');
+      return `<button type="button" class="adm-queue-row" data-open-task="${row.id}">
+        <span class="adm-queue-id">#${row.id}</span>
+        <span class="adm-queue-title">${escapeHtml(row.answer ? `Ответ: ${lib.latexToPlainText ? lib.latexToPlainText(row.answer, 120) : row.answer}` : (row.title || `Задача #${row.id}`))}</span>
+        <span class="adm-queue-path">${escapeHtml(path)}</span>
+        <span class="adm-chip warn">${escapeHtml(row.reason)}</span>
+      </button>`;
+    }).join('') : '<p class="adm-empty">Все ответы проверяются автоматически.</p>';
+  }
+
+  byId('adm-nocheck-list')?.addEventListener('click', async event => {
+    const id = event.target.closest('[data-open-task]')?.dataset.openTask;
+    if (!id) return;
+    const full = await fetchFullRow('tasks', id);
+    if (full) setTaskMode(full);
+  });
+
+  const scrollToNoCheck = () => byId('adm-nocheck-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelector('[data-scroll-nocheck]')?.addEventListener('click', scrollToNoCheck);
+  document.querySelector('[data-scroll-nocheck]')?.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); scrollToNoCheck(); }
+  });
 
   byId('adm-queue-peek')?.addEventListener('click', async event => {
     const id = event.target.closest('[data-open-task]')?.dataset.openTask;

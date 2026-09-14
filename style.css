@@ -1263,6 +1263,21 @@ body.dark .search-highlight{background:#634b00;color:#ffeb84}
 .self-check-lock,.drill-hint-lock{margin:6px 0 0;font-size:12px;line-height:1.45;color:var(--muted)}
 .self-check-lock::before,.drill-hint-lock::before{content:'🔒 ';font-size:11px}
 .self-check-lock[hidden],.drill-hint-lock[hidden]{display:none}
+/* Самопроверка: ответ не сверить автоматически — ученик сверяется сам. */
+.task-self-assess{margin-top:10px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px}
+.self-assess-lead{margin:0 0 8px;font-size:12.5px;line-height:1.45;color:var(--muted)}
+.self-assess-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.self-assess-verdict{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.self-assess-verdict[hidden],.task-self-assess .self-check-btn[hidden]{display:none}
+.self-assess-yes,.self-assess-no{border:1px solid;border-radius:8px;padding:6px 12px;font:600 12.5px Manrope,sans-serif;cursor:pointer}
+.self-assess-yes{color:#03853f;border-color:#b7ecc8;background:#e6f9ed}
+.self-assess-no{color:#b45309;border-color:#fedfa4;background:#fff8eb}
+.self-assess-yes:focus-visible,.self-assess-no:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.self-assess-reset{border:0;background:none;color:#1764ff;font:600 12px Manrope;cursor:pointer;text-decoration:underline;padding:0;margin-left:auto}
+body.dark .task-self-assess{border-color:#2a3d5e}
+body.dark .self-assess-yes{background:#0d281a;color:#4ade80;border-color:#166534}
+body.dark .self-assess-no{background:#2a1b05;color:#fcd34d;border-color:#854d0e}
+.adm-stat[data-scroll-nocheck]{cursor:pointer}
 
 /* ── Мой прогресс ── */
 .progress-page{display:flex;flex-direction:column;gap:24px;margin-top:4px}

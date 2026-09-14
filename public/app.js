@@ -903,21 +903,49 @@ function addTaskWrongAttempt(taskId) {
 const normalizeMathAnswer = window.MathTasks?.normalizeMathAnswer || (val => String(val || '').trim());
 const compareAnswers = window.MathTasks?.compareAnswers || ((u, c) => u === c);
 const isAnswerAutoCheckable = window.MathTasks?.isAnswerAutoCheckable || (answer => Boolean(answer));
+/* Варианты для проверки (answer_check, миграция 024): ответ со словами
+   («120 книг») сверяется с ними («120»). До миграции поля нет — сверка по ответу. */
+const taskAutoCheckable = (answer, variants) => (window.MathTasksLib?.isTaskAutoCheckable
+  ? window.MathTasksLib.isTaskAutoCheckable(answer, variants)
+  : isAnswerAutoCheckable(answer));
+const checkTaskAnswer = (userAns, answer, variants) => (window.MathTasksLib?.checkTaskAnswer
+  ? window.MathTasksLib.checkTaskAnswer(userAns, answer, variants)
+  : compareAnswers(userAns, answer));
 
-/* Что уже открыто в карточке задачи. Если ответ не сверить автоматически
-   («Да, подобны», доказательство), поля ответа нет — и запирать нечем:
-   открыто всё. В решённой задаче тоже. */
+/* Что уже открыто в карточке задачи. Три случая:
+   - ответ сверяется (сам или по вариантам) — поле ответа; подсказка после
+     первой ошибки, ответ и решение — после второй;
+   - ответ есть, но не сверить («Доказано», «Да, подобны» без вариантов) —
+     самопроверка: подсказка сразу, ответ по кнопке «Сверить с ответом»,
+     решение — после «Не сошлось» или «Сошлось»;
+   - ответа нет вовсе — открыто всё.
+   В решённой задаче открыто всё. */
 function taskRevealState(task) {
   const answer = loc(task, 'answer_latex');
-  const checkable = Boolean(answer) && isAnswerAutoCheckable(answer);
+  const checkable = Boolean(answer) && taskAutoCheckable(answer, loc(task, 'answer_check'));
+  const selfAssess = Boolean(answer) && !checkable;
   const attempts = getTaskWrongAttempts(task.id);
-  const open = !checkable || isTaskSolved(task.id);
+  const open = !answer || isTaskSolved(task.id);
+  const needed = checkable ? ATTEMPTS_FOR_ANSWER : 1;
   return {
     checkable,
+    selfAssess,
     attempts,
-    hint: open || attempts >= ATTEMPTS_FOR_HINT,
-    answer: open || attempts >= ATTEMPTS_FOR_ANSWER
+    hint: open || selfAssess || attempts >= ATTEMPTS_FOR_HINT,
+    answer: open || attempts >= needed,
+    solution: open || attempts >= needed
   };
+}
+
+// Бейдж «Решено» в шапке карточки — один раз.
+function markCardSolved(card) {
+  if (!card || card.querySelector('.task-solved-badge')) return;
+  const meta = card.querySelector('.task-meta');
+  if (!meta) return;
+  const badge = document.createElement('span');
+  badge.className = 'task-solved-badge';
+  badge.textContent = (window.MathTasks.t || (k => k))('solved_badge');
+  meta.appendChild(badge);
 }
 
 /* Строка под полем ответа: что и когда откроется. Пустая — всё открыто. */
@@ -1160,6 +1188,23 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
       <p class="self-check-lock" ${reveal.answer ? 'hidden' : ''}>${reveal.answer ? '' : escapeHtml(revealLockText(task, reveal.attempts))}</p>
     </div>` : '';
 
+  /* Самопроверка: ответ не сверить автоматически, поэтому ученик решает сам,
+     открывает ответ и честно отмечает, сошлось ли. «Сошлось» засчитывает
+     задачу в «Мой прогресс», «Не сошлось» открывает решение. */
+  const selfAssess = reveal.selfAssess ? `
+    <div class="task-self-assess" data-self-assess="${task.id}">
+      <p class="self-assess-lead">${escapeHtml(tr('self_assess_lead'))}</p>
+      <div class="self-assess-actions">
+        <button type="button" class="self-check-btn" data-self-assess-reveal ${solved ? 'hidden' : ''}>${escapeHtml(tr('self_assess_reveal'))}</button>
+        <span class="self-assess-verdict" hidden>
+          <span>${escapeHtml(tr('self_assess_question'))}</span>
+          <button type="button" class="self-assess-yes" data-self-assess-yes>${escapeHtml(tr('self_assess_yes'))}</button>
+          <button type="button" class="self-assess-no" data-self-assess-no>${escapeHtml(tr('self_assess_no'))}</button>
+        </span>
+      </div>
+      <div class="self-check-result${solved ? ' success' : ''}" ${solved ? '' : 'hidden'}>${solved ? `${escapeHtml(tr('self_assess_done'))} <button type="button" class="self-assess-reset" data-self-assess-reset>${escapeHtml(tr('self_check_reset'))}</button>` : ''}</div>
+    </div>` : '';
+
   const hasAnswer = Boolean(loc(task, 'answer_latex'));
   const taskHint = loc(task, 'hint_latex');
   const taskSolution = loc(task, 'solution_latex');
@@ -1191,7 +1236,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   if (taskSolution || task.solution_image) {
     const solutionBody = `<div class="math" data-solution></div>${taskFigure(task.solution_image, taskTitle, 'Attēls pie atrisinājuma')}`;
     const solItem = createRevealItem('solution', solutionBody, {
-      hidden: !reveal.answer,
+      hidden: !reveal.solution,
       icon: '📘'
     });
     toggleButtons.push(solItem.button);
@@ -1231,6 +1276,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
     ${taskFigure(task.condition_image, taskTitle, 'Zīmējums')}
     ${tagsRowHtml}
     ${selfCheck}
+    ${selfAssess}
     ${actionsBar}
     ${revealsWrap}
   </article>`;
@@ -1422,7 +1468,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
       const taskTitle = loc(task, 'title');
       const answerText = loc(task, 'answer_latex');
       // Ответ, который не сверить автоматически, в экспресс-режиме не вводится.
-      const hasAnswer = Boolean(answerText) && isAnswerAutoCheckable(answerText);
+      const hasAnswer = Boolean(answerText) && taskAutoCheckable(answerText, loc(task, 'answer_check'));
       const cleanAnswer = answerText ? answerText.replace(/^\$+|\$+$/g, '') : '';
       /* Кнопка чертежа появляется только у задач, к которым чертёж
          действительно загружен: подставного показывать нельзя. */
@@ -2830,7 +2876,7 @@ function submitControlWork(isTimeout = false) {
   const gradedResults = currentCwTasks.map(task => {
     const userAns = currentCwUserAnswers[task.id] || '';
     const correctAns = loc(task, 'answer_latex') || '';
-    const isCorrect = window.MathTasksLib?.compareAnswers ? window.MathTasksLib.compareAnswers(userAns, correctAns) : false;
+    const isCorrect = checkTaskAnswer(userAns, correctAns, loc(task, 'answer_check'));
     if (isCorrect) correctCount++;
     return { task, userAns, correctAns, isCorrect };
   });
@@ -3875,7 +3921,7 @@ document.addEventListener('submit', event => {
   const userAns = input ? input.value.trim() : '';
   if (!userAns) return;
   const resultDiv = form.nextElementSibling;
-  const isCorrect = compareAnswers(userAns, loc(task, 'answer_latex'));
+  const isCorrect = checkTaskAnswer(userAns, loc(task, 'answer_latex'), loc(task, 'answer_check'));
   if (isCorrect) {
     setTaskSolved(taskId, true);
     resultDiv.className = 'self-check-result success';
@@ -3917,6 +3963,61 @@ document.addEventListener('submit', event => {
   }
 });
 
+/* Самопроверка у задач, ответ которых не сверить автоматически. */
+document.addEventListener('click', event => {
+  const block = event.target.closest('.task-self-assess');
+  if (!block) return;
+  const card = block.closest('.task');
+  const taskId = Number(block.dataset.selfAssess);
+  const tr = window.MathTasks.t || (k => k);
+  const result = block.querySelector('.self-check-result');
+  const verdict = block.querySelector('.self-assess-verdict');
+  const revealBtn = block.querySelector('[data-self-assess-reveal]');
+  const openPanel = kind => {
+    const toggle = card?.querySelector(`.solution-toggle[data-kind="${kind}"]`);
+    if (toggle && toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
+  };
+
+  if (event.target.closest('[data-self-assess-reveal]')) {
+    if (card) unlockTaskReveals(card, ['answer']);
+    openPanel('answer');
+    revealBtn.hidden = true;
+    verdict.hidden = false;
+    return;
+  }
+  if (event.target.closest('[data-self-assess-yes]')) {
+    setTaskSolved(taskId, true);
+    verdict.hidden = true;
+    result.className = 'self-check-result success';
+    result.innerHTML = `${escapeHtml(tr('self_assess_done'))} <button type="button" class="self-assess-reset" data-self-assess-reset>${escapeHtml(tr('self_check_reset'))}</button>`;
+    result.hidden = false;
+    if (card) {
+      unlockTaskReveals(card, ['hint', 'answer', 'solution']);
+      markCardSolved(card);
+    }
+    updateTopicHeaderProgress();
+    return;
+  }
+  if (event.target.closest('[data-self-assess-no]')) {
+    addTaskWrongAttempt(taskId);
+    verdict.hidden = true;
+    result.className = 'self-check-result error';
+    result.textContent = tr('self_assess_fail');
+    result.hidden = false;
+    if (card) unlockTaskReveals(card, ['hint', 'answer', 'solution']);
+    openPanel('solution');
+    revealBtn.hidden = false;
+    return;
+  }
+  if (event.target.closest('[data-self-assess-reset]')) {
+    setTaskSolved(taskId, false);
+    result.hidden = true;
+    revealBtn.hidden = false;
+    card?.querySelector('.task-solved-badge')?.remove();
+    updateTopicHeaderProgress();
+  }
+});
+
 /* ── Экспресс-тренажёр (режим «Примеры») ─────────────────────── */
 
 function openDrillHintDialog(task) {
@@ -3939,7 +4040,10 @@ function openDrillHintDialog(task) {
   }
   /* Тот же порядок, что в карточке: подсказка после первой ошибки,
      ответ и решение — после второй. */
-  const reveal = taskRevealState(task);
+  /* В экспресс-режиме у задачи без автопроверки поля ответа нет — окно 💡
+     для неё единственный путь к ответу, поэтому там открыто всё. */
+  const state = taskRevealState(task);
+  const reveal = state.selfAssess ? { ...state, hint: true, answer: true, solution: true } : state;
   const showSection = (section, target, text, allowed) => {
     if (!section || !target) return;
     section.hidden = !(allowed && text);
@@ -3948,7 +4052,7 @@ function openDrillHintDialog(task) {
   };
   showSection(hintSec, hintEl, loc(task, 'hint_latex'), reveal.hint);
   showSection(ansSec, ansEl, loc(task, 'answer_latex'), reveal.answer);
-  showSection(solSec, solEl, loc(task, 'solution_latex'), reveal.answer);
+  showSection(solSec, solEl, loc(task, 'solution_latex'), reveal.solution);
   if (lockEl) {
     const lockText = reveal.answer ? '' : revealLockText(task, reveal.attempts);
     lockEl.textContent = lockText;
@@ -3976,7 +4080,7 @@ document.addEventListener('keydown', event => {
     const userAns = input.value.trim();
     if (!userAns) return;
 
-    const isCorrect = compareAnswers(userAns, loc(task, 'answer_latex'));
+    const isCorrect = checkTaskAnswer(userAns, loc(task, 'answer_latex'), loc(task, 'answer_check'));
     const item = input.closest('.compact-drill-item');
     const statusEl = item?.querySelector('.compact-drill-status');
 

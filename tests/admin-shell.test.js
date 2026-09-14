@@ -108,9 +108,21 @@ describe('каркас админки: меню и экраны', () => {
       expect(js, text).toContain(text);
     }
     // Функции, на которых стоят проверки, должны быть в lib.js.
-    for (const name of ['isAnswerAutoCheckable', 'answersDisagree', 'missingAnswerNumbers', 'hintRevealsAnswer', 'importDupKey']) {
+    for (const name of ['isTaskAutoCheckable', 'answersDisagree', 'missingAnswerNumbers', 'hintRevealsAnswer', 'importDupKey']) {
       expect(js, name).toContain(`lib.${name}`);
     }
+  });
+
+  it('варианты для проверки: поля RU и LV, проверка колонки миграции 024, сохранение', () => {
+    expect(html).toContain('name="answer_check" id="answer-check-input"');
+    expect(html).toContain('name="answer_check_lv" id="answer-check-input-lv"');
+    expect(js).toContain("select('answer_check')");
+    expect(js).toContain("answer_check: answerCheckInput?.value.trim() || null");
+  });
+
+  it('«Обзор»: карточка и список задач без автопроверки', () => {
+    for (const id of ['adm-stat-nocheck', 'adm-nocheck-panel', 'adm-nocheck-list']) expect(html).toContain(`id="${id}"`);
+    expect(js).toContain('function loadNoCheckList');
   });
 
   it('id в admin.html не повторяются', () => {

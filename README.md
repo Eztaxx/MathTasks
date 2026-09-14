@@ -73,6 +73,7 @@ npm run dev
 | `supabase/migrations/021_optional_task_title.sql` | Необязательный заголовок задачи (`tasks.title` со значением по умолчанию `''`) |
 | `supabase/migrations/022_drop_legacy_tables.sql` | Удаление устаревших пустых таблиц `algebra` и `geometry` |
 | `supabase/migrations/023_task_reports.sql` | Таблица сообщений об ошибках в задачах (`task_reports`) для обратной связи |
+| `supabase/migrations/024_answer_check.sql` | Варианты ответа для автопроверки (`answer_check`, `answer_check_lv`): ответ со словами сверяется по ним |
 
 Базовый язык — русский, он лежит в основных колонках; латышский — в парных с суффиксом `_lv`. Английского на сайте нет.
 

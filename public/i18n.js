@@ -273,6 +273,13 @@
       reveal_lock_hint_first: 'Norāde atvērsies pēc pirmā mēģinājuma, atbilde un atrisinājums — pēc otrā.',
       reveal_lock_two: 'Atbilde un atrisinājums atvērsies pēc diviem mēģinājumiem.',
       reveal_lock_one_more: 'Atbilde un atrisinājums atvērsies pēc vēl viena mēģinājuma.',
+      self_assess_lead: 'Šo uzdevumu nevar pārbaudīt automātiski: atrisiniet to un salīdziniet ar atbildi.',
+      self_assess_reveal: 'Salīdzināt ar atbildi',
+      self_assess_question: 'Vai jūsu atbilde sakrita?',
+      self_assess_yes: '✓ Sakrita',
+      self_assess_no: '✗ Nesakrita',
+      self_assess_done: '🎉 Ieskaitīts kā atrisināts.',
+      self_assess_fail: 'Izpētiet atrisinājumu — tas ir atvērts zemāk. Pēc tam mēģiniet vēlreiz.',
 
       // Mans progress
       nav_progress: 'Mans progress',
@@ -992,6 +999,13 @@
       reveal_lock_hint_first: 'Подсказка откроется после первой попытки, ответ и решение — после второй.',
       reveal_lock_two: 'Ответ и решение откроются после двух попыток.',
       reveal_lock_one_more: 'Ответ и решение откроются после ещё одной попытки.',
+      self_assess_lead: 'Эту задачу не проверить автоматически: решите её и сверьтесь с ответом.',
+      self_assess_reveal: 'Сверить с ответом',
+      self_assess_question: 'Ваш ответ совпал?',
+      self_assess_yes: '✓ Сошлось',
+      self_assess_no: '✗ Не сошлось',
+      self_assess_done: '🎉 Засчитано как решённая.',
+      self_assess_fail: 'Разберите решение — оно открыто ниже. Потом попробуйте ещё раз.',
 
       // Мой прогресс
       nav_progress: 'Мой прогресс',

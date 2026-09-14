@@ -84,10 +84,15 @@
                 <a class="adm-stat" href="#reports"><div class="adm-stat-label">Сообщения об ошибках</div><div class="adm-stat-value" id="adm-stat-reports">—</div><div class="adm-stat-note">от посетителей →</div></a>
                 <div class="adm-stat"><div class="adm-stat-label">Опубликовано</div><div class="adm-stat-value" id="adm-stat-published">—</div><div class="adm-stat-note">видно на сайте</div></div>
                 <a class="adm-stat" href="#tasks" data-status-filter="no_lv"><div class="adm-stat-label">Без перевода LV</div><div class="adm-stat-value" id="adm-stat-nolv">—</div><div class="adm-stat-note">показать в каталоге →</div></a>
+                <div class="adm-stat" role="button" tabindex="0" data-scroll-nocheck><div class="adm-stat-label">Без автопроверки</div><div class="adm-stat-value" id="adm-stat-nocheck">—</div><div class="adm-stat-note">к списку ↓</div></div>
               </div>
               <section class="adm-panel">
                 <div class="adm-panel-head"><h2>Ближайшее в очереди</h2><a href="#review">Открыть проверку</a></div>
                 <div id="adm-queue-peek"><p class="adm-empty">Загружаем…</p></div>
+              </section>
+              <section class="adm-panel adm-nocheck-panel" id="adm-nocheck-panel">
+                <div class="adm-panel-head"><h2>Без автопроверки</h2><span class="adm-panel-note">ответ не сверить автоматически — у ученика будет самопроверка. Запишите ответ без слов или впишите варианты для проверки</span></div>
+                <div id="adm-nocheck-list"><p class="adm-empty">Загружаем…</p></div>
               </section>
             </section>
 
@@ -820,6 +825,8 @@
           </div>
           <label class="wide" data-lang-group="ru">Ответ <span>необязательно; короткий математический ответ без разбора</span><textarea name="answer_latex" id="answer-input" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
           <label class="wide" data-lang-group="lv" hidden>Atbilde (LV) <span>neobligāti; īsa matemātiska atbilde bez risinājuma</span><textarea name="answer_latex_lv" id="answer-input-lv" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
+          <label class="wide" data-lang-group="ru">Варианты для проверки <span>необязательно; если ответ со словами — что принимать от ученика, по одному на строку: «120», «да; 3». Без вариантов у такой задачи будет самопроверка</span><textarea name="answer_check" id="answer-check-input" rows="2" placeholder="120"></textarea></label>
+          <label class="wide" data-lang-group="lv" hidden>Pārbaudes varianti (LV) <span>neobligāti; ko pieņemt no skolēna, pa vienam rindā: «120», «jā; 3». Tukšs — derīgi krievu varianti</span><textarea name="answer_check_lv" id="answer-check-input-lv" rows="2" placeholder="120"></textarea></label>
           <label class="wide" data-lang-group="ru">Подсказка <span>необязательно; направление решения без готового ответа</span><textarea name="hint_latex" id="hint-input" rows="2" placeholder="Вынесите общий множитель за скобки и примените формулу разности квадратов."></textarea></label>
           <label class="wide" data-lang-group="lv" hidden>Norāde (LV) <span>neobligāti; risinājuma virziens, neatklājot atbildi</span><textarea name="hint_latex_lv" id="hint-input-lv" rows="2" placeholder="Iznesiet kopīgo reizinātāju pirms iekavām."></textarea></label>
           <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель (Ответ)</span><div id="answer-preview"></div></div>
