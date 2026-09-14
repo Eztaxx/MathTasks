@@ -2773,6 +2773,8 @@ ${JSON.stringify(texts)}`;
 
   function resetTaskFilters() {
     if (taskSearchInput) taskSearchInput.value = '';
+    const globalSearch = document.querySelector('#adm-global-search');
+    if (globalSearch) globalSearch.value = '';
     if (taskFilterGrade) taskFilterGrade.value = '';
     if (taskFilterTopic) taskFilterTopic.value = '';
     if (taskFilterStatus) taskFilterStatus.value = '';
@@ -2785,6 +2787,7 @@ ${JSON.stringify(texts)}`;
     if (!tasks.length) {
       taskList.innerHTML = '<p class="admin-empty">Задач пока нет.</p>';
       if (taskFilterCount) taskFilterCount.textContent = '0 задач';
+      paintStatusSegments();
       return;
     }
 
@@ -2799,64 +2802,90 @@ ${JSON.stringify(texts)}`;
     if (taskFilterReset) taskFilterReset.hidden = !isFiltered;
 
     if (!filtered.length) {
-      const isImageFiltered = taskFilterStatus?.value === 'with_image';
-      const gradeVal = parseFormGrade(taskFilterGrade?.value);
-      const topicVal = taskFilterTopic?.value ? Number(taskFilterTopic.value) : null;
-      const extraHint = isImageFiltered && (gradeVal !== null || topicVal !== null)
-        ? '<br><small style="opacity:0.85;margin-top:6px;display:inline-block;">💡 В базе 41 чертёж (в 8, 9, 10, 11 и 12 классах). Сбросьте фильтр класса или темы, чтобы увидеть все 41 задачу с чертежами.</small>'
-        : '';
-      taskList.innerHTML = `<p class="admin-empty">Ничего не найдено по фильтрам.${extraHint} <button class="text-button" type="button" id="empty-reset-btn">Сбросить фильтры</button></p>`;
-      document.querySelector('#empty-reset-btn')?.addEventListener('click', resetTaskFilters);
+      taskList.innerHTML = '<p class="admin-empty">По этому фильтру ничего нет. <button class="text-button" type="button" data-reset-task-filters>Сбросить фильтры</button></p>';
+      paintStatusSegments();
       return;
     }
 
-    taskList.innerHTML = filtered.map(task => {
+    /* Каталог — таблица, как в макете: №, задача с началом условия, тема,
+       класс, языки и статус. Правка открывается кликом по названию или
+       кнопкой «Правка»; остальные действия — значками в конце строки.
+       Кнопки несут те же data-атрибуты, что и раньше, — обработчики
+       списка не менялись. */
+    const codes = topicCodeMap();
+    const rows = filtered.map(task => {
       const topic = topics.find(item => item.id === task.topic_id);
-      const grade = task.grade ?? topic?.grade;
+      const grade = parseFormGrade(task.grade ?? topic?.grade);
+      const sub = task.subtopic_id ? subtopics.find(s => s.id === task.subtopic_id) : null;
       const siblings = siblingsOf(task.topic_id);
       const index = siblings.findIndex(item => item.id === task.id);
       const arrows = siblings.length > 1
-        ? `<span class="admin-move">
-            <button class="move-button" type="button" data-move="${task.id}" data-dir="up" ${index === 0 ? 'disabled' : ''} aria-label="Выше в теме">↑</button>
-            <button class="move-button" type="button" data-move="${task.id}" data-dir="down" ${index === siblings.length - 1 ? 'disabled' : ''} aria-label="Ниже в теме">↓</button>
+        ? `<span class="adm-tmove">
+            <button class="adm-rowbtn icon" type="button" data-move="${task.id}" data-dir="up" ${index === 0 ? 'disabled' : ''} title="Выше в теме" aria-label="Выше в теме">↑</button>
+            <button class="adm-rowbtn icon" type="button" data-move="${task.id}" data-dir="down" ${index === siblings.length - 1 ? 'disabled' : ''} title="Ниже в теме" aria-label="Ниже в теме">↓</button>
           </span>`
         : '';
-
-      const tagBadges = (task.task_tags || []).map(tt => {
-        const title = tt.tags?.title || tt.tags?.slug;
-        return title ? `<span class="admin-status-badge info" style="background:#eef4ff;color:#1764ff;border:1px solid #c3d2ea">#${escapeHtml(title)}</span>` : '';
-      }).join('');
-
-      // Бейджи статусов и индикация черновиков / ошибок (4.4)
-      const badges = [
-        task.is_published
-          ? '<span class="admin-status-badge published" title="Задача проверена и опубликована на сайте">✓ Проверено</span>'
-          : '<span class="admin-status-badge draft" title="Задача ожидает проверки">🟡 На проверке</span>',
-        !task.topic_id ? '<span class="admin-status-badge danger">Без темы</span>' : '',
-        (!task.solution_latex && !task.solution_image) ? '<span class="admin-status-badge warning">Без решения</span>' : '',
-        (task.condition_image || task.solution_image) ? `<span class="admin-status-badge info" title="${escapeHtml(task.condition_image || task.solution_image)}">🖼️ ${escapeHtml((task.condition_image || task.solution_image).split('/').pop())}</span>` : '',
-        difficultyBadge(task.difficulty),
-        tagBadges
-      ].filter(Boolean).join('');
-
-      const conditionSnippet = task.condition_latex ? task.condition_latex.slice(0, 110).replace(/\s+/g, ' ') : '';
-      const sub = task.subtopic_id ? subtopics.find(s => s.id === task.subtopic_id) : null;
-
-      return `<div class="admin-row">
-        ${arrows}
-        <div class="admin-row-main">
-          <strong>№${task.position ?? 0} · ${escapeHtml(topic?.title || 'Без темы')} <span style="font-weight:600;opacity:0.6;font-size:12px;margin-left:4px;">#${task.id}</span></strong>
-          <small>${escapeHtml(gradeText(grade))}${sub ? ` · ${escapeHtml(sub.code ? sub.code + ' ' : '')}${escapeHtml(sub.title)}` : ''}${conditionSnippet ? ` · <em>${escapeHtml(conditionSnippet)}</em>` : ''}</small>
-          <div class="admin-badge-group">${badges}</div>
+      const hasLv = Boolean((task.condition_latex_lv || '').trim());
+      const hasSolution = Boolean((task.solution_latex || '').trim() || task.solution_image);
+      const image = task.condition_image || task.solution_image;
+      const flags = [
+        task.difficulty ? `<span class="adm-tflag">${escapeHtml(task.difficulty)}</span>` : '',
+        !task.topic_id ? '<span class="adm-tflag bad">без темы</span>' : '',
+        !hasSolution ? '<span class="adm-tflag warn">без решения</span>' : '',
+        image ? `<span class="adm-tflag" title="${escapeHtml(image)}">чертёж</span>` : ''
+      ].join('');
+      const title = task.title || `Задача #${task.id}`;
+      const snippet = (task.condition_latex || task.condition_latex_lv || '').replace(/\s+/g, ' ').trim().slice(0, 160);
+      const topicText = topic ? topicOptionText(topic, codes) : 'Без темы';
+      const subText = sub ? `${sub.code ? sub.code + ' ' : ''}${sub.title}` : '';
+      return `<div class="adm-trow${task.is_published ? '' : ' is-draft'}">
+        <div class="adm-tnum"><b>№${task.position ?? 0}</b><span>#${task.id}</span>${arrows}</div>
+        <div class="adm-tmain">
+          <button class="adm-ttitle" type="button" data-edit-task="${task.id}" title="Открыть в редакторе">${escapeHtml(title)}</button>
+          <div class="adm-tcond" title="${escapeHtml(snippet)}">${escapeHtml(snippet) || '—'}</div>
+          ${flags ? `<div class="adm-tflags">${flags}</div>` : ''}
         </div>
-        ${task.is_published
-          ? `<button class="text-button" type="button" data-unpublish-task="${task.id}" title="Снять отметку проверки — вернуть задачу на проверку">На проверку</button>`
-          : `<button class="text-button success" type="button" data-publish-task="${task.id}" title="Поставить отметку «Проверено» и опубликовать на сайте">✓ Проверено</button>`}
-        <button class="text-button" type="button" data-edit-task="${task.id}" title="Редактировать">Изменить</button>
-        <button class="text-button" type="button" data-clone-task="${task.id}" title="Создать копию задачи в форме (4.2)">Клонировать</button>
-        <button class="text-button danger" type="button" data-delete-task="${task.id}" title="Удалить">Удалить</button>
+        <div class="adm-ttopic" title="${escapeHtml(subText ? `${topicText} · ${subText}` : topicText)}"><span>${escapeHtml(topicText)}</span>${subText ? `<small>${escapeHtml(subText)}</small>` : ''}</div>
+        <div class="adm-tgrade">${grade ? `${grade}. klase` : '—'}</div>
+        <div class="adm-tlang ${hasLv ? 'ok' : 'warn'}">${hasLv ? 'RU LV' : 'RU —'}</div>
+        <div class="adm-tact">
+          <span class="adm-chip ${task.is_published ? 'ok' : 'warn'}">${task.is_published ? 'опубликована' : 'на проверке'}</span>
+          <button class="adm-rowbtn edit" type="button" data-edit-task="${task.id}">Правка</button>
+          ${task.is_published
+            ? `<button class="adm-rowbtn icon" type="button" data-unpublish-task="${task.id}" title="Вернуть на проверку — задача пропадёт с сайта" aria-label="Вернуть на проверку">↩</button>`
+            : `<button class="adm-rowbtn icon ok" type="button" data-publish-task="${task.id}" title="Опубликовать на сайте" aria-label="Опубликовать">✓</button>`}
+          <button class="adm-rowbtn icon" type="button" data-clone-task="${task.id}" title="Клонировать в редактор" aria-label="Клонировать">⧉</button>
+          <button class="adm-rowbtn icon bad" type="button" data-delete-task="${task.id}" title="Удалить задачу" aria-label="Удалить">✕</button>
+        </div>
       </div>`;
     }).join('');
+    taskList.innerHTML = `<div class="adm-ttable">
+      <div class="adm-thead"><div>№</div><div>Задача</div><div>Тема</div><div>Класс</div><div>Языки</div><div class="adm-tact">Статус</div></div>
+      ${rows}
+    </div>`;
+    paintStatusSegments();
+  }
+
+  /* Сегменты над таблицей — быстрые значения того же фильтра статуса:
+     активный сегмент совпадает со значением списка «Отбор», числа
+     считаются по загруженному списку задач. */
+  function paintStatusSegments() {
+    const value = taskFilterStatus?.value || '';
+    document.querySelectorAll('[data-seg-status]').forEach(btn => {
+      const on = btn.dataset.segStatus === value;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', String(on));
+    });
+    if (!tasksLoaded) return;
+    const counts = { all: tasks.length, draft: 0, published: 0, no_lv: 0 };
+    for (const task of tasks) {
+      if (task.is_published) counts.published++;
+      else counts.draft++;
+      if (!(task.condition_latex_lv || '').trim()) counts.no_lv++;
+    }
+    document.querySelectorAll('[data-seg-count]').forEach(el => {
+      el.textContent = counts[el.dataset.segCount] ?? '';
+    });
   }
 
   /* Ребалансировка задач темы 1..N: автосдвиг при вставке в середину или удалении */
@@ -6031,6 +6060,21 @@ ${JSON.stringify(texts)}`;
   admReviewEdit?.addEventListener('click', editCurrentReviewTask);
   admReviewReject?.addEventListener('click', rejectCurrentReviewTask);
   admReviewSkip?.addEventListener('click', skipCurrentReviewTask);
+
+  /* Каталог: список открыт сразу — без блока «Показать задачи». Сегменты
+     ставят значение фильтра статуса и запускают ту же перерисовку. */
+  byId('task-status-seg')?.addEventListener('click', event => {
+    const btn = event.target.closest('[data-seg-status]');
+    if (!btn || !taskFilterStatus) return;
+    taskFilterStatus.value = btn.dataset.segStatus;
+    reviewFilterApplied = false;
+    taskFilterStatus.dispatchEvent(new Event('change'));
+  });
+  taskFilterStatus?.addEventListener('change', paintStatusSegments);
+  taskList.addEventListener('click', event => {
+    if (event.target.closest('[data-reset-task-filters]')) resetTaskFilters();
+  });
+  if (shell) setTasksShown(true);
 
   if (shell) showView(location.hash.slice(1) || 'home', { push: false });
 

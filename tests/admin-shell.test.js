@@ -54,6 +54,14 @@ describe('каркас админки: меню и экраны', () => {
     expect(html).not.toContain('id="adm-crumb-subject"');
   });
 
+  it('каждый сегмент статуса в каталоге есть среди значений фильтра статуса', () => {
+    const segs = [...html.matchAll(/data-seg-status="([\w-]*)"/g)].map(m => m[1]);
+    expect(segs).toEqual(['', 'draft', 'published', 'no_lv']);
+    const select = html.match(/<select id="task-filter-status"[\s\S]*?<\/select>/)[0];
+    const values = [...select.matchAll(/value="([\w-]*)"/g)].map(m => m[1]);
+    expect(segs.filter(v => !values.includes(v))).toEqual([]);
+  });
+
   it('список классов в пикере включает все 12 классов', () => {
     for (let g = 1; g <= 12; g++) {
       expect(js).toContain(`${g}. klase`);

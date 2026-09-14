@@ -5411,7 +5411,7 @@ body #admin-content:has(.adm-shell){border:0;border-radius:0;padding:0;backgroun
 .adm-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 22px;border-bottom:1px solid var(--adm-line);background:var(--adm-bg);position:sticky;top:0;z-index:5}
 .adm-top input[type="search"]{flex:1;min-width:200px;max-width:440px;padding:8px 12px;background:var(--adm-field);border:1px solid var(--adm-fieldbd);border-radius:8px;color:var(--adm-ink);font:inherit}
 .adm-top input[type="search"]::placeholder{color:var(--adm-dim)}
-.adm-top-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.adm-top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
 .adm-shell .adm-btn{display:inline-flex;align-items:center;padding:8px 14px;border-radius:8px;border:1px solid transparent;font:inherit;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap}
 .adm-shell .adm-btn.soft{background:var(--adm-accsoft);border-color:var(--adm-accbd);color:var(--adm-ink2);font-weight:500}
 .adm-shell .adm-btn.primary{background:var(--adm-acc);color:#fff}
@@ -5558,3 +5558,66 @@ body .adm-shell .admin-feature-head{margin-bottom:16px;padding-bottom:12px;borde
   .adm-views{padding:16px 14px 32px}
   .adm-top{padding:10px 14px}
 }
+
+/* ── Каталог задач: таблица и сегменты статуса (макет «Админка Skola2030») ──
+   Правила привязаны к #section-tasks-database внутри каркаса: у прежних
+   правил тёмной темы (body.dark .admin-select-filter) специфичность выше,
+   чем у простого .adm-shell. */
+.adm-shell #section-tasks-database .admin-toolbar{margin:0 0 12px;padding:0;background:none;border:0;gap:10px}
+.adm-shell #section-tasks-database .admin-search-input,
+.adm-shell #section-tasks-database .admin-select-filter{background:var(--adm-field);border-color:var(--adm-fieldbd);color:var(--adm-ink);font-family:inherit}
+.adm-shell #section-tasks-database .admin-search-wrap svg{color:var(--adm-dim)}
+.adm-shell #section-tasks-database .admin-filter-field{color:var(--adm-mute);font-weight:500}
+.adm-shell #section-tasks-database .admin-filter-count{color:var(--adm-mute);font-weight:500}
+.adm-shell #task-review-chip,.adm-shell #task-list-defer,.adm-shell #task-list-close{display:none}
+/* Поиск по каталогу — в шапке админки (он пишет в это же поле), своё поле не дублируем.
+   Внешняя карточка раздела на этом экране не нужна: карточка — сама таблица. */
+.adm-shell #task-toolbar > .admin-toolbar-row{display:none}
+body .adm-shell #section-tasks-database{padding:0;border:0;background:none}
+.adm-shell #section-tasks-database .admin-filters-row{gap:10px}
+.adm-shell #section-tasks-database .admin-select-filter{width:auto;max-width:280px}
+.adm-shell #section-tasks-database #task-filter-topic{width:280px}
+.adm-seg{display:inline-flex;gap:3px;padding:3px;background:var(--adm-panel);border:1px solid var(--adm-line);border-radius:9px;flex-wrap:wrap}
+.adm-seg-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:0;border-radius:6px;background:transparent;color:var(--adm-mute);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.adm-seg-btn:hover{color:var(--adm-ink)}
+.adm-seg-btn.is-active{background:var(--adm-acc);color:#fff}
+.adm-seg-btn:focus-visible{outline:2px solid var(--adm-acc);outline-offset:1px}
+.adm-seg-n{font:11px ui-monospace,Menlo,Consolas,monospace;opacity:.75;font-variant-numeric:tabular-nums}
+.adm-seg-n:empty{display:none}
+.adm-shell #task-list{margin-top:0;border:1px solid var(--adm-line);border-radius:12px;background:var(--adm-panel);overflow-x:auto}
+.adm-shell #task-list .admin-empty{margin:0;padding:28px;text-align:center;color:var(--adm-mute)}
+.adm-ttable{min-width:980px}
+.adm-thead,.adm-trow{display:grid;grid-template-columns:72px minmax(0,1fr) 210px 84px 56px 290px;gap:12px;align-items:center;padding:10px 16px}
+.adm-thead{border-bottom:1px solid var(--adm-line);font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--adm-dim)}
+.adm-trow{border-bottom:1px solid var(--adm-line2);font-size:13px;color:var(--adm-ink)}
+.adm-trow:last-child{border-bottom:0}
+.adm-trow:hover{background:var(--adm-hover)}
+.adm-tnum{display:flex;flex-direction:column;gap:2px;font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-dim)}
+.adm-tnum b{color:var(--adm-ink2);font-weight:600}
+.adm-trow.is-draft .adm-tnum b{color:var(--adm-warnfg)}
+.adm-tmove{display:flex;gap:3px;margin-top:3px}
+.adm-tmain{min-width:0}
+.adm-ttitle{display:block;max-width:100%;padding:0;border:0;background:none;font-family:inherit;font-size:13px;font-weight:600;color:var(--adm-ink);text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-ttitle:hover{color:var(--adm-acclink)}
+.adm-ttitle:focus-visible{outline:2px solid var(--adm-acc);outline-offset:2px;border-radius:3px}
+.adm-tcond{margin-top:2px;font-size:12px;color:var(--adm-mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-tflags{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.adm-tflag{font-size:11px;color:var(--adm-dim)}
+.adm-tflag.warn{color:var(--adm-warnfg)}
+.adm-tflag.bad{color:var(--adm-badfg)}
+.adm-ttopic{min-width:0;font-size:12px;color:var(--adm-ink2)}
+.adm-ttopic span,.adm-ttopic small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-ttopic small{margin-top:2px;font-size:11px;color:var(--adm-dim)}
+.adm-tgrade{font-size:12px;color:var(--adm-ink2)}
+.adm-tlang{font:11px ui-monospace,Menlo,Consolas,monospace}
+.adm-tlang.ok{color:var(--adm-okfg)}
+.adm-tlang.warn{color:var(--adm-warnfg)}
+.adm-tact{display:flex;justify-content:flex-end;align-items:center;gap:6px}
+.adm-rowbtn{display:inline-flex;align-items:center;justify-content:center;padding:4px 9px;border-radius:6px;border:1px solid var(--adm-line);background:transparent;color:var(--adm-mute);font-family:inherit;font-size:12px;line-height:1.3;cursor:pointer}
+.adm-rowbtn.icon{min-width:26px;padding:4px 6px}
+.adm-rowbtn:hover:not(:disabled){color:var(--adm-ink);background:var(--adm-hover)}
+.adm-rowbtn:focus-visible{outline:2px solid var(--adm-acc);outline-offset:1px}
+.adm-rowbtn:disabled{opacity:.35;cursor:default}
+.adm-rowbtn.edit{background:var(--adm-accsoft);border-color:var(--adm-accbd);color:var(--adm-acclink)}
+.adm-rowbtn.ok{color:var(--adm-okfg);border-color:var(--adm-okbd)}
+.adm-rowbtn.bad:hover:not(:disabled){color:var(--adm-badfg);border-color:var(--adm-badbd);background:var(--adm-badbg)}

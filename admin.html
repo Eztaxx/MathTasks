@@ -878,6 +878,12 @@
           </div>
 
           <div class="admin-filters-row">
+            <div class="adm-seg" id="task-status-seg" role="group" aria-label="Статус задач">
+              <button type="button" class="adm-seg-btn" data-seg-status="">Все <span class="adm-seg-n" data-seg-count="all"></span></button>
+              <button type="button" class="adm-seg-btn" data-seg-status="draft">На проверке <span class="adm-seg-n" data-seg-count="draft"></span></button>
+              <button type="button" class="adm-seg-btn" data-seg-status="published">Опубликованы <span class="adm-seg-n" data-seg-count="published"></span></button>
+              <button type="button" class="adm-seg-btn" data-seg-status="no_lv">Без LV <span class="adm-seg-n" data-seg-count="no_lv"></span></button>
+            </div>
             <label class="admin-filter-field">
               <span>Класс / курс</span>
               <select id="task-filter-grade" class="admin-select-filter">
@@ -906,7 +912,7 @@
               </select>
             </label>
             <label class="admin-filter-field">
-              <span>Статус</span>
+              <span>Отбор</span>
               <select id="task-filter-status" class="admin-select-filter">
                 <option value="">Все статусы</option>
                 <option value="published">Проверенные (опубликованы)</option>
@@ -930,7 +936,7 @@
         <div class="admin-list-close admin-list-close-top" id="task-list-close" hidden>
           <button class="text-button" type="button" id="btn-hide-tasks">▲ Свернуть список задач</button>
         </div>
-        <div class="admin-list" id="task-list" hidden></div>
+        <div class="admin-list" id="task-list" hidden><p class="admin-empty">Загружаем задачи…</p></div>
 
         <!-- Модальное окно массового импорта / экспорта (4.3) -->
         <dialog class="bulk-dialog" id="bulk-dialog">
