@@ -364,6 +364,9 @@ async function main() {
     if (VERBOSE) console.log(`      ${ids.slice(0, 25).join(', ')}${ids.length > 25 ? '…' : ''}`);
   }
 
-  process.exit(stat.failed.length ? 1 : 0);
+  /* Не process.exit(): на Windows он обрывает ещё закрывающиеся соединения
+     fetch, и Node падает на выходе («Assertion failed … async.c»). С
+     exitCode процесс сам дожидается их закрытия и выходит с нужным кодом. */
+  process.exitCode = stat.failed.length ? 1 : 0;
 
 }

@@ -132,4 +132,7 @@ report('Русская и латышская концовки расходятс
 
 const total = issues.answerVsRu.length + issues.answerVsLv.length + issues.ruVsLv.length;
 console.log(total ? `Всего расхождений: ${total}` : 'Расхождений нет.');
-process.exit(total ? 1 : 0);
+/* Не process.exit(): на Windows он может оборвать ещё закрывающиеся
+   соединения fetch, и Node падает на выходе («Assertion failed … async.c»).
+   С exitCode процесс сам дожидается их закрытия. */
+process.exitCode = total ? 1 : 0;
