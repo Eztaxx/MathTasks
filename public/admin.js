@@ -6460,6 +6460,13 @@ ${JSON.stringify(texts)}`;
     }
   });
 
+  /* Высота шапки — для всего, что прилипает под ней (строка «Место»,
+     карточка превью). Шапка растёт, когда кнопки переносятся. */
+  const topBar = shell?.querySelector('.adm-top');
+  if (topBar && 'ResizeObserver' in window) {
+    new ResizeObserver(() => shell.style.setProperty('--adm-top-h', `${topBar.offsetHeight}px`)).observe(topBar);
+  }
+
   if (shell) showView(location.hash.slice(1) || 'home', { push: false });
 
   initAdminApp();
