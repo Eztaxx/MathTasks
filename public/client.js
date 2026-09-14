@@ -90,6 +90,7 @@ window.MathTasks = window.MathTasks || {};
   window.MathTasks.cleanMathExample = lib.cleanMathExample;
   window.MathTasks.normalizeMathAnswer = lib.normalizeMathAnswer;
   window.MathTasks.compareAnswers = lib.compareAnswers;
+  window.MathTasks.isAnswerAutoCheckable = lib.isAnswerAutoCheckable;
 
   window.MathTasks.insertIntoInput = (input, text) => {
     if (!input) return;

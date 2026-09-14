@@ -48,15 +48,23 @@
   const normalizeMathAnswer = val => {
     if (val == null) return '';
     let s = String(val).trim();
-    s = s.replace(/^\$+|\$+$/g, '').trim();
+    s = s.replace(/\$+/g, ' ').trim();
+    s = s.replace(/\\left|\\right/g, '');
+    /* Смешанное число: 2\frac{4}{7} в эталоне и «2 4/7» у ученика — это 18/7,
+       а не 24/7, как выходило при простом снятии \frac. */
+    s = s.replace(/(-?)(\d+)\s*\\[dt]?frac\{(\d+)\}\{(\d+)\}/g, (m, sign, whole, num, den) => `${sign}${Number(whole) * Number(den) + Number(num)}/${den}`);
+    s = s.replace(/(^|[^\d.,/])(-?)(\d+)\s+(\d+)\/(\d+)(?![\d.,])/g, (m, pre, sign, whole, num, den) => `${pre}${sign}${Number(whole) * Number(den) + Number(num)}/${den}`);
+    /* «30\,000» — разделитель тысяч, а не два числа. */
+    s = s.replace(/(\d)\\,(?=\d{3}(?!\d))/g, '$1');
     s = s.replace(/(\d+)\{,\}(\d+)/g, '$1.$2');
     s = s.replace(/(\d+),(\d+)/g, '$1.$2');
+    s = s.replace(/\\[,;:! ]/g, ' ');
     s = s.replace(/\s*:\s*/g, ';');
-    s = s.replace(/\\(text|mathbf|mathrm|quad|qquad)\s*\{([^}]*)\}/g, '$2');
+    s = s.replace(/\\(text|mathbf|mathrm|operatorname|overline|bar|vec|hat)\s*\{([^{}]*)\}/g, '$2');
     s = s.replace(/\\(text|mathbf|mathrm|quad|qquad)/g, '');
-    s = s.replace(/^[a-zA-Z](_[0-9a-zA-Z]+)?\s*=\s*/, '');
+    s = s.replace(/^[a-zA-Z](_\{?[0-9a-zA-Z]+\}?)?\s*=\s*/, '');
     s = s.replace(/\\(cdot|times)/g, '*');
-    s = s.replace(/·/g, '*');
+    s = s.replace(/[·×]/g, '*');
     /* Градусы: в эталоне они записаны как 65^{'+'}circ, ученик набирает
        «65» или «65°». Без приведения к одному виду верный ответ в
        градусах не засчитывался ни в одном написании. */
@@ -64,9 +72,8 @@
     s = s.replace(/\\degree/g, '°');
     s = s.replace(/²/g, '^2');
     s = s.replace(/³/g, '^3');
-    s = s.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2');
     s = s.replace(/√\s*\(([^)]+)\)/g, 'sqrt($1)');
-    s = s.replace(/√\s*(\d+|[a-zA-Z]+)/g, 'sqrt($1)');
+    s = s.replace(/√\s*(\d+(?:\.\d+)?|[a-zA-Z]+)/g, 'sqrt($1)');
     s = s.replace(/√/g, 'sqrt');
     s = s.replace(/±/g, '+-');
     s = s.replace(/\\pm\b/g, '+-');
@@ -76,9 +83,40 @@
     s = s.replace(/\\le\b|\\leq\b/g, '<=');
     s = s.replace(/≥/g, '>=');
     s = s.replace(/\\ge\b|\\geq\b/g, '>=');
-    s = s.replace(/\\neq\b/g, '!=');
-    s = s.replace(/\\sqrt\{([^}]+)\}/g, 'sqrt($1)');
+    s = s.replace(/\\neq?\b|≠/g, '!=');
+    s = s.replace(/\\infty\b|\binf(?:inity)?\b/gi, '∞');
+    s = s.replace(/\\cup\b/g, '∪');
+    s = s.replace(/\\cap\b/g, '∩');
+    s = s.replace(/\\in\b/g, '∈');
+    s = s.replace(/\\approx\b/g, '≈');
+    /* Множество \{2; 4\}: скобки со слэшем — часть ответа, без слэша —
+       группировка LaTeX. Прячем первые, пока разворачиваем вторые. */
+    s = s.replace(/\\\{/g, '').replace(/\\\}/g, '');
+    /* Вложенные дроби и корни (\frac{11}{5\sqrt{5}}) разворачиваем изнутри
+       наружу. Числитель и знаменатель берём в скобки: иначе \frac{3x+1}{x-2}
+       превращалось в «3x+1/x-2» — совсем другое выражение. */
+    let prev;
+    do {
+      prev = s;
+      s = s.replace(/\\sqrt\{([^{}]*)\}/g, 'sqrt($1)');
+      s = s.replace(/\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)');
+      s = s.replace(/\^\{([^{}]*)\}/g, '^($1)');
+      s = s.replace(/_\{([^{}]*)\}/g, '_$1');
+    } while (s !== prev);
+    s = s.replace(//g, '{').replace(//g, '}');
     s = s.replace(/\s+/g, '');
+    /* Лишние скобки вокруг одного числа или буквы: (pi)/(2) → pi/2,
+       x^(2) → x^2. Скобки функции — sqrt(5), f(x) — не трогаем. */
+    do {
+      prev = s;
+      s = s.replace(/(^|[^a-zа-яё0-9_)\]])\((-?\d+(?:\.\d+)?|-?[a-z](?:\^\d+)?|pi|∞)\)/gi, '$1$2');
+    } while (s !== prev);
+    /* Числитель-одночлен: (5pi)/6 и 5pi/6, (2s)/h и 2s/h — одно и то же.
+       Знаменатель не трогаем: x/(2a) и x/2a — разные выражения. */
+    s = s.replace(/(^|[^a-zа-яё0-9_)\]])\(((?:[^()+\-]|\([^()]*\))+)\)\//gi, '$1$2/');
+    /* Объединение интервалов ученик набирает буквой U, «+∞» — просто «∞». */
+    s = s.replace(/([)\]])u([(\[])/gi, '$1∪$2');
+    s = s.replace(/\+∞/g, '∞');
     if (s.startsWith('(') && s.endsWith(')')) {
       let depth = 0;
       let ok = true;
@@ -94,7 +132,9 @@
 
   /* Единицы и валюты, которые пишут в ответе после числа. Степень
      (^2, ^3) снимаем вместе с ними: «см^2» — та же единица. */
-  const UNIT_WORDS = /(?:см|мм|дм|км|м|га|кг|мг|г|тонн[аы]?|л|мл|ч|мин|сек|с|руб|евро|cm|mm|dm|km|ha|kg|mg|g|t|ml|min|sec|h|s|eur|€|%|°)(?:\^\d)?/gi;
+  /* Единица снимается только целым словом: без этого «s» и «t» выедались
+     из «sqrt», и «2√3» не совпадало с «2\sqrt{3} см». */
+  const UNIT_WORDS = /(?<![a-zа-яёāčēģīķļņšūž])(?:см|мм|дм|км|м|га|кг|мг|г|тонн[аы]?|л|мл|ч|мин|сек|с|руб|евро|гц|квт|вт|cm|mm|dm|km|ha|kg|mg|g|t|ml|min|sec|h|s|hz|eur)(?:\^\d)?(?![a-zа-яёāčēģīķļņšūž])|(?:€|%|°c?)(?:\^\d)?/gi;
 
   const stripUnits = str => String(str)
     .replace(UNIT_WORDS, '')
@@ -108,7 +148,7 @@
     return null;
   };
 
-  const compareAnswers = (userAns, correctAns) => {
+  const compareSingleAnswer = (userAns, correctAns) => {
     const u = normalizeMathAnswer(userAns);
     const c = normalizeMathAnswer(correctAns);
     if (!u || !c) return false;
@@ -140,6 +180,191 @@
     }
 
     return false;
+  };
+
+  /* ── Ответ из нескольких частей ──────────────────────────────────
+     Эталон часто не одно число: «x_1 = 3, x_2 = 0,5», «(7; 0) и (2; 5)»,
+     «3/5 (или 0,6)», «−22 (в точке x = 3)». Одной строкой такой ответ не
+     совпадал почти никогда: из 541 задачи верно набранный ответ не
+     принимался у 92. Поэтому эталон делится на варианты («или»), вариант —
+     на части (запятая, точка с запятой, «и» вне скобок), а у части
+     снимаются имя («x_1 =») и пояснение в скобках. */
+  const ANSWER_LETTER = 'a-zа-яёāčēģīķļņšūž';
+  /* Слово — кириллица от двух букв, латышское слово с диакритикой или латиница
+     от четырёх букв. Короче латиницей — произведение переменных: xy, 4ab. */
+  const ANSWER_WORD_RE = /[а-яё]{2,}|[a-zāčēģīķļņšūž]*[āčēģīķļņšūž][a-zāčēģīķļņšūž]*|[a-z]{4,}/gi;
+  /* Пояснение — скобки, в которых есть слово от трёх букв не из команды LaTeX. */
+  const ANSWER_REMARK_RE = new RegExp(`\\s*\\((?=[^()]*(?<![\\\\${ANSWER_LETTER}])[${ANSWER_LETTER}]{3,})[^()]*\\)`, 'gi');
+  /* Слова, которые не мешают сверять ответ: единицы и имена функций. */
+  const ANSWER_NON_WORDS = new Set([
+    'см', 'мм', 'дм', 'км', 'га', 'кг', 'мг', 'мл', 'мин', 'сек', 'руб', 'евро', 'гц', 'квт', 'вт', 'тонн', 'тонна', 'тонны',
+    'cm', 'mm', 'dm', 'km', 'ha', 'kg', 'mg', 'ml', 'min', 'sec', 'hz', 'eur',
+    'sqrt', 'pi', 'inf', 'sin', 'cos', 'tg', 'tan', 'ctg', 'cot', 'log', 'lg', 'ln', 'arcsin', 'arccos', 'arctg', 'arctan', 'max', 'min'
+  ]);
+
+  const cleanAnswerRaw = raw => String(raw ?? '')
+    .replace(/\$+/g, ' ')
+    .replace(/\\left|\\right/g, '')
+    .replace(/(\d)\\,(?=\d{3}(?!\d))/g, '$1')
+    .replace(/\\[,;:! ]|\\q?quad\b/g, ' ')
+    .replace(/>=/g, '≥').replace(/<=/g, '≤').replace(/!=/g, '≠');
+
+  /* Деление по разделителям вне скобок. Запятая между цифрами без пробела
+     («3,5») — десятичная, а не разделитель. */
+  const splitAnswerTopLevel = (text, separators) => {
+    const parts = [];
+    let depth = 0;
+    let current = '';
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if ('([{'.includes(ch)) depth++;
+      else if (')]}'.includes(ch)) depth = Math.max(0, depth - 1);
+      const decimalComma = ch === ',' && /\d/.test(text[i - 1] || '') && /\d/.test(text[i + 1] || '');
+      if (depth === 0 && separators.includes(ch) && !decimalComma) {
+        parts.push(current);
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    parts.push(current);
+    return parts.map(part => part.trim()).filter(Boolean);
+  };
+
+  /* Варианты ответа: «1,5 или 3/2», «3/5 (или 0,6)». */
+  const answerAlternatives = raw => {
+    const extra = [];
+    let text = cleanAnswerRaw(raw).replace(/\\text\{\s*(или|vai|jeb|or)\s*\}/gi, ' $1 ');
+    text = text.replace(/\(\s*(?:или|vai|jeb|or)\s+([^()]*)\)/gi, (m, alt) => {
+      extra.push(alt);
+      return ' ';
+    });
+    return [...text.split(/\s+(?:или|vai|jeb|or)\s+/i), ...extra].map(alt => alt.trim()).filter(Boolean);
+  };
+
+  /* Имя величины слева от «=»: x, x_1, S_{бок}, \sin\alpha, E(y), |A ∪ B|,
+     «Медиана». Не имя — то, где есть числа или знаки действий. */
+  const isAnswerLabel = piece => {
+    let text = String(piece).trim();
+    if (!text || text.length > 30) return false;
+    text = text
+      .replace(/_\{(?:[^{}]|\{[^{}]*\})*\}|_[0-9A-Za-z]+/g, '')
+      .replace(/\\(?:text|mathrm|overline|bar|vec|hat)\{([^{}]*)\}/g, '$1')
+      .replace(/\\[a-zA-Z]+/g, ' ')
+      .replace(/([a-zа-яё])\d+/gi, '$1');
+    if (/[0-9+\-*/^=<>≤≥]/.test(text)) return false;
+    const groups = text.match(new RegExp(`[${ANSWER_LETTER}]+`, 'gi')) || [];
+    return groups.length <= 1 || groups.every(group => group.length === 1);
+  };
+
+  const normalizeAnswerLabel = label => String(label || '')
+    .replace(/\\(?:text|mathrm)\{([^{}]*)\}/g, '$1')
+    .replace(/[\s{}_\\]/g, '')
+    .toLowerCase();
+
+  /* x_1, x_2, x1 — одна и та же неизвестная x: корни можно писать в любом порядке. */
+  const baseAnswerLabel = label => normalizeAnswerLabel(String(label || '')
+    .replace(/_\{(?:[^{}]|\{[^{}]*\})*\}|_[0-9A-Za-z]+/g, '')
+    .replace(/([a-zа-яё])\d+$/i, '$1'));
+
+  const parseAnswerParts = raw => {
+    const text = cleanAnswerRaw(raw)
+      .replace(ANSWER_REMARK_RE, ' ')
+      .replace(/\s+(?:и|un|and)\s+|\\text\{\s*(?:и|un|and)\s*\}/gi, ';')
+      .replace(/\\approx\b/g, '≈')
+      .replace(/\\in\b/g, '∈');
+    return splitAnswerTopLevel(text, [',', ';']).map(part => {
+      const cleaned = part
+        .replace(/^(?:в|на|par|uz|по)\s+/i, '')
+        .replace(/\s+(?:раза?|reizes?)\s*$/i, '');
+      const pieces = splitAnswerTopLevel(cleaned, ['=', '≈', '∈']);
+      const label = pieces.length > 1 && isAnswerLabel(pieces[0]) ? pieces[0] : '';
+      const valuePieces = label ? pieces.slice(1) : pieces;
+      const values = [];
+      for (const value of valuePieces) {
+        values.push(value);
+        /* Точка с именем: «B(3; 4)» — ученик может написать и «(3; 4)». */
+        if (/^[A-Z]\s*\(/.test(value)) values.push(value.replace(/^[A-Z]\s*/, ''));
+      }
+      /* «√1,6 ≈ 1,26» и «32/3 = 10 2/3» — одно значение в двух записях,
+         подходит любая. А «4^{k+1} − 1 = 4(4^k − 1) + 3» — тождество. */
+      const equivalent = cleaned.includes('≈')
+        || valuePieces.every(value => !/[a-zа-яё]/i.test(value.replace(/\\[a-zA-Z]+/g, '')));
+      return { label, values, pieceCount: valuePieces.length, equivalent };
+    }).filter(part => part.values.length);
+  };
+
+  const answerPartMatches = (userPart, correctPart) => {
+    if (userPart.label && correctPart.label
+      && normalizeAnswerLabel(userPart.label) !== normalizeAnswerLabel(correctPart.label)
+      && baseAnswerLabel(userPart.label) !== baseAnswerLabel(correctPart.label)) {
+      return false;
+    }
+    return userPart.values.some(u => correctPart.values.some(c => compareSingleAnswer(u, c)));
+  };
+
+  const matchAnswerParts = (userParts, correctParts) => {
+    if (!userParts.length || userParts.length !== correctParts.length) return false;
+    if (correctParts.every((part, i) => answerPartMatches(userParts[i], part))) return true;
+    /* Порядок свободный, если это корни одной неизвестной, точки без имён
+       или ученик сам подписал каждую часть. Иначе «x = 2; y = 3» приняло бы «3; 2». */
+    const bases = new Set(correctParts.map(part => baseAnswerLabel(part.label)));
+    const anyOrder = correctParts.every(part => !part.label)
+      || (bases.size === 1 && !bases.has(''))
+      || userParts.every(part => part.label);
+    if (!anyOrder) return false;
+    const used = new Array(correctParts.length).fill(false);
+    const place = i => {
+      if (i === userParts.length) return true;
+      for (let j = 0; j < correctParts.length; j++) {
+        if (used[j] || !answerPartMatches(userParts[i], correctParts[j])) continue;
+        used[j] = true;
+        if (place(i + 1)) return true;
+        used[j] = false;
+      }
+      return false;
+    };
+    return place(0);
+  };
+
+  const compareWholeAnswer = (userAns, correctAns) => {
+    if (compareSingleAnswer(userAns, correctAns)) return true;
+    const userParts = parseAnswerParts(userAns);
+    if (!userParts.length) return false;
+    return answerAlternatives(correctAns).some(alt =>
+      compareSingleAnswer(userAns, alt) || matchAnswerParts(userParts, parseAnswerParts(alt)));
+  };
+
+  const compareAnswers = (userAns, correctAns) => {
+    const user = String(userAns ?? '');
+    const candidates = [user];
+    /* «a^2/3» набирают, имея в виду a^{2/3}: кнопка xⁿ скобок не ставит. */
+    if (/\^\s*\d+\s*\/\s*\d+/.test(user)) candidates.push(user.replace(/\^\s*(\d+)\s*\/\s*(\d+)/g, '^($1/$2)'));
+    /* Множество пишут и без фигурных скобок: «2; 6» вместо «{2; 6}». */
+    if (/\\\{/.test(String(correctAns ?? '')) && !/[{}]/.test(user)) {
+      candidates.push(`{${user.replace(/^\s*[A-Za-z]\s*=\s*/, '')}}`);
+    }
+    return candidates.some(candidate => compareWholeAnswer(candidate, correctAns));
+  };
+
+  const answerHasWords = value => {
+    const text = String(value)
+      .replace(/\\(?:text|mathrm|operatorname)\{([^{}]*)\}/g, ' $1 ')
+      .replace(/\\[a-zA-Z]+/g, ' ');
+    return (text.match(ANSWER_WORD_RE) || []).some(word => !ANSWER_NON_WORDS.has(word.toLowerCase()));
+  };
+
+  /* Можно ли сверить ответ автоматически. Нельзя — если в нём слова
+     («Да, подобны», «Даугавпилс»), тождество или доказательство, «≠» и
+     «k ∈ ℤ». Такой задаче поле ответа не показывается: ученик сравнивает
+     сам, а проверка не запирает ответ и решение за вечной «ошибкой». */
+  const isAnswerAutoCheckable = raw => {
+    const text = String(raw ?? '').trim();
+    if (!text) return false;
+    if (/\\(?:ne|neq|mathbb|forall|exists|Rightarrow|Leftrightarrow)(?![a-zA-Z])|≠/.test(text)) return false;
+    const parts = parseAnswerParts(answerAlternatives(text)[0] || '');
+    if (!parts.length) return false;
+    return parts.every(part => (part.pieceCount === 1 || part.equivalent) && part.values.every(value => !answerHasWords(value)));
   };
 
   /* Подсчёт прогресса решения задач темы */
@@ -1447,6 +1672,12 @@
       return sortTasks(authored, 'default');
     }
 
+    /* Контрольная сверяет ответы автоматически: задача, чей ответ так не
+       сверить («Да, подобны»), всегда считалась бы ошибкой. Берём такие
+       только если без них не набрать хотя бы трёх задач. */
+    const checkable = tasks.filter(t => isAnswerAutoCheckable(t.answer_latex));
+    if (checkable.length >= Math.min(tasks.length, 3)) tasks = checkable;
+
     // 2. Если задач всего 5 или меньше — берём все
     if (tasks.length <= 5) {
       return sortTasks(tasks, 'default');
@@ -1866,6 +2097,8 @@
     normalizeMathAnswer,
     parseFractionOrNumber,
     compareAnswers,
+    isAnswerAutoCheckable,
+    parseAnswerParts,
     calcTopicProgress,
     formatTimerDisplay,
     getLocalizedText,

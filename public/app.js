@@ -820,32 +820,82 @@ function setTaskSolved(taskId, solved) {
   } catch {}
 }
 
-function getWrongAttemptTasks() {
+/* Сколько раз ученик ошибся в задаче. Первая ошибка открывает подсказку,
+   вторая — ответ и решение. Раньше хранился только факт ошибки (список id):
+   такой список читается как «по одной ошибке». */
+const WRONG_ATTEMPTS_KEY = 'math-tasks:wrong-attempts';
+const ATTEMPTS_FOR_HINT = 1;
+const ATTEMPTS_FOR_ANSWER = 2;
+
+function getWrongAttemptCounts() {
   try {
-    const raw = localStorage.getItem('math-tasks:wrong-attempts');
-    return raw ? JSON.parse(raw) : [];
+    const raw = JSON.parse(localStorage.getItem(WRONG_ATTEMPTS_KEY) || '{}');
+    if (Array.isArray(raw)) return Object.fromEntries(raw.map(id => [Number(id), 1]));
+    return raw && typeof raw === 'object' ? raw : {};
   } catch {
-    return [];
+    return {};
   }
 }
 
-function hasTaskWrongAttempt(taskId) {
-  return getWrongAttemptTasks().includes(Number(taskId));
+function getTaskWrongAttempts(taskId) {
+  return Number(getWrongAttemptCounts()[Number(taskId)]) || 0;
 }
 
-function setTaskWrongAttempt(taskId) {
+function addTaskWrongAttempt(taskId) {
+  const counts = getWrongAttemptCounts();
+  const id = Number(taskId);
+  counts[id] = (Number(counts[id]) || 0) + 1;
   try {
-    const id = Number(taskId);
-    let list = getWrongAttemptTasks();
-    if (!list.includes(id)) {
-      list.push(id);
-      localStorage.setItem('math-tasks:wrong-attempts', JSON.stringify(list));
-    }
+    localStorage.setItem(WRONG_ATTEMPTS_KEY, JSON.stringify(counts));
   } catch {}
+  return counts[id];
 }
 
 const normalizeMathAnswer = window.MathTasks?.normalizeMathAnswer || (val => String(val || '').trim());
 const compareAnswers = window.MathTasks?.compareAnswers || ((u, c) => u === c);
+const isAnswerAutoCheckable = window.MathTasks?.isAnswerAutoCheckable || (answer => Boolean(answer));
+
+/* Что уже открыто в карточке задачи. Если ответ не сверить автоматически
+   («Да, подобны», доказательство), поля ответа нет — и запирать нечем:
+   открыто всё. В решённой задаче тоже. */
+function taskRevealState(task) {
+  const answer = loc(task, 'answer_latex');
+  const checkable = Boolean(answer) && isAnswerAutoCheckable(answer);
+  const attempts = getTaskWrongAttempts(task.id);
+  const open = !checkable || isTaskSolved(task.id);
+  return {
+    checkable,
+    attempts,
+    hint: open || attempts >= ATTEMPTS_FOR_HINT,
+    answer: open || attempts >= ATTEMPTS_FOR_ANSWER
+  };
+}
+
+/* Строка под полем ответа: что и когда откроется. Пустая — всё открыто. */
+function revealLockText(task, attempts) {
+  const tr = window.MathTasks.t || (k => k);
+  if (attempts >= ATTEMPTS_FOR_ANSWER) return '';
+  if (attempts >= ATTEMPTS_FOR_HINT) return tr('reveal_lock_one_more');
+  return tr(loc(task, 'hint_latex') ? 'reveal_lock_hint_first' : 'reveal_lock_two');
+}
+
+function unlockTaskReveals(card, kinds) {
+  for (const kind of kinds) {
+    const button = card.querySelector(`.solution-toggle[data-kind="${kind}"]`);
+    if (!button || !button.hidden) continue;
+    button.hidden = false;
+    button.classList.remove('hint-unlocked-pulse');
+    void button.offsetWidth;
+    button.classList.add('hint-unlocked-pulse');
+  }
+}
+
+function updateRevealLock(card, text) {
+  const note = card.querySelector('.self-check-lock');
+  if (!note) return;
+  note.textContent = text;
+  note.hidden = !text;
+}
 const insertIntoInput = window.MathTasks?.insertIntoInput || ((input, text) => { if (input) input.value += text; });
 
 function taskPath(task) {
@@ -1031,7 +1081,8 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
     `<div class="task-actions">${shareBtn}${copyBtn}${favBtn}${reportBtn}</div>`
   ].filter(Boolean).join('');
 
-  const selfCheck = task.answer_latex ? `
+  const reveal = taskRevealState(task);
+  const selfCheck = reveal.checkable ? `
     <div class="task-self-check" data-self-check="${task.id}">
       <div class="quick-math-bar" ${solved ? 'hidden' : ''} aria-label="Quick Math Bar">
         <span class="quick-math-bar-label" title="Quick Math">${escapeHtml(tr('quick_math_label'))}</span>
@@ -1057,6 +1108,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
       <div class="self-check-result${solved ? ' success' : ''}" ${solved ? '' : 'hidden'}>
         ${solved ? `${escapeHtml(tr('self_check_success'))} <button type="button" class="self-check-reset" data-reset-id="${task.id}">${escapeHtml(tr('self_check_reset'))}</button>` : ''}
       </div>
+      <p class="self-check-lock" ${reveal.answer ? 'hidden' : ''}>${reveal.answer ? '' : escapeHtml(revealLockText(task, reveal.attempts))}</p>
     </div>` : '';
 
   const hasAnswer = Boolean(loc(task, 'answer_latex'));
@@ -1064,16 +1116,14 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   const taskSolution = loc(task, 'solution_latex');
   const taskTitle = loc(task, 'title');
 
-  // Логика кнопки подсказки: показывается, если ученик ответил неправильно,
-  // либо если задача уже решена, либо если у задачи нет формы ввода ответа
-  const showHintInitially = Boolean(hasTaskWrongAttempt(task.id) || solved || !hasAnswer);
-
+  /* Ступени открываются попытками: первая ошибка — подсказка, вторая —
+     ответ и решение. Без поля ответа и в решённой задаче открыто всё. */
   const toggleButtons = [];
   const revealPanels = [];
 
   if (taskHint) {
     const hintItem = createRevealItem('hint', '<div class="math" data-hint></div>', {
-      hidden: !showHintInitially,
+      hidden: !reveal.hint,
       icon: '💡'
     });
     toggleButtons.push(hintItem.button);
@@ -1082,6 +1132,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
 
   if (hasAnswer) {
     const ansItem = createRevealItem('answer', '<div class="math" data-answer></div>', {
+      hidden: !reveal.answer,
       icon: '🔑'
     });
     toggleButtons.push(ansItem.button);
@@ -1091,6 +1142,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   if (taskSolution || task.solution_image) {
     const solutionBody = `<div class="math" data-solution></div>${taskFigure(task.solution_image, taskTitle, 'Attēls pie atrisinājuma')}`;
     const solItem = createRevealItem('solution', solutionBody, {
+      hidden: !reveal.answer,
       icon: '📘'
     });
     toggleButtons.push(solItem.button);
@@ -1320,7 +1372,8 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
       const solved = isTaskSolved(task.id);
       const taskTitle = loc(task, 'title');
       const answerText = loc(task, 'answer_latex');
-      const hasAnswer = Boolean(answerText);
+      // Ответ, который не сверить автоматически, в экспресс-режиме не вводится.
+      const hasAnswer = Boolean(answerText) && isAnswerAutoCheckable(answerText);
       const cleanAnswer = answerText ? answerText.replace(/^\$+|\$+$/g, '') : '';
       /* Кнопка чертежа появляется только у задач, к которым чертёж
          действительно загружен: подставного показывать нельзя. */
@@ -3658,21 +3711,24 @@ document.addEventListener('submit', event => {
         meta.appendChild(badge);
       }
     }
+    // Решил сам — разбор открыт, чтобы сверить ход решения.
+    if (card) {
+      unlockTaskReveals(card, ['hint', 'answer', 'solution']);
+      updateRevealLock(card, '');
+    }
     updateTopicHeaderProgress();
   } else {
-    setTaskWrongAttempt(taskId);
+    const attempts = addTaskWrongAttempt(taskId);
+    const opened = attempts >= ATTEMPTS_FOR_ANSWER;
+    const hasHint = Boolean(loc(task, 'hint_latex'));
+    const messageKey = opened ? 'self_check_error_open' : (hasHint ? 'self_check_error_hint' : 'self_check_error_retry');
     resultDiv.className = 'self-check-result error';
-    resultDiv.innerHTML = escapeHtml(tr('self_check_error'));
+    resultDiv.innerHTML = escapeHtml(tr(messageKey));
     resultDiv.hidden = false;
     const card = form.closest('.task');
     if (card) {
-      const hintBtn = card.querySelector('.solution-toggle[data-kind="hint"]');
-      if (hintBtn) {
-        hintBtn.hidden = false;
-        hintBtn.classList.remove('hint-unlocked-pulse');
-        void hintBtn.offsetWidth;
-        hintBtn.classList.add('hint-unlocked-pulse');
-      }
+      unlockTaskReveals(card, opened ? ['hint', 'answer', 'solution'] : ['hint']);
+      updateRevealLock(card, revealLockText(task, attempts));
     }
   }
 });
@@ -3688,30 +3744,31 @@ function openDrillHintDialog(task) {
   const solEl = dialog.querySelector('#drill-hint-solution');
   const ansSec = dialog.querySelector('#drill-hint-ans-section');
   const solSec = dialog.querySelector('#drill-hint-sol-section');
+  const hintEl = dialog.querySelector('#drill-hint-hint');
+  const hintSec = dialog.querySelector('#drill-hint-hint-section');
+  const lockEl = dialog.querySelector('#drill-hint-lock');
 
   if (titleEl) titleEl.textContent = loc(task, 'title');
   if (condEl) {
     condEl.innerHTML = '';
     renderMath(condEl, loc(task, 'condition_latex'));
   }
-  if (ansEl && ansSec) {
-    if (loc(task, 'answer_latex')) {
-      ansSec.hidden = false;
-      ansEl.innerHTML = '';
-      renderMath(ansEl, loc(task, 'answer_latex'));
-    } else {
-      ansSec.hidden = true;
-    }
-  }
-  if (solEl && solSec) {
-    const sol = loc(task, 'solution_latex');
-    if (sol) {
-      solSec.hidden = false;
-      solEl.innerHTML = '';
-      renderMath(solEl, sol);
-    } else {
-      solSec.hidden = true;
-    }
+  /* Тот же порядок, что в карточке: подсказка после первой ошибки,
+     ответ и решение — после второй. */
+  const reveal = taskRevealState(task);
+  const showSection = (section, target, text, allowed) => {
+    if (!section || !target) return;
+    section.hidden = !(allowed && text);
+    target.innerHTML = '';
+    if (!section.hidden) renderMath(target, text);
+  };
+  showSection(hintSec, hintEl, loc(task, 'hint_latex'), reveal.hint);
+  showSection(ansSec, ansEl, loc(task, 'answer_latex'), reveal.answer);
+  showSection(solSec, solEl, loc(task, 'solution_latex'), reveal.answer);
+  if (lockEl) {
+    const lockText = reveal.answer ? '' : revealLockText(task, reveal.attempts);
+    lockEl.textContent = lockText;
+    lockEl.hidden = !lockText;
   }
 
   if (typeof dialog.showModal === 'function') dialog.showModal();
@@ -3776,6 +3833,8 @@ document.addEventListener('keydown', event => {
          иначе ученик перебирает варианты вслепую и застревает. */
       const attempts = (drillAttempts.get(taskId) || 0) + 1;
       drillAttempts.set(taskId, attempts);
+      // Общий счётчик ошибок: он же открывает подсказку и разбор в 💡.
+      addTaskWrongAttempt(taskId);
       input.classList.remove('success');
       input.classList.add('error');
       if (statusEl) {
