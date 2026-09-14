@@ -1700,6 +1700,36 @@ function fillListHeader({ crumbs, title, description = '', meta = '' }) {
   document.querySelector('#list-meta').innerHTML = meta;
 }
 
+/* Шапка страницы темы или подтемы. Вынесена из showTopic/showSubtopic:
+   при смене языка её надо собрать заново, не перезагружая задачи. */
+function fillTopicHeader(topic, sub = null) {
+  const tr = window.MathTasks.t || (k => k);
+  const subject = subjectById(topic.subject_id);
+  const topicTitle = topicTitleOf(topic);
+  const title = sub ? subtopicTitle(sub, topic) : topicTitle;
+
+  const crumbs = [[tr('nav_home'), '/']];
+  if (topic.grade) crumbs.push([gradeLabel(topic.grade), `/grade/${topic.grade}`]);
+  if (subject) crumbs.push([loc(subject, 'title'), `/subject/${encodeURIComponent(subject.slug)}`]);
+  if (sub) {
+    crumbs.push([topicTitle, `/topic/${encodeURIComponent(topic.slug)}`]);
+    crumbs.push([loc(sub, 'title'), null]);
+  } else {
+    crumbs.push([topicTitle, null]);
+  }
+
+  fillListHeader({
+    crumbs,
+    title,
+    description: '',
+    meta: topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : ''
+  });
+  const description = sub
+    ? `Задачи по подтеме «${loc(sub, 'title')}» с условиями, ответами и разбором решений.`
+    : (loc(topic, 'description') || `Задачи по теме «${topicTitle}» с условиями, ответами и разбором решений.`);
+  setMeta(topic.grade ? `${title}, ${gradeLabel(topic.grade)}` : title, description);
+}
+
 // Каждый список сам решает, что ему нужно; остальные контейнеры гасим.
 function resetListBlocks() {
   document.querySelector('#similar-tasks')?.remove();
@@ -1989,22 +2019,7 @@ async function showSubtopic(slug) {
   if (topic.grade && selectedGrade !== topic.grade) applyGrade(topic.grade);
   else renderSidebar();
 
-  const subject = subjectById(topic.subject_id);
-  const topicTitle = topicTitleOf(topic);
-  const title = subtopicTitle(sub, topic);
-
-  const crumbs = [[tr('nav_home'), '/']];
-  if (topic.grade) crumbs.push([gradeLabel(topic.grade), `/grade/${topic.grade}`]);
-  if (subject) crumbs.push([loc(subject, 'title'), `/subject/${encodeURIComponent(subject.slug)}`]);
-  crumbs.push([topicTitle, `/topic/${encodeURIComponent(topic.slug)}`]);
-  crumbs.push([loc(sub, 'title'), null]);
-
-  fillListHeader({
-    crumbs, title,
-    meta: topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : '',
-  });
-  setMeta(topic.grade ? `${title}, ${gradeLabel(topic.grade)}` : title,
-    `Задачи по подтеме «${loc(sub, 'title')}» с условиями, ответами и разбором решений.`);
+  fillTopicHeader(topic, sub);
 
   renderSubtopicNav(topic, sub.id);
   listTasks.innerHTML = `<p class="empty-state">${tr('state_loading_tasks')}</p>`;
@@ -2292,25 +2307,7 @@ async function showTopic(slug) {
   } else {
     renderSidebar();
   }
-  const tr = window.MathTasks.t || (k => k);
-  const subject = subjectById(topic.subject_id);
-  const topicTitle = topicTitleOf(topic);
-  const topicDesc = loc(topic, 'description');
-  const subjectTitle = loc(subject, 'title');
-
-  const crumbs = [[(window.MathTasks.t || (k => k))('nav_home'), '/']];
-  if (topic.grade) crumbs.push([gradeLabel(topic.grade), `/grade/${topic.grade}`]);
-  if (subject) crumbs.push([subjectTitle, `/subject/${encodeURIComponent(subject.slug)}`]);
-  crumbs.push([topicTitle, null]);
-
-  fillListHeader({
-    crumbs,
-    title: topicTitle,
-    description: '',
-    meta: topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : ''
-  });
-  setMeta(topic.grade ? `${topicTitle}, ${gradeLabel(topic.grade)}` : topicTitle,
-    topicDesc || `Задачи по теме «${topicTitle}» с условиями, ответами и разбором решений.`);
+  fillTopicHeader(topic);
   listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_loading_tasks')}</p>`;
   // Внутри темы порядок задаёт админ полем «порядок»; при равных значениях — по дате.
   const { data, error } = await db.from('tasks').select(TASK_SELECT)
@@ -4739,6 +4736,22 @@ document.addEventListener('input', event => {
 // Инициализация экзаменационного таймера в шапке
 window.ExamTimer = window.MathTasksLib?.initExamTimerUi ? window.MathTasksLib.initExamTimerUi(document) : null;
 
+/* Держим на месте первую видимую задачу, а не число пикселей: на другом
+   языке заголовок и панели выше списка другой высоты, и та же прокрутка
+   показала бы уже другое место. 'instant' — чтобы CSS-шный
+   scroll-behavior: smooth не прокатывал страницу у человека на глазах. */
+function rememberScrollAnchor() {
+  const y = window.scrollY;
+  const anchor = [...listTasks.querySelectorAll('[id^="task-"]')]
+    .find(el => el.getBoundingClientRect().bottom > 0);
+  const offset = anchor?.getBoundingClientRect().top;
+  return () => {
+    const same = anchor && document.getElementById(anchor.id);
+    if (same) window.scrollBy({ top: same.getBoundingClientRect().top - offset, behavior: 'instant' });
+    else window.scrollTo({ top: y, behavior: 'instant' });
+  };
+}
+
 window.addEventListener('languagechange', async () => {
   window.MathTasksI18n?.applyTranslations(document);
   fillGradeSelect(gradeSelect, window.MathTasks.t('all_grades'));
@@ -4749,17 +4762,32 @@ window.addEventListener('languagechange', async () => {
   if (window.ExamTimer && window.ExamTimer.toggleBtn) {
     window.ExamTimer.toggleBtn.textContent = window.ExamTimer.isRunning ? tr('timer_pause') : tr('timer_start');
   }
-  if (currentActiveTopic && listSubtopics && !listSubtopics.hidden) {
-    renderSubtopicNav(currentActiveTopic, currentSubtopic?.id);
-  }
-  if (currentActiveTopic && currentView === 'list' && !currentSubtopic) {
-    renderTopicHeaderMeta(currentActiveTopic, currentTopicTasks);
-  }
+  const onTopicPage = currentView === 'list' && currentActiveTopic
+    && /^\/(topic|subtopic)\//.test(location.pathname);
   if (currentView === 'home') {
     await loadHome();
   } else if (currentView === 'progress') {
     // Страница прогресса собрана строками на старом языке — собираем заново.
     showProgress();
+  } else if (onTopicPage) {
+    /* Тему пересобираем на месте, а не через route(): тот заново грузит
+       задачи и сбрасывает сортировку и фильтр «нерешённые». Шапку, панель
+       вида/сортировки/печати и карточку контрольной рисует
+       renderCurrentTopicTasks — окно страниц и режим вида он сохраняет. */
+    const restoreScroll = rememberScrollAnchor();
+    fillTopicHeader(currentActiveTopic, currentSubtopic);
+    if (!currentSubtopic) renderTopicHeaderMeta(currentActiveTopic, currentTopicTasks);
+    if (listSubtopics && !listSubtopics.hidden) {
+      renderSubtopicNav(currentActiveTopic, currentSubtopic?.id);
+    }
+    renderCurrentTopicTasks();
+    restoreScroll();
+  } else if (currentView === 'list') {
+    /* Задача, поиск, тег, раздел: шапку, соседей и похожие задачи каждая
+       страница собирает по-своему, проще пройти маршрут заново. */
+    const restoreScroll = rememberScrollAnchor();
+    await route({ force: true });
+    restoreScroll();
   } else if (lastRenderedContainer && lastRenderedTasks.length) {
     renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
   }
