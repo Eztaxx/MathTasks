@@ -162,34 +162,60 @@ body.admin-page{background:#f5f7fd}
 /* Только стрелка: рядом с логотипом, который и так ведёт на главную,
    подпись «На главную» занимала полсотни пикселей и повторяла его.
    Название осталось в title и aria-label — для подсказки и скринридера. */
+/* «На главную»: нейтральная таблетка со стрелкой — не путается с синими
+   ссылками на разделы справа в шапке. На телефоне остаётся одна стрелка. */
 .topbar-home-btn {
-  font: 700 15px Manrope, sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line, #e2e8f0);
+  background: #fff;
+  color: var(--ink);
+  font: 600 13px Manrope, sans-serif;
   line-height: 1;
-  color: var(--blue, #1764ff);
   text-decoration: none;
-  display: inline-grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  transition: all 0.15s ease;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.topbar-home-icon {
+  flex: none;
+  color: var(--blue, #1764ff);
+  transition: transform 0.15s ease;
 }
 .topbar-home-btn:hover {
-  background: #dbeafe;
+  background: #eff6ff;
   border-color: #93c5fd;
-  transform: translateX(-1px);
+  color: var(--blue, #1764ff);
+}
+.topbar-home-btn:hover .topbar-home-icon {
+  transform: translateX(-2px);
+}
+.topbar-home-btn:focus-visible {
+  outline: 2px solid var(--blue, #1764ff);
+  outline-offset: 2px;
 }
 body.dark .topbar-home-btn {
-  color: #93c5fd;
-  background: #172554;
-  border-color: #1e3a8a;
+  background: #16223a;
+  border-color: #2a3d63;
+  color: #e2e8f0;
+}
+body.dark .topbar-home-icon {
+  color: #60a5fa;
 }
 body.dark .topbar-home-btn:hover {
   background: #1e3a8a;
   border-color: #3b82f6;
-  color: #bfdbfe;
+  color: #fff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .topbar-home-icon { transition: none; }
+}
+@media (max-width: 340px) {
+  .topbar-home-btn { width: 32px; padding: 0; justify-content: center; }
+  .topbar-home-label { display: none; }
 }
 .admin-badge{padding:5px 11px;border-radius:7px;background:#eee5ff;color:#7029d9;font-size:12px;font-weight:700}
 .admin-topbar .theme-toggle{margin-left:auto}
@@ -3086,7 +3112,7 @@ body.dark .trainer-panel {
   border-color: #253554;
 }
 
-.trainer-categories-row, .trainer-diff-row, .trainer-mode-row {
+.trainer-school-row, .trainer-categories-row, .trainer-diff-row, .trainer-mode-row {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -3106,7 +3132,7 @@ body.dark .trainer-panel {
   gap: 8px;
 }
 
-.trainer-cat-chip, .trainer-mode-chip, .trainer-diff-chip, .sheet-count-chip {
+.trainer-school-chip, .trainer-cat-chip, .trainer-mode-chip, .trainer-diff-chip, .sheet-count-chip {
   border: 1.5px solid var(--line, #e2e8f0);
   background: #f8fafc;
   color: var(--ink);
@@ -3116,27 +3142,27 @@ body.dark .trainer-panel {
   cursor: pointer;
   transition: all 0.18s ease;
 }
-.trainer-cat-chip:hover, .trainer-mode-chip:hover, .trainer-diff-chip:hover, .sheet-count-chip:hover {
+.trainer-school-chip:hover, .trainer-cat-chip:hover, .trainer-mode-chip:hover, .trainer-diff-chip:hover, .sheet-count-chip:hover {
   border-color: #93c5fd;
   background: #eff6ff;
   transform: translateY(-1px);
 }
-.trainer-cat-chip.active, .trainer-mode-chip.active, .trainer-diff-chip.active, .sheet-count-chip.active {
+.trainer-school-chip.active, .trainer-cat-chip.active, .trainer-mode-chip.active, .trainer-diff-chip.active, .sheet-count-chip.active {
   background: #1764ff;
   border-color: #1764ff;
   color: #fff;
   box-shadow: 0 3px 12px rgba(23, 100, 255, 0.25);
 }
-body.dark .trainer-cat-chip, body.dark .trainer-mode-chip, body.dark .trainer-diff-chip, body.dark .sheet-count-chip {
+body.dark .trainer-school-chip, body.dark .trainer-cat-chip, body.dark .trainer-mode-chip, body.dark .trainer-diff-chip, body.dark .sheet-count-chip {
   background: #1b2944;
   border-color: #2a3d63;
   color: #e2e8f0;
 }
-body.dark .trainer-cat-chip:hover, body.dark .trainer-mode-chip:hover, body.dark .trainer-diff-chip:hover, body.dark .sheet-count-chip:hover {
+body.dark .trainer-school-chip:hover, body.dark .trainer-cat-chip:hover, body.dark .trainer-mode-chip:hover, body.dark .trainer-diff-chip:hover, body.dark .sheet-count-chip:hover {
   background: #233557;
   border-color: #3b82f6;
 }
-body.dark .trainer-cat-chip.active, body.dark .trainer-mode-chip.active, body.dark .trainer-diff-chip.active, body.dark .sheet-count-chip.active {
+body.dark .trainer-school-chip.active, body.dark .trainer-cat-chip.active, body.dark .trainer-mode-chip.active, body.dark .trainer-diff-chip.active, body.dark .sheet-count-chip.active {
   background: #2563eb;
   border-color: #2563eb;
   color: #fff;
@@ -3464,6 +3490,24 @@ body.dark .trainer-feedback-card.wrong {
 }
 body.dark .feedback-hint-wrap {
   border-top-color: rgba(255, 255, 255, 0.15);
+}
+.feedback-hint-math {
+  overflow-x: auto;
+}
+.feedback-hint-math .katex-display {
+  margin: 4px 0;
+}
+.feedback-next-btn {
+  margin-top: 12px;
+}
+.trainer-review-btn {
+  align-self: flex-start;
+}
+.completion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 .feedback-hint-title {
   display: block;

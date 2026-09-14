@@ -169,6 +169,48 @@ describe('Mental Math Trainer Engine', () => {
     });
   });
 
+  it('основная школа: нет корней n-й степени, свойств корней, корней из x, отрицательных и дробных показателей', () => {
+    const highSchool = [/\\sqrt\[/, /\^\{-/, /\^\{\\frac/, /\\sqrt\{[^}]*[x^]/, /\\sqrt.*\\sqrt/];
+    ['powers', 'algebra_powers', 'mix'].forEach(cat => {
+      ['normal', 'hard', 'expert'].forEach(diff => {
+        for (let i = 0; i < 200; i++) {
+          const q = trainer.generateQuestion(cat, diff, 'basic');
+          highSchool.forEach(re => expect(q.latex).not.toMatch(re));
+          if (q.type === 'algebra') expect(q.resExp).toBeGreaterThanOrEqual(0);
+          expect(trainer.checkAnswer(q, q.answer).isCorrect).toBe(true);
+        }
+      });
+    });
+  });
+
+  it('подсказки — одни формулы, без русских слов: их показывают и на латышском', () => {
+    ['addsub2', 'addsub3', 'multdiv', 'fractions', 'decimals', 'powers', 'algebra_powers', 'negatives'].forEach(cat => {
+      ['normal', 'hard', 'expert'].forEach(diff => {
+        for (let i = 0; i < 100; i++) {
+          const q = trainer.generateQuestion(cat, diff);
+          expect(q.hint).toBeTruthy();
+          expect(q.hint).not.toMatch(/[А-Яа-яЁё]/);
+          expect(q.hint).not.toContain('\n');
+        }
+      });
+    });
+  });
+
+  it('подсказка к дробям с разными знаменателями приводит к общему знаменателю и сокращает', () => {
+    for (let i = 0; i < 200; i++) {
+      const q = trainer.generateQuestion('fractions', 'hard');
+      if (!/^\\frac\{\d+\}\{\d+\} [+-] \\frac/.test(q.latex)) continue;
+      const tail = q.resDen === 1 ? String(q.resNum) : `\\frac{${q.resNum}}{${q.resDen}}`;
+      expect(q.hint.startsWith(q.latex)).toBe(true);
+      expect(q.hint.endsWith(tail)).toBe(true);
+    }
+  });
+
+  it('средняя школа по-прежнему получает корни n-й степени', () => {
+    const latexes = Array.from({ length: 200 }, () => trainer.generateQuestion('powers', 'hard', 'high').latex);
+    expect(latexes.some(l => l.includes('\\sqrt['))).toBe(true);
+  });
+
   it('generateBatch генерирует корректную подборку заданного размера с id и индексами', () => {
     const batch20 = trainer.generateBatch('addsub2', 20, 'hard');
     expect(batch20).toHaveLength(20);
@@ -182,6 +224,46 @@ describe('Mental Math Trainer Engine', () => {
     batch10.forEach(q => {
       expect(q.type).toBe('fraction');
       expect(q.latex).toContain('\\frac');
+    });
+  });
+
+  describe('работа над ошибками', () => {
+    const q = (latex, extra = {}) => ({ latex, answer: '1', type: 'integer', ...extra });
+
+    it('rememberMistake запоминает пример один раз и без id и index', () => {
+      const list = trainer.rememberMistake([], q('2+2', { id: 3, index: 2 }));
+      expect(trainer.rememberMistake(list, q('2+2'))).toBe(list);
+      expect(list).toHaveLength(1);
+      expect(list[0]).not.toHaveProperty('id');
+      expect(list[0]).not.toHaveProperty('index');
+    });
+
+    it('rememberMistake держит не больше max последних ошибок', () => {
+      let list = [];
+      for (let i = 0; i < 5; i++) list = trainer.rememberMistake(list, q(`${i}+1`), 3);
+      expect(list.map(m => m.latex)).toEqual(['2+1', '3+1', '4+1']);
+    });
+
+    it('forgetMistake убирает пример, а без него возвращает тот же список', () => {
+      const list = [q('a'), q('b')];
+      expect(trainer.forgetMistake(list, q('a')).map(m => m.latex)).toEqual(['b']);
+      expect(trainer.forgetMistake(list, q('c'))).toBe(list);
+    });
+
+    it('ошибка из localStorage проверяется так же, как исходный пример', () => {
+      ['fractions', 'decimals', 'algebra_powers', 'negatives'].forEach(cat => {
+        const original = trainer.generateQuestion(cat, 'hard');
+        const [restored] = JSON.parse(JSON.stringify(trainer.rememberMistake([], original)));
+        expect(trainer.checkAnswer(restored, original.answer).isCorrect).toBe(true);
+      });
+    });
+
+    it('shuffle не теряет элементы и не меняет исходный массив', () => {
+      const arr = [1, 2, 3, 4, 5];
+      const res = trainer.shuffle(arr);
+      expect(res).not.toBe(arr);
+      expect([...res].sort()).toEqual(arr);
+      expect(arr).toEqual([1, 2, 3, 4, 5]);
     });
   });
 

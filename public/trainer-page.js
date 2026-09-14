@@ -18,13 +18,21 @@
 
       const escapeHtml = str => String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
 
+      // Ступень школы: в основной (1–9 кл.) нет тем средней — корни n-й степени,
+      // свойства корней, отрицательные и дробные показатели. Выбор запоминается.
+      const SCHOOL_KEY = 'math-tasks:trainer-school';
+
       // Состояние тренажёра
       const state = {
         view: 'sheet', // 'sheet' (куча примеров) или 'card' (по одной)
+        school: localStorage.getItem(SCHOOL_KEY) === 'high' ? 'high' : 'basic',
         category: 'addsub2',
         diff: 'normal', // 'normal', 'hard', 'expert'
         mode: 'zen',
         currentQuestion: null,
+        phase: 'answer', // 'answer' — ждём ответ, 'correct' — засчитан, 'reveal' — показан правильный ответ
+        reviewQueue: [], // очередь работы над ошибками в режиме карточек
+        currentFromReview: false,
         streak: 0,
         maxStreak: 0,
         score: 0,
@@ -40,6 +48,8 @@
         count: 15,
         questions: [],
         solvedSet: new Set(),
+        erredSet: new Set(), // примеры листа, где была хоть одна ошибка
+        review: false, // лист собран из списка ошибок
         elapsedSec: 0,
         startTime: null,
         timerInterval: null
@@ -78,6 +88,45 @@
       const trainerSheetGrid = document.querySelector('#trainer-sheet-grid');
       const tabViewSheet = document.querySelector('#tab-view-sheet');
       const tabViewCard = document.querySelector('#tab-view-card');
+      const btnNext = document.querySelector('#btn-next-question');
+      const hudReview = document.querySelector('#hud-review');
+      const valReview = document.querySelector('#val-review');
+      const t = (key, params) => window.MathTasks.t(key, params);
+
+      // Где ответ бывает дробью, с минусом или с x — обычная клавиатура, иначе цифровая
+      const TEXT_INPUT_CATEGORIES = new Set(['fractions', 'negatives', 'algebra_powers', 'powers']);
+
+      /* ── Работа над ошибками ──
+         Неверно решённые и пропущенные примеры копятся в списке, который
+         переживает перезагрузку. Пример уходит из списка, когда в работе
+         над ошибками его решили верно с первой попытки. */
+      const MISTAKES_KEY = 'math-tasks:trainer-mistakes';
+      let mistakes = (() => {
+        try {
+          const list = JSON.parse(localStorage.getItem(MISTAKES_KEY) || '[]');
+          return Array.isArray(list) ? list.filter(q => q && q.latex && q.answer !== undefined) : [];
+        } catch (_) {
+          return [];
+        }
+      })();
+
+      function setMistakes(list) {
+        if (list === mistakes) return;
+        mistakes = list;
+        try {
+          localStorage.setItem(MISTAKES_KEY, JSON.stringify(mistakes));
+        } catch (_) {}
+        updateReviewButtons();
+      }
+      const addMistake = q => setMistakes(window.MathTasksTrainer.rememberMistake(mistakes, q));
+      const removeMistake = q => setMistakes(window.MathTasksTrainer.forgetMistake(mistakes, q));
+
+      function updateReviewButtons() {
+        document.querySelectorAll('[data-review-btn]').forEach(btn => {
+          btn.hidden = mistakes.length === 0;
+          btn.textContent = t('trainer_review_btn', { count: mistakes.length });
+        });
+      }
 
       /* ── Логика режима «Куча примеров на страницу» ──────────────────── */
       // trainer.js подключён раньше этого файла, запасная копия не нужна.
@@ -102,21 +151,26 @@
         }
       }
 
-      function renderSheet() {
+      // reviewList — примеры для работы над ошибками; без него лист генерируется заново
+      function renderSheet(reviewList = null) {
         if (!window.MathTasksTrainer || !trainerSheetGrid) return;
         const solvedCountEl = document.querySelector('#sheet-solved-count');
         const totalCountEl = document.querySelector('#sheet-total-count');
         const completionCard = document.querySelector('#sheet-completion-card');
         if (completionCard) completionCard.hidden = true;
 
-        sheetState.questions = window.MathTasksTrainer.generateBatch(state.category, sheetState.count, state.diff);
+        sheetState.review = Boolean(reviewList);
+        sheetState.questions = reviewList
+          || window.MathTasksTrainer.generateBatch(state.category, sheetState.count, state.diff, state.school);
         sheetState.solvedSet.clear();
+        sheetState.erredSet.clear();
 
-        if (totalCountEl) totalCountEl.textContent = sheetState.count;
+        if (totalCountEl) totalCountEl.textContent = sheetState.questions.length;
         if (solvedCountEl) solvedCountEl.textContent = '0';
-
-        const isTextMode = state.category === 'fractions' || state.category === 'negatives' || state.category === 'mix' || state.category === 'algebra_powers' || state.category === 'powers';
-        const inputModeVal = isTextMode ? 'text' : 'decimal';
+        const bannerNormal = document.querySelector('#sheet-banner-normal');
+        const bannerReview = document.querySelector('#sheet-banner-review');
+        if (bannerNormal) bannerNormal.hidden = sheetState.review;
+        if (bannerReview) bannerReview.hidden = !sheetState.review;
 
         trainerSheetGrid.innerHTML = sheetState.questions.map((q, idx) => `
           <div class="compact-drill-item" data-sheet-item="${idx}" id="sheet-item-${idx}">
@@ -128,12 +182,12 @@
                        class="compact-drill-input" 
                        data-sheet-idx="${idx}" 
                        placeholder="?" 
-                       aria-label="Ответ к примеру ${idx + 1}"
+                       aria-label="${escapeHtml(t('trainer_answer_aria', { n: idx + 1 }))}"
                        autocomplete="off" 
                        autocorrect="off" 
                        autocapitalize="off" 
                        spellcheck="false" 
-                       inputmode="${inputModeVal}" />
+                       inputmode="${TEXT_INPUT_CATEGORIES.has(q.category) ? 'text' : 'decimal'}" />
                 <span class="compact-drill-status"></span>
               </div>
             </div>
@@ -194,6 +248,8 @@
         const check = window.MathTasksTrainer.checkAnswer(q, val);
         if (check.isCorrect) {
           sheetState.solvedSet.add(idx);
+          // Верно с первой попытки в работе над ошибками — пример уходит из списка
+          if (sheetState.review && !sheetState.erredSet.has(idx)) removeMistake(q);
           input.classList.remove('error');
           input.classList.add('success');
           input.readOnly = true;
@@ -217,6 +273,8 @@
             moveToNextInput(idx);
           }
         } else {
+          sheetState.erredSet.add(idx);
+          addMistake(q);
           input.classList.remove('success');
           input.classList.add('error');
           if (statusEl) {
@@ -250,8 +308,15 @@
         const completionCard = document.querySelector('#sheet-completion-card');
         const textEl = document.querySelector('#sheet-completion-text');
         if (textEl) {
-          const timeStr = formatTime(sheetState.elapsedSec);
-          textEl.innerHTML = `Вы решили все <strong>${sheetState.questions.length}</strong> примеров за <strong>${timeStr}</strong>! Точность: <strong>100%</strong> 🎯`;
+          const count = sheetState.questions.length;
+          const time = formatTime(sheetState.elapsedSec);
+          textEl.innerHTML = sheetState.review
+            ? t('trainer_review_done', { time, left: mistakes.length })
+            : t('trainer_sheet_done_text', {
+              count,
+              time,
+              accuracy: Math.round(((count - sheetState.erredSet.size) / count) * 100)
+            });
         }
         if (completionCard) {
           completionCard.hidden = false;
@@ -347,7 +412,12 @@
 
       function nextQuestion() {
         if (!window.MathTasksTrainer) return;
-        state.currentQuestion = window.MathTasksTrainer.generateQuestion(state.category, state.diff);
+        state.currentFromReview = state.reviewQueue.length > 0;
+        state.currentQuestion = state.currentFromReview
+          ? state.reviewQueue.shift()
+          : window.MathTasksTrainer.generateQuestion(state.category, state.diff, state.school);
+        if (hudReview) hudReview.hidden = !state.currentFromReview;
+        if (valReview) valReview.textContent = state.reviewQueue.length + 1;
 
         if (formulaDisplay && window.katex) {
           try {
@@ -360,7 +430,7 @@
           }
         }
 
-        const isText = state.category === 'fractions' || state.category === 'negatives' || state.category === 'mix' || state.category === 'algebra_powers' || state.category === 'powers';
+        const isText = TEXT_INPUT_CATEGORIES.has(state.currentQuestion.category);
         if (trainerInput) {
           trainerInput.setAttribute('inputmode', isText ? 'text' : 'decimal');
           trainerInput.value = '';
@@ -369,30 +439,57 @@
 
         const hintEl = document.querySelector('#trainer-input-hint');
         if (hintEl) {
-          const isLv = (window.MathTasks?.getLang && window.MathTasks.getLang() === 'lv') || document.documentElement.lang === 'lv';
-          if (state.category === 'algebra_powers') {
-            hintEl.innerHTML = isLv
-              ? 'Padoms: ievadiet mainīgos un pakāpes ar zīmi <code>^</code> (piemēram, <code>x^5</code>, <code>6x^7</code>, <code>1/x^2</code> vai <code>x^-2</code>).'
-              : 'Подсказка: вводите неизвестные и степени через знак <code>^</code> (например, <code>x^5</code>, <code>6x^7</code>, <code>1/x^2</code> или <code>x^-2</code>).';
-          } else {
-            hintEl.innerHTML = isLv
-              ? 'Padoms: parastajām daļām rakstiet <code>3/4</code>, decimāldaļām — ar punktu vai komatu (<code>2.5</code> vai <code>2,5</code>).'
-              : 'Подсказка: для обыкновенных дробей пишите <code>3/4</code>, для десятичных — через точку или запятую (<code>2.5</code> или <code>2,5</code>).';
-          }
+          hintEl.innerHTML = t(state.currentQuestion.category === 'algebra_powers' ? 'trainer_algebra_hint' : 'trainer_fraction_hint');
         }
 
+        state.phase = 'answer';
         if (feedbackCard) feedbackCard.hidden = true;
+        if (feedbackHintWrap) feedbackHintWrap.hidden = true;
+        if (btnNext) btnNext.hidden = true;
         if (trainerCard) {
           trainerCard.classList.remove('correct-flash', 'wrong-flash');
         }
       }
 
+      // Показывает правильный ответ и разбор; дальше — по Enter или кнопке «Дальше»
+      function revealAnswer(message) {
+        const q = state.currentQuestion;
+        state.phase = 'reveal';
+        if (!feedbackCard) return;
+        feedbackCard.className = 'trainer-feedback-card wrong';
+        if (feedbackIcon) feedbackIcon.textContent = '✕';
+        if (feedbackText) feedbackText.textContent = message;
+        if (feedbackHintContent && q.hint) {
+          // В подсказках десятичные через точку, а в примерах — через запятую
+          const hint = q.hint.replace(/(\d)\.(\d)/g, '$1{,}$2');
+          try {
+            feedbackHintContent.innerHTML = window.katex.renderToString(hint, { displayMode: true, throwOnError: false });
+          } catch (e) {
+            feedbackHintContent.textContent = hint;
+          }
+        }
+        if (feedbackHintWrap) feedbackHintWrap.hidden = !q.hint;
+        feedbackCard.hidden = false;
+        if (btnNext) {
+          btnNext.hidden = false;
+          btnNext.focus();
+        }
+      }
+
       function checkCurrentAnswer() {
         if (!state.currentQuestion || !window.MathTasksTrainer) return;
+        if (state.phase === 'reveal') {
+          nextQuestion();
+          return;
+        }
+        // Засчитанный ответ не проверяем второй раз, пока пример не сменился
+        if (state.phase !== 'answer') return;
         const val = trainerInput ? trainerInput.value : '';
+        if (!val.trim()) return;
         const check = window.MathTasksTrainer.checkAnswer(state.currentQuestion, val);
 
         if (check.isCorrect) {
+          state.phase = 'correct';
           state.score++;
           state.streak++;
           if (state.streak > state.maxStreak) state.maxStreak = state.streak;
@@ -406,14 +503,21 @@
           if (feedbackCard) {
             feedbackCard.className = 'trainer-feedback-card correct';
             if (feedbackIcon) feedbackIcon.textContent = '✓';
-            if (feedbackText) feedbackText.textContent = `Правильно! (${check.expectedDisplay})`;
+            if (feedbackText) feedbackText.textContent = t('trainer_feedback_correct_answer', { answer: check.expectedDisplay });
             feedbackCard.hidden = false;
+          }
+
+          // Верно в работе над ошибками — пример уходит из списка
+          const reviewFinished = state.currentFromReview && !state.reviewQueue.length;
+          if (state.currentFromReview) removeMistake(state.currentQuestion);
+          if (reviewFinished && feedbackText) {
+            feedbackText.textContent = t('trainer_review_finished', { left: mistakes.length });
           }
 
           updateHUD();
           setTimeout(() => {
             nextQuestion();
-          }, 350);
+          }, reviewFinished ? 1500 : 350);
         } else {
           state.errors++;
           state.streak = 0;
@@ -424,17 +528,9 @@
             trainerCard.classList.add('wrong-flash');
           }
 
-          if (feedbackCard) {
-            feedbackCard.className = 'trainer-feedback-card wrong';
-            if (feedbackIcon) feedbackIcon.textContent = '✕';
-            if (feedbackText) feedbackText.textContent = 'Неверно, попробуйте ещё раз!';
-            feedbackCard.hidden = false;
-          }
-
           updateHUD();
-          setTimeout(() => {
-            nextQuestion();
-          }, 1200);
+          addMistake(state.currentQuestion);
+          revealAnswer(t('trainer_feedback_wrong', { answer: check.expectedDisplay }));
         }
       }
 
@@ -443,12 +539,33 @@
         checkCurrentAnswer();
       });
 
+      // Пропуск тоже показывает правильный ответ
       btnSkip?.addEventListener('click', () => {
+        if (state.phase === 'reveal') {
+          nextQuestion();
+          return;
+        }
+        if (state.phase !== 'answer' || !state.currentQuestion) return;
         state.errors++;
         state.streak = 0;
         updateHUD();
-        nextQuestion();
+        addMistake(state.currentQuestion);
+        revealAnswer(t('trainer_feedback_skipped', { answer: state.currentQuestion.answer }));
       });
+
+      btnNext?.addEventListener('click', () => nextQuestion());
+
+      // Новые настройки — новые примеры; работа над ошибками при этом прекращается
+      function restartTraining() {
+        state.streak = 0;
+        state.reviewQueue = [];
+        if (state.view === 'sheet') {
+          renderSheet();
+        } else {
+          updateHUD();
+          nextQuestion();
+        }
+      }
 
       // Переключение категорий
       document.querySelectorAll('.trainer-cat-chip').forEach(btn => {
@@ -456,13 +573,23 @@
           document.querySelectorAll('.trainer-cat-chip').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           state.category = btn.dataset.cat || 'addsub2';
-          state.streak = 0;
-          if (state.view === 'sheet') {
-            renderSheet();
-          } else {
-            updateHUD();
-            nextQuestion();
-          }
+          restartTraining();
+        });
+      });
+
+      // Переключение школы: основная / средняя
+      const syncSchoolChips = () => {
+        document.querySelectorAll('.trainer-school-chip').forEach(b => {
+          b.classList.toggle('active', b.dataset.school === state.school);
+        });
+      };
+      syncSchoolChips();
+      document.querySelectorAll('.trainer-school-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.school = btn.dataset.school === 'high' ? 'high' : 'basic';
+          localStorage.setItem(SCHOOL_KEY, state.school);
+          syncSchoolChips();
+          restartTraining();
         });
       });
 
@@ -472,13 +599,7 @@
           document.querySelectorAll('.trainer-diff-chip').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           state.diff = btn.dataset.diff || 'normal';
-          state.streak = 0;
-          if (state.view === 'sheet') {
-            renderSheet();
-          } else {
-            updateHUD();
-            nextQuestion();
-          }
+          restartTraining();
         });
       });
 
@@ -489,6 +610,7 @@
           btn.classList.add('active');
           const mode = btn.dataset.mode || 'zen';
           state.mode = mode;
+          state.reviewQueue = [];
           stopTimer();
 
           if (mode === 'sprint60' || mode === 'sprint120') {
@@ -542,7 +664,8 @@
       }
 
       function finishSprint() {
-        const key = `math-tasks:trainer-record:${state.category}:${state.mode}`;
+        // Рекорд — свой для каждого уровня и школы: рекорд «Базового» не должен закрывать «Эксперт»
+        const key = `math-tasks:trainer-record:${state.category}:${state.diff}:${state.school}:${state.mode}`;
         const prevBest = Number(localStorage.getItem(key)) || 0;
         const isNewRecord = state.score > prevBest;
         if (isNewRecord) {
@@ -563,9 +686,7 @@
         if (resBestScore) resBestScore.textContent = Math.max(state.score, prevBest);
 
         if (sprintSubtitle) {
-          sprintSubtitle.textContent = isNewRecord
-            ? '🏆 Поздравляем! Вы установили новый личный рекорд!'
-            : 'Отличная скорость и концентрация!';
+          sprintSubtitle.textContent = t(isNewRecord ? 'trainer_sprint_new_record' : 'trainer_sprint_good');
         }
 
         if (sprintModal && typeof sprintModal.showModal === 'function') {
@@ -585,16 +706,42 @@
         nextQuestion();
       });
 
-      document.querySelector('#btn-close-sprint')?.addEventListener('click', () => {
-        if (sprintModal) sprintModal.close();
+      // Марафон без таймера: после спринта и для работы над ошибками
+      function setZenMode() {
         state.mode = 'zen';
         document.querySelectorAll('.trainer-mode-chip').forEach(b => {
           b.classList.toggle('active', b.dataset.mode === 'zen');
         });
         if (hudTimer) hudTimer.hidden = true;
         if (timerProgressWrap) timerProgressWrap.hidden = true;
+      }
+
+      document.querySelector('#btn-close-sprint')?.addEventListener('click', () => {
+        if (sprintModal) sprintModal.close();
+        setZenMode();
         nextQuestion();
       });
+
+      /* ── Работа над ошибками: запуск ─────────────────────────────── */
+      // В режиме листа — лист из ошибок, в режиме карточек — очередь без таймера
+      function startReview() {
+        if (!mistakes.length) return;
+        if (sprintModal?.open) sprintModal.close();
+        const list = window.MathTasksTrainer.shuffle(mistakes);
+        state.streak = 0;
+        if (state.view === 'sheet') {
+          renderSheet(list);
+        } else {
+          stopTimer();
+          setZenMode();
+          state.reviewQueue = list;
+          updateHUD();
+          nextQuestion();
+        }
+      }
+
+      document.querySelectorAll('[data-review-btn]').forEach(btn => btn.addEventListener('click', startReview));
+      window.addEventListener('languagechange', updateReviewButtons);
 
       // Виртуальный Numpad
       document.querySelectorAll('.numpad-key').forEach(keyBtn => {
@@ -613,5 +760,6 @@
       });
 
       // Запуск по умолчанию: открываем лист примеров (режим «Тренажёр»)
+      updateReviewButtons();
       renderSheet();
     })();

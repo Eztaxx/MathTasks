@@ -35,7 +35,7 @@
         </span>
         <span class="label"><span class="brand-math">Math</span><span class="brand-tasks">Tasks</span></span>
       </a>
-      <a class="topbar-home-btn" href="/" aria-label="На главную" data-i18n-aria="nav_to_home" title="На главную" data-i18n-title="nav_to_home"><span aria-hidden="true">←</span></a>
+      <a class="topbar-home-btn" href="/" aria-label="На главную" data-i18n-aria="nav_to_home"><svg class="topbar-home-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span class="topbar-home-label" data-i18n="nav_to_home">На главную</span></a>
     </div>
     <span class="admin-badge" data-i18n="trainer_badge">⚡ Тренажёр устного счёта</span>
 
@@ -82,6 +82,14 @@
 
     <!-- Панель выбора темы и режима -->
     <div class="trainer-panel">
+      <div class="trainer-school-row" id="trainer-school-row">
+        <span class="trainer-label" data-i18n="school_label">Школа:</span>
+        <div class="trainer-chip-group" id="trainer-school-group">
+          <button type="button" class="trainer-school-chip active" data-school="basic" data-i18n="school_basic">🏫 Основная (1–9 кл.)</button>
+          <button type="button" class="trainer-school-chip" data-school="high" data-i18n="school_high">🎓 Средняя (10–12 кл.)</button>
+        </div>
+      </div>
+
       <div class="trainer-categories-row">
         <span class="trainer-label" data-i18n="cat_label">Категория вычислений:</span>
         <div class="trainer-chip-group" id="trainer-category-group">
@@ -114,6 +122,8 @@
           <button type="button" class="trainer-mode-chip" data-mode="sprint120" data-i18n="mode_sprint120">⏱️ Спринт 120 сек</button>
         </div>
       </div>
+
+      <button type="button" class="secondary-button trainer-review-btn" id="btn-review" data-review-btn hidden>🔁 Работа над ошибками</button>
     </div>
 
     <!-- Режим: Лист примеров (Куча примеров на страницу, в точности как «Тренажёр» в каталоге) -->
@@ -127,10 +137,10 @@
         </div>
 
         <div class="sheet-action-btns">
-          <button type="button" class="secondary-button" id="btn-sheet-refresh" data-i18n="trainer_btn_new_sheet" title="Сгенерировать новые случайные примеры">
+          <button type="button" class="secondary-button" id="btn-sheet-refresh" data-i18n="trainer_btn_new_sheet" data-i18n-title="trainer_btn_new_sheet_title" title="Сгенерировать новые случайные примеры">
             🔄 Новый лист
           </button>
-          <button type="button" class="secondary-button" id="btn-sheet-check-all" data-i18n="trainer_btn_check_all" title="Проверить все введённые ответы">
+          <button type="button" class="secondary-button" id="btn-sheet-check-all" data-i18n="trainer_btn_check_all" data-i18n-title="trainer_btn_check_all_title" title="Проверить все введённые ответы">
             ✓ Проверить всё
           </button>
         </div>
@@ -138,7 +148,8 @@
 
       <div class="compact-drill-banner">
         <div class="sheet-banner-left">
-          <span data-i18n-html="sheet_banner_text">⚡ <strong>Тренажёр быстрого счёта:</strong> вводите ответы и жмите <kbd>Enter</kbd> для автоперехода к следующему примеру</span>
+          <span id="sheet-banner-normal" data-i18n-html="sheet_banner_text">⚡ <strong>Тренажёр быстрого счёта:</strong> вводите ответы и жмите <kbd>Enter</kbd> для автоперехода к следующему примеру</span>
+          <span id="sheet-banner-review" data-i18n-html="trainer_review_banner" hidden>🔁 <strong>Работа над ошибками:</strong> пример уходит из списка, когда решён верно с первой попытки</span>
         </div>
         <div class="sheet-banner-right">
           <div class="sheet-stopwatch" id="sheet-stopwatch">⏱️ 00:00</div>
@@ -158,6 +169,7 @@
           <button type="button" class="primary-button" id="btn-sheet-next-pack" data-i18n="trainer_btn_generate_new_sheet">
             🚀 Сгенерировать новый лист
           </button>
+          <button type="button" class="secondary-button" id="btn-sheet-review" data-review-btn hidden>🔁 Работа над ошибками</button>
         </div>
       </div>
     </div>
@@ -188,6 +200,12 @@
           <span class="timer-icon">⏱️</span>
           <span class="timer-val" id="val-timer">60s</span>
           <span class="stat-caption" data-i18n="trainer_caption_time">время</span>
+        </div>
+
+        <div class="trainer-stat-badge" id="hud-review" hidden>
+          <span class="stat-icon">🔁</span>
+          <span class="stat-val" id="val-review">0</span>
+          <span class="stat-caption" data-i18n="trainer_hud_review">ошибки</span>
         </div>
       </div>
 
@@ -253,15 +271,19 @@
           <button type="button" class="numpad-key op" data-key="x">x</button>
           <button type="button" class="numpad-key op" data-key="^">^</button>
 
-          <button type="button" class="numpad-key enter" data-key="enter" style="grid-column: span 4;">↵ Проверить</button>
+          <button type="button" class="numpad-key enter" data-key="enter" style="grid-column: span 4;" data-i18n="trainer_btn_check">↵ Проверить</button>
         </div>
 
         <!-- Карточка обратной связи -->
         <div class="trainer-feedback-card" id="feedback-card" hidden>
           <div class="feedback-status-row">
             <span class="feedback-icon" id="feedback-icon">✓</span>
-            <span class="feedback-text" id="feedback-text" data-i18n="trainer_feedback_correct">Правильно!</span>
+            <span class="feedback-text" id="feedback-text"></span>
           </div>
+          <div class="feedback-hint-wrap" id="feedback-hint-wrap" hidden>
+            <div class="feedback-hint-math" id="feedback-hint-content"></div>
+          </div>
+          <button type="button" class="primary-button feedback-next-btn" id="btn-next-question" data-i18n="trainer_btn_next" hidden>Дальше →</button>
         </div>
       </div>
     </div>
@@ -295,12 +317,13 @@
       <div class="form-actions" style="margin-top: 24px; justify-content: center; gap: 12px;">
         <button type="button" class="primary-button" id="btn-restart-sprint" data-i18n="trainer_btn_restart_sprint">⚡ Попробовать снова</button>
         <button type="button" class="secondary-button" id="btn-close-sprint" data-i18n="trainer_btn_close_sprint">Вернуться к тренировке</button>
+        <button type="button" class="secondary-button" id="btn-sprint-review" data-review-btn hidden>🔁 Работа над ошибками</button>
       </div>
     </dialog>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/trainer.js?v=20260913-4"></script>
-  <script src="/trainer-page.js?v=20260913-4"></script>
+  <script src="/trainer.js?v=20260914-3"></script>
+  <script src="/trainer-page.js?v=20260914-3"></script>
 </body>
 </html>

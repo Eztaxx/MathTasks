@@ -8,6 +8,10 @@
  * 4. fractions: Обыкновенные дроби (+, -, *, /)
  * 5. decimals: Десятичные дроби (+, -, *, /)
  * 6. mix: Смешанный режим
+ *
+ * Ступень школы (school): 'basic' — основная (1–9 кл.), 'high' — средняя (10–12 кл.).
+ * В основной не выдаются корни n-й степени, свойства корней, корни из выражений
+ * с x, отрицательные и дробные показатели (см. HIGH_SCHOOL_MODES и пометку high).
  */
 
 (() => {
@@ -31,6 +35,23 @@
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
+  // Виды примеров только для средней школы
+  const HIGH_SCHOOL_MODES = new Set([
+    'cbrt_table', 'root_4_basic', 'root_degrees', 'root_mult_div', 'fractional_powers',
+    'sqrt', 'cbrt', 'higher_roots', 'fractional_exp', 'coeff_roots',
+    'mult_neg', 'div_neg', 'pow_neg'
+  ]);
+
+  // Случайный вид примера, доступный на этой ступени
+  function pickMode(modes, school) {
+    return pick(school === 'basic' ? modes.filter(m => !HIGH_SCHOOL_MODES.has(m)) : modes);
+  }
+
+  // Готовый пример из списка; с пометкой high — только для средней школы
+  function pickItem(items, school) {
+    return pick(school === 'basic' ? items.filter(it => !it.high) : items);
+  }
+
   // Сокращение дроби
   function reduceFraction(n, d) {
     if (d < 0) {
@@ -39,6 +60,11 @@
     }
     const g = gcd(n, d);
     return { num: n / g, den: d / g };
+  }
+
+  // Дробь в LaTeX; знаменатель 1 — целое число
+  function fracTex(n, d) {
+    return d === 1 ? String(n) : `\\frac{${n}}{${d}}`;
   }
 
   // Форматирование алгебраического одночлена вида c*x^p
@@ -124,7 +150,7 @@
             latex: `${a} + ${b} - ${c}`,
             answer: String(ans),
             type: 'integer',
-            hint: `${a} + ${b} = ${a + b}, затем ${a + b} - ${c} = ${ans}`,
+            hint: `${a} + ${b} - ${c} = ${a + b} - ${c} = ${ans}`,
             category: 'addsub2'
           };
         } else {
@@ -212,7 +238,7 @@
             latex: `${a} + ${b} - ${c}`,
             answer: String(ans),
             type: 'integer',
-            hint: `${a} + ${b} = ${a + b}, затем ${a + b} - ${c} = ${ans}`,
+            hint: `${a} + ${b} - ${c} = ${a + b} - ${c} = ${ans}`,
             category: 'addsub3'
           };
         } else {
@@ -435,7 +461,7 @@
             resNum: pair.n,
             resDen: pair.d,
             type: 'fraction',
-            hint: `${pair.l} = ${pair.a}`,
+            hint: `${pair.l} = ${fracTex(pair.n, pair.d)}`,
             category: 'fractions'
           };
         }
@@ -463,7 +489,7 @@
           resNum: res.num,
           resDen: res.den,
           type: 'fraction',
-          hint: `Общий знаменатель: ${lcm}.\n\\frac{${n1 * m1} + ${n2 * m2}}{${lcm}} = \\frac{${numSum}}{${lcm}} = ${ansStr}`,
+          hint: `\\frac{${n1}}{${d1}} + \\frac{${n2}}{${d2}} = \\frac{${n1 * m1} + ${n2 * m2}}{${lcm}} = \\frac{${numSum}}{${lcm}}${res.num === numSum ? '' : ` = ${fracTex(res.num, res.den)}`}`,
           category: 'fractions'
         };
       } else if (mode === 'sub_diff') {
@@ -490,7 +516,7 @@
           resNum: res.num,
           resDen: res.den,
           type: 'fraction',
-          hint: `Общий знаменатель: ${lcm}.\n\\frac{${n1 * m1} - ${n2 * m2}}{${lcm}} = ${ansStr}`,
+          hint: `\\frac{${n1}}{${d1}} - \\frac{${n2}}{${d2}} = \\frac{${n1 * m1} - ${n2 * m2}}{${lcm}} = \\frac{${numDiff}}{${lcm}}${res.num === numDiff ? '' : ` = ${fracTex(res.num, res.den)}`}`,
           category: 'fractions'
         };
       } else if (mode === 'mult') {
@@ -511,7 +537,7 @@
           resNum: res.num,
           resDen: res.den,
           type: 'fraction',
-          hint: `\\frac{${n1} \\times ${n2}}{${d1} \\times ${d2}} = ${ansStr}`,
+          hint: `\\frac{${n1} \\times ${n2}}{${d1} \\times ${d2}} = ${fracTex(res.num, res.den)}`,
           category: 'fractions'
         };
       } else {
@@ -532,7 +558,7 @@
           resNum: res.num,
           resDen: res.den,
           type: 'fraction',
-          hint: `\\frac{${n1}}{${d1}} \\times \\frac{${d2}}{${n2}} = ${ansStr}`,
+          hint: `\\frac{${n1}}{${d1}} \\times \\frac{${d2}}{${n2}} = ${fracTex(res.num, res.den)}`,
           category: 'fractions'
         };
       }
@@ -692,9 +718,9 @@
     },
 
     // 6. Степень и корни (числовые: разные степени и корни)
-    powers: (diff = 'normal') => {
+    powers: (diff = 'normal', school = 'high') => {
       if (diff === 'expert') {
-        const mode = pick(['fractional_powers', 'negative_powers', 'combined_powers', 'square_big', 'root_big']);
+        const mode = pickMode(['fractional_powers', 'negative_powers', 'combined_powers', 'square_big', 'root_big'], school);
         if (mode === 'fractional_powers') {
           const item = pick([
             { latex: '4^{\\frac{1}{2}}', ans: 2, hint: '4^{1/2} = \\sqrt{4} = 2' },
@@ -730,23 +756,23 @@
             category: 'powers'
           };
         } else if (mode === 'negative_powers') {
-          const item = pick([
-            { latex: '2^{-1}', ans: '0.5', resNum: 1, resDen: 2, hint: '2^{-1} = \\frac{1}{2} = 0{,}5' },
-            { latex: '4^{-1}', ans: '0.25', resNum: 1, resDen: 4, hint: '4^{-1} = \\frac{1}{4} = 0{,}25' },
-            { latex: '5^{-1}', ans: '0.2', resNum: 1, resDen: 5, hint: '5^{-1} = \\frac{1}{5} = 0{,}2' },
-            { latex: '10^{-1}', ans: '0.1', hint: '10^{-1} = 0{,}1' },
-            { latex: '10^{-2}', ans: '0.01', hint: '10^{-2} = 0{,}01' },
-            { latex: '10^{-3}', ans: '0.001', hint: '10^{-3} = 0{,}001' },
-            { latex: '2^{-2}', ans: '0.25', resNum: 1, resDen: 4, hint: '2^{-2} = \\frac{1}{4} = 0{,}25' },
-            { latex: '2^{-3}', ans: '0.125', resNum: 1, resDen: 8, hint: '2^{-3} = \\frac{1}{8} = 0{,}125' },
-            { latex: '4^{-\\frac{1}{2}}', ans: '0.5', resNum: 1, resDen: 2, hint: '4^{-1/2} = \\frac{1}{\\sqrt{4}} = 0{,}5' },
-            { latex: '8^{-\\frac{1}{3}}', ans: '0.5', resNum: 1, resDen: 2, hint: '8^{-1/3} = \\frac{1}{\\sqrt[3]{8}} = 0{,}5' },
+          const item = pickItem([
+            { latex: '2^{-1}', ans: '0.5', resNum: 1, resDen: 2, hint: '2^{-1} = \\frac{1}{2} = 0{,}5', high: true },
+            { latex: '4^{-1}', ans: '0.25', resNum: 1, resDen: 4, hint: '4^{-1} = \\frac{1}{4} = 0{,}25', high: true },
+            { latex: '5^{-1}', ans: '0.2', resNum: 1, resDen: 5, hint: '5^{-1} = \\frac{1}{5} = 0{,}2', high: true },
+            { latex: '10^{-1}', ans: '0.1', hint: '10^{-1} = 0{,}1', high: true },
+            { latex: '10^{-2}', ans: '0.01', hint: '10^{-2} = 0{,}01', high: true },
+            { latex: '10^{-3}', ans: '0.001', hint: '10^{-3} = 0{,}001', high: true },
+            { latex: '2^{-2}', ans: '0.25', resNum: 1, resDen: 4, hint: '2^{-2} = \\frac{1}{4} = 0{,}25', high: true },
+            { latex: '2^{-3}', ans: '0.125', resNum: 1, resDen: 8, hint: '2^{-3} = \\frac{1}{8} = 0{,}125', high: true },
+            { latex: '4^{-\\frac{1}{2}}', ans: '0.5', resNum: 1, resDen: 2, hint: '4^{-1/2} = \\frac{1}{\\sqrt{4}} = 0{,}5', high: true },
+            { latex: '8^{-\\frac{1}{3}}', ans: '0.5', resNum: 1, resDen: 2, hint: '8^{-1/3} = \\frac{1}{\\sqrt[3]{8}} = 0{,}5', high: true },
             { latex: '(-2)^4', ans: '16', hint: '(-2)^4 = 16' },
             { latex: '(-2)^5', ans: '-32', hint: '(-2)^5 = -32' },
             { latex: '(-3)^3', ans: '-27', hint: '(-3)^3 = -27' },
             { latex: '(-3)^4', ans: '81', hint: '(-3)^4 = 81' },
             { latex: '(-5)^3', ans: '-125', hint: '(-5)^3 = -125' }
-          ]);
+          ], school);
           return {
             latex: item.latex,
             answer: item.ans,
@@ -757,16 +783,16 @@
             category: 'powers'
           };
         } else if (mode === 'combined_powers') {
-          const item = pick([
+          const item = pickItem([
             { latex: '\\frac{2^5 \\cdot 2^4}{2^6}', ans: 8, hint: '2^{5+4-6} = 2^3 = 8' },
             { latex: '\\frac{3^7 \\cdot 3^2}{3^6}', ans: 27, hint: '3^{7+2-6} = 3^3 = 27' },
             { latex: '\\frac{(2^3)^2}{2^2}', ans: 16, hint: '2^{6-2} = 2^4 = 16' },
             { latex: '\\frac{(3^2)^3}{3^4}', ans: 9, hint: '3^{6-4} = 3^2 = 9' },
-            { latex: '\\sqrt{2^8}', ans: 16, hint: '\\sqrt{2^8} = 2^4 = 16' },
-            { latex: '\\sqrt{3^4}', ans: 9, hint: '\\sqrt{3^4} = 3^2 = 9' },
-            { latex: '\\sqrt[3]{2^6}', ans: 4, hint: '\\sqrt[3]{2^6} = 2^2 = 4' },
-            { latex: '\\sqrt[4]{2^8}', ans: 4, hint: '\\sqrt[4]{2^8} = 2^2 = 4' }
-          ]);
+            { latex: '\\sqrt{2^8}', ans: 16, hint: '\\sqrt{2^8} = 2^4 = 16', high: true },
+            { latex: '\\sqrt{3^4}', ans: 9, hint: '\\sqrt{3^4} = 3^2 = 9', high: true },
+            { latex: '\\sqrt[3]{2^6}', ans: 4, hint: '\\sqrt[3]{2^6} = 2^2 = 4', high: true },
+            { latex: '\\sqrt[4]{2^8}', ans: 4, hint: '\\sqrt[4]{2^8} = 2^2 = 4', high: true }
+          ], school);
           return {
             latex: item.latex,
             answer: String(item.ans),
@@ -794,7 +820,7 @@
           };
         }
       } else if (diff === 'hard') {
-        const mode = pick(['power_high', 'root_degrees', 'root_mult_div', 'power_rules', 'square_teen']);
+        const mode = pickMode(['power_high', 'root_degrees', 'root_mult_div', 'power_rules', 'square_teen'], school);
         if (mode === 'power_high') {
           const item = pick([
             { latex: '2^6', ans: 64, hint: '2^6 = 64' },
@@ -896,7 +922,7 @@
         }
       } else {
         // Базовый (normal): квадраты, корни, кубы, степени 2, 3, 10, корень 4 степени, степени 0 и 1
-        const mode = pick(['square_table', 'root_table', 'cube_table', 'cbrt_table', 'power_of_2', 'power_of_3', 'power_of_10', 'root_4_basic', 'zero_one_power']);
+        const mode = pickMode(['square_table', 'root_table', 'cube_table', 'cbrt_table', 'power_of_2', 'power_of_3', 'power_of_10', 'root_4_basic', 'zero_one_power'], school);
         if (mode === 'square_table') {
           const n = randInt(2, 15);
           return {
@@ -983,7 +1009,7 @@
               latex: `${a}^0`,
               answer: '1',
               type: 'integer',
-              hint: `Любое число в нулевой степени равно 1: ${a}^0 = 1`,
+              hint: `${a}^0 = 1`,
               category: 'powers'
             };
           } else {
@@ -1000,12 +1026,12 @@
     },
 
     // 6b. Степени и корни с переменными (неизвестными)
-    algebra_powers: (diff = 'normal') => {
+    algebra_powers: (diff = 'normal', school = 'high') => {
       const v = 'x';
       if (diff === 'expert') {
-        const mode = pick(['negative_exp', 'fractional_exp', 'coeff_roots', 'complex_fractions']);
+        const mode = pickMode(['negative_exp', 'fractional_exp', 'coeff_roots', 'complex_fractions', 'coeff_chain'], school);
         if (mode === 'negative_exp') {
-          const submode = pick(['mult_neg', 'div_neg', 'pow_neg', 'zero_exp']);
+          const submode = pickMode(['mult_neg', 'div_neg', 'pow_neg', 'zero_exp'], school);
           if (submode === 'mult_neg') {
             const a = randInt(2, 5);
             const b = randInt(a + 1, a + 4);
@@ -1107,13 +1133,32 @@
             hint: item.hint,
             category: 'algebra_powers'
           };
+        } else if (mode === 'coeff_chain') {
+          // Все свойства степеней сразу: коэффициенты, умножение и деление
+          const q = randInt(2, 5);
+          const d = randInt(2, 4);
+          const a = randInt(3, 6);
+          const b = randInt(2, 5);
+          const c = randInt(2, a + b - 1);
+          const exp = a + b - c;
+          const ans = formatAlgebraAnswer(q, exp, v);
+          return {
+            latex: `\\frac{${q * d}${v}^{${a}} \\cdot ${v}^{${b}}}{${d}${v}^{${c}}}`,
+            answer: ans,
+            type: 'algebra',
+            variable: v,
+            resCoeff: q,
+            resExp: exp,
+            hint: `\\frac{${q * d}}{${d}} \\cdot ${v}^{${a}+${b}-${c}} = ${ans}`,
+            category: 'algebra_powers'
+          };
         } else {
-          const item = pick([
+          const item = pickItem([
             { latex: `\\frac{(2${v}^2)^3}{4${v}^4}`, coeff: 2, exp: 2, hint: '\\frac{8x^6}{4x^4} = 2x^2' },
-            { latex: `\\frac{\\sqrt{16${v}^8}}{2${v}^2}`, coeff: 2, exp: 2, hint: '\\frac{4x^4}{2x^2} = 2x^2' },
+            { latex: `\\frac{\\sqrt{16${v}^8}}{2${v}^2}`, coeff: 2, exp: 2, hint: '\\frac{4x^4}{2x^2} = 2x^2', high: true },
             { latex: `\\frac{6${v}^7}{2${v}^3 \\cdot ${v}^2}`, coeff: 3, exp: 2, hint: '\\frac{6x^7}{2x^5} = 3x^2' },
             { latex: `\\frac{(3${v}^3)^2}{3${v}^4}`, coeff: 3, exp: 2, hint: '\\frac{9x^6}{3x^4} = 3x^2' }
-          ]);
+          ], school);
           const ans = formatAlgebraAnswer(item.coeff, item.exp, v);
           return {
             latex: item.latex,
@@ -1127,7 +1172,7 @@
           };
         }
       } else if (diff === 'hard') {
-        const mode = pick(['coeff_mult', 'coeff_div', 'coeff_pow', 'higher_roots', 'combined_ops']);
+        const mode = pickMode(['coeff_mult', 'coeff_div', 'coeff_pow', 'higher_roots', 'combined_ops'], school);
         if (mode === 'coeff_mult') {
           const c1 = randInt(2, 5);
           const c2 = randInt(2, 4);
@@ -1245,7 +1290,7 @@
         }
       } else {
         // Базовый (normal): умножение x^a * x^b, деление x^a / x^b, степень (x^a)^b, корни sqrt(x^2k), cbrt(x^3k)
-        const mode = pick(['mult', 'div', 'pow_pow', 'sqrt', 'cbrt']);
+        const mode = pickMode(['mult', 'div', 'pow_pow', 'sqrt', 'cbrt'], school);
         if (mode === 'mult') {
           const a = randInt(1, 4);
           const b = randInt(2, 5);
@@ -1338,7 +1383,7 @@
             latex: `-${a} + ${b} - ${c}`,
             answer: String(ans),
             type: 'integer',
-            hint: `-${a} + ${b} = ${-a + b}, затем ${-a + b} - ${c} = ${ans}`,
+            hint: `-${a} + ${b} - ${c} = ${-a + b} - ${c} = ${ans}`,
             category: 'negatives'
           };
         } else if (mode === 'mult_neg_2d') {
@@ -1457,10 +1502,10 @@
     },
 
     // 8. Микс (все типы)
-    mix: (diff = 'normal') => {
+    mix: (diff = 'normal', school = 'high') => {
       const cat = pick(['addsub2', 'addsub3', 'multdiv', 'fractions', 'decimals', 'powers', 'algebra_powers', 'negatives']);
       const gen = GENERATORS[cat];
-      return gen ? gen(diff) : GENERATORS.addsub2(diff);
+      return gen ? gen(diff, school) : GENERATORS.addsub2(diff);
     }
   };
 
@@ -1621,14 +1666,14 @@
     } catch (e) {}
   }
 
-  function generateBatch(cat = 'addsub2', count = 20, diff = 'normal') {
+  function generateBatch(cat = 'addsub2', count = 20, diff = 'normal', school = 'high') {
     const list = [];
     const seen = new Set();
     const maxAttempts = count * 6;
     let attempts = 0;
     while (list.length < count && attempts < maxAttempts) {
       attempts++;
-      const q = api.generateQuestion(cat, diff);
+      const q = api.generateQuestion(cat, diff, school);
       if (!seen.has(q.latex)) {
         seen.add(q.latex);
         q.id = list.length + 1;
@@ -1637,12 +1682,38 @@
       }
     }
     while (list.length < count) {
-      const q = api.generateQuestion(cat, diff);
+      const q = api.generateQuestion(cat, diff, school);
       q.id = list.length + 1;
       q.index = list.length;
       list.push(q);
     }
     return list;
+  }
+
+  /* Работа над ошибками: список неверно решённых примеров. Без повторов
+     и не длиннее max — старые ошибки вытесняются новыми. Если список не
+     изменился, возвращается тот же массив. */
+  const MISTAKES_MAX = 60;
+
+  function rememberMistake(list, q, max = MISTAKES_MAX) {
+    if (!q || !q.latex || list.some(m => m.latex === q.latex)) return list;
+    const clean = { ...q };
+    delete clean.id;
+    delete clean.index;
+    return [...list, clean].slice(-max);
+  }
+
+  function forgetMistake(list, q) {
+    return list.some(m => m.latex === q.latex) ? list.filter(m => m.latex !== q.latex) : list;
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   }
 
   function formatTime(sec) {
@@ -1654,12 +1725,15 @@
 
   const api = {
     GENERATORS,
-    generateQuestion: (cat = 'addsub2', diff = 'normal') => {
+    generateQuestion: (cat = 'addsub2', diff = 'normal', school = 'high') => {
       const gen = GENERATORS[cat] || GENERATORS.addsub2;
-      return gen(diff);
+      return gen(diff, school);
     },
     generateBatch,
     checkAnswer,
+    rememberMistake,
+    forgetMistake,
+    shuffle,
     formatTime,
     playSound,
     reduceFraction,
