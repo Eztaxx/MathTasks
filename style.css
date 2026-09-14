@@ -5690,3 +5690,34 @@ body .adm-shell #section-tasks-database{padding:0;border:0;background:none}
 .imp-done-actions{display:flex;gap:8px;flex-wrap:wrap}
 /* Загрузка файла и вставка текста теперь в мастере — прежние кнопки окна импорта здесь не нужны. */
 .adm-shell [data-slot="import-tools"] #btn-upload-file-tasks-label,.adm-shell [data-slot="import-tools"] #btn-import-tasks{display:none}
+
+/* ── Редактор: «Как увидит посетитель» справа от формы (макет «Админка Skola2030») ── */
+.adm-view-body.adm-editor-body{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+.adm-editor-body > #section-task-form{grid-column:1;grid-row:1;min-width:0}
+.adm-preview-col{grid-column:2;grid-row:1;position:sticky;top:72px;display:flex;flex-direction:column;gap:11px;max-height:calc(100vh - 88px);overflow-y:auto}
+.adm-preview{border:1px solid var(--adm-line);border-radius:12px;background:var(--adm-panel2);overflow:hidden}
+.adm-preview-head{display:flex;align-items:center;gap:8px;padding:11px 15px;border-bottom:1px solid var(--adm-line);background:var(--adm-panel);font-size:13px;font-weight:650;color:var(--adm-ink)}
+.adm-preview-head small{margin-left:auto;font-size:11px;font-weight:500;color:var(--adm-dim)}
+.adm-preview-body{display:flex;flex-direction:column;gap:14px;padding:16px}
+.adm-preview-path{font:11px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-dim)}
+.adm-preview-label{margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--adm-dim)}
+/* KaTeX выступает за строку на пиксель — без overflow-y:hidden у каждой
+   формулы появлялась вертикальная полоса прокрутки. */
+.adm-preview-text{font-size:15px;line-height:1.7;color:var(--adm-ink);white-space:pre-wrap;word-break:break-word;overflow-x:auto;overflow-y:hidden}
+.adm-preview-text.sub{font-size:14px;color:var(--adm-ink2)}
+.adm-preview-empty{font-size:13px;font-style:italic;color:var(--adm-dim)}
+.adm-preview-bad{display:block;margin-top:6px;padding:6px 9px;border:1px solid var(--adm-badbd);border-radius:7px;background:var(--adm-badbg);color:var(--adm-badfg);font-size:12px;font-style:normal;line-height:1.45;white-space:normal}
+.adm-preview-img{display:block;max-width:100%;max-height:240px;margin-top:10px;padding:6px;box-sizing:border-box;border:1px solid var(--adm-line);border-radius:10px;background:#fff;object-fit:contain}
+.adm-preview-img[hidden],.adm-preview-block[hidden]{display:none}
+.adm-preview-divider{height:1px;background:var(--adm-line2)}
+.adm-preview-tags{display:flex;gap:6px;flex-wrap:wrap}
+.adm-preview-tags:empty{display:none}
+.adm-preview-tag{padding:3px 9px;border-radius:20px;border:1px solid var(--adm-accbd);background:var(--adm-accsoft);color:var(--adm-ink2);font-size:11px}
+.adm-cheat{padding:12px 14px;border:1px solid var(--adm-line);border-radius:11px;background:var(--adm-panel);font-size:12px;line-height:1.6;color:var(--adm-mute)}
+.adm-cheat-title{margin-bottom:5px;font-weight:600;color:var(--adm-ink2)}
+.adm-shell .adm-cheat code{padding:0;background:none;font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-ink2)}
+.adm-cheat p{margin:6px 0 0}
+/* Широкий экран — превью в карточке справа, под полями его не дублируем.
+   Узкий — карточки нет, превью остаются под полями. */
+@media (min-width:1201px){.adm-shell #task-form .math-preview{display:none}}
+@media (max-width:1200px){.adm-view-body.adm-editor-body{display:flex;flex-direction:column}.adm-preview-col{display:none}}

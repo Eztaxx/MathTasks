@@ -2323,6 +2323,8 @@ ${JSON.stringify(texts)}`;
   }
 
   function updateReadyBar() {
+    // Полосу зовут при каждом изменении формы — заодно обновляем превью справа.
+    renderVisitorPreview();
     if (!admReadyText || !admReadyDot) return;
     const condRu = conditionInput?.value.trim() || '';
     const condLv = conditionInputLv?.value.trim() || '';
@@ -2463,6 +2465,79 @@ ${JSON.stringify(texts)}`;
       }
     }
   }
+
+  /* ── «Как увидит посетитель»: карточка справа от формы, как в макете ──
+     Условие с чертежом, подсказка, ответ и решение на выбранном языке,
+     место задачи и кросс-теги. Сломанная формула подсвечивается красным:
+     renderMath рисует её с throwOnError: false. Элементы ищем при каждом
+     вызове — функцию зовут и до того, как дошла очередь до констант ниже. */
+  function renderVisitorPreview() {
+    const cond = byId('adm-preview-cond');
+    if (!cond) return;
+    const lv = currentEditorLang === 'lv';
+    const value = (ruInput, lvInput) => ((lv ? lvInput : ruInput)?.value || '').trim();
+    const put = (el, text, emptyText) => {
+      if (!el) return;
+      if (!text) {
+        el.innerHTML = emptyText ? `<span class="adm-preview-empty">${emptyText}</span>` : '';
+        return;
+      }
+      renderMath(el, text);
+      /* Формулу с непарной скобкой KaTeX не находит вовсе и оставляет сырым
+         текстом, без красного, — поэтому ошибку называем явно. */
+      const check = checkFormulaSyntax(text);
+      if (!check.ok) el.insertAdjacentHTML('beforeend', `<span class="adm-preview-bad">${escapeHtml(check.error)}</span>`);
+    };
+    const lang = byId('adm-preview-lang');
+    if (lang) lang.textContent = lv ? 'latviešu' : 'русский';
+
+    const grade = parseFormGrade(taskGradeSelect?.value);
+    const topic = topics.find(t => String(t.id) === topicSelect?.value);
+    const sub = subtopics.find(s => String(s.id) === subtopicSelect?.value);
+    const path = [
+      grade ? `${grade}. klase` : '',
+      topic ? topicOptionText(topic, new Map([[topic.id, getTopicCode(topic)]])) : '',
+      sub?.code || ''
+    ].filter(Boolean).join(' · ');
+    const pathEl = byId('adm-preview-path');
+    if (pathEl) pathEl.textContent = path || 'Место не выбрано';
+
+    put(cond, value(conditionInput, conditionInputLv), lv ? 'Латышского условия пока нет' : 'Условие пока пустое');
+    put(byId('adm-preview-sol'), value(solutionInput, solutionInputLv), 'Решения пока нет');
+    const hint = value(hintInput, hintInputLv);
+    const answer = value(answerInput, answerInputLv);
+    const hintWrap = byId('adm-preview-hint-wrap');
+    const answerWrap = byId('adm-preview-answer-wrap');
+    if (hintWrap) hintWrap.hidden = !hint;
+    if (answerWrap) answerWrap.hidden = !answer;
+    put(byId('adm-preview-hint'), hint);
+    put(byId('adm-preview-answer'), answer);
+
+    // Чертёж: сначала то, что сейчас в поле SVG-кода, иначе сохранённый файл.
+    const figure = (img, kind) => {
+      if (!img) return;
+      const svgPreview = document.querySelector(`#${kind}-svg-preview`);
+      const src = (svgPreview && !svgPreview.hidden && svgPreview.getAttribute('src')) || window.MathTasks.imageUrl(images[kind].current);
+      img.hidden = !src;
+      if (!src) img.removeAttribute('src');
+      else if (img.getAttribute('src') !== src) img.src = src;
+    };
+    figure(byId('adm-preview-cond-img'), 'condition');
+    figure(byId('adm-preview-sol-img'), 'solution');
+
+    const tagsBox = byId('adm-preview-tags');
+    if (tagsBox) {
+      tagsBox.innerHTML = getSelectedTagSlugs().map(slug => {
+        const tag = allTags.find(t => t.slug === slug);
+        const name = (lv ? tag?.title_lv : tag?.title) || tag?.title || slug;
+        return `<span class="adm-preview-tag">${escapeHtml(name)}</span>`;
+      }).join('');
+    }
+  }
+  // Правка SVG-кода перерисовывает его превью — после этого обновляем карточку.
+  ['condition', 'solution'].forEach(kind => {
+    document.querySelector(`#${kind}-svg-code`)?.addEventListener('input', () => setTimeout(renderVisitorPreview, 0));
+  });
 
   admMissingChips?.addEventListener('click', event => {
     const btn = event.target.closest('[data-missing-action]');

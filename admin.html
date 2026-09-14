@@ -226,7 +226,42 @@
                   </div>
                 </div>
               </div>
-              <div class="adm-view-body"></div>
+              <div class="adm-view-body adm-editor-body">
+                <!-- Справа от формы — как задача будет выглядеть на сайте (макет «Админка Skola2030») -->
+                <aside class="adm-preview-col" aria-label="Как увидит посетитель">
+                  <section class="adm-preview">
+                    <div class="adm-preview-head"><span>Как увидит посетитель</span><small id="adm-preview-lang">русский</small></div>
+                    <div class="adm-preview-body">
+                      <div class="adm-preview-path" id="adm-preview-path"></div>
+                      <div class="adm-preview-block">
+                        <div class="adm-preview-label">Условие</div>
+                        <div class="adm-preview-text" id="adm-preview-cond"></div>
+                        <img class="adm-preview-img" id="adm-preview-cond-img" alt="Чертёж к условию" hidden />
+                      </div>
+                      <div class="adm-preview-block" id="adm-preview-hint-wrap" hidden>
+                        <div class="adm-preview-label">Подсказка</div>
+                        <div class="adm-preview-text sub" id="adm-preview-hint"></div>
+                      </div>
+                      <div class="adm-preview-block" id="adm-preview-answer-wrap" hidden>
+                        <div class="adm-preview-label">Ответ</div>
+                        <div class="adm-preview-text" id="adm-preview-answer"></div>
+                      </div>
+                      <div class="adm-preview-divider"></div>
+                      <div class="adm-preview-block">
+                        <div class="adm-preview-label">Решение</div>
+                        <div class="adm-preview-text sub" id="adm-preview-sol"></div>
+                        <img class="adm-preview-img" id="adm-preview-sol-img" alt="Рисунок к решению" hidden />
+                      </div>
+                      <div class="adm-preview-tags" id="adm-preview-tags"></div>
+                    </div>
+                  </section>
+                  <div class="adm-cheat">
+                    <div class="adm-cheat-title">Шпаргалка</div>
+                    <code>$x^2$ · $\sqrt{2}$ · $\frac{a}{b}$ · $\sin\alpha$</code>
+                    <p>Сломанная формула подсветится в превью красным.</p>
+                  </div>
+                </aside>
+              </div>
             </section>
 
             <section class="adm-view" data-view="tasks" data-single hidden>
