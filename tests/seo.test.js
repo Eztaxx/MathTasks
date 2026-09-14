@@ -140,6 +140,68 @@ describe('seo: страницы из каталога', () => {
   });
 });
 
+describe('seo: латышская версия на /lv/…', () => {
+  const TOPIC_LV = { ...TOPIC, title_lv: 'Kā kopumu sadala noteiktā attiecībā?', subjects: { title: 'Алгебра и числа', title_lv: 'Algebra un skaitļi', slug: 'algebra' } };
+  const TASK_LV = { ...TASK, condition_latex_lv: 'Atrodiet $\\frac{1}{2}$ no $10$.' };
+
+  it('адрес с /lv разбирается как без него', () => {
+    expect(routeOf('/lv')).toEqual({ kind: 'home' });
+    expect(routeOf('/lv/')).toEqual({ kind: 'home' });
+    expect(routeOf('/lv/topic/x')).toEqual({ kind: 'topic', slug: 'x' });
+    expect(routeOf('/lv/task/321-a')).toEqual({ kind: 'task', id: 321 });
+  });
+
+  it('тема на латышском: заголовок, lang, canonical на /lv, ссылки на обе версии', async () => {
+    vi.stubGlobal('fetch', supabase([['topics?slug=eq.', [TOPIC_LV]], ['tasks?topic_id=eq.107', [TASK_LV]]]));
+    const response = await page('/lv/topic/skola2030-g6-1-x', makeEnv());
+    const html = await response.text();
+    expect(response.headers.get('content-language')).toBe('lv');
+    expect(html).toContain('<html lang="lv">');
+    expect(html).toContain('<title>6.1. Kā kopumu sadala noteiktā attiecībā?, 6. klase — MathTasks</title>');
+    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/lv/topic/skola2030-g6-1-x" />');
+    expect(html).toContain('<link rel="alternate" hreflang="ru" href="https://mathtasks.lv/topic/skola2030-g6-1-x" />');
+    expect(html).toContain('<link rel="alternate" hreflang="lv" href="https://mathtasks.lv/lv/topic/skola2030-g6-1-x" />');
+    expect(html).toContain('<link rel="alternate" hreflang="x-default" href="https://mathtasks.lv/lv/topic/skola2030-g6-1-x" />');
+    // Ссылки текстовой версии — на латышские адреса, текст — латышский.
+    expect(html).toContain('<a href="/lv/task/321-delenie-otrezka">Uzdevums №9</a> — Atrodiet 1/2 no 10.');
+    expect(html).toContain('<a href="/lv/">Sākums</a>');
+    expect(html).toContain('<a href="/lv/subject/algebra">Algebra un skaitļi</a>');
+  });
+
+  it('русская версия тоже ссылается на обе', async () => {
+    vi.stubGlobal('fetch', supabase([['topics?slug=eq.', [TOPIC_LV]], ['tasks?topic_id=eq.107', [TASK_LV]]]));
+    const html = await (await page('/topic/skola2030-g6-1-x', makeEnv())).text();
+    expect(html).toContain('<html lang="ru">');
+    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/topic/skola2030-g6-1-x" />');
+    expect(html).toContain('<link rel="alternate" hreflang="lv" href="https://mathtasks.lv/lv/topic/skola2030-g6-1-x" />');
+  });
+
+  it('задача на латышском: описание из латышского условия', async () => {
+    vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [{ ...TASK_LV, topics: TOPIC_LV }]]]));
+    const html = await (await page('/lv/task/321', makeEnv())).text();
+    expect(html).toContain('<title>Uzdevums №9 — 6.1. Kā kopumu sadala noteiktā attiecībā?, 6. klase — MathTasks</title>');
+    expect(html).toContain('<meta name="description" content="Uzdevums №9. Atrodiet 1/2 no 10. Ar atbildi un risinājumu." />');
+    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/lv/task/321-delenie-otrezka" />');
+  });
+
+  it('главная на латышском, 404 и noindex — без ссылок на версии', async () => {
+    const homeHtml = await (await page('/lv/', makeEnv())).text();
+    expect(homeHtml).toContain('<title>MathTasks — matemātikas uzdevumu krājums</title>');
+    expect(homeHtml).toContain('<link rel="canonical" href="https://mathtasks.lv/lv/" />');
+    expect(homeHtml).toContain('<a href="/lv/grade/6">6. klase</a>');
+
+    vi.stubGlobal('fetch', supabase([]));
+    const missing = await (await page('/lv/task/999', makeEnv())).text();
+    expect(missing).toContain('<title>Uzdevums nav atrasts — MathTasks</title>');
+    expect(missing).not.toContain('hreflang');
+    expect(missing).not.toContain('rel="canonical"');
+
+    const progress = await (await page('/lv/progress', makeEnv())).text();
+    expect(progress).toContain('<title>Mans progress — MathTasks</title>');
+    expect(progress).not.toContain('hreflang');
+  });
+});
+
 describe('seo: сбои — страница без подстановки лучше сломанной', () => {
   it('нет доступа к базе — статика как есть', async () => {
     const env = makeEnv();

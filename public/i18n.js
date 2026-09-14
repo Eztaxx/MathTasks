@@ -283,6 +283,39 @@
 
       // Mans progress
       nav_progress: 'Mans progress',
+
+      // Lapu virsraksti un apraksti: tās pašas atslēgas izmanto app.js (setMeta) un worker/seo.js
+      meta_site_title: 'MathTasks — matemātikas uzdevumu krājums',
+      meta_home_desc: 'Skolas matemātikas uzdevumu krājums: nosacījumi, atbildes un risinājumi pa klasēm un tēmām.',
+      meta_home_heading: 'Matemātikas uzdevumu krājums',
+      meta_home_intro: 'Nosacījumi, atbildes un risinājumi pa Skola2030 programmas klasēm un tēmām.',
+      meta_grades_heading: 'Klases un līmeņi',
+      meta_tasks_heading: 'Uzdevumi',
+      meta_grade_title: 'Uzdevumi — {grade}',
+      meta_grade_desc: 'Matemātikas sadaļas, tēmas un uzdevumi ({grade}) ar risinājumiem.',
+      meta_topic_desc: 'Uzdevumi tēmā «{topic}» ar nosacījumiem, atbildēm un risinājumiem.',
+      meta_subtopic_desc: 'Uzdevumi apakštēmā «{subtopic}» ar nosacījumiem, atbildēm un risinājumiem.',
+      meta_subject_desc: 'Sadaļas «{subject}» tēmas visām klasēm (1–12) ar uzdevumiem un risinājumiem.',
+      meta_all_tasks_title: 'Visi uzdevumi',
+      meta_all_tasks_grade_title: 'Visi uzdevumi, {grade}',
+      meta_all_tasks_desc: 'Pilns uzdevumu saraksts ar risinājumiem.',
+      meta_tags_desc: '23 tēmu krosstagi saskaņā ar VISC un Skola2030 standartu ļauj atrast uzdevumus pēc metodēm un prasmēm starp dažādām tēmām un klasēm.',
+      meta_tag_desc: 'Uzdevumi ar birku #{tag}',
+      meta_about_title: 'Par vietni',
+      meta_about_desc: 'Kā veidots MathTasks: klases, sadaļas, tēmas un risinājumi.',
+      meta_favorites_title: 'Mani favorīti',
+      meta_favorites_desc: 'Saglabātie matemātikas uzdevumi atkārtošanai.',
+      meta_search_title: 'Meklēšana: {query}',
+      meta_search_desc: 'Uzdevumu meklēšanas rezultāti: {query}.',
+      meta_search_page_title: 'Meklēšana',
+      meta_search_page_desc: 'Uzdevumu meklēšana pēc tēmas vai atslēgvārda.',
+      meta_cw_desc: 'Pārbaudes darbs tēmā «{topic}» 40 minūtēm ar automātisku vērtējumu.',
+      meta_not_found_task: 'Uzdevums nav atrasts',
+      meta_not_found_topic: 'Tēma nav atrasta',
+      meta_not_found_subject: 'Sadaļa nav atrasta',
+      meta_not_found_tag: 'Birka nav atrasta',
+      meta_not_found_grade: 'Klase nav atrasta',
+      meta_not_found_desc: 'Iespējams, tas ir dzēsts vai saite ir novecojusi.',
       progress_counter: 'Atrisināti: {count}',
       progress_counter_empty: 'Vēl nekas nav atrisināts',
       progress_title: 'Mans progress',
@@ -1009,6 +1042,39 @@
 
       // Мой прогресс
       nav_progress: 'Мой прогресс',
+
+      // Заголовки и описания страниц: те же ключи ставит app.js (setMeta) и отдаёт воркер (worker/seo.js)
+      meta_site_title: 'MathTasks — сборник задач по математике',
+      meta_home_desc: 'Сборник задач по школьной математике: условия, ответы и разбор решений по классам и темам.',
+      meta_home_heading: 'Сборник задач по математике',
+      meta_home_intro: 'Условия, ответы и разбор решений по классам и темам программы Skola2030.',
+      meta_grades_heading: 'Классы и уровни',
+      meta_tasks_heading: 'Задачи',
+      meta_grade_title: 'Задачи — {grade}',
+      meta_grade_desc: 'Разделы, темы и задачи по математике ({grade}) с разбором решений.',
+      meta_topic_desc: 'Задачи по теме «{topic}» с условиями, ответами и разбором решений.',
+      meta_subtopic_desc: 'Задачи по подтеме «{subtopic}» с условиями, ответами и разбором решений.',
+      meta_subject_desc: 'Темы раздела «{subject}» по всем классам (1–12) с задачами и решениями.',
+      meta_all_tasks_title: 'Все задачи',
+      meta_all_tasks_grade_title: 'Все задачи, {grade}',
+      meta_all_tasks_desc: 'Полный список задач с разбором решений.',
+      meta_tags_desc: '23 кросс-тега стандарта VISC / Skola2030 позволяют находить задачи по общим методам и математическим навыкам на стыке тем и классов.',
+      meta_tag_desc: 'Задачи с тегом #{tag}',
+      meta_about_title: 'О сайте',
+      meta_about_desc: 'Как устроен MathTasks: классы, разделы, темы и разбор решений.',
+      meta_favorites_title: 'Мои закладки',
+      meta_favorites_desc: 'Сохранённые задачи по математике для повторения.',
+      meta_search_title: 'Поиск: {query}',
+      meta_search_desc: 'Результаты поиска по задачам: {query}.',
+      meta_search_page_title: 'Поиск',
+      meta_search_page_desc: 'Поиск задач по теме или ключевому слову.',
+      meta_cw_desc: 'Проверочная работа по теме «{topic}» на 40 минут с автоматической оценкой.',
+      meta_not_found_task: 'Задача не найдена',
+      meta_not_found_topic: 'Тема не найдена',
+      meta_not_found_subject: 'Раздел не найден',
+      meta_not_found_tag: 'Тег не найден',
+      meta_not_found_grade: 'Класс не найден',
+      meta_not_found_desc: 'Возможно, её удалили или ссылка устарела.',
       progress_counter: 'Решено: {count}',
       progress_counter_empty: 'Пока ничего не решено',
       progress_title: 'Мой прогресс',
@@ -1464,6 +1530,19 @@
 
   // Инициализация языка из LocalStorage или браузера
   function initLang() {
+    /* На странице каталога (index.html, data-url-lang) язык — часть адреса:
+       /lv/… — латышский, без префикса — русский. Сохранённый выбор
+       латышского тоже даёт латышский: приложение само переведёт адрес на
+       /lv/…. Язык браузера здесь не учитывается — открытая русская ссылка
+       остаётся русской. */
+    if (typeof document !== 'undefined' && typeof location !== 'undefined'
+      && document.documentElement && document.documentElement.hasAttribute('data-url-lang')) {
+      let saved = null;
+      try { saved = localStorage.getItem(STORAGE_KEY); } catch {}
+      const onLv = location.pathname === '/lv' || location.pathname.startsWith('/lv/');
+      currentLang = onLv || saved === 'lv' ? 'lv' : 'ru';
+      return;
+    }
     if (typeof localStorage !== 'undefined') {
       try {
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -1636,6 +1715,8 @@
       document.documentElement.classList.remove('i18n-pending');
       updateSwitcherUI();
       document.addEventListener('click', (e) => {
+        // Язык в адресе (страница каталога) переключает app.js — вместе с адресом.
+        if (document.documentElement.hasAttribute('data-url-lang')) return;
         const btn = e.target.closest('.lang-btn');
         if (btn && btn.dataset.lang) {
           e.preventDefault();
@@ -1650,6 +1731,10 @@
       autoInitI18n();
     }
   }
+
+  /* Воркер Cloudflare берёт словарь отсюда (worker/i18n.js): там нет ни
+     window, ни module, а esbuild не видит в этом файле модуля. */
+  if (typeof globalThis !== 'undefined' && !globalThis.MathTasksI18n) globalThis.MathTasksI18n = i18nApi;
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = i18nApi;

@@ -13,7 +13,13 @@ export const {
   formatSubtopicCode,
   formatTopicTitle,
   getCrossTag,
+  getLocalizedText,
+  isLocalizablePath,
+  langOfPath,
   latexToPlainText,
+  localizeHref,
   makeSlug,
-  taskDescription
+  stripLangPath,
+  taskDescription,
+  toLangPath
 } = lib;

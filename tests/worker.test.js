@@ -195,11 +195,28 @@ describe('Cloudflare Worker: чистые функции', () => {
       const xml = buildSitemapXml(paths, 'https://mathtasks.lv');
 
       expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
-      expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
-      expect(xml).toContain('  <url><loc>https://mathtasks.lv/</loc></url>');
-      expect(xml).toContain('  <url><loc>https://mathtasks.lv/tasks</loc></url>');
-      expect(xml).toContain('  <url><loc>https://mathtasks.lv/topic/algebra</loc></url>');
+      expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">');
+      for (const loc of ['/', '/tasks', '/topic/algebra', '/lv/', '/lv/tasks', '/lv/topic/algebra']) {
+        expect(xml).toContain(`<url><loc>https://mathtasks.lv${loc}</loc>`);
+      }
       expect(xml).toContain('</urlset>');
+    });
+
+    it('у каждой версии страницы — ссылки на обе: ru, lv и x-default (латышская)', () => {
+      const xml = buildSitemapXml(['/topic/algebra'], 'https://mathtasks.lv');
+      const blocks = xml.match(/<url>[\s\S]*?<\/url>/g);
+      expect(blocks).toHaveLength(2);
+      for (const block of blocks) {
+        expect(block).toContain('<xhtml:link rel="alternate" hreflang="ru" href="https://mathtasks.lv/topic/algebra"/>');
+        expect(block).toContain('<xhtml:link rel="alternate" hreflang="lv" href="https://mathtasks.lv/lv/topic/algebra"/>');
+        expect(block).toContain('<xhtml:link rel="alternate" hreflang="x-default" href="https://mathtasks.lv/lv/topic/algebra"/>');
+      }
+    });
+
+    it('файлы (trainer.html) — одной строкой, без латышской версии', () => {
+      const xml = buildSitemapXml(['/trainer.html'], 'https://mathtasks.lv');
+      expect(xml).toContain('  <url><loc>https://mathtasks.lv/trainer.html</loc></url>');
+      expect(xml).not.toContain('/lv/trainer.html');
     });
 
     it('нормализует слэш в origin и экранирует спецсимволы в URL', () => {

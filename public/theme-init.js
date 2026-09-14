@@ -25,7 +25,14 @@
   } catch (e) {}
 
   try {
-    const savedLang = localStorage.getItem('math-tasks:lang') || 'ru';
+    /* На странице каталога (data-url-lang) язык — часть адреса: /lv/… —
+       латышский, иначе — русский, если латышский не выбран раньше
+       (см. initLang в i18n.js). На остальных страницах — сохранённый выбор. */
+    const stored = localStorage.getItem('math-tasks:lang') || 'ru';
+    const onLv = location.pathname === '/lv' || location.pathname.startsWith('/lv/');
+    const savedLang = document.documentElement.hasAttribute('data-url-lang')
+      ? (onLv || stored === 'lv' ? 'lv' : 'ru')
+      : stored;
     document.documentElement.lang = savedLang;
     document.documentElement.setAttribute('data-lang', savedLang);
     if (savedLang === 'lv') {

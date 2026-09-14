@@ -13,8 +13,8 @@
      npx wrangler secret put SUPABASE_KEY
      npx wrangler secret put GEMINI_API_KEY   (необязательно) */
 
-import { latexToPlainText } from './lib.js';
-import { renderPage, routeOf } from './seo.js';
+import { isLocalizablePath, latexToPlainText, toLangPath } from './lib.js';
+import { CANONICAL_ORIGIN, renderPage, routeOf } from './seo.js';
 
 const TRANSLIT = {
   а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i',
@@ -98,11 +98,31 @@ function buildSitemapPaths({ subjects = [], topics = [], tasks = [], tags = [], 
   return [...new Set(paths)];
 }
 
+/* У страниц каталога две языковые версии: русская без префикса и латышская
+   на /lv/…. В карту идут обе, и у каждой — ссылки на обе версии
+   (xhtml:link hreflang, x-default — латышская). Файлы — trainer.html,
+   exams.html — одноязычные по адресу и идут одной строкой. */
 function buildSitemapXml(paths, origin = 'https://mathtasks.lv') {
   const cleanOrigin = String(origin || '').replace(/\/+$/, '');
+  const entries = [];
+  for (const p of new Set(paths)) {
+    const pathOnly = p.split(/[?#]/)[0];
+    if (!isLocalizablePath(pathOnly)) {
+      entries.push(`  <url><loc>${escapeHtml(cleanOrigin + p)}</loc></url>`);
+      continue;
+    }
+    const rest = p.slice(pathOnly.length);
+    const ru = cleanOrigin + toLangPath(pathOnly, 'ru') + rest;
+    const lv = cleanOrigin + toLangPath(pathOnly, 'lv') + rest;
+    const alternates = [['ru', ru], ['lv', lv], ['x-default', lv]]
+      .map(([lang, href]) => `\n    <xhtml:link rel="alternate" hreflang="${lang}" href="${escapeHtml(href)}"/>`)
+      .join('');
+    entries.push(`  <url><loc>${escapeHtml(ru)}</loc>${alternates}\n  </url>`);
+    entries.push(`  <url><loc>${escapeHtml(lv)}</loc>${alternates}\n  </url>`);
+  }
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${[...new Set(paths)].map(p => `  <url><loc>${escapeHtml(cleanOrigin + p)}</loc></url>`).join('\n')}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${entries.join('\n')}
 </urlset>`;
 }
 
@@ -131,7 +151,8 @@ async function sitemap(request, env) {
     paths = buildSitemapPaths();
   }
 
-  const body = buildSitemapXml(paths, origin);
+  // Адреса в карте — всегда основного домена: там же указывает и canonical.
+  const body = buildSitemapXml(paths, origin.endsWith('.workers.dev') ? CANONICAL_ORIGIN : origin);
 
   return new Response(body, {
     headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600' }
@@ -361,7 +382,7 @@ export default {
     if (url.pathname === '/api/generate-task') return generateTask(request, env);
 
     // Страница задачи: ботам отдаём мета-теги, людям — обычное приложение.
-    const taskMatch = url.pathname.match(/^\/task\/(\d+)/);
+    const taskMatch = url.pathname.match(/^(?:\/lv)?\/task\/(\d+)/);
     if (taskMatch && isSocialBot(request.headers.get('user-agent'))) {
       const preview = await taskPreview(request, env, taskMatch[1]);
       if (preview) return preview;

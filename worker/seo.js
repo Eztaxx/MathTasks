@@ -1,9 +1,8 @@
 /* Страницы для поисковиков и для тех, у кого нет JavaScript.
 
    Сайт — одностраничное приложение: без скриптов любая страница была одной
-   и той же оболочкой index.html — общий заголовок «MathTasks — сборник задач
-   по математике», общее описание, ни canonical, ни текста. Для поисковика
-   все адреса из карты сайта выглядели одинаковыми.
+   и той же оболочкой index.html — общий заголовок, общее описание, ни
+   canonical, ни текста. Для поисковика все адреса выглядели одинаковыми.
 
    Воркер берёт ту же оболочку и подставляет в неё заголовок, описание,
    canonical и короткую текстовую версию страницы из каталога. Отдаётся это
@@ -11,27 +10,35 @@
    текстовую версию прячет theme-init.js до первой отрисовки, а app.js её
    удаляет: приложение рисует ту же страницу само.
 
-   Заголовки и описания повторяют setMeta() в app.js, иначе поисковик видел
-   бы, как они меняются после загрузки скриптов. */
+   Две языковые версии: русская — на адресах без префикса, латышская — на
+   /lv/…. У каждой свой canonical и ссылки на обе версии (hreflang ru, lv и
+   x-default — латышская: основной язык страны). Тексты — из словаря
+   i18n.js, те же ключи, что у setMeta() в app.js: иначе поисковик видел
+   бы, как заголовок меняется после загрузки скриптов. */
 
 import {
   formatSubtopicCode,
   formatTopicTitle,
   getCrossTag,
+  getLocalizedText,
+  langOfPath,
   latexToPlainText,
+  localizeHref,
   makeSlug,
-  taskDescription
+  stripLangPath,
+  taskDescription,
+  toLangPath
 } from './lib.js';
+import { t } from './i18n.js';
 
 /* Сайт открывается и на mathtasks.lv, и на *.workers.dev. Для поисковика это
    две копии; canonical всегда указывает на основной домен. */
 export const CANONICAL_ORIGIN = 'https://mathtasks.lv';
 
 const SITE_NAME = 'MathTasks';
-const DEFAULT_TITLE = `${SITE_NAME} — сборник задач по математике`;
-const DEFAULT_DESCRIPTION = 'Сборник задач по школьной математике: условия, ответы и разбор решений по классам и темам.';
 const ITEM_TEXT_LENGTH = 160;
 const LIST_LIMIT = 200;
+const LOCALES = { ru: 'ru_RU', lv: 'lv_LV' };
 
 const esc = value => String(value ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -41,40 +48,34 @@ const decode = value => {
   try { return decodeURIComponent(value); } catch { return value; }
 };
 
-const LEVEL_LABELS = {
-  10: 'Vispārīgais līmenis',
-  11: 'Optimālais līmenis',
-  12: 'Augstākais līmenis',
-  visparigais: 'Vispārīgais līmenis',
-  'matematika-1': 'Optimālais līmenis',
-  'matematika-2': 'Augstākais līmenis'
-};
+const GRADE_KEYS = { visparigais: 'grade_visparigais', 'matematika-1': 'grade_matematika_1', 'matematika-2': 'grade_matematika_2' };
 
-// Как gradeLabel() в app.js на русском: «6 класс», старшие классы — уровнем.
-export const gradeLabelRu = grade => LEVEL_LABELS[grade] || (grade ? `${grade} класс` : '');
+// Как gradeLabel() в app.js: «6 класс» / «6. klase», старшие классы — уровнем.
+export const gradeLabelOf = (grade, lang = 'ru') => {
+  if (!grade) return '';
+  const key = GRADE_KEYS[grade] || `grade_${grade}`;
+  const text = t(key, {}, lang);
+  return text && text !== key ? text : t('grade_N', { n: grade }, lang);
+};
+export const gradeLabelRu = grade => gradeLabelOf(grade, 'ru');
 
 const GRADE_VALUES = new Set(['1', '2', '3', '4', '5', '6', '7', '8', '9', 'visparigais', 'matematika-1', 'matematika-2']);
 
+// Ключи словаря; robots — личные и служебные страницы, в поиске им делать нечего.
 const STATIC_PAGES = {
-  '/tasks': { title: 'Все задачи', description: 'Полный список задач с разбором решений.' },
-  '/tags': {
-    title: 'Кросс-теги',
-    description: '23 кросс-тега стандарта VISC / Skola2030 позволяют находить задачи по общим методам и математическим навыкам на стыке тем и классов.'
-  },
-  '/about': { title: 'О сайте', description: 'Как устроен MathTasks: классы, разделы, темы и разбор решений.' },
-  '/control-works': {
-    title: 'Тематические контрольные работы',
-    description: 'Подготовка к школьным проверочным работам с контролем времени (40 минут).'
-  },
-  // Личные и служебные страницы: в поиске им делать нечего.
-  '/progress': { title: 'Мой прогресс', description: 'Решённые задачи, дни подряд, пройденные темы и достижения.', robots: 'noindex, follow' },
-  '/favorites': { title: 'Мои закладки', description: 'Сохранённые задачи по математике для повторения.', robots: 'noindex, follow' },
-  '/search': { title: 'Поиск', description: 'Поиск задач по теме или ключевому слову.', robots: 'noindex, follow' }
+  '/tasks': { title: 'meta_all_tasks_title', description: 'meta_all_tasks_desc' },
+  '/tags': { title: 'tags_label', description: 'meta_tags_desc' },
+  '/about': { title: 'meta_about_title', description: 'meta_about_desc' },
+  '/control-works': { title: 'cw_catalog_title', description: 'cw_catalog_desc' },
+  '/progress': { title: 'progress_title', description: 'progress_meta', robots: 'noindex, follow' },
+  '/favorites': { title: 'meta_favorites_title', description: 'meta_favorites_desc', robots: 'noindex, follow' },
+  '/search': { title: 'meta_search_page_title', description: 'meta_search_page_desc', robots: 'noindex, follow' }
 };
 
-/* Адрес → вид страницы. null — воркер страницу не трогает. */
+/* Адрес → вид страницы (префикс языка снимается). null — страницу не трогаем. */
 export function routeOf(pathname) {
-  const path = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  const clean = stripLangPath(pathname);
+  const path = clean.length > 1 ? clean.replace(/\/+$/, '') : clean;
   if (path === '/') return { kind: 'home' };
   if (STATIC_PAGES[path]) return { kind: 'static', path };
   let m;
@@ -105,180 +106,183 @@ async function query(env, path) {
 const eq = value => encodeURIComponent(String(value));
 const taskHref = task => `/task/${task.id}-${makeSlug(task.title)}`;
 const taskNumber = task => (Number(task.position) > 0 ? Number(task.position) : null);
-const taskLabel = task => (taskNumber(task) ? `Задача №${taskNumber(task)}` : 'Задача');
-const withGrade = (title, grade) => (grade ? `${title}, ${gradeLabelRu(grade)}` : title);
 
-const taskItems = tasks => tasks.map(task => ({
-  href: taskHref(task),
-  label: taskLabel(task),
-  text: latexToPlainText(task.condition_latex, ITEM_TEXT_LENGTH)
-}));
-
-const topicItems = topics => topics.map(topic => ({
-  href: `/topic/${topic.slug}`,
-  label: withGrade(formatTopicTitle(topic, 'ru'), topic.grade)
-}));
-
-const notFound = (heading, intro = 'Возможно, её удалили или ссылка устарела.') => ({
-  status: 404,
-  title: heading,
-  description: intro,
-  robots: 'noindex',
-  heading,
-  intro,
-  crumbs: [['Главная', '/']]
-});
-
-const HOME_GRADES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'visparigais', 'matematika-1', 'matematika-2'];
-
-/* Данные и тексты страницы. null — страницу не трогаем (нет доступа к базе). */
-export async function buildPage(route, env) {
+/* Данные и тексты страницы на нужном языке. null — страницу не трогаем
+   (нет доступа к базе). */
+export async function buildPage(route, env, lang = 'ru') {
   if (NEEDS_DATA.has(route.kind) && !(env.SUPABASE_URL && (env.SUPABASE_KEY || env.SUPABASE_ANON_KEY))) return null;
+
+  const tr = (key, params) => t(key, params, lang);
+  const text = (row, field) => getLocalizedText(row, field, lang) || '';
+  const topicTitleOf = topic => formatTopicTitle(topic, lang);
+  const withGrade = (title, grade) => (grade ? `${title}, ${gradeLabelOf(grade, lang)}` : title);
+  const taskLabel = task => (taskNumber(task) ? `${tr('task_prefix')} №${taskNumber(task)}` : tr('task_prefix'));
+  const home = () => [tr('nav_home'), '/'];
+  const taskItems = tasks => tasks.map(task => ({
+    href: taskHref(task),
+    label: taskLabel(task),
+    text: latexToPlainText(text(task, 'condition_latex'), ITEM_TEXT_LENGTH)
+  }));
+  const notFound = key => ({
+    status: 404,
+    title: tr(key),
+    description: tr('meta_not_found_desc'),
+    robots: 'noindex',
+    heading: tr(key),
+    intro: tr('meta_not_found_desc'),
+    crumbs: [home()]
+  });
 
   switch (route.kind) {
     case 'home':
       return {
         title: '',
-        description: DEFAULT_DESCRIPTION,
+        description: tr('meta_home_desc'),
         canonicalPath: '/',
-        heading: 'Сборник задач по математике',
-        intro: 'Условия, ответы и разбор решений по классам и темам программы Skola2030.',
-        items: HOME_GRADES.map(grade => ({ href: `/grade/${grade}`, label: gradeLabelRu(grade) })),
-        itemsTitle: 'Классы и уровни'
+        heading: tr('meta_home_heading'),
+        intro: tr('meta_home_intro'),
+        items: [...GRADE_VALUES].map(grade => ({ href: `/grade/${grade}`, label: gradeLabelOf(grade, lang) })),
+        itemsTitle: tr('meta_grades_heading')
       };
 
     case 'static': {
-      const page = STATIC_PAGES[route.path];
+      const keys = STATIC_PAGES[route.path];
       return {
-        ...page,
+        title: tr(keys.title),
+        description: tr(keys.description),
+        robots: keys.robots,
         canonicalPath: route.path,
-        heading: page.title,
-        intro: page.description,
-        crumbs: [['Главная', '/']]
+        heading: tr(keys.title),
+        intro: tr(keys.description),
+        crumbs: [home()]
       };
     }
 
     case 'grade': {
-      if (!GRADE_VALUES.has(route.grade)) return notFound('Класс не найден', 'Возможно, ссылка устарела.');
-      const label = gradeLabelRu(route.grade);
+      if (!GRADE_VALUES.has(route.grade)) return notFound('meta_not_found_grade');
+      const label = gradeLabelOf(route.grade, lang);
       // Список тем — только для 1–9 классов: у старших уровней свои правила отбора тем (isTopicInGrade в app.js).
       const topics = /^\d$/.test(route.grade)
-        ? await query(env, `topics?grade=eq.${eq(route.grade)}&select=title,slug,grade,position&order=position.asc&limit=${LIST_LIMIT}`)
+        ? await query(env, `topics?grade=eq.${eq(route.grade)}&select=title,title_lv,slug,grade,position&order=position.asc&limit=${LIST_LIMIT}`)
         : [];
       return {
-        title: `Задачи — ${label}`,
-        description: `Разделы, темы и задачи по математике (${label}) с разбором решений.`,
+        title: tr('meta_grade_title', { grade: label }),
+        description: tr('meta_grade_desc', { grade: label }),
         canonicalPath: `/grade/${route.grade}`,
-        heading: `Задачи — ${label}`,
-        crumbs: [['Главная', '/']],
-        items: topics.map(topic => ({ href: `/topic/${topic.slug}`, label: formatTopicTitle(topic, 'ru') })),
-        itemsTitle: 'Темы'
+        heading: tr('meta_grade_title', { grade: label }),
+        crumbs: [home()],
+        items: topics.map(topic => ({ href: `/topic/${topic.slug}`, label: topicTitleOf(topic) })),
+        itemsTitle: tr('topics_heading')
       };
     }
 
     case 'gradeTasks': {
-      if (!GRADE_VALUES.has(route.grade)) return notFound('Класс не найден', 'Возможно, ссылка устарела.');
-      const label = gradeLabelRu(route.grade);
+      if (!GRADE_VALUES.has(route.grade)) return notFound('meta_not_found_grade');
+      const label = gradeLabelOf(route.grade, lang);
       return {
-        title: `Все задачи, ${label}`,
-        description: 'Полный список задач с разбором решений.',
+        title: tr('meta_all_tasks_grade_title', { grade: label }),
+        description: tr('meta_all_tasks_desc'),
         canonicalPath: `/grade/${route.grade}/tasks`,
-        heading: `Все задачи — ${label}`,
-        crumbs: [['Главная', '/'], [label, `/grade/${route.grade}`]]
+        heading: tr('meta_all_tasks_grade_title', { grade: label }),
+        crumbs: [home(), [label, `/grade/${route.grade}`]]
       };
     }
 
     case 'subject': {
-      const [subject] = await query(env, `subjects?slug=eq.${eq(route.slug)}&select=id,title,slug&limit=1`);
-      if (!subject) return notFound('Раздел не найден', 'Возможно, его удалили или ссылка устарела.');
+      const [subject] = await query(env, `subjects?slug=eq.${eq(route.slug)}&select=id,title,title_lv,slug&limit=1`);
+      if (!subject) return notFound('meta_not_found_subject');
+      const title = text(subject, 'title');
       const topics = await query(env,
-        `topics?subject_id=eq.${eq(subject.id)}&select=title,slug,grade,position&order=grade.asc,position.asc&limit=${LIST_LIMIT}`);
+        `topics?subject_id=eq.${eq(subject.id)}&select=title,title_lv,slug,grade,position&order=grade.asc,position.asc&limit=${LIST_LIMIT}`);
       return {
-        title: subject.title,
-        description: `Темы раздела «${subject.title}» по всем классам (1–12) с задачами и решениями.`,
+        title,
+        description: tr('meta_subject_desc', { subject: title }),
         canonicalPath: `/subject/${subject.slug}`,
-        heading: subject.title,
-        crumbs: [['Главная', '/']],
-        items: topicItems(topics),
-        itemsTitle: 'Темы'
+        heading: title,
+        crumbs: [home()],
+        items: topics.map(topic => ({ href: `/topic/${topic.slug}`, label: withGrade(topicTitleOf(topic), topic.grade) })),
+        itemsTitle: tr('topics_heading')
       };
     }
 
     case 'topic':
     case 'controlWork': {
       const [topic] = await query(env,
-        `topics?slug=eq.${eq(route.slug)}&select=id,title,slug,grade,position,description,subjects(title,slug)&limit=1`);
-      if (!topic) return notFound('Тема не найдена', 'Возможно, её удалили или ссылка устарела.');
-      const topicTitle = formatTopicTitle(topic, 'ru');
-      const crumbs = [['Главная', '/']];
-      if (topic.grade) crumbs.push([gradeLabelRu(topic.grade), `/grade/${topic.grade}`]);
-      if (topic.subjects?.slug) crumbs.push([topic.subjects.title, `/subject/${topic.subjects.slug}`]);
+        `topics?slug=eq.${eq(route.slug)}&select=id,title,title_lv,slug,grade,position,description,description_lv,subjects(title,title_lv,slug)&limit=1`);
+      if (!topic) return notFound('meta_not_found_topic');
+      const topicTitle = topicTitleOf(topic);
+      const crumbs = [home()];
+      if (topic.grade) crumbs.push([gradeLabelOf(topic.grade, lang), `/grade/${topic.grade}`]);
+      if (topic.subjects?.slug) crumbs.push([text(topic.subjects, 'title'), `/subject/${topic.subjects.slug}`]);
 
       if (route.kind === 'controlWork') {
         // Контрольная повторяет задачи темы — в поиске ей место занимать незачем.
         return {
-          title: `Контрольная работа: ${topicTitle}`,
-          description: `Проверочная работа по теме «${topicTitle}» на 40 минут с автоматической оценкой.`,
+          title: tr('cw_mode_title', { topic: topicTitle }),
+          description: tr('meta_cw_desc', { topic: topicTitle }),
           canonicalPath: `/control-work/${topic.slug}`,
           robots: 'noindex, follow',
-          heading: `Контрольная работа: ${topicTitle}`,
+          heading: tr('cw_mode_title', { topic: topicTitle }),
           crumbs: [...crumbs, [topicTitle, `/topic/${topic.slug}`]]
         };
       }
 
       const tasks = await query(env,
-        `tasks?topic_id=eq.${eq(topic.id)}&is_published=eq.true&select=id,title,position,condition_latex&order=position.asc,id.asc&limit=${LIST_LIMIT}`);
+        `tasks?topic_id=eq.${eq(topic.id)}&is_published=eq.true&select=id,title,position,condition_latex,condition_latex_lv&order=position.asc,id.asc&limit=${LIST_LIMIT}`);
+      const description = text(topic, 'description');
       return {
         title: withGrade(topicTitle, topic.grade),
-        description: topic.description || `Задачи по теме «${topicTitle}» с условиями, ответами и разбором решений.`,
+        description: description || tr('meta_topic_desc', { topic: topicTitle }),
         canonicalPath: `/topic/${topic.slug}`,
         heading: topicTitle,
-        intro: topic.description || '',
+        intro: description,
         crumbs,
         items: taskItems(tasks),
-        itemsTitle: 'Задачи'
+        itemsTitle: tr('meta_tasks_heading')
       };
     }
 
     case 'subtopic': {
       const [sub] = await query(env,
-        `subtopics?slug=eq.${eq(route.slug)}&select=id,title,code,slug,topics(title,slug,grade,position)&limit=1`);
-      if (!sub) return notFound('Подтема не найдена', 'Возможно, её удалили или ссылка устарела.');
+        `subtopics?slug=eq.${eq(route.slug)}&select=id,title,title_lv,code,slug,topics(title,title_lv,slug,grade,position)&limit=1`);
+      if (!sub) return notFound('subtopic_not_found');
       const topic = sub.topics || {};
       const code = formatSubtopicCode(sub.code, topic.grade);
-      const title = `${code ? `${code}. ` : ''}${sub.title}`;
+      const subTitle = text(sub, 'title');
+      const title = `${code ? `${code}. ` : ''}${subTitle}`;
       const tasks = await query(env,
-        `tasks?subtopic_id=eq.${eq(sub.id)}&is_published=eq.true&select=id,title,position,condition_latex&order=position.asc,id.asc&limit=${LIST_LIMIT}`);
-      const crumbs = [['Главная', '/']];
-      if (topic.grade) crumbs.push([gradeLabelRu(topic.grade), `/grade/${topic.grade}`]);
-      if (topic.slug) crumbs.push([formatTopicTitle(topic, 'ru'), `/topic/${topic.slug}`]);
+        `tasks?subtopic_id=eq.${eq(sub.id)}&is_published=eq.true&select=id,title,position,condition_latex,condition_latex_lv&order=position.asc,id.asc&limit=${LIST_LIMIT}`);
+      const crumbs = [home()];
+      if (topic.grade) crumbs.push([gradeLabelOf(topic.grade, lang), `/grade/${topic.grade}`]);
+      if (topic.slug) crumbs.push([topicTitleOf(topic), `/topic/${topic.slug}`]);
       return {
         title: withGrade(title, topic.grade),
-        description: `Задачи по подтеме «${sub.title}» с условиями, ответами и разбором решений.`,
+        description: tr('meta_subtopic_desc', { subtopic: subTitle }),
         canonicalPath: `/subtopic/${sub.slug}`,
         heading: title,
         crumbs,
         items: taskItems(tasks),
-        itemsTitle: 'Задачи'
+        itemsTitle: tr('meta_tasks_heading')
       };
     }
 
     case 'task': {
       const [task] = await query(env,
-        `tasks?id=eq.${eq(route.id)}&is_published=eq.true&select=id,title,position,condition_latex,topics(title,slug,grade,position)&limit=1`);
-      if (!task) return notFound('Задача не найдена');
+        `tasks?id=eq.${eq(route.id)}&is_published=eq.true&select=id,title,position,condition_latex,condition_latex_lv,topics(title,title_lv,slug,grade,position)&limit=1`);
+      if (!task) return notFound('meta_not_found_task');
       const topic = task.topics || null;
-      const topicTitle = topic ? formatTopicTitle(topic, 'ru') : '';
+      const topicTitle = topic ? topicTitleOf(topic) : '';
       const label = taskLabel(task);
-      const crumbs = [['Главная', '/']];
-      if (topic?.grade) crumbs.push([gradeLabelRu(topic.grade), `/grade/${topic.grade}`]);
+      const condition = text(task, 'condition_latex');
+      const crumbs = [home()];
+      if (topic?.grade) crumbs.push([gradeLabelOf(topic.grade, lang), `/grade/${topic.grade}`]);
       if (topic?.slug) crumbs.push([topicTitle, `/topic/${topic.slug}`]);
       return {
         title: topic ? `${label} — ${withGrade(topicTitle, topic.grade)}` : label,
-        description: taskDescription({ condition: task.condition_latex, number: taskNumber(task), topicTitle, lang: 'ru' }),
+        description: taskDescription({ condition, number: taskNumber(task), topicTitle, lang }),
         canonicalPath: taskHref(task),
         heading: label,
-        intro: latexToPlainText(task.condition_latex, 2000),
+        intro: latexToPlainText(condition, 2000),
         crumbs
       };
     }
@@ -286,20 +290,23 @@ export async function buildPage(route, env) {
     case 'tag': {
       let tag = null;
       try {
-        [tag] = await query(env, `tags?slug=eq.${eq(route.slug)}&select=slug,title,description&limit=1`);
+        [tag] = await query(env, `tags?slug=eq.${eq(route.slug)}&select=slug,title,title_lv,description,description_lv&limit=1`);
       } catch {
         tag = null;
       }
-      tag = tag || getCrossTag(route.slug);
-      if (!tag) return notFound('Тег не найден', 'Возможно, ссылка устарела или тег не существует.');
-      const title = tag.title || tag.slug;
+      const dict = getCrossTag(route.slug);
+      tag = tag || dict;
+      if (!tag) return notFound('meta_not_found_tag');
+      const title = text(tag, 'title') || tag.slug;
+      // Как showTag в app.js: латышское описание — из базы или словаря lib.js.
+      const description = (lang === 'lv' && (tag.description_lv || dict?.description_lv)) || tag.description || dict?.description || '';
       return {
         title: `#${title}`,
-        description: tag.description || `Задачи с тегом #${title}`,
+        description: description || tr('meta_tag_desc', { tag: title }),
         canonicalPath: `/tag/${tag.slug}`,
         heading: `#${title}`,
-        intro: tag.description || '',
-        crumbs: [['Главная', '/'], ['Кросс-теги', '/tags']]
+        intro: description,
+        crumbs: [home(), [tr('tags_label'), '/tags']]
       };
     }
 
@@ -309,16 +316,17 @@ export async function buildPage(route, env) {
 }
 
 /* Текстовая версия страницы: заголовок, «хлебные крошки», вводный текст,
-   список ссылок. Без стилей приложения она читается как обычный документ. */
-export function renderSsrBody({ heading, intro = '', crumbs = [], items = [], itemsTitle = '' }) {
+   список ссылок. Ссылки ведут на версию того же языка. */
+export function renderSsrBody({ heading, intro = '', crumbs = [], items = [], itemsTitle = '' }, lang = 'ru') {
+  const href = path => esc(localizeHref(path, lang));
   const crumbHtml = crumbs.length
-    ? `<nav class="ssr-crumbs" aria-label="Навигация">${crumbs
-      .map(([label, href]) => (href ? `<a href="${esc(href)}">${esc(label)}</a>` : `<span>${esc(label)}</span>`))
+    ? `<nav class="ssr-crumbs" aria-label="${esc(t('breadcrumbs', {}, lang))}">${crumbs
+      .map(([label, path]) => (path ? `<a href="${href(path)}">${esc(label)}</a>` : `<span>${esc(label)}</span>`))
       .join(' / ')}</nav>`
     : '';
   const list = items.length
     ? `${itemsTitle ? `<h2>${esc(itemsTitle)}</h2>` : ''}<ol class="ssr-list">${items
-      .map(item => `<li><a href="${esc(item.href)}">${esc(item.label)}</a>${item.text ? ` — ${esc(item.text)}` : ''}</li>`)
+      .map(item => `<li><a href="${href(item.href)}">${esc(item.label)}</a>${item.text ? ` — ${esc(item.text)}` : ''}</li>`)
       .join('')}</ol>`
     : '';
   return `<section id="ssr-content" class="ssr-content">${crumbHtml}<h1>${esc(heading)}</h1>${intro ? `<p>${esc(intro)}</p>` : ''}${list}</section>`;
@@ -327,26 +335,38 @@ export function renderSsrBody({ heading, intro = '', crumbs = [], items = [], it
 /* Подстановка в оболочку index.html. Замены делаются функцией, а не
    строкой: в описании может встретиться «$&», и String.replace принял бы
    его за ссылку на найденный текст. */
-export function injectPage(html, page) {
-  const fullTitle = page.title ? `${page.title} — ${SITE_NAME}` : DEFAULT_TITLE;
-  const description = page.description || DEFAULT_DESCRIPTION;
-  const canonical = CANONICAL_ORIGIN + (page.canonicalPath || '/');
+export function injectPage(html, page, lang = 'ru') {
+  const fullTitle = page.title ? `${page.title} — ${SITE_NAME}` : t('meta_site_title', {}, lang);
+  const description = page.description || t('meta_home_desc', {}, lang);
+  const path = page.canonicalPath || '/';
+  const canonical = CANONICAL_ORIGIN + toLangPath(path, lang);
   const setAttr = (source, pattern, value) => source.replace(pattern, (match, before, after) => `${before}${esc(value)}${after}`);
 
-  let out = html.replace(/<title>[\s\S]*?<\/title>/, () => `<title>${esc(fullTitle)}</title>`);
+  let out = html.replace(/<html lang="[a-z]+"/, () => `<html lang="${lang}"`);
+  out = out.replace(/<title>[\s\S]*?<\/title>/, () => `<title>${esc(fullTitle)}</title>`);
   out = setAttr(out, /(<meta name="description" content=")[^"]*(")/, description);
   out = setAttr(out, /(<meta property="og:title" content=")[^"]*(")/, fullTitle);
   out = setAttr(out, /(<meta property="og:description" content=")[^"]*(")/, description);
+  out = setAttr(out, /(<meta property="og:locale" content=")[^"]*(")/, LOCALES[lang] || LOCALES.ru);
 
+  /* Ссылки на обе языковые версии — только у страниц, которые попадают в
+     поиск: у 404 и noindex их нет. */
+  const indexable = page.status !== 404 && !page.robots;
+  const ruUrl = CANONICAL_ORIGIN + toLangPath(path, 'ru');
+  const lvUrl = CANONICAL_ORIGIN + toLangPath(path, 'lv');
+  // У 404 canonical нет: указывать ему на главную — значит выдавать её за копию несуществующей страницы.
   const head = [
-    `<link rel="canonical" href="${esc(canonical)}" />`,
+    page.status !== 404 ? `<link rel="canonical" href="${esc(canonical)}" />` : '',
+    indexable ? `<link rel="alternate" hreflang="ru" href="${esc(ruUrl)}" />` : '',
+    indexable ? `<link rel="alternate" hreflang="lv" href="${esc(lvUrl)}" />` : '',
+    indexable ? `<link rel="alternate" hreflang="x-default" href="${esc(lvUrl)}" />` : '',
     `<meta property="og:url" content="${esc(canonical)}" />`,
     page.robots ? `<meta name="robots" content="${esc(page.robots)}" />` : ''
   ].filter(Boolean).join('\n  ');
   out = out.replace('</head>', () => `  ${head}\n</head>`);
 
   if (page.heading) {
-    const body = renderSsrBody(page);
+    const body = renderSsrBody(page, lang);
     out = out.replace('<div id="view-home">', () => `${body}\n    <div id="view-home">`);
   }
   return out;
@@ -357,25 +377,28 @@ export function injectPage(html, page) {
    страница без подстановки лучше, чем сломанная. */
 export async function renderPage(request, env) {
   const assetResponse = await env.ASSETS.fetch(request);
-  const route = routeOf(new URL(request.url).pathname);
+  const { pathname } = new URL(request.url);
+  const route = routeOf(pathname);
   if (!route || !['GET', 'HEAD'].includes(request.method)) return assetResponse;
   const type = assetResponse.headers.get('content-type') || '';
   if (assetResponse.status !== 200 || !type.includes('text/html')) return assetResponse;
 
+  const lang = langOfPath(pathname);
   let page;
   try {
-    page = await buildPage(route, env);
+    page = await buildPage(route, env, lang);
   } catch (error) {
     console.error('seo:', error.message);
     return assetResponse;
   }
   if (!page) return assetResponse;
 
-  const html = injectPage(await assetResponse.text(), page);
+  const html = injectPage(await assetResponse.text(), page, lang);
   const headers = new Headers(assetResponse.headers);
   // Тело другое — длина и ETag статики к нему уже не относятся.
   headers.delete('content-length');
   headers.delete('etag');
   headers.set('content-type', 'text/html; charset=utf-8');
+  headers.set('content-language', lang);
   return new Response(request.method === 'HEAD' ? null : html, { status: page.status || 200, headers });
 }

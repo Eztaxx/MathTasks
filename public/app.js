@@ -116,6 +116,17 @@ const loc = (item, field) => {
     : (item?.[field] || '');
 };
 
+/* Язык — часть адреса: /lv/… латышский, без префикса русский (lib.js).
+   Маршруты разбираются по пути без префикса, а ссылки и переходы получают
+   префикс текущего языка. */
+const langLib = window.MathTasksLib || {};
+const stripLangPath = path => (langLib.stripLangPath ? langLib.stripLangPath(path) : (path || '/'));
+const appPath = () => stripLangPath(location.pathname);
+const langPath = (path, lang = getLang()) => (langLib.localizeHref ? langLib.localizeHref(path, lang) : path);
+
+// Заголовки и описания страниц — из словаря i18n.js; те же ключи отдаёт воркер (worker/seo.js).
+const metaText = (key, params) => (window.MathTasks.t || (k => k))(key, params);
+
 const topicTitleOf = (topic) => {
   const lang = window.MathTasks?.getLang ? window.MathTasks.getLang() : 'ru';
   return (window.MathTasksLib && window.MathTasksLib.formatTopicTitle)
@@ -277,17 +288,17 @@ gradeFilter.addEventListener('click', async event => {
   const chip = event.target.closest('.grade-chip');
   if (!chip) return;
   event.preventDefault();
-  const href = chip.getAttribute('href');
+  const href = stripLangPath(chip.getAttribute('href'));
   const raw = href === '/' ? null : href.replace('/grade/', '');
-  if (location.pathname !== href) {
-    history.pushState(null, '', href);
+  if (location.pathname !== langPath(href)) {
+    history.pushState(null, '', langPath(href));
     lastRoute = location.pathname + location.search;
   }
   applyGrade(raw);
   const label = gradeLabel(selectedGrade);
   setMeta(
-    selectedGrade ? `Задачи — ${label}` : '',
-    selectedGrade ? `Разделы, темы и задачи по математике (${label}) с разбором решений.` : 'Сборник задач по школьной математике: условия, ответы и разбор решений по классам и темам.'
+    selectedGrade ? metaText('meta_grade_title', { grade: label }) : '',
+    selectedGrade ? metaText('meta_grade_desc', { grade: label }) : metaText('meta_home_desc')
   );
   await loadHome();
 });
@@ -297,21 +308,21 @@ gradeSelect.addEventListener('change', async () => {
   const raw = gradeSelect.value || null;
   const parsed = parseGradeValue(raw);
   const target = parsed ? `/grade/${parsed}` : '/';
-  if (currentView === 'home' && location.pathname !== target) {
-    history.pushState(null, '', target);
+  if (currentView === 'home' && location.pathname !== langPath(target)) {
+    history.pushState(null, '', langPath(target));
     lastRoute = location.pathname + location.search;
   }
   applyGrade(raw);
   if (currentView === 'home') {
     const label = gradeLabel(selectedGrade);
     setMeta(
-      selectedGrade ? `Задачи — ${label}` : '',
-      selectedGrade ? `Разделы, темы и задачи по математике (${label}) с разбором решений.` : 'Сборник задач по школьной математике: условия, ответы и разбор решений по классам и темам.'
+      selectedGrade ? metaText('meta_grade_title', { grade: label }) : '',
+      selectedGrade ? metaText('meta_grade_desc', { grade: label }) : metaText('meta_home_desc')
     );
     await loadHome();
     return;
   }
-  if (location.pathname.startsWith('/grade/')) {
+  if (appPath().startsWith('/grade/')) {
     navigate(target);
     return;
   }
@@ -430,28 +441,28 @@ function renderHubSidebar() {
       <span class="track-header-title">${escapeHtml(tr('track_heading_prep'))}</span>
     </div>
     <div class="sidebar-track-subgroup">
-      <a class="sidebar-track-card${location.pathname === '/trainer.html' ? ' active' : ''}" href="/trainer.html" title="${escapeHtml(tr('nav_trainer'))}">
+      <a class="sidebar-track-card${appPath() === '/trainer.html' ? ' active' : ''}" href="/trainer.html" title="${escapeHtml(tr('nav_trainer'))}">
         <div class="track-card-badge gold">⚡</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('nav_trainer'))}</strong>
           <span>${escapeHtml(tr('nav_trainer_desc'))}</span>
         </div>
       </a>
-      <a class="sidebar-track-card${location.pathname === '/exams.html' ? ' active' : ''}" href="/exams.html" title="${escapeHtml(tr('nav_exams'))}">
+      <a class="sidebar-track-card${appPath() === '/exams.html' ? ' active' : ''}" href="/exams.html" title="${escapeHtml(tr('nav_exams'))}">
         <div class="track-card-badge blue">🎯</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('nav_exams'))}</strong>
           <span>${escapeHtml(tr('nav_exams_desc'))}</span>
         </div>
       </a>
-      <a class="sidebar-track-card${location.pathname === '/mock-exams.html' ? ' active' : ''}" href="/mock-exams.html" title="${escapeHtml(tr('nav_mock_exams'))}">
+      <a class="sidebar-track-card${appPath() === '/mock-exams.html' ? ' active' : ''}" href="/mock-exams.html" title="${escapeHtml(tr('nav_mock_exams'))}">
         <div class="track-card-badge purple">📋</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('nav_mock_exams'))}</strong>
           <span>${escapeHtml(tr('nav_mock_exams_desc'))}</span>
         </div>
       </a>
-      <a class="sidebar-track-card${location.pathname.startsWith('/control-work') ? ' active' : ''}" href="/control-works" title="${escapeHtml(tr('nav_control_works'))}">
+      <a class="sidebar-track-card${appPath().startsWith('/control-work') ? ' active' : ''}" href="/control-works" title="${escapeHtml(tr('nav_control_works'))}">
         <div class="track-card-badge teal">📝</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('nav_control_works'))}</strong>
@@ -559,7 +570,7 @@ function renderHubSidebar() {
         </div>
       </button>
 
-      <a class="sidebar-action-card${location.pathname === '/progress' ? ' active' : ''}" href="/progress" title="${escapeHtml(tr('nav_progress'))}">
+      <a class="sidebar-action-card${appPath() === '/progress' ? ' active' : ''}" href="/progress" title="${escapeHtml(tr('nav_progress'))}">
         <div class="action-card-icon progress-icon">📊</div>
         <div class="action-card-body">
           <strong>${escapeHtml(tr('nav_progress'))}</strong>
@@ -567,7 +578,7 @@ function renderHubSidebar() {
         </div>
       </a>
 
-      <a class="sidebar-action-card${location.pathname === '/favorites' ? ' active' : ''}" href="/favorites" title="${escapeHtml(tr('nav_favorites'))}">
+      <a class="sidebar-action-card${appPath() === '/favorites' ? ' active' : ''}" href="/favorites" title="${escapeHtml(tr('nav_favorites'))}">
         <div class="action-card-icon star-icon">★</div>
         <div class="action-card-body">
           <strong>${escapeHtml(tr('nav_favorites'))}</strong>
@@ -575,7 +586,7 @@ function renderHubSidebar() {
         </div>
       </a>
 
-      <a class="sidebar-action-card${location.pathname === '/tags' ? ' active' : ''}" href="/tags" title="${escapeHtml(tr('tags_label') || (getLang() === 'lv' ? 'Krustbirkas' : 'Кросс-теги'))}">
+      <a class="sidebar-action-card${appPath() === '/tags' ? ' active' : ''}" href="/tags" title="${escapeHtml(tr('tags_label') || (getLang() === 'lv' ? 'Krustbirkas' : 'Кросс-теги'))}">
         <div class="action-card-icon tag-icon" style="background:#f0f7ff;color:#1764ff">🏷️</div>
         <div class="action-card-body">
           <strong>${escapeHtml(tr('tags_label') || (getLang() === 'lv' ? 'Krustbirkas' : 'Кросс-теги'))}</strong>
@@ -592,7 +603,7 @@ function renderHubSidebar() {
 function renderSidebar() {
   if (currentActiveTopic) {
     renderTopicSidebar(currentActiveTopic);
-  } else if (location.pathname === '/tasks' && selectedGrade) {
+  } else if (appPath() === '/tasks' && selectedGrade) {
     renderClassSidebar(selectedGrade);
   } else {
     renderHubSidebar();
@@ -600,13 +611,14 @@ function renderSidebar() {
 }
 
 function markActiveNav(activeTopicSlug = null) {
-  const current = location.pathname;
+  // Ссылки меню к этому моменту могут быть ещё без префикса языка — сравниваем пути без него.
+  const current = appPath();
   const homeBtn = document.querySelector('#sidebar-home-btn');
   if (homeBtn) {
     homeBtn.classList.toggle('active', current === '/' && !selectedGrade && !activeTopicSlug);
   }
   sidebarNav.querySelectorAll('a').forEach(link => {
-    const href = link.getAttribute('href');
+    const href = stripLangPath(link.getAttribute('href') || '');
     const isDirectMatch = href === current;
     const isTopicMatch = Boolean(activeTopicSlug && href === `/topic/${encodeURIComponent(activeTopicSlug)}`);
     link.classList.toggle('active', isDirectMatch || isTopicMatch);
@@ -1771,8 +1783,8 @@ function fillTopicHeader(topic, sub = null) {
     meta: topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : ''
   });
   const description = sub
-    ? `Задачи по подтеме «${loc(sub, 'title')}» с условиями, ответами и разбором решений.`
-    : (loc(topic, 'description') || `Задачи по теме «${topicTitle}» с условиями, ответами и разбором решений.`);
+    ? metaText('meta_subtopic_desc', { subtopic: loc(sub, 'title') })
+    : (loc(topic, 'description') || metaText('meta_topic_desc', { topic: topicTitle }));
   setMeta(topic.grade ? `${title}, ${gradeLabel(topic.grade)}` : title, description);
 }
 
@@ -1804,7 +1816,7 @@ async function showGradePage(rawGrade) {
   if (!grade) {
     applyGrade(null);
     showView('home');
-    setMeta('', 'Сборник задач по школьной математике: условия, ответы и разбор решений по классам и темам.');
+    setMeta('', metaText('meta_home_desc'));
     await loadHome();
     return;
   }
@@ -1813,7 +1825,7 @@ async function showGradePage(rawGrade) {
   }
   showView('home');
   const label = gradeLabel(grade);
-  setMeta(`Задачи — ${label}`, `Разделы, темы и задачи по математике (${label}) с разбором решений.`);
+  setMeta(metaText('meta_grade_title', { grade: label }), metaText('meta_grade_desc', { grade: label }));
   await loadHome();
 }
 
@@ -1883,7 +1895,7 @@ function showSubject(slug) {
   const tr = window.MathTasks.t || (k => k);
   if (!subject) {
     fillListHeader({ crumbs: [[tr('nav_home'), '/']], title: 'Раздел не найден', description: 'Возможно, его удалили или ссылка устарела.' });
-    setMeta('Раздел не найден');
+    setMeta(metaText('meta_not_found_subject'));
     return;
   }
   const allSubjectTopics = allTopics.filter(topic => topic.subject_id === subject.id);
@@ -1895,7 +1907,7 @@ function showSubject(slug) {
     description: tr('topics_per_grade_subtitle') || 'Все темы раздела по классам и курсам',
     meta: `<span class="search-count">${allSubjectTopics.length} ${tr('topics_heading').toLowerCase()}</span>`
   });
-  setMeta(title, `Темы раздела «${subject.title}» по всем классам (1–12) с задачами и решениями.`);
+  setMeta(title, metaText('meta_subject_desc', { subject: title }));
 
   // Всегда отображаем все классы раздела:
   // "Раздел"
@@ -2341,7 +2353,7 @@ async function showTopic(slug) {
   if (!topic) {
     currentActiveTopic = null;
     fillListHeader({ crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/']], title: 'Тема не найдена', description: 'Возможно, её удалили или ссылка устарела.' });
-    setMeta('Тема не найдена');
+    setMeta(metaText('meta_not_found_topic'));
     renderSidebar();
     return;
   }
@@ -2415,8 +2427,8 @@ async function showAllTasks() {
     crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/'], gradeCrumb(), ['Все задачи', null]],
     title: selectedGrade ? `Все задачи — ${gradeLabel(selectedGrade)}` : 'Все задачи'
   });
-  setMeta(selectedGrade ? `Все задачи, ${gradeLabel(selectedGrade)}` : 'Все задачи',
-    'Полный список задач с разбором решений.');
+  setMeta(selectedGrade ? metaText('meta_all_tasks_grade_title', { grade: gradeLabel(selectedGrade) }) : metaText('meta_all_tasks_title'),
+    metaText('meta_all_tasks_desc'));
   renderSidebar();
 
   listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_loading_tasks')}</p>`;
@@ -2456,7 +2468,7 @@ async function showFavorites() {
     description: 'Задачи, которые вы сохранили для повторения или разбора.',
     meta: `<span class="search-count">Сохранено: ${favIds.length}</span>`
   });
-  setMeta('Мои закладки', 'Сохранённые задачи по математике для повторения.');
+  setMeta(metaText('meta_favorites_title'), metaText('meta_favorites_desc'));
 
   if (!favIds.length) {
     listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('fav_empty_hint')}</p>`;
@@ -2734,7 +2746,7 @@ async function startControlWork(slug) {
   if (titleEl) {
     titleEl.textContent = tr('cw_mode_title', { topic: topicTitle });
   }
-  setMeta(tr('cw_mode_title', { topic: topicTitle }), `Проверочная работа по теме «${topicTitle}» на 40 минут с автоматической оценкой.`);
+  setMeta(tr('cw_mode_title', { topic: topicTitle }), metaText('meta_cw_desc', { topic: topicTitle }));
 
   const cwList = document.querySelector('#cw-task-list');
   if (cwList) {
@@ -3133,7 +3145,7 @@ async function showSearch(rawQuery, acrossGrades) {
   const foundTopics = allTopics.filter(topic => matchesText(topic) && (!scoped || topic.grade === selectedGrade));
 
   fillListHeader({ crumbs, title: `Поиск: «${query}»` });
-  setMeta(`Поиск: ${query}`, `Результаты поиска по задачам: ${query}.`);
+  setMeta(metaText('meta_search_title', { query }), metaText('meta_search_desc', { query }));
   // Ищем во всех классах — значит, у каждого результата видно, к какому классу он относится.
   renderTopicCards(listTopics, foundTopics, !scoped);
   listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_searching')}</p>`;
@@ -3217,7 +3229,7 @@ async function showSearch(rawQuery, acrossGrades) {
 const goSearch = () => {
   const query = searchInput.value.trim();
   if (query.length < 2) {
-    if (location.pathname === '/search') navigate('/', { replace: true });
+    if (appPath() === '/search') navigate('/', { replace: true });
     return;
   }
   navigate(`/search?q=${encodeURIComponent(query)}${searchAcrossGrades ? '&all=1' : ''}`, { replace: true });
@@ -3246,7 +3258,7 @@ const ogTitleTag = document.querySelector('meta[property="og:title"]');
 const ogDescriptionTag = document.querySelector('meta[property="og:description"]');
 
 function setMeta(title, description) {
-  const full = title ? `${title} — ${SITE_NAME}` : `${SITE_NAME} — сборник задач по математике`;
+  const full = title ? `${title} — ${SITE_NAME}` : metaText('meta_site_title');
   document.title = full;
   if (descriptionTag && description) descriptionTag.setAttribute('content', description);
   if (ogTitleTag) ogTitleTag.setAttribute('content', full);
@@ -3266,13 +3278,13 @@ async function showTask(rawId) {
     title: 'Задача не найдена',
     description: 'Возможно, её удалили или ссылка устарела.'
   });
-  if (!Number.isFinite(id)) { notFound(); setMeta('Задача не найдена'); return; }
+  if (!Number.isFinite(id)) { notFound(); setMeta(metaText('meta_not_found_task')); return; }
 
   listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_loading_task')}</p>`;
   const { data, error } = await db.from('tasks').select(TASK_SELECT)
     .eq('is_published', true).eq('id', id).limit(1);
   const task = data?.[0];
-  if (error || !task) { notFound(); listTasks.innerHTML = ''; setMeta('Задача не найдена'); return; }
+  if (error || !task) { notFound(); listTasks.innerHTML = ''; setMeta(metaText('meta_not_found_task')); return; }
 
   const topic = allTopics.find(item => item.id === task.topic_id);
   const subject = topic ? subjectById(topic.subject_id) : null;
@@ -3440,7 +3452,7 @@ async function showTag(slug) {
       title: 'Тег не найден',
       description: 'Возможно, ссылка устарела или тег не существует.'
     });
-    setMeta('Тег не найден');
+    setMeta(metaText('meta_not_found_tag'));
     renderSidebar();
     return;
   }
@@ -3466,7 +3478,7 @@ async function showTag(slug) {
     title: `#${tagTitle}`,
     description: tagDesc
   });
-  setMeta(`#${tagTitle}`, tagDesc || `Задачи с тегом #${tagTitle}`);
+  setMeta(`#${tagTitle}`, tagDesc || metaText('meta_tag_desc', { tag: tagTitle }));
   renderSidebar();
 
   listTasks.innerHTML = `<p class="empty-state">${tr('state_loading_tasks')}</p>`;
@@ -3556,7 +3568,7 @@ async function route({ force = false } = {}) {
   if (!force && key === lastRoute) return;
   lastRoute = key;
 
-  const path = location.pathname || '/';
+  const path = appPath();
   const params = new URLSearchParams(location.search);
 
   // Сброс контекста темы в сайдбаре при уходе со страницы темы или задачи
@@ -3612,19 +3624,31 @@ async function route({ force = false } = {}) {
   if (path === '/tasks') { await showAllTasks(); return; }
   if (path === '/favorites') { await showFavorites(); return; }
   if (path === '/progress') { showProgress(); return; }
-  if (path === '/about') { showView('about'); setMeta('О сайте', 'Как устроен MathTasks: классы, разделы, темы и разбор решений.'); return; }
+  if (path === '/about') { showView('about'); setMeta(metaText('meta_about_title'), metaText('meta_about_desc')); return; }
 
   showView('home');
-  setMeta('', 'Сборник задач по школьной математике: условия, ответы и разбор решений по классам и темам.');
+  setMeta('', metaText('meta_home_desc'));
   await loadHome();
 }
-window.addEventListener('popstate', () => route());
+/* «Назад» может вернуть и другой язык: /lv/… ↔ без префикса. */
+window.addEventListener('popstate', () => {
+  const urlLang = langLib.langOfPath ? langLib.langOfPath(location.pathname) : getLang();
+  if (urlLang !== getLang() && window.MathTasksI18n) {
+    window.MathTasksI18n.setLang(urlLang);
+    route({ force: true });
+    return;
+  }
+  route();
+});
 
 /* Переходы идут через History API: адрес /topic/<slug> должен быть настоящим,
-   иначе поисковик видит один и тот же документ на все темы сразу. */
+   иначе поисковик видит один и тот же документ на все темы сразу. Путь
+   получает префикс текущего языка: navigate('/topic/x') в латышской версии
+   ведёт на /lv/topic/x. */
 function navigate(path, { replace = false } = {}) {
-  if (location.pathname + location.search === path) return;
-  history[replace ? 'replaceState' : 'pushState'](null, '', path);
+  const target = langPath(path);
+  if (location.pathname + location.search === target) return;
+  history[replace ? 'replaceState' : 'pushState'](null, '', target);
   route();
 }
 
@@ -4829,14 +4853,49 @@ if (location.hash.startsWith('#/')) {
   history.replaceState(null, '', location.hash.slice(1));
 }
 
-// Переключение языка (LV / RU)
+/* Язык задаётся адресом. Кто выбрал латышский раньше (выбор хранится в
+   браузере), с русского адреса попадает на тот же адрес /lv/… — до первого
+   разбора маршрута. */
+{
+  const current = location.pathname + location.search;
+  const wanted = langPath(current);
+  if (wanted !== current) history.replaceState(null, '', wanted + location.hash);
+}
+
+/* Внутренние ссылки получают префикс языка: шаблоны пишут /topic/…, а в
+   латышской версии ссылка должна вести на /lv/topic/… — и для человека,
+   и для поисковика, который идёт по ссылкам. Один наблюдатель вместо правки
+   десятков шаблонов; файлы, /api и админку он не трогает (localizeHref). */
+function localizeLinks(root = document) {
+  const lang = getLang();
+  const fix = link => {
+    const href = link.getAttribute('href');
+    const wanted = langPath(href, lang);
+    if (wanted !== href) link.setAttribute('href', wanted);
+  };
+  if (root.nodeType === 1 && root.matches('a[href^="/"]')) fix(root);
+  root.querySelectorAll?.('a[href^="/"]').forEach(fix);
+}
+new MutationObserver(records => {
+  for (const record of records) {
+    if (record.type === 'attributes') localizeLinks(record.target);
+    else record.addedNodes.forEach(node => { if (node.nodeType === 1) localizeLinks(node); });
+  }
+}).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['href'] });
+localizeLinks(document);
+
+/* Переключение языка (LV / RU). Язык — часть адреса, поэтому сначала адрес
+   (записью в историю: «назад» вернёт прежний язык), потом язык —
+   обработчик languagechange перерисует страницу уже по новому адресу. */
 document.querySelector('#lang-switcher')?.addEventListener('click', event => {
   const btn = event.target.closest('.lang-btn');
   if (!btn) return;
   const lang = btn.dataset.lang;
-  if (lang && window.MathTasksI18n) {
-    window.MathTasksI18n.setLang(lang);
-  }
+  if (!lang || !window.MathTasksI18n || lang === getLang()) return;
+  history.pushState(null, '', langPath(location.pathname + location.search, lang) + location.hash);
+  lastRoute = location.pathname + location.search;
+  window.MathTasksI18n.setLang(lang);
+  localizeLinks(document);
 });
 
 // Ввод ответов в контрольных работах
@@ -4877,7 +4936,7 @@ window.addEventListener('languagechange', async () => {
     window.ExamTimer.toggleBtn.textContent = window.ExamTimer.isRunning ? tr('timer_pause') : tr('timer_start');
   }
   const onTopicPage = currentView === 'list' && currentActiveTopic
-    && /^\/(topic|subtopic)\//.test(location.pathname);
+    && /^\/(topic|subtopic)\//.test(appPath());
   if (currentView === 'home') {
     await loadHome();
   } else if (currentView === 'progress') {

@@ -2402,8 +2402,40 @@
     return values.every(value => stated.some(s => sameNumber(s, value)));
   };
 
+  /* ── Язык в адресе ─────────────────────────────────────────────────
+     Русская версия — на адресах без префикса (/topic/…), латышская — на
+     /lv/… (/lv/topic/…, главная — /lv/). У каждой страницы два адреса, и
+     поисковик получает каждую версию отдельно, со ссылками друг на друга
+     (hreflang). Файлы (trainer.html, PDF), /api и админка префикса не
+     получают: языковых версий по адресу у них нет. */
+  const isLvPath = pathname => pathname === '/lv' || String(pathname || '').startsWith('/lv/');
+  const stripLangPath = pathname => (isLvPath(pathname) ? (String(pathname).slice(3) || '/') : (pathname || '/'));
+  const langOfPath = pathname => (isLvPath(pathname) ? 'lv' : 'ru');
+  const isLocalizablePath = pathname => typeof pathname === 'string'
+    && pathname.startsWith('/') && !pathname.startsWith('//')
+    && !/\.[a-z0-9]+$/i.test(pathname)
+    && !/^\/(?:api|admin|assets|formulas)(?:\/|$)/.test(pathname);
+  const toLangPath = (pathname, lang) => {
+    const clean = stripLangPath(pathname);
+    if (lang !== 'lv') return clean;
+    return clean === '/' ? '/lv/' : `/lv${clean}`;
+  };
+  // Строка запроса и якорь сохраняются: язык меняется только у пути.
+  const localizeHref = (href, lang) => {
+    if (typeof href !== 'string' || !href.startsWith('/') || href.startsWith('//')) return href;
+    const [, path, rest] = href.match(/^([^?#]*)(.*)$/);
+    if (!isLocalizablePath(path)) return href;
+    return toLangPath(path, lang) + rest;
+  };
+
   const api = {
     makeSlug,
+    isLvPath,
+    stripLangPath,
+    langOfPath,
+    isLocalizablePath,
+    toLangPath,
+    localizeHref,
     latexToPlainText,
     taskDescription,
     numberValues,

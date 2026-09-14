@@ -19,7 +19,8 @@
     "run_worker_first": [
       "/sitemap.xml", "/api/*", "/",
       "/task/*", "/topic/*", "/subtopic/*", "/grade/*", "/subject/*", "/tag/*", "/control-work/*",
-      "/tasks", "/tags", "/about", "/control-works", "/progress", "/favorites", "/search"
+      "/tasks", "/tags", "/about", "/control-works", "/progress", "/favorites", "/search",
+      "/lv", "/lv/*"
     ],
     /* На страницах каталога воркер подставляет в index.html заголовок,
        описание, canonical и текстовую версию страницы (worker/seo.js):
