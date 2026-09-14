@@ -466,6 +466,7 @@
   /* ── Разделы ──────────────────────────────────────────────────────── */
 
   function setSubjectMode(subject) {
+    catEditorShow('section-subjects', Boolean(subject));
     if (subject) ensureSectionExpanded('section-subjects');
     editingSubjectId = subject?.id ?? null;
     document.querySelector('#subject-form-title').textContent = subject ? `Редактировать раздел: ${subject.title}` : 'Разделы математики';
@@ -479,6 +480,7 @@
   }
 
   function renderSubjectList() {
+    renderCat3();
     if (!subjects.length) { subjectList.innerHTML = '<p class="admin-empty">Разделов пока нет.</p>'; return; }
     subjectList.innerHTML = subjects.map(subject => {
       const count = topics.filter(topic => topic.subject_id === subject.id).length;
@@ -518,21 +520,29 @@
     const editId = event.target.closest('[data-edit-subject]')?.dataset.editSubject;
     if (editId) { setSubjectMode(subjects.find(item => String(item.id) === editId)); return; }
     const deleteId = event.target.closest('[data-delete-subject]')?.dataset.deleteSubject;
-    if (!deleteId) return;
+    if (deleteId) await deleteSubjectById(deleteId);
+  });
+
+  // Удаление раздела — из прежнего списка и из колонок каталога.
+  async function deleteSubjectById(subjectId) {
+    const deleteId = String(subjectId);
     const subject = subjects.find(item => String(item.id) === deleteId);
+    if (!subject) return false;
     const count = topics.filter(topic => String(topic.subject_id) === deleteId).length;
     const warning = count ? ` Его темы (${count} шт.) останутся, но потеряют раздел.` : '';
-    if (!confirm(`Удалить раздел «${subject.title}»?${warning}`)) return;
+    if (!confirm(`Удалить раздел «${subject.title}»?${warning}`)) return false;
     const { error } = await db.from('subjects').delete().eq('id', deleteId);
-    if (error) { subjectSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    if (error) { subjectSuccess.textContent = 'Ошибка: ' + error.message; return false; }
     if (String(editingSubjectId) === deleteId) { subjectForm.reset(); setSubjectMode(null); }
     subjectSuccess.textContent = 'Раздел удалён.';
     await loadCatalog();
-  });
+    return true;
+  }
 
   /* ── Темы ─────────────────────────────────────────────────────────── */
 
   function setTopicMode(topic) {
+    catEditorShow('section-topics', Boolean(topic));
     if (topic) ensureSectionExpanded('section-topics');
     editingTopicId = topic?.id ?? null;
     document.querySelector('#topic-form-title').textContent = topic ? `Редактировать тему: ${topic.title}` : 'Темы и программа Skola2030';
@@ -700,6 +710,7 @@
   }
 
   function renderTopicList() {
+    renderCat3();
     if (!topicsShown) return;
     if (!topics.length) {
       topicList.innerHTML = '<p class="admin-empty">Тем пока нет.</p>';
@@ -801,19 +812,28 @@
       return;
     }
     const deleteId = event.target.closest('[data-delete-topic]')?.dataset.deleteTopic;
-    if (!deleteId) return;
+    if (deleteId) await deleteTopicById(deleteId);
+  });
+
+  // Удаление темы — из прежнего списка и из колонок каталога.
+  async function deleteTopicById(topicId) {
+    const deleteId = String(topicId);
     const topic = topics.find(item => String(item.id) === deleteId);
-    if (!confirm(`Удалить тему «${topic.title}»? Задачи этой темы останутся, но потеряют привязку.`)) return;
+    if (!topic) return false;
+    const count = getTopicTaskCount(deleteId);
+    const note = count ? ` Задачи этой темы (${count}) останутся, но потеряют привязку.` : ' Задач в ней нет.';
+    if (!confirm(`Удалить тему «${topic.title}»?${note}`)) return false;
     const { error } = await db.from('topics').delete().eq('id', deleteId);
-    if (error) { topicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    if (error) { topicSuccess.textContent = 'Ошибка: ' + error.message; return false; }
     topics = topics.filter(t => String(t.id) !== deleteId);
-    if (topic?.grade != null) {
+    if (topic.grade != null) {
       await rebalanceTopicPositions(topic.grade);
     }
     if (String(editingTopicId) === deleteId) { topicForm.reset(); setTopicMode(null); }
     topicSuccess.textContent = 'Тема удалена.';
     await loadCatalog();
-  });
+    return true;
+  }
 
   /* Автоматическая перенумерация тем (1..N) внутри каждого класса */
   async function handleRenumberTopics() {
@@ -1074,6 +1094,7 @@
   }
 
   function setSubtopicMode(sub) {
+    catEditorShow('section-subtopics', Boolean(sub));
     if (sub) ensureSectionExpanded('section-subtopics');
     editingSubtopicId = sub?.id ?? null;
     document.querySelector('#subtopic-form-title').textContent = sub ? `Редактировать подтему: ${subtopicLabel(sub)}` : 'Подтемы';
@@ -1100,6 +1121,7 @@
   }
 
   function renderSubtopics() {
+    renderCat3();
     if (!subtopicList || !subtopicsShown) return;
     const gradeVal = parseFormGrade(subtopicFilterGrade?.value);
     const topicVal = subtopicFilterTopic?.value ? Number(subtopicFilterTopic.value) : null;
@@ -1237,20 +1259,27 @@
       return;
     }
     const deleteId = event.target.closest('[data-delete-subtopic]')?.dataset.deleteSubtopic;
-    if (!deleteId) return;
+    if (deleteId) await deleteSubtopicById(deleteId);
+  });
+
+  // Удаление подтемы — из прежнего списка и из колонок каталога.
+  async function deleteSubtopicById(subtopicId) {
+    const deleteId = String(subtopicId);
     const sub = subtopics.find(s => String(s.id) === deleteId);
+    if (!sub) return false;
     const count = taskIndex.filter(t => String(t.subtopic_id) === deleteId).length;
-    if (!confirm(`Удалить подтему «${subtopicLabel(sub)}»?${count ? ` ${count} задач останутся в теме, но потеряют подтему.` : ''}`)) return;
+    if (!confirm(`Удалить подтему «${subtopicLabel(sub)}»?${count ? ` ${count} задач останутся в теме, но потеряют подтему.` : ''}`)) return false;
     const { error } = await db.from('subtopics').delete().eq('id', deleteId);
-    if (error) { subtopicSuccess.textContent = 'Ошибка: ' + error.message; return; }
+    if (error) { subtopicSuccess.textContent = 'Ошибка: ' + error.message; return false; }
     subtopics = subtopics.filter(s => String(s.id) !== deleteId);
-    if (sub?.topic_id) {
+    if (sub.topic_id) {
       await rebalanceSubtopicPositions(sub.topic_id);
     }
     if (String(editingSubtopicId) === deleteId) { subtopicForm.reset(); setSubtopicMode(null); }
     subtopicSuccess.textContent = 'Подтема удалена.';
     await loadCatalog();
-  });
+    return true;
+  }
 
   /* Автоматическая перенумерация подтем (1..M) и кодов Skola2030 */
   async function handleRenumberSubtopics() {
@@ -2292,6 +2321,7 @@ ${JSON.stringify(texts)}`;
     updateTaskTopicDropdown();
     updateSubtopicDropdown();
     updateEditorCrumbs();
+    renderCat3();
   }
 
   // ── Полоса «чего не хватает» и действия сохранения ──────────
@@ -5956,6 +5986,8 @@ ${JSON.stringify(texts)}`;
 
   if (shell) {
     moveInto(viewBody('catalog'), byId('section-subjects'), byId('section-topics'), byId('section-subtopics'));
+    // Перенумерация — в шапку экрана: старые панели фильтров под колонками скрыты.
+    moveInto(slot('catalog-actions'), byId('btn-renumber-topics'), byId('btn-renumber-subtopics'));
     moveInto(viewBody('ai'), byId('ai-generator-section'));
     moveInto(viewBody('new'), byId('section-task-form'));
     moveInto(viewBody('reports'), byId('section-reports'));
@@ -6798,6 +6830,238 @@ ${JSON.stringify(texts)}`;
       if (imp.fileName) imp.fileName.textContent = `образец ${sample.dataset.impSample.toUpperCase()}`;
       analyzeImport();
     }
+  });
+
+  /* ── Разделы, темы, подтемы: три колонки (макет «Админка Skola2030») ──
+     Выбрали раздел — справа его темы (с фильтром по классу), выбрали тему —
+     её подтемы; справа в строке — число задач. Добавление — полем внизу
+     колонки, правка (✎) открывает прежнюю форму под колонками, порядок —
+     стрелками, удаление — ✕. Сохраняет всё прежний код форм, поэтому
+     перенумерация тем и кодов подтем работает как раньше. */
+  const catState = { subject: null, grade: '', topic: null };
+  let catStatusTimer = null;
+
+  function setCatStatus(text, tone = '') {
+    const el = byId('cat3-status');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `adm-cat3-status${tone ? ` ${tone}` : ''}`;
+    clearTimeout(catStatusTimer);
+    if (text) catStatusTimer = setTimeout(() => setCatStatus(''), 7000);
+  }
+
+  /* В каркасе прежние разделы каталога скрыты — их заменяют колонки.
+     Раздел показывается, только пока в нём открыта правка. */
+  function catEditorShow(sectionId, on) {
+    if (!document.querySelector('.adm-shell')) return;
+    ['section-subjects', 'section-topics', 'section-subtopics'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (on) el.classList.toggle('is-editing', id === sectionId);
+      else if (id === sectionId) el.classList.remove('is-editing');
+    });
+  }
+
+  const declTopics = n => {
+    const m10 = n % 10, m100 = n % 100;
+    if (m100 >= 11 && m100 <= 14) return 'тем';
+    if (m10 === 1) return 'тема';
+    return m10 >= 2 && m10 <= 4 ? 'темы' : 'тем';
+  };
+  const catAct = (kind, id, act, label, text, disabled = false) =>
+    `<button type="button" class="adm-cat3-act${act === 'delete' ? ' bad' : ''}" data-cat-act="${act}" data-kind="${kind}" data-id="${id}" title="${label}" aria-label="${label}"${disabled ? ' disabled' : ''}>${text}</button>`;
+
+  function renderCat3() {
+    const root = byId('adm-cat3');
+    if (!root) return;
+    const counts = countPlaces();
+    const codes = topicCodeMap();
+
+    // Разделы. Темы без раздела не видны в меню сайта — их собираем отдельной строкой.
+    const subjectsSorted = [...subjects].sort((a, b) => positionOf(a) - positionOf(b) || titleCompare(a, b));
+    const orphans = topics.filter(t => !subjects.some(s => s.id === t.subject_id));
+    const subjectOk = catState.subject === 'none' ? orphans.length > 0 : subjects.some(s => s.id === catState.subject);
+    if (!subjectOk) {
+      catState.subject = subjectsSorted[0]?.id ?? (orphans.length ? 'none' : null);
+      catState.topic = null;
+    }
+    const subjectRows = subjectsSorted.map(s => {
+      const n = topics.filter(t => t.subject_id === s.id).length;
+      const on = catState.subject === s.id;
+      return `<div class="adm-cat3-row${on ? ' is-selected' : ''}">
+        <button type="button" class="adm-cat3-pick" data-cat-subject="${s.id}" aria-pressed="${on}">
+          <span class="adm-cat3-name"><b>${escapeHtml(s.title)}</b>${s.title_lv ? `<small>${escapeHtml(s.title_lv)}</small>` : ''}</span>
+          <span class="adm-cat3-n">${n} ${declTopics(n)}</span>
+        </button>
+        <span class="adm-cat3-acts">${catAct('subject', s.id, 'edit', 'Изменить раздел', '✎')}${catAct('subject', s.id, 'delete', 'Удалить раздел', '✕')}</span>
+      </div>`;
+    }).join('') + (orphans.length ? `<div class="adm-cat3-row${catState.subject === 'none' ? ' is-selected' : ''}">
+        <button type="button" class="adm-cat3-pick" data-cat-subject="none" aria-pressed="${catState.subject === 'none'}">
+          <span class="adm-cat3-name"><b>Без раздела</b><small>эти темы не видны в меню сайта</small></span>
+          <span class="adm-cat3-n">${orphans.length} ${declTopics(orphans.length)}</span>
+        </button>
+      </div>` : '');
+    byId('cat3-subjects').innerHTML = subjectRows || '<p class="adm-cat3-empty">Разделов пока нет — добавьте первый ниже.</p>';
+    byId('cat3-subjects-count').textContent = subjects.length || '';
+
+    // Темы выбранного раздела, с фильтром по классу.
+    const gradeSelect = byId('cat3-grade');
+    if (gradeSelect && gradeSelect.options.length <= 1) {
+      gradeSelect.innerHTML = '<option value="">Все классы</option>' + PLACE_GRADES.map(({ g, label }) => `<option value="${g}">${label}</option>`).join('');
+    }
+    if (gradeSelect) gradeSelect.value = catState.grade;
+    const grade = parseFormGrade(catState.grade);
+    const subjectName = catState.subject === 'none' ? 'Без раздела' : (subjects.find(s => s.id === catState.subject)?.title || '');
+    byId('cat3-topics-title').innerHTML = `Темы${subjectName ? ` <span>· ${escapeHtml(subjectName)}</span>` : ''}`;
+    const pool = (catState.subject === 'none' ? orphans : topics.filter(t => t.subject_id === catState.subject))
+      .filter(t => grade === null || parseFormGrade(t.grade) === grade);
+    if (catState.topic && !pool.some(t => t.id === catState.topic)) catState.topic = null;
+    let lastGrade;
+    const topicRows = sortTopics(pool, codes).map(t => {
+      const tg = parseFormGrade(t.grade);
+      let head = '';
+      if (grade === null && tg !== lastGrade) {
+        lastGrade = tg;
+        head = `<div class="adm-cat3-group">${escapeHtml(PLACE_GRADES.find(x => x.g === tg)?.label || 'Без класса')}</div>`;
+      }
+      const n = getTopicTaskCount(t.id, counts);
+      const on = catState.topic === t.id;
+      const siblings = topicSiblingsOf(t);
+      const i = siblings.findIndex(x => x.id === t.id);
+      return `${head}<div class="adm-cat3-row${on ? ' is-selected' : ''}">
+        <button type="button" class="adm-cat3-pick" data-cat-topic="${t.id}" aria-pressed="${on}" title="${escapeHtml(t.title)}">
+          <span class="adm-cat3-code">${escapeHtml(codes.get(t.id) || '—')}</span>
+          <span class="adm-cat3-name">${escapeHtml(cleanTopicTitle(t.title))}</span>
+          <span class="adm-cat3-n${n ? '' : ' zero'}">${n} зад.</span>
+        </button>
+        <span class="adm-cat3-acts">${catAct('topic', t.id, 'up', 'Выше в классе', '↑', i <= 0)}${catAct('topic', t.id, 'down', 'Ниже в классе', '↓', i < 0 || i >= siblings.length - 1)}${catAct('topic', t.id, 'edit', 'Изменить тему', '✎')}${catAct('topic', t.id, 'delete', 'Удалить тему', '✕')}</span>
+      </div>`;
+    }).join('');
+    byId('cat3-topics').innerHTML = topicRows
+      || `<p class="adm-cat3-empty">${catState.subject ? `В этом разделе нет тем${grade !== null ? ' для выбранного класса' : ''}.` : 'Выберите раздел.'}</p>`;
+    const topicInput = byId('cat3-add-topic')?.querySelector('input');
+    if (topicInput) topicInput.placeholder = grade !== null ? `Новая тема · ${grade}. klase` : 'Новая тема — сначала выберите класс';
+
+    // Подтемы выбранной темы.
+    const topic = topics.find(t => t.id === catState.topic);
+    byId('cat3-subtopics-title').innerHTML = `Подтемы${topic ? ` <span>· ${escapeHtml(codes.get(topic.id) || cleanTopicTitle(topic.title))}</span>` : ''}`;
+    const byPosition = topic ? subtopicSiblingsOf(topic.id) : [];
+    const subRows = [...byPosition]
+      .sort((a, b) => (a.code ? 0 : 1) - (b.code ? 0 : 1) || naturalCompare(a.code || '', b.code || '') || positionOf(a) - positionOf(b))
+      .map(s => {
+        const n = getSubtopicTaskCount(s.id, counts);
+        const i = byPosition.findIndex(x => x.id === s.id);
+        return `<div class="adm-cat3-row static">
+          <span class="adm-cat3-pick" title="${escapeHtml(s.title_lv || '')}">
+            <span class="adm-cat3-code">${escapeHtml(s.code || '—')}</span>
+            <span class="adm-cat3-name">${escapeHtml(s.title)}</span>
+            <span class="adm-cat3-n${n ? '' : ' zero'}">${n} зад.</span>
+          </span>
+          <span class="adm-cat3-acts">${catAct('subtopic', s.id, 'up', 'Выше в теме', '↑', i <= 0)}${catAct('subtopic', s.id, 'down', 'Ниже в теме', '↓', i >= byPosition.length - 1)}${catAct('subtopic', s.id, 'edit', 'Изменить подтему', '✎')}${catAct('subtopic', s.id, 'delete', 'Удалить подтему', '✕')}</span>
+        </div>`;
+      }).join('');
+    byId('cat3-subtopics').innerHTML = !topic
+      ? '<p class="adm-cat3-empty">Выберите тему — здесь появятся её подтемы.</p>'
+      : (subRows || '<p class="adm-cat3-empty">В этой теме пока нет подтем.</p>');
+    const subForm = byId('cat3-add-subtopic');
+    subForm?.querySelectorAll('input, button').forEach(el => { el.disabled = !topic; });
+  }
+
+  byId('adm-cat3')?.addEventListener('click', async event => {
+    const subjectBtn = event.target.closest('[data-cat-subject]');
+    if (subjectBtn) {
+      const value = subjectBtn.dataset.catSubject;
+      catState.subject = value === 'none' ? 'none' : Number(value);
+      catState.topic = null;
+      renderCat3();
+      return;
+    }
+    const topicBtn = event.target.closest('[data-cat-topic]');
+    if (topicBtn) {
+      catState.topic = Number(topicBtn.dataset.catTopic);
+      // «Перенумеровать подтемы» в шапке работает с выбранной темой.
+      if (subtopicFilterTopic) {
+        fillSubtopicFilterTopicSelect();
+        subtopicFilterTopic.value = String(catState.topic);
+      }
+      renderCat3();
+      return;
+    }
+    const act = event.target.closest('[data-cat-act]');
+    if (!act) return;
+    const { kind, id } = act.dataset;
+    const what = act.dataset.catAct;
+    if (what === 'up' || what === 'down') {
+      if (kind === 'topic') await moveTopic(id, what);
+      else await moveSubtopic(id, what);
+    } else if (what === 'edit') {
+      const table = { subject: 'subjects', topic: 'topics', subtopic: 'subtopics' }[kind];
+      const full = await fetchFullRow(table, id);
+      if (!full) { setCatStatus('Не удалось загрузить для правки.', 'bad'); return; }
+      ({ subject: setSubjectMode, topic: setTopicMode, subtopic: setSubtopicMode })[kind](full);
+    } else if (what === 'delete') {
+      const deleted = await ({ subject: deleteSubjectById, topic: deleteTopicById, subtopic: deleteSubtopicById })[kind](id);
+      if (deleted && kind === 'topic' && String(catState.topic) === String(id)) catState.topic = null;
+      renderCat3();
+    }
+  });
+  byId('cat3-grade')?.addEventListener('change', event => {
+    catState.grade = event.target.value;
+    catState.topic = null;
+    renderCat3();
+  });
+
+  // Добавление полем внизу колонки — через прежние формы, со всей их логикой.
+  byId('cat3-add-subject')?.addEventListener('submit', event => {
+    event.preventDefault();
+    const input = event.target.querySelector('input');
+    const title = input.value.trim();
+    if (!title) return;
+    setSubjectMode(null);
+    subjectForm.elements.title.value = title;
+    subjectForm.elements.position.value = Math.max(0, ...subjects.map(s => Number(s.position) || 0)) + 1;
+    input.value = '';
+    subjectForm.requestSubmit();
+  });
+  byId('cat3-add-topic')?.addEventListener('submit', event => {
+    event.preventDefault();
+    const input = event.target.querySelector('input');
+    const title = input.value.trim();
+    if (!title) return;
+    const grade = parseFormGrade(catState.grade);
+    if (grade === null) { setCatStatus('Выберите класс над списком тем — новая тема встанет в него.', 'warn'); return; }
+    if (!catState.subject || catState.subject === 'none') { setCatStatus('Выберите раздел — тема без раздела не видна в меню сайта.', 'warn'); return; }
+    setTopicMode(null);
+    topicForm.elements.title.value = title;
+    topicForm.elements.subject_id.value = String(catState.subject);
+    topicForm.elements.grade.value = toAdminGradeVal(grade);
+    topicForm.elements.position.value = nextTopicPosition(grade, catState.subject, null);
+    input.value = '';
+    topicForm.requestSubmit();
+  });
+  byId('cat3-add-subtopic')?.addEventListener('submit', event => {
+    event.preventDefault();
+    const input = event.target.querySelector('input');
+    const title = input.value.trim();
+    const topic = topics.find(t => t.id === catState.topic);
+    if (!title || !topic) return;
+    setSubtopicMode(null);
+    if (subtopicFormGrade) subtopicFormGrade.value = toAdminGradeVal(topic.grade);
+    fillSubtopicFormTopicSelect();
+    subtopicTopicSelect.value = String(topic.id);
+    updateSubtopicFormDefaults();
+    subtopicForm.elements.title.value = title;
+    input.value = '';
+    subtopicForm.requestSubmit();
+  });
+
+  // Сообщения прежних форм («Тема добавлена», ошибки) — в строку под колонками.
+  [subjectSuccess, topicSuccess, subtopicSuccess].forEach(el => {
+    if (!el) return;
+    new MutationObserver(() => {
+      const text = el.textContent.trim();
+      if (text) setCatStatus(text, /^(Ошибка|Не удалось)/.test(text) ? 'bad' : 'ok');
+    }).observe(el, { childList: true, characterData: true, subtree: true });
   });
 
   /* Высота шапки — для всего, что прилипает под ней (строка «Место»,

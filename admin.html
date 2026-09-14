@@ -276,8 +276,36 @@
             </section>
 
             <section class="adm-view" data-view="catalog" hidden>
-              <div class="adm-view-head"><div><h1>Разделы, темы, подтемы</h1><p>Каталог в три уровня. Номера и порядок выставляют кнопки «Перенумеровать».</p></div></div>
-              <div class="adm-view-body"></div>
+              <div class="adm-view-head"><div><h1>Разделы, темы, подтемы</h1><p>Три уровня рядом: выберите раздел — увидите темы, выберите тему — её подтемы. Справа в строке — сколько задач.</p></div><div class="adm-view-actions" data-slot="catalog-actions"></div></div>
+              <div class="adm-view-body">
+                <div class="adm-cat3" id="adm-cat3">
+                  <section class="adm-cat3-col adm-cat3-subjects" aria-labelledby="cat3-subjects-title">
+                    <div class="adm-cat3-head"><h2 id="cat3-subjects-title">Разделы</h2><span class="adm-cat3-count" id="cat3-subjects-count"></span></div>
+                    <div class="adm-cat3-list" id="cat3-subjects"></div>
+                    <form class="adm-cat3-add" id="cat3-add-subject">
+                      <input type="text" placeholder="Новый раздел" aria-label="Название нового раздела" autocomplete="off" />
+                      <button type="submit" class="adm-btn primary" aria-label="Добавить раздел">+</button>
+                    </form>
+                  </section>
+                  <section class="adm-cat3-col adm-cat3-topics" aria-labelledby="cat3-topics-title">
+                    <div class="adm-cat3-head"><h2 id="cat3-topics-title">Темы</h2><select id="cat3-grade" aria-label="Класс"><option value="">Все классы</option></select></div>
+                    <div class="adm-cat3-list" id="cat3-topics"></div>
+                    <form class="adm-cat3-add" id="cat3-add-topic">
+                      <input type="text" placeholder="Новая тема" aria-label="Название новой темы" autocomplete="off" />
+                      <button type="submit" class="adm-btn primary" aria-label="Добавить тему">+</button>
+                    </form>
+                  </section>
+                  <section class="adm-cat3-col adm-cat3-subtopics" aria-labelledby="cat3-subtopics-title">
+                    <div class="adm-cat3-head"><h2 id="cat3-subtopics-title">Подтемы</h2></div>
+                    <div class="adm-cat3-list" id="cat3-subtopics"></div>
+                    <form class="adm-cat3-add" id="cat3-add-subtopic">
+                      <input type="text" placeholder="Новая подтема" aria-label="Название новой подтемы" autocomplete="off" />
+                      <button type="submit" class="adm-btn primary" aria-label="Добавить подтему">+</button>
+                    </form>
+                  </section>
+                </div>
+                <p class="adm-cat3-status" id="cat3-status" role="status" aria-live="polite"></p>
+              </div>
             </section>
           </div>
         </div>

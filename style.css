@@ -5807,6 +5807,58 @@ body .adm-shell #section-reports{padding:0;border:0;background:none}
 .adm-reports-empty p{margin:6px 0 0;font-size:13px;color:var(--adm-mute)}
 .adm-report-undo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border:1px solid var(--adm-okbd);border-radius:10px;background:var(--adm-okbg);color:var(--adm-okfg);font-size:13px}
 .adm-shell .adm-report-undo .adm-link-btn{margin-left:auto;color:var(--adm-okfg);font-weight:600;text-decoration:underline}
+
+/* ── Разделы, темы, подтемы: три колонки (макет «Админка Skola2030») ── */
+.adm-cat3{display:flex;gap:13px;flex-wrap:wrap;align-items:flex-start}
+.adm-cat3-col{display:flex;flex-direction:column;min-width:240px;border:1px solid var(--adm-line);border-radius:12px;background:var(--adm-panel);overflow:hidden}
+/* Свои имена колонок: общие .topics/.subjects заняты стилями сайта (у .topics — свой отступ сверху). */
+.adm-cat3-col.adm-cat3-subjects{flex:1 1 250px}
+.adm-cat3-col.adm-cat3-topics{flex:1.4 1 320px}
+.adm-cat3-col.adm-cat3-subtopics{flex:1.2 1 280px}
+.adm-cat3-head{display:flex;align-items:center;gap:8px;min-height:46px;padding:8px 14px;box-sizing:border-box;border-bottom:1px solid var(--adm-line)}
+.adm-cat3-head h2{min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:650;color:var(--adm-ink)}
+.adm-cat3-head h2 span{font-weight:500;color:var(--adm-mute)}
+.adm-cat3-count{margin-left:auto;font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-dim)}
+.adm-shell .adm-cat3-head select{flex:none;margin-left:auto;padding:5px 8px;border:1px solid var(--adm-fieldbd);border-radius:7px;background:var(--adm-field);color:var(--adm-ink);font-family:inherit;font-size:12px}
+.adm-cat3-list{max-height:min(560px, calc(100vh - 290px));overflow-y:auto}
+.adm-cat3-group{padding:10px 14px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--adm-dim)}
+.adm-cat3-row{display:flex;align-items:center;border-bottom:1px solid var(--adm-line2)}
+.adm-cat3-row:hover{background:var(--adm-hover)}
+.adm-cat3-row.is-selected{background:var(--adm-accsoft)}
+.adm-cat3-pick{flex:1;min-width:0;display:flex;align-items:baseline;gap:10px;padding:10px 6px 10px 14px;border:0;background:none;color:var(--adm-ink);font-family:inherit;font-size:13px;line-height:1.4;text-align:left;cursor:pointer}
+.adm-cat3-row.static .adm-cat3-pick{cursor:default}
+.adm-cat3-pick:focus-visible{outline:2px solid var(--adm-acc);outline-offset:-2px}
+.adm-cat3-code{flex:0 0 46px;font:11px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-dim)}
+.adm-cat3-row.is-selected .adm-cat3-code{color:var(--adm-acclink)}
+.adm-cat3-name{flex:1;min-width:0}
+.adm-cat3-name b{display:block;font-weight:600}
+.adm-cat3-name small{display:block;margin-top:1px;font-size:12px;color:var(--adm-mute)}
+.adm-cat3-n{flex:none;font:11px ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;color:var(--adm-dim)}
+.adm-cat3-n.zero{color:var(--adm-warnfg)}
+.adm-cat3-acts{display:flex;gap:2px;padding-right:8px;opacity:0;transition:opacity .12s ease}
+.adm-cat3-row:hover .adm-cat3-acts,.adm-cat3-row.is-selected .adm-cat3-acts,.adm-cat3-row:focus-within .adm-cat3-acts{opacity:1}
+@media (hover:none){.adm-cat3-acts{opacity:1}}
+.adm-cat3-act{min-width:24px;padding:3px 5px;border:1px solid transparent;border-radius:6px;background:none;color:var(--adm-mute);font-family:inherit;font-size:12px;line-height:1.3;cursor:pointer}
+.adm-cat3-act:hover:not(:disabled){border-color:var(--adm-line);background:var(--adm-panel);color:var(--adm-ink)}
+.adm-cat3-act.bad:hover:not(:disabled){border-color:var(--adm-badbd);background:var(--adm-badbg);color:var(--adm-badfg)}
+.adm-cat3-act:disabled{opacity:.3;cursor:default}
+.adm-cat3-act:focus-visible{outline:2px solid var(--adm-acc);outline-offset:1px}
+.adm-cat3-empty{margin:0;padding:22px 14px;text-align:center;font-size:13px;color:var(--adm-mute)}
+.adm-cat3-add{display:flex;gap:7px;margin:0;padding:11px 14px;border-top:1px solid var(--adm-line)}
+.adm-shell .adm-cat3-add input{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--adm-fieldbd);border-radius:7px;background:var(--adm-field);color:var(--adm-ink);font-family:inherit;font-size:13px}
+.adm-shell .adm-cat3-add input::placeholder{color:var(--adm-dim)}
+.adm-shell .adm-cat3-add input:focus{outline:none;border-color:var(--adm-acc);box-shadow:0 0 0 3px var(--adm-accsoft)}
+.adm-shell .adm-cat3-add .adm-btn{padding:7px 13px;font-weight:700}
+.adm-cat3-status{min-height:18px;margin:10px 0 0;font-size:13px;color:var(--adm-mute)}
+.adm-cat3-status.ok{color:var(--adm-okfg)}
+.adm-cat3-status.warn{color:var(--adm-warnfg)}
+.adm-cat3-status.bad{color:var(--adm-badfg)}
+/* Прежние разделы под колонками — только их форма и только пока открыта правка (✎). */
+.adm-shell #section-subjects,.adm-shell #section-topics,.adm-shell #section-subtopics{display:none}
+.adm-shell #section-subjects.is-editing,.adm-shell #section-topics.is-editing,.adm-shell #section-subtopics.is-editing{display:block}
+.adm-shell .admin-section.is-editing > .admin-feature-head{display:flex}
+.adm-shell :is(#section-subjects,#section-topics,#section-subtopics) :is(.admin-list-toolbar,.admin-list-defer,.admin-list-close,.admin-list,.skola-preset-box){display:none}
+.adm-shell [data-slot="catalog-actions"] .admin-tool-btn{padding:8px 12px;border:1px solid var(--adm-accbd);border-radius:8px;background:var(--adm-accsoft);color:var(--adm-ink2);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer}
 /* Узкий экран: колонка формы может сжиматься. Иначе самый широкий блок —
    вкладки категорий тегов (403px) или полоса с кнопками (340px) — растягивал
    форму за край экрана, и на телефоне страница уезжала вбок. */
