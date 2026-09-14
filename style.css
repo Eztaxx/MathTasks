@@ -1278,6 +1278,7 @@ body.dark .task-self-assess{border-color:#2a3d5e}
 body.dark .self-assess-yes{background:#0d281a;color:#4ade80;border-color:#166534}
 body.dark .self-assess-no{background:#2a1b05;color:#fcd34d;border-color:#854d0e}
 .adm-stat[data-scroll-nocheck]{cursor:pointer}
+.adm-variants-preview{display:block;margin-top:5px;font-size:12px;font-weight:600;color:var(--adm-ink2,#3c4560)}
 
 /* ── Мой прогресс ── */
 .progress-page{display:flex;flex-direction:column;gap:24px;margin-top:4px}

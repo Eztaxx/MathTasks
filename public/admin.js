@@ -2506,6 +2506,14 @@ ${JSON.stringify(texts)}`;
     const lib = window.MathTasksLib || {};
     const checkRu = answerCheckInput?.value.trim() || '';
     const checkLv = answerCheckInputLv?.value.trim() || '';
+    // Под полем — что именно будет принято: лишний вариант («12» при ответе 120) виден сразу.
+    const paintVariants = (el, raw, empty) => {
+      if (!el) return;
+      const list = lib.answerCheckVariants ? lib.answerCheckVariants(raw) : [];
+      el.textContent = list.length ? `Будут приняты: ${list.join('  ·  ')}` : empty;
+    };
+    paintVariants(byId('answer-check-preview'), checkRu, 'Вариантов нет — сверка по самому ответу');
+    paintVariants(byId('answer-check-preview-lv'), checkLv, checkRu ? 'Пусто — берутся русские варианты' : 'Вариантов нет — сверка по самому ответу');
     // Проверяема задача, у которой ответ сверяемый или есть варианты для проверки.
     const canCheck = (answer, variants) => (lib.isTaskAutoCheckable ? lib.isTaskAutoCheckable(answer, variants) : true);
     const answerForField = ansRu || ansLv;
@@ -3281,17 +3289,37 @@ ${JSON.stringify(texts)}`;
     renderTopicList();
   }
 
+  const taskSearchCache = new WeakMap();
+
   function getFilteredTasks() {
     const query = (taskSearchInput?.value || '').trim().toLowerCase();
     const gradeVal = parseFormGrade(taskFilterGrade?.value);
     const topicVal = taskFilterTopic?.value ? Number(taskFilterTopic.value) : null;
     const statusVal = taskFilterStatus?.value || '';
 
+    /* Условие хранится в LaTeX: «$480\text{ книг}$» не содержит строки
+       «480 книг», и поиск по условию её не находил. Ищем и по исходнику, и
+       по обычному тексту; запрос-число («45», «#45») — ещё и по номеру задачи. */
+    const lib = window.MathTasksLib;
+    const plainQuery = query.replace(/\s+/g, ' ');
+    const idQuery = query.replace(/^#/, '');
+    // Текст для поиска считается раз на задачу; кеш не трогает сам объект — он уходит в выгрузку и копии.
+    const searchText = task => {
+      if (!taskSearchCache.has(task)) {
+        const plain = value => (lib?.latexToPlainText ? lib.latexToPlainText(value, 100000) : String(value || ''));
+        taskSearchCache.set(task, [task.title, task.title_lv, task.condition_latex, task.condition_latex_lv]
+          .map(value => `${String(value || '')} ${plain(value)}`)
+          .join(' ')
+          .toLowerCase()
+          .replace(/\s+/g, ' '));
+      }
+      return taskSearchCache.get(task);
+    };
+
     return tasks.filter(task => {
       if (query) {
-        const titleStr = `${task.title || ''} ${task.title_lv || ''}`.toLowerCase();
-        const condStr = `${task.condition_latex || ''} ${task.condition_latex_lv || ''}`.toLowerCase();
-        if (!titleStr.includes(query) && !condStr.includes(query)) return false;
+        const idMatch = /^\d+$/.test(idQuery) && String(task.id) === idQuery;
+        if (!idMatch && !searchText(task).includes(plainQuery)) return false;
       }
       if (gradeVal !== null) {
         const taskGrade = parseFormGrade(task.grade ?? topics.find(t => t.id === task.topic_id)?.grade);
@@ -3748,6 +3776,9 @@ ${JSON.stringify(texts)}`;
   const showTasksThenRender = () => {
     if (!tasksLoaded) {
       paintStatusSegments();
+      /* Поиск ищет по загруженному списку — без него он ничего не находил, а
+         запускают его из шапки с любого экрана. Запрос сам грузит список. */
+      if ((taskSearchInput?.value || '').trim()) ensureTasksLoaded();
       return;
     }
     setTasksShown(true);

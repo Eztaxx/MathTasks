@@ -120,6 +120,20 @@ describe('каркас админки: меню и экраны', () => {
     expect(js).toContain("answer_check: answerCheckInput?.value.trim() || null");
   });
 
+  it('варианты: пометка «каждый — с новой строки» и строка «Будут приняты»', () => {
+    expect(html).toContain('Каждый вариант — с новой строки');
+    expect(html).toContain('Katrs variants — jaunā rindā');
+    for (const id of ['answer-check-preview', 'answer-check-preview-lv']) expect(html).toContain(`id="${id}"`);
+    expect(js).toContain('Будут приняты: ');
+  });
+
+  /* Список задач грузится кнопкой, а поиск из шапки работает с любого
+     экрана — без автозагрузки он ничего не находил. */
+  it('поиск задач: сам грузит список и ищет по обычному тексту условия', () => {
+    expect(js).toMatch(/const showTasksThenRender = \(\) => \{[\s\S]*?ensureTasksLoaded\(\)[\s\S]*?\};/);
+    expect(js).toMatch(/function getFilteredTasks\(\) \{[\s\S]*?latexToPlainText[\s\S]*?idMatch/);
+  });
+
   it('«Обзор»: карточка и список задач без автопроверки', () => {
     for (const id of ['adm-stat-nocheck', 'adm-nocheck-panel', 'adm-nocheck-list']) expect(html).toContain(`id="${id}"`);
     expect(js).toContain('function loadNoCheckList');
