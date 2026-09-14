@@ -92,6 +92,11 @@
                   <h1>Проверка</h1>
                   <p>Задача целиком — как её увидит посетитель. Решение принимается одной кнопкой.</p>
                 </div>
+                <div class="adm-lang-switch adm-review-lang" role="group" aria-label="Язык задачи">
+                  <button type="button" class="adm-lang-btn" data-review-lang="ru" aria-pressed="false">Русский</button>
+                  <button type="button" class="adm-lang-btn" data-review-lang="lv" aria-pressed="false">Latviešu</button>
+                  <button type="button" class="adm-lang-btn" data-review-lang="both" aria-pressed="false" title="Русский и латышский рядом">RU + LV</button>
+                </div>
                 <div class="adm-review-progress" id="adm-review-progress"></div>
               </div>
               <div id="adm-review-container">
@@ -219,10 +224,14 @@
                 <div data-slot="new-title">
                   <p>Формулы — между знаками <code>$…$</code>. Под полями — ровно то, что увидит посетитель.</p>
                 </div>
+              </div>
+              <!-- Язык, превью и руководство прилипают под шапкой при прокрутке; «Место» — часть формы. -->
+              <div class="adm-editor-toolbar">
                 <div class="adm-view-actions" data-slot="new-actions">
-                  <div class="adm-lang-switch" role="tablist">
-                    <button type="button" class="adm-lang-btn active" data-lang="ru" id="adm-editor-lang-ru">Русский</button>
-                    <button type="button" class="adm-lang-btn" data-lang="lv" id="adm-editor-lang-lv">Latviešu</button>
+                  <div class="adm-lang-switch" role="group" aria-label="Язык полей задачи">
+                    <button type="button" class="adm-lang-btn active" data-lang="ru" id="adm-editor-lang-ru" aria-pressed="true">Русский</button>
+                    <button type="button" class="adm-lang-btn" data-lang="lv" id="adm-editor-lang-lv" aria-pressed="false">Latviešu</button>
+                    <button type="button" class="adm-lang-btn" data-lang="both" id="adm-editor-lang-both" aria-pressed="false" title="Русский и латышский рядом">RU + LV</button>
                   </div>
                   <button type="button" class="adm-btn soft adm-preview-toggle" id="adm-preview-toggle" aria-controls="adm-preview-col" aria-expanded="false">Как увидит посетитель</button>
                 </div>

@@ -1386,27 +1386,44 @@
   // Переключение языковых вкладок в форме задания (RU / LV)
   const admEditorLangRu = byId('adm-editor-lang-ru');
   const admEditorLangLv = byId('adm-editor-lang-lv');
+  const admEditorLangBoth = byId('adm-editor-lang-both');
   const taskLangTabs = document.querySelectorAll('.task-lang-tab');
   const taskLangGroups = document.querySelectorAll('.task-lang-group');
+  /* Режим «RU + LV» — русские поля слева, латышские справа — помнится между
+     задачами и визитами; одиночный язык при открытии задачи — русский. */
+  const EDITOR_LANG_KEY = 'mt-admin-editor-lang';
   let currentEditorLang = 'ru';
+  try { if (localStorage.getItem(EDITOR_LANG_KEY) === 'both') currentEditorLang = 'both'; } catch {}
 
   function setEditorLanguage(lang) {
-    currentEditorLang = lang === 'lv' ? 'lv' : 'ru';
-    if (admEditorLangRu) admEditorLangRu.classList.toggle('active', currentEditorLang === 'ru');
-    if (admEditorLangLv) admEditorLangLv.classList.toggle('active', currentEditorLang === 'lv');
+    currentEditorLang = ['lv', 'both'].includes(lang) ? lang : 'ru';
+    const both = currentEditorLang === 'both';
+    [[admEditorLangRu, 'ru'], [admEditorLangLv, 'lv'], [admEditorLangBoth, 'both']].forEach(([btn, value]) => {
+      if (!btn) return;
+      btn.classList.toggle('active', currentEditorLang === value);
+      btn.setAttribute('aria-pressed', String(currentEditorLang === value));
+    });
     taskLangTabs.forEach(t => t.classList.toggle('active', t.dataset.taskLang === currentEditorLang));
-    taskLangGroups.forEach(g => {
-      g.hidden = g.dataset.langGroup !== currentEditorLang;
-    });
+    // Группы полей (.task-lang-group) тоже помечены data-lang-group — один проход на всё.
     document.querySelectorAll('[data-lang-group]').forEach(el => {
-      el.hidden = el.dataset.langGroup !== currentEditorLang;
+      el.hidden = !both && el.dataset.langGroup !== currentEditorLang;
     });
+    taskForm?.classList.toggle('is-lang-both', both);
     updatePreviews();
     if (typeof updateReadyBar === 'function') updateReadyBar();
   }
 
-  admEditorLangRu?.addEventListener('click', () => setEditorLanguage('ru'));
-  admEditorLangLv?.addEventListener('click', () => setEditorLanguage('lv'));
+  // Показать поле нужного языка: в режиме «RU + LV» оба уже на экране.
+  function ensureLangVisible(lang) {
+    if (currentEditorLang !== 'both' && currentEditorLang !== lang) setEditorLanguage(lang);
+  }
+
+  [['ru', admEditorLangRu], ['lv', admEditorLangLv], ['both', admEditorLangBoth]].forEach(([lang, btn]) => {
+    btn?.addEventListener('click', () => {
+      setEditorLanguage(lang);
+      try { localStorage.setItem(EDITOR_LANG_KEY, lang === 'both' ? 'both' : 'single'); } catch {}
+    });
+  });
 
   taskLangTabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -2508,7 +2525,9 @@ ${JSON.stringify(texts)}`;
   function renderVisitorPreview() {
     const cond = byId('adm-preview-cond');
     if (!cond) return;
+    const both = currentEditorLang === 'both';
     const lv = currentEditorLang === 'lv';
+    // В режиме «RU + LV» основной текст русский, латышский — под ним.
     const value = (ruInput, lvInput) => ((lv ? lvInput : ruInput)?.value || '').trim();
     const put = (el, text, emptyText) => {
       if (!el) return;
@@ -2522,8 +2541,16 @@ ${JSON.stringify(texts)}`;
       const check = checkFormulaSyntax(text);
       if (!check.ok) el.insertAdjacentHTML('beforeend', `<span class="adm-preview-bad">${escapeHtml(check.error)}</span>`);
     };
+    const putLv = (el, lvInput) => {
+      if (!el || !both) return;
+      const box = document.createElement('div');
+      box.className = 'adm-preview-lv';
+      box.innerHTML = '<span class="adm-preview-lv-tag">LV</span><div class="adm-preview-lv-text"></div>';
+      el.append(box);
+      put(box.lastElementChild, (lvInput?.value || '').trim(), 'Перевода пока нет');
+    };
     const lang = byId('adm-preview-lang');
-    if (lang) lang.textContent = lv ? 'latviešu' : 'русский';
+    if (lang) lang.textContent = both ? 'RU + LV' : (lv ? 'latviešu' : 'русский');
 
     const grade = parseFormGrade(taskGradeSelect?.value);
     const topic = topics.find(t => String(t.id) === topicSelect?.value);
@@ -2537,15 +2564,24 @@ ${JSON.stringify(texts)}`;
     if (pathEl) pathEl.textContent = path || 'Место не выбрано';
 
     put(cond, value(conditionInput, conditionInputLv), lv ? 'Латышского условия пока нет' : 'Условие пока пустое');
-    put(byId('adm-preview-sol'), value(solutionInput, solutionInputLv), 'Решения пока нет');
+    putLv(cond, conditionInputLv);
+    const solEl = byId('adm-preview-sol');
+    put(solEl, value(solutionInput, solutionInputLv), 'Решения пока нет');
+    putLv(solEl, solutionInputLv);
     const hint = value(hintInput, hintInputLv);
     const answer = value(answerInput, answerInputLv);
+    const lvHint = both && Boolean((hintInputLv?.value || '').trim());
+    const lvAnswer = both && Boolean((answerInputLv?.value || '').trim());
     const hintWrap = byId('adm-preview-hint-wrap');
     const answerWrap = byId('adm-preview-answer-wrap');
-    if (hintWrap) hintWrap.hidden = !hint;
-    if (answerWrap) answerWrap.hidden = !answer;
-    put(byId('adm-preview-hint'), hint);
-    put(byId('adm-preview-answer'), answer);
+    if (hintWrap) hintWrap.hidden = !hint && !lvHint;
+    if (answerWrap) answerWrap.hidden = !answer && !lvAnswer;
+    const hintEl = byId('adm-preview-hint');
+    const answerEl = byId('adm-preview-answer');
+    put(hintEl, hint, both ? 'Подсказки пока нет' : '');
+    putLv(hintEl, hintInputLv);
+    put(answerEl, answer, both ? 'Ответа пока нет' : '');
+    putLv(answerEl, answerInputLv);
 
     // Чертёж: сначала то, что сейчас в поле SVG-кода, иначе сохранённый файл.
     const figure = (img, kind) => {
@@ -2845,43 +2881,43 @@ ${JSON.stringify(texts)}`;
     const action = btn.dataset.missingAction;
     switch (action) {
       case 'focus-cond-ru':
-        setEditorLanguage('ru');
+        ensureLangVisible('ru');
         conditionInput?.focus();
         conditionInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         break;
       case 'switch-lv':
       case 'focus-cond-lv':
-        setEditorLanguage('lv');
+        ensureLangVisible('lv');
         conditionInputLv?.focus();
         conditionInputLv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         break;
       case 'focus-ans':
-        setEditorLanguage('ru');
+        ensureLangVisible('ru');
         answerInput?.focus();
         answerInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         break;
       case 'focus-ans-lv':
-        setEditorLanguage('lv');
+        ensureLangVisible('lv');
         answerInputLv?.focus();
         answerInputLv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         break;
       case 'focus-sol':
-        setEditorLanguage('ru');
+        ensureLangVisible('ru');
         solutionInput?.focus();
         solutionInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         break;
       case 'focus-sol-lv':
-        setEditorLanguage('lv');
+        ensureLangVisible('lv');
         solutionInputLv?.focus();
         solutionInputLv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         break;
       case 'focus-hint':
-        setEditorLanguage('ru');
+        ensureLangVisible('ru');
         hintInput?.focus();
         hintInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         break;
       case 'focus-hint-lv':
-        setEditorLanguage('lv');
+        ensureLangVisible('lv');
         hintInputLv?.focus();
         hintInputLv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         break;
@@ -2957,7 +2993,7 @@ ${JSON.stringify(texts)}`;
     setImages(task);
     updatePreviews();
     updateEditorCrumbs();
-    setEditorLanguage('ru');
+    setEditorLanguage(currentEditorLang === 'both' ? 'both' : 'ru');
     if (task && tagsReady) {
       db.from('task_tags').select('tags(slug)').eq('task_id', task.id)
         .then(({ data: tagLinks }) => {
@@ -6373,6 +6409,9 @@ ${JSON.stringify(texts)}`;
       }
     }
 
+    // Язык карточки — по переключателю «Русский / Latviešu / RU + LV».
+    applyReviewLang(task);
+
     // Кросс-теги
     const tagsEl = byId('adm-review-tags');
     if (tagsEl) {
@@ -6444,6 +6483,60 @@ ${JSON.stringify(texts)}`;
       originEl.textContent = lines.join(', ') || '—';
     }
   }
+
+  /* Язык в «Проверке»: русский, латышский или оба рядом (латышский справа).
+     Выбор помнится. Отсутствующий перевод называется прямо, а не прячется. */
+  const REVIEW_LANG_KEY = 'mt-admin-review-lang';
+  let reviewLang = 'ru';
+  try {
+    const saved = localStorage.getItem(REVIEW_LANG_KEY);
+    if (['ru', 'lv', 'both'].includes(saved)) reviewLang = saved;
+  } catch {}
+
+  function paintReviewLang() {
+    document.querySelectorAll('[data-review-lang]').forEach(btn => {
+      const on = btn.dataset.reviewLang === reviewLang;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', String(on));
+    });
+  }
+
+  function applyReviewLang(task) {
+    paintReviewLang();
+    const both = reviewLang === 'both';
+    byId('adm-review-card')?.classList.toggle('is-both', both);
+    const solution = (sol, ans, word) => [
+      String(sol || '').trim(),
+      String(ans || '').trim() ? `${word}: ${String(ans).trim()}` : ''
+    ].filter(Boolean).join('\n\n');
+    const ru = { cond: String(task.condition_latex || '').trim(), sol: solution(task.solution_latex, task.answer_latex, 'Ответ') };
+    const lv = { cond: String(task.condition_latex_lv || '').trim(), sol: solution(task.solution_latex_lv, task.answer_latex_lv, 'Atbilde') };
+    const set = (el, text, empty) => {
+      if (!el) return;
+      if (text) renderMath(el, text);
+      else el.innerHTML = `<span class="adm-review-missing">${empty}</span>`;
+    };
+    const main = reviewLang === 'lv' ? lv : ru;
+    set(byId('adm-review-cond'), main.cond, reviewLang === 'lv' ? 'Латышского условия нет' : 'Русского условия нет');
+    set(byId('adm-review-sol'), main.sol, reviewLang === 'lv' ? 'Латышского решения и ответа нет' : 'Решения и ответа нет');
+    const condLvWrap = byId('adm-review-cond-lv-wrap');
+    const solLvWrap = byId('adm-review-sol-lv-wrap');
+    if (condLvWrap) condLvWrap.hidden = !both;
+    if (solLvWrap) solLvWrap.hidden = !both;
+    if (both) {
+      set(byId('adm-review-cond-lv'), lv.cond, 'Перевода нет');
+      set(byId('adm-review-sol-lv'), lv.sol, 'Перевода нет');
+    }
+  }
+
+  document.querySelectorAll('[data-review-lang]').forEach(btn => btn.addEventListener('click', () => {
+    reviewLang = btn.dataset.reviewLang;
+    try { localStorage.setItem(REVIEW_LANG_KEY, reviewLang); } catch {}
+    const task = reviewQueue[reviewIndex];
+    if (task) applyReviewLang(task);
+    else paintReviewLang();
+  }));
+  paintReviewLang();
 
   /* Пока идёт запрос, второе нажатие Enter не принимаем: оно вырезало бы
      из очереди следующую задачу, так её и не опубликовав. */

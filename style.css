@@ -5697,7 +5697,7 @@ body .adm-shell #section-tasks-database{padding:0;border:0;background:none}
    а не пересобирается на каждом кадре. */
 .adm-view-body.adm-editor-body{display:flex;flex-direction:row;align-items:flex-start;gap:0}
 .adm-editor-body > #section-task-form{flex:1 1 auto;min-width:0}
-.adm-preview-col{order:2;flex:0 0 auto;width:0;margin-left:0;visibility:hidden;position:sticky;top:calc(var(--adm-top-h, 61px) + 12px);display:flex;flex-direction:column;gap:11px;max-height:calc(100vh - var(--adm-top-h, 61px) - 24px);overflow-x:hidden;overflow-y:auto;transition:width .28s ease,margin-left .28s ease,visibility 0s linear .28s}
+.adm-preview-col{order:2;flex:0 0 auto;width:0;margin-left:0;visibility:hidden;position:sticky;top:calc(var(--adm-top-h, 61px) + 64px);display:flex;flex-direction:column;gap:11px;max-height:calc(100vh - var(--adm-top-h, 61px) - 76px);overflow-x:hidden;overflow-y:auto;transition:width .28s ease,margin-left .28s ease,visibility 0s linear .28s}
 .adm-preview-col > *{min-width:400px}
 .adm-editor-body.preview-open .adm-preview-col{width:min(45%, 640px);margin-left:16px;visibility:visible;transition:width .28s ease,margin-left .28s ease,visibility 0s}
 @media (prefers-reduced-motion:reduce){.adm-preview-col,.adm-editor-body.preview-open .adm-preview-col{transition:none}}
@@ -5736,7 +5736,34 @@ body .adm-shell #section-tasks-database{padding:0;border:0;background:none}
    Раньше «Место» стояло на 56px при шапке в 61px и с z-index выше —
    и наезжало на поиск. */
 .adm-shell .adm-top{z-index:20}
-.adm-shell .adm-editor-place{top:var(--adm-top-h, 61px);z-index:12}
+/* «Место» — обычная часть формы и прокручивается вместе с ней; прилипает
+   под шапкой полоса с языком и превью (.adm-editor-toolbar). relative —
+   чтобы окно выбора места позиционировалось от строки и было поверх формы. */
+.adm-shell .adm-editor-place{position:relative;top:auto;z-index:12}
+.adm-editor-toolbar{position:sticky;top:var(--adm-top-h, 61px);z-index:14;display:flex;justify-content:flex-end;margin:-6px 0 10px;padding:8px 0;background:var(--adm-bg)}
+/* «RU + LV»: русские поля слева, латышские справа; на узком экране — друг под другом. */
+.adm-shell #task-form.is-lang-both{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.adm-shell #task-form.is-lang-both > .task-lang-group{display:flex;flex-direction:column;gap:14px;min-width:0}
+.adm-shell #task-form.is-lang-both [data-lang-group="ru"]{grid-column:1}
+.adm-shell #task-form.is-lang-both [data-lang-group="lv"]{grid-column:2}
+@media (max-width:860px){
+  .adm-shell #task-form.is-lang-both{grid-template-columns:minmax(0,1fr)}
+  .adm-shell #task-form.is-lang-both [data-lang-group]{grid-column:1}
+}
+.adm-preview-lv{margin-top:8px;padding-top:8px;border-top:1px dashed var(--adm-line2)}
+.adm-preview-lv-tag{display:inline-block;margin-bottom:3px;font:600 10px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.06em;color:var(--adm-dim)}
+/* «Проверка»: переключатель языка; в режиме «RU + LV» латышский — справа от русского. */
+.adm-review-lang{margin-left:auto}
+.adm-review-lang + .adm-review-progress{margin-left:14px}
+.adm-review-card.is-both .adm-review-block{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:18px;align-items:start}
+.adm-review-card.is-both .adm-review-label{grid-column:1/-1}
+.adm-review-card.is-both .adm-review-block > .adm-review-content,.adm-review-card.is-both .adm-review-block > .adm-review-img-wrap{grid-column:1}
+.adm-review-card.is-both .adm-review-subblock{grid-column:2;grid-row:2 / span 2;margin-top:0;padding:0 0 0 16px;border-top:0;border-left:1px dashed var(--adm-line2)}
+.adm-review-missing{font-style:italic;color:var(--adm-dim)}
+@media (max-width:860px){
+  .adm-review-card.is-both .adm-review-block{display:flex}
+  .adm-review-card.is-both .adm-review-subblock{margin-top:12px;padding:10px 0 0;border-left:0;border-top:1px dashed var(--adm-line2)}
+}
 /* Длинное название подтемы сжимается с многоточием, а не вылезает за рамку. */
 .adm-shell .adm-crumbs{flex:1 1 auto;min-width:0}
 .adm-shell .adm-crumb-select-wrap{min-width:0;max-width:100%}

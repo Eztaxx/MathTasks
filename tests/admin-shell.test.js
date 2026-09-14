@@ -119,4 +119,11 @@ describe('каркас админки: меню и экраны', () => {
     expect(kinds.length).toBeGreaterThan(3);
     expect(kinds.filter(kind => !new RegExp(`\\b${kind}:`).test(labels))).toEqual([]);
   });
+
+  it('переключатели языка: в редакторе и в проверке — русский, латышский и оба рядом', () => {
+    expect([...html.matchAll(/id="adm-editor-lang-(\w+)"/g)].map(m => m[1])).toEqual(['ru', 'lv', 'both']);
+    expect([...html.matchAll(/data-review-lang="(\w+)"/g)].map(m => m[1])).toEqual(['ru', 'lv', 'both']);
+    // Переключатель редактора — в полосе, которая прилипает под шапкой.
+    expect(html).toMatch(/class="adm-editor-toolbar"[\s\S]*?id="adm-editor-lang-ru"/);
+  });
 });
