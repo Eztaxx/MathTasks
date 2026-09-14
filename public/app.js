@@ -2635,7 +2635,7 @@ function renderTopicControlWorkCard(topic, tasks) {
       </div>
       <div class="cw-card-actions">
         <a href="/control-work/${encodeURIComponent(topic.slug)}" class="primary-button cw-start-btn">
-          ${escapeHtml(prevResult ? tr('cw_retry_btn') : tr('btn_start_cw'))} (${cwCount} заданий) →
+          ${escapeHtml(prevResult ? tr('cw_retry_btn') : tr('btn_start_cw'))} · ${escapeHtml(tr('cw_tasks_count', { count: cwCount }))} →
         </a>
       </div>
     </div>

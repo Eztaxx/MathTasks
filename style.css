@@ -4861,18 +4861,26 @@ body.dark .sheet-completion-card p {
 }
 .cw-card-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   align-items: center;
 }
+/* Текст кнопки длинный («… (40 мин) · заданий: 5 →»): .primary-button не даёт
+   ему переноситься, и на телефоне кнопка вылезала за карточку. */
 .cw-start-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  max-width: 100%;
   font-size: 14px;
   font-weight: 700;
   padding: 12px 22px;
   border-radius: 9px;
   text-decoration: none;
+  white-space: normal;
+  text-align: center;
+  text-wrap: balance;
 }
 .cw-quick-jump-btn {
   color: #1764ff !important;
@@ -5483,8 +5491,8 @@ body #admin-content:has(.adm-shell){border:0;border-radius:0;padding:0;backgroun
 .adm-user strong{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .adm-avatar{flex:0 0 24px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--adm-accsoft);border:1px solid var(--adm-accbd);color:var(--adm-acclink);font-weight:700;font-size:11px;text-transform:uppercase}
 .adm-side-links{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:0 8px;font-size:12px}
-.adm-shell .adm-side-links a,.adm-link-btn{color:var(--adm-mute);text-decoration:none;background:none;border:0;padding:0;cursor:pointer;font:inherit}
-.adm-shell .adm-side-links a:hover,.adm-link-btn:hover{color:var(--adm-acc)}
+.adm-link-btn{color:var(--adm-mute);text-decoration:none;background:none;border:0;padding:0;cursor:pointer;font:inherit}
+.adm-link-btn:hover{color:var(--adm-acc)}
 
 .adm-main{flex:1;min-width:0;display:flex;flex-direction:column}
 .adm-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 22px;border-bottom:1px solid var(--adm-line);background:var(--adm-bg);position:sticky;top:0;z-index:5}
