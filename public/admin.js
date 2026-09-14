@@ -5653,7 +5653,7 @@ ${JSON.stringify(texts)}`;
     if (!reportSection || !reportList) return;
     reportSection.hidden = false;
     const { data, error } = await db.from('task_reports')
-      .select('id,task_id,kind,message,lang,created_at,tasks(position,topic_id)')
+      .select('id,task_id,kind,message,lang,created_at,tasks(title,position,topic_id,subtopic_id,grade,is_published)')
       .eq('resolved', false)
       .order('created_at', { ascending: false })
       .limit(200);
@@ -5669,43 +5669,119 @@ ${JSON.stringify(texts)}`;
     renderReports();
   }
 
+  // «2 дня назад» — когда посетитель написал; точная дата — во всплывающей подсказке.
+  function timeAgo(iso) {
+    const plural = (n, one, few, many) => {
+      const m10 = n % 10, m100 = n % 100;
+      if (m100 >= 11 && m100 <= 14) return many;
+      if (m10 === 1) return one;
+      return m10 >= 2 && m10 <= 4 ? few : many;
+    };
+    const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+    if (minutes < 1) return 'только что';
+    if (minutes < 60) return `${minutes} ${plural(minutes, 'минуту', 'минуты', 'минут')} назад`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours} ${plural(hours, 'час', 'часа', 'часов')} назад`;
+    const days = Math.round(hours / 24);
+    if (days === 1) return 'вчера';
+    if (days < 31) return `${days} ${plural(days, 'день', 'дня', 'дней')} назад`;
+    return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  /* Последнее закрытое сообщение: 10 секунд его можно вернуть. В таблице
+     есть только отметка resolved, поэтому и «Решено», и «Не ошибка»
+     закрывают сообщение — «Вернуть» страхует от случайного клика. */
+  let lastResolved = null;
+  let lastResolvedTimer = null;
+  function setLastResolved(value) {
+    clearTimeout(lastResolvedTimer);
+    lastResolved = value;
+    if (value) {
+      lastResolvedTimer = setTimeout(() => {
+        lastResolved = null;
+        renderReports();
+      }, 10000);
+    }
+  }
+
+  /* Карточка на сообщение, как в макете: слева задача и что написал
+     посетитель, справа — «Открыть задачу», «Решено», «Не ошибка». */
   function renderReports() {
     updateShellCounts();
     if (reportCount) reportCount.textContent = reports.length ? `(${reports.length})` : '';
+    const undo = lastResolved
+      ? `<div class="adm-report-undo" role="status"><span>Сообщение по задаче #${lastResolved.report.task_id} закрыто: ${lastResolved.verdict === 'not-error' ? '«не ошибка»' : '«решено»'}.</span><button type="button" class="adm-link-btn" data-report-undo>Вернуть</button></div>`
+      : '';
     if (!reports.length) {
-      reportList.innerHTML = '<p class="admin-empty">Открытых сообщений нет.</p>';
+      reportList.innerHTML = `${undo}<div class="adm-reports-empty"><div class="adm-reports-empty-title">Открытых сообщений нет</div><p>Посетители отмечают ошибки кнопкой «Нашли ошибку?» на странице задачи.</p></div>`;
       return;
     }
-    reportList.innerHTML = reports.map(r => {
-      const topic = topics.find(t => t.id === r.tasks?.topic_id);
-      const when = new Date(r.created_at).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
-      const where = [r.tasks?.position ? `№${r.tasks.position}` : '', topic?.title || ''].filter(Boolean).join(' · ');
-      return `<div class="admin-row">
-        <div class="admin-row-main">
-          <strong>${escapeHtml(REPORT_KIND_LABELS[r.kind] || r.kind)} · задача #${r.task_id}${where ? ` <span style="font-weight:600;opacity:0.7">(${escapeHtml(where)})</span>` : ''}</strong>
-          <small>${escapeHtml(when)}${r.lang ? ' · ' + escapeHtml(r.lang.toUpperCase()) : ''}</small>
-          ${r.message ? `<p class="admin-report-message">${escapeHtml(r.message)}</p>` : ''}
+    const codes = topicCodeMap();
+    reportList.innerHTML = undo + reports.map(r => {
+      const task = r.tasks;
+      const topic = task ? topics.find(t => t.id === task.topic_id) : null;
+      const sub = task?.subtopic_id ? subtopics.find(s => s.id === task.subtopic_id) : null;
+      const grade = parseFormGrade(task?.grade ?? topic?.grade);
+      const path = [grade ? `${grade}. klase` : '', topic ? topicOptionText(topic, codes) : '', sub?.code || ''].filter(Boolean).join(' · ');
+      const title = task ? (task.title || `Задача №${task.position ?? r.task_id}`) : 'Задача удалена';
+      const meta = [
+        timeAgo(r.created_at),
+        r.lang ? `страница ${r.lang.toUpperCase()}` : '',
+        task && !task.is_published ? 'задача сейчас в черновиках' : ''
+      ].filter(Boolean).join(' · ');
+      const exact = new Date(r.created_at).toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' });
+      return `<article class="adm-report">
+        <div class="adm-report-main">
+          <div class="adm-report-head">
+            <span class="adm-report-id">#${r.task_id}</span>
+            <span class="adm-report-title">${escapeHtml(title)}</span>
+            ${path ? `<span class="adm-report-path">${escapeHtml(path)}</span>` : ''}
+          </div>
+          <div class="adm-report-text"><span class="adm-report-kind">${escapeHtml(REPORT_KIND_LABELS[r.kind] || r.kind)}</span>${r.message ? escapeHtml(r.message) : '<span class="adm-report-no-text">Посетитель не оставил комментария.</span>'}</div>
+          <div class="adm-report-meta" title="${escapeHtml(exact)}">${escapeHtml(meta)}</div>
         </div>
-        <button class="text-button" type="button" data-report-open="${r.task_id}">Открыть задачу</button>
-        <button class="text-button" type="button" data-report-resolve="${r.id}">Решено</button>
-      </div>`;
+        <div class="adm-report-actions">
+          <button type="button" class="adm-btn soft" data-report-open="${r.task_id}"${task ? '' : ' disabled'}>Открыть задачу</button>
+          <button type="button" class="adm-btn ok" data-report-resolve="${r.id}" data-verdict="fixed">Решено</button>
+          <button type="button" class="adm-btn text" data-report-resolve="${r.id}" data-verdict="not-error">Не ошибка</button>
+        </div>
+      </article>`;
     }).join('');
   }
 
   reportList?.addEventListener('click', async event => {
-    const openId = event.target.closest('[data-report-open]')?.dataset.reportOpen;
-    if (openId) {
-      const full = await fetchFullRow('tasks', openId);
-      if (!full) { reportList.insertAdjacentHTML('afterbegin', '<p class="admin-empty">Задача не найдена — возможно, её удалили.</p>'); return; }
+    const openBtn = event.target.closest('[data-report-open]');
+    if (openBtn) {
+      const full = await fetchFullRow('tasks', openBtn.dataset.reportOpen);
+      if (!full) { alert('Задача не найдена — возможно, её удалили.'); return; }
       setTaskMode(full);
-      document.querySelector('#section-task-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // После сохранения или отмены правки — обратно к сообщениям.
+      editorReturnView = { view: 'reports', taskId: full.id };
+      showView('new');
       return;
     }
-    const resolveId = event.target.closest('[data-report-resolve]')?.dataset.reportResolve;
-    if (resolveId) {
-      const { error } = await db.from('task_reports').update({ resolved: true }).eq('id', resolveId);
-      if (error) { alert('Не удалось отметить: ' + error.message); return; }
-      reports = reports.filter(r => String(r.id) !== String(resolveId));
+    const resolveBtn = event.target.closest('[data-report-resolve]');
+    if (resolveBtn) {
+      const id = resolveBtn.dataset.reportResolve;
+      resolveBtn.disabled = true;
+      const { error } = await db.from('task_reports').update({ resolved: true }).eq('id', id);
+      if (error) {
+        resolveBtn.disabled = false;
+        alert('Не удалось отметить: ' + error.message);
+        return;
+      }
+      const report = reports.find(r => String(r.id) === String(id));
+      reports = reports.filter(r => String(r.id) !== String(id));
+      setLastResolved(report ? { report, verdict: resolveBtn.dataset.verdict } : null);
+      renderReports();
+      return;
+    }
+    if (event.target.closest('[data-report-undo]') && lastResolved) {
+      const { report } = lastResolved;
+      const { error } = await db.from('task_reports').update({ resolved: false }).eq('id', report.id);
+      if (error) { alert('Не удалось вернуть: ' + error.message); return; }
+      reports = [report, ...reports].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+      setLastResolved(null);
       renderReports();
     }
   });

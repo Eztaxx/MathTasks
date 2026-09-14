@@ -111,4 +111,12 @@ describe('каркас админки: меню и экраны', () => {
     const options = [...select.matchAll(/<option[^>]*>([^<]+)<\/option>/g)].map(m => m[1]);
     expect(buttons).toEqual(options);
   });
+
+  it('у каждого типа ошибки, который присылает сайт, есть подпись в админке', () => {
+    const app = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
+    const kinds = JSON.parse(app.match(/const REPORT_KINDS = (\[[^\]]*\])/)[1].replace(/'/g, '"'));
+    const labels = js.match(/const REPORT_KIND_LABELS = \{([^}]*)\}/)[1];
+    expect(kinds.length).toBeGreaterThan(3);
+    expect(kinds.filter(kind => !new RegExp(`\\b${kind}:`).test(labels))).toEqual([]);
+  });
 });

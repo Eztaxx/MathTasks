@@ -5785,6 +5785,28 @@ body .adm-shell #section-tasks-database{padding:0;border:0;background:none}
 /* !important: иначе старое .task-form select{width:100%} растягивало скрытый
    список на всю ширину экрана, и у страницы появлялась прокрутка вбок. */
 .adm-visually-hidden{position:absolute!important;width:1px!important;height:1px!important;margin:-1px;padding:0!important;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0!important}
+
+/* ── Сообщения об ошибках: карточки (макет «Админка Skola2030») ──
+   Раздел — без своей рамки: карточки и есть содержимое экрана. */
+body .adm-shell #section-reports{padding:0;border:0;background:none}
+.adm-shell #report-list{display:flex;flex-direction:column;gap:13px;max-width:980px;margin:0;border:0;border-radius:0;overflow:visible}
+.adm-report{display:flex;gap:16px;flex-wrap:wrap;padding:15px;border:1px solid var(--adm-line);border-radius:12px;background:var(--adm-panel)}
+.adm-report-main{flex:1 1 300px;min-width:0}
+.adm-report-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.adm-report-id{font:11px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-dim)}
+.adm-report-title{font-size:14px;font-weight:650;color:var(--adm-ink)}
+.adm-report-path{font-size:12px;color:var(--adm-mute)}
+.adm-report-text{margin-top:9px;padding:11px 13px;border:1px solid var(--adm-badbd);border-radius:9px;background:var(--adm-badbg);color:var(--adm-ink);font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.adm-report-kind{display:block;margin-bottom:4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--adm-badfg)}
+.adm-report-no-text{font-style:italic;color:var(--adm-mute)}
+.adm-report-meta{margin-top:7px;font-size:12px;color:var(--adm-dim)}
+.adm-report-actions{flex:0 1 220px;display:flex;flex-direction:column;justify-content:center;gap:8px}
+.adm-shell .adm-report-actions .adm-btn{justify-content:center}
+.adm-reports-empty{padding:44px 20px;border:1px solid var(--adm-line);border-radius:12px;background:var(--adm-panel);text-align:center}
+.adm-reports-empty-title{font-size:16px;font-weight:650;color:var(--adm-ink)}
+.adm-reports-empty p{margin:6px 0 0;font-size:13px;color:var(--adm-mute)}
+.adm-report-undo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border:1px solid var(--adm-okbd);border-radius:10px;background:var(--adm-okbg);color:var(--adm-okfg);font-size:13px}
+.adm-shell .adm-report-undo .adm-link-btn{margin-left:auto;color:var(--adm-okfg);font-weight:600;text-decoration:underline}
 /* Узкий экран: колонка формы может сжиматься. Иначе самый широкий блок —
    вкладки категорий тегов (403px) или полоса с кнопками (340px) — растягивал
    форму за край экрана, и на телефоне страница уезжала вбок. */
