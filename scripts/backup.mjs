@@ -20,6 +20,7 @@
  * Восстановление описано в docs/backup/README.md.
  */
 
+import { exitSafely } from './lib/exit-safely.mjs';
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -122,7 +123,7 @@ for (const t of TABLES) {
   } catch (e) {
     if (t.optional) { say(`  ${t.name.padEnd(10)} пропущена (${e.message.slice(0, 40)})`); continue; }
     console.error(`✗ ${e.message}`);
-    process.exit(1);
+    await exitSafely(1);
   }
 }
 
@@ -130,7 +131,7 @@ for (const t of TABLES) {
    Записать её поверх хорошей копии значит потерять хорошую копию. */
 if (!tables.tasks?.length || !tables.topics?.length) {
   console.error('✗ Задачи или темы не выгрузились. Копия не записана, чтобы не затереть прежнюю.');
-  process.exit(1);
+  await exitSafely(1);
 }
 
 /* ── Файлы бакета ─────────────────────────────────────────────────── */
@@ -184,7 +185,7 @@ try {
 } catch (e) {
   console.error(`✗ файлы не выгрузились: ${e.message}`);
   console.error('  Копия не записана: без чертежей она неполная.');
-  process.exit(1);
+  await exitSafely(1);
 }
 
 const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);

@@ -164,4 +164,7 @@ if (lost.length) {
 } else {
   console.log('\n✓ Ни одной выкладки при переводе не потеряно.');
 }
-process.exit(lost.length ? 1 : 0);
+/* Не process.exit(): на Windows он может оборвать ещё закрывающиеся
+   соединения fetch, и Node падает на выходе («Assertion failed … async.c»).
+   С exitCode процесс сам дожидается их закрытия. */
+process.exitCode = lost.length ? 1 : 0;

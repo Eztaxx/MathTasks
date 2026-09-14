@@ -1,3 +1,4 @@
+import { exitSafely } from './lib/exit-safely.mjs';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -150,7 +151,7 @@ for (const item of DESCRIPTIONS) {
   if (!res.ok) {
     const errText = await res.text();
     console.error(`Error updating topic pos ${item.position}: ${res.status} ${errText}`);
-    process.exit(1);
+    await exitSafely(1);
   }
   const updated = await res.json();
   console.log(`Updated 11.${item.position}: ${updated[0]?.title}`);

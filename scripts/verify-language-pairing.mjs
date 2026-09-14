@@ -79,4 +79,7 @@ for (const s of broken) {
 console.log(broken.length
   ? '✗ Это разные задачи в одной строке — нужна правка вручную.'
   : '✓ Русская и латышская версии описывают одну и ту же задачу.');
-process.exit(broken.length ? 1 : 0);
+/* Не process.exit(): на Windows он может оборвать ещё закрывающиеся
+   соединения fetch, и Node падает на выходе («Assertion failed … async.c»).
+   С exitCode процесс сам дожидается их закрытия. */
+process.exitCode = broken.length ? 1 : 0;

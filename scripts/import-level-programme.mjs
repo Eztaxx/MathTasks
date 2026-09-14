@@ -9,6 +9,7 @@
  * внутри темы, поэтому становится подтемой нужной темы и приносит туда
  * свои задачи. Скрипт останавливается, если хоть одной не нашлось места.
  */
+import { exitSafely } from './lib/exit-safely.mjs';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -205,7 +206,7 @@ const AUGSTAKAIS = {
 
 const КУРСЫ = { 11: OPTIMALAIS, 12: AUGSTAKAIS };
 const курс = КУРСЫ[GRADE];
-if (!курс) { console.error('укажите --grade=11 или --grade=12'); process.exit(1); }
+if (!курс) { console.error('укажите --grade=11 или --grade=12'); await exitSafely(1); }
 
 const [subjects, topics, subs, tasks] = await Promise.all([
   getAll('subjects?select=id,slug'),
@@ -242,8 +243,8 @@ for (const p of курс.темы) {
 const лишниеПодтемы = subs.filter(s => старые.some(t => t.id === s.topic_id));
 console.log(`\nПодтем у старых тем (уйдут вместе с ними): ${лишниеПодтемы.length}`);
 
-if (безПары.length) { console.log('\n✗ Есть темы без пары — сначала допишите разводку.'); process.exit(1); }
-if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); process.exit(0); }
+if (безПары.length) { console.log('\n✗ Есть темы без пары — сначала допишите разводку.'); await exitSafely(1); }
+if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); await exitSafely(0); }
 
 console.log('\n=== запись ===');
 

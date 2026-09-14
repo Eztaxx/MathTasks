@@ -7,6 +7,7 @@
  * Задачи никогда не удаляются: тема со старым названием сначала отдаёт свои
  * задачи теме программы и лишь потом исчезает.
  */
+import { exitSafely } from './lib/exit-safely.mjs';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -169,7 +170,7 @@ console.log('\n── Оставить как есть ──');
 console.log('\n── Удалить пустые ──');
 console.log('  ' + (действия.удалить.map(x => `${x.t.grade}кл#${x.t.id}`).join(', ') || '—'));
 
-if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); process.exit(0); }
+if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); await exitSafely(0); }
 
 /* ── Запись ──────────────────────────────────────────────────────────── */
 const слаг = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);

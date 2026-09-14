@@ -9,6 +9,7 @@
  * букв. Формулы из условия выбрасываем: в них нет слов, зато полно
  * латинских букв, которые дают ложные совпадения.
  */
+import { exitSafely } from './lib/exit-safely.mjs';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -142,7 +143,7 @@ console.log('\n── Примеры слабых (первые 10) ──');
 слабые.slice(0, 10).forEach(r =>
   console.log(`  ${r.балл}/${r.отрыв}  #${r.id} «${r.title.slice(0, 46)}»\n        лучший: ${r.code} ${r.sub.slice(0, 55)}\n        второй: ${r.второй.slice(0, 60)}`));
 
-if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); process.exit(0); }
+if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); await exitSafely(0); }
 
 console.log('\n=== запись ===');
 /* Пишем группами по одной подтеме: PATCH с фильтром in.() экономит

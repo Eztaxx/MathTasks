@@ -8,6 +8,7 @@
  * Сухой прогон по умолчанию, запись: --apply
  * Только один класс: --grade=11
  */
+import { exitSafely } from './lib/exit-safely.mjs';
 import { readFileSync, writeFileSync, appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -107,7 +108,7 @@ const цель = topics.filter(t => t.grade >= 10 && t.grade <= 12
   && (!GRADE || t.grade === GRADE) && !естьПодтемы.has(t.id));
 
 console.log(`Тем без подтем в 10–12 классах: ${цель.length}`);
-if (!цель.length) { console.log('нечего делать'); process.exit(0); }
+if (!цель.length) { console.log('нечего делать'); await exitSafely(0); }
 
 const ПАЧКА = 6;
 const готовые = [];   // { topic_id, code, position, title, title_lv }
@@ -175,7 +176,7 @@ if (провалы.length) {
   провалы.slice(0, 10).forEach(p => console.log(`  #${p.id} «${p.title.slice(0, 50)}» — ${p.причина}`));
 }
 
-if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); process.exit(0); }
+if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); await exitSafely(0); }
 
 console.log('\n=== запись ===');
 /* Пишем пачками: четыре сотни отдельных POST заняли бы минуты. */

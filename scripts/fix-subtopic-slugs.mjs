@@ -7,6 +7,7 @@
  *
  * Сухой прогон по умолчанию, запись: --apply
  */
+import { exitSafely } from './lib/exit-safely.mjs';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -59,7 +60,7 @@ const занятые = new Set(subs.map(s => s.slug));
 const битые = subs.filter(s => /^-/.test(s.slug || '') || /^[\d-]+$/.test(s.slug || ''));
 
 console.log(`подтем всего: ${subs.length}, с пустым слагом: ${битые.length}`);
-if (!битые.length) { console.log('чинить нечего'); process.exit(0); }
+if (!битые.length) { console.log('чинить нечего'); await exitSafely(0); }
 
 const план = [];
 for (const s of битые) {
@@ -76,7 +77,7 @@ for (const s of битые) {
 console.log('\n── Первые 15 ──');
 план.slice(0, 15).forEach(p => console.log(`  ${p.было}\n    → ${p.стало}`));
 
-if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); process.exit(0); }
+if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); await exitSafely(0); }
 
 console.log('\n=== запись ===');
 let n = 0;

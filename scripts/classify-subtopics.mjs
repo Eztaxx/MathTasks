@@ -9,6 +9,7 @@
  * Сухой прогон по умолчанию, запись: --apply
  * Заново разложить уже размеченные: --all
  */
+import { exitSafely } from './lib/exit-safely.mjs';
 import { readFileSync, writeFileSync, appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -186,7 +187,7 @@ if (непонятые.length) {
   непонятые.slice(0, 15).forEach(r => console.log(`  #${r.id} «${r.title.slice(0, 48)}» — ${r.причина}`));
 }
 
-if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); process.exit(0); }
+if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); await exitSafely(0); }
 
 console.log('\n=== запись ===');
 const группы = new Map();
