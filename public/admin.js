@@ -6793,7 +6793,10 @@ ${JSON.stringify(texts)}`;
     byId('imp-stat-bad').textContent = a.counts.bad;
     byId('imp-stat-dup').textContent = a.counts.dup;
     byId('imp-stat-new').textContent = `${a.newTopics} / ${a.newSubtopics}`;
-    const notes = [`Формат: ${a.parsed.format === 'json' ? 'JSON' : 'таблица CSV'}, строк с задачами: ${a.rows.length}.`];
+    // Разбор отдаёт format: 'csv' для любой таблицы — TSV узнаём по табуляции в первой строке.
+    const firstLine = (imp.text?.value || '').split(/\r?\n/).find(line => line.trim()) || '';
+    const tableLabel = firstLine.includes('\t') ? 'таблица TSV (через табуляцию)' : 'таблица CSV';
+    const notes = [`Формат: ${a.parsed.format === 'json' ? 'JSON' : tableLabel}, строк с задачами: ${a.rows.length}.`];
     if (a.dupCheckFailed) notes.push('С задачами базы сверить не удалось — дубликаты проверены только внутри файла.');
     for (const warning of a.parsed.warnings || []) notes.push(warning);
     imp.notes.innerHTML = notes.map(text => `<p>${escapeHtml(text)}</p>`).join('');
@@ -6958,8 +6961,12 @@ ${JSON.stringify(texts)}`;
     }
     const sample = event.target.closest('[data-imp-sample]');
     if (sample && imp.text) {
-      const code = sample.dataset.impSample === 'csv' ? byId('csv-sample-code') : byId('json-sample-code');
-      imp.text.value = code?.textContent || '';
+      const kind = sample.dataset.impSample;
+      const csv = byId('csv-sample-code')?.textContent || '';
+      // TSV собирается из образца CSV, отдельной копии в разметке нет.
+      imp.text.value = kind === 'tsv'
+        ? (window.MathTasksLib?.csvToTsv?.(csv) || csv)
+        : ((kind === 'csv' ? csv : byId('json-sample-code')?.textContent) || '');
       if (imp.fileName) imp.fileName.textContent = `образец ${sample.dataset.impSample.toUpperCase()}`;
       analyzeImport();
     }

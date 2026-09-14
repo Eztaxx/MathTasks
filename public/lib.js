@@ -851,6 +851,15 @@
     return { uniqueTopics, uniqueSubtopics, tasks: normalizedTasks };
   };
 
+  /* Образец TSV в админке собирается из образца CSV — так два образца не
+     разойдутся. TSV — то, что отдаёт нейросеть по промпту и что копируется
+     из Excel / Google Таблиц. Ячейку с табуляцией, переносом строки или
+     кавычкой в начале берём в кавычки, иначе она развалится на части. */
+  const csvToTsv = csv => parseCsvRows(csv)
+    .filter(row => row.some(cell => cell !== ''))
+    .map(row => row.map(cell => (/[\t\r\n]|^"/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell)).join('\t'))
+    .join('\n');
+
   /* ── Парсер строк CSV / TSV с поддержкой кавычек RFC 4180 и переносов строк ── */
   const parseCsvRows = (text, delimiter) => {
     if (!text) return [];
@@ -2277,6 +2286,7 @@
     createExamTimer,
     initExamTimerUi,
     parseCsvRows,
+    csvToTsv,
     parseCsvToTasks,
     parseTasksImport,
     unwrapModelAnswer,

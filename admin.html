@@ -179,7 +179,7 @@
                 </ol>
                 <section class="adm-panel adm-pad imp-source">
                   <div class="imp-drop" id="imp-drop" role="button" tabindex="0" aria-describedby="imp-drop-hint">
-                    <strong>Перетащите файл .json или .csv</strong>
+                    <strong>Перетащите файл .json, .csv или .tsv</strong>
                     <span id="imp-drop-hint">или нажмите, чтобы выбрать его на компьютере</span>
                     <input type="file" id="imp-file" accept=".json,.csv,.tsv,text/csv,text/tab-separated-values,application/json" hidden />
                   </div>
@@ -188,7 +188,7 @@
                     <button type="button" class="adm-btn primary" id="imp-analyze">Разобрать</button>
                     <button type="button" class="adm-btn text" id="imp-clear" hidden>Очистить</button>
                     <span class="imp-file-name" id="imp-file-name"></span>
-                    <span class="imp-samples">Образец: <button type="button" class="adm-link-btn" data-imp-sample="csv">CSV</button> · <button type="button" class="adm-link-btn" data-imp-sample="json">JSON</button></span>
+                    <span class="imp-samples">Образец: <button type="button" class="adm-link-btn" data-imp-sample="tsv" title="Таблица через табуляцию — так отвечает нейросеть по промпту и так копируется из Excel / Google Таблиц">TSV</button> · <button type="button" class="adm-link-btn" data-imp-sample="csv">CSV</button> · <button type="button" class="adm-link-btn" data-imp-sample="json">JSON</button></span>
                   </div>
                   <p class="imp-error" id="imp-error" role="alert" hidden></p>
                 </section>

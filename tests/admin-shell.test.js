@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { parseTasksImport } from '../public/lib.js';
+import { csvToTsv, parseTasksImport } from '../public/lib.js';
 
 /* Каркас админки собирается при загрузке: admin.js переносит разделы на
    экраны по id и кладёт кнопки в слоты. Опечатка в id или слоте ничего
@@ -153,5 +153,20 @@ describe('каркас админки: меню и экраны', () => {
         expect(task.subtopic_code, id).toMatch(/^\d+\.\d+\.\d+$/);
       }
     }
+  });
+
+  /* TSV — формат, в котором отвечает нейросеть по промпту. Отдельной копии
+     в разметке нет: кнопка «TSV» собирает его из образца CSV. */
+  it('образец TSV: кнопка есть, он собирается из CSV и даёт те же задачи', () => {
+    expect(html).toContain('data-imp-sample="tsv"');
+    expect(js).toContain('csvToTsv');
+    const decode = s => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    const csv = decode(html.match(/id="csv-sample-code">([\s\S]*?)<\/code>/)[1]);
+    const tsv = csvToTsv(csv);
+    expect(tsv.split('\n')[0]).toContain('\t');
+    const fromCsv = parseTasksImport(csv);
+    const fromTsv = parseTasksImport(tsv);
+    expect(fromTsv.warnings || []).toEqual([]);
+    expect(fromTsv.tasks).toEqual(fromCsv.tasks);
   });
 });
