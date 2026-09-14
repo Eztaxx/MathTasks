@@ -1,5 +1,6 @@
 (() => {
   const { db, escapeHtml, makeSlug, loadViewer, renderMath, fillGradeSelect, directLogin } = window.MathTasks;
+  const byId = id => document.getElementById(id);
   const gate = document.querySelector('#admin-gate');
   const content = document.querySelector('#admin-content');
   const subjectForm = document.querySelector('#subject-form');
@@ -87,6 +88,10 @@
   const aiPromptCloseBtn = document.querySelector('#ai-prompt-close-btn');
   const aiPromptCopyBtn = document.querySelector('#ai-prompt-copy-btn');
   const aiPromptTextarea = document.querySelector('#ai-prompt-textarea');
+  const admReviewApprove = document.querySelector('#adm-review-approve');
+  const admReviewEdit = document.querySelector('#adm-review-edit');
+  const admReviewReject = document.querySelector('#adm-review-reject');
+  const admReviewSkip = document.querySelector('#adm-review-skip');
 
   /* Белый список колонок защищает от PGRST204, если миграция 007 ещё не
      выполнена. Латышские колонки добавляются в него на лету: без этого
@@ -99,7 +104,7 @@
      и импорту — без него тема по латышскому названию не находилась, и
      вместо совпадения заводился дубль. */
   const TOPIC_LIST_COLS = 'id,title,title_lv,subject_id,grade,position,slug';
-  const TASK_INDEX_COLS = 'id,topic_id,subtopic_id,position,is_published';
+  const TASK_INDEX_COLS = 'id,topic_id,subtopic_id,grade,position,is_published';
 
   /* Указатель — три колонки на задачу (3 КБ на 81 задачу). Его хватает,
      чтобы показать «задач: N» у темы и посчитать номер новой задачи,
@@ -202,6 +207,10 @@
   let topics = [];
   let subtopics = [];
   let tasks = [];
+  /* Задачу открыли кнопкой «Править» на экране проверки — после сохранения
+     или отмены возвращаемся туда. Помним id: если админ ушёл и открыл
+     другую задачу, возврат не сработает. */
+  let editorReturnView = null;
 
   const deny = (message, showLogin = false) => {
     content.hidden = true;
@@ -372,6 +381,7 @@
     if (grade === 12 || grade === 'matematika-2') return 'Augstākais līmenis (Matemātika II)';
     return `${grade} класс`;
   };
+  const gradeRank = value => (value == null || value === '' ? 999 : Number(parseFormGrade(value) ?? 999));
   const subjectTitle = id => subjects.find(item => item.id === id)?.title || 'Без раздела';
 
   /* ── Сворачивание / разворачивание отделов админ-панели ───────────── */
@@ -1339,20 +1349,39 @@
   };
   [conditionInput, answerInput, answerInputLv, solutionInput, conditionInputLv, solutionInputLv, hintInput, hintInputLv]
     .filter(Boolean)
-    .forEach(input => input.addEventListener('input', updatePreviews));
+    .forEach(input => input.addEventListener('input', () => {
+      updatePreviews();
+      if (typeof updateReadyBar === 'function') updateReadyBar();
+    }));
 
-  // Переключение языковых вкладок в форме задания
+  // Переключение языковых вкладок в форме задания (RU / LV)
+  const admEditorLangRu = byId('adm-editor-lang-ru');
+  const admEditorLangLv = byId('adm-editor-lang-lv');
   const taskLangTabs = document.querySelectorAll('.task-lang-tab');
   const taskLangGroups = document.querySelectorAll('.task-lang-group');
+  let currentEditorLang = 'ru';
+
+  function setEditorLanguage(lang) {
+    currentEditorLang = lang === 'lv' ? 'lv' : 'ru';
+    if (admEditorLangRu) admEditorLangRu.classList.toggle('active', currentEditorLang === 'ru');
+    if (admEditorLangLv) admEditorLangLv.classList.toggle('active', currentEditorLang === 'lv');
+    taskLangTabs.forEach(t => t.classList.toggle('active', t.dataset.taskLang === currentEditorLang));
+    taskLangGroups.forEach(g => {
+      g.hidden = g.dataset.langGroup !== currentEditorLang;
+    });
+    document.querySelectorAll('[data-lang-group]').forEach(el => {
+      el.hidden = el.dataset.langGroup !== currentEditorLang;
+    });
+    updatePreviews();
+    if (typeof updateReadyBar === 'function') updateReadyBar();
+  }
+
+  admEditorLangRu?.addEventListener('click', () => setEditorLanguage('ru'));
+  admEditorLangLv?.addEventListener('click', () => setEditorLanguage('lv'));
+
   taskLangTabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      taskLangTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const lang = tab.dataset.taskLang;
-      taskLangGroups.forEach(group => {
-        group.hidden = group.dataset.langGroup !== lang;
-      });
-      updatePreviews();
+      setEditorLanguage(tab.dataset.taskLang);
     });
   });
 
@@ -1680,6 +1709,7 @@ ${JSON.stringify(texts)}`;
     thumb.hidden = !url;
     if (url) thumb.src = url;
     document.querySelector(`#${kind}-image-clear`).hidden = !url;
+    if (typeof updateReadyBar === 'function') updateReadyBar();
   }
 
   /* ── Код чертежа: правка SVG прямо в форме ──────────────────────────
@@ -1996,6 +2026,7 @@ ${JSON.stringify(texts)}`;
         });
       }
     }
+    if (typeof updateReadyBar === 'function') updateReadyBar();
   }
 
   function getSelectedTagSlugs() {
@@ -2024,81 +2055,501 @@ ${JSON.stringify(texts)}`;
 
   const taskGradeSelect = document.querySelector('#task-grade');
 
-  function updateTaskTopicDropdown(preferredTopicId = null) {
-    const selectedGrade = parseFormGrade(taskGradeSelect?.value);
-    const currentVal = preferredTopicId !== null ? String(preferredTopicId) : topicSelect.value;
-    const filtered = (selectedGrade !== null)
-      ? topics.filter(t => t.grade === selectedGrade)
-      : topics;
+  /* ── Место задачи: класс → тема → подтема ─────────────────────────
+     Три обычных списка в цепочке над формой. Они — поля самой формы
+     (атрибут form="task-form"), поэтому сохранение, «Клонировать» и
+     генератор читают их как раньше. Класс сужает темы, тема — подтемы;
+     без класса видны темы всех классов, сгруппированные по классам.
+     В скобках — сколько задач уже лежит в этом месте. */
+  const PLACE_GRADES = [
+    { g: 1, label: '1. klase' }, { g: 2, label: '2. klase' }, { g: 3, label: '3. klase' },
+    { g: 4, label: '4. klase' }, { g: 5, label: '5. klase' }, { g: 6, label: '6. klase' },
+    { g: 7, label: '7. klase' }, { g: 8, label: '8. klase' }, { g: 9, label: '9. klase (Eksāmens)' },
+    { g: 10, label: '10. klase (Vispārīgais)' }, { g: 11, label: '11. klase (Matemātika I)' },
+    { g: 12, label: '12. klase (Matemātika II)' }
+  ];
+  const PLACE_STAGES = [
+    { label: 'Pamatskola (1.–9. klase)', grades: PLACE_GRADES.slice(0, 9) },
+    { label: 'Vidusskola (10.–12. klase)', grades: PLACE_GRADES.slice(9) }
+  ];
+  const naturalCompare = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+  const positionOf = item => (item.position == null ? 9999 : Number(item.position));
+  const titleCompare = (a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ru');
 
-    topicSelect.innerHTML = '<option value="">Без темы</option>' +
-      filtered.map(t => `<option value="${t.id}">${escapeHtml(t.title)} (${gradeText(t.grade)})</option>`).join('') +
-      (selectedGrade !== null && filtered.length < topics.length ? `<option value="__all__">-- Показать все темы (${topics.length}) --</option>` : '');
+  function cleanTopicTitle(title) {
+    return String(title || '').replace(/^(\d+(?:\.\d+)*)\.?\s+/, '').trim();
+  }
 
-    if (filtered.some(t => String(t.id) === currentVal)) {
-      topicSelect.value = currentVal;
-    } else if (currentVal === '') {
-      topicSelect.value = '';
+  /* Номер темы по Skola2030 («7.3»): из названия, иначе из кода первой
+     подтемы («7.3.2» → «7.3»), иначе класс и позиция темы. */
+  function getTopicCode(topic) {
+    if (!topic) return '';
+    const own = String(topic.title || '').trim().match(/^(\d+(?:\.\d+)+)\.?\s+/);
+    if (own) return own[1];
+    const sub = subtopics.find(s => String(s.topic_id) === String(topic.id) && /^\d+\.\d+/.test(s.code || ''));
+    if (sub) return sub.code.match(/^\d+\.\d+/)[0];
+    const g = parseFormGrade(topic.grade);
+    return g && positionOf(topic) < 9999 ? `${g}.${positionOf(topic)}` : '';
+  }
+
+  function topicCodeMap() {
+    return new Map(topics.map(t => [t.id, getTopicCode(t)]));
+  }
+
+  // Класс → номер темы → позиция → название. Темы без номера — в конце класса.
+  function sortTopics(list, codes) {
+    return [...list].sort((a, b) =>
+      gradeRank(a.grade) - gradeRank(b.grade)
+      || (codes.get(a.id) ? 0 : 1) - (codes.get(b.id) ? 0 : 1)
+      || naturalCompare(codes.get(a.id) || '', codes.get(b.id) || '')
+      || positionOf(a) - positionOf(b)
+      || titleCompare(a, b));
+  }
+
+  const topicOptionText = (topic, codes) => {
+    const code = codes.get(topic.id);
+    return `${code ? code + '. ' : ''}${cleanTopicTitle(topic.title)}`;
+  };
+
+  /* Сколько задач в каждом классе, теме и подтеме — одним проходом по
+     указателю задач. Класс задачи — её собственный, иначе класс темы. */
+  function countPlaces() {
+    const topicGrade = new Map(topics.map(t => [String(t.id), parseFormGrade(t.grade)]));
+    const counts = { grade: new Map(), topic: new Map(), sub: new Map() };
+    const bump = (map, key) => map.set(key, (map.get(key) || 0) + 1);
+    for (const task of taskIndex) {
+      const g = parseFormGrade(task.grade) ?? topicGrade.get(String(task.topic_id)) ?? null;
+      if (g !== null) bump(counts.grade, g);
+      if (task.topic_id) bump(counts.topic, String(task.topic_id));
+      if (task.subtopic_id) bump(counts.sub, String(task.subtopic_id));
     }
+    return counts;
+  }
+  function getGradeTaskCount(grade, counts = countPlaces()) {
+    return counts.grade.get(parseFormGrade(grade)) || 0;
+  }
+  function getTopicTaskCount(topicId, counts = countPlaces()) {
+    return counts.topic.get(String(topicId)) || 0;
+  }
+  function getSubtopicTaskCount(subtopicId, counts = countPlaces()) {
+    return counts.sub.get(String(subtopicId)) || 0;
+  }
+
+  function updateTaskGradeDropdown() {
+    if (!taskGradeSelect) return;
+    const keep = taskGradeSelect.value;
+    const counts = countPlaces();
+    taskGradeSelect.innerHTML = '<option value="">Без класса</option>' + PLACE_STAGES.map(stage =>
+      `<optgroup label="${stage.label}">${stage.grades.map(({ g, label }) =>
+        `<option value="${g}">${label} (${getGradeTaskCount(g, counts)})</option>`).join('')}</optgroup>`
+    ).join('');
+    taskGradeSelect.value = keep;
+    if (taskGradeSelect.selectedIndex < 0) taskGradeSelect.value = '';
+  }
+
+  /* preferredTopicId — тема открытой задачи (undefined или '' — «без темы»).
+     Без аргумента список просто пересобирается, выбор сохраняется, если
+     тема есть в текущем классе. */
+  function updateTaskTopicDropdown(preferredTopicId = null) {
+    if (!topicSelect) return;
+    const wanted = preferredTopicId !== null ? String(preferredTopicId ?? '') : topicSelect.value;
+    // Тему задаёт задача, а класс в форме другой — подгоняем класс под тему.
+    const wantedTopic = preferredTopicId !== null && wanted ? topics.find(t => String(t.id) === wanted) : null;
+    if (wantedTopic?.grade != null && taskGradeSelect && parseFormGrade(taskGradeSelect.value) !== parseFormGrade(wantedTopic.grade)) {
+      taskGradeSelect.value = toAdminGradeVal(wantedTopic.grade);
+    }
+    const grade = parseFormGrade(taskGradeSelect?.value);
+    const pool = grade === null ? topics : topics.filter(t => parseFormGrade(t.grade) === grade);
+    const codes = topicCodeMap();
+    const counts = countPlaces();
+    const option = t => `<option value="${t.id}">${escapeHtml(topicOptionText(t, codes))} (${getTopicTaskCount(t.id, counts)})</option>`;
+    const sorted = sortTopics(pool, codes);
+    let html = '<option value="">Без темы</option>';
+    if (grade !== null) {
+      html += sorted.map(option).join('');
+    } else {
+      const groups = new Map();
+      for (const t of sorted) {
+        const g = parseFormGrade(t.grade);
+        if (!groups.has(g)) groups.set(g, []);
+        groups.get(g).push(t);
+      }
+      for (const [g, list] of groups) {
+        const label = PLACE_GRADES.find(item => item.g === g)?.label || 'Без класса';
+        html += `<optgroup label="${escapeHtml(label)}">${list.map(option).join('')}</optgroup>`;
+      }
+    }
+    topicSelect.innerHTML = html;
+    topicSelect.value = pool.some(t => String(t.id) === wanted) ? wanted : '';
   }
 
   function updateFilterTopicDropdown() {
     if (!taskFilterTopic) return;
-    const selectedGrade = parseFormGrade(taskFilterGrade?.value);
-    const currentVal = taskFilterTopic.value;
-    const filtered = (selectedGrade !== null)
-      ? topics.filter(t => t.grade === selectedGrade)
-      : topics;
-
-    taskFilterTopic.innerHTML = '<option value="">Все темы</option>' +
-      filtered.map(t => `<option value="${t.id}">${escapeHtml(t.title)} (${gradeText(t.grade)})</option>`).join('');
-
-    if (filtered.some(t => String(t.id) === currentVal)) {
-      taskFilterTopic.value = currentVal;
-    } else {
-      taskFilterTopic.value = '';
-    }
+    const grade = parseFormGrade(taskFilterGrade?.value);
+    const keep = taskFilterTopic.value;
+    const pool = grade === null ? topics : topics.filter(t => parseFormGrade(t.grade) === grade);
+    const codes = topicCodeMap();
+    taskFilterTopic.innerHTML = '<option value="">Все темы</option>' + sortTopics(pool, codes).map(t =>
+      `<option value="${t.id}">${escapeHtml(topicOptionText(t, codes))} (${gradeText(t.grade)})</option>`
+    ).join('');
+    taskFilterTopic.value = pool.some(t => String(t.id) === keep) ? keep : '';
   }
 
   /* Подтемы принадлежат теме, поэтому список пересобирается при каждой
      смене темы. Пустой список — не ошибка: у темы может не быть подтем. */
   function updateSubtopicDropdown(preferredSubtopicId = null) {
     if (!subtopicSelect) return;
-    const topicId = Number(topicSelect.value) || null;
-    const currentVal = preferredSubtopicId !== null ? String(preferredSubtopicId) : subtopicSelect.value;
-    const mine = subtopics.filter(s => s.topic_id === topicId);
-    subtopicSelect.innerHTML = '<option value="">Без подтемы</option>' +
-      mine.map(s => `<option value="${s.id}">${escapeHtml(`${s.code ? s.code + '. ' : ''}${s.title}`)}</option>`).join('');
-    subtopicSelect.value = mine.some(s => String(s.id) === currentVal) ? currentVal : '';
+    const topicId = topicSelect?.value || '';
+    const wanted = preferredSubtopicId !== null ? String(preferredSubtopicId ?? '') : subtopicSelect.value;
+    const mine = topicId ? subtopics.filter(s => String(s.topic_id) === topicId) : [];
+    mine.sort((a, b) =>
+      (a.code ? 0 : 1) - (b.code ? 0 : 1)
+      || naturalCompare(a.code || '', b.code || '')
+      || positionOf(a) - positionOf(b)
+      || titleCompare(a, b));
+    const counts = countPlaces();
+    const empty = !topicId ? 'Сначала выберите тему' : 'Без подтемы';
+    subtopicSelect.innerHTML = `<option value="">${empty}</option>` + mine.map(s =>
+      `<option value="${s.id}">${escapeHtml(`${s.code ? s.code + ' ' : ''}${s.title}`)} (${getSubtopicTaskCount(s.id, counts)})</option>`
+    ).join('');
+    subtopicSelect.value = mine.some(s => String(s.id) === wanted) ? wanted : '';
     subtopicSelect.disabled = !mine.length;
   }
 
   taskGradeSelect?.addEventListener('change', () => {
     updateTaskTopicDropdown();
     updateSubtopicDropdown();
+    updateEditorCrumbs();
   });
 
-  // Класс обычно совпадает с классом темы — подставляем, но не запрещаем менять.
-  topicSelect.addEventListener('change', () => {
-    if (topicSelect.value === '__all__') {
-      topicSelect.innerHTML = '<option value="">Без темы</option>' +
-        topics.map(t => `<option value="${t.id}">${escapeHtml(t.title)} (${gradeText(t.grade)})</option>`).join('');
-      return;
-    }
-    updateSubtopicDropdown();
+  topicSelect?.addEventListener('change', () => {
     const topic = topics.find(item => String(item.id) === topicSelect.value);
-    if (topic?.grade && !taskGradeSelect.value) {
-      taskGradeSelect.value = String(topic.grade);
+    // Тему выбрали из списка всех классов — класс берём у темы.
+    if (topic?.grade != null && parseFormGrade(taskGradeSelect?.value) !== parseFormGrade(topic.grade)) {
       updateTaskTopicDropdown(topic.id);
     }
+    updateSubtopicDropdown();
     if (getSelectedTagSlugs().length === 0 && topic) {
       const text = `${topic.title} ${topic.description || ''}`;
       const suggested = window.MathTasksLib?.suggestTagsForTopic(text) || [];
-      if (suggested.length) {
-        setSelectedTagSlugs(suggested);
+      if (suggested.length) setSelectedTagSlugs(suggested);
+    }
+    updateEditorCrumbs();
+  });
+
+  subtopicSelect?.addEventListener('change', () => updateEditorCrumbs());
+
+  const admPlaceCount = byId('adm-place-count');
+
+  function declTasks(n) {
+    const mod10 = n % 10, mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 14) return 'задач';
+    if (mod10 === 1) return 'задача';
+    if (mod10 >= 2 && mod10 <= 4) return 'задачи';
+    return 'задач';
+  }
+
+  function declItems(n) {
+    const mod10 = n % 10, mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 14) return 'пунктов';
+    if (mod10 === 1) return 'пункт';
+    if (mod10 >= 2 && mod10 <= 4) return 'пункта';
+    return 'пунктов';
+  }
+
+  // Справа в цепочке: сколько задач уже лежит в выбранном месте.
+  function updateEditorCrumbs() {
+    if (admPlaceCount) {
+      const counts = countPlaces();
+      const subId = subtopicSelect?.value;
+      const topicId = topicSelect?.value;
+      const grade = parseFormGrade(taskGradeSelect?.value);
+      let text = '';
+      if (subId) {
+        const n = getSubtopicTaskCount(subId, counts);
+        text = `в подтеме уже ${n} ${declTasks(n)}`;
+      } else if (topicId) {
+        const n = getTopicTaskCount(topicId, counts);
+        text = `в теме уже ${n} ${declTasks(n)}`;
+      } else if (grade !== null) {
+        const n = getGradeTaskCount(grade, counts);
+        text = `в классе уже ${n} ${declTasks(n)}`;
+      } else if (taskIndex.length) {
+        text = `всего ${taskIndex.length} ${declTasks(taskIndex.length)}`;
+      }
+      admPlaceCount.textContent = text;
+    }
+    updateReadyBar();
+  }
+
+  // После загрузки каталога или указателя задач — пересобрать списки и числа.
+  function refreshPlaceLists() {
+    updateTaskGradeDropdown();
+    updateTaskTopicDropdown();
+    updateSubtopicDropdown();
+    updateEditorCrumbs();
+  }
+
+  // ── Полоса «чего не хватает» и действия сохранения ──────────
+  const admEditorReadyBar = byId('adm-editor-ready-bar');
+  const admReadyDot = byId('adm-ready-dot');
+  const admReadyText = byId('adm-ready-text');
+  const admMissingChips = byId('adm-missing-chips');
+  const admBtnSaveDraft = byId('adm-btn-save-draft');
+  const admBtnPublish = byId('adm-btn-publish');
+  const admBtnCancelEdit = byId('adm-btn-cancel-edit');
+
+  function checkFormulaSyntax(text) {
+    if (!text) return { ok: true };
+    const dollars = (text.match(/\$/g) || []).length;
+    if (dollars % 2 !== 0) {
+      return { ok: false, error: 'Непарный знак $ (формула не закрыта)' };
+    }
+    if (window.katex && dollars > 0) {
+      const parts = text.split('$');
+      for (let i = 1; i < parts.length; i += 2) {
+        const expr = parts[i].trim();
+        if (expr) {
+          try {
+            window.katex.renderToString(expr, { throwOnError: true });
+          } catch (err) {
+            const previewSnippet = expr.length > 20 ? expr.slice(0, 18) + '…' : expr;
+            return { ok: false, error: `Ошибка в формуле $${previewSnippet}$: ${err.message}` };
+          }
+        }
       }
     }
+    return { ok: true };
+  }
+
+  function updateReadyBar() {
+    if (!admReadyText || !admReadyDot) return;
+    const condRu = conditionInput?.value.trim() || '';
+    const condLv = conditionInputLv?.value.trim() || '';
+    const ansRu = answerInput?.value.trim() || '';
+    const ansLv = answerInputLv?.value.trim() || '';
+    const solRu = solutionInput?.value.trim() || '';
+    const solLv = solutionInputLv?.value.trim() || '';
+    const hintRu = hintInput?.value.trim() || '';
+    const hintLv = hintInputLv?.value.trim() || '';
+
+    const chips = [];
+
+    // 1. Условие (RU)
+    if (!condRu) {
+      chips.push({ level: 'bad', text: 'Нет условия (RU)', action: 'focus-cond-ru' });
+    } else {
+      const fCheck = checkFormulaSyntax(condRu);
+      if (!fCheck.ok) {
+        chips.push({ level: 'bad', text: 'Ошибка $ в условии RU', action: 'focus-cond-ru', title: fCheck.error });
+      }
+      const hasQuestion = /[?]|найдите|вычислите|определите|решите|докажите|упростите|постройте|сколько|какой|назовите/i.test(condRu);
+      if (!hasQuestion && condRu.length < 50) {
+        chips.push({ level: 'info', text: 'Нет вопроса в условии', action: 'focus-cond-ru', title: 'Рекомендуется добавить чёткий вопрос или требование к задаче' });
+      }
+    }
+
+    // 2. Перевод условия на латышский (LV)
+    if (!condLv) {
+      chips.push({ level: 'warn', text: 'Нет перевода на LV', action: 'switch-lv', title: 'Нажмите, чтобы переключить вкладку на латышский язык' });
+    } else {
+      const fCheckLv = checkFormulaSyntax(condLv);
+      if (!fCheckLv.ok) {
+        chips.push({ level: 'bad', text: 'Ошибка $ в условии LV', action: 'focus-cond-lv', title: fCheckLv.error });
+      }
+    }
+
+    // 3. Краткий ответ (RU / LV)
+    if (!ansRu && !ansLv) {
+      chips.push({ level: 'warn', text: 'Нет краткого ответа', action: 'focus-ans', title: 'Краткий ответ нужен для мгновенной самопроверки ученика' });
+    } else {
+      if (ansRu && !checkFormulaSyntax(ansRu).ok) {
+        chips.push({ level: 'bad', text: 'Ошибка $ в ответе RU', action: 'focus-ans' });
+      }
+      if (ansLv && !checkFormulaSyntax(ansLv).ok) {
+        chips.push({ level: 'bad', text: 'Ошибка $ в ответе LV', action: 'focus-ans-lv' });
+      }
+      if (condLv && ansRu && !ansLv) {
+        chips.push({ level: 'info', text: 'Нет ответа на LV', action: 'focus-ans-lv', title: 'Atbilde на латышском языке' });
+      }
+    }
+
+    // 4. Пошаговое решение / разбор (RU / LV)
+    if (!solRu && !solLv) {
+      chips.push({ level: 'warn', text: 'Нет пошагового решения', action: 'focus-sol', title: 'Разбор решения помогает ученику разобраться в ошибках' });
+    } else {
+      if (solRu && !checkFormulaSyntax(solRu).ok) {
+        chips.push({ level: 'bad', text: 'Ошибка $ в решении RU', action: 'focus-sol' });
+      }
+      if (solLv && !checkFormulaSyntax(solLv).ok) {
+        chips.push({ level: 'bad', text: 'Ошибка $ в решении LV', action: 'focus-sol-lv' });
+      }
+      if (condLv && solRu && !solLv) {
+        chips.push({ level: 'info', text: 'Нет решения на LV', action: 'focus-sol-lv', title: 'Atrisinājums на латышском языке' });
+      }
+    }
+
+    // 5. Подсказка для ученика (RU / LV)
+    if (!hintRu && !hintLv) {
+      chips.push({ level: 'info', text: 'Нет подсказки', action: 'focus-hint', title: 'Подсказка даёт направление мысли без готового ответа' });
+    } else {
+      if (hintRu && !checkFormulaSyntax(hintRu).ok) {
+        chips.push({ level: 'bad', text: 'Ошибка $ в подсказке RU', action: 'focus-hint' });
+      }
+      if (hintLv && !checkFormulaSyntax(hintLv).ok) {
+        chips.push({ level: 'bad', text: 'Ошибка $ в подсказке LV', action: 'focus-hint-lv' });
+      }
+    }
+
+    // 6. Класс, тема и подтема Skola2030
+    const g = parseFormGrade(taskGradeSelect?.value);
+    if (!g) {
+      chips.push({ level: 'warn', text: 'Не указан класс', action: 'pick-grade', title: 'Выберите класс от 1 до 12' });
+    }
+
+    const curTopicId = Number(topicSelect?.value) || null;
+    if (!curTopicId) {
+      chips.push({ level: 'warn', text: 'Не привязана тема', action: 'pick-topic', title: 'Привяжите задачу к теме каталога' });
+    } else {
+      const curSubId = Number(subtopicSelect?.value) || null;
+      const topicSubs = subtopics.filter(s => s.topic_id === curTopicId);
+      if (topicSubs.length > 0 && !curSubId) {
+        chips.push({ level: 'warn', text: 'Не выбрана подтема Skola2030', action: 'pick-subtopic', title: 'Выберите подтему/навык стандарта Skola2030' });
+      }
+    }
+
+    // 7. Кросс-теги
+    const tags = getSelectedTagSlugs();
+    if (tags.length === 0) {
+      chips.push({ level: 'warn', text: 'Нет кросс-тегов (0/3)', action: 'suggest-tags', title: 'Нажмите для автоматического подбора тегов по теме' });
+    } else if (tags.length > 3) {
+      chips.push({ level: 'warn', text: `Слишком много тегов (${tags.length}/3)`, action: 'scroll-tags' });
+    }
+
+    // 8. Чертёж / иллюстрация
+    const allText = `${condRu} ${condLv} ${solRu}`;
+    const mentionsDrawing = /черт[её]ж|рисун|график|треугольн|окружност|угол|трапеци|пирамид|конус|призм|прямоугольн|квадрат|координат|диаграмм|вектор|эскиз|zīmējum|grafik|trijstūr|leņķ|riņķ|trapec|koordināt|vektor/i.test(allText);
+    const hasDrawing = Boolean(images?.condition?.current || images?.solution?.current || svgCode.condition?.area.value.trim() || svgCode.solution?.area.value.trim());
+    if (mentionsDrawing && !hasDrawing) {
+      chips.push({ level: 'warn', text: 'Вероятно, нужен чертёж', action: 'scroll-drawing', title: 'В тексте упоминается геометрия или график, но чертёж не прикреплён' });
+    }
+
+    // Статус в плашке
+    const badChips = chips.filter(c => c.level === 'bad');
+    const warnChips = chips.filter(c => c.level === 'warn');
+    const infoChips = chips.filter(c => c.level === 'info');
+
+    if (badChips.length > 0) {
+      admReadyDot.className = 'adm-ready-dot bad';
+      admReadyText.textContent = `Ошибки в карточке (${badChips.length}) — исправьте перед сохранением`;
+    } else if (warnChips.length > 0) {
+      admReadyDot.className = 'adm-ready-dot warn';
+      admReadyText.textContent = `Черновик готов. До полной карточки не хватает: ${warnChips.length + infoChips.length} ${declItems(warnChips.length + infoChips.length)}`;
+    } else if (infoChips.length > 0) {
+      admReadyDot.className = 'adm-ready-dot ok';
+      admReadyText.textContent = `Готово к публикации. Рекомендаций: ${infoChips.length}`;
+    } else {
+      admReadyDot.className = 'adm-ready-dot ok';
+      admReadyText.textContent = 'Все параметры задачи заполнены — карточка идеальна!';
+    }
+
+    // Отрисовка интерактивных фишек
+    if (admMissingChips) {
+      if (chips.length > 0) {
+        admMissingChips.innerHTML = `<span class="adm-missing-caption">Чего не хватает:</span>` +
+          chips.map(c => `<button type="button" class="adm-missing-chip ${c.level}" data-missing-action="${c.action}" title="${escapeHtml(c.title || 'Нажмите, чтобы исправить')}"><span>${escapeHtml(c.text)}</span><span class="adm-missing-chip-arrow">→</span></button>`).join('');
+      } else {
+        admMissingChips.innerHTML = `<span class="adm-missing-all-ok">✅ Все параметры задачи заполнены — можно публиковать!</span>`;
+      }
+    }
+  }
+
+  admMissingChips?.addEventListener('click', event => {
+    const btn = event.target.closest('[data-missing-action]');
+    if (!btn) return;
+    const action = btn.dataset.missingAction;
+    switch (action) {
+      case 'focus-cond-ru':
+        setEditorLanguage('ru');
+        conditionInput?.focus();
+        conditionInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'switch-lv':
+      case 'focus-cond-lv':
+        setEditorLanguage('lv');
+        conditionInputLv?.focus();
+        conditionInputLv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'focus-ans':
+        setEditorLanguage('ru');
+        answerInput?.focus();
+        answerInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'focus-ans-lv':
+        setEditorLanguage('lv');
+        answerInputLv?.focus();
+        answerInputLv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'focus-sol':
+        setEditorLanguage('ru');
+        solutionInput?.focus();
+        solutionInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'focus-sol-lv':
+        setEditorLanguage('lv');
+        solutionInputLv?.focus();
+        solutionInputLv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'focus-hint':
+        setEditorLanguage('ru');
+        hintInput?.focus();
+        hintInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'focus-hint-lv':
+        setEditorLanguage('lv');
+        hintInputLv?.focus();
+        hintInputLv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'pick-grade':
+        taskGradeSelect?.focus();
+        taskGradeSelect?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'pick-topic':
+        topicSelect?.focus();
+        topicSelect?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'pick-subtopic':
+        subtopicSelect?.focus();
+        subtopicSelect?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'suggest-tags':
+        document.querySelector('#btn-suggest-tags')?.click();
+        document.querySelector('#task-tags-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'scroll-tags':
+        document.querySelector('#task-tags-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'scroll-drawing':
+        const imgField = document.querySelector('.image-field');
+        imgField?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.querySelector('#condition-image-input')?.focus();
+        break;
+    }
   });
+
+  admBtnSaveDraft?.addEventListener('click', () => {
+    if (taskForm.elements.is_published) taskForm.elements.is_published.checked = false;
+    if (typeof taskForm.requestSubmit === 'function') taskForm.requestSubmit();
+    else taskForm.dispatchEvent(new Event('submit', { cancelable: true }));
+  });
+
+  admBtnPublish?.addEventListener('click', () => {
+    if (taskForm.elements.is_published) taskForm.elements.is_published.checked = true;
+    if (typeof taskForm.requestSubmit === 'function') taskForm.requestSubmit();
+    else taskForm.dispatchEvent(new Event('submit', { cancelable: true }));
+  });
+
+  admBtnCancelEdit?.addEventListener('click', () => cancelTaskEdit());
 
   /* В списках лежат укороченные строки, поэтому перед правкой добираем
      полную запись. Одна строка по идентификатору — это быстро. */
@@ -2114,12 +2565,15 @@ ${JSON.stringify(texts)}`;
     document.querySelector('#task-form-title').textContent = task ? `Редактировать задачу №${task.position ?? task.id}` : 'Создание и редактирование задачи';
     document.querySelector('#task-submit').textContent = task ? 'Сохранить задачу' : 'Добавить задачу';
     document.querySelector('#task-cancel').hidden = !task;
+    if (admBtnCancelEdit) admBtnCancelEdit.hidden = !task;
+    if (admBtnPublish) admBtnPublish.textContent = task ? (task.is_published ? 'Сохранить (опубликовано)' : 'Опубликовать') : 'Опубликовать';
+    if (admBtnSaveDraft) admBtnSaveDraft.textContent = task ? (task.is_published ? 'Снять с публикации (в черновик)' : 'Сохранить черновик') : 'Сохранить черновик';
     if (taskForm.elements.title) taskForm.elements.title.value = task?.title || '';
     if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = task?.title_lv || '';
     taskForm.elements.grade.value = toAdminGradeVal(task?.grade);
-    updateTaskTopicDropdown(task?.topic_id);
-    taskForm.elements.topic_id.value = task?.topic_id ? String(task.topic_id) : '';
-    updateSubtopicDropdown(task?.subtopic_id ?? null);
+    updateTaskGradeDropdown();
+    updateTaskTopicDropdown(task?.topic_id ?? '');
+    updateSubtopicDropdown(task?.subtopic_id ?? '');
     taskForm.elements.difficulty.value = task?.difficulty || 'Средний';
     taskForm.elements.position.value = task?.position ?? 0;
     conditionInput.value = task?.condition_latex || '';
@@ -2133,15 +2587,22 @@ ${JSON.stringify(texts)}`;
     taskForm.elements.is_published.checked = task ? task.is_published : true;
     setImages(task);
     updatePreviews();
+    updateEditorCrumbs();
+    setEditorLanguage('ru');
     if (task && tagsReady) {
       db.from('task_tags').select('tags(slug)').eq('task_id', task.id)
         .then(({ data: tagLinks }) => {
           const slugs = (tagLinks || []).map(l => l.tags?.slug).filter(Boolean);
           setSelectedTagSlugs(slugs);
+          updateReadyBar();
         })
-        .catch(() => setSelectedTagSlugs([]));
+        .catch(() => {
+          setSelectedTagSlugs([]);
+          updateReadyBar();
+        });
     } else {
       setSelectedTagSlugs([]);
+      updateReadyBar();
     }
     if (task) taskForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -2184,8 +2645,7 @@ ${JSON.stringify(texts)}`;
     } catch {}
   };
 
-  // Класс может быть числом или курсом старшей школы — сравниваем по числу.
-  const gradeRank = value => (value == null ? 999 : Number(parseFormGrade(value) ?? 999));
+  // Класс может быть числом или курсом старшей школы (gradeRank объявлен выше).
   const byText = (a, b) => String(a || '').localeCompare(String(b || ''), 'ru');
   const DIFFICULTY_RANK = { 'Лёгкий': 1, 'Средний': 2, 'Сложный': 3 };
 
@@ -2528,16 +2988,43 @@ ${JSON.stringify(texts)}`;
       if (saved && saved !== current) await removeFile(saved);
       images[kind].saved = current;
     }
-    taskSuccess.textContent = editingTaskId ? 'Задача сохранена.' : 'Задача добавлена.';
+    const isPub = payload.is_published;
+    taskSuccess.textContent = isPub
+      ? (editingTaskId ? 'Задача обновлена и опубликована.' : 'Задача добавлена и опубликована.')
+      : (editingTaskId ? 'Черновик обновлён.' : 'Черновик сохранён в очередь на проверку.');
+    const back = takeEditorReturnView(savedTaskId);
     taskForm.reset();
     setTaskMode(null);
     await refreshTasks();
+    updateEditorCrumbs();
+    updateReadyBar();
+    if (back) showView(back);
   });
 
-  document.querySelector('#task-cancel').addEventListener('click', async () => {
+  function takeEditorReturnView(taskId) {
+    const back = editorReturnView && String(editorReturnView.taskId) === String(taskId) ? editorReturnView.view : null;
+    editorReturnView = null;
+    return back;
+  }
+
+  async function cancelTaskEdit() {
+    const back = takeEditorReturnView(editingTaskId);
     await discardPendingImages();
     taskForm.reset();
     setTaskMode(null);
+    updateEditorCrumbs();
+    updateReadyBar();
+    if (back) showView(back);
+  }
+  document.querySelector('#task-cancel').addEventListener('click', cancelTaskEdit);
+
+  /* Кнопка отправки формы спрятана — публикует «Опубликовать» внизу.
+     Enter в однострочном поле отправил бы форму молча и с прежней отметкой
+     публикации, поэтому гасим его. */
+  taskForm.addEventListener('keydown', event => {
+    if (event.key === 'Enter' && event.target.matches?.('input:not([type="button"]):not([type="submit"]):not([type="checkbox"])')) {
+      event.preventDefault();
+    }
   });
 
   taskList.addEventListener('click', async event => {
@@ -2586,8 +3073,11 @@ ${JSON.stringify(texts)}`;
       editingTaskId = null; // Гарантирует создание новой задачи при отправке
       if (taskForm.elements.title) taskForm.elements.title.value = source.title ? `[Копия] ${source.title}` : '';
       if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = source.title_lv ? `[Kopija] ${source.title_lv}` : '';
-      taskForm.elements.topic_id.value = source.topic_id ? String(source.topic_id) : '';
       taskForm.elements.grade.value = toAdminGradeVal(source.grade);
+      updateTaskGradeDropdown();
+      updateTaskTopicDropdown(source.topic_id ?? '');
+      updateSubtopicDropdown(source.subtopic_id ?? '');
+      updateEditorCrumbs();
       taskForm.elements.difficulty.value = source.difficulty || 'Средний';
       taskForm.elements.position.value = nextPosition(source.topic_id, null);
       conditionInput.value = source.condition_latex || '';
@@ -2612,7 +3102,7 @@ ${JSON.stringify(texts)}`;
       document.querySelector('#task-form-title').textContent = `Клонирование: задача №${source.position ?? source.id}`;
       document.querySelector('#task-submit').textContent = 'Добавить задачу (сохранить копию)';
       document.querySelector('#task-cancel').hidden = false;
-      taskSuccess.textContent = '✨ Черновик копии задачи создан. Измените параметры и нажмите «Добавить задачу».';
+      taskSuccess.textContent = '✨ Копия открыта в редакторе. Измените её и нажмите «Сохранить черновик» или «Опубликовать».';
       taskForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
@@ -4747,7 +5237,9 @@ ${JSON.stringify(texts)}`;
       topicFilterSubject.value = keepSubject;
     }
 
+    updateTaskGradeDropdown();
     updateTaskTopicDropdown();
+    updateSubtopicDropdown();
     updateFilterTopicDropdown();
 
     if (subtopicFormGrade && subtopicFormGrade.children.length <= 1) {
@@ -4760,6 +5252,7 @@ ${JSON.stringify(texts)}`;
     renderSubjectList();
     renderTopicList();
     renderTaskList();
+    updateEditorCrumbs();
   }
 
   /* ── Сообщения об ошибках от посетителей (миграция 023) ─────────── */
@@ -4850,12 +5343,18 @@ ${JSON.stringify(texts)}`;
        новые задачи получали бы уже занятые номера. */
     const pages = cols => window.MathTasksLib.fetchAllRows(() => db.from('tasks').select(cols).order('id'));
     const { data, error } = await pages(TASK_INDEX_COLS);
-    if (!error) { taskIndex = data || []; updateReviewChip(); return; }
+    if (!error) {
+      taskIndex = data || [];
+      updateReviewChip();
+      refreshPlaceLists();
+      return;
+    }
     /* Колонка subtopic_id появляется миграцией 020. Без отката весь указатель
        оставался бы пустым, и у каждой темы значилось бы «задач: 0». */
-    const retry = await pages('id,topic_id,position');
+    const retry = await pages('id,topic_id,position,grade');
     taskIndex = retry.error ? [] : (retry.data || []);
     updateReviewChip();
+    refreshPlaceLists();
   }
 
   /* После правки всегда обновляем указатель, а список — только если
@@ -4909,7 +5408,9 @@ ${JSON.stringify(texts)}`;
     try {
       initCollapsibleSections();
       fillGradeSelect(document.querySelector('#topic-grade'), 'Без класса', { numeric: true });
-      fillGradeSelect(document.querySelector('#task-grade'), 'Без класса', { numeric: true });
+      updateTaskGradeDropdown();
+      updateTaskTopicDropdown();
+      updateSubtopicDropdown();
       if (subtopicFormGrade) fillGradeSelect(subtopicFormGrade, 'Все классы и курсы', { numeric: true });
       if (subtopicFilterGrade) fillGradeSelect(subtopicFilterGrade, 'Все классы и курсы', { numeric: true });
       setSubjectMode(null);
@@ -4980,13 +5481,10 @@ ${JSON.stringify(texts)}`;
   const shell = document.querySelector('.adm-shell');
   const viewEls = {};
   document.querySelectorAll('.adm-view').forEach(el => { viewEls[el.dataset.view] = el; });
-  /* «Проверка» пока открывает каталог с фильтром черновиков; отдельный
-     экран проверки по одной задаче — следующий этап. */
-  const VIEW_ALIASES = { review: 'tasks' };
+  const VIEW_ALIASES = {};
   let currentView = null;
   let reviewFilterApplied = false;
 
-  const byId = id => document.getElementById(id);
   const slot = name => shell?.querySelector(`[data-slot="${name}"]`);
   const viewBody = view => viewEls[view]?.querySelector('.adm-view-body');
   const moveInto = (target, ...nodes) => {
@@ -5038,10 +5536,8 @@ ${JSON.stringify(texts)}`;
      закешировался бы без черновиков. */
   function activateCurrentView() {
     if (!adminAppStarted || !shell) return;
-    if (currentView === 'review' && taskFilterStatus) {
-      taskFilterStatus.value = 'draft';
-      reviewFilterApplied = true;
-      showTasksThenRender();
+    if (currentView === 'review') {
+      loadReviewQueue();
     } else if (currentView === 'tasks') {
       if (reviewFilterApplied && taskFilterStatus?.value === 'draft') taskFilterStatus.value = '';
       reviewFilterApplied = false;
@@ -5085,9 +5581,26 @@ ${JSON.stringify(texts)}`;
   }
   byId('adm-new-task')?.addEventListener('click', startNewTask);
   document.addEventListener('keydown', event => {
-    if (!shell || content.hidden || event.ctrlKey || event.metaKey || event.altKey) return;
-    if (!['n', 'N', 'т', 'Т'].includes(event.key)) return;
+    if (!shell || content.hidden) return;
     if (event.target.closest?.('input, textarea, select, [contenteditable="true"]') || document.querySelector('dialog[open]')) return;
+
+    // В режиме «Проверка»: Enter — опубликовать, Стрелка вправо — пропустить.
+    // На кнопке или ссылке в фокусе Enter нажимает её, а не публикует.
+    if (currentView === 'review' && !event.target.closest?.('button, a, summary')) {
+      if (event.key === 'Enter' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        approveCurrentReviewTask();
+        return;
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        skipCurrentReviewTask();
+        return;
+      }
+    }
+
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (!['n', 'N', 'т', 'Т'].includes(event.key)) return;
     event.preventDefault();
     startNewTask();
   });
@@ -5182,6 +5695,342 @@ ${JSON.stringify(texts)}`;
     const full = await fetchFullRow('tasks', id);
     if (full) setTaskMode(full);
   });
+
+  /* ── Экран проверки по одной задаче (макет «Админка Skola2030») ───
+     Показывает черновики по одному: условие и решение в KaTeX,
+     автопроверки (формулы, ответ, перевод на латышский, чертёж),
+     кнопки «Опубликовать», «Править», «Отклонить», «Пропустить» и
+     горячие клавиши Enter и →. */
+  let reviewQueue = [];
+  let reviewIndex = 0;
+  let reviewLoading = false;
+
+  async function loadReviewQueue(preserveIndex = false) {
+    if (!shell || !adminAppStarted || !db) return;
+    reviewLoading = true;
+    const progressEl = byId('adm-review-progress');
+    if (progressEl && !reviewQueue.length) progressEl.textContent = 'Загружаем…';
+    try {
+      const { data, error } = await db.from('tasks')
+        .select('*')
+        .eq('is_published', false)
+        .order('created_at', { ascending: false });
+      if (error) {
+        if (progressEl) progressEl.textContent = 'Ошибка загрузки';
+        return;
+      }
+      reviewQueue = data || [];
+      if (!preserveIndex || reviewIndex >= reviewQueue.length) {
+        reviewIndex = 0;
+      }
+      await renderReviewCard();
+    } finally {
+      reviewLoading = false;
+    }
+  }
+
+  function getTaskImageUrl(raw) {
+    if (!raw || typeof raw !== 'string') return null;
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith('<svg')) {
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(trimmed);
+    }
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:') || trimmed.startsWith('/')) {
+      return trimmed;
+    }
+    if (window.MathTasks?.imageUrl) {
+      return window.MathTasks.imageUrl(trimmed);
+    }
+    if (window.MathTasks?.db) {
+      const bucket = window.MathTasks.IMAGE_BUCKET || 'task-images';
+      return window.MathTasks.db.storage.from(bucket).getPublicUrl(trimmed)?.data?.publicUrl || trimmed;
+    }
+    return trimmed;
+  }
+
+  async function renderReviewCard() {
+    const card = byId('adm-review-card');
+    const empty = byId('adm-review-empty');
+    const progress = byId('adm-review-progress');
+    if (!card || !empty) return;
+
+    if (!reviewQueue.length) {
+      card.hidden = true;
+      empty.hidden = false;
+      if (progress) progress.textContent = 'Очередь пуста';
+      return;
+    }
+
+    card.hidden = false;
+    empty.hidden = true;
+    const task = reviewQueue[Math.min(reviewIndex, reviewQueue.length - 1)];
+    if (!task) return;
+
+    if (progress) {
+      progress.textContent = `${reviewIndex + 1} из ${reviewQueue.length}`;
+    }
+
+    const idEl = byId('adm-review-id');
+    if (idEl) idEl.textContent = `#${task.id}`;
+
+    const titleEl = byId('adm-review-title');
+    if (titleEl) titleEl.textContent = task.title || `Задача #${task.id}`;
+
+    const topic = topics.find(t => t.id === task.topic_id);
+    const sub = task.subtopic_id ? subtopics.find(s => s.id === task.subtopic_id) : null;
+    const grade = task.grade ?? topic?.grade;
+    const pathParts = [];
+    if (grade) pathParts.push(gradeText(grade));
+    if (topic?.subject_id) {
+      const subject = subjects.find(s => s.id === topic.subject_id);
+      if (subject?.title) pathParts.push(subject.title);
+    }
+    if (topic?.title) pathParts.push(topic.title);
+    if (sub?.code) pathParts.push(`${sub.code} ${sub.title || ''}`.trim());
+    else if (sub?.title) pathParts.push(sub.title);
+    const pathEl = byId('adm-review-path');
+    if (pathEl) pathEl.textContent = pathParts.join(' · ') || 'Без темы';
+
+    const diffEl = byId('adm-review-diff');
+    if (diffEl) diffEl.textContent = task.difficulty || 'Средний';
+
+    const hasLv = Boolean((task.condition_latex_lv || '').trim());
+    const lvEl = byId('adm-review-lv');
+    if (lvEl) {
+      lvEl.textContent = hasLv ? 'RU + LV' : 'только RU';
+      lvEl.className = `adm-chip ${hasLv ? 'ok' : 'warn'}`;
+    }
+
+    // Условие задачи с рендерингом KaTeX
+    const hasRuCond = Boolean((task.condition_latex || '').trim());
+    const hasLvCond = Boolean((task.condition_latex_lv || '').trim());
+    const condEl = byId('adm-review-cond');
+    const condLvWrap = byId('adm-review-cond-lv-wrap');
+    const condLvEl = byId('adm-review-cond-lv');
+
+    if (condEl) {
+      renderMath(condEl, hasRuCond ? task.condition_latex : (hasLvCond ? task.condition_latex_lv : '—'));
+    }
+    if (condLvWrap && condLvEl) {
+      if (hasRuCond && hasLvCond) {
+        condLvWrap.hidden = false;
+        renderMath(condLvEl, task.condition_latex_lv);
+      } else {
+        condLvWrap.hidden = true;
+        condLvEl.textContent = '';
+      }
+    }
+
+    const condImgWrap = byId('adm-review-cond-img');
+    if (condImgWrap) {
+      const imgUrl = getTaskImageUrl(task.condition_image);
+      if (imgUrl) {
+        condImgWrap.hidden = false;
+        condImgWrap.innerHTML = `<img src="${escapeHtml(imgUrl)}" alt="Чертёж к условию" />`;
+      } else {
+        condImgWrap.hidden = true;
+        condImgWrap.innerHTML = '';
+      }
+    }
+
+    // Решение и ответ с рендерингом KaTeX
+    const hasRuSol = Boolean((task.solution_latex || '').trim() || (task.answer_latex || '').trim());
+    const hasLvSol = Boolean((task.solution_latex_lv || '').trim() || (task.answer_latex_lv || '').trim());
+    const solEl = byId('adm-review-sol');
+    const solLvWrap = byId('adm-review-sol-lv-wrap');
+    const solLvEl = byId('adm-review-sol-lv');
+
+    if (solEl) {
+      const parts = [];
+      if (task.solution_latex && task.solution_latex.trim()) parts.push(task.solution_latex);
+      if (task.answer_latex && task.answer_latex.trim()) parts.push(`Ответ: ${task.answer_latex}`);
+      if (!parts.length && hasLvSol) {
+        if (task.solution_latex_lv && task.solution_latex_lv.trim()) parts.push(task.solution_latex_lv);
+        if (task.answer_latex_lv && task.answer_latex_lv.trim()) parts.push(`Atbilde: ${task.answer_latex_lv}`);
+      }
+      renderMath(solEl, parts.join('\n\n') || '—');
+    }
+
+    if (solLvWrap && solLvEl) {
+      if (hasRuSol && hasLvSol) {
+        const lvParts = [];
+        if (task.solution_latex_lv && task.solution_latex_lv.trim()) lvParts.push(task.solution_latex_lv);
+        if (task.answer_latex_lv && task.answer_latex_lv.trim()) lvParts.push(`Atbilde: ${task.answer_latex_lv}`);
+        solLvWrap.hidden = false;
+        renderMath(solLvEl, lvParts.join('\n\n'));
+      } else {
+        solLvWrap.hidden = true;
+        solLvEl.textContent = '';
+      }
+    }
+
+    const solImgWrap = byId('adm-review-sol-img');
+    if (solImgWrap) {
+      const imgUrl = getTaskImageUrl(task.solution_image);
+      if (imgUrl) {
+        solImgWrap.hidden = false;
+        solImgWrap.innerHTML = `<img src="${escapeHtml(imgUrl)}" alt="Рисунок к решению" />`;
+      } else {
+        solImgWrap.hidden = true;
+        solImgWrap.innerHTML = '';
+      }
+    }
+
+    // Кросс-теги
+    const tagsEl = byId('adm-review-tags');
+    if (tagsEl) {
+      tagsEl.innerHTML = '';
+      try {
+        const { data: tagLinks } = await db.from('task_tags').select('tags(title)').eq('task_id', task.id);
+        const tagNames = (tagLinks || []).map(tl => tl.tags?.title).filter(Boolean);
+        if (tagNames.length) {
+          tagsEl.innerHTML = tagNames.map(t => `<span class="adm-chip">${escapeHtml(t)}</span>`).join('');
+        }
+      } catch (_) {}
+    }
+
+    // Автопроверки (формулы, ответ, перевод, чертёж)
+    const checksEl = byId('adm-review-checks');
+    if (checksEl) {
+      const checks = [];
+
+      // 1. Формулы: каждое поле отдельно — склеенные поля сдвигали пары $ друг другу.
+      const latexFields = [
+        ['условии', task.condition_latex], ['ответе', task.answer_latex],
+        ['решении', task.solution_latex], ['подсказке', task.hint_latex],
+        ['условии LV', task.condition_latex_lv], ['ответе LV', task.answer_latex_lv],
+        ['решении LV', task.solution_latex_lv], ['подсказке LV', task.hint_latex_lv]
+      ];
+      const badField = latexFields.find(([, text]) => !checkFormulaSyntax(text).ok);
+      checks.push(badField
+        ? { ok: false, text: `Формула не разбирается в ${badField[0]}` }
+        : { ok: true, text: 'Формулы KaTeX разбираются' });
+
+      // 2. Ответ и решение
+      const hasAns = Boolean((task.answer_latex || '').trim());
+      const hasSol = Boolean((task.solution_latex || '').trim());
+      if (hasAns && hasSol) checks.push({ ok: true, text: 'Есть ответ и решение' });
+      else if (hasAns || hasSol) checks.push({ ok: false, warn: true, text: hasAns ? 'Нет решения' : 'Нет ответа' });
+      else checks.push({ ok: false, text: 'Нет ни ответа, ни решения' });
+
+      // 3. Перевод LV
+      checks.push({
+        ok: hasLv,
+        text: hasLv ? 'Перевод LV готов' : 'Нет перевода на LV'
+      });
+
+      // 4. Чертёж
+      const hasDrawing = Boolean(task.condition_image || task.solution_image);
+      const textMentionsDrawing = /черт[её]ж|рисун|график|треугольн|окружност|угол|трапеци/i.test(task.condition_latex || '');
+      if (hasDrawing) {
+        checks.push({ ok: true, text: 'Чертёж прикреплён' });
+      } else if (textMentionsDrawing) {
+        checks.push({ ok: false, warn: true, text: 'Возможно, нужен чертёж' });
+      } else {
+        checks.push({ ok: true, text: 'Чертёж не требуется' });
+      }
+
+      checksEl.innerHTML = checks.map(c => {
+        const cls = c.ok ? 'ok' : (c.warn ? 'warn' : 'bad');
+        return `<div class="adm-review-check ${cls}"><span class="adm-check-dot"></span><span>${escapeHtml(c.text)}</span></div>`;
+      }).join('');
+    }
+
+    // Откуда
+    const originEl = byId('adm-review-origin');
+    if (originEl) {
+      // Источник задачи в базе не хранится — показываем только то, что известно точно.
+      const fmt = iso => new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+      const lines = [];
+      if (task.created_at) lines.push(`Создана ${fmt(task.created_at)}`);
+      if (task.updated_at && fmt(task.updated_at) !== fmt(task.created_at || task.updated_at)) lines.push(`изменена ${fmt(task.updated_at)}`);
+      originEl.textContent = lines.join(', ') || '—';
+    }
+  }
+
+  /* Пока идёт запрос, второе нажатие Enter не принимаем: оно вырезало бы
+     из очереди следующую задачу, так её и не опубликовав. */
+  let reviewBusy = false;
+
+  async function approveCurrentReviewTask() {
+    if (reviewBusy || !reviewQueue.length) return;
+    const task = reviewQueue[reviewIndex];
+    if (!task) return;
+    reviewBusy = true;
+    if (admReviewApprove) admReviewApprove.disabled = true;
+    try {
+      const { error } = await db.from('tasks').update({ is_published: true }).eq('id', task.id);
+      if (error) {
+        alert('Ошибка при публикации: ' + error.message);
+        return;
+      }
+      task.is_published = true;
+      for (const list of [tasks, taskIndex]) {
+        const row = list.find(item => String(item.id) === String(task.id));
+        if (row) row.is_published = true;
+      }
+      updateReviewChip();
+      reviewQueue.splice(reviewIndex, 1);
+      if (reviewIndex >= reviewQueue.length) reviewIndex = 0;
+      await renderReviewCard();
+    } finally {
+      reviewBusy = false;
+      if (admReviewApprove) admReviewApprove.disabled = false;
+    }
+  }
+
+  async function editCurrentReviewTask() {
+    if (!reviewQueue.length) return;
+    const task = reviewQueue[reviewIndex];
+    if (!task) return;
+    const full = await fetchFullRow('tasks', task.id);
+    if (full) {
+      setTaskMode(full);
+      editorReturnView = { view: 'review', taskId: full.id };
+      showView('new');
+    }
+  }
+
+  async function rejectCurrentReviewTask() {
+    if (!reviewQueue.length) return;
+    const task = reviewQueue[reviewIndex];
+    if (!task) return;
+    if (reviewBusy) return;
+    if (!confirm(`Отклонить и удалить задачу #${task.id}? Это действие необратимо.`)) return;
+    reviewBusy = true;
+    if (admReviewReject) admReviewReject.disabled = true;
+    try {
+      const { error } = await db.from('tasks').delete().eq('id', task.id);
+      if (error) {
+        alert('Ошибка при удалении: ' + error.message);
+        return;
+      }
+      if (task.condition_image) await removeFile(task.condition_image);
+      if (task.solution_image) await removeFile(task.solution_image);
+      taskIndex = taskIndex.filter(t => String(t.id) !== String(task.id));
+      tasks = tasks.filter(t => String(t.id) !== String(task.id));
+      updateReviewChip();
+      reviewQueue.splice(reviewIndex, 1);
+      if (reviewIndex >= reviewQueue.length) reviewIndex = 0;
+      await renderReviewCard();
+    } finally {
+      reviewBusy = false;
+      if (admReviewReject) admReviewReject.disabled = false;
+    }
+  }
+
+  function skipCurrentReviewTask() {
+    if (reviewQueue.length > 1) {
+      reviewIndex = (reviewIndex + 1) % reviewQueue.length;
+      renderReviewCard();
+    }
+  }
+
+  admReviewApprove?.addEventListener('click', approveCurrentReviewTask);
+  admReviewEdit?.addEventListener('click', editCurrentReviewTask);
+  admReviewReject?.addEventListener('click', rejectCurrentReviewTask);
+  admReviewSkip?.addEventListener('click', skipCurrentReviewTask);
 
   if (shell) showView(location.hash.slice(1) || 'home', { push: false });
 

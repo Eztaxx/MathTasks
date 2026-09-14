@@ -5451,12 +5451,103 @@ body #admin-content:has(.adm-shell){border:0;border-radius:0;padding:0;backgroun
 .adm-chip.warn{background:var(--adm-warnbg);color:var(--adm-warnfg)}
 .adm-empty{margin:0;padding:26px;text-align:center;color:var(--adm-mute);font-size:13px}
 
+/* ── Экран проверки по одной задаче (макет «Админка Skola2030») ── */
+.adm-review-progress{margin-left:auto;font:13px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-mute)}
+.adm-review-card{max-width:1000px;border:1px solid var(--adm-line);border-radius:14px;background:var(--adm-panel);overflow:hidden}
+.adm-review-card-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:13px 18px;border-bottom:1px solid var(--adm-line);background:var(--adm-panel2)}
+.adm-review-id{font:11px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-dim)}
+.adm-review-title{font-size:15px;font-weight:650;color:var(--adm-ink)}
+.adm-review-path{font-size:12px;color:var(--adm-mute);margin-left:4px}
+.adm-review-badges{margin-left:auto;display:flex;gap:7px}
+.adm-review-card-body{padding:20px 18px;display:flex;gap:20px;flex-wrap:wrap}
+.adm-review-main-col{flex:1 1 340px;min-width:280px;display:flex;flex-direction:column;gap:14px}
+.adm-review-side-col{flex:0 1 280px;min-width:240px;display:flex;flex-direction:column;gap:10px}
+.adm-review-block{display:flex;flex-direction:column}
+.adm-review-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--adm-dim);margin-bottom:7px}
+.adm-review-content{font-size:15px;line-height:1.7;color:var(--adm-ink);word-break:break-word;white-space:pre-wrap}
+.adm-review-content.math .katex{font-size:1.05em}
+.adm-review-subblock{margin-top:12px;padding-top:10px;border-top:1px dashed var(--adm-line2)}
+.adm-review-sublabel{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--adm-mute);margin-bottom:6px}
+.adm-review-divider{height:1px;background:var(--adm-line2)}
+.adm-review-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.adm-review-tags .adm-chip{background:var(--adm-accsoft);border:1px solid var(--adm-accbd);color:var(--adm-ink2)}
+.adm-review-box{padding:12px 14px;border-radius:10px;background:var(--adm-panel2);border:1px solid var(--adm-line)}
+.adm-review-box-title{font-size:12px;font-weight:600;color:var(--adm-ink2);margin-bottom:8px}
+.adm-review-checks{display:flex;flex-direction:column;gap:6px}
+.adm-review-check{display:flex;align-items:center;gap:8px;font-size:12px}
+.adm-review-check.ok{color:var(--adm-okfg)}
+.adm-review-check.warn{color:var(--adm-warnfg)}
+.adm-review-check.bad{color:var(--adm-badfg)}
+.adm-check-dot{width:7px;height:7px;border-radius:50%;flex:0 0 7px;background:currentColor}
+.adm-review-origin{font-size:12px;color:var(--adm-mute);line-height:1.6}
+.adm-review-card-foot{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:13px 18px;border-top:1px solid var(--adm-line);background:var(--adm-panel2)}
+.adm-shell .adm-btn.ok{background:var(--adm-okbg);border-color:var(--adm-okbd);color:var(--adm-okfg)}
+.adm-shell .adm-btn.bad{background:var(--adm-badbg);border-color:var(--adm-badbd);color:var(--adm-badfg)}
+.adm-shell .adm-btn.text{background:transparent;border-color:var(--adm-line);color:var(--adm-mute)}
+.adm-shell .adm-btn.text:hover{background:var(--adm-hover);color:var(--adm-ink)}
+.adm-review-hint{margin-left:auto;font:11px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-dim)}
+.adm-review-empty{padding:44px 20px;text-align:center;border-radius:14px;max-width:1000px}
+.adm-review-empty-title{font-size:16px;font-weight:650;color:var(--adm-ink)}
+.adm-review-empty p{margin:6px 0 0;font-size:13px;color:var(--adm-mute)}
+.adm-review-img-wrap{margin-top:10px}
+.adm-review-img-wrap img{display:block;max-width:100%;max-height:300px;border-radius:10px;border:1px solid var(--adm-line);background:#fff;padding:6px;object-fit:contain}
+
 /* Прежние разделы на экранах: карточка в токенах макета, без «Свернуть». */
 body .adm-shell .admin-section{margin:0;padding:18px 20px;border:1px solid var(--adm-line);border-radius:12px;background:var(--adm-panel);box-shadow:none}
 body .adm-shell .admin-section:hover{border-color:var(--adm-line);box-shadow:none}
 body .adm-shell .admin-feature-head{margin-bottom:16px;padding-bottom:12px;border-bottom-color:var(--adm-line2)}
 .adm-shell .admin-section-toggle{display:none}
 .adm-view[data-single] .admin-section > .admin-feature-head{display:none}
+
+/* Переключатель языка RU / LV */
+.adm-lang-switch{display:inline-flex;align-items:center;gap:4px;background:var(--adm-panel);border:1px solid var(--adm-line);border-radius:9px;padding:3px}
+.adm-lang-btn{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-weight:600;font-size:13px;background:transparent;color:var(--adm-mute);transition:all .15s ease;font-family:inherit}
+.adm-lang-btn:hover{color:var(--adm-ink)}
+.adm-lang-btn.active{background:var(--adm-acc);color:#fff}
+
+/* Цепочка выбора места: класс → тема → подтема */
+.adm-editor-place{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;border-radius:11px;background:var(--adm-raise);border:1px solid var(--adm-line);position:sticky;top:56px;z-index:10;margin-bottom:12px}
+.adm-place-label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--adm-dim);margin-right:2px;font-weight:700}
+.adm-crumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.adm-crumb-select-wrap{display:inline-flex;align-items:center;gap:6px;background:var(--adm-field);border:1px solid var(--adm-fieldbd);border-radius:8px;padding:4px 9px;transition:all .15s ease}
+.adm-crumb-select-wrap:focus-within,.adm-crumb-select-wrap:hover{border-color:var(--adm-acc);box-shadow:0 0 0 2px var(--adm-accsoft)}
+.adm-crumb-select{background:transparent;border:none;color:var(--adm-ink);font-size:13px;font-family:inherit;font-weight:550;outline:none;cursor:pointer;padding:2px 2px;max-width:320px}
+.adm-crumb-select option{background:var(--adm-panel);color:var(--adm-ink)}
+.adm-crumb-select optgroup{background:var(--adm-raise);color:var(--adm-mute);font-weight:700}
+.adm-crumb-kind{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--adm-dim);font-weight:600}
+.adm-crumb-sep{color:var(--adm-dim);font-size:12px;user-select:none}
+.adm-place-count{margin-left:auto;font-size:12px;color:var(--adm-mute);font-weight:550}
+
+
+/* Мета-параметры формы задачи */
+.task-meta-params-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.task-meta-params-row label{flex:1 1 200px;font-size:12px;color:var(--adm-mute);display:flex;flex-direction:column;gap:5px}
+.task-meta-params-row select,.task-meta-params-row input{padding:8px 10px;background:var(--adm-field);border:1px solid var(--adm-fieldbd);border-radius:7px;color:var(--adm-ink);font-size:13px;font-family:inherit}
+
+/* Полоса «чего не хватает» и действия внизу формы */
+.adm-editor-ready-bar{display:flex;flex-direction:column;gap:10px;padding:12px 16px;border:1px solid var(--adm-line);border-radius:12px;background:var(--adm-raise);position:sticky;bottom:12px;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.15);margin-top:16px}
+.adm-ready-top-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%}
+.adm-ready-info{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:550;flex:1;min-width:240px}
+.adm-ready-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
+.adm-ready-dot.ok{background:var(--adm-okfg);box-shadow:0 0 0 3px var(--adm-okbg)}
+.adm-ready-dot.warn{background:var(--adm-warnfg);box-shadow:0 0 0 3px var(--adm-warnbg)}
+.adm-ready-dot.bad{background:var(--adm-badfg);box-shadow:0 0 0 3px var(--adm-badbg)}
+.adm-ready-text{color:var(--adm-ink)}
+.adm-editor-ready-bar .adm-editor-actions{display:flex;gap:9px;margin-left:auto;align-items:center}
+.adm-missing-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%}
+.adm-missing-caption{font-size:11px;font-weight:600;color:var(--adm-dim);text-transform:uppercase;letter-spacing:.05em;margin-right:2px}
+.adm-missing-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--adm-fieldbd);background:var(--adm-field);color:var(--adm-ink2);transition:all .12s ease;font-family:inherit}
+.adm-missing-chip:hover{border-color:var(--adm-acc);background:var(--adm-accsoft);color:var(--adm-ink)}
+.adm-missing-chip.bad{background:var(--adm-badbg);border-color:var(--adm-badbd);color:var(--adm-badfg)}
+.adm-missing-chip.warn{background:var(--adm-warnbg);border-color:var(--adm-warnbd);color:var(--adm-warnfg)}
+.adm-missing-chip.info{background:var(--adm-accsoft);border-color:var(--adm-accbd);color:var(--adm-ink)}
+.adm-missing-chip-arrow{opacity:.6;font-size:10px;margin-left:2px}
+/* Язык переключает кнопка в шапке экрана; старые вкладки в форме — дубль. */
+.adm-shell .task-lang-tabs{display:none}
+.adm-shell .task-lang-tabs-wrap{justify-content:flex-end}
+.adm-editor-ready-bar .form-success{font-size:13px;font-weight:600;color:var(--adm-ink2)}
+.adm-editor-ready-bar .form-success:empty{display:none}
+.adm-missing-all-ok{font-size:13px;color:var(--adm-okfg);font-weight:600;display:inline-flex;align-items:center;gap:6px}
 
 @media (max-width:860px){
   .adm-shell{flex-direction:column}

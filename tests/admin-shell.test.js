@@ -14,8 +14,7 @@ const views = [...html.matchAll(/class="adm-view"[^>]*data-view="([\w-]+)"/g)].m
 describe('каркас админки: меню и экраны', () => {
   it('у каждого пункта меню есть экран', () => {
     expect(links.length).toBeGreaterThanOrEqual(8);
-    const aliases = ['review']; // пока открывает каталог с фильтром черновиков
-    expect(links.filter(view => !views.includes(view) && !aliases.includes(view))).toEqual([]);
+    expect(links.filter(view => !views.includes(view))).toEqual([]);
   });
 
   it('каждый элемент, который скрипт переносит, есть в разметке', () => {
@@ -33,5 +32,50 @@ describe('каркас админки: меню и экраны', () => {
   it('каждый экран, куда переносятся разделы, есть в разметке', () => {
     const targets = [...new Set([...js.matchAll(/viewBody\('([\w-]+)'\)/g)].map(m => m[1]))];
     expect(targets.filter(view => !views.includes(view))).toEqual([]);
+  });
+
+  it('цепочка выбора места и полоса готовности присутствуют в разметке', () => {
+    const requiredIds = [
+      'adm-editor-place',
+      'adm-crumbs',
+      'adm-crumb-grade',
+      'adm-crumb-topic',
+      'adm-crumb-subtopic',
+      'adm-editor-ready-bar',
+      'adm-ready-dot',
+      'adm-ready-text',
+      'adm-missing-chips',
+      'adm-btn-save-draft',
+      'adm-btn-publish'
+    ];
+    for (const id of requiredIds) {
+      expect(html).toContain(`id="${id}"`);
+    }
+    expect(html).not.toContain('id="adm-crumb-subject"');
+  });
+
+  it('список классов в пикере включает все 12 классов', () => {
+    for (let g = 1; g <= 12; g++) {
+      expect(js).toContain(`${g}. klase`);
+    }
+  });
+
+  it('в скрипте предусмотрена естественная числовая сортировка подтем', () => {
+    expect(js).toContain('numeric: true');
+  });
+
+  it('в скрипте реализованы функции нумерации тем и точного подсчёта задач', () => {
+    expect(js).toContain('getTopicCode');
+    expect(js).toContain('cleanTopicTitle');
+    expect(js).toContain('getGradeTaskCount');
+    expect(js).toContain('getTopicTaskCount');
+    expect(js).toContain('getSubtopicTaskCount');
+  });
+
+  it('селекты класса, темы и подтемы находятся внутри цепочки adm-crumbs', () => {
+    expect(html).toMatch(/id="adm-crumbs"[\s\S]*?id="task-grade"[\s\S]*?id="topic-select"[\s\S]*?id="subtopic-select"/);
+    expect(js).toContain('updateTaskGradeDropdown');
+    expect(js).toContain('updateTaskTopicDropdown');
+    expect(js).toContain('updateSubtopicDropdown');
   });
 });

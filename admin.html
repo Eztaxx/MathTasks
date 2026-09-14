@@ -86,6 +86,74 @@
               </section>
             </section>
 
+            <section class="adm-view" data-view="review" hidden>
+              <div class="adm-view-head">
+                <div>
+                  <h1>Проверка</h1>
+                  <p>Задача целиком — как её увидит посетитель. Решение принимается одной кнопкой.</p>
+                </div>
+                <div class="adm-review-progress" id="adm-review-progress"></div>
+              </div>
+              <div id="adm-review-container">
+                <section class="adm-panel adm-review-card" id="adm-review-card">
+                  <div class="adm-review-card-head">
+                    <span class="adm-review-id" id="adm-review-id">#—</span>
+                    <span class="adm-review-title" id="adm-review-title">—</span>
+                    <span class="adm-review-path" id="adm-review-path">—</span>
+                    <div class="adm-review-badges">
+                      <span class="adm-chip" id="adm-review-diff">—</span>
+                      <span class="adm-chip" id="adm-review-lv">—</span>
+                    </div>
+                  </div>
+                  <div class="adm-review-card-body">
+                    <div class="adm-review-main-col">
+                      <div class="adm-review-block">
+                        <div class="adm-review-label">Условие</div>
+                        <div class="adm-review-content math" id="adm-review-cond"></div>
+                        <div id="adm-review-cond-img" class="adm-review-img-wrap" hidden></div>
+                        <div id="adm-review-cond-lv-wrap" class="adm-review-subblock" hidden>
+                          <div class="adm-review-sublabel">Nosacījums (LV)</div>
+                          <div class="adm-review-content math" id="adm-review-cond-lv"></div>
+                        </div>
+                      </div>
+                      <div class="adm-review-divider"></div>
+                      <div class="adm-review-block">
+                        <div class="adm-review-label">Решение и ответ</div>
+                        <div class="adm-review-content math" id="adm-review-sol"></div>
+                        <div id="adm-review-sol-img" class="adm-review-img-wrap" hidden></div>
+                        <div id="adm-review-sol-lv-wrap" class="adm-review-subblock" hidden>
+                          <div class="adm-review-sublabel">Atrisinājums un atbilde (LV)</div>
+                          <div class="adm-review-content math" id="adm-review-sol-lv"></div>
+                        </div>
+                      </div>
+                      <div class="adm-review-tags" id="adm-review-tags"></div>
+                    </div>
+                    <div class="adm-review-side-col">
+                      <div class="adm-review-box">
+                        <div class="adm-review-box-title">Автопроверки</div>
+                        <div class="adm-review-checks" id="adm-review-checks"></div>
+                      </div>
+                      <div class="adm-review-box">
+                        <div class="adm-review-box-title">Откуда</div>
+                        <div class="adm-review-origin" id="adm-review-origin">—</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="adm-review-card-foot">
+                    <button type="button" class="adm-btn ok" id="adm-review-approve">Опубликовать</button>
+                    <button type="button" class="adm-btn soft" id="adm-review-edit">Править</button>
+                    <button type="button" class="adm-btn bad" id="adm-review-reject">Отклонить</button>
+                    <button type="button" class="adm-btn text" id="adm-review-skip">Пропустить</button>
+                    <span class="adm-review-hint">Enter — опубликовать · → пропустить</span>
+                  </div>
+                </section>
+                <div class="adm-panel adm-review-empty" id="adm-review-empty" hidden>
+                  <div class="adm-review-empty-title">Очередь разобрана</div>
+                  <p>Новые задачи появятся здесь после генератора или импорта.</p>
+                </div>
+              </div>
+            </section>
+
             <section class="adm-view" data-view="reports" data-single hidden>
               <div class="adm-view-head"><div><h1>Сообщения об ошибках</h1><p>Что написал посетитель — рядом с задачей. Исправили задачу — нажмите «Решено».</p></div></div>
               <div class="adm-view-body"></div>
@@ -97,7 +165,17 @@
             </section>
 
             <section class="adm-view" data-view="new" data-single hidden>
-              <div class="adm-view-head"><div data-slot="new-title"><p>Формулы — между знаками <code>$…$</code>. Под полями — ровно то, что увидит посетитель.</p></div><div class="adm-view-actions" data-slot="new-actions"></div></div>
+              <div class="adm-view-head">
+                <div data-slot="new-title">
+                  <p>Формулы — между знаками <code>$…$</code>. Под полями — ровно то, что увидит посетитель.</p>
+                </div>
+                <div class="adm-view-actions" data-slot="new-actions">
+                  <div class="adm-lang-switch" role="tablist">
+                    <button type="button" class="adm-lang-btn active" data-lang="ru" id="adm-editor-lang-ru">Русский</button>
+                    <button type="button" class="adm-lang-btn" data-lang="lv" id="adm-editor-lang-lv">Latviešu</button>
+                  </div>
+                </div>
+              </div>
               <div class="adm-view-body"></div>
             </section>
 
@@ -476,6 +554,32 @@
             </div>
           </div>
         </div>
+        <!-- Выбор места цепочкой: класс → тема → подтема -->
+        <div class="adm-editor-place" id="adm-editor-place">
+          <span class="adm-place-label">Место</span>
+          <div class="adm-crumbs" id="adm-crumbs">
+            <div class="adm-crumb-select-wrap" id="adm-crumb-grade">
+              <span class="adm-crumb-kind">Класс</span>
+              <select name="grade" id="task-grade" form="task-form" class="adm-crumb-select" aria-label="Класс"></select>
+            </div>
+            <span class="adm-crumb-sep">→</span>
+            <div class="adm-crumb-select-wrap" id="adm-crumb-topic">
+              <span class="adm-crumb-kind">Тема</span>
+              <select name="topic_id" id="topic-select" form="task-form" class="adm-crumb-select" aria-label="Тема">
+                <option value="">Без темы</option>
+              </select>
+            </div>
+            <span class="adm-crumb-sep">→</span>
+            <div class="adm-crumb-select-wrap" id="adm-crumb-subtopic">
+              <span class="adm-crumb-kind">Подтема</span>
+              <select name="subtopic_id" id="subtopic-select" form="task-form" class="adm-crumb-select" aria-label="Подтема">
+                <option value="">Без подтемы</option>
+              </select>
+            </div>
+          </div>
+          <span class="adm-place-count" id="adm-place-count"></span>
+        </div>
+
         <form class="task-form" id="task-form">
           <div class="wide task-lang-tabs-wrap">
             <div class="task-lang-tabs" role="tablist">
@@ -491,13 +595,10 @@
               </button>
             </div>
           </div>
-
-          <!-- Общие параметры задачи -->
-          <label>Класс<select name="grade" id="task-grade"></select></label>
-          <label>Тема<select name="topic_id" id="topic-select"><option value="">Без темы</option></select></label>
-          <label>Подтема <span>необязательно</span><select name="subtopic_id" id="subtopic-select"><option value="">Без подтемы</option></select></label>
-          <label>Сложность<select name="difficulty"><option>Лёгкий</option><option selected>Средний</option><option>Сложный</option></select></label>
-          <label>Порядок в теме <span>чем меньше, тем выше</span><input name="position" type="number" value="0" /></label>
+          <div class="task-meta-params-row">
+            <label>Сложность<select name="difficulty" id="task-difficulty"><option>Лёгкий</option><option selected>Средний</option><option>Сложный</option></select></label>
+            <label>Порядок в теме <span>чем меньше, тем выше</span><input name="position" id="task-position" type="number" value="0" /></label>
+          </div>
 
           <!-- Кросс-теги задачи (до 3 тегов) -->
           <div class="wide task-tags-section">
@@ -542,10 +643,6 @@
             <div class="wide math-preview"><span class="math-preview-label">Kā redzēs skolēns (LV)</span><div id="solution-preview-lv"></div></div>
           </div>
 
-
-
-
-
           <!-- Общие поля ответа и чертежей -->
           <div class="wide image-field">
             <span class="image-field-head">Чертёж к условию <span>png, jpg, webp — до 2 МБ</span></span>
@@ -566,10 +663,10 @@
               </div>
             </details>
           </div>
-          <label class="wide">Ответ <span>необязательно; короткий математический ответ без разбора</span><textarea name="answer_latex" id="answer-input" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
-          <label class="wide">Atbilde (LV) <span>neobligāti; īsa matemātiska atbilde bez risinājuma</span><textarea name="answer_latex_lv" id="answer-input-lv" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
-          <label class="wide">Подсказка <span>необязательно; направление решения без готового ответа</span><textarea name="hint_latex" id="hint-input" rows="2" placeholder="Вынесите общий множитель за скобки и примените формулу разности квадратов."></textarea></label>
-          <label class="wide">Norāde (LV) <span>neobligāti; risinājuma virziens, neatklājot atbildi</span><textarea name="hint_latex_lv" id="hint-input-lv" rows="2" placeholder="Iznesiet kopīgo reizinātāju pirms iekavām."></textarea></label>
+          <label class="wide" data-lang-group="ru">Ответ <span>необязательно; короткий математический ответ без разбора</span><textarea name="answer_latex" id="answer-input" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
+          <label class="wide" data-lang-group="lv" hidden>Atbilde (LV) <span>neobligāti; īsa matemātiska atbilde bez risinājuma</span><textarea name="answer_latex_lv" id="answer-input-lv" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
+          <label class="wide" data-lang-group="ru">Подсказка <span>необязательно; направление решения без готового ответа</span><textarea name="hint_latex" id="hint-input" rows="2" placeholder="Вынесите общий множитель за скобки и примените формулу разности квадратов."></textarea></label>
+          <label class="wide" data-lang-group="lv" hidden>Norāde (LV) <span>neobligāti; risinājuma virziens, neatklājot atbildi</span><textarea name="hint_latex_lv" id="hint-input-lv" rows="2" placeholder="Iznesiet kopīgo reizinātāju pirms iekavām."></textarea></label>
           <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель (Ответ)</span><div id="answer-preview"></div></div>
           <div class="wide image-field">
             <span class="image-field-head">Рисунок к решению <span>png, jpg, webp — до 2 МБ</span></span>
@@ -590,8 +687,25 @@
               </div>
             </details>
           </div>
-          <label class="checkbox"><input name="is_published" type="checkbox" checked /> Отметка «Проверено» (опубликовать на сайте)</label>
-          <div class="wide form-actions"><button class="primary-button" type="submit" id="task-submit">Добавить задачу</button><button class="text-button" type="button" id="task-cancel" hidden>Отменить</button><span class="form-success" id="task-success"></span></div>
+          <label class="checkbox" style="display:none"><input name="is_published" type="checkbox" checked /> Отметка «Проверено» (опубликовать на сайте)</label>
+          <div class="wide form-actions" style="display:none"><button class="primary-button" type="submit" id="task-submit">Добавить задачу</button><button class="text-button" type="button" id="task-cancel" hidden>Отменить</button></div>
+
+          <!-- Полоса «чего не хватает» и кнопки черновика/публикации -->
+          <div class="wide adm-editor-ready-bar" id="adm-editor-ready-bar">
+            <div class="adm-ready-top-row">
+              <div class="adm-ready-info">
+                <span class="adm-ready-dot" id="adm-ready-dot"></span>
+                <span class="adm-ready-text" id="adm-ready-text">Всё заполнено — RU и LV, решение, теги</span>
+              </div>
+              <span class="form-success" id="task-success" role="status"></span>
+              <div class="adm-editor-actions">
+                <button type="button" class="adm-btn text" id="adm-btn-cancel-edit" hidden>Отменить</button>
+                <button type="button" class="adm-btn soft" id="adm-btn-save-draft">Сохранить черновик</button>
+                <button type="button" class="adm-btn ok" id="adm-btn-publish">Опубликовать</button>
+              </div>
+            </div>
+            <div class="adm-missing-chips" id="adm-missing-chips"></div>
+          </div>
         </form>
       </div>
 
