@@ -5896,3 +5896,56 @@ body .adm-shell #section-reports{padding:0;border:0;background:none}
   .adm-shell .adm-ready-info{min-width:0}
   .adm-shell .adm-editor-ready-bar .adm-editor-actions{flex-wrap:wrap;margin-left:0}
 }
+
+/* ── Генератор задач: две колонки (макет «Админка Skola2030») ──
+   Слева настройки, справа «Результат». Прежние стили генератора (градиенты,
+   свои цвета тёмной темы) перекрашены в токены каркаса; у них селекторы
+   body.dark …, поэтому здесь — через #ai-generator-section. */
+.adm-view-body.adm-ai-body{display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:16px}
+.adm-ai-body > #ai-generator-section{order:1;flex:1 1 460px;min-width:0}
+.ai-results{order:2;flex:1 1 340px;min-width:300px;display:flex;flex-direction:column;position:sticky;top:calc(var(--adm-top-h, 61px) + 12px);max-height:calc(100vh - var(--adm-top-h, 61px) - 24px);background:var(--adm-panel2)}
+.ai-results .adm-panel-head{background:var(--adm-panel)}
+.ai-results-count{margin-left:auto;font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-dim)}
+.ai-results-list{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:12px}
+.ai-results-empty{margin:0;padding:28px 10px;text-align:center;font-size:13px;line-height:1.6;color:var(--adm-mute)}
+.ai-result{padding:13px;border:1px solid var(--adm-line);border-radius:10px;background:var(--adm-panel)}
+.ai-result-path{margin-bottom:6px;font:11px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-dim)}
+.ai-result-cond{font-size:14px;line-height:1.7;color:var(--adm-ink);white-space:pre-wrap;word-break:break-word;overflow-x:auto;overflow-y:hidden}
+.ai-result-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.ai-result-meta .adm-chip:not(.ok):not(.warn):not(.bad){background:var(--adm-accsoft);color:var(--adm-ink2)}
+.adm-chip.bad{background:var(--adm-badbg);color:var(--adm-badfg)}
+.ai-result-actions{display:flex;gap:8px;margin-top:11px}
+.adm-shell .ai-result-actions .adm-btn{padding:6px 11px;font-size:12px}
+.ai-results-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--adm-line);background:var(--adm-panel)}
+.ai-results-foot[hidden]{display:none}
+.ai-results-note{flex:1 1 150px;font-size:12px;color:var(--adm-mute)}
+@media (max-width:860px){.ai-results{position:static;max-height:none}}
+/* Прежний генератор — в токенах каркаса. */
+body .adm-shell #ai-generator-section{margin:0;padding:18px 20px;border:1px solid var(--adm-line);border-radius:12px;background:var(--adm-panel);box-shadow:none}
+.adm-shell #ai-generator-section .ai-settings-card,.adm-shell #ai-generator-section .ai-custom-card{background:var(--adm-panel2);border-color:var(--adm-line)}
+.adm-shell #ai-generator-section .ai-custom-card:hover,.adm-shell #ai-generator-section .ai-custom-card:focus-within{border-color:var(--adm-accbd);box-shadow:none}
+.adm-shell #ai-generator-section .ai-form-row label,.adm-shell #ai-generator-section .ai-settings-field{color:var(--adm-mute);font-weight:500}
+.adm-shell #ai-generator-section .ai-custom-title{color:var(--adm-ink)}
+.adm-shell #ai-generator-section .ai-custom-hint,.adm-shell #ai-generator-section .ai-preset-caption,.adm-shell #ai-generator-section .admin-hint{color:var(--adm-mute)}
+.adm-shell #ai-generator-section .ai-custom-icon{background:var(--adm-accsoft);color:var(--adm-acclink)}
+.adm-shell #ai-generator-section .ai-custom-input,.adm-shell #ai-generator-section input[type="number"],.adm-shell #ai-generator-section input[type="password"],.adm-shell #ai-generator-section select,.adm-shell #ai-generator-section textarea{background:var(--adm-field);border-color:var(--adm-fieldbd);color:var(--adm-ink)}
+.adm-shell #ai-generator-section .ai-custom-input::placeholder,.adm-shell #ai-generator-section textarea::placeholder{color:var(--adm-dim)}
+.adm-shell #ai-generator-section .ai-custom-input:focus,.adm-shell #ai-generator-section textarea:focus,.adm-shell #ai-generator-section input:focus{outline:none;border-color:var(--adm-acc);box-shadow:0 0 0 3px var(--adm-accsoft)}
+.adm-shell #ai-generator-section .ai-field-clear-btn{background:transparent;border-color:var(--adm-line);color:var(--adm-mute)}
+.adm-shell #ai-generator-section .ai-field-clear-btn:hover{color:var(--adm-ink);background:var(--adm-hover)}
+.adm-shell #ai-generator-section .ai-preset-chip{background:var(--adm-accsoft);border-color:var(--adm-accbd);color:var(--adm-acclink)}
+.adm-shell #ai-generator-section .ai-preset-chip:hover,.adm-shell #ai-generator-section .ai-preset-chip.applied{background:var(--adm-acc);border-color:var(--adm-acc);color:#fff}
+.adm-shell #ai-generator-section .custom-select-trigger{background:var(--adm-field);border-color:var(--adm-fieldbd);color:var(--adm-ink)}
+.adm-shell #ai-generator-section .custom-select-trigger:hover,.adm-shell #ai-generator-section .custom-select-trigger.open{border-color:var(--adm-acc)}
+.adm-shell #ai-generator-section .custom-select-dropdown{background:var(--adm-panel);border-color:var(--adm-line);box-shadow:0 14px 34px rgba(0,0,0,.3)}
+.adm-shell #ai-generator-section .custom-select-search{background:var(--adm-field);border-color:var(--adm-fieldbd);color:var(--adm-ink)}
+.adm-shell #ai-generator-section .custom-select-item:hover,.adm-shell #ai-generator-section .custom-select-item.active{background:var(--adm-accsoft)}
+.adm-shell #ai-generator-section .custom-select-item-main{color:var(--adm-ink)}
+.adm-shell #ai-generator-section .custom-select-item-sub,.adm-shell #ai-generator-section .cs-sub,.adm-shell #ai-generator-section .custom-select-empty{color:var(--adm-dim)}
+.adm-shell #ai-generator-section .custom-select-check{color:var(--adm-acclink)}
+.adm-shell #ai-generator-section .ai-primary-btn{background:var(--adm-acc)!important;box-shadow:none;border-radius:8px}
+.adm-shell #ai-generator-section .ai-primary-btn:hover:not(:disabled){filter:brightness(1.07)}
+.adm-shell #ai-generator-section .ai-gen-status{color:var(--adm-mute)}
+.adm-shell #ai-generator-section .ai-gen-status.success{color:var(--adm-okfg)}
+.adm-shell #ai-generator-section .ai-gen-status.error{color:var(--adm-badfg)}
+.adm-shell [data-slot="ai-actions"] #btn-toggle-ai-settings{padding:8px 12px;border:1px solid var(--adm-accbd);border-radius:8px;background:var(--adm-accsoft);color:var(--adm-ink2);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer}

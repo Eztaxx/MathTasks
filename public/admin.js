@@ -5434,187 +5434,12 @@ ${JSON.stringify(texts)}`;
           throw new Error(why);
         }
 
-        const first = generatedResults[0];
-
-        // Заполняем форму первой сгенерированной задачей для предпросмотра
-        if (taskForm.elements.title) taskForm.elements.title.value = first.result.title_ru || first.result.title || '';
-        if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = first.result.title_lv || '';
-
-        taskGradeSelect.value = String(g);
-        updateTaskTopicDropdown();
-
-        // Ищем подходящую тему в БД
-        /* Номер «7.1.» в начале названия каталога мешает прямому сравнению:
-           в базе названия без него. Сравниваем очищенные, а если не сошлось —
-           по позиции темы внутри класса. */
-        const stripNum = s => String(s || '').replace(/^\s*\d+(\.\d+)*\.?\s*/, '').trim().toLowerCase();
-        const dbMatchingTopic = topics.find(t => t.grade === g && (
-          (t.slug && topicItem?.slug && t.slug === topicItem.slug) ||
-          stripNum(t.title) === stripNum(topicTitle)
-        )) || (topicItem?.position ? topics.find(t => t.grade === g && t.position === topicItem.position) : null);
-        if (dbMatchingTopic) {
-          topicSelect.value = String(dbMatchingTopic.id);
-          updateSubtopicDropdown();
-          if (subtopicCode) {
-            const hit = subtopics.find(s => s.topic_id === dbMatchingTopic.id && String(s.code || '') === String(subtopicCode));
-            if (hit) updateSubtopicDropdown(hit.id);
-          }
-        }
-
-        taskForm.elements.difficulty.value = first.difficulty;
-
-        conditionInput.value = first.result.condition_latex_ru || first.result.condition_latex || '';
-        if (conditionInputLv) conditionInputLv.value = first.result.condition_latex_lv || '';
-
-        answerInput.value = first.result.answer_latex || '';
-        if (answerInputLv) answerInputLv.value = first.result.answer_latex_lv || '';
-
-        solutionInput.value = first.result.solution_latex_ru || first.result.solution_latex || '';
-        if (solutionInputLv) solutionInputLv.value = first.result.solution_latex_lv || '';
-
-        updatePreviews();
-
-        /* Одиночная задача идёт в форму — её чертёж ставим в поле рисунка,
-           как если бы его загрузили файлом; сохранение формы привяжет его.
-           В пакете чертежи сохранит импорт, а форма лишь показывает первую
-           задачу: загружать туда второй экземпляр незачем. */
-        if (count === 1) {
-          for (const kind of ['condition', 'solution']) {
-            const markup = first.result[`${kind}_svg`];
-            if (!markup) continue;
-            const errorElement = document.querySelector(`#${kind}-image-error`);
-            const uploaded = await uploadSvgMarkup(kind, markup);
-            if (!uploaded.path) {
-              errorElement.textContent = 'Чертёж от генератора не подошёл: ' + uploaded.error;
-              continue;
-            }
-            const previous = images[kind].current;
-            images[kind].current = uploaded.path;
-            if (previous && previous !== images[kind].saved) await removeFile(previous);
-            errorElement.textContent = '';
-            paintImage(kind);
-            loadSvgCode(kind, uploaded.path);
-          }
-        }
-
-        if (count === 1) {
-          aiGenStatus.className = 'ai-gen-status success';
-          aiGenStatus.innerHTML = `🎉 Задача сгенерирована [${first.difficulty}] и перенесена в форму ниже!`;
-          taskSuccess.textContent = '✨ Сгенерированная задача готова к публикации или редактированию.';
-          setTimeout(() => {
-            taskForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 300);
-        } else {
-          // Формируем пакет задач для массового окна
-          const tasksForBulk = generatedResults.map(({ result: r, difficulty: diff }, idx) => {
-            const taskTopicTitle = r.topic_title || topicTitle;
-            /* Ищем тему именно в базе. Раньше сюда попадал элемент каталога,
-               и его id (1…96) уходил в topic_id как настоящий — задача
-               оказывалась в случайной чужой теме. */
-            const catalogHit = skola2030Catalog.find(t => t.title_ru === taskTopicTitle || t.slug === r.topic_slug);
-            const cleanTitle = s => String(s || '').replace(/^\s*\d+(\.\d+)*\.?\s*/, '').trim().toLowerCase();
-            const dbHit = topics.find(t => t.grade === g && cleanTitle(t.title) === cleanTitle(taskTopicTitle))
-              || (catalogHit ? topics.find(t => t.grade === catalogHit.grade && t.position === catalogHit.position) : null)
-              || dbMatchingTopic || null;
-            const topicId = dbHit?.id || null;
-            const subCode = r.subtopic_code || subtopicCode || null;
-            const subHit = subCode && topicId
-              ? subtopics.find(s => s.topic_id === topicId && String(s.code || '') === String(subCode))
-              : null;
-            return {
-              subtopic_id: subHit?.id || null,
-              subtopic_code: subCode,
-              title: r.title_ru || r.title || `${taskTopicTitle} #${idx + 1}`,
-              title_lv: r.title_lv || null,
-              condition_latex: r.condition_latex_ru || r.condition_latex || '',
-              condition_latex_lv: r.condition_latex_lv || null,
-              answer_latex: r.answer_latex || null,
-              answer_latex_lv: r.answer_latex_lv || null,
-              solution_latex: r.solution_latex_ru || r.solution_latex || null,
-              solution_latex_lv: r.solution_latex_lv || null,
-              condition_svg: r.condition_svg || null,
-              solution_svg: r.solution_svg || null,
-              difficulty: diff,
-              grade: g,
-              topic_id: topicId,
-              topic_title: taskTopicTitle,
-              is_published: true
-            };
-          });
-
-          openBulkDialog('import');
-          const madeCount = generatedResults.length;
-          const failLine = failures.length
-            ? ` Не удалось получить ${failures.length}: ${failures.slice(0, 3).map(f => `#${f.index} — ${f.message.slice(0, 80)}`).join('; ')}${failures.length > 3 ? '…' : ''}`
-            : '';
-          bulkDialogTitle.textContent = `Сгенерировано задач: ${madeCount} из ${count}`;
-          bulkDialogDesc.innerHTML = `Сгенерировано <strong>${madeCount}</strong> задач из ${count} по теме «${escapeHtml(topicTitle)}» (${easyCount} лёгких, ${medCount} средних, ${hardCount} сложных). Вы можете проверить JSON и нажать <strong>«Импортировать в базу»</strong>. Первая задача также перенесена в форму.${escapeHtml(failLine)}`;
-          bulkDialogTextarea.value = JSON.stringify(tasksForBulk, null, 2);
-          bulkDialogSubmit.textContent = `Импортировать все ${madeCount} задач в базу`;
-          bulkDialogCopy.hidden = false;
-          bulkDialogStatus.className = 'bulk-dialog-status success';
-          bulkDialogStatus.className = failures.length ? 'bulk-dialog-status' : 'bulk-dialog-status success';
-          bulkDialogStatus.innerHTML = `🎉 Сгенерировано: <strong>${madeCount}</strong> из ${count} (${easyCount} лёгких, ${medCount} средних, ${hardCount} сложных).${escapeHtml(failLine)}`;
-          bulkDialogStatus.hidden = false;
-
-          aiGenStatus.className = 'ai-gen-status success';
-          aiGenStatus.className = failures.length ? 'ai-gen-status' : 'ai-gen-status success';
-          aiGenStatus.innerHTML = `🎉 Готово: ${madeCount} из ${count} (${easyCount} лёгких, ${medCount} средних, ${hardCount} сложных). Открыто окно массового импорта.${escapeHtml(failLine)}`;
-        }
+        // Всё сгенерированное — в колонку «Результат»: там «Править» или «В очередь проверки».
+        showAiResults(generatedResults, { g, topicTitle, topicItem, subtopicCode, count, failures, easyCount, medCount, hardCount });
       } catch (err) {
-        if (generatedResults.length > 0) {
-          // Partial results available — offer them
-          aiGenStatus.className = 'ai-gen-status error';
-          aiGenStatus.innerHTML = `⚠️ Ошибка на задаче ${generatedResults.length + 1}: ${err.message}. Но ${generatedResults.length} задач(а) уже готовы!`;
-
-          const first = generatedResults[0];
-          if (taskForm.elements.title) taskForm.elements.title.value = first.result.title_ru || first.result.title || '';
-          if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = first.result.title_lv || '';
-          taskGradeSelect.value = String(g);
-          updateTaskTopicDropdown();
-          const dbMatchingTopic = topics.find(t => t.grade === g && (
-            (t.slug && topicItem?.slug && t.slug === topicItem.slug) ||
-            t.title.toLowerCase().includes(topicTitle.toLowerCase()) ||
-            topicTitle.toLowerCase().includes(t.title.toLowerCase())
-          ));
-          if (dbMatchingTopic) topicSelect.value = String(dbMatchingTopic.id);
-          taskForm.elements.difficulty.value = first.difficulty;
-          conditionInput.value = first.result.condition_latex_ru || first.result.condition_latex || '';
-          if (conditionInputLv) conditionInputLv.value = first.result.condition_latex_lv || '';
-          answerInput.value = first.result.answer_latex || '';
-          if (answerInputLv) answerInputLv.value = first.result.answer_latex_lv || '';
-          solutionInput.value = first.result.solution_latex_ru || first.result.solution_latex || '';
-          if (solutionInputLv) solutionInputLv.value = first.result.solution_latex_lv || '';
-          updatePreviews();
-
-          if (generatedResults.length > 1) {
-            const tasksForBulk = generatedResults.map(({ result: r, difficulty: diff }, idx) => ({
-              title: r.title_ru || r.title || `${topicTitle} #${idx + 1}`,
-              title_lv: r.title_lv || null,
-              condition_latex: r.condition_latex_ru || r.condition_latex || '',
-              condition_latex_lv: r.condition_latex_lv || null,
-              answer_latex: r.answer_latex || null,
-              answer_latex_lv: r.answer_latex_lv || null,
-              solution_latex: r.solution_latex_ru || r.solution_latex || null,
-              solution_latex_lv: r.solution_latex_lv || null,
-              condition_svg: r.condition_svg || null,
-              solution_svg: r.solution_svg || null,
-              difficulty: diff,
-              grade: g,
-              topic_id: dbMatchingTopic ? dbMatchingTopic.id : null,
-              topic_title: topicTitle,
-              is_published: true
-            }));
-            openBulkDialog('import');
-            bulkDialogTitle.textContent = `Частично сгенерировано: ${generatedResults.length} из ${count}`;
-            bulkDialogDesc.innerHTML = `Сгенерировано <strong>${generatedResults.length}</strong> задач до ошибки. Вы можете импортировать то, что получилось.`;
-            bulkDialogTextarea.value = JSON.stringify(tasksForBulk, null, 2);
-            bulkDialogSubmit.textContent = `Импортировать ${generatedResults.length} задач в базу`;
-            bulkDialogCopy.hidden = false;
-            bulkDialogStatus.className = 'bulk-dialog-status';
-            bulkDialogStatus.innerHTML = `⚠️ Генерация прервана: ${err.message}`;
-            bulkDialogStatus.hidden = false;
-          }
+        // Часть задач уже готова — показываем их, а не теряем вместе с ошибкой.
+        if (generatedResults.length) {
+          showAiResults(generatedResults, { g, topicTitle, topicItem, subtopicCode, count, failures, easyCount, medCount, hardCount, error: err.message });
         } else {
           aiGenStatus.className = 'ai-gen-status error';
           aiGenStatus.textContent = 'Ошибка генерации: ' + err.message;
@@ -5626,6 +5451,208 @@ ${JSON.stringify(texts)}`;
       }
     });
   }
+
+  /* ── Генератор: колонка «Результат» (макет «Админка Skola2030») ─────
+     Сгенерированное сначала показывается здесь, а не уходит сразу в форму
+     или в окно импорта. «Править» открывает задачу в редакторе (вместе
+     с чертежом), «В очередь проверки» сохраняет оставшиеся черновиками —
+     той же функцией, что и мастер импорта. */
+  let aiResultItems = [];
+  let aiLastSaved = null;
+
+  // Задача генератора → строка импорта. Тему и подтему ищем именно в базе.
+  function aiResultToItem(r, difficulty, idx, ctx) {
+    const { g, topicTitle, topicItem, subtopicCode } = ctx;
+    const clean = s => String(s || '').replace(/^\s*\d+(\.\d+)*\.?\s*/, '').trim().toLowerCase();
+    const taskTopicTitle = r.topic_title || topicTitle;
+    const catalogHit = skola2030Catalog.find(t => t.title_ru === taskTopicTitle || t.slug === r.topic_slug);
+    const selectedTopic = topics.find(t => t.grade === g && (
+      (t.slug && topicItem?.slug && t.slug === topicItem.slug) || clean(t.title) === clean(topicTitle)
+    )) || (topicItem?.position ? topics.find(t => t.grade === g && t.position === topicItem.position) : null);
+    const dbHit = topics.find(t => t.grade === g && clean(t.title) === clean(taskTopicTitle))
+      || (catalogHit ? topics.find(t => t.grade === catalogHit.grade && t.position === catalogHit.position) : null)
+      || selectedTopic || null;
+    const subCode = r.subtopic_code || subtopicCode || null;
+    const subHit = subCode && dbHit
+      ? subtopics.find(s => s.topic_id === dbHit.id && String(s.code || '') === String(subCode))
+      : null;
+    return {
+      key: `${Date.now()}-${idx}`,
+      subtopic_id: subHit?.id || null,
+      subtopic_code: subCode,
+      title: r.title_ru || r.title || `${taskTopicTitle} #${idx + 1}`,
+      title_lv: r.title_lv || null,
+      condition_latex: r.condition_latex_ru || r.condition_latex || '',
+      condition_latex_lv: r.condition_latex_lv || null,
+      answer_latex: r.answer_latex || null,
+      answer_latex_lv: r.answer_latex_lv || null,
+      solution_latex: r.solution_latex_ru || r.solution_latex || null,
+      solution_latex_lv: r.solution_latex_lv || null,
+      hint_latex: r.hint_latex_ru || r.hint_latex || null,
+      hint_latex_lv: r.hint_latex_lv || null,
+      condition_svg: r.condition_svg || null,
+      solution_svg: r.solution_svg || null,
+      difficulty: difficulty || 'Средний',
+      grade: g,
+      topic_id: dbHit?.id || null,
+      topic_title: taskTopicTitle,
+      is_published: false
+    };
+  }
+
+  function showAiResults(results, ctx) {
+    aiLastSaved = null;
+    aiResultItems = results.map(({ result, difficulty }, idx) => aiResultToItem(result, difficulty, idx, ctx));
+    renderAiResults();
+    const { count, failures = [], easyCount, medCount, hardCount, error } = ctx;
+    const made = aiResultItems.length;
+    const failLine = failures.length
+      ? ` Не удалось получить ${failures.length}: ${failures.slice(0, 3).map(f => `#${f.index} — ${String(f.message).slice(0, 80)}`).join('; ')}${failures.length > 3 ? '…' : ''}`
+      : '';
+    aiGenStatus.className = `ai-gen-status${error ? ' error' : (failures.length ? '' : ' success')}`;
+    aiGenStatus.textContent = error
+      ? `Генерация прервалась: ${error}. Готово ${made} из ${count} — они справа.`
+      : `Готово: ${made} из ${count} (лёгких ${easyCount}, средних ${medCount}, сложных ${hardCount}) — результат справа.${failLine}`;
+  }
+
+  function renderAiResults() {
+    const list = byId('ai-results-list');
+    if (!list) return;
+    const n = aiResultItems.length;
+    const countEl = byId('ai-results-count');
+    if (countEl) countEl.textContent = n ? String(n) : '';
+    const foot = byId('ai-results-foot');
+    if (foot) foot.hidden = !n;
+    const queueBtn = byId('ai-results-queue');
+    if (queueBtn) queueBtn.textContent = `В очередь проверки (${n})`;
+    if (!n) {
+      list.innerHTML = aiLastSaved
+        ? `<p class="ai-results-empty">Сохранено черновиками: ${aiLastSaved.saved}.<br /><a href="#review">Открыть «Проверку»</a></p>`
+        : '<p class="ai-results-empty">Пока ничего не сгенерировано.<br />Заполните настройки слева и нажмите «Сгенерировать».</p>';
+      return;
+    }
+    const codes = topicCodeMap();
+    const diffTone = { 'Лёгкий': 'ok', 'Сложный': 'bad' };
+    list.innerHTML = aiResultItems.map(item => {
+      const topic = topics.find(t => t.id === item.topic_id);
+      const sub = item.subtopic_id ? subtopics.find(s => s.id === item.subtopic_id) : null;
+      const path = ['черновик', `${item.grade}. klase`, topic ? topicOptionText(topic, codes) : '', sub?.code || ''].filter(Boolean).join(' · ');
+      const hasLv = Boolean(String(item.condition_latex_lv || '').trim());
+      return `<article class="ai-result" data-ai-key="${item.key}">
+        <div class="ai-result-path">${escapeHtml(path)}</div>
+        <div class="ai-result-cond"></div>
+        <div class="ai-result-meta">
+          <span class="adm-chip ${diffTone[item.difficulty] || 'warn'}">${escapeHtml(item.difficulty)}</span>
+          <span class="adm-chip ${hasLv ? 'ok' : 'warn'}">${hasLv ? 'RU + LV' : 'только RU'}</span>
+          ${item.condition_svg ? '<span class="adm-chip">чертёж</span>' : ''}
+          ${topic ? '' : '<span class="adm-chip bad" title="Задача ляжет без темы — поправьте её в редакторе">тема не найдена</span>'}
+        </div>
+        <div class="ai-result-actions">
+          <button type="button" class="adm-btn soft" data-ai-edit="${item.key}">Править</button>
+          <button type="button" class="adm-btn text" data-ai-drop="${item.key}" title="Убрать из результата — задача нигде не сохранится">Убрать</button>
+        </div>
+      </article>`;
+    }).join('');
+    // Условие — через KaTeX, как увидит посетитель.
+    list.querySelectorAll('.ai-result').forEach(card => {
+      const item = aiResultItems.find(i => i.key === card.dataset.aiKey);
+      renderMath(card.querySelector('.ai-result-cond'), item?.condition_latex || '');
+    });
+  }
+
+  // «Править»: задача генератора — в форму редактора, чертёж — в поле рисунка.
+  async function openAiItemInEditor(item) {
+    await discardPendingImages();
+    taskForm.reset();
+    setTaskMode(null);
+    if (taskForm.elements.title) taskForm.elements.title.value = item.title || '';
+    if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = item.title_lv || '';
+    if (taskGradeSelect) taskGradeSelect.value = toAdminGradeVal(item.grade);
+    updateTaskGradeDropdown();
+    updateTaskTopicDropdown(item.topic_id ?? '');
+    updateSubtopicDropdown(item.subtopic_id ?? '');
+    if (taskForm.elements.difficulty) taskForm.elements.difficulty.value = item.difficulty || 'Средний';
+    conditionInput.value = item.condition_latex || '';
+    if (conditionInputLv) conditionInputLv.value = item.condition_latex_lv || '';
+    answerInput.value = item.answer_latex || '';
+    if (answerInputLv) answerInputLv.value = item.answer_latex_lv || '';
+    solutionInput.value = item.solution_latex || '';
+    if (solutionInputLv) solutionInputLv.value = item.solution_latex_lv || '';
+    if (hintInput) hintInput.value = item.hint_latex || '';
+    if (hintInputLv) hintInputLv.value = item.hint_latex_lv || '';
+    if (taskForm.elements.is_published) taskForm.elements.is_published.checked = false;
+    updatePreviews();
+    updateEditorCrumbs();
+    taskSuccess.textContent = '✨ Задача из генератора открыта в редакторе — сохраните её черновиком или опубликуйте.';
+    showView('new');
+    for (const kind of ['condition', 'solution']) {
+      const markup = item[`${kind}_svg`];
+      if (!markup) continue;
+      const errorElement = document.querySelector(`#${kind}-image-error`);
+      const uploaded = await uploadSvgMarkup(kind, markup);
+      if (!uploaded.path) {
+        if (errorElement) errorElement.textContent = 'Чертёж от генератора не подошёл: ' + uploaded.error;
+        continue;
+      }
+      const previous = images[kind].current;
+      images[kind].current = uploaded.path;
+      if (previous && previous !== images[kind].saved) await removeFile(previous);
+      if (errorElement) errorElement.textContent = '';
+      paintImage(kind);
+      loadSvgCode(kind, uploaded.path);
+    }
+  }
+
+  byId('ai-results-list')?.addEventListener('click', async event => {
+    const editKey = event.target.closest('[data-ai-edit]')?.dataset.aiEdit;
+    const dropKey = event.target.closest('[data-ai-drop]')?.dataset.aiDrop;
+    const key = editKey || dropKey;
+    if (!key) return;
+    const item = aiResultItems.find(i => i.key === key);
+    // Открытая в редакторе задача уходит из списка — иначе её легко сохранить дважды.
+    aiResultItems = aiResultItems.filter(i => i.key !== key);
+    renderAiResults();
+    if (editKey && item) await openAiItemInEditor(item);
+  });
+
+  byId('ai-results-clear')?.addEventListener('click', () => {
+    if (!aiResultItems.length) return;
+    if (!confirm(`Убрать все задачи из результата (${aiResultItems.length})? Они нигде не сохранены.`)) return;
+    aiResultItems = [];
+    aiLastSaved = null;
+    renderAiResults();
+  });
+
+  byId('ai-results-queue')?.addEventListener('click', async () => {
+    if (!aiResultItems.length) return;
+    const btn = byId('ai-results-queue');
+    const items = aiResultItems.map(({ key, ...rest }) => rest);
+    btn.disabled = true;
+    let res;
+    try {
+      res = await importParsedItems({
+        items,
+        publishNow: false,
+        labelOf: i => `Задача ${i + 1}`,
+        onProgress: (i, total) => { btn.textContent = `Сохраняем… ${i} из ${total}`; }
+      });
+    } catch (err) {
+      res = { successCount: 0, errors: [err.message], warnings: [] };
+    } finally {
+      btn.disabled = false;
+    }
+    const problems = [...(res.errors || []), ...(res.warnings || [])];
+    if (res.successCount) {
+      aiResultItems = [];
+      aiLastSaved = { saved: res.successCount };
+    }
+    renderAiResults();
+    aiGenStatus.className = `ai-gen-status${res.errors?.length ? ' error' : ' success'}`;
+    aiGenStatus.textContent = res.successCount
+      ? `Сохранено черновиками: ${res.successCount} из ${items.length} — они ждут в «Проверке».${problems.length ? ` Замечания: ${problems.slice(0, 3).join('; ')}${problems.length > 3 ? '…' : ''}` : ''}`
+      : `Не сохранено: ${problems.slice(0, 3).join('; ') || 'неизвестная ошибка'}`;
+    if (res.successCount) await refreshTasks();
+  });
 
   /* ── Загрузка ─────────────────────────────────────────────────────── */
 
@@ -6025,6 +6052,8 @@ ${JSON.stringify(texts)}`;
     // Перенумерация — в шапку экрана: старые панели фильтров под колонками скрыты.
     moveInto(slot('catalog-actions'), byId('btn-renumber-topics'), byId('btn-renumber-subtopics'));
     moveInto(viewBody('ai'), byId('ai-generator-section'));
+    // «Настройки AI» жили в шапке раздела, а она на этом экране скрыта — кнопку в шапку экрана.
+    moveInto(slot('ai-actions'), byId('btn-toggle-ai-settings'));
     moveInto(viewBody('new'), byId('section-task-form'));
     moveInto(viewBody('reports'), byId('section-reports'));
     moveInto(viewBody('tasks'), byId('section-tasks-database'));
