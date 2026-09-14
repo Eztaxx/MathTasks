@@ -2141,7 +2141,7 @@ ${JSON.stringify(texts)}`;
     const counts = countPlaces();
     taskGradeSelect.innerHTML = '<option value="">Без класса</option>' + PLACE_STAGES.map(stage =>
       `<optgroup label="${stage.label}">${stage.grades.map(({ g, label }) =>
-        `<option value="${g}">${label} (${getGradeTaskCount(g, counts)})</option>`).join('')}</optgroup>`
+        `<option value="${g}" data-label="${label}" data-count="${getGradeTaskCount(g, counts)}">${label} (${getGradeTaskCount(g, counts)})</option>`).join('')}</optgroup>`
     ).join('');
     taskGradeSelect.value = keep;
     if (taskGradeSelect.selectedIndex < 0) taskGradeSelect.value = '';
@@ -2162,7 +2162,11 @@ ${JSON.stringify(texts)}`;
     const pool = grade === null ? topics : topics.filter(t => parseFormGrade(t.grade) === grade);
     const codes = topicCodeMap();
     const counts = countPlaces();
-    const option = t => `<option value="${t.id}">${escapeHtml(topicOptionText(t, codes))} (${getTopicTaskCount(t.id, counts)})</option>`;
+    // data-* — для оформленного окна выбора: номер, название и число задач по отдельности.
+    const option = t => {
+      const n = getTopicTaskCount(t.id, counts);
+      return `<option value="${t.id}" data-code="${escapeHtml(codes.get(t.id) || '')}" data-label="${escapeHtml(cleanTopicTitle(t.title))}" data-count="${n}">${escapeHtml(topicOptionText(t, codes))} (${n})</option>`;
+    };
     const sorted = sortTopics(pool, codes);
     let html = '<option value="">Без темы</option>';
     if (grade !== null) {
@@ -2210,7 +2214,7 @@ ${JSON.stringify(texts)}`;
     const counts = countPlaces();
     const empty = !topicId ? 'Сначала выберите тему' : 'Без подтемы';
     subtopicSelect.innerHTML = `<option value="">${empty}</option>` + mine.map(s =>
-      `<option value="${s.id}">${escapeHtml(`${s.code ? s.code + ' ' : ''}${s.title}`)} (${getSubtopicTaskCount(s.id, counts)})</option>`
+      `<option value="${s.id}" data-code="${escapeHtml(s.code || '')}" data-label="${escapeHtml(s.title)}" data-count="${getSubtopicTaskCount(s.id, counts)}">${escapeHtml(`${s.code ? s.code + ' ' : ''}${s.title}`)} (${getSubtopicTaskCount(s.id, counts)})</option>`
     ).join('');
     subtopicSelect.value = mine.some(s => String(s.id) === wanted) ? wanted : '';
     subtopicSelect.disabled = !mine.length;
@@ -2323,8 +2327,8 @@ ${JSON.stringify(texts)}`;
   }
 
   function updateReadyBar() {
-    // Полосу зовут при каждом изменении формы — заодно обновляем превью справа.
-    renderVisitorPreview();
+    // Полосу зовут при каждом изменении формы — заодно обновляем всё, что показывает её состояние.
+    syncEditorWidgets();
     if (!admReadyText || !admReadyDot) return;
     const condRu = conditionInput?.value.trim() || '';
     const condLv = conditionInputLv?.value.trim() || '';
@@ -2539,6 +2543,272 @@ ${JSON.stringify(texts)}`;
     document.querySelector(`#${kind}-svg-code`)?.addEventListener('input', () => setTimeout(renderVisitorPreview, 0));
   });
 
+  // Всё, что показывает состояние формы: превью, кнопки «Места», сложность, номер по стандарту.
+  function syncEditorWidgets() {
+    renderVisitorPreview();
+    paintCrumbButtons();
+    paintDifficulty();
+    fillSubtopicCode();
+  }
+
+  /* ── «Место»: оформленные списки вместо системных ─────────────────
+     Кнопка в цепочке открывает окно: номер темы или подтемы отдельно,
+     название целиком, справа — сколько задач уже лежит; классы и темы
+     сгруппированы, есть поиск по номеру и названию. Значения по-прежнему
+     в скрытых <select> — это поля формы, и сохранение, клон и генератор
+     работают с ними как раньше. Выбрали класс — сразу открываются темы,
+     выбрали тему — подтемы. */
+  const PLACE_KINDS = ['grade', 'topic', 'subtopic'];
+  const placeSelect = kind => ({ grade: taskGradeSelect, topic: topicSelect, subtopic: subtopicSelect })[kind];
+  const crumbButton = kind => document.querySelector(`[data-crumb="${kind}"]`);
+  let popKind = null;
+
+  function paintCrumbButtons() {
+    for (const kind of PLACE_KINDS) {
+      const btn = crumbButton(kind);
+      const select = placeSelect(kind);
+      if (!btn || !select) continue;
+      const opt = select.options[select.selectedIndex];
+      const code = opt?.dataset.code || '';
+      const label = opt?.dataset.label || opt?.textContent.trim() || '';
+      const val = btn.querySelector('.adm-crumb-val');
+      if (val) val.innerHTML = `${code ? `<span class="adm-crumb-code">${escapeHtml(code)}</span>` : ''}${escapeHtml(label)}`;
+      btn.title = opt ? opt.textContent.trim() : '';
+      btn.disabled = select.disabled;
+      btn.classList.toggle('is-empty', !select.value);
+    }
+  }
+
+  function placeOptions(select) {
+    const item = opt => ({ value: opt.value, code: opt.dataset.code || '', label: opt.dataset.label || opt.textContent.trim(), count: opt.dataset.count ?? '' });
+    const items = [];
+    for (const node of select.children) {
+      if (node.tagName === 'OPTGROUP') {
+        items.push({ group: node.label });
+        for (const opt of node.children) items.push(item(opt));
+      } else {
+        items.push(item(node));
+      }
+    }
+    return items;
+  }
+
+  function renderPlacePop() {
+    const list = byId('adm-place-pop-list');
+    const select = placeSelect(popKind);
+    if (!list || !select) return;
+    const query = (byId('adm-place-pop-search')?.value || '').trim().toLowerCase();
+    let html = '';
+    let group = null;
+    for (const it of placeOptions(select)) {
+      if (it.group !== undefined) {
+        group = it.group;
+        continue;
+      }
+      if (query && !`${it.code} ${it.label}`.toLowerCase().includes(query)) continue;
+      // Заголовок группы — только если под ним есть что показать.
+      if (group) {
+        html += `<div class="adm-pop-group">${escapeHtml(group)}</div>`;
+        group = null;
+      }
+      const on = it.value === select.value;
+      html += `<button type="button" class="adm-pop-opt${on ? ' is-selected' : ''}" role="option" aria-selected="${on}" data-value="${escapeHtml(it.value)}">`
+        + (it.code ? `<span class="adm-pop-code">${escapeHtml(it.code)}</span>` : '')
+        + `<span class="adm-pop-label">${escapeHtml(it.label)}</span>`
+        + (it.count !== '' ? `<span class="adm-pop-count">${escapeHtml(String(it.count))}</span>` : '')
+        + '</button>';
+    }
+    list.innerHTML = html || '<p class="adm-pop-empty">Ничего не нашлось</p>';
+  }
+
+  function openPlacePop(kind) {
+    const pop = byId('adm-place-pop');
+    const bar = byId('adm-editor-place');
+    const btn = crumbButton(kind);
+    const select = placeSelect(kind);
+    if (!pop || !bar || !btn || !select || select.disabled) return;
+    popKind = kind;
+    PLACE_KINDS.forEach(k => crumbButton(k)?.setAttribute('aria-expanded', String(k === kind)));
+    const search = byId('adm-place-pop-search');
+    if (search) {
+      search.value = '';
+      search.hidden = kind === 'grade';
+      search.placeholder = kind === 'topic' ? 'Номер или название темы…' : 'Номер или название подтемы…';
+    }
+    pop.setAttribute('aria-label', { grade: 'Выбор класса', topic: 'Выбор темы', subtopic: 'Выбор подтемы' }[kind]);
+    pop.hidden = false;
+    renderPlacePop();
+    // Под кнопкой, но в пределах строки «Место».
+    const barBox = bar.getBoundingClientRect();
+    const btnBox = btn.getBoundingClientRect();
+    const width = Math.min(kind === 'grade' ? 300 : 480, barBox.width - 16);
+    const left = Math.max(8, Math.min(btnBox.left - barBox.left, barBox.width - width - 8));
+    pop.style.width = `${width}px`;
+    pop.style.left = `${left}px`;
+    pop.style.top = `${btnBox.bottom - barBox.top + 6}px`;
+    const selected = pop.querySelector('.adm-pop-opt.is-selected');
+    selected?.scrollIntoView({ block: 'nearest' });
+    (search && !search.hidden ? search : (selected || pop.querySelector('.adm-pop-opt')))?.focus();
+  }
+
+  function closePlacePop({ focusButton = false } = {}) {
+    if (!popKind) return;
+    const btn = crumbButton(popKind);
+    popKind = null;
+    const pop = byId('adm-place-pop');
+    if (pop) pop.hidden = true;
+    PLACE_KINDS.forEach(k => crumbButton(k)?.setAttribute('aria-expanded', 'false'));
+    if (focusButton) btn?.focus();
+  }
+
+  function choosePlace(value) {
+    const kind = popKind;
+    const select = placeSelect(kind);
+    if (!select) return;
+    closePlacePop();
+    if (select.value !== value) {
+      select.value = value;
+      select.dispatchEvent(new Event('change'));
+    }
+    // Дальше по цепочке: класс → темы, тема → подтемы, если они у темы есть.
+    if (kind === 'grade' && value) openPlacePop('topic');
+    else if (kind === 'topic' && value && !subtopicSelect?.disabled) openPlacePop('subtopic');
+    else crumbButton(kind)?.focus();
+  }
+
+  document.querySelectorAll('[data-crumb]').forEach(btn => btn.addEventListener('click', () => {
+    if (popKind === btn.dataset.crumb) closePlacePop();
+    else openPlacePop(btn.dataset.crumb);
+  }));
+  byId('adm-place-pop-list')?.addEventListener('click', event => {
+    const opt = event.target.closest('.adm-pop-opt');
+    if (opt) choosePlace(opt.dataset.value);
+  });
+  byId('adm-place-pop-search')?.addEventListener('input', renderPlacePop);
+  byId('adm-place-pop')?.addEventListener('keydown', event => {
+    const search = byId('adm-place-pop-search');
+    const opts = [...(byId('adm-place-pop-list')?.querySelectorAll('.adm-pop-opt') || [])];
+    const i = opts.indexOf(document.activeElement);
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closePlacePop({ focusButton: true });
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      opts[Math.min(i + 1, opts.length - 1)]?.focus();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (i > 0) opts[i - 1].focus();
+      else if (search && !search.hidden) search.focus();
+    } else if (event.key === 'Enter' && event.target === search) {
+      // Enter в поиске — первый найденный вариант.
+      event.preventDefault();
+      if (search.value.trim() && opts.length) choosePlace(opts[0].dataset.value);
+    }
+  });
+  byId('adm-place-pop')?.addEventListener('focusout', event => {
+    if (popKind && event.relatedTarget && !event.relatedTarget.closest('#adm-place-pop, [data-crumb]')) closePlacePop();
+  });
+  document.addEventListener('mousedown', event => {
+    if (popKind && !event.target.closest('#adm-place-pop, [data-crumb]')) closePlacePop();
+  });
+
+  /* ── Сложность — три кнопки, как в макете; значение — в скрытом <select> ── */
+  const difficultyButtons = [...document.querySelectorAll('[data-difficulty]')];
+  function paintDifficulty() {
+    const value = taskForm.elements.difficulty?.value;
+    difficultyButtons.forEach(btn => {
+      const on = btn.dataset.difficulty === value;
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-checked', String(on));
+      btn.tabIndex = on ? 0 : -1;
+    });
+  }
+  difficultyButtons.forEach(btn => btn.addEventListener('click', () => {
+    if (taskForm.elements.difficulty) taskForm.elements.difficulty.value = btn.dataset.difficulty;
+    paintDifficulty();
+  }));
+  byId('task-difficulty-group')?.addEventListener('keydown', event => {
+    const i = difficultyButtons.indexOf(document.activeElement);
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+    if (i < 0 || !step) return;
+    event.preventDefault();
+    const next = difficultyButtons[(i + step + difficultyButtons.length) % difficultyButtons.length];
+    next.click();
+    next.focus();
+  });
+
+  /* ── «Номер по стандарту»: 6.1.5 — подтема вместе с её темой и классом,
+     6.1 — тема. Выбор в цепочке сам заполняет поле. ── */
+  function setCodeHint(text, tone = '') {
+    const hint = byId('task-subtopic-code-hint');
+    if (!hint) return;
+    hint.textContent = text;
+    hint.className = `adm-meta-hint${tone ? ` ${tone}` : ''}`;
+  }
+  function fillSubtopicCode() {
+    const input = byId('task-subtopic-code');
+    if (!input || document.activeElement === input) return;
+    const sub = subtopics.find(s => String(s.id) === subtopicSelect?.value);
+    input.value = sub?.code || '';
+    setCodeHint('');
+  }
+  function applySubtopicCode(final = false) {
+    const code = (byId('task-subtopic-code')?.value || '').trim().replace(/\.$/, '');
+    if (!code) {
+      setCodeHint('');
+      return;
+    }
+    const sub = subtopics.find(s => String(s.code || '').trim() === code);
+    const topic = sub ? topics.find(t => String(t.id) === String(sub.topic_id)) : topics.find(t => getTopicCode(t) === code);
+    if (sub || topic) {
+      if (topic?.grade != null && taskGradeSelect) taskGradeSelect.value = toAdminGradeVal(topic.grade);
+      updateTaskGradeDropdown();
+      updateTaskTopicDropdown(topic ? topic.id : '');
+      updateSubtopicDropdown(sub ? sub.id : '');
+      updateEditorCrumbs();
+      setCodeHint(sub ? sub.title : `тема «${cleanTopicTitle(topic.title)}», подтема не выбрана`, 'ok');
+    } else if (final || /^\d+\.\d+\.\d+$/.test(code)) {
+      setCodeHint('Подтемы с таким номером нет', 'warn');
+    } else {
+      setCodeHint('');
+    }
+  }
+  byId('task-subtopic-code')?.addEventListener('input', () => applySubtopicCode(false));
+  byId('task-subtopic-code')?.addEventListener('change', () => applySubtopicCode(true));
+  byId('task-subtopic-code')?.addEventListener('keydown', event => {
+    if (event.key === 'Enter') applySubtopicCode(true);
+  });
+
+  /* ── «Как увидит посетитель» выдвигается кнопкой в шапке редактора и
+     помнит, открыта ли. По умолчанию закрыта — форма на всю ширину. ── */
+  const PREVIEW_KEY = 'mt-admin-preview-open';
+  function setPreviewOpen(open, remember = true) {
+    const body = document.querySelector('.adm-editor-body');
+    if (!body) return;
+    body.classList.toggle('preview-open', open);
+    byId('adm-preview-col')?.setAttribute('aria-hidden', String(!open));
+    const toggle = byId('adm-preview-toggle');
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.classList.toggle('is-on', open);
+    }
+    // При загрузке страницы данных ещё нет — превью заполнит первое обновление формы.
+    if (open && remember) renderVisitorPreview();
+    if (remember) {
+      try { localStorage.setItem(PREVIEW_KEY, open ? '1' : '0'); } catch {}
+    }
+  }
+  byId('adm-preview-toggle')?.addEventListener('click', () => {
+    setPreviewOpen(!document.querySelector('.adm-editor-body')?.classList.contains('preview-open'));
+  });
+  byId('adm-preview-close')?.addEventListener('click', () => {
+    setPreviewOpen(false);
+    byId('adm-preview-toggle')?.focus();
+  });
+  try {
+    if (localStorage.getItem(PREVIEW_KEY) === '1') setPreviewOpen(true, false);
+  } catch {}
+
   admMissingChips?.addEventListener('click', event => {
     const btn = event.target.closest('[data-missing-action]');
     if (!btn) return;
@@ -2586,16 +2856,10 @@ ${JSON.stringify(texts)}`;
         hintInputLv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         break;
       case 'pick-grade':
-        taskGradeSelect?.focus();
-        taskGradeSelect?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        break;
       case 'pick-topic':
-        topicSelect?.focus();
-        topicSelect?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        break;
       case 'pick-subtopic':
-        subtopicSelect?.focus();
-        subtopicSelect?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // «Место» прилипает под шапкой — окно выбора открывается прямо там.
+        openPlacePop(action.replace('pick-', ''));
         break;
       case 'suggest-tags':
         document.querySelector('#btn-suggest-tags')?.click();

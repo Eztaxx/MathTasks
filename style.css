@@ -5692,9 +5692,19 @@ body .adm-shell #section-tasks-database{padding:0;border:0;background:none}
 .adm-shell [data-slot="import-tools"] #btn-upload-file-tasks-label,.adm-shell [data-slot="import-tools"] #btn-import-tasks{display:none}
 
 /* ── Редактор: «Как увидит посетитель» справа от формы (макет «Админка Skola2030») ── */
-.adm-view-body.adm-editor-body{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(380px,1fr);gap:16px;align-items:start}
-.adm-editor-body > #section-task-form{grid-column:1;grid-row:1;min-width:0}
-.adm-preview-col{grid-column:2;grid-row:1;position:sticky;top:calc(var(--adm-top-h, 61px) + 12px);display:flex;flex-direction:column;gap:11px;max-height:calc(100vh - var(--adm-top-h, 61px) - 24px);overflow-y:auto}
+/* Превью выдвигается справа по кнопке: колонка раскрывается по ширине, форма
+   уступает ей место. Содержимое не уже 400px — при раскрытии оно выезжает,
+   а не пересобирается на каждом кадре. */
+.adm-view-body.adm-editor-body{display:flex;flex-direction:row;align-items:flex-start;gap:0}
+.adm-editor-body > #section-task-form{flex:1 1 auto;min-width:0}
+.adm-preview-col{order:2;flex:0 0 auto;width:0;margin-left:0;visibility:hidden;position:sticky;top:calc(var(--adm-top-h, 61px) + 12px);display:flex;flex-direction:column;gap:11px;max-height:calc(100vh - var(--adm-top-h, 61px) - 24px);overflow-x:hidden;overflow-y:auto;transition:width .28s ease,margin-left .28s ease,visibility 0s linear .28s}
+.adm-preview-col > *{min-width:400px}
+.adm-editor-body.preview-open .adm-preview-col{width:min(45%, 640px);margin-left:16px;visibility:visible;transition:width .28s ease,margin-left .28s ease,visibility 0s}
+@media (prefers-reduced-motion:reduce){.adm-preview-col,.adm-editor-body.preview-open .adm-preview-col{transition:none}}
+.adm-shell .adm-preview-toggle.is-on{background:var(--adm-acc);border-color:var(--adm-acc);color:#fff}
+.adm-preview-close{margin-left:8px;padding:2px 8px;border:1px solid var(--adm-line);border-radius:6px;background:transparent;color:var(--adm-mute);font-family:inherit;font-size:12px;line-height:1.5;cursor:pointer}
+.adm-preview-close:hover{color:var(--adm-ink);background:var(--adm-hover)}
+.adm-preview-close:focus-visible{outline:2px solid var(--adm-acc);outline-offset:1px}
 .adm-preview{border:1px solid var(--adm-line);border-radius:12px;background:var(--adm-panel2);overflow:hidden}
 .adm-preview-head{display:flex;align-items:center;gap:8px;padding:11px 15px;border-bottom:1px solid var(--adm-line);background:var(--adm-panel);font-size:13px;font-weight:650;color:var(--adm-ink)}
 .adm-preview-head small{margin-left:auto;font-size:11px;font-weight:500;color:var(--adm-dim)}
@@ -5720,17 +5730,61 @@ body .adm-shell #section-tasks-database{padding:0;border:0;background:none}
 /* Широкий экран — превью в карточке справа, под полями его не дублируем.
    Узкий — карточки нет, превью остаются под полями. */
 @media (min-width:1281px){.adm-shell #task-form .math-preview{display:none}}
-@media (max-width:1280px){.adm-view-body.adm-editor-body{display:flex;flex-direction:column;align-items:stretch}.adm-preview-col{display:none}}
+@media (max-width:1280px){.adm-view-body.adm-editor-body{display:flex;flex-direction:column;align-items:stretch}.adm-preview-col,.adm-shell .adm-preview-toggle{display:none}}
 /* Шапка всегда поверх: строка «Место» и карточка прилипают ровно под неё
    (высоту шапки меряет скрипт — она растёт, когда кнопки переносятся).
    Раньше «Место» стояло на 56px при шапке в 61px и с z-index выше —
    и наезжало на поиск. */
 .adm-shell .adm-top{z-index:20}
-.adm-shell .adm-editor-place{top:var(--adm-top-h, 61px);z-index:4}
+.adm-shell .adm-editor-place{top:var(--adm-top-h, 61px);z-index:12}
 /* Длинное название подтемы сжимается с многоточием, а не вылезает за рамку. */
 .adm-shell .adm-crumbs{flex:1 1 auto;min-width:0}
 .adm-shell .adm-crumb-select-wrap{min-width:0;max-width:100%}
-.adm-shell .adm-crumb-select{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* «Место»: кнопки вместо системных списков; сами <select> скрыты — это поля формы. */
+.adm-shell .adm-crumb-select{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);opacity:0;pointer-events:none}
+.adm-shell .adm-crumb-select-wrap,.adm-shell .adm-crumb-select-wrap:hover,.adm-shell .adm-crumb-select-wrap:focus-within{padding:0;border:0;background:none;box-shadow:none}
+.adm-crumb-btn{display:inline-flex;align-items:center;gap:8px;max-width:100%;min-width:0;padding:6px 10px;border:1px solid var(--adm-fieldbd);border-radius:8px;background:var(--adm-field);color:var(--adm-ink);font-family:inherit;font-size:13px;text-align:left;cursor:pointer}
+.adm-crumb-btn:hover:not(:disabled),.adm-crumb-btn[aria-expanded="true"]{border-color:var(--adm-acc);background:var(--adm-accsoft)}
+.adm-crumb-btn:focus-visible{outline:2px solid var(--adm-acc);outline-offset:2px}
+.adm-crumb-btn:disabled{opacity:.55;cursor:default}
+.adm-crumb-btn .adm-crumb-kind{flex:none}
+.adm-crumb-val{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.adm-crumb-btn.is-empty .adm-crumb-val{font-weight:500;color:var(--adm-mute)}
+.adm-crumb-code{margin-right:6px;font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-acclink)}
+.adm-crumb-caret{flex:none;font-size:10px;color:var(--adm-dim)}
+.adm-pop{position:absolute;z-index:30;display:flex;flex-direction:column;gap:8px;padding:8px;box-sizing:border-box;border:1px solid var(--adm-accbd);border-radius:12px;background:var(--adm-panel);box-shadow:0 14px 34px rgba(0,0,0,.3)}
+.adm-pop[hidden],.adm-pop-search[hidden]{display:none}
+.adm-shell .adm-pop-search{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--adm-fieldbd);border-radius:8px;background:var(--adm-field);color:var(--adm-ink);font-family:inherit;font-size:13px}
+.adm-shell .adm-pop-search:focus{outline:none;border-color:var(--adm-acc);box-shadow:0 0 0 3px var(--adm-accsoft)}
+.adm-pop-list{display:flex;flex-direction:column;gap:1px;max-height:min(420px, 60vh);overflow-y:auto}
+.adm-pop-group{padding:9px 9px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--adm-dim)}
+.adm-pop-opt{display:flex;align-items:baseline;gap:10px;width:100%;padding:7px 9px;border:0;border-radius:7px;background:none;color:var(--adm-ink);font-family:inherit;font-size:13px;line-height:1.4;text-align:left;cursor:pointer}
+.adm-pop-opt:hover,.adm-pop-opt:focus-visible{background:var(--adm-hover);outline:none}
+.adm-pop-opt.is-selected{background:var(--adm-accsoft);font-weight:600}
+.adm-pop-code{flex:none;min-width:40px;font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-acclink)}
+.adm-pop-label{flex:1;min-width:0}
+.adm-pop-count{flex:none;margin-left:auto;padding-left:8px;font:11px ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;color:var(--adm-dim)}
+.adm-pop-empty{margin:0;padding:12px;text-align:center;font-size:13px;color:var(--adm-mute)}
+/* Сложность кнопками, порядок в теме и номер по стандарту — одной строкой, как в макете. */
+.adm-shell .task-meta-params-row{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;margin:0;padding:14px 15px;border:1px solid var(--adm-line);border-radius:12px;background:var(--adm-panel)}
+.adm-shell .adm-meta-field{display:flex;flex-direction:column;gap:6px;min-width:0;font-size:12px;font-weight:500;color:var(--adm-mute)}
+.adm-shell .adm-meta-diff{flex:1 1 260px}
+.adm-shell .adm-meta-pos{flex:0 1 130px}
+.adm-shell .adm-meta-code{flex:1 1 160px}
+.adm-diff-seg{display:flex;gap:6px}
+.adm-diff-btn{flex:1;padding:8px 6px;border:1px solid var(--adm-fieldbd);border-radius:7px;background:var(--adm-field);color:var(--adm-ink2);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.adm-diff-btn:hover{border-color:var(--adm-acc);color:var(--adm-ink)}
+.adm-diff-btn.is-on{background:var(--adm-acc);border-color:var(--adm-acc);color:#fff;font-weight:600}
+.adm-diff-btn:focus-visible{outline:2px solid var(--adm-acc);outline-offset:2px}
+.adm-shell #task-form .adm-meta-field input{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--adm-fieldbd);border-radius:7px;background:var(--adm-field);color:var(--adm-ink);font:13px ui-monospace,Menlo,Consolas,monospace}
+.adm-shell #task-form .adm-meta-field input:focus{outline:none;border-color:var(--adm-acc);box-shadow:0 0 0 3px var(--adm-accsoft)}
+.adm-meta-hint{font-size:11px;line-height:1.35;color:var(--adm-dim)}
+.adm-meta-hint:empty{display:none}
+.adm-meta-hint.ok{color:var(--adm-okfg)}
+.adm-meta-hint.warn{color:var(--adm-warnfg)}
+/* !important: иначе старое .task-form select{width:100%} растягивало скрытый
+   список на всю ширину экрана, и у страницы появлялась прокрутка вбок. */
+.adm-visually-hidden{position:absolute!important;width:1px!important;height:1px!important;margin:-1px;padding:0!important;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0!important}
 /* Узкий экран: колонка формы может сжиматься. Иначе самый широкий блок —
    вкладки категорий тегов (403px) или полоса с кнопками (340px) — растягивал
    форму за край экрана, и на телефоне страница уезжала вбок. */

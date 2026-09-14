@@ -98,4 +98,17 @@ describe('каркас админки: меню и экраны', () => {
       expect(html).toContain(`id="${id}"`);
     }
   });
+
+  it('«Место»: у класса, темы и подтемы — кнопки с окном выбора, значения в скрытых списках', () => {
+    for (const kind of ['grade', 'topic', 'subtopic']) expect(html).toContain(`data-crumb="${kind}"`);
+    for (const id of ['adm-place-pop', 'adm-place-pop-search', 'adm-place-pop-list']) expect(html).toContain(`id="${id}"`);
+    expect(js).toContain("openPlacePop(action.replace('pick-', ''))");
+  });
+
+  it('кнопки сложности совпадают с вариантами скрытого списка сложности', () => {
+    const buttons = [...html.matchAll(/data-difficulty="([^"]+)"/g)].map(m => m[1]);
+    const select = html.match(/<select name="difficulty"[\s\S]*?<\/select>/)[0];
+    const options = [...select.matchAll(/<option[^>]*>([^<]+)<\/option>/g)].map(m => m[1]);
+    expect(buttons).toEqual(options);
+  });
 });

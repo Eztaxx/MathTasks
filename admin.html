@@ -224,13 +224,14 @@
                     <button type="button" class="adm-lang-btn active" data-lang="ru" id="adm-editor-lang-ru">Русский</button>
                     <button type="button" class="adm-lang-btn" data-lang="lv" id="adm-editor-lang-lv">Latviešu</button>
                   </div>
+                  <button type="button" class="adm-btn soft adm-preview-toggle" id="adm-preview-toggle" aria-controls="adm-preview-col" aria-expanded="false">Как увидит посетитель</button>
                 </div>
               </div>
               <div class="adm-view-body adm-editor-body">
                 <!-- Справа от формы — как задача будет выглядеть на сайте (макет «Админка Skola2030») -->
-                <aside class="adm-preview-col" aria-label="Как увидит посетитель">
+                <aside class="adm-preview-col" id="adm-preview-col" aria-label="Как увидит посетитель" aria-hidden="true">
                   <section class="adm-preview">
-                    <div class="adm-preview-head"><span>Как увидит посетитель</span><small id="adm-preview-lang">русский</small></div>
+                    <div class="adm-preview-head"><span>Как увидит посетитель</span><small id="adm-preview-lang">русский</small><button type="button" class="adm-preview-close" id="adm-preview-close" aria-label="Скрыть превью" title="Скрыть">✕</button></div>
                     <div class="adm-preview-body">
                       <div class="adm-preview-path" id="adm-preview-path"></div>
                       <div class="adm-preview-block">
@@ -643,26 +644,31 @@
         <div class="adm-editor-place" id="adm-editor-place">
           <span class="adm-place-label">Место</span>
           <div class="adm-crumbs" id="adm-crumbs">
+            <!-- Кнопка открывает оформленное окно выбора; значение — в скрытом <select>, это поле формы. -->
             <div class="adm-crumb-select-wrap" id="adm-crumb-grade">
-              <span class="adm-crumb-kind">Класс</span>
-              <select name="grade" id="task-grade" form="task-form" class="adm-crumb-select" aria-label="Класс"></select>
+              <button type="button" class="adm-crumb-btn" data-crumb="grade" aria-haspopup="listbox" aria-expanded="false"><span class="adm-crumb-kind">Класс</span><span class="adm-crumb-val">Без класса</span><span class="adm-crumb-caret" aria-hidden="true">▾</span></button>
+              <select name="grade" id="task-grade" form="task-form" class="adm-crumb-select" tabindex="-1" aria-hidden="true"></select>
             </div>
-            <span class="adm-crumb-sep">→</span>
+            <span class="adm-crumb-sep" aria-hidden="true">→</span>
             <div class="adm-crumb-select-wrap" id="adm-crumb-topic">
-              <span class="adm-crumb-kind">Тема</span>
-              <select name="topic_id" id="topic-select" form="task-form" class="adm-crumb-select" aria-label="Тема">
+              <button type="button" class="adm-crumb-btn" data-crumb="topic" aria-haspopup="listbox" aria-expanded="false"><span class="adm-crumb-kind">Тема</span><span class="adm-crumb-val">Без темы</span><span class="adm-crumb-caret" aria-hidden="true">▾</span></button>
+              <select name="topic_id" id="topic-select" form="task-form" class="adm-crumb-select" tabindex="-1" aria-hidden="true">
                 <option value="">Без темы</option>
               </select>
             </div>
-            <span class="adm-crumb-sep">→</span>
+            <span class="adm-crumb-sep" aria-hidden="true">→</span>
             <div class="adm-crumb-select-wrap" id="adm-crumb-subtopic">
-              <span class="adm-crumb-kind">Подтема</span>
-              <select name="subtopic_id" id="subtopic-select" form="task-form" class="adm-crumb-select" aria-label="Подтема">
+              <button type="button" class="adm-crumb-btn" data-crumb="subtopic" aria-haspopup="listbox" aria-expanded="false"><span class="adm-crumb-kind">Подтема</span><span class="adm-crumb-val">Без подтемы</span><span class="adm-crumb-caret" aria-hidden="true">▾</span></button>
+              <select name="subtopic_id" id="subtopic-select" form="task-form" class="adm-crumb-select" tabindex="-1" aria-hidden="true">
                 <option value="">Без подтемы</option>
               </select>
             </div>
           </div>
           <span class="adm-place-count" id="adm-place-count"></span>
+          <div class="adm-pop" id="adm-place-pop" role="dialog" aria-label="Выбор места" hidden>
+            <input type="search" class="adm-pop-search" id="adm-place-pop-search" aria-label="Поиск по номеру или названию" autocomplete="off" />
+            <div class="adm-pop-list" id="adm-place-pop-list" role="listbox"></div>
+          </div>
         </div>
 
         <form class="task-form" id="task-form">
@@ -680,9 +686,18 @@
               </button>
             </div>
           </div>
-          <div class="task-meta-params-row">
-            <label>Сложность<select name="difficulty" id="task-difficulty"><option>Лёгкий</option><option selected>Средний</option><option>Сложный</option></select></label>
-            <label>Порядок в теме <span>чем меньше, тем выше</span><input name="position" id="task-position" type="number" value="0" /></label>
+          <div class="wide task-meta-params-row">
+            <div class="adm-meta-field adm-meta-diff">
+              <span class="adm-meta-label" id="task-difficulty-label">Сложность</span>
+              <div class="adm-diff-seg" id="task-difficulty-group" role="radiogroup" aria-labelledby="task-difficulty-label">
+                <button type="button" class="adm-diff-btn" data-difficulty="Лёгкий" role="radio" aria-checked="false" tabindex="-1">Лёгкий</button>
+                <button type="button" class="adm-diff-btn is-on" data-difficulty="Средний" role="radio" aria-checked="true">Средний</button>
+                <button type="button" class="adm-diff-btn" data-difficulty="Сложный" role="radio" aria-checked="false" tabindex="-1">Сложный</button>
+              </div>
+              <select name="difficulty" id="task-difficulty" class="adm-visually-hidden" tabindex="-1" aria-hidden="true"><option>Лёгкий</option><option selected>Средний</option><option>Сложный</option></select>
+            </div>
+            <label class="adm-meta-field adm-meta-pos">Порядок в теме<input name="position" id="task-position" type="number" min="0" value="0" title="Чем меньше, тем выше в теме" /></label>
+            <label class="adm-meta-field adm-meta-code">Номер по стандарту<input id="task-subtopic-code" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="7.5.2" /><span class="adm-meta-hint" id="task-subtopic-code-hint" aria-live="polite"></span></label>
           </div>
 
           <!-- Кросс-теги задачи (до 3 тегов) -->
