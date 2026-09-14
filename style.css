@@ -5453,7 +5453,12 @@ body #admin-content:has(.adm-shell){border:0;border-radius:0;padding:0;backgroun
 .adm-shell{display:flex;align-items:stretch;min-height:100vh;color:var(--adm-ink);font-size:14px;line-height:1.45}
 .adm-shell a{color:var(--adm-acclink)}
 .adm-side{flex:0 0 232px;width:232px;display:flex;flex-direction:column;gap:16px;padding:16px 11px 13px;background:var(--adm-panel2);border-right:1px solid var(--adm-line);position:sticky;top:0;height:100vh;overflow-y:auto}
-.adm-brand{padding:0 8px}
+.adm-brand{padding:0 8px;display:flex;align-items:center;gap:10px}
+.adm-brand-text{min-width:0}
+/* «На главную» — иконкой: название админки рядом и так говорит, где вы. */
+.adm-home-btn{flex:none;width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--adm-line);border-radius:9px;background:var(--adm-panel);color:var(--adm-ink2);text-decoration:none;transition:color .15s,border-color .15s,background .15s}
+.adm-home-btn:hover{color:var(--adm-acc);border-color:var(--adm-acc);background:var(--adm-hover)}
+.adm-home-btn:focus-visible{outline:2px solid var(--adm-acc);outline-offset:2px}
 .adm-brand-title{font-size:15px;font-weight:700;letter-spacing:-.01em}
 .adm-brand-sub{font-size:12px;color:var(--adm-mute);margin-top:2px}
 .adm-nav{display:flex;flex-direction:column;gap:2px}

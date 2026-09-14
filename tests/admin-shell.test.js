@@ -87,6 +87,13 @@ describe('каркас админки: меню и экраны', () => {
     expect(js).toContain('updateTaskTopicDropdown');
     expect(js).toContain('updateSubtopicDropdown');
   });
+  it('слева сверху — кнопка «На главную» иконкой, с подписью для читалок', () => {
+    const button = html.match(/<a class="adm-home-btn"[^>]*>/)?.[0] || '';
+    expect(button).toContain('href="/"');
+    expect(button).toContain('aria-label="На главную"');
+    expect(html.indexOf('adm-home-btn')).toBeLessThan(html.indexOf('adm-brand-title'));
+  });
+
   it('id в admin.html не повторяются', () => {
     const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
     const repeated = [...new Set(ids.filter((id, i) => ids.indexOf(id) !== i))];
