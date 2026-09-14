@@ -5731,3 +5731,13 @@ body .adm-shell #section-tasks-database{padding:0;border:0;background:none}
 .adm-shell .adm-crumbs{flex:1 1 auto;min-width:0}
 .adm-shell .adm-crumb-select-wrap{min-width:0;max-width:100%}
 .adm-shell .adm-crumb-select{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* Узкий экран: колонка формы может сжиматься. Иначе самый широкий блок —
+   вкладки категорий тегов (403px) или полоса с кнопками (340px) — растягивал
+   форму за край экрана, и на телефоне страница уезжала вбок. */
+@media (max-width:860px){
+  .adm-shell .task-form{grid-template-columns:minmax(0,1fr)}
+  .adm-shell .task-tags-category-tabs{display:flex;flex-wrap:wrap}
+  .adm-shell .task-tags-search-wrap{flex-basis:100%;min-width:0}
+  .adm-shell .adm-ready-info{min-width:0}
+  .adm-shell .adm-editor-ready-bar .adm-editor-actions{flex-wrap:wrap;margin-left:0}
+}
