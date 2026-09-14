@@ -367,6 +367,151 @@
     return parts.every(part => (part.pieceCount === 1 || part.equivalent) && part.values.every(value => !answerHasWords(value)));
   };
 
+  /* ── Личный прогресс ученика ─────────────────────────────────────
+     Всё лежит в браузере: решённые задачи, ошибки, даты решений,
+     контрольные. Функции чистые — страница «Мой прогресс» только
+     раскладывает то, что они посчитали. */
+
+  /* Дата по местному времени: день ученика кончается в его полночь, а не по UTC. */
+  const localDateKey = (date = new Date()) => {
+    const d = date instanceof Date ? date : new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
+  const shiftDateKey = (key, days) => {
+    const [y, m, d] = String(key).split('-').map(Number);
+    return localDateKey(new Date(y, m - 1, d + days));
+  };
+
+  /* Серия дней подряд. Если сегодня ещё ничего не решено, считаем от вчера:
+     утром серия не должна показывать ноль. */
+  const computeStreak = (activity = {}, today = localDateKey()) => {
+    const has = key => Number(activity[key]) > 0;
+    let day = has(today) ? today : shiftDateKey(today, -1);
+    let current = 0;
+    while (has(day)) {
+      current++;
+      day = shiftDateKey(day, -1);
+    }
+    const days = Object.keys(activity).filter(has).sort();
+    let best = 0;
+    let run = 0;
+    let prev = null;
+    for (const key of days) {
+      run = prev && shiftDateKey(prev, 1) === key ? run + 1 : 1;
+      best = Math.max(best, run);
+      prev = key;
+    }
+    return { current, best, activeDays: days.length, today: has(today) };
+  };
+
+  /* Календарь активности: столбец — неделя с понедельника, последний
+     столбец — текущая неделя; дни после сегодня помечены future. */
+  const buildActivityWeeks = (activity = {}, today = localDateKey(), weeks = 12) => {
+    const [y, m, d] = String(today).split('-').map(Number);
+    const mondayOffset = (new Date(y, m - 1, d).getDay() + 6) % 7;
+    const result = [];
+    for (let w = 0; w < weeks; w++) {
+      const week = [];
+      for (let i = 0; i < 7; i++) {
+        const key = localDateKey(new Date(y, m - 1, d - mondayOffset - (weeks - 1 - w) * 7 + i));
+        week.push({ key, count: Number(activity[key]) || 0, future: key > today });
+      }
+      result.push(week);
+    }
+    return result;
+  };
+
+  /* Достижения: цель и текущее значение. counted: false — показывать
+     только «получено / нет», без счёта (оценка 7 из 9 звучала бы странно). */
+  const PROGRESS_ACHIEVEMENTS = [
+    { id: 'first_task', icon: '🌱', goal: 1, value: s => s.solved },
+    { id: 'solved_10', icon: '✏️', goal: 10, value: s => s.solved },
+    { id: 'solved_50', icon: '📚', goal: 50, value: s => s.solved },
+    { id: 'solved_100', icon: '🏅', goal: 100, value: s => s.solved },
+    { id: 'first_try_10', icon: '🎯', goal: 10, value: s => s.firstTry },
+    { id: 'streak_3', icon: '🔥', goal: 3, value: s => s.streak.best },
+    { id: 'streak_7', icon: '⚡', goal: 7, value: s => s.streak.best },
+    { id: 'topic_done', icon: '🏁', goal: 1, value: s => s.topicsDone },
+    { id: 'topics_5', icon: '🗺️', goal: 5, value: s => s.topicsDone },
+    { id: 'cw_excellent', icon: '🏆', goal: 9, value: s => s.controlWorks.bestGrade, counted: false }
+  ];
+
+  const buildProgressSummary = ({
+    solvedIds = [],
+    topics = [],
+    topicTaskIds = new Map(),
+    wrongAttempts = {},
+    activity = {},
+    controlWorks = {},
+    today = localDateKey()
+  } = {}) => {
+    const taskIdsOf = id => (topicTaskIds instanceof Map ? topicTaskIds.get(id) : topicTaskIds[id]) || [];
+    const solvedSet = new Set(solvedIds.map(Number));
+    const catalogIds = new Set();
+    const topicRows = [];
+    for (const topic of topics) {
+      const ids = taskIdsOf(topic.id).map(Number);
+      if (!ids.length) continue;
+      ids.forEach(id => catalogIds.add(id));
+      const solved = ids.filter(id => solvedSet.has(id)).length;
+      topicRows.push({ topic, total: ids.length, solved, percent: Math.round((solved / ids.length) * 100) });
+    }
+    /* Решённую задачу могли снять с публикации: в счёт идут только те, что в каталоге. */
+    const solvedList = catalogIds.size ? [...solvedSet].filter(id => catalogIds.has(id)) : [...solvedSet];
+    const firstTry = solvedList.filter(id => !(Number(wrongAttempts[id]) > 0)).length;
+
+    const gradeMap = new Map();
+    for (const row of topicRows) {
+      const key = String(row.topic.grade ?? '');
+      if (!gradeMap.has(key)) {
+        gradeMap.set(key, { grade: row.topic.grade ?? null, total: 0, solved: 0, topicsDone: 0, topics: [] });
+      }
+      const group = gradeMap.get(key);
+      group.total += row.total;
+      group.solved += row.solved;
+      group.topics.push(row);
+      if (row.solved === row.total) group.topicsDone++;
+    }
+    const grades = [...gradeMap.values()].map(group => ({ ...group, percent: Math.round((group.solved / group.total) * 100) }));
+
+    const inProgress = topicRows
+      .filter(row => row.solved > 0 && row.solved < row.total)
+      .sort((a, b) => b.percent - a.percent || b.solved - a.solved);
+
+    const cwList = Object.entries(controlWorks || {})
+      .map(([topicId, result]) => ({ topicId: Number(topicId), ...result }))
+      .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+
+    const summary = {
+      solved: solvedList.length,
+      total: catalogIds.size,
+      firstTry,
+      topicsDone: topicRows.filter(row => row.solved === row.total).length,
+      grades,
+      inProgress,
+      streak: computeStreak(activity, today),
+      activityWeeks: buildActivityWeeks(activity, today),
+      controlWorks: {
+        list: cwList,
+        count: cwList.length,
+        bestGrade: cwList.reduce((best, result) => Math.max(best, Number(result.grade) || 0), 0)
+      }
+    };
+    summary.achievements = PROGRESS_ACHIEVEMENTS.map(item => {
+      const value = Number(item.value(summary)) || 0;
+      return {
+        id: item.id,
+        icon: item.icon,
+        goal: item.goal,
+        value: Math.min(value, item.goal),
+        earned: value >= item.goal,
+        counted: item.counted !== false
+      };
+    });
+    return summary;
+  };
+
   /* Подсчёт прогресса решения задач темы */
   const calcTopicProgress = (taskIds = [], solvedIds = []) => {
     if (!Array.isArray(taskIds) || taskIds.length === 0) {
@@ -2099,6 +2244,10 @@
     compareAnswers,
     isAnswerAutoCheckable,
     parseAnswerParts,
+    localDateKey,
+    computeStreak,
+    buildActivityWeeks,
+    buildProgressSummary,
     calcTopicProgress,
     formatTimerDisplay,
     getLocalizedText,

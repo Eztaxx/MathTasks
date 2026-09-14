@@ -8,6 +8,7 @@ const viewList = document.querySelector('#view-list');
 const viewAbout = document.querySelector('#view-about');
 const viewControlWork = document.querySelector('#view-control-work');
 const viewControlWorks = document.querySelector('#view-control-works');
+const viewProgress = document.querySelector('#view-progress');
 const topicsElement = document.querySelector('#topics');
 const tasksElement = document.querySelector('#tasks');
 const gradeFilter = document.querySelector('#grade-filter');
@@ -558,6 +559,14 @@ function renderHubSidebar() {
         </div>
       </button>
 
+      <a class="sidebar-action-card${location.pathname === '/progress' ? ' active' : ''}" href="/progress" title="${escapeHtml(tr('nav_progress'))}">
+        <div class="action-card-icon progress-icon">📊</div>
+        <div class="action-card-body">
+          <strong>${escapeHtml(tr('nav_progress'))}</strong>
+          <span id="progress-count-text">${escapeHtml(progressCounterText())}</span>
+        </div>
+      </a>
+
       <a class="sidebar-action-card${location.pathname === '/favorites' ? ' active' : ''}" href="/favorites" title="${escapeHtml(tr('nav_favorites'))}">
         <div class="action-card-icon star-icon">★</div>
         <div class="action-card-body">
@@ -812,12 +821,52 @@ function setTaskSolved(taskId, solved) {
     const id = Number(taskId);
     let list = getSolvedTasks();
     if (solved) {
-      if (!list.includes(id)) list.push(id);
+      if (!list.includes(id)) {
+        list.push(id);
+        recordActivity();
+      }
     } else {
       list = list.filter(item => item !== id);
     }
     localStorage.setItem('math-tasks:solved', JSON.stringify(list));
   } catch {}
+  updateProgressCounter();
+}
+
+/* Сколько задач решено в какой день: из этого — серия дней подряд и
+   календарь на странице «Мой прогресс». Храним чуть больше года. */
+const ACTIVITY_KEY = 'math-tasks:activity';
+
+function getActivity() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(ACTIVITY_KEY) || '{}');
+    return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+  } catch {
+    return {};
+  }
+}
+
+function recordActivity() {
+  const lib = window.MathTasksLib;
+  const key = lib?.localDateKey ? lib.localDateKey() : new Date().toISOString().slice(0, 10);
+  const activity = getActivity();
+  activity[key] = (Number(activity[key]) || 0) + 1;
+  const keys = Object.keys(activity).sort();
+  while (keys.length > 400) delete activity[keys.shift()];
+  try {
+    localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activity));
+  } catch {}
+}
+
+function progressCounterText() {
+  const tr = window.MathTasks.t || (k => k);
+  const count = getSolvedTasks().length;
+  return count ? tr('progress_counter', { count }) : tr('progress_counter_empty');
+}
+
+function updateProgressCounter() {
+  const counter = document.querySelector('#progress-count-text');
+  if (counter) counter.textContent = progressCounterText();
 }
 
 /* Сколько раз ученик ошибся в задаче. Первая ошибка открывает подсказку,
@@ -1634,6 +1683,7 @@ function showView(name) {
   viewAbout.hidden = name !== 'about';
   if (viewControlWork) viewControlWork.hidden = name !== 'control-work';
   if (viewControlWorks) viewControlWorks.hidden = name !== 'control-works';
+  if (viewProgress) viewProgress.hidden = name !== 'progress';
   // Прокручиваем только при смене вида: иначе поиск дёргал бы страницу на каждой букве.
   if (currentView !== name) window.scrollTo(0, 0);
   currentView = name;
@@ -2386,6 +2436,132 @@ async function showFavorites() {
   shuffledTopicTasks = null;
   currentListEmptyText = (window.MathTasks.t || (k => k))('fav_empty_hint') || 'Закладок нет.';
   renderCurrentTopicTasks();
+}
+
+/* ── Мой прогресс ─────────────────────────────────────────────────── */
+
+function progressLocale() {
+  return getLang() === 'lv' ? 'lv-LV' : 'ru-RU';
+}
+
+function progressBar(percent) {
+  const width = Math.max(0, Math.min(100, Number(percent) || 0));
+  return `<span class="progress-bar" aria-hidden="true"><i style="width:${width}%"></i></span>`;
+}
+
+function progressTopicRow(row, { withGrade = true } = {}) {
+  const gradeNote = withGrade && row.topic.grade ? ` <small>${escapeHtml(gradeLabel(row.topic.grade))}</small>` : '';
+  return `<a class="progress-topic" href="/topic/${encodeURIComponent(row.topic.slug)}">
+    <span class="progress-topic-title">${escapeHtml(topicTitleOf(row.topic))}${gradeNote}</span>
+    ${progressBar(row.percent)}
+    <span class="progress-topic-count">${row.solved}/${row.total}</span>
+  </a>`;
+}
+
+/* Страница собирается из того, что уже есть: каталог загружен при старте,
+   остальное лежит в браузере. Запросов к базе она не делает. */
+function showProgress() {
+  showView('progress');
+  const tr = window.MathTasks.t || (k => k);
+  setMeta(tr('progress_title'), tr('progress_meta'));
+  const root = document.querySelector('#progress-root');
+  const lib = window.MathTasksLib;
+  if (!root || !lib?.buildProgressSummary) return;
+
+  const s = lib.buildProgressSummary({
+    solvedIds: getSolvedTasks(),
+    topics: allTopics,
+    topicTaskIds: topicTasksMap,
+    wrongAttempts: getWrongAttemptCounts(),
+    activity: getActivity(),
+    controlWorks: getControlWorkStorage()
+  });
+  const section = (title, body, extra = '') => `<section class="progress-block"><h2>${escapeHtml(title)}${extra}</h2>${body}</section>`;
+
+  const firstTryPercent = s.solved ? Math.round((s.firstTry / s.solved) * 100) : 0;
+  const stats = [
+    [s.solved, tr('progress_stat_solved'), s.total ? tr('progress_stat_solved_sub', { total: s.total }) : '', ''],
+    [s.streak.current, tr('progress_stat_streak'), tr('progress_stat_streak_sub', { best: s.streak.best }), s.streak.today ? ' is-hot' : ''],
+    [s.firstTry, tr('progress_stat_first_try'), s.solved ? tr('progress_stat_first_try_sub', { percent: firstTryPercent }) : '', ''],
+    [s.topicsDone, tr('progress_stat_topics'), tr('progress_stat_cw_sub', { count: s.controlWorks.count }), '']
+  ].map(([value, label, sub, cls]) => `<div class="progress-stat${cls}"><strong>${value}</strong><span>${escapeHtml(label)}</span>${sub ? `<small>${escapeHtml(sub)}</small>` : ''}</div>`).join('');
+
+  const startHref = selectedGrade ? `/grade/${encodeURIComponent(selectedGrade)}` : '/';
+  const empty = s.solved || s.controlWorks.count
+    ? ''
+    : `<p class="progress-empty">${escapeHtml(tr('progress_empty'))} <a href="${startHref}">${escapeHtml(tr('progress_empty_link'))}</a></p>`;
+
+  const level = count => (count <= 0 ? 0 : count < 3 ? 1 : count < 6 ? 2 : count < 10 ? 3 : 4);
+  const dayTitle = day => {
+    const [y, m, d] = day.key.split('-').map(Number);
+    const date = new Date(y, m - 1, d).toLocaleDateString(progressLocale(), { day: 'numeric', month: 'long' });
+    return `${date}: ${tr('progress_day_count', { count: day.count })}`;
+  };
+  const weeks = s.activityWeeks.map(week => `<div class="progress-week">${week.map(day => (day.future
+    ? '<span class="progress-day is-future"></span>'
+    : `<span class="progress-day l${level(day.count)}" title="${escapeHtml(dayTitle(day))}"></span>`)).join('')}</div>`).join('');
+  const legend = [0, 1, 2, 3, 4].map(l => `<span class="progress-day l${l}"></span>`).join('');
+  const activity = section(tr('progress_activity_title'), `
+    <div class="progress-heatmap" role="img" aria-label="${escapeHtml(tr('progress_activity_aria', { days: s.streak.activeDays }))}">${weeks}</div>
+    <p class="progress-legend">${escapeHtml(tr('progress_activity_less'))} ${legend} ${escapeHtml(tr('progress_activity_more'))}</p>`);
+
+  const continueBlock = s.inProgress.length
+    ? section(tr('progress_continue_title'), `<div class="progress-list">${s.inProgress.slice(0, 6).map(row => progressTopicRow(row)).join('')}</div>`)
+    : '';
+
+  const order = (GRADES || []).map(String);
+  const rank = group => {
+    const index = order.indexOf(String(group.grade));
+    return index < 0 ? order.length : index;
+  };
+  const grades = [...s.grades].sort((a, b) => rank(a) - rank(b)).map(group => `
+    <details class="progress-grade${group.solved ? '' : ' is-empty'}">
+      <summary>
+        <span class="progress-grade-name">${escapeHtml(group.grade ? gradeLabel(group.grade) : tr('progress_no_grade'))}</span>
+        ${progressBar(group.percent)}
+        <span class="progress-grade-count">${group.solved}/${group.total}</span>
+        <small>${escapeHtml(tr('progress_grade_topics', { done: group.topicsDone, total: group.topics.length }))}</small>
+      </summary>
+      <div class="progress-list progress-grade-topics">${group.topics.map(row => progressTopicRow(row, { withGrade: false })).join('')}</div>
+    </details>`).join('');
+  const gradesBlock = grades ? section(tr('progress_grades_title'), grades) : '';
+
+  const earnedCount = s.achievements.filter(a => a.earned).length;
+  const badges = s.achievements.map(a => `
+    <li class="progress-badge${a.earned ? ' is-earned' : ''}">
+      <span class="progress-badge-icon" aria-hidden="true">${a.icon}</span>
+      <strong>${escapeHtml(tr(`ach_${a.id}`))}</strong>
+      <small>${escapeHtml(tr(`ach_${a.id}_desc`))}</small>
+      ${!a.earned && a.counted ? `<span class="progress-badge-count">${a.value}/${a.goal}</span>` : ''}
+    </li>`).join('');
+  const achievements = section(tr('progress_achievements_title'), `<ul class="progress-badges">${badges}</ul>`,
+    ` <small>${escapeHtml(tr('progress_achievements_count', { earned: earnedCount, total: s.achievements.length }))}</small>`);
+
+  const cwRows = s.controlWorks.list.map(result => {
+    const topic = allTopics.find(item => item.id === result.topicId);
+    if (!topic) return '';
+    const slug = encodeURIComponent(topic.slug);
+    const percent = result.percent ?? (result.total ? Math.round((result.score / result.total) * 100) : 0);
+    const date = result.date ? new Date(result.date).toLocaleDateString(progressLocale(), { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    return `<div class="progress-cw">
+      <a class="progress-cw-topic" href="/topic/${slug}">${escapeHtml(topicTitleOf(topic))}</a>
+      ${date ? `<time datetime="${escapeHtml(result.date)}">${escapeHtml(date)}</time>` : '<span></span>'}
+      <span class="progress-cw-grade${Number(result.grade) < 4 ? ' is-low' : ''}" title="${percent}%">${escapeHtml(tr('progress_cw_grade', { grade: result.grade }))}</span>
+      <a class="progress-cw-retry" href="/control-work/${slug}">${escapeHtml(tr('progress_cw_retry'))}</a>
+    </div>`;
+  }).join('');
+  const cwBlock = cwRows ? section(tr('progress_cw_title'), `<div class="progress-list">${cwRows}</div>`) : '';
+
+  root.innerHTML = [
+    `<div class="progress-stats">${stats}</div>`,
+    empty,
+    activity,
+    continueBlock,
+    gradesBlock,
+    achievements,
+    cwBlock,
+    `<p class="progress-note">${escapeHtml(tr('progress_storage_note'))}</p>`
+  ].join('');
 }
 
 /* ── Контрольные работы (Pārbaudes darbi) ─────────────────────────── */
@@ -3382,6 +3558,7 @@ async function route({ force = false } = {}) {
 
   if (path === '/tasks') { await showAllTasks(); return; }
   if (path === '/favorites') { await showFavorites(); return; }
+  if (path === '/progress') { showProgress(); return; }
   if (path === '/about') { showView('about'); setMeta('О сайте', 'Как устроен MathTasks: классы, разделы, темы и разбор решений.'); return; }
 
   showView('home');
@@ -4580,6 +4757,9 @@ window.addEventListener('languagechange', async () => {
   }
   if (currentView === 'home') {
     await loadHome();
+  } else if (currentView === 'progress') {
+    // Страница прогресса собрана строками на старом языке — собираем заново.
+    showProgress();
   } else if (lastRenderedContainer && lastRenderedTasks.length) {
     renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
   }
