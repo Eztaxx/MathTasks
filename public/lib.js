@@ -1723,6 +1723,117 @@
     return timer;
   };
 
+  /* ── Разбор импорта до записи в базу ──────────────────────────────
+     Для каждой строки файла: нашлась ли тема и подтема или они будут
+     созданы, нет ли дубля — среди задач базы или выше в том же файле, —
+     разбираются ли формулы, известны ли теги. Тему и подтему ищет теми же
+     правилами, что и сам импорт, поэтому предпросмотр совпадает с
+     результатом. Ничего не пишет. Статус строки: ok — импортируется,
+     bad — ошибка, dup — дубликат; bad и dup пропускаются. */
+  const importDupKey = value => String(value || '').toLowerCase().replace(/\s+/g, '');
+  const IMPORT_FORMULA_FIELDS = [
+    ['condition_latex', 'условии'], ['answer_latex', 'ответе'], ['solution_latex', 'решении'], ['hint_latex', 'подсказке'],
+    ['condition_latex_lv', 'условии LV'], ['answer_latex_lv', 'ответе LV'], ['solution_latex_lv', 'решении LV'], ['hint_latex_lv', 'подсказке LV']
+  ];
+  const analyzeImportRows = (items = [], ctx = {}) => {
+    const { topics = [], subtopics = [], existingConditions = [], tags = null, checkFormula = () => ({ ok: true }) } = ctx;
+    const low = value => String(value || '').trim().toLowerCase();
+    const existing = new Map();
+    for (const row of existingConditions) {
+      const key = importDupKey(row.condition_latex);
+      if (key && !existing.has(key)) existing.set(key, row.id);
+    }
+    const seen = new Map();
+    const rows = items.map((raw, index) => {
+      const item = raw || {};
+      const n = index + 1;
+      const problems = [];
+      const notes = [];
+      const cond = String(item.condition_latex || '').trim();
+      if (!cond) problems.push({ level: 'bad', text: 'нет условия' });
+
+      const needle = low(item.topic_title);
+      const needleLv = low(item.topic_title_lv);
+      let topic = item.topic_id ? topics.find(t => String(t.id) === String(item.topic_id)) || null : null;
+      if (!topic && (needle || needleLv)) {
+        topic = topics.find(t =>
+          (needle && low(t.title) === needle) || (needleLv && low(t.title_lv) === needleLv) ||
+          (needle && low(t.title_lv) === needle) || (needleLv && low(t.title) === needleLv)) || null;
+      }
+      // Новую тему импорт заводит только по русскому названию.
+      const topicIsNew = !topic && Boolean(needle);
+      let newTopicKey = null;
+      if (topicIsNew) {
+        newTopicKey = needle;
+        notes.push('новая тема');
+      } else if (!topic && needleLv) {
+        problems.push({ level: 'bad', text: `тема «${String(item.topic_title_lv).trim()}» не найдена` });
+      } else if (!topic) {
+        problems.push({ level: 'bad', text: 'не указана тема' });
+      }
+
+      const code = String(item.subtopic_code || '').trim();
+      const subNeedle = low(item.subtopic_title);
+      const subNeedleLv = low(item.subtopic_title_lv);
+      let subtopic = null;
+      let newSubtopicKey = null;
+      if (code || subNeedle || subNeedleLv) {
+        const pool = topic ? subtopics.filter(s => String(s.topic_id) === String(topic.id)) : (topicIsNew ? [] : subtopics);
+        subtopic = pool.find(s => code && String(s.code || '').trim() === code)
+          || pool.find(s => (subNeedle && low(s.title) === subNeedle) || (subNeedleLv && low(s.title_lv) === subNeedleLv))
+          || null;
+        // Подтему импорт заводит, если есть её номер или русское название.
+        if (!subtopic && (topic || topicIsNew) && (code || subNeedle)) {
+          newSubtopicKey = `${topic ? topic.id : needle}::${code || subNeedle}`;
+          notes.push(`новая подтема ${code || String(item.subtopic_title).trim()}`);
+        } else if (!subtopic) {
+          notes.push('подтема не найдена — задача ляжет в тему');
+        }
+      }
+
+      const broken = IMPORT_FORMULA_FIELDS.find(([key]) => item[key] && !checkFormula(String(item[key])).ok);
+      if (broken) problems.push({ level: 'bad', text: `сломана формула в ${broken[1]}` });
+
+      if (cond) {
+        const key = importDupKey(cond);
+        if (existing.has(key)) {
+          problems.push({ level: 'dup', text: `уже есть в базе — задача #${existing.get(key)}` });
+        } else if (seen.has(key)) {
+          problems.push({ level: 'dup', text: `повтор строки ${seen.get(key)}` });
+        } else if (!problems.some(p => p.level === 'bad')) {
+          // Строка с ошибкой не импортируется — её копия ниже дублем не считается.
+          seen.set(key, n);
+        }
+      }
+
+      if (tags && Array.isArray(item.tags)) {
+        const unknown = item.tags.map(low).filter(Boolean)
+          .filter(tag => !tags.some(t => low(t.slug) === tag || low(t.title) === tag || low(t.title_lv) === tag));
+        if (unknown.length) notes.push(`неизвестные теги: ${unknown.join(', ')}`);
+      }
+      if (cond && !String(item.condition_latex_lv || '').trim()) notes.push('без перевода LV');
+
+      const status = problems.some(p => p.level === 'bad') ? 'bad' : problems.length ? 'dup' : 'ok';
+      return {
+        n, item, status, problems, notes, topic, topicIsNew, subtopic,
+        topicTitle: topic ? topic.title : String(item.topic_title || item.topic_title_lv || '').trim(),
+        grade: item.grade ?? topic?.grade ?? null,
+        newTopicKey, newSubtopicKey
+      };
+    });
+    // Новые темы и подтемы считаем только по строкам, которые будут импортированы.
+    const counts = { ok: 0, bad: 0, dup: 0 };
+    const newTopics = new Set();
+    const newSubtopics = new Set();
+    for (const row of rows) {
+      counts[row.status]++;
+      if (row.status !== 'ok') continue;
+      if (row.newTopicKey) newTopics.add(row.newTopicKey);
+      if (row.newSubtopicKey) newSubtopics.add(row.newSubtopicKey);
+    }
+    return { rows, counts, newTopics: newTopics.size, newSubtopics: newSubtopics.size };
+  };
+
   const api = {
     makeSlug,
     sanitizeSearch,
@@ -1762,6 +1873,7 @@
     parseCsvRows,
     parseCsvToTasks,
     parseTasksImport,
+    analyzeImportRows,
     exportTasksToCsv,
     sanitizeSvg,
     fetchAllRows,

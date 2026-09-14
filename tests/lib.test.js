@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildTaskPrompt as buildTaskPromptForTest, TASK_PROMPT_COLUMNS as PROMPT_COLUMNS_FOR_TEST, parseCsvToTasks as parseCsvForPromptTest } from '../public/lib.js';
 import { fetchAllRows as fetchAllRowsForTest, fetchByIdChunks as fetchByIdChunksForTest } from '../public/lib.js';
 import { sanitizeSvg as sanitizeSvgForTest, parseCsvRows as parseCsvRowsForSvg, parseCsvToTasks as parseCsvToTasksForSvg } from '../public/lib.js';
+import { analyzeImportRows as analyzeImportRowsForTest } from '../public/lib.js';
 import i18n from '../public/i18n.js';
 import {
   makeSlug,
@@ -1743,5 +1744,90 @@ describe('buildTaskPrompt: промпт под тему', () => {
       solution_latex: '1. Шаг.\n2. Ответ.', solution_latex_lv: '1. Solis.\n2. Atbilde.',
       difficulty: 'Средний', tags: ['planimetrija', 'merijumi'], condition_svg: svg
     });
+  });
+});
+
+describe('analyzeImportRows: разбор импорта до записи в базу', () => {
+  const topics = [
+    { id: 1, title: 'Квадратные уравнения', title_lv: 'Kvadrātvienādojumi', grade: 8 },
+    { id: 2, title: 'Проценты', title_lv: 'Procenti', grade: 7 }
+  ];
+  const subtopics = [{ id: 10, topic_id: 1, code: '8.1.1', title: 'Неполные', title_lv: 'Nepilni' }];
+  const ctx = extra => ({
+    topics,
+    subtopics,
+    existingConditions: [{ id: 77, condition_latex: 'Решите  $x^2=9$.' }],
+    checkFormula: text => ({ ok: !text.includes('BROKEN') }),
+    ...extra
+  });
+
+  it('находит тему по названию на любом языке и подтему по номеру', () => {
+    const { rows, counts } = analyzeImportRowsForTest([
+      { condition_latex: 'A', topic_title: 'квадратные уравнения ', subtopic_code: '8.1.1' },
+      { condition_latex: 'B', topic_title_lv: 'Procenti' }
+    ], ctx());
+    expect(rows[0].topic.id).toBe(1);
+    expect(rows[0].subtopic.id).toBe(10);
+    expect(rows[1].topic.id).toBe(2);
+    expect(counts).toEqual({ ok: 2, bad: 0, dup: 0 });
+  });
+
+  it('незнакомая тема по-русски будет создана; без темы или с незнакомой латышской — ошибка', () => {
+    const { rows, newTopics, newSubtopics } = analyzeImportRowsForTest([
+      { condition_latex: 'A', topic_title: 'Новая тема', subtopic_code: '9.9.9' },
+      { condition_latex: 'B' },
+      { condition_latex: 'C', topic_title_lv: 'Nezināma' }
+    ], ctx());
+    expect(rows[0].status).toBe('ok');
+    expect(rows[0].topicIsNew).toBe(true);
+    expect(rows[0].notes.join(' ')).toContain('новая тема');
+    expect(newTopics).toBe(1);
+    expect(newSubtopics).toBe(1);
+    expect(rows[1].status).toBe('bad');
+    expect(rows[1].problems[0].text).toBe('не указана тема');
+    expect(rows[2].status).toBe('bad');
+    expect(rows[2].problems[0].text).toContain('не найдена');
+  });
+
+  it('дубликаты: с задачей базы без учёта пробелов и регистра и повтор внутри файла', () => {
+    const { rows, counts } = analyzeImportRowsForTest([
+      { condition_latex: 'решите $x^2=9$.', topic_title: 'Проценты' },
+      { condition_latex: 'Новая задача', topic_title: 'Проценты' },
+      { condition_latex: 'новая   задача', topic_title: 'Проценты' }
+    ], ctx());
+    expect(rows[0].status).toBe('dup');
+    expect(rows[0].problems[0].text).toContain('#77');
+    expect(rows[1].status).toBe('ok');
+    expect(rows[2].status).toBe('dup');
+    expect(rows[2].problems[0].text).toContain('строки 2');
+    expect(counts).toEqual({ ok: 1, bad: 0, dup: 2 });
+  });
+
+  it('сломанная формула и пустое условие — ошибки; новые темы считаются только по готовым строкам', () => {
+    const { rows, newTopics } = analyzeImportRowsForTest([
+      { condition_latex: 'Ok', solution_latex_lv: 'BROKEN', topic_title: 'Тема X' },
+      { condition_latex: '', topic_title: 'Проценты' }
+    ], ctx());
+    expect(rows[0].status).toBe('bad');
+    expect(rows[0].problems[0].text).toBe('сломана формула в решении LV');
+    expect(rows[1].problems.map(p => p.text)).toContain('нет условия');
+    expect(newTopics).toBe(0);
+  });
+
+  it('копия строки с ошибкой дублем не считается', () => {
+    const { rows } = analyzeImportRowsForTest([
+      { condition_latex: 'Та же', answer_latex: 'BROKEN', topic_title: 'Проценты' },
+      { condition_latex: 'Та же', topic_title: 'Проценты' }
+    ], ctx());
+    expect(rows.map(r => r.status)).toEqual(['bad', 'ok']);
+  });
+
+  it('незнакомые теги — заметка, строка остаётся готовой', () => {
+    const { rows } = analyzeImportRowsForTest(
+      [{ condition_latex: 'A', topic_title: 'Проценты', tags: ['vienadojumi', 'nonsense'] }],
+      ctx({ tags: [{ slug: 'vienadojumi', title: 'Уравнения' }] }));
+    expect(rows[0].status).toBe('ok');
+    expect(rows[0].notes.join(' ')).toContain('неизвестные теги: nonsense');
+    expect(rows[0].notes.join(' ')).not.toContain('vienadojumi');
   });
 });

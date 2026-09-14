@@ -86,4 +86,16 @@ describe('каркас админки: меню и экраны', () => {
     expect(js).toContain('updateTaskTopicDropdown');
     expect(js).toContain('updateSubtopicDropdown');
   });
+  it('id в admin.html не повторяются', () => {
+    const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
+    const repeated = [...new Set(ids.filter((id, i) => ids.indexOf(id) !== i))];
+    expect(repeated).toEqual([]);
+  });
+
+  it('мастер импорта: шаги 1–3 и кнопки разбора и импорта', () => {
+    expect([...html.matchAll(/class="imp-step[^"]*" data-step="(\d)"/g)].map(m => m[1])).toEqual(['1', '2', '3']);
+    for (const id of ['imp-drop', 'imp-file', 'imp-text', 'imp-analyze', 'imp-run', 'imp-rows', 'imp-done']) {
+      expect(html).toContain(`id="${id}"`);
+    }
+  });
 });

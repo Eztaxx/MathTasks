@@ -161,7 +161,57 @@
 
             <section class="adm-view" data-view="import" hidden>
               <div class="adm-view-head"><div><h1>Импорт и экспорт</h1><p>Файл или вставленная таблица → разбор → импорт. Всё импортированное попадает на проверку черновиками, на сайт — только после публикации.</p></div></div>
-              <div class="adm-view-body"><div class="adm-panel adm-pad" data-slot="import-tools"></div></div>
+              <div class="adm-view-body">
+                <ol class="imp-steps" id="imp-steps" aria-label="Шаги импорта">
+                  <li class="imp-step is-active" data-step="1" aria-current="step"><span class="imp-step-n">1</span>Файл</li>
+                  <li class="imp-step" data-step="2"><span class="imp-step-n">2</span>Разбор и проверка</li>
+                  <li class="imp-step" data-step="3"><span class="imp-step-n">3</span>Импорт в очередь</li>
+                </ol>
+                <section class="adm-panel adm-pad imp-source">
+                  <div class="imp-drop" id="imp-drop" role="button" tabindex="0" aria-describedby="imp-drop-hint">
+                    <strong>Перетащите файл .json или .csv</strong>
+                    <span id="imp-drop-hint">или нажмите, чтобы выбрать его на компьютере</span>
+                    <input type="file" id="imp-file" accept=".json,.csv,.tsv,text/csv,text/tab-separated-values,application/json" hidden />
+                  </div>
+                  <textarea class="imp-text" id="imp-text" rows="7" spellcheck="false" aria-label="Текст для импорта" placeholder="…или вставьте сюда JSON, CSV или строки, скопированные из Excel / Google Таблиц"></textarea>
+                  <div class="imp-source-actions">
+                    <button type="button" class="adm-btn primary" id="imp-analyze">Разобрать</button>
+                    <button type="button" class="adm-btn text" id="imp-clear" hidden>Очистить</button>
+                    <span class="imp-file-name" id="imp-file-name"></span>
+                    <span class="imp-samples">Образец: <button type="button" class="adm-link-btn" data-imp-sample="csv">CSV</button> · <button type="button" class="adm-link-btn" data-imp-sample="json">JSON</button></span>
+                  </div>
+                  <p class="imp-error" id="imp-error" role="alert" hidden></p>
+                </section>
+                <section class="imp-result" id="imp-result" hidden>
+                  <div class="adm-stats imp-stats">
+                    <div class="adm-stat"><div class="adm-stat-label">Готово к импорту</div><div class="adm-stat-value imp-ok" id="imp-stat-ok">0</div></div>
+                    <div class="adm-stat"><div class="adm-stat-label">Ошибки в строках</div><div class="adm-stat-value imp-bad" id="imp-stat-bad">0</div><div class="adm-stat-note">пропускаются</div></div>
+                    <div class="adm-stat"><div class="adm-stat-label">Дубликаты</div><div class="adm-stat-value imp-warn" id="imp-stat-dup">0</div><div class="adm-stat-note">пропускаются</div></div>
+                    <div class="adm-stat"><div class="adm-stat-label">Новые темы / подтемы</div><div class="adm-stat-value" id="imp-stat-new">0 / 0</div><div class="adm-stat-note">создадутся при импорте</div></div>
+                  </div>
+                  <div class="imp-notes" id="imp-notes"></div>
+                  <section class="adm-panel">
+                    <div class="adm-panel-head">
+                      <h2>Предпросмотр</h2>
+                      <div class="adm-seg imp-seg" role="group" aria-label="Какие строки показать">
+                        <button type="button" class="adm-seg-btn is-active" data-imp-filter="all" aria-pressed="true">Все</button>
+                        <button type="button" class="adm-seg-btn" data-imp-filter="bad" aria-pressed="false">Только проблемные</button>
+                      </div>
+                    </div>
+                    <div class="imp-table-wrap"><div class="imp-table" id="imp-rows"></div></div>
+                    <div class="imp-foot">
+                      <label class="imp-publish"><input type="checkbox" id="imp-publish" /> Опубликовать сразу, без проверки</label>
+                      <span class="imp-foot-note">Строки с ошибками и дубликаты пропускаются, остальное попадёт в очередь проверки.</span>
+                      <button type="button" class="adm-btn primary" id="imp-run" disabled>Импортировать</button>
+                    </div>
+                  </section>
+                </section>
+                <section class="adm-panel adm-pad imp-done" id="imp-done" hidden></section>
+                <section class="adm-panel imp-tools">
+                  <div class="adm-panel-head"><h2>Экспорт, образцы и промпт для ИИ</h2></div>
+                  <div class="adm-pad" data-slot="import-tools"></div>
+                </section>
+              </div>
             </section>
 
             <section class="adm-view" data-view="new" data-single hidden>
@@ -930,8 +980,8 @@
         </div>
 
         <div class="admin-list-defer" id="task-list-defer">
-          <p>Список задач не загружается при входе — так панель открывается сразу.</p>
-          <button class="secondary-button" type="button" id="btn-load-tasks">Показать задачи</button>
+          <p>Список задач грузится только по кнопке — так админка открывается сразу. Поиск и фильтры применятся, когда список появится.</p>
+          <button class="secondary-button adm-btn primary" type="button" id="btn-load-tasks">Показать задачи</button>
         </div>
         <div class="admin-list-close admin-list-close-top" id="task-list-close" hidden>
           <button class="text-button" type="button" id="btn-hide-tasks">▲ Свернуть список задач</button>
@@ -946,9 +996,9 @@
           </div>
           <p class="bulk-dialog-desc" id="bulk-dialog-desc">Поддерживается загрузка файлов .json, .csv, .tsv, а также прямая вставка скопированных ячеек из Excel или Google Таблиц. Формат определяется автоматически.</p>
           <div class="bulk-dialog-toolbar" style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-            <label class="admin-tool-btn" id="btn-upload-file-tasks-label" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Выбрать файл .json, .csv или .tsv с компьютера">
+            <label class="admin-tool-btn" id="bulk-dialog-file-label" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px" title="Выбрать файл .json, .csv или .tsv с компьютера">
               📁 Выбрать файл с диска (.json / .csv)
-              <input type="file" id="bulk-file-input" accept=".json,.csv,.tsv,text/csv,text/tab-separated-values,application/json" style="display:none" />
+              <input type="file" id="bulk-dialog-file-input" accept=".json,.csv,.tsv,text/csv,text/tab-separated-values,application/json" style="display:none" />
             </label>
             <button type="button" class="admin-tool-btn" id="bulk-dialog-template-btn">📋 Вставить образец JSON</button>
             <button type="button" class="admin-tool-btn" id="bulk-dialog-csv-template-btn">📊 Вставить образец CSV</button>

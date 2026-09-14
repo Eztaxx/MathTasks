@@ -5569,7 +5569,11 @@ body .adm-shell .admin-feature-head{margin-bottom:16px;padding-bottom:12px;borde
 .adm-shell #section-tasks-database .admin-search-wrap svg{color:var(--adm-dim)}
 .adm-shell #section-tasks-database .admin-filter-field{color:var(--adm-mute);font-weight:500}
 .adm-shell #section-tasks-database .admin-filter-count{color:var(--adm-mute);font-weight:500}
-.adm-shell #task-review-chip,.adm-shell #task-list-defer,.adm-shell #task-list-close{display:none}
+.adm-shell #task-review-chip,.adm-shell #task-list-close{display:none}
+/* Список грузится только по кнопке — блок с ней в токенах каркаса. */
+.adm-shell #task-list-defer{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0;padding:22px;border:1px dashed var(--adm-fieldbd);border-radius:12px;background:var(--adm-panel);color:var(--adm-mute);font-size:13px}
+.adm-shell #task-list-defer[hidden]{display:none}
+.adm-shell #task-list-defer p{margin:0;flex:1 1 280px}
 /* Поиск по каталогу — в шапке админки (он пишет в это же поле), своё поле не дублируем.
    Внешняя карточка раздела на этом экране не нужна: карточка — сама таблица. */
 .adm-shell #task-toolbar > .admin-toolbar-row{display:none}
@@ -5621,3 +5625,68 @@ body .adm-shell #section-tasks-database{padding:0;border:0;background:none}
 .adm-rowbtn.edit{background:var(--adm-accsoft);border-color:var(--adm-accbd);color:var(--adm-acclink)}
 .adm-rowbtn.ok{color:var(--adm-okfg);border-color:var(--adm-okbd)}
 .adm-rowbtn.bad:hover:not(:disabled){color:var(--adm-badfg);border-color:var(--adm-badbd);background:var(--adm-badbg)}
+
+/* ── Импорт: мастер по шагам (макет «Админка Skola2030») ── */
+.imp-steps{display:flex;gap:10px;flex-wrap:wrap;margin:0;padding:0;list-style:none}
+.imp-step{flex:1 1 180px;display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:10px;background:var(--adm-panel);border:1px solid var(--adm-line);color:var(--adm-mute);font-size:13px;font-weight:600}
+.imp-step-n{width:22px;height:22px;flex:0 0 22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--adm-field);border:1px solid var(--adm-line);color:var(--adm-dim)}
+.imp-step.is-active{background:var(--adm-accsoft);border-color:var(--adm-accbd);color:var(--adm-ink)}
+.imp-step.is-active .imp-step-n{background:var(--adm-acc);border-color:var(--adm-acc);color:#fff}
+.imp-step.is-done{color:var(--adm-ink2)}
+.imp-step.is-done .imp-step-n{background:var(--adm-okbg);border-color:var(--adm-okbd);color:var(--adm-okfg)}
+.imp-source{display:flex;flex-direction:column;gap:12px}
+.imp-drop{display:flex;flex-direction:column;align-items:center;gap:4px;padding:22px 16px;border:1.5px dashed var(--adm-fieldbd);border-radius:10px;background:var(--adm-field);color:var(--adm-mute);font-size:13px;text-align:center;cursor:pointer;transition:border-color .15s ease,background .15s ease}
+.imp-drop strong{color:var(--adm-ink);font-size:14px}
+.imp-drop:hover,.imp-drop.is-over{border-color:var(--adm-acc);background:var(--adm-accsoft)}
+.imp-drop:focus-visible{outline:2px solid var(--adm-acc);outline-offset:2px}
+.imp-text{width:100%;min-height:130px;box-sizing:border-box;padding:10px 12px;background:var(--adm-field);border:1px solid var(--adm-fieldbd);border-radius:8px;color:var(--adm-ink);font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+.imp-text::placeholder{color:var(--adm-dim)}
+.imp-text:focus{outline:none;border-color:var(--adm-acc);box-shadow:0 0 0 3px var(--adm-accsoft)}
+.imp-source-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.imp-file-name{font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-ink2)}
+.imp-samples{margin-left:auto;font-size:12px;color:var(--adm-mute)}
+.adm-shell .imp-samples .adm-link-btn{color:var(--adm-acclink)}
+.imp-error{margin:0;padding:10px 12px;border-radius:8px;background:var(--adm-badbg);border:1px solid var(--adm-badbd);color:var(--adm-badfg);font-size:13px}
+.imp-result{display:flex;flex-direction:column;gap:14px}
+.imp-result[hidden],.imp-done[hidden],.imp-error[hidden]{display:none}
+.imp-stats{margin:0}
+.adm-stat-value.imp-ok{color:var(--adm-okfg)}
+.adm-stat-value.imp-bad{color:var(--adm-badfg)}
+.adm-stat-value.imp-warn{color:var(--adm-warnfg)}
+.imp-notes{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--adm-mute)}
+.imp-notes:empty{display:none}
+.imp-notes p{margin:0}
+.imp-seg{margin-left:auto}
+.imp-table-wrap{overflow-x:auto}
+.imp-table{min-width:780px}
+.imp-thead,.imp-trow{display:grid;grid-template-columns:44px minmax(0,1fr) 230px 84px minmax(0,240px);gap:12px;align-items:center;padding:9px 16px}
+.imp-thead{border-bottom:1px solid var(--adm-line);font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--adm-dim)}
+.imp-trow{border-bottom:1px solid var(--adm-line2);font-size:13px;color:var(--adm-ink)}
+.imp-trow:last-child{border-bottom:0}
+.imp-trow.bad{background:var(--adm-badbg)}
+.imp-trow.dup{background:var(--adm-warnbg)}
+.imp-n{font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-dim);font-variant-numeric:tabular-nums}
+.imp-cond{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.imp-topic{min-width:0;font-size:12px;color:var(--adm-ink2)}
+.imp-topic span,.imp-topic small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.imp-topic small{margin-top:2px;font-size:11px;color:var(--adm-dim)}
+.imp-grade{font-size:12px;color:var(--adm-ink2)}
+.imp-check{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.imp-check.ok{color:var(--adm-okfg)}
+.imp-check.bad{color:var(--adm-badfg)}
+.imp-check.dup{color:var(--adm-warnfg)}
+.imp-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 16px;border-top:1px solid var(--adm-line);background:var(--adm-panel2)}
+.imp-publish{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--adm-ink2);cursor:pointer}
+.imp-foot-note{flex:1 1 240px;font-size:12px;color:var(--adm-mute)}
+.adm-shell .imp-foot .adm-btn{margin-left:auto}
+.adm-shell .adm-btn:disabled{opacity:.5;cursor:default;filter:none}
+.imp-done{display:flex;flex-direction:column;gap:10px}
+.imp-done-title{font-size:16px;font-weight:650;color:var(--adm-ink)}
+.imp-done p{margin:0;font-size:13px;color:var(--adm-mute)}
+.imp-done-list{font-size:12px;color:var(--adm-ink2)}
+.imp-done-list ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.imp-done-list.warn strong{color:var(--adm-warnfg)}
+.imp-done-list.bad strong{color:var(--adm-badfg)}
+.imp-done-actions{display:flex;gap:8px;flex-wrap:wrap}
+/* Загрузка файла и вставка текста теперь в мастере — прежние кнопки окна импорта здесь не нужны. */
+.adm-shell [data-slot="import-tools"] #btn-upload-file-tasks-label,.adm-shell [data-slot="import-tools"] #btn-import-tasks{display:none}

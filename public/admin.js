@@ -2876,12 +2876,14 @@ ${JSON.stringify(texts)}`;
       btn.classList.toggle('is-active', on);
       btn.setAttribute('aria-pressed', String(on));
     });
-    if (!tasksLoaded) return;
-    const counts = { all: tasks.length, draft: 0, published: 0, no_lv: 0 };
-    for (const task of tasks) {
+    /* До загрузки списка числа берём из указателя задач — в нём нет
+       латышского условия, поэтому «Без LV» показываем только после загрузки. */
+    const source = tasksLoaded ? tasks : taskIndex;
+    const counts = { all: source.length, draft: 0, published: 0, no_lv: tasksLoaded ? 0 : '' };
+    for (const task of source) {
       if (task.is_published) counts.published++;
       else counts.draft++;
-      if (!(task.condition_latex_lv || '').trim()) counts.no_lv++;
+      if (tasksLoaded && !(task.condition_latex_lv || '').trim()) counts.no_lv++;
     }
     document.querySelectorAll('[data-seg-count]').forEach(el => {
       el.textContent = counts[el.dataset.segCount] ?? '';
@@ -3196,13 +3198,16 @@ ${JSON.stringify(texts)}`;
   }
 
   /* ── Фильтры задач (4.1) ─────────────────────────────────────────── */
+  /* Список задач грузится только кнопкой «Показать задачи»: так админка и
+     каталог открываются сразу. До загрузки фильтры лишь запоминаются и
+     применятся, когда список появится. */
   const showTasksThenRender = () => {
     if (!tasksLoaded) {
-      ensureTasksLoaded();
-    } else {
-      setTasksShown(true);
-      renderTaskList();
+      paintStatusSegments();
+      return;
     }
+    setTasksShown(true);
+    renderTaskList();
   };
   [taskSearchInput, taskFilterGrade, taskFilterTopic, taskFilterStatus, taskFilterSort].forEach(el => {
     el?.addEventListener('input', showTasksThenRender);
@@ -4018,56 +4023,11 @@ ${JSON.stringify(texts)}`;
     }
   });
 
-  bulkDialogSubmit?.addEventListener('click', async () => {
-    if (bulkMode === 'export' || bulkMode === 'export_csv') {
-      const isCsv = bulkMode === 'export_csv';
-      const type = isCsv ? 'text/csv;charset=utf-8;' : 'application/json';
-      const ext = isCsv ? 'csv' : 'json';
-      const blob = new Blob([bulkDialogTextarea.value], { type });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `math-tasks-export-${new Date().toISOString().slice(0, 10)}.${ext}`;
-      a.click();
-      URL.revokeObjectURL(url);
-      bulkDialogStatus.className = 'bulk-dialog-status success';
-      bulkDialogStatus.textContent = `✓ Файл tasks-export.${ext} сохранён!`;
-      bulkDialogStatus.hidden = false;
-      return;
-    }
-
-    // Режим импорта (JSON / CSV / TSV)
-    bulkDialogStatus.hidden = true;
-    const raw = bulkDialogTextarea.value.trim();
-    if (!raw) {
-      bulkDialogStatus.className = 'bulk-dialog-status error';
-      bulkDialogStatus.textContent = 'Вставьте JSON, CSV или выберите файл для импорта.';
-      bulkDialogStatus.hidden = false;
-      return;
-    }
-
-    let parsedResult;
-    try {
-      const parseFn = window.MathTasksLib?.parseTasksImport || parseMultiTopicJson;
-      parsedResult = parseFn(raw);
-    } catch (e) {
-      bulkDialogStatus.className = 'bulk-dialog-status error';
-      bulkDialogStatus.textContent = 'Ошибка синтаксиса: ' + e.message;
-      bulkDialogStatus.hidden = false;
-      return;
-    }
-
-    const { uniqueTopics, uniqueSubtopics, tasks: items, format } = parsedResult;
-    if (!items.length) {
-      bulkDialogStatus.className = 'bulk-dialog-status error';
-      bulkDialogStatus.textContent = 'В данных не найдено задач для импорта (проверьте формат JSON или CSV).';
-      bulkDialogStatus.hidden = false;
-      return;
-    }
-
-    bulkDialogSubmit.disabled = true;
-    bulkDialogSubmit.textContent = 'Импортируем в Supabase…';
-
+  /* Сохранение разобранного импорта: недостающие темы и подтемы, задачи,
+     чертежи из SVG и кросс-теги. Общая часть окна импорта и мастера на
+     экране «Импорт и экспорт». labelOf подписывает задачу в сообщениях:
+     окно — «Задача #N», мастер — номером строки файла. */
+  async function importParsedItems({ uniqueTopics = [], uniqueSubtopics = [], items = [], parseWarnings = [], publishNow = false, onProgress = null, labelOf = i => `Задача #${i + 1}` }) {
     let createdTopicsCount = 0;
     let createdSubtopicsCount = 0;
     const errors = [];
@@ -4157,14 +4117,14 @@ ${JSON.stringify(texts)}`;
     let uploadedFigures = 0;
     /* Импорт — непроверенный текст, чаще всего от нейросети. На сайт он
        уходит только по явному флажку, иначе черновиками — в очередь проверки. */
-    const publishNow = Boolean(document.querySelector('#bulk-dialog-publish')?.checked);
     /* Предупреждения разбора — например, сдвиг столбцов из-за запятой
        в формуле без кавычек — показываем вместе с остальными. */
-    if (Array.isArray(parsedResult.warnings)) warnings.push(...parsedResult.warnings);
+    warnings.push(...parseWarnings);
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
+      onProgress?.(i + 1, items.length);
       if (!item.condition_latex) {
-        errors.push(`Задача #${i + 1}: отсутствует condition_latex`);
+        errors.push(`${labelOf(i)}: отсутствует condition_latex`);
         continue;
       }
       let topicId = item.topic_id || null;
@@ -4193,7 +4153,7 @@ ${JSON.stringify(texts)}`;
             (sNeedle && s.title?.toLowerCase().trim() === sNeedle) ||
             (sNeedleLv && s.title_lv?.toLowerCase().trim() === sNeedleLv));
         if (found) subtopicId = found.id;
-        else warnings.push(`Задача #${i + 1}: подтема «${code || sNeedle || sNeedleLv}» не найдена, задача легла прямо в тему.`);
+        else warnings.push(`${labelOf(i)}: подтема «${code || sNeedle || sNeedleLv}» не найдена, задача легла прямо в тему.`);
       }
 
       if (!topicId) withoutTopic++;
@@ -4210,7 +4170,7 @@ ${JSON.stringify(texts)}`;
         if (!markup || item[`${kind}_image`]) continue;
         const uploaded = await uploadSvgMarkup(kind, markup);
         if (uploaded.path) figurePaths[kind] = uploaded.path;
-        else warnings.push(`Задача #${i + 1}: чертёж ${kind === 'condition' ? 'условия' : 'решения'} не сохранён — ${uploaded.error}.`);
+        else warnings.push(`${labelOf(i)}: чертёж ${kind === 'condition' ? 'условия' : 'решения'} не сохранён — ${uploaded.error}.`);
       }
 
       const payload = sanitizeTaskPayload({
@@ -4239,7 +4199,7 @@ ${JSON.stringify(texts)}`;
 
       const { data: insertedTask, error } = await db.from('tasks').insert(payload).select('id').maybeSingle();
       if (error) {
-        errors.push(`Задача #${i + 1}: ${error.message}`);
+        errors.push(`${labelOf(i)}: ${error.message}`);
         for (const path of Object.values(figurePaths)) await removeFile(path);
       } else {
         successCount++;
@@ -4253,7 +4213,7 @@ ${JSON.stringify(texts)}`;
         // Привязываем кросс-теги Skola2030 если они переданы в массиве tags
         if (newTaskId && Array.isArray(item.tags) && item.tags.length) {
           if (!tagsReady) {
-            warnings.push(`Задача #${i + 1}: теги не сохранены — не выполнена миграция 010_cross_tags.sql.`);
+            warnings.push(`${labelOf(i)}: теги не сохранены — не выполнена миграция 010_cross_tags.sql.`);
           } else try {
             const rawTags = item.tags.map(t => String(t).trim().toLowerCase()).filter(Boolean);
             const matched = [];
@@ -4265,18 +4225,18 @@ ${JSON.stringify(texts)}`;
             /* Словарь тегов закрытый. Молча выбросить непонятый тег — значит
                потерять разметку без единого следа, поэтому говорим об этом. */
             if (unknown.length) {
-              warnings.push(`Задача #${i + 1}: неизвестные теги — ${unknown.join(', ')}. Допустимые слаги перечислены под полем ввода.`);
+              warnings.push(`${labelOf(i)}: неизвестные теги — ${unknown.join(', ')}. Допустимые слаги перечислены под полем ввода.`);
             }
             if (matched.length > 3) {
-              warnings.push(`Задача #${i + 1}: тегов больше трёх, сохранены первые три (${matched.slice(0, 3).map(t => t.slug).join(', ')}).`);
+              warnings.push(`${labelOf(i)}: тегов больше трёх, сохранены первые три (${matched.slice(0, 3).map(t => t.slug).join(', ')}).`);
             }
             const tagInserts = matched.slice(0, 3).map(t => ({ task_id: newTaskId, tag_id: t.id }));
             if (tagInserts.length) {
               const { error: tagErr } = await db.from('task_tags').insert(tagInserts);
-              if (tagErr) warnings.push(`Задача #${i + 1}: теги не сохранены — ${tagErr.message}`);
+              if (tagErr) warnings.push(`${labelOf(i)}: теги не сохранены — ${tagErr.message}`);
             }
           } catch (tErr) {
-            warnings.push(`Задача #${i + 1}: ошибка сохранения тегов — ${tErr.message}`);
+            warnings.push(`${labelOf(i)}: ошибка сохранения тегов — ${tErr.message}`);
           }
         }
       }
@@ -4287,6 +4247,65 @@ ${JSON.stringify(texts)}`;
     if (withoutTopic) {
       warnings.unshift(`Задач без темы: ${withoutTopic}. В файле нет столбца темы или её название не совпало ни с одной темой — на страницах тем их не будет.`);
     }
+
+    return { createdTopicsCount, createdSubtopicsCount, successCount, errors, warnings, uploadedFigures };
+  }
+
+  bulkDialogSubmit?.addEventListener('click', async () => {
+    if (bulkMode === 'export' || bulkMode === 'export_csv') {
+      const isCsv = bulkMode === 'export_csv';
+      const type = isCsv ? 'text/csv;charset=utf-8;' : 'application/json';
+      const ext = isCsv ? 'csv' : 'json';
+      const blob = new Blob([bulkDialogTextarea.value], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `math-tasks-export-${new Date().toISOString().slice(0, 10)}.${ext}`;
+      a.click();
+      URL.revokeObjectURL(url);
+      bulkDialogStatus.className = 'bulk-dialog-status success';
+      bulkDialogStatus.textContent = `✓ Файл tasks-export.${ext} сохранён!`;
+      bulkDialogStatus.hidden = false;
+      return;
+    }
+
+    // Режим импорта (JSON / CSV / TSV)
+    bulkDialogStatus.hidden = true;
+    const raw = bulkDialogTextarea.value.trim();
+    if (!raw) {
+      bulkDialogStatus.className = 'bulk-dialog-status error';
+      bulkDialogStatus.textContent = 'Вставьте JSON, CSV или выберите файл для импорта.';
+      bulkDialogStatus.hidden = false;
+      return;
+    }
+
+    let parsedResult;
+    try {
+      const parseFn = window.MathTasksLib?.parseTasksImport || parseMultiTopicJson;
+      parsedResult = parseFn(raw);
+    } catch (e) {
+      bulkDialogStatus.className = 'bulk-dialog-status error';
+      bulkDialogStatus.textContent = 'Ошибка синтаксиса: ' + e.message;
+      bulkDialogStatus.hidden = false;
+      return;
+    }
+
+    const { uniqueTopics, uniqueSubtopics, tasks: items, format } = parsedResult;
+    if (!items.length) {
+      bulkDialogStatus.className = 'bulk-dialog-status error';
+      bulkDialogStatus.textContent = 'В данных не найдено задач для импорта (проверьте формат JSON или CSV).';
+      bulkDialogStatus.hidden = false;
+      return;
+    }
+
+    bulkDialogSubmit.disabled = true;
+    bulkDialogSubmit.textContent = 'Импортируем в Supabase…';
+
+    const publishNow = Boolean(document.querySelector('#bulk-dialog-publish')?.checked);
+    const { createdTopicsCount, createdSubtopicsCount, successCount, errors, warnings, uploadedFigures } = await importParsedItems({
+      uniqueTopics, uniqueSubtopics, items, publishNow,
+      parseWarnings: Array.isArray(parsedResult.warnings) ? parsedResult.warnings : []
+    });
 
     bulkDialogSubmit.disabled = false;
     bulkDialogSubmit.textContent = 'Импортировать в базу';
@@ -5675,6 +5694,7 @@ ${JSON.stringify(texts)}`;
     setShellText('#adm-stat-drafts', drafts);
     setShellText('#adm-stat-reports', reports.length);
     setShellText('#adm-stat-published', taskIndex.length - drafts);
+    paintStatusSegments();
     scheduleOverview();
   }
 
@@ -6074,7 +6094,296 @@ ${JSON.stringify(texts)}`;
   taskList.addEventListener('click', event => {
     if (event.target.closest('[data-reset-task-filters]')) resetTaskFilters();
   });
-  if (shell) setTasksShown(true);
+
+  /* ── Импорт: мастер «Файл → Разбор и проверка → Импорт в очередь» ──
+     Ничего не попадает в базу, пока не нажата кнопка импорта. Разбор
+     показывает каждую строку: готова, с ошибкой или дублирует задачу.
+     Импортируются только готовые строки — той же функцией, что и окно
+     импорта, поэтому темы, подтемы, чертежи и теги сохраняются одинаково. */
+  const imp = {
+    steps: shell ? shell.querySelectorAll('#imp-steps [data-step]') : [],
+    drop: byId('imp-drop'),
+    file: byId('imp-file'),
+    text: byId('imp-text'),
+    fileName: byId('imp-file-name'),
+    analyzeBtn: byId('imp-analyze'),
+    clearBtn: byId('imp-clear'),
+    error: byId('imp-error'),
+    result: byId('imp-result'),
+    notes: byId('imp-notes'),
+    rows: byId('imp-rows'),
+    publish: byId('imp-publish'),
+    runBtn: byId('imp-run'),
+    done: byId('imp-done')
+  };
+  let impAnalysis = null;
+  let impFilter = 'all';
+  let impBusy = false;
+  // «Импортировать 1 задачу», «Опубликовать 21 задачу» — винительный падеж.
+  const tasksAcc = n => (declTasks(n) === 'задача' ? 'задачу' : declTasks(n));
+
+  function setImportStep(step) {
+    imp.steps.forEach(el => {
+      const n = Number(el.dataset.step);
+      el.classList.toggle('is-active', n === step);
+      el.classList.toggle('is-done', n < step);
+      if (n === step) el.setAttribute('aria-current', 'step');
+      else el.removeAttribute('aria-current');
+    });
+  }
+
+  function resetImportResult() {
+    impAnalysis = null;
+    if (imp.result) imp.result.hidden = true;
+    if (imp.done) imp.done.hidden = true;
+    if (imp.error) {
+      imp.error.hidden = true;
+      imp.error.textContent = '';
+    }
+    setImportStep(1);
+  }
+
+  function showImportError(message) {
+    if (!imp.error) return;
+    imp.error.textContent = message;
+    imp.error.hidden = false;
+  }
+
+  async function loadImportSource(file) {
+    if (!file || !imp.text) return;
+    imp.text.value = await file.text();
+    if (imp.fileName) imp.fileName.textContent = file.name;
+    await analyzeImport();
+  }
+
+  async function analyzeImport() {
+    if (impBusy || !imp.text) return;
+    resetImportResult();
+    const raw = imp.text.value.trim();
+    if (imp.clearBtn) imp.clearBtn.hidden = !raw;
+    if (!raw) {
+      showImportError('Вставьте JSON или таблицу либо выберите файл.');
+      return;
+    }
+    let parsed;
+    try {
+      // Сломанный JSON иначе молча разбирался бы как таблица и давал мусор.
+      if (/^[[{]/.test(raw)) {
+        try { JSON.parse(raw); } catch (err) { throw new Error(`JSON не разобрался: ${err.message}`); }
+      }
+      parsed = window.MathTasksLib.parseTasksImport(raw);
+    } catch (err) {
+      showImportError(err.message);
+      return;
+    }
+    if (!parsed.tasks.length) {
+      showImportError('Задач не найдено. В таблице первая строка — названия столбцов, и нужен столбец condition_latex (или «Условие»).');
+      return;
+    }
+    impBusy = true;
+    imp.analyzeBtn.disabled = true;
+    imp.analyzeBtn.textContent = 'Разбираем…';
+    try {
+      // Для поиска дублей нужны условия всех задач базы — только id и текст.
+      const { data: existing, error } = await window.MathTasksLib.fetchAllRows(
+        () => db.from('tasks').select('id,condition_latex').order('id'));
+      const analysis = window.MathTasksLib.analyzeImportRows(parsed.tasks, {
+        topics,
+        subtopics,
+        existingConditions: existing || [],
+        tags: tagsReady && allTags.length ? allTags : null,
+        checkFormula: checkFormulaSyntax
+      });
+      impAnalysis = { parsed, ...analysis, dupCheckFailed: Boolean(error) };
+      impFilter = 'all';
+      renderImportAnalysis();
+      setImportStep(2);
+    } finally {
+      impBusy = false;
+      imp.analyzeBtn.disabled = false;
+      imp.analyzeBtn.textContent = 'Разобрать';
+    }
+  }
+
+  function renderImportAnalysis() {
+    const a = impAnalysis;
+    if (!a || !imp.result) return;
+    imp.result.hidden = false;
+    byId('imp-stat-ok').textContent = a.counts.ok;
+    byId('imp-stat-bad').textContent = a.counts.bad;
+    byId('imp-stat-dup').textContent = a.counts.dup;
+    byId('imp-stat-new').textContent = `${a.newTopics} / ${a.newSubtopics}`;
+    const notes = [`Формат: ${a.parsed.format === 'json' ? 'JSON' : 'таблица CSV'}, строк с задачами: ${a.rows.length}.`];
+    if (a.dupCheckFailed) notes.push('С задачами базы сверить не удалось — дубликаты проверены только внутри файла.');
+    for (const warning of a.parsed.warnings || []) notes.push(warning);
+    imp.notes.innerHTML = notes.map(text => `<p>${escapeHtml(text)}</p>`).join('');
+    renderImportRows();
+    const n = a.counts.ok;
+    imp.runBtn.textContent = n ? `Импортировать ${n} ${tasksAcc(n)}` : 'Нечего импортировать';
+    imp.runBtn.disabled = !n;
+  }
+
+  function renderImportRows() {
+    const a = impAnalysis;
+    if (!a || !imp.rows) return;
+    shell.querySelectorAll('[data-imp-filter]').forEach(btn => {
+      const on = btn.dataset.impFilter === impFilter;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', String(on));
+    });
+    const head = '<div class="imp-thead"><div>№</div><div>Условие</div><div>Тема</div><div>Класс</div><div>Проверка</div></div>';
+    const list = impFilter === 'bad' ? a.rows.filter(r => r.status !== 'ok') : a.rows;
+    if (!list.length) {
+      imp.rows.innerHTML = head + '<p class="adm-empty">Проблемных строк нет — импортируется всё.</p>';
+      return;
+    }
+    const codes = topicCodeMap();
+    imp.rows.innerHTML = head + list.map(r => {
+      const cond = String(r.item.condition_latex || '').replace(/\s+/g, ' ').trim();
+      const topicText = r.topic ? topicOptionText(r.topic, codes) : (r.topicTitle ? `новая: ${r.topicTitle}` : '—');
+      const sub = r.subtopic
+        ? `${r.subtopic.code ? r.subtopic.code + ' ' : ''}${r.subtopic.title}`
+        : String(r.item.subtopic_code || r.item.subtopic_title || '').trim();
+      const grade = parseFormGrade(r.grade);
+      const check = r.problems.length ? r.problems.map(p => p.text).join('; ') : ['готово', ...r.notes].join(' · ');
+      const full = [...r.problems.map(p => p.text), ...r.notes].join('; ') || 'готово';
+      return `<div class="imp-trow ${r.status}">
+        <div class="imp-n">${r.n}</div>
+        <div class="imp-cond" title="${escapeHtml(cond)}">${escapeHtml(cond.slice(0, 220)) || '—'}</div>
+        <div class="imp-topic" title="${escapeHtml(sub ? `${topicText} · ${sub}` : topicText)}"><span>${escapeHtml(topicText)}</span>${sub ? `<small>${escapeHtml(sub)}</small>` : ''}</div>
+        <div class="imp-grade">${grade ? `${grade}. klase` : '—'}</div>
+        <div class="imp-check ${r.status}" title="${escapeHtml(full)}">${escapeHtml(check)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  async function runImport() {
+    const a = impAnalysis;
+    if (!a || impBusy) return;
+    const okRows = a.rows.filter(r => r.status === 'ok');
+    if (!okRows.length) return;
+    const publishNow = Boolean(imp.publish?.checked);
+    if (publishNow && !confirm(`Опубликовать ${okRows.length} ${tasksAcc(okRows.length)} на сайте сразу, без проверки?`)) return;
+    impBusy = true;
+    imp.runBtn.disabled = true;
+    imp.analyzeBtn.disabled = true;
+    setImportStep(3);
+    const items = okRows.map(r => r.item);
+    // Темы и подтемы создаём только для строк, которые импортируются.
+    const low = value => String(value || '').trim().toLowerCase();
+    const topicKeys = new Set(items.flatMap(it => [low(it.topic_title), low(it.topic_title_lv)]).filter(Boolean));
+    const subKeys = new Set(items.map(it => `${low(it.topic_title)}::${low(it.subtopic_code || it.subtopic_title)}`));
+    let result;
+    try {
+      result = await importParsedItems({
+        uniqueTopics: (a.parsed.uniqueTopics || []).filter(t => topicKeys.has(low(t.title)) || topicKeys.has(low(t.title_lv))),
+        uniqueSubtopics: (a.parsed.uniqueSubtopics || []).filter(s => subKeys.has(`${low(s.topic_title)}::${low(s.code || s.title)}`)),
+        items,
+        publishNow,
+        labelOf: i => `Строка ${okRows[i].n}`,
+        onProgress: (i, total) => { imp.runBtn.textContent = `Импортируем… ${i} из ${total}`; }
+      });
+    } catch (err) {
+      result = { successCount: 0, createdTopicsCount: 0, createdSubtopicsCount: 0, uploadedFigures: 0, errors: [err.message], warnings: [] };
+    } finally {
+      impBusy = false;
+      imp.analyzeBtn.disabled = false;
+    }
+    renderImportDone(result, okRows.length, publishNow);
+    await loadCatalog();
+    await refreshTasks();
+  }
+
+  function renderImportDone(res, total, publishNow) {
+    if (!imp.done) return;
+    const list = (title, items, cls) => (items.length
+      ? `<div class="imp-done-list ${cls}"><strong>${title} (${items.length})</strong><ul>${items.slice(0, 20).map(t => `<li>${escapeHtml(t)}</li>`).join('')}${items.length > 20 ? `<li>…и ещё ${items.length - 20}</li>` : ''}</ul></div>`
+      : '');
+    const created = [
+      res.createdTopicsCount ? `новых тем: ${res.createdTopicsCount}` : '',
+      res.createdSubtopicsCount ? `новых подтем: ${res.createdSubtopicsCount}` : '',
+      res.uploadedFigures ? `чертежей: ${res.uploadedFigures}` : ''
+    ].filter(Boolean).join(', ');
+    const where = res.successCount
+      ? (publishNow ? 'Задачи опубликованы и уже видны на сайте.' : 'Задачи сохранены черновиками: на сайте их не видно, пока вы не опубликуете их на экране «Проверка».')
+      : '';
+    imp.done.innerHTML = `<div class="imp-done-title">${res.successCount ? `Импортировано ${res.successCount} из ${total}` : 'Ничего не импортировано'}</div>
+      <p>${where}${created ? ` Создано: ${created}.` : ''}</p>
+      ${list('Предупреждения', res.warnings || [], 'warn')}${list('Ошибки', res.errors || [], 'bad')}
+      <div class="imp-done-actions">
+        ${res.successCount ? `<a class="adm-btn primary" href="${publishNow ? '#tasks' : '#review'}">${publishNow ? 'Открыть каталог' : 'Перейти к проверке'}</a>` : ''}
+        <button type="button" class="adm-btn soft" data-imp-restart>Новый импорт</button>
+      </div>`;
+    imp.done.hidden = false;
+    if (imp.result) imp.result.hidden = true;
+    imp.done.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function restartImport() {
+    if (imp.text) imp.text.value = '';
+    if (imp.fileName) imp.fileName.textContent = '';
+    if (imp.clearBtn) imp.clearBtn.hidden = true;
+    resetImportResult();
+    imp.text?.focus();
+  }
+
+  imp.analyzeBtn?.addEventListener('click', () => analyzeImport());
+  imp.runBtn?.addEventListener('click', () => runImport());
+  imp.clearBtn?.addEventListener('click', restartImport);
+  imp.text?.addEventListener('input', () => {
+    // Текст изменился — прежний разбор больше не про него.
+    if (impAnalysis || (imp.error && !imp.error.hidden) || (imp.done && !imp.done.hidden)) resetImportResult();
+    if (imp.fileName) imp.fileName.textContent = '';
+    if (imp.clearBtn) imp.clearBtn.hidden = !imp.text.value.trim();
+  });
+  imp.file?.addEventListener('change', () => {
+    const file = imp.file.files?.[0];
+    imp.file.value = '';
+    loadImportSource(file);
+  });
+  imp.drop?.addEventListener('click', () => imp.file?.click());
+  imp.drop?.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      imp.file?.click();
+    }
+  });
+  /* Файл можно бросить в любое место экрана импорта: брошенный мимо зоны
+     файл браузер иначе открыл бы вместо админки. */
+  const onImportScreen = () => currentView === 'import' && !content.hidden;
+  document.addEventListener('dragover', event => {
+    if (!onImportScreen()) return;
+    event.preventDefault();
+    imp.drop?.classList.add('is-over');
+  });
+  document.addEventListener('dragleave', event => {
+    if (onImportScreen() && !event.relatedTarget) imp.drop?.classList.remove('is-over');
+  });
+  document.addEventListener('drop', event => {
+    if (!onImportScreen()) return;
+    event.preventDefault();
+    imp.drop?.classList.remove('is-over');
+    loadImportSource(event.dataTransfer?.files?.[0]);
+  });
+  shell?.addEventListener('click', event => {
+    const filterBtn = event.target.closest('[data-imp-filter]');
+    if (filterBtn) {
+      impFilter = filterBtn.dataset.impFilter;
+      renderImportRows();
+      return;
+    }
+    if (event.target.closest('[data-imp-restart]')) {
+      restartImport();
+      return;
+    }
+    const sample = event.target.closest('[data-imp-sample]');
+    if (sample && imp.text) {
+      const code = sample.dataset.impSample === 'csv' ? byId('csv-sample-code') : byId('json-sample-code');
+      imp.text.value = code?.textContent || '';
+      if (imp.fileName) imp.fileName.textContent = `образец ${sample.dataset.impSample.toUpperCase()}`;
+      analyzeImport();
+    }
+  });
 
   if (shell) showView(location.hash.slice(1) || 'home', { push: false });
 
