@@ -71,10 +71,41 @@ const CROSS_TAG_SLUGS = [
   'modelesana', 'teksta-uzdevumi', 'pieradijumi'
 ];
 
+const BASE_SITEMAP_PATHS = [
+  '/', '/tasks', '/tags', '/about', '/control-works', '/exams.html',
+  '/mock-exams.html', '/trainer.html', '/grade/visparigais',
+  '/grade/matematika-1', '/grade/matematika-2'
+];
+
+function buildSitemapPaths({ subjects = [], topics = [], tasks = [], tags = [], subtopics = [] } = {}) {
+  let paths = BASE_SITEMAP_PATHS.concat(CROSS_TAG_SLUGS.map(slug => `/tag/${slug}`));
+
+  const grades = [...new Set(topics.map(t => t.grade).filter(Boolean))].sort((a, b) => a - b);
+  const tagSlugs = (tags && tags.length > 0) ? tags.map(t => t.slug) : CROSS_TAG_SLUGS;
+  paths = paths
+    .concat(grades.map(g => `/grade/${g}`))
+    .concat(subjects.map(s => `/subject/${s.slug}`))
+    .concat(topics.map(t => `/topic/${t.slug}`))
+    .concat((subtopics || []).map(s => `/subtopic/${s.slug}`))
+    .concat(topics.map(t => `/control-work/${t.slug}`))
+    .concat(grades.map(g => `/grade/${g}/tasks`))
+    .concat(tagSlugs.map(slug => `/tag/${slug}`))
+    .concat(tasks.map(t => `/task/${t.id}-${slugify(t.title)}`));
+
+  return [...new Set(paths)];
+}
+
+function buildSitemapXml(paths, origin = 'https://mathtasks.lv') {
+  const cleanOrigin = String(origin || '').replace(/\/+$/, '');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${[...new Set(paths)].map(p => `  <url><loc>${escapeHtml(cleanOrigin + p)}</loc></url>`).join('\n')}
+</urlset>`;
+}
+
 async function sitemap(request, env) {
   const origin = new URL(request.url).origin;
-  let paths = ['/', '/tasks', '/tags', '/about', '/control-works', '/exams.html', '/mock-exams.html', '/trainer.html', '/grade/visparigais', '/grade/matematika-1', '/grade/matematika-2']
-    .concat(CROSS_TAG_SLUGS.map(slug => `/tag/${slug}`));
+  let paths;
 
   if (env.SUPABASE_URL && supabaseKeyOf(env)) {
     try {
@@ -87,27 +118,17 @@ async function sitemap(request, env) {
         // Подтемы появляются миграцией 020: до неё запрос падает, карта живёт без них.
         readSupabase(env, 'subtopics?select=slug').catch(() => [])
       ]);
-      const grades = [...new Set(topics.map(t => t.grade).filter(Boolean))].sort((a, b) => a - b);
-      const tagSlugs = (tags && tags.length > 0) ? tags.map(t => t.slug) : CROSS_TAG_SLUGS;
-      paths = paths
-        .concat(grades.map(g => `/grade/${g}`))
-        .concat(subjects.map(s => `/subject/${s.slug}`))
-        .concat(topics.map(t => `/topic/${t.slug}`))
-        .concat((subtopics || []).map(s => `/subtopic/${s.slug}`))
-        .concat(topics.map(t => `/control-work/${t.slug}`))
-        .concat(grades.map(g => `/grade/${g}/tasks`))
-        .concat(tagSlugs.map(slug => `/tag/${slug}`))
-        .concat(tasks.map(t => `/task/${t.id}-${slugify(t.title)}`));
+      paths = buildSitemapPaths({ subjects, topics, tasks, tags, subtopics });
     } catch (error) {
       // Каталог не прочитался — отдаём статические адреса, а не пустоту.
       console.error('sitemap:', error.message);
+      paths = buildSitemapPaths();
     }
+  } else {
+    paths = buildSitemapPaths();
   }
 
-  const body = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${[...new Set(paths)].map(p => `  <url><loc>${escapeHtml(origin + p)}</loc></url>`).join('\n')}
-</urlset>`;
+  const body = buildSitemapXml(paths, origin);
 
   return new Response(body, {
     headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600' }
@@ -121,31 +142,59 @@ const BOT_PATTERNS = ['telegrambot', 'whatsapp', 'facebookexternalhit', 'twitter
 
 const isSocialBot = ua => BOT_PATTERNS.some(bot => (ua || '').toLowerCase().includes(bot));
 
+/* Бот мессенджера формулы не рисует, поэтому LaTeX переводится в обычные
+   символы. Раньше команды просто вырезались, и «S = \pi r^2» доходил
+   до превью как «S = r2», а «30^\circ» — как «30». */
+const LATEX_SYMBOLS = {
+  pi: 'π', alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', Delta: 'Δ', varphi: 'φ', phi: 'φ',
+  lambda: 'λ', mu: 'μ', sigma: 'σ', omega: 'ω', theta: 'θ',
+  cdot: '·', times: '×', div: ':', pm: '±', mp: '∓',
+  le: '≤', leq: '≤', ge: '≥', geq: '≥', ne: '≠', neq: '≠', approx: '≈',
+  infty: '∞', circ: '°', degree: '°', angle: '∠', triangle: '△', perp: '⊥', parallel: '∥',
+  in: '∈', notin: '∉', cup: '∪', cap: '∩', emptyset: '∅', to: '→', Rightarrow: '⇒'
+};
+const SUPERSCRIPTS = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹', '+': '⁺', '-': '⁻', '°': '°' };
+const SUBSCRIPTS = { 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉' };
+
+// Перевод строки целиком или null, если хоть одного символа в таблице нет.
+const mapAll = (text, table) => [...text].every(c => Object.hasOwn(table, c))
+  ? [...text].map(c => table[c]).join('') : null;
+// Короткий аргумент корня и дроби пишется без скобок (√16, 1/2), выражение — в скобках.
+const wrap = text => (/^[^\s+\-−*\/:=<>·×]+$/.test(text) ? text : `(${text})`);
+
+// Знаки, которые стоят вплотную к следующей букве: «∠A», а не «∠ A».
+const PREFIX_SYMBOLS = new Set(['angle', 'triangle']);
+
 const cleanLatexForPreview = (latex = '') => String(latex || '')
-  .replace(/\\(text|textbf|textit)\{([^}]+)\}/g, '$2')
-  .replace(/\\sqrt\{([^}]+)\}/g, '√($1)')
-  .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)')
+  .replace(/\\(begin|end)\{[^}]*\}/g, ' ')
+  .replace(/\\([a-zA-Z]+)(\s*)/g, (match, name, space) => {
+    if (!Object.hasOwn(LATEX_SYMBOLS, name)) return match;
+    return LATEX_SYMBOLS[name] + (PREFIX_SYMBOLS.has(name) ? '' : space);
+  })
+  .replace(/\^\{([^{}]*)\}|\^([^\s{}\\])/g, (match, group, single) => {
+    const text = group ?? single;
+    return mapAll(text, SUPERSCRIPTS) ?? (text.length > 1 ? `^(${text})` : `^${text}`);
+  })
+  .replace(/_\{([^{}]*)\}|_([^\s{}\\])/g, (match, group, single) => {
+    const text = group ?? single;
+    return mapAll(text, SUBSCRIPTS) ?? (text.length > 1 ? `_(${text})` : `_${text}`);
+  })
+  .replace(/\\(text|textbf|textit|mathrm)\{([^}]+)\}/g, '$2')
+  .replace(/\\sqrt\[([^\]]+)\]\{([^}]+)\}/g, (match, n, body) => `${mapAll(n, SUPERSCRIPTS) ?? n}√${wrap(body)}`)
+  .replace(/\\sqrt\{([^}]+)\}/g, (match, body) => `√${wrap(body)}`)
+  .replace(/\\[dt]?frac\{([^}]+)\}\{([^}]+)\}/g, (match, a, b) => `${wrap(a)}/${wrap(b)}`)
+  .replace(/\\\\|\\[,;:! ]/g, ' ')
+  .replace(/\\([{}%&#])/g, '$1')
   .replace(/\\[a-zA-Z]+/g, ' ')
-  .replace(/[$_{}^]/g, '')
+  .replace(/[${}]/g, '')
   .replace(/\s+/g, ' ')
   .trim()
   .slice(0, 200);
 
-async function taskPreview(request, env, taskId) {
-  if (!env.SUPABASE_URL || !supabaseKeyOf(env)) return null;
-  let task;
-  try {
-    const rows = await readSupabase(env,
-      `tasks?id=eq.${taskId}&select=id,title,title_lv,condition_latex,condition_latex_lv,condition_image,topics(title,title_lv,grade)&limit=1`);
-    task = rows && rows[0];
-  } catch (error) {
-    console.error('og:', error.message);
-    return null;
-  }
-  if (!task) return null;
+function renderTaskPreviewHtml(task, { url, origin } = {}) {
+  const taskUrl = url || (origin ? `${origin}/task/${task.id}` : `/task/${task.id}`);
+  const siteOrigin = origin || (url ? new URL(url).origin : '');
 
-  const origin = new URL(request.url).origin;
-  const taskUrl = request.url;
   /* Превью читают боты мессенджеров: языка посетителя у них нет.
      Аудитория сайта латышская, поэтому берём латышский, а русский
      оставляем запасным — на случай, если перевода у записи нет. */
@@ -156,9 +205,9 @@ async function taskPreview(request, env, taskId) {
   const pageTitle = `${pick(task.title_lv, task.title)}${gradeLabel}${topicTitle} — MathTasks`;
   const description = cleanLatexForPreview(pick(task.condition_latex_lv, task.condition_latex))
     || 'Matemātikas uzdevums ar atbildi, zīmējumu un soli pa solim atrisinājumu.';
-  const imageUrl = task.condition_image || `${origin}/favicon.svg`;
+  const imageUrl = task.condition_image || (siteOrigin ? `${siteOrigin}/favicon.svg` : '/favicon.svg');
 
-  const html = `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="lv">
 <head>
   <meta charset="UTF-8">
@@ -182,6 +231,23 @@ async function taskPreview(request, env, taskId) {
   <p><a href="${escapeHtml(taskUrl)}">Skatīt uzdevumu MathTasks portālā</a></p>
 </body>
 </html>`;
+}
+
+async function taskPreview(request, env, taskId) {
+  if (!env.SUPABASE_URL || !supabaseKeyOf(env)) return null;
+  let task;
+  try {
+    const rows = await readSupabase(env,
+      `tasks?id=eq.${taskId}&select=id,title,title_lv,condition_latex,condition_latex_lv,condition_image,topics(title,title_lv,grade)&limit=1`);
+    task = rows && rows[0];
+  } catch (error) {
+    console.error('og:', error.message);
+    return null;
+  }
+  if (!task) return null;
+
+  const origin = new URL(request.url).origin;
+  const html = renderTaskPreviewHtml(task, { url: request.url, origin });
 
   return new Response(html, {
     headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' }
@@ -192,7 +258,10 @@ async function taskPreview(request, env, taskId) {
 
 /* Ключ живёт в переменных воркера, поэтому генерировать задачи можно и
    без личного ключа в браузере. Тело запроса — параметры задачи, промпт
-   собирается здесь; ответ той же формы, что у клиентского генератора. */
+   собирается здесь; ответ той же формы, что у клиентского генератора.
+   Проверки роли пока нет: с заданным GEMINI_API_KEY эндпоинт вызовет
+   любой, кто знает адрес. Ключ в секреты — только вместе с проверкой
+   (docs/ROADMAP.md, п. 5.4). */
 async function generateTask(request, env) {
   if (request.method !== 'POST') {
     return json({ error: 'Ожидался POST-запрос.' }, 405);
@@ -308,7 +377,22 @@ ${customPrompt ? `Дополнительные пожелания: "${customProm
   }
 }
 
-/* ── Маршрутизация ───────────────────────────────────────────────── */
+export {
+  TRANSLIT,
+  CROSS_TAG_SLUGS,
+  BASE_SITEMAP_PATHS,
+  BOT_PATTERNS,
+  slugify,
+  escapeHtml,
+  cleanLatexForPreview,
+  isSocialBot,
+  buildSitemapPaths,
+  buildSitemapXml,
+  renderTaskPreviewHtml,
+  sitemap,
+  taskPreview,
+  generateTask
+};
 
 export default {
   async fetch(request, env) {

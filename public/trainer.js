@@ -1472,7 +1472,7 @@
     if (!userInput || !userInput.trim()) {
       return { isCorrect: false, expectedDisplay: question.answer, userNormalized: '' };
     }
-    const clean = userInput.trim().replace(/\s+/g, '').replace(',', '.');
+    const clean = userInput.trim().replace(/\s+/g, '').replace(/[\u2212\u2013\u2014]/g, '-').replace(',', '.');
 
     // Проверка алгебраических выражений (степени и корни с переменными)
     if (question.type === 'algebra' || /[a-z]/i.test(question.answer) || /[a-z]/i.test(clean)) {
@@ -1645,6 +1645,13 @@
     return list;
   }
 
+  function formatTime(sec) {
+    const s = Math.max(0, Math.floor(sec || 0));
+    const m = Math.floor(s / 60);
+    const remainder = s % 60;
+    return `${String(m).padStart(2, '0')}:${String(remainder).padStart(2, '0')}`;
+  }
+
   const api = {
     GENERATORS,
     generateQuestion: (cat = 'addsub2', diff = 'normal') => {
@@ -1653,6 +1660,7 @@
     },
     generateBatch,
     checkAnswer,
+    formatTime,
     playSound,
     reduceFraction,
     gcd

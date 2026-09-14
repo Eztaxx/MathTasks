@@ -80,11 +80,8 @@
       const tabViewCard = document.querySelector('#tab-view-card');
 
       /* ── Логика режима «Куча примеров на страницу» ──────────────────── */
-      function formatTime(sec) {
-        const m = Math.floor(sec / 60);
-        const s = sec % 60;
-        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-      }
+      // trainer.js подключён раньше этого файла, запасная копия не нужна.
+      const formatTime = sec => window.MathTasksTrainer.formatTime(sec);
 
       function startSheetStopwatch() {
         stopSheetStopwatch();
