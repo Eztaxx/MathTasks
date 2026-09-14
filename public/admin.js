@@ -2373,6 +2373,43 @@ ${JSON.stringify(texts)}`;
     return { ok: true };
   }
 
+  /* Условия всех задач базы — для метки «такое условие уже есть». Ключ тот
+     же, что у поиска дублей при импорте (importDupKey). Грузим один раз, при
+     первой проверке; сама редактируемая задача себе не повтор. */
+  let dupIndex = null;
+  let dupIndexLoading = false;
+
+  function loadDupIndex() {
+    const lib = window.MathTasksLib;
+    if (dupIndexLoading || !db || !lib?.fetchAllRows || !lib.importDupKey) return;
+    dupIndexLoading = true;
+    lib.fetchAllRows(() => db.from('tasks').select('id,condition_latex').order('id'))
+      .then(({ data, error }) => {
+        if (error) return;
+        const index = new Map();
+        for (const row of data || []) {
+          const key = lib.importDupKey(row.condition_latex);
+          if (!key) continue;
+          if (!index.has(key)) index.set(key, []);
+          index.get(key).push(row.id);
+        }
+        dupIndex = index;
+        updateReadyBar();
+      })
+      .catch(() => {})
+      .finally(() => { dupIndexLoading = false; });
+  }
+
+  function duplicateTaskIds(condition) {
+    const lib = window.MathTasksLib;
+    if (!condition || !lib?.importDupKey) return [];
+    if (!dupIndex) {
+      loadDupIndex();
+      return [];
+    }
+    return (dupIndex.get(lib.importDupKey(condition)) || []).filter(id => id !== editingTaskId);
+  }
+
   function updateReadyBar() {
     // Полосу зовут при каждом изменении формы — заодно обновляем всё, что показывает её состояние.
     syncEditorWidgets();
@@ -2442,9 +2479,15 @@ ${JSON.stringify(texts)}`;
       }
     }
 
-    // 5. Подсказка для ученика (RU / LV)
+    // 5. Подсказка для ученика (RU / LV). У задачи с полем ответа подсказка
+    //    открывается после первой ошибки — без неё ученику нечего открыть до второй.
+    const lib = window.MathTasksLib || {};
+    const answerForField = ansRu || ansLv;
+    const hasAnswerField = Boolean(answerForField) && (!lib.isAnswerAutoCheckable || lib.isAnswerAutoCheckable(answerForField));
     if (!hintRu && !hintLv) {
-      chips.push({ level: 'info', text: 'Нет подсказки', action: 'focus-hint', title: 'Подсказка даёт направление мысли без готового ответа' });
+      chips.push(hasAnswerField
+        ? { level: 'warn', text: 'Нет подсказки', action: 'focus-hint', title: 'Подсказка открывается после первой неверной попытки — без неё ученику нечего открыть до второй' }
+        : { level: 'info', text: 'Нет подсказки', action: 'focus-hint', title: 'Подсказка даёт направление мысли без готового ответа' });
     } else {
       if (hintRu && !checkFormulaSyntax(hintRu).ok) {
         chips.push({ level: 'bad', text: 'Ошибка $ в подсказке RU', action: 'focus-hint' });
@@ -2452,6 +2495,55 @@ ${JSON.stringify(texts)}`;
       if (hintLv && !checkFormulaSyntax(hintLv).ok) {
         chips.push({ level: 'bad', text: 'Ошибка $ в подсказке LV', action: 'focus-hint-lv' });
       }
+      if (condLv && hintRu && !hintLv) {
+        chips.push({ level: 'info', text: 'Нет подсказки на LV', action: 'focus-hint-lv', title: 'Norāde на латышском языке' });
+      }
+    }
+
+    // 5а. Поля между собой: то, что не видно, пока смотришь на каждое поле отдельно.
+    if (lib.isAnswerAutoCheckable) {
+      const notCheckable = [[ansRu, 'focus-ans', ''], [ansLv, 'focus-ans-lv', ' (LV)']]
+        .find(([answer]) => answer && !lib.isAnswerAutoCheckable(answer));
+      if (notCheckable) {
+        chips.push({ level: 'warn', text: `Ответ не проверяется автоматически${notCheckable[2]}`, action: notCheckable[1],
+          title: 'У задачи не будет поля ответа: ответ и решение откроются сразу. Запишите ответ числом, выражением или списком значений — без слов («120», а не «120 книг»)' });
+      }
+    }
+    if (lib.answersDisagree && lib.answersDisagree(ansRu, ansLv)) {
+      chips.push({ level: 'bad', text: 'Ответы RU и LV расходятся', action: 'focus-ans-lv', title: 'В русском и латышском ответе разные числа' });
+    }
+    if (lib.missingAnswerNumbers) {
+      for (const [answer, solution, action, suffix] of [[ansRu, solRu, 'focus-sol', 'RU'], [ansLv || ansRu, solLv, 'focus-sol-lv', 'LV']]) {
+        const missing = lib.missingAnswerNumbers(answer, solution);
+        if (missing.length) {
+          chips.push({ level: 'warn', text: `Ответа нет в решении ${suffix}`, action,
+            title: `В решении не встречается: ${missing.join('; ')}. Проверьте, что решение приходит к ответу` });
+        }
+      }
+    }
+    if (lib.hintRevealsAnswer) {
+      const reveals = [[ansRu, hintRu, 'focus-hint', ''], [ansLv || ansRu, hintLv, 'focus-hint-lv', ' (LV)']]
+        .find(([answer, hint]) => answer && hint && lib.hintRevealsAnswer(answer, hint));
+      if (reveals) {
+        chips.push({ level: 'warn', text: `Подсказка выдаёт ответ${reveals[3]}`, action: reveals[2],
+          title: 'В подсказке уже записан результат («= …»). Подсказка даёт направление, а ответ открывается позже' });
+      }
+    }
+    const latvianInRu = [[condRu, 'focus-cond-ru'], [ansRu, 'focus-ans'], [solRu, 'focus-sol'], [hintRu, 'focus-hint']]
+      .find(([text]) => /[āčēģīķļņšūž]/i.test(text));
+    if (latvianInRu) {
+      chips.push({ level: 'warn', text: 'Латышские буквы в русском тексте', action: latvianInRu[1], title: 'Похоже, в русское поле попал латышский текст' });
+    }
+    const cyrillicInLv = [[condLv, 'focus-cond-lv'], [ansLv, 'focus-ans-lv'], [solLv, 'focus-sol-lv'], [hintLv, 'focus-hint-lv']]
+      .find(([text]) => /[а-яё]/i.test(text));
+    if (cyrillicInLv) {
+      chips.push({ level: 'warn', text: 'Кириллица в латышском тексте', action: cyrillicInLv[1],
+        title: 'В латышской версии осталась кириллица — русский текст или единицы («см» вместо «cm»)' });
+    }
+    const dupIds = duplicateTaskIds(condRu);
+    if (dupIds.length) {
+      chips.push({ level: 'warn', text: `Такое условие уже есть (id ${dupIds.slice(0, 3).join(', ')})`, action: 'focus-cond-ru',
+        title: 'В базе уже есть задача с тем же условием — возможно, это повтор' });
     }
 
     // 6. Класс, тема и подтема Skola2030

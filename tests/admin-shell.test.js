@@ -94,6 +94,25 @@ describe('каркас админки: меню и экраны', () => {
     expect(html.indexOf('adm-home-btn')).toBeLessThan(html.indexOf('adm-brand-title'));
   });
 
+  it('полоса готовности сверяет поля между собой', () => {
+    for (const text of [
+      'Ответ не проверяется автоматически',
+      'Подсказка выдаёт ответ',
+      'Ответы RU и LV расходятся',
+      'Ответа нет в решении',
+      'Нет подсказки на LV',
+      'Латышские буквы в русском тексте',
+      'Кириллица в латышском тексте',
+      'Такое условие уже есть'
+    ]) {
+      expect(js, text).toContain(text);
+    }
+    // Функции, на которых стоят проверки, должны быть в lib.js.
+    for (const name of ['isAnswerAutoCheckable', 'answersDisagree', 'missingAnswerNumbers', 'hintRevealsAnswer', 'importDupKey']) {
+      expect(js, name).toContain(`lib.${name}`);
+    }
+  });
+
   it('id в admin.html не повторяются', () => {
     const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
     const repeated = [...new Set(ids.filter((id, i) => ids.indexOf(id) !== i))];

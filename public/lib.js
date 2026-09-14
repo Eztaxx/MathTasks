@@ -2317,10 +2317,75 @@
     return `${head}. ${short} ${tail}`;
   };
 
+  /* ── Проверки готовности задачи (полоса в редакторе админки) ───────
+     Сверяют поля между собой — то, чего не видно, когда смотришь на
+     каждое поле отдельно: ответ на двух языках, ответ и решение,
+     подсказка и ответ. Сверка идёт по числам: слова на двух языках
+     разные, а числа в ответе, решении и переводе обязаны совпадать. */
+
+  /* Числа текста. Дробь «1/2» — одно число 0,5; с withParts к нему
+     добавляются и 1, 2 (так в решении ищется ответ, записанный иначе).
+     Показатели степени («см²») в числа не попадают: они уходят в
+     надстрочные цифры. Знак не учитывается: «5-3» не должно давать −3. */
+  const numberValues = (text, { withParts = false } = {}) => {
+    let plain = latexToPlainText(text, 100000)
+      .replace(/(\d)[\s ](?=\d{3}(?!\d))/g, '$1')
+      .replace(/(\d),(\d)/g, '$1.$2');
+    const values = [];
+    plain = plain.replace(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/g, (m, a, b) => {
+      if (Number(b) !== 0) values.push(Number(a) / Number(b));
+      if (withParts) values.push(Number(a), Number(b));
+      return ' ';
+    });
+    for (const m of plain.match(/\d+(?:\.\d+)?/g) || []) values.push(Number(m));
+    return values;
+  };
+  const sameNumber = (a, b) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a));
+
+  // Ответы на двух языках с разными числами — почти наверняка ошибка перевода.
+  const answersDisagree = (answerRu, answerLv) => {
+    if (!String(answerRu || '').trim() || !String(answerLv || '').trim()) return false;
+    const a = numberValues(answerRu).sort((x, y) => x - y);
+    const b = numberValues(answerLv).sort((x, y) => x - y);
+    return a.length !== b.length || a.some((value, i) => !sameNumber(value, b[i]));
+  };
+
+  // Числа ответа, которых нет в решении: решение должно приходить к ответу.
+  const missingAnswerNumbers = (answer, solution) => {
+    if (!String(answer || '').trim() || !String(solution || '').trim()) return [];
+    const pool = numberValues(solution, { withParts: true });
+    const missing = numberValues(answer).filter(value => !pool.some(p => sameNumber(p, value)));
+    return [...new Set(missing)];
+  };
+
+  /* Подсказка выдаёт ответ, если в ней уже записан результат — все числа
+     ответа стоят после «=» или «≈». «Разделите обе части на 4» при ответе
+     4 подсказкой остаётся: там 4 — не результат. */
+  const hintRevealsAnswer = (answer, hint) => {
+    const values = numberValues(answer);
+    if (!values.length || !String(hint || '').trim()) return false;
+    const plain = latexToPlainText(hint, 100000)
+      .replace(/(\d)[\s ](?=\d{3}(?!\d))/g, '$1')
+      .replace(/(\d),(\d)/g, '$1.$2');
+    const stated = [];
+    /* Результат — число, на котором выражение кончается. «= 4 ± 4√3 + 3»
+       это не ответ 4, а начало выражения: после числа идёт знак действия. */
+    const result = /[=≈]\s*-?(\d+(?:\.\d+)?)(?:\s*\/\s*(\d+(?:\.\d+)?))?(?!\s*[±∓+\-−*/·×:^√(\d\p{L}])/gu;
+    for (const m of plain.matchAll(result)) {
+      stated.push(m[2] ? Number(m[1]) / Number(m[2]) : Number(m[1]));
+    }
+    return values.every(value => stated.some(s => sameNumber(s, value)));
+  };
+
   const api = {
     makeSlug,
     latexToPlainText,
     taskDescription,
+    numberValues,
+    answersDisagree,
+    missingAnswerNumbers,
+    hintRevealsAnswer,
+    importDupKey,
     sanitizeSearch,
     KATEX_DELIMITERS,
     cleanMathExample,
