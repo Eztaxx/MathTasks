@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /*
  * Численная проверка ответов.
  *
@@ -16,6 +15,11 @@
  *                 совпадает с принадлежностью ответу.
  *
  * Запуск:  node scripts/verify-answers.mjs [--id 162] [--verbose]
+ *
+ * Строки #!/usr/bin/env node здесь нет намеренно: файл подключают тесты,
+ * а в свежей копии на Windows (core.autocrlf) строка кончается на \r, и
+ * vitest не может разобрать модуль — «SyntaxError: Invalid or unexpected
+ * token». Скрипт и так запускают через node.
  */
 
 import { readFileSync } from 'node:fs';
@@ -26,10 +30,15 @@ const ONLY_ID = argv.includes('--id') ? Number(argv[argv.indexOf('--id') + 1]) :
 const VERBOSE = argv.includes('--verbose');
 
 /* ── Доступ к базе ────────────────────────────────────────────────── */
-const env = Object.fromEntries(
-  readFileSync(ROOT + '.env', 'utf8').split(/\r?\n/).filter(l => l && !l.startsWith('#'))
-    .map(l => { const i = l.indexOf('='); return [l.slice(0, i), l.slice(i + 1)]; })
-);
+/* .env читается только при запуске проверки. Тесты подключают модуль
+   ради чистых функций, а .env не хранится в git — чтение при импорте
+   роняло тест в любой свежей копии. */
+function loadEnv() {
+  return Object.fromEntries(
+    readFileSync(ROOT + '.env', 'utf8').split(/\r?\n/).filter(l => l && !l.startsWith('#'))
+      .map(l => { const i = l.indexOf('='); return [l.slice(0, i), l.slice(i + 1)]; })
+  );
+}
 
 /* ── LaTeX → выражение, которое умеет считать JS ──────────────────── */
 /* Полноценный разбор TeX здесь не нужен и вреден: чем больше движок
@@ -291,6 +300,7 @@ if (isDirectRun) {
 }
 
 async function main() {
+  const env = loadEnv();
   const H = { apikey: env.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + env.SUPABASE_ANON_KEY };
   /* Страницами по 1000: Supabase режет выдачу молча, и проверка после
      тысячной задачи тихо перестала бы видеть остальные. */

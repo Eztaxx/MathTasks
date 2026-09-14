@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   latexToJs, compile, findRelation, extractRoots, extractIntervals, inSet,
   checkEquation, checkInequality
 } from '../scripts/verify-answers.mjs';
+
+/* В основной папке файлы в LF, и там ошибка незаметна: она всплывает
+   только в свежей копии на Windows, где git ставит CRLF. */
+describe('модуль подключается в любой копии репозитория', () => {
+  it('без строки #! — с CRLF vitest не разбирает такой модуль', () => {
+    const source = readFileSync(new URL('../scripts/verify-answers.mjs', import.meta.url), 'utf8');
+    expect(source.startsWith('#!')).toBe(false);
+  });
+});
 
 describe('LaTeX → вычислимое выражение', () => {
   const val = (tex, x) => compile(tex).fn(x);
