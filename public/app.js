@@ -3255,9 +3255,19 @@ async function showTask(rawId) {
     description: '',
     meta: grade ? `<span class="grade-badge">${gradeLabel(grade)}</span>` : ''
   });
+  /* Описание — из условия задачи, тем же текстом, что отдаёт воркер
+     (worker/seo.js): у сотен задач оно иначе было одинаковым. */
+  const taskDesc = window.MathTasksLib?.taskDescription
+    ? window.MathTasksLib.taskDescription({
+      condition: loc(task, 'condition_latex'),
+      number: Number(task.position) > 0 ? Number(task.position) : null,
+      topicTitle,
+      lang: getLang()
+    })
+    : `${crumbsTaskTitle}: условие, ответ и подробное решение.${topic ? ` Тема «${topicTitle}».` : ''}`;
   setMeta(
     topic ? `${crumbsTaskTitle} — ${topicTitle}${grade ? `, ${gradeLabel(grade)}` : ''}` : crumbsTaskTitle,
-    `${crumbsTaskTitle}: условие, ответ и подробное решение.${topic ? ` Тема «${topicTitle}».` : ''}`
+    taskDesc
   );
   renderTaskList(listTasks, [task], '', { showTopicLink: false, showGrade: false, linkTitle: false });
   await renderTaskNeighbours(task);
@@ -4800,6 +4810,10 @@ window.addEventListener('themechange', () => {
     drawFunctionPlot();
   }
 });
+
+// Текстовая версия страницы из воркера (worker/seo.js) нужна только без скриптов:
+// дальше ту же страницу рисует приложение.
+document.querySelector('#ssr-content')?.remove();
 
 // Инициализация переводов при старте
 window.MathTasksI18n?.applyTranslations(document);

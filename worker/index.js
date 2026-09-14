@@ -13,6 +13,9 @@
      npx wrangler secret put SUPABASE_KEY
      npx wrangler secret put GEMINI_API_KEY   (необязательно) */
 
+import { latexToPlainText } from './lib.js';
+import { renderPage, routeOf } from './seo.js';
+
 const TRANSLIT = {
   а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i',
   й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't',
@@ -87,7 +90,7 @@ function buildSitemapPaths({ subjects = [], topics = [], tasks = [], tags = [], 
     .concat(subjects.map(s => `/subject/${s.slug}`))
     .concat(topics.map(t => `/topic/${t.slug}`))
     .concat((subtopics || []).map(s => `/subtopic/${s.slug}`))
-    .concat(topics.map(t => `/control-work/${t.slug}`))
+    // /control-work/* не попадает: контрольная повторяет задачи темы и помечена noindex (seo.js).
     .concat(grades.map(g => `/grade/${g}/tasks`))
     .concat(tagSlugs.map(slug => `/tag/${slug}`))
     .concat(tasks.map(t => `/task/${t.id}-${slugify(t.title)}`));
@@ -143,53 +146,9 @@ const BOT_PATTERNS = ['telegrambot', 'whatsapp', 'facebookexternalhit', 'twitter
 const isSocialBot = ua => BOT_PATTERNS.some(bot => (ua || '').toLowerCase().includes(bot));
 
 /* Бот мессенджера формулы не рисует, поэтому LaTeX переводится в обычные
-   символы. Раньше команды просто вырезались, и «S = \pi r^2» доходил
-   до превью как «S = r2», а «30^\circ» — как «30». */
-const LATEX_SYMBOLS = {
-  pi: 'π', alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', Delta: 'Δ', varphi: 'φ', phi: 'φ',
-  lambda: 'λ', mu: 'μ', sigma: 'σ', omega: 'ω', theta: 'θ',
-  cdot: '·', times: '×', div: ':', pm: '±', mp: '∓',
-  le: '≤', leq: '≤', ge: '≥', geq: '≥', ne: '≠', neq: '≠', approx: '≈',
-  infty: '∞', circ: '°', degree: '°', angle: '∠', triangle: '△', perp: '⊥', parallel: '∥',
-  in: '∈', notin: '∉', cup: '∪', cap: '∩', emptyset: '∅', to: '→', Rightarrow: '⇒'
-};
-const SUPERSCRIPTS = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹', '+': '⁺', '-': '⁻', '°': '°' };
-const SUBSCRIPTS = { 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉' };
-
-// Перевод строки целиком или null, если хоть одного символа в таблице нет.
-const mapAll = (text, table) => [...text].every(c => Object.hasOwn(table, c))
-  ? [...text].map(c => table[c]).join('') : null;
-// Короткий аргумент корня и дроби пишется без скобок (√16, 1/2), выражение — в скобках.
-const wrap = text => (/^[^\s+\-−*\/:=<>·×]+$/.test(text) ? text : `(${text})`);
-
-// Знаки, которые стоят вплотную к следующей букве: «∠A», а не «∠ A».
-const PREFIX_SYMBOLS = new Set(['angle', 'triangle']);
-
-const cleanLatexForPreview = (latex = '') => String(latex || '')
-  .replace(/\\(begin|end)\{[^}]*\}/g, ' ')
-  .replace(/\\([a-zA-Z]+)(\s*)/g, (match, name, space) => {
-    if (!Object.hasOwn(LATEX_SYMBOLS, name)) return match;
-    return LATEX_SYMBOLS[name] + (PREFIX_SYMBOLS.has(name) ? '' : space);
-  })
-  .replace(/\^\{([^{}]*)\}|\^([^\s{}\\])/g, (match, group, single) => {
-    const text = group ?? single;
-    return mapAll(text, SUPERSCRIPTS) ?? (text.length > 1 ? `^(${text})` : `^${text}`);
-  })
-  .replace(/_\{([^{}]*)\}|_([^\s{}\\])/g, (match, group, single) => {
-    const text = group ?? single;
-    return mapAll(text, SUBSCRIPTS) ?? (text.length > 1 ? `_(${text})` : `_${text}`);
-  })
-  .replace(/\\(text|textbf|textit|mathrm)\{([^}]+)\}/g, '$2')
-  .replace(/\\sqrt\[([^\]]+)\]\{([^}]+)\}/g, (match, n, body) => `${mapAll(n, SUPERSCRIPTS) ?? n}√${wrap(body)}`)
-  .replace(/\\sqrt\{([^}]+)\}/g, (match, body) => `√${wrap(body)}`)
-  .replace(/\\[dt]?frac\{([^}]+)\}\{([^}]+)\}/g, (match, a, b) => `${wrap(a)}/${wrap(b)}`)
-  .replace(/\\\\|\\[,;:! ]/g, ' ')
-  .replace(/\\([{}%&#])/g, '$1')
-  .replace(/\\[a-zA-Z]+/g, ' ')
-  .replace(/[${}]/g, '')
-  .replace(/\s+/g, ' ')
-  .trim()
-  .slice(0, 200);
+   символы. Сам перевод живёт в lib.js (latexToPlainText): им же пользуются
+   страницы для поисковиков (seo.js) и описание задачи в приложении. */
+const cleanLatexForPreview = (latex = '') => latexToPlainText(latex, 200);
 
 function renderTaskPreviewHtml(task, { url, origin } = {}) {
   const taskUrl = url || (origin ? `${origin}/task/${task.id}` : `/task/${task.id}`);
@@ -407,6 +366,9 @@ export default {
       const preview = await taskPreview(request, env, taskMatch[1]);
       if (preview) return preview;
     }
+
+    // Страницы каталога: заголовок, описание, canonical и текст — в самом HTML.
+    if (routeOf(url.pathname)) return renderPage(request, env);
 
     return env.ASSETS.fetch(request);
   }

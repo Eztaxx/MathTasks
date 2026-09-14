@@ -2,6 +2,11 @@
    светлым фоном или другим языком перед тем, как отработают скрипты.
    Отдельным файлом, а не встроенным скриптом: встроенные запрещены политикой CSP. */
 (() => {
+  /* Текстовую версию страницы из воркера (#ssr-content) видят поисковики и
+     те, у кого нет JavaScript. Со скриптами её прячет этот класс ещё до
+     первой отрисовки, а app.js потом удаляет её совсем. */
+  document.documentElement.classList.add('js');
+
   try {
     const saved = localStorage.getItem('math-tasks:theme') || localStorage.getItem('theme');
     const isDark = saved ? saved === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);

@@ -2243,8 +2243,84 @@
     return { rows, counts, newTopics: newTopics.size, newSubtopics: newSubtopics.size };
   };
 
+  /* ── LaTeX → обычный текст ─────────────────────────────────────────
+     Нужен там, где формулы не рисуются: превью ссылки в мессенджере,
+     описание страницы для поисковика, текстовая версия страницы из
+     воркера. Раньше жил в воркере; перенесён сюда, чтобы описание задачи
+     в приложении и на сервере совпадало. Команды не вырезаются, а
+     переводятся в символы: иначе «S = \pi r^2» становилось «S = r2». */
+  const LATEX_SYMBOLS = {
+    pi: 'π', alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', Delta: 'Δ', varphi: 'φ', phi: 'φ',
+    lambda: 'λ', mu: 'μ', sigma: 'σ', omega: 'ω', theta: 'θ',
+    cdot: '·', times: '×', div: ':', pm: '±', mp: '∓',
+    le: '≤', leq: '≤', ge: '≥', geq: '≥', ne: '≠', neq: '≠', approx: '≈',
+    infty: '∞', circ: '°', degree: '°', angle: '∠', triangle: '△', perp: '⊥', parallel: '∥',
+    in: '∈', notin: '∉', cup: '∪', cap: '∩', emptyset: '∅', to: '→', Rightarrow: '⇒'
+  };
+  const SUPERSCRIPTS = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹', '+': '⁺', '-': '⁻', '°': '°' };
+  const SUBSCRIPTS = { 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉' };
+
+  // Перевод строки целиком или null, если хоть одного символа в таблице нет.
+  const mapAllChars = (text, table) => [...text].every(c => Object.hasOwn(table, c))
+    ? [...text].map(c => table[c]).join('') : null;
+  // Короткий аргумент корня и дроби пишется без скобок (√16, 1/2), выражение — в скобках.
+  const wrapPlain = text => (/^[^\s+\-−*\/:=<>·×]+$/.test(text) ? text : `(${text})`);
+  // Знаки, которые стоят вплотную к следующей букве: «∠A», а не «∠ A».
+  const PREFIX_SYMBOLS = new Set(['angle', 'triangle']);
+
+  const latexToPlainText = (latex = '', maxLength = 200) => String(latex || '')
+    .replace(/\\(begin|end)\{[^}]*\}/g, ' ')
+    .replace(/\\([a-zA-Z]+)(\s*)/g, (match, name, space) => {
+      if (!Object.hasOwn(LATEX_SYMBOLS, name)) return match;
+      return LATEX_SYMBOLS[name] + (PREFIX_SYMBOLS.has(name) ? '' : space);
+    })
+    .replace(/\^\{([^{}]*)\}|\^([^\s{}\\])/g, (match, group, single) => {
+      const text = group ?? single;
+      return mapAllChars(text, SUPERSCRIPTS) ?? (text.length > 1 ? `^(${text})` : `^${text}`);
+    })
+    .replace(/_\{([^{}]*)\}|_([^\s{}\\])/g, (match, group, single) => {
+      const text = group ?? single;
+      return mapAllChars(text, SUBSCRIPTS) ?? (text.length > 1 ? `_(${text})` : `_${text}`);
+    })
+    .replace(/\\(text|textbf|textit|mathrm)\{([^}]+)\}/g, '$2')
+    .replace(/\\sqrt\[([^\]]+)\]\{([^}]+)\}/g, (match, n, body) => `${mapAllChars(n, SUPERSCRIPTS) ?? n}√${wrapPlain(body)}`)
+    .replace(/\\sqrt\{([^}]+)\}/g, (match, body) => `√${wrapPlain(body)}`)
+    .replace(/\\[dt]?frac\{([^}]+)\}\{([^}]+)\}/g, (match, a, b) => `${wrapPlain(a)}/${wrapPlain(b)}`)
+    .replace(/\\\\|\\[,;:! ]/g, ' ')
+    .replace(/\\([{}%&#])/g, '$1')
+    .replace(/\\[a-zA-Z]+/g, ' ')
+    .replace(/[${}]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLength);
+
+  /* Описание страницы задачи для поисковика: номер и начало условия.
+     Прежнее «Задача №3: условие, ответ и подробное решение» было
+     одинаковым у сотен страниц. Ограничение — около 155 символов: длиннее
+     поисковик всё равно обрежет. Этим же текстом пользуются и приложение,
+     и воркер — после загрузки скриптов описание не меняется. */
+  const taskDescription = ({ condition = '', number = null, topicTitle = '', lang = 'ru' } = {}) => {
+    const lv = lang === 'lv';
+    const word = lv ? 'Uzdevums' : 'Задача';
+    const head = number ? `${word} №${number}` : word;
+    const text = latexToPlainText(condition, 400);
+    if (!text) {
+      const topicPart = topicTitle ? (lv ? ` Tēma «${topicTitle}».` : ` Тема «${topicTitle}».`) : '';
+      return `${head}: ${lv ? 'nosacījums, atbilde un detalizēts risinājums' : 'условие, ответ и подробное решение'}.${topicPart}`;
+    }
+    const tail = lv ? 'Ar atbildi un risinājumu.' : 'С ответом и разбором решения.';
+    const room = 155 - head.length - tail.length - 3;
+    // Обрезаем по слову и снимаем знак в конце: иначе выходило «…от точки A.…».
+    const short = text.length > room
+      ? `${text.slice(0, room).replace(/\s+\S*$/, '').replace(/[\s.,;:!?…—–-]+$/, '')}…`
+      : text;
+    return `${head}. ${short} ${tail}`;
+  };
+
   const api = {
     makeSlug,
+    latexToPlainText,
+    taskDescription,
     sanitizeSearch,
     KATEX_DELIMITERS,
     cleanMathExample,
@@ -2304,5 +2380,8 @@
   if (typeof globalThis !== 'undefined' && typeof globalThis.window !== 'undefined') {
     globalThis.window.MathTasksLib = api;
   }
+  /* Воркер Cloudflare: там нет ни window, ни module, а esbuild не видит в
+     этом файле модуля. Через globalThis функции достаются ему (worker/lib.js). */
+  if (typeof globalThis !== 'undefined') globalThis.MathTasksLib = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })();

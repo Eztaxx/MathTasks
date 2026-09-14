@@ -1319,6 +1319,19 @@ body.dark .search-highlight{background:#634b00;color:#ffeb84}
 .progress-cw-retry{color:var(--blue);font-weight:600;text-decoration:none;font-size:12.5px;white-space:nowrap}
 .progress-note{margin:0;font-size:12px;color:var(--muted)}
 .progress-icon{background:#eef4ff;color:#1764ff}
+
+/* ── Текстовая версия страницы из воркера (worker/seo.js) ──
+   Для поисковиков и тех, у кого нет JavaScript. Со скриптами её прячет
+   класс js от theme-init.js, а app.js удаляет. */
+.ssr-content{max-width:860px;margin:8px 0 24px;font:15px/1.6 Manrope,Arial,sans-serif;color:var(--ink)}
+.ssr-content h1{font-size:26px;line-height:1.25;margin:8px 0 12px}
+.ssr-content h2{font-size:17px;margin:20px 0 8px}
+.ssr-content p{margin:0 0 12px;color:var(--muted)}
+.ssr-content ol{padding-left:22px;margin:0}
+.ssr-content li{margin:6px 0}
+.ssr-content a{color:var(--blue)}
+.ssr-crumbs{font-size:13px;color:var(--muted)}
+html.js .ssr-content{display:none}
 @media(max-width:900px){.progress-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.progress-grade summary{grid-template-columns:minmax(0,1fr) 70px}.progress-grade summary .progress-bar,.progress-grade summary small{grid-column:1/-1;text-align:left}}
 @media(max-width:560px){.progress-topic{grid-template-columns:minmax(0,1fr) 52px}.progress-topic .progress-bar{grid-column:1/-1;order:3}.progress-cw{grid-template-columns:minmax(0,1fr) auto}.progress-cw time{grid-column:1}.progress-stat strong{font-size:26px}}
 body.dark .progress-stat,body.dark .progress-grade,body.dark .progress-badge,body.dark .progress-list{background:#162238;border-color:#2b3a58}

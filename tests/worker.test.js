@@ -171,7 +171,8 @@ describe('Cloudflare Worker: чистые функции', () => {
       expect(paths).toContain('/topic/lineynie-uravneniya');
       expect(paths).toContain('/topic/kvadratnye-uravneniya');
       expect(paths).toContain('/subtopic/formuly-sokraschennogo-umnozheniya');
-      expect(paths).toContain('/control-work/lineynie-uravneniya');
+      // Контрольная повторяет задачи темы и помечена noindex — в карте её нет.
+      expect(paths).not.toContain('/control-work/lineynie-uravneniya');
       expect(paths).toContain('/tag/procenti');
       expect(paths).toContain('/task/101-reshenie-uravneniya');
       expect(paths).toContain('/task/202-zadacha-na-protsenty');
