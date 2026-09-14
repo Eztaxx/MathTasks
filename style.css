@@ -5949,3 +5949,24 @@ body .adm-shell #ai-generator-section{margin:0;padding:18px 20px;border:1px soli
 .adm-shell #ai-generator-section .ai-gen-status.success{color:var(--adm-okfg)}
 .adm-shell #ai-generator-section .ai-gen-status.error{color:var(--adm-badfg)}
 .adm-shell [data-slot="ai-actions"] #btn-toggle-ai-settings{padding:8px 12px;border:1px solid var(--adm-accbd);border-radius:8px;background:var(--adm-accsoft);color:var(--adm-ink2);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer}
+
+/* ── Окно «Промпт для ИИ» в токенах каркаса. Окно живёт в конце страницы,
+   вне .adm-shell, поэтому селекторы — через body.admin-page и id окна
+   (у старых правил тёмной темы специфичность выше, чем у классов). ── */
+body.admin-page #ai-prompt-dialog{box-sizing:border-box;width:min(780px, calc(100vw - 32px));max-width:none;padding:20px 22px;border:1px solid var(--adm-line);border-radius:14px;background:var(--adm-panel);color:var(--adm-ink);box-shadow:0 24px 60px rgba(0,0,0,.35)}
+body.admin-page #ai-prompt-dialog::backdrop{background:rgba(5,8,15,.55)}
+body.admin-page #ai-prompt-dialog h3{margin:0;font-size:17px;font-weight:650;color:var(--adm-ink)}
+body.admin-page #ai-prompt-dialog .bulk-dialog-close{border:1px solid var(--adm-line);border-radius:7px;background:transparent;color:var(--adm-mute)}
+body.admin-page #ai-prompt-dialog .bulk-dialog-desc{color:var(--adm-mute);font-size:13px;line-height:1.55}
+body.admin-page #ai-prompt-dialog .bulk-dialog-desc strong{color:var(--adm-ink2)}
+body.admin-page #ai-prompt-dialog .ai-prompt-controls{display:grid;grid-template-columns:150px minmax(0,1.6fr) minmax(0,1.2fr) 84px;gap:10px;align-items:end;margin:12px 0}
+body.admin-page #ai-prompt-dialog .ai-prompt-controls > label{grid-column:auto;display:flex;flex-direction:column;gap:5px;min-width:0;font-size:12px;font-weight:500;color:var(--adm-mute)}
+body.admin-page #ai-prompt-dialog select,body.admin-page #ai-prompt-dialog input[type="number"]{box-sizing:border-box;width:100%;height:36px;padding:0 10px;border:1px solid var(--adm-fieldbd);border-radius:8px;background:var(--adm-field);color:var(--adm-ink);font-family:inherit;font-size:13px;font-weight:500}
+body.admin-page #ai-prompt-dialog select:disabled{opacity:.55}
+body.admin-page #ai-prompt-dialog select:focus,body.admin-page #ai-prompt-dialog input:focus,body.admin-page #ai-prompt-dialog textarea:focus{outline:none;border-color:var(--adm-acc);box-shadow:0 0 0 3px var(--adm-accsoft)}
+body.admin-page #ai-prompt-dialog .bulk-dialog-textarea{box-sizing:border-box;width:100%;min-height:260px;padding:12px;border:1px solid var(--adm-fieldbd);border-radius:10px;background:var(--adm-field);color:var(--adm-ink);font:12.5px/1.55 ui-monospace,Menlo,Consolas,monospace}
+body.admin-page #ai-prompt-dialog .primary-button{border-color:var(--adm-acc);background:var(--adm-acc);color:#fff}
+body.admin-page #ai-prompt-dialog .text-button{color:var(--adm-mute)}
+.ai-prompt-warn{margin:0 0 10px;padding:9px 12px;border:1px solid var(--adm-warnbd);border-radius:8px;background:var(--adm-warnbg);color:var(--adm-warnfg);font-size:13px;line-height:1.5}
+.ai-prompt-warn[hidden]{display:none}
+@media (max-width:640px){body.admin-page #ai-prompt-dialog .ai-prompt-controls{grid-template-columns:1fr 1fr}}

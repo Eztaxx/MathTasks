@@ -959,68 +959,48 @@
                 <button type="button" class="text-button" id="btn-close-sample-json">Закрыть</button>
               </div>
             </div>
-            <p class="admin-hint">Вы можете сохранить этот пример как файл <code>tasks.json</code> на компьютере, заполнить своими задачами и нажать «📁 Загрузить файл .json». Недостающие темы, латышские переводы и кросс-теги Skola2030 привяжутся автоматически. Чертёж к задаче — поле <code>condition_svg</code> (к решению — <code>solution_svg</code>) с SVG-кодом: он сохранится файлом сам.</p>
+            <p class="admin-hint">Сохраните пример как файл <code>tasks.json</code>, заполните своими задачами и загрузите на экране «Импорт и экспорт». Название темы пишите дословно, как в админке, номер подтемы — в <code>code</code> или <code>subtopic_code</code>: по ним задача найдёт своё место. Незнакомая тема будет заведена новой — разбор покажет это заранее. Задачи сохраняются черновиками. Чертёж — поле <code>condition_svg</code> (к решению — <code>solution_svg</code>) с SVG-кодом: он сохранится файлом сам.</p>
             <pre class="json-sample-pre"><code id="json-sample-code">[
   {
-    "topic_title": "Квадратные уравнения",
-    "topic_title_lv": "Kvadrātvienādojumi",
-    "grade": 8,
+    "topic_title": "Каковы приемы определения неизвестного, линейное уравнение",
+    "grade": 7,
     "subtopics": [
       {
-        "title": "Неполные квадратные уравнения",
-        "title_lv": "Nepilni kvadrātvienādojumi",
-        "code": "8.1.1",
+        "code": "7.8.1",
+        "title": "Линейное уравнение и его решение",
+        "title_lv": "Lineārs vienādojums un tā atrisināšana",
         "tasks": [
           {
-            "condition_latex": "Решите уравнение $x^2 - 9 = 0$.",
-            "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 9 = 0$.",
-            "answer_latex": "$x = \\pm 3$",
-            "answer_latex_lv": "$x = \\pm 3$",
-            "solution_latex": "Разложим на множители разность квадратов:\n$$(x - 3)(x + 3) = 0$$\nОткуда $x_1 = 3,\\; x_2 = -3$.",
-            "solution_latex_lv": "Sadalām reizinātājos kvadrātu starpību:\n$$(x - 3)(x + 3) = 0$$\nTātad $x_1 = 3,\\; x_2 = -3$.",
-            "tags": ["vienadojumi", "algebriskie-parveidojumi"],
+            "condition_latex": "Решите уравнение $5x - 7 = 18$.",
+            "condition_latex_lv": "Atrisiniet vienādojumu $5x - 7 = 18$.",
+            "answer_latex": "$x = 5$",
+            "answer_latex_lv": "$x = 5$",
+            "hint_latex": "Перенесите число в правую часть, затем разделите на коэффициент при $x$.",
+            "hint_latex_lv": "Pārnesiet skaitli uz labo pusi, pēc tam daliet ar koeficientu pie $x$.",
+            "solution_latex": "1. Перенесём $-7$ в правую часть: $5x = 18 + 7 = 25$.\n2. Разделим обе части на $5$: $x = 5$.",
+            "solution_latex_lv": "1. Pārnesam $-7$ uz labo pusi: $5x = 18 + 7 = 25$.\n2. Dalām abas puses ar $5$: $x = 5$.",
             "difficulty": "Лёгкий",
-            "is_published": true
-          }
-        ]
-      },
-      {
-        "title": "Полные квадратные уравнения",
-        "title_lv": "Pilni kvadrātvienādojumi",
-        "code": "8.1.2",
-        "tasks": [
-          {
-            "condition_latex": "Решите уравнение $x^2 - 5x + 6 = 0$.",
-            "condition_latex_lv": "Atrisiniet vienādojumu $x^2 - 5x + 6 = 0$.",
-            "answer_latex": "$x_1 = 2,\\; x_2 = 3$",
-            "answer_latex_lv": "$x_1 = 2,\\; x_2 = 3$",
-            "solution_latex": "По формуле корней через дискриминант:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
-            "solution_latex_lv": "Pēc sakņu formulas ar diskriminantu:\n$$D = (-5)^2 - 4 \\cdot 1 \\cdot 6 = 25 - 24 = 1$$\n$$x = \\frac{5 \\pm \\sqrt{1}}{2} \\implies x_1 = 2,\\; x_2 = 3$$",
-            "tags": ["vienadojumi"],
-            "difficulty": "Средний",
-            "is_published": true
+            "tags": ["vienadojumi"]
           }
         ]
       }
     ]
   },
   {
-    "topic_title": "Теорема Пифагора",
-    "topic_title_lv": "Pitagora teorēma",
+    "topic_title": "Как определяют неизвестную сторону прямоугольного треугольника, теорема Пифагора",
     "grade": 8,
     "tasks": [
       {
-        "subtopic_title": "Прямоугольный треугольник",
-        "subtopic_code": "8.2.1",
-        "condition_latex": "В прямоугольном треугольнике катеты равны $a = 3\\text{ см}$ и $b = 4\\text{ см}$. Найдите длину гипотенузы $c$.",
-        "condition_latex_lv": "Taisnleņķa trijstūrī katetes ir $a = 3\\text{ cm}$ un $b = 4\\text{ cm}$. Aprēķiniet hipotenūzas $c$ garumu.",
-        "answer_latex": "$c = 5\\text{ см}$",
-        "answer_latex_lv": "$c = 5\\text{ cm}$",
-        "solution_latex": "По теореме Пифагора:\n$$c = \\sqrt{a^2 + b^2} = \\sqrt{3^2 + 4^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ см}$$",
-        "solution_latex_lv": "Pēc Pitagora teorēmas:\n$$c = \\sqrt{a^2 + b^2} = \\sqrt{3^2 + 4^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ cm}$$",
-        "tags": ["planimetrija", "merijumi"],
+        "subtopic_code": "8.8.3",
+        "condition_latex": "В прямоугольном треугольнике $ABC$ катеты $AC = 3\\text{ см}$ и $BC = 4\\text{ см}$. Найдите гипотенузу $AB$.",
+        "condition_latex_lv": "Taisnleņķa trijstūrī $ABC$ katetes ir $AC = 3\\text{ cm}$ un $BC = 4\\text{ cm}$. Aprēķiniet hipotenūzu $AB$.",
+        "answer_latex": "$AB = 5\\text{ см}$",
+        "answer_latex_lv": "$AB = 5\\text{ cm}$",
+        "solution_latex": "По теореме Пифагора:\n$$AB = \\sqrt{AC^2 + BC^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ см}$$",
+        "solution_latex_lv": "Pēc Pitagora teorēmas:\n$$AB = \\sqrt{AC^2 + BC^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5\\text{ cm}$$",
         "difficulty": "Лёгкий",
-        "is_published": true
+        "tags": ["planimetrija", "merijumi"],
+        "condition_svg": "&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'&gt;&lt;g stroke='#000' stroke-width='2' fill='none'&gt;&lt;polygon points='80,240 320,240 80,60'/&gt;&lt;polyline points='80,218 102,218 102,240'/&gt;&lt;/g&gt;&lt;g fill='#000' font-family='system-ui, sans-serif' font-size='15'&gt;&lt;text x='62' y='258'&gt;C&lt;/text&gt;&lt;text x='328' y='258'&gt;B&lt;/text&gt;&lt;text x='62' y='52'&gt;A&lt;/text&gt;&lt;/g&gt;&lt;/svg&gt;"
       }
     ]
   }
@@ -1125,13 +1105,14 @@
             <h3>🤖 Готовый промпт для нейросети (30+ задач за один запрос)</h3>
             <button type="button" class="bulk-dialog-close" id="ai-prompt-dialog-close" aria-label="Закрыть">&times;</button>
           </div>
-          <p class="bulk-dialog-desc">Выберите класс, тему и, если нужно, подтему — промпт подставит точные названия из базы, номера подтем и список тегов. Скопируйте его в <strong>ChatGPT, Claude или Gemini</strong>, а ответ-таблицу вставьте в окно импорта. Задачи сохранятся черновиками: после проверки опубликуйте их.</p>
+          <p class="bulk-dialog-desc">Выберите класс, тему и, если нужно, подтему — промпт подставит точные названия из базы, номера подтем и список тегов. Скопируйте его в <strong>ChatGPT, Claude или Gemini</strong>, а ответ вставьте целиком, вместе с блоком кода, на экране «Импорт и экспорт» и нажмите «Разобрать». Задачи сохранятся черновиками: после проверки опубликуйте их.</p>
           <div class="ai-form-row ai-prompt-controls">
             <label class="field-grade">Класс / курс <select id="ai-prompt-grade"></select></label>
             <label class="field-topic">Тема <select id="ai-prompt-topic"></select></label>
             <label class="field-subtopic">Подтема <select id="ai-prompt-subtopic"></select></label>
             <label class="field-count">Задач <input type="number" id="ai-prompt-count" value="30" min="1" max="60" /></label>
           </div>
+          <p class="ai-prompt-warn" id="ai-prompt-warn" role="status" hidden>Тема не выбрана — в промпте останутся заглушки [КЛАСС] и [НАЗВАНИЕ ТЕМЫ], и модель придумает тему сама. Выберите класс и тему.</p>
           <textarea class="bulk-dialog-textarea" id="ai-prompt-textarea" rows="14" spellcheck="false"></textarea>
           <div class="bulk-dialog-actions">
             <button type="button" class="primary-button" id="ai-prompt-copy-btn">📋 Скопировать промпт</button>

@@ -801,10 +801,10 @@
     push('Сложность — от простого к сложному: примерно 40% «Лёгкий», 40% «Средний», 20% «Сложный». Порядок строк станет нумерацией задач в теме.', '');
 
     push('ФОРМАТ ОТВЕТА');
-    push('Только таблица: столбцы разделены ТАБУЛЯЦИЕЙ, не запятой — запятая стоит в десятичных дробях и формулах. Первая строка — ровно эти заголовки:');
+    push('Ответ — одна таблица внутри одного блока кода ```tsv … ```: в блоке кода табуляции сохраняются при копировании, а в обычном тексте чат превращает их в пробелы или в картинку-таблицу. Столбцы разделены ТАБУЛЯЦИЕЙ, не запятой — запятая стоит в десятичных дробях и формулах. Первая строка — ровно эти заголовки:');
     push(TASK_PROMPT_COLUMNS.join('\t'));
     push('Одна строка — одна задача. Табуляции внутри ячейки нет. Если в ячейке нужен перенос строки (шаги решения), оберни всю ячейку в двойные кавычки "…", а кавычку внутри удвой: "".');
-    push('Без вступления и заключения. Если задачи не помещаются в один ответ, остановись на конце целой строки и допиши отдельной строкой: ПРОДОЛЖЕНИЕ СЛЕДУЕТ. Когда я напишу «дальше», продолжи со следующей задачи и снова начни со строки заголовков.', '');
+    push('Вне блока кода — ничего: ни вступления, ни заключения. Если задачи не помещаются в один ответ, остановись на конце целой строки, закрой блок кода и напиши под ним: ПРОДОЛЖЕНИЕ СЛЕДУЕТ. Когда я напишу «дальше», продолжи со следующей задачи новым блоком кода и снова начни его со строки заголовков.', '');
 
     push('СТОЛБЦЫ');
     push('- condition_latex / condition_latex_lv — условие на русском и то же условие на латышском.');
@@ -894,21 +894,45 @@
   };
 
   /* ── Универсальный парсер импорта (автоопределение JSON / CSV / TSV) ── */
+  /* Ответ нейросети почти всегда приходит блоком кода ```…``` с текстом
+     вокруг, иногда — markdown-таблицей, а длинный — несколькими блоками,
+     каждый со своей строкой заголовков. Разбор принимал строку ``` за
+     заголовок таблицы и возвращал ноль задач. Здесь достаём содержимое
+     блоков, markdown-таблицу переводим в табуляцию, повторы заголовков и
+     строку «ПРОДОЛЖЕНИЕ СЛЕДУЕТ» убираем. */
+  const unwrapModelAnswer = rawText => {
+    let text = String(rawText || '').replace(/^﻿/, '');
+    const blocks = [...text.matchAll(/```[\w-]*[ \t]*\r?\n([\s\S]*?)```/g)].map(m => m[1].replace(/\r?\n$/, ''));
+    if (blocks.length) text = blocks.join('\n');
+    let lines = text.trim().split(/\r?\n/);
+    const pipeRow = line => /^\s*\|.*\|\s*$/.test(line);
+    const pipeRule = line => /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?\s*$/.test(line);
+    if (lines.length >= 2 && pipeRow(lines[0]) && pipeRule(lines[1])) {
+      lines = lines.filter(line => pipeRow(line) && !pipeRule(line))
+        .map(line => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(cell => cell.trim()).join('\t'));
+    }
+    lines = lines.filter(line => !/^\s*ПРОДОЛЖЕНИЕ СЛЕДУЕТ\.?\s*$/i.test(line));
+    const header = (lines[0] || '').trim();
+    if (/condition_latex|условие/i.test(header)) {
+      lines = [lines[0], ...lines.slice(1).filter(line => line.trim() !== header)];
+    }
+    return lines.join('\n');
+  };
+
   const parseTasksImport = rawText => {
     if (!rawText || typeof rawText !== 'string') {
       return { uniqueTopics: [], uniqueSubtopics: [], tasks: [], format: 'empty' };
     }
-    const trimmed = rawText.trim();
+    const trimmed = unwrapModelAnswer(rawText).trim();
     if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      // Похоже на JSON — ошибку называем, а не превращаем текст в мусорную таблицу.
       try {
-        const jsonResult = parseMultiTopicJson(trimmed);
-        return { ...jsonResult, format: 'json' };
+        return { ...parseMultiTopicJson(trimmed), format: 'json' };
       } catch (e) {
-        // Если не JSON — пробуем CSV
+        throw new Error(`JSON не разобрался: ${e.message}`);
       }
     }
-    const csvResult = parseCsvToTasks(trimmed);
-    return { ...csvResult, format: 'csv' };
+    return { ...parseCsvToTasks(trimmed), format: 'csv' };
   };
 
   /* ── Экспорт задач в Excel / Google Таблицы (CSV с UTF-8 BOM) ── */
@@ -1873,6 +1897,7 @@
     parseCsvRows,
     parseCsvToTasks,
     parseTasksImport,
+    unwrapModelAnswer,
     analyzeImportRows,
     exportTasksToCsv,
     sanitizeSvg,

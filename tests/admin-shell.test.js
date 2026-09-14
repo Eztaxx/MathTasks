@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { parseTasksImport } from '../public/lib.js';
 
 /* Каркас админки собирается при загрузке: admin.js переносит разделы на
    экраны по id и кладёт кнопки в слоты. Опечатка в id или слоте ничего
@@ -125,5 +126,25 @@ describe('каркас админки: меню и экраны', () => {
     expect([...html.matchAll(/data-review-lang="(\w+)"/g)].map(m => m[1])).toEqual(['ru', 'lv', 'both']);
     // Переключатель редактора — в полосе, которая прилипает под шапкой.
     expect(html).toMatch(/class="adm-editor-toolbar"[\s\S]*?id="adm-editor-lang-ru"/);
+  });
+
+  /* Образцы на экране импорта — то, что копируют как шаблон. Старый JSON
+     ссылался на несуществующие темы: его импорт заводил мусорные темы. */
+  it('образцы CSV и JSON разбираются без замечаний, у каждой задачи латышский текст и номер подтемы', () => {
+    const decode = s => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    const sample = id => decode(html.match(new RegExp(`id="${id}">([\\s\\S]*?)</code>`))[1]);
+    const json = sample('json-sample-code');
+    expect(() => JSON.parse(json)).not.toThrow();
+    // Импорт всегда сохраняет черновиками — флаг публикации в образце только сбивал бы с толку.
+    expect(json).not.toContain('is_published');
+    for (const id of ['csv-sample-code', 'json-sample-code']) {
+      const res = parseTasksImport(sample(id));
+      expect(res.warnings || []).toEqual([]);
+      expect(res.tasks.length).toBeGreaterThan(0);
+      for (const task of res.tasks) {
+        expect(task.condition_latex_lv, id).toBeTruthy();
+        expect(task.subtopic_code, id).toMatch(/^\d+\.\d+\.\d+$/);
+      }
+    }
   });
 });

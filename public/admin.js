@@ -4315,14 +4315,17 @@ ${JSON.stringify(texts)}`;
   const aiPromptCount = document.querySelector('#ai-prompt-count');
   const byPosition = (a, b) => (a.position ?? 0) - (b.position ?? 0);
 
+  /* Темы — с номерами Skola2030 («6.1. …») и в их порядке, как во всей
+     админке. Раньше номер собирался из позиции и клеился к названию, в
+     котором свой номер уже был: «9. 6.1. Как совокупность…». */
   function fillAiPromptTopics() {
     if (!aiPromptTopic) return;
     const g = parseFormGrade(aiPromptGrade?.value);
-    const list = topics.filter(t => !g || t.grade === g)
-      .sort((a, b) => (a.grade ?? 0) - (b.grade ?? 0) || byPosition(a, b));
+    const codes = topicCodeMap();
+    const list = sortTopics(topics.filter(t => !g || parseFormGrade(t.grade) === g), codes);
     const prev = aiPromptTopic.value;
     aiPromptTopic.innerHTML = '<option value="">— тема не выбрана —</option>' + list.map(t =>
-      `<option value="${t.id}">${escapeHtml(`${g ? '' : gradeText(t.grade) + ' · '}${t.position ? t.position + '. ' : ''}${t.title}`)}</option>`).join('');
+      `<option value="${t.id}">${escapeHtml(`${g ? '' : gradeText(t.grade) + ' · '}${topicOptionText(t, codes)}`)}</option>`).join('');
     if (list.some(t => String(t.id) === prev)) aiPromptTopic.value = prev;
   }
 
@@ -4356,12 +4359,20 @@ ${JSON.stringify(texts)}`;
       count: Number(aiPromptCount?.value) || 30,
       tags: (allTags || []).map(t => t.slug).filter(Boolean)
     });
+    // Без темы в промпте остаются заглушки [КЛАСС] и [НАЗВАНИЕ ТЕМЫ] — предупреждаем.
+    const warn = document.querySelector('#ai-prompt-warn');
+    if (warn) warn.hidden = Boolean(topic);
   }
 
   function showAiPromptModal() {
     if (!aiPromptDialog) return;
     if (aiPromptGrade && aiPromptGrade.children.length <= 1) fillGradeSelect(aiPromptGrade, 'Все классы и курсы', { numeric: true });
+    /* Тема ещё не выбрана — берём ту, с которой сейчас работали: выбранную
+       в «Разделах, темах, подтемах» или в редакторе задачи. */
+    const contextTopic = aiPromptTopic?.value ? null : topics.find(t => t.id === (catState.topic || Number(topicSelect?.value) || null));
+    if (contextTopic && aiPromptGrade) aiPromptGrade.value = toAdminGradeVal(contextTopic.grade);
     fillAiPromptTopics();
+    if (contextTopic) aiPromptTopic.value = String(contextTopic.id);
     fillAiPromptSubtopics();
     renderAiPrompt();
     aiPromptDialog.showModal();

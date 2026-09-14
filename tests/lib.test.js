@@ -3,6 +3,7 @@ import { buildTaskPrompt as buildTaskPromptForTest, TASK_PROMPT_COLUMNS as PROMP
 import { fetchAllRows as fetchAllRowsForTest, fetchByIdChunks as fetchByIdChunksForTest } from '../public/lib.js';
 import { sanitizeSvg as sanitizeSvgForTest, parseCsvRows as parseCsvRowsForSvg, parseCsvToTasks as parseCsvToTasksForSvg } from '../public/lib.js';
 import { analyzeImportRows as analyzeImportRowsForTest } from '../public/lib.js';
+import { unwrapModelAnswer as unwrapModelAnswerForTest } from '../public/lib.js';
 import i18n from '../public/i18n.js';
 import {
   makeSlug,
@@ -1399,6 +1400,48 @@ describe('parseTasksImport: универсальный детектор JSON / C
     expect(res.format).toBe('csv');
     expect(res.tasks).toHaveLength(1);
     expect(res.tasks[0].condition_latex).toBe('$2x=4$');
+  });
+});
+
+/* Чаты отдают таблицу блоком кода с текстом вокруг, markdown-таблицей или
+   частями — разбор видел строку ``` заголовком и возвращал ноль задач. */
+describe('parseTasksImport: ответ нейросети как есть', () => {
+  const header = ['grade', 'topic_title', 'condition_latex', 'answer_latex'].join('\t');
+  const row = n => ['7', 'Проценты', `Найдите ${n}% от $50$.`, '$5$'].join('\t');
+
+  it('таблица в блоке ```tsv с текстом вокруг', () => {
+    const res = parseTasksImport(`Вот задачи:\n\n\`\`\`tsv\n${header}\n${row(10)}\n\`\`\`\n\nУдачи!`);
+    expect(res.format).toBe('csv');
+    expect(res.tasks).toHaveLength(1);
+    expect(res.tasks[0].condition_latex).toBe('Найдите 10% от $50$.');
+  });
+
+  it('несколько блоков с повторным заголовком и строкой «ПРОДОЛЖЕНИЕ СЛЕДУЕТ»', () => {
+    const text = `\`\`\`tsv\n${header}\n${row(10)}\n\`\`\`\nПРОДОЛЖЕНИЕ СЛЕДУЕТ\n\n\`\`\`tsv\n${header}\n${row(20)}\n\`\`\``;
+    expect(parseTasksImport(text).tasks.map(t => t.condition_latex)).toEqual(['Найдите 10% от $50$.', 'Найдите 20% от $50$.']);
+  });
+
+  it('markdown-таблица превращается в табуляцию', () => {
+    const md = '| grade | topic_title | condition_latex | answer_latex |\n|---|---|---|---|\n| 7 | Проценты | Найдите 10% от $50$. | $5$ |';
+    const res = parseTasksImport(md);
+    expect(res.tasks).toHaveLength(1);
+    expect(res.tasks[0].answer_latex).toBe('$5$');
+  });
+
+  it('JSON в блоке ```json разбирается, а сломанный JSON — понятной ошибкой, не мусорной таблицей', () => {
+    const json = JSON.stringify([{ topic_title: 'Тема', tasks: [{ condition_latex: '$x=1$' }] }]);
+    expect(parseTasksImport('```json\n' + json + '\n```').tasks).toHaveLength(1);
+    expect(() => parseTasksImport('[{"condition_latex": "x"')).toThrow(/JSON не разобрался/);
+  });
+
+  it('обычная таблица без блока кода не меняется', () => {
+    expect(unwrapModelAnswerForTest(`${header}\n${row(10)}`)).toBe(`${header}\n${row(10)}`);
+  });
+
+  it('промпт просит ответ одним блоком кода — так табуляции переживают копирование', () => {
+    const prompt = buildTaskPromptForTest({ grade: 7, count: 5 });
+    expect(prompt).toContain('```tsv');
+    expect(prompt).toContain('ПРОДОЛЖЕНИЕ СЛЕДУЕТ');
   });
 });
 
