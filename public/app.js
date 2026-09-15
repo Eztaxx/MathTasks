@@ -2432,15 +2432,15 @@ async function showAllTasks() {
   renderSidebar();
 
   listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_loading_tasks')}</p>`;
-  let query = db.from('tasks').select(TASK_SELECT).eq('is_published', true).order('created_at', { ascending: false }).limit(500);
-  if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) {
-    query = query.in('grade', [10, 11]);
-  } else if (selectedGrade === 'matematika-2' || selectedGrade === 12) {
-    query = query.eq('grade', 12);
-  } else if (selectedGrade) {
-    query = query.eq('grade', Number(selectedGrade));
-  }
-  const { data, error } = await query;
+  /* Постранично, а не одним запросом с limit(500): класс рано или поздно
+     перевалит за 500 задач, и хвост молча пропал бы из списка. */
+  const scopeToGrade = query => {
+    if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) return query.in('grade', [10, 11]);
+    if (selectedGrade === 'matematika-2' || selectedGrade === 12) return query.eq('grade', 12);
+    return selectedGrade ? query.eq('grade', Number(selectedGrade)) : query;
+  };
+  const { data, error } = await window.MathTasksLib.fetchAllRows(
+    () => scopeToGrade(db.from('tasks').select(TASK_SELECT).eq('is_published', true)).order('id'));
   if (error) { listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('err_load_tasks')}</p>`; return; }
   currentActiveTopic = null;
   currentSubtopic = null;

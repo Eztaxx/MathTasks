@@ -1,7 +1,7 @@
 /* Воркер обслуживает три вещи, всё остальное отдаёт статика:
      /sitemap.xml      — карта сайта из каталога Supabase
      /task/<id>-<slug> — мета-теги Open Graph для ботов мессенджеров
-     /api/generate-task — прокси к Google Gemini
+     /api/gemini       — прокси к Google Gemini для админки, только администратору
 
    Раньше это лежало в папке functions/ — соглашение Cloudflare Pages.
    Проект живёт на Workers, где эта папка не выполняется вовсе, поэтому
@@ -11,7 +11,7 @@
    Переменные задаются командой:
      npx wrangler secret put SUPABASE_URL
      npx wrangler secret put SUPABASE_KEY
-     npx wrangler secret put GEMINI_API_KEY   (необязательно) */
+     npx wrangler secret put GEMINI_API_KEY   (без него генератор только встроенный) */
 
 import { isLocalizablePath, latexToPlainText, toLangPath } from './lib.js';
 import { CANONICAL_ORIGIN, renderPage, routeOf } from './seo.js';
@@ -236,15 +236,61 @@ async function taskPreview(request, env, taskId) {
 
 /* ── Прокси к Gemini ─────────────────────────────────────────────── */
 
-/* Ключ живёт в переменных воркера, поэтому генерировать задачи можно и
-   без личного ключа в браузере. Тело запроса — параметры задачи, промпт
-   собирается здесь; ответ той же формы, что у клиентского генератора.
-   Проверки роли пока нет: с заданным GEMINI_API_KEY эндпоинт вызовет
-   любой, кто знает адрес. Ключ в секреты — только вместе с проверкой
-   (docs/ROADMAP.md, п. 5.4). */
-async function generateTask(request, env) {
-  if (request.method !== 'POST') {
-    return json({ error: 'Ожидался POST-запрос.' }, 405);
+/* Ключ Gemini живёт в секретах воркера (GEMINI_API_KEY) и в браузер не
+   попадает. Промпт по-прежнему собирает админка — воркер проверяет, что
+   запрос от администратора, подставляет ключ и пересылает тело модели.
+
+   Роль спрашиваем у самой базы: rpc/is_admin с токеном пользователя.
+   Supabase сам проверит подпись и срок токена, а is_admin() — та же
+   функция, что защищает таблицы, так что правило одно на всё. */
+const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
+const GEMINI_MODEL = /^gemini-[a-z0-9.-]{1,40}$/;
+
+/* Не больше 30 запросов в минуту на человека: пачка с повторами и
+   перебором моделей укладывается, а общую квоту один вход не выжжет.
+   Счёт живёт в памяти экземпляра воркера — это страховка, а не учёт:
+   экземпляров бывает несколько, и после простоя счёт обнуляется. */
+const GEMINI_RATE_LIMIT = 30;
+const GEMINI_RATE_WINDOW_MS = 60_000;
+const geminiCalls = new Map();
+
+function tokenSubject(token) {
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(payload)).sub || null;
+  } catch {
+    return null;
+  }
+}
+
+/* Сколько секунд ждать, если лимит исчерпан; 0 — можно. */
+function geminiWaitSeconds(user, now = Date.now()) {
+  const recent = (geminiCalls.get(user) || []).filter(time => now - time < GEMINI_RATE_WINDOW_MS);
+  if (recent.length >= GEMINI_RATE_LIMIT) {
+    geminiCalls.set(user, recent);
+    return Math.max(1, Math.ceil((GEMINI_RATE_WINDOW_MS - (now - recent[0])) / 1000));
+  }
+  recent.push(now);
+  geminiCalls.set(user, recent);
+  return 0;
+}
+
+async function isAdminToken(env, token) {
+  const response = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/is_admin`, {
+    method: 'POST',
+    headers: { apikey: supabaseKeyOf(env), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: '{}'
+  });
+  return response.ok && (await response.json()) === true;
+}
+
+async function geminiProxy(request, env) {
+  if (request.method !== 'POST') return json({ error: 'Ожидался POST-запрос.' }, 405);
+
+  const token = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
+  if (!token) return json({ error: 'Запрос пришёл без входа — войдите в админку заново.' }, 401);
+  if (!env.GEMINI_API_KEY || !env.SUPABASE_URL) {
+    return json({ error: 'Ключ Gemini на сервере не задан: npx wrangler secret put GEMINI_API_KEY.' }, 501);
   }
 
   let body;
@@ -253,108 +299,41 @@ async function generateTask(request, env) {
   } catch {
     return json({ error: 'Ожидался JSON в теле запроса.' }, 400);
   }
-
-  const {
-    grade = 7,
-    topicTitle = 'Линейные уравнения',
-    subtopic = '',
-    difficulty = 'Средний',
-    taskType = 'Уравнение',
-    context = '',
-    customPrompt = '',
-    apiKey = ''
-  } = body || {};
-
-  const activeApiKey = apiKey || env.GEMINI_API_KEY;
-  if (!activeApiKey) {
-    return json({ error: 'API-ключ Gemini не указан. Задайте GEMINI_API_KEY в переменных воркера или передайте apiKey в запросе.' }, 400);
+  const model = String(body?.model || '');
+  if (!GEMINI_MODEL.test(model) || !body.request || typeof body.request !== 'object') {
+    return json({ error: 'В запросе нужны model (gemini-…) и request.' }, 400);
   }
 
-  const prompt = `Ты — ведущий методист и преподаватель математики в Латвии, создающий учебные материалы строго по государственному стандарту Skola2030.
-Создай качественную математическую задачу для ${grade} класса.
-Тема Skola2030: "${topicTitle}".
-${subtopic ? `Конкретный навык/подтема: "${subtopic}".` : ''}
-Сложность: ${difficulty || 'Средний'} (Лёгкий = pamata līmenis, Средний = optimālais līmenis, Сложный = padziļinātais līmenis).
-Тип задачи: ${taskType || 'Уравнение или текстовая задача'}.
-${context ? `Сюжетный контекст задачи (ОБЯЗАТЕЛЬНО составь условие задачи именно про этот жизненный сюжет или ситуацию): "${context}".` : ''}
-${customPrompt ? `Дополнительные пожелания: "${customPrompt}".` : ''}
-
-Требования:
-1. Математическая точность: условие должно иметь ровно одно корректное решение, ответ должен быть строго выверен.
-2. Формулы: оформляй все переменные, числа в вычислениях и формулы в KaTeX-разметке: внутри $...$ для инлайн и $$...$$ для выключных формул.
-3. Локализация: создай полные версии на русском (RU) и латышском (LV) языках. Английский не нужен — на сайте его нет. Латышский текст должен строго соответствовать терминологии Skola2030.
-4. Ответ верни СТРОГО в формате валидного JSON-объекта (без markdown-блоков):
-{
-  "title_ru": "Краткое название задачи",
-  "title_lv": "Nosaukums latviski",
-  "condition_latex_ru": "Условие задачи с формулами $...$",
-  "condition_latex_lv": "Nosacījums ar formūlām $...$",
-  "answer_latex": "Короткий математический ответ",
-  "answer_latex_lv": "Tā pati atbilde latviski",
-  "solution_latex_ru": "Пошаговое понятное решение с формулами",
-  "solution_latex_lv": "Soli pa solim atrisinājums latviski"
-}`;
-
-  /* Квота у Gemini считается на каждую модель отдельно, и gemini-3.6-flash
-     на бесплатном тарифе кончается первой: без запасных генератор вставал
-     с 429, хотя другие модели отвечали. Клиентский генератор так и делает —
-     воркер должен вести себя так же. */
-  const МОДЕЛИ = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.5-flash-lite'];
-
+  let admin;
   try {
-    let response = null;
-    for (const name of МОДЕЛИ) {
-      response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${name}:generateContent?key=${encodeURIComponent(activeApiKey)}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json', temperature: 0.3 }
-          })
-        });
-      if (response.ok) break;
-      if (response.status !== 429 && response.status !== 404) break;
-    }
-
-    if (!response.ok) {
-      return json({ error: `Gemini API error: ${await response.text()}` }, response.status);
-    }
-
-    const data = await response.json();
-    const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!candidateText) return json({ error: 'Пустой ответ от модели' }, 502);
-
-    let cleanJson = candidateText.trim();
-    const fenceMatch = cleanJson.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-    if (fenceMatch && fenceMatch[1]) cleanJson = fenceMatch[1].trim();
-    const firstBrace = cleanJson.indexOf('{');
-    const lastBrace = cleanJson.lastIndexOf('}');
-    if (firstBrace !== -1 && lastBrace > firstBrace) {
-      cleanJson = cleanJson.slice(firstBrace, lastBrace + 1);
-    }
-
-    let parsed;
-    try {
-      parsed = JSON.parse(cleanJson);
-    } catch (err1) {
-      try {
-        let sanitized = cleanJson.replace(/\\([bfrtn])([a-zA-Z]{2,})/g, '\\\\$1$2');
-        sanitized = sanitized.replace(/\\(?!["\\/bfnrtu]|u[0-9a-fA-F]{4})/g, '\\\\');
-        parsed = JSON.parse(sanitized);
-      } catch (err2) {
-        let sanitized2 = cleanJson.replace(/\\([^"\\])/g, '\\\\$1');
-        parsed = JSON.parse(sanitized2);
-      }
-    }
-
-    return json({
-      success: true,
-      task: { ...parsed, grade: Number(grade) || 7, difficulty: difficulty || 'Средний' }
-    }, 200, { 'Cache-Control': 'no-store' });
-  } catch (error) {
-    return json({ error: error.message }, 500);
+    admin = await isAdminToken(env, token);
+  } catch {
+    return json({ error: 'База не ответила на проверку роли — попробуйте ещё раз.' }, 502);
   }
+  if (!admin) return json({ error: 'Генерация доступна только администратору. Войдите в админку заново.' }, 403);
+
+  const wait = geminiWaitSeconds(tokenSubject(token) || token);
+  if (wait) {
+    return json({ error: `Слишком много запросов к модели — подождите ${wait} с.` }, 429, { 'Retry-After': String(wait) });
+  }
+
+  let upstream;
+  try {
+    upstream = await fetch(`${GEMINI_ENDPOINT}/${model}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
+      body: JSON.stringify(body.request)
+    });
+  } catch (error) {
+    return json({ error: `Модель не ответила: ${error.message}` }, 504);
+  }
+
+  /* Ответ модели отдаём как есть, с её кодом: повторы при 429 и 5xx и
+     перебор моделей остаются на стороне админки, как были. */
+  const headers = { 'Content-Type': upstream.headers.get('content-type') || 'application/json', 'Cache-Control': 'no-store' };
+  const retryAfter = upstream.headers.get('retry-after');
+  if (retryAfter) headers['Retry-After'] = retryAfter;
+  return new Response(upstream.body, { status: upstream.status, headers });
 }
 
 export {
@@ -371,7 +350,7 @@ export {
   renderTaskPreviewHtml,
   sitemap,
   taskPreview,
-  generateTask
+  geminiProxy
 };
 
 export default {
@@ -379,7 +358,7 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === '/sitemap.xml') return sitemap(request, env);
-    if (url.pathname === '/api/generate-task') return generateTask(request, env);
+    if (url.pathname === '/api/gemini') return geminiProxy(request, env);
 
     // Страница задачи: ботам отдаём мета-теги, людям — обычное приложение.
     const taskMatch = url.pathname.match(/^(?:\/lv)?\/task\/(\d+)/);

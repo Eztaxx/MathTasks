@@ -1606,7 +1606,7 @@
     }
   }
 
-  async function translateWithGemini(texts, direction, apiKey) {
+  async function translateWithGemini(texts, direction) {
     const toLv = direction === 'ru2lv';
     const prompt = `Ты эксперт по латвийской школьной математике и стандартам Skola2030.
 Переведи массив текстов задачи ${toLv ? 'с русского на латышский язык' : 'с латышского на русский язык'}.
@@ -1631,12 +1631,13 @@ ${JSON.stringify(texts)}`;
     let lastError = null;
     for (const model of candidateModels) {
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-        const r = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: requestBody
-        });
+        const r = await window.MathTasks.aiGenerator.geminiRequest(model, requestBody);
+        /* Без входа, без прав или без ключа на сервере другие модели не
+           помогут — сразу к запасному переводчику. */
+        if ([401, 403, 501].includes(r.status)) {
+          lastError = new Error(`Gemini недоступен (${r.status})`);
+          break;
+        }
         if (r.ok) {
           const data = await r.json();
           const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -1687,14 +1688,12 @@ ${JSON.stringify(texts)}`;
     const label = button.innerHTML;
     button.disabled = true;
 
-    const apiKey = (document.querySelector('#ai-gemini-key')?.value || '').trim() || localStorage.getItem('math_tasks_gemini_api_key') || '';
-
     try {
-      if (apiKey) {
+      if (window.MathTasks.aiGenerator?.geminiRequest) {
         button.innerHTML = '<span class="ai-icon">✨</span> Gemini AI переводит…';
         try {
           const sourceTexts = fields.map(([from]) => from?.value?.trim() || '');
-          const results = await translateWithGemini(sourceTexts, direction, apiKey);
+          const results = await translateWithGemini(sourceTexts, direction);
           fields.forEach(([, to], i) => { if (to && results[i]) to.value = results[i]; });
           updatePreviews();
           taskSuccess.textContent = toLv
@@ -4967,18 +4966,14 @@ ${JSON.stringify(texts)}`;
   const btnToggleAiSettings = document.querySelector('#btn-toggle-ai-settings');
   const aiSettingsCard = document.querySelector('#ai-settings-card');
   const aiEngineSelect = document.querySelector('#ai-engine-select');
-  const geminiKeyWrap = document.querySelector('#gemini-key-wrap');
-  const aiGeminiKey = document.querySelector('#ai-gemini-key');
-  const btnSaveGeminiKey = document.querySelector('#btn-save-gemini-key');
 
   function updateAiFieldsVisibility() {
     const isGemini = aiEngineSelect?.value === 'gemini';
-    if (geminiKeyWrap) geminiKeyWrap.hidden = !isGemini;
     const keyHint = document.querySelector('#ai-key-hint');
     if (keyHint) {
       keyHint.textContent = isGemini
-        ? 'Введите API-ключ Google Gemini для генерации задач через нейросеть. Получить ключ: aistudio.google.com'
-        : 'Встроенный генератор создаёт аутентичные задачи Skola2030 без API-ключа. Переключитесь на Google Gemini для использования нейросети.';
+        ? 'Gemini работает через сервер сайта: ключ хранится там, вводить его не нужно — достаточно входа администратора.'
+        : 'Встроенный генератор создаёт задачи Skola2030 сам, без сети. Переключитесь на Google Gemini, чтобы генерировать нейросетью.';
     }
     // Show/hide Gemini-only fields (context, custom prompt, subtopic, task type)
     document.querySelectorAll('.ai-custom-card').forEach(card => {
@@ -4997,11 +4992,12 @@ ${JSON.stringify(texts)}`;
   }
 
   function initAiSettings() {
-    const savedKey = localStorage.getItem('math_tasks_gemini_api_key') || '';
-    if (aiGeminiKey && savedKey) {
-      aiGeminiKey.value = savedKey;
-    }
-    const savedEngine = localStorage.getItem('math_tasks_ai_engine') || (savedKey ? 'gemini' : 'builtin');
+    /* Ключ Gemini теперь в секретах воркера. Сохранённый раньше в браузере
+       больше не нужен и лежал бы там открыто — стираем. Кто им пользовался,
+       тот работал с Gemini: этот режим и оставляем выбранным. */
+    const hadBrowserKey = Boolean(localStorage.getItem('math_tasks_gemini_api_key'));
+    localStorage.removeItem('math_tasks_gemini_api_key');
+    const savedEngine = localStorage.getItem('math_tasks_ai_engine') || (hadBrowserKey ? 'gemini' : 'builtin');
     if (aiEngineSelect) {
       aiEngineSelect.value = savedEngine;
       aiEngineSelect.addEventListener('change', () => {
@@ -5013,33 +5009,8 @@ ${JSON.stringify(texts)}`;
     btnToggleAiSettings?.addEventListener('click', () => {
       if (!aiSettingsCard) return;
       aiSettingsCard.hidden = !aiSettingsCard.hidden;
-      if (!aiSettingsCard.hidden && aiGeminiKey) {
-        aiGeminiKey.focus();
-      }
     });
 
-    function saveKey() {
-      const k = (aiGeminiKey?.value || '').trim();
-      localStorage.setItem('math_tasks_gemini_api_key', k);
-      if (k) {
-        localStorage.setItem('math_tasks_ai_engine', 'gemini');
-        if (aiEngineSelect) aiEngineSelect.value = 'gemini';
-        updateAiFieldsVisibility();
-      }
-      if (btnSaveGeminiKey) {
-        btnSaveGeminiKey.textContent = '✓ Сохранено';
-        setTimeout(() => { btnSaveGeminiKey.textContent = 'Сохранить'; }, 2000);
-      }
-    }
-
-    btnSaveGeminiKey?.addEventListener('click', saveKey);
-    aiGeminiKey?.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        saveKey();
-      }
-    });
-    
     updateAiFieldsVisibility();
   }
 
@@ -5485,7 +5456,6 @@ ${JSON.stringify(texts)}`;
       const context = (aiGenContext?.value || '').trim();
       const customPrompt = (aiGenPrompt?.value || '').trim();
       const engine = aiEngineSelect?.value || 'builtin';
-      const apiKey = (aiGeminiKey?.value || '').trim() || localStorage.getItem('math_tasks_gemini_api_key') || '';
       const rawCount = Number(aiGenCount?.value) || 1;
       const count = Math.min(Math.max(1, rawCount), 100);
 
@@ -5547,7 +5517,6 @@ ${JSON.stringify(texts)}`;
               taskType,
               context,
               customPrompt,
-              apiKey,
               useGemini: usingGemini,
               onRetry: ({ status, attempt, waitMs }) => {
                 aiGenStatus.innerHTML = `<span>⏳</span> Пакет ${batchIdx + 1}: модель занята${status ? ` (${status})` : ''}, ждём ${Math.round(waitMs / 1000)} с — попытка ${attempt + 1}…`;
@@ -5580,7 +5549,7 @@ ${JSON.stringify(texts)}`;
                   const partTasks = await generator.generateTasksBatch({
                     grade: g, topicTitle: batchTopics[0] || topicTitle, topicsList: batchTopics, count: part,
                     subtopic, subtopicCode, difficulty: selectedDifficulty, taskType, context, customPrompt,
-                    apiKey, useGemini: usingGemini
+                    useGemini: usingGemini
                   });
                   for (const task of partTasks) {
                     const diff = task.difficulty || 'Средний';

@@ -427,52 +427,82 @@ describe('Cloudflare Worker: чистые функции', () => {
     });
   });
 
-  describe('/api/generate-task', () => {
-    const post = body => new Request('https://mathtasks.lv/api/generate-task', {
+  describe('/api/gemini', () => {
+    /* Токен входа: воркер читает из него только sub — для лимита частоты.
+       Подпись проверяет база, в тестах её заменяет подставной fetch. */
+    const tokenFor = sub => `h.${btoa(JSON.stringify({ sub })).replace(/=+$/, '')}.s`;
+    const post = (body, token = tokenFor('admin-1')) => new Request('https://mathtasks.lv/api/gemini', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
       body
     });
+    const env = { SUPABASE_URL: 'https://db.example', SUPABASE_KEY: 'anon', GEMINI_API_KEY: 'secret-key' };
+    const request = JSON.stringify({ model: 'gemini-3.6-flash', request: { contents: [{ parts: [{ text: 'hi' }] }] } });
+    const adminCheck = isAdmin => new Response(JSON.stringify(isAdmin));
 
     afterEach(() => vi.unstubAllGlobals());
 
     it('отвечает 405 на GET', async () => {
-      const response = await worker.fetch(new Request('https://mathtasks.lv/api/generate-task'), {});
+      const response = await worker.fetch(new Request('https://mathtasks.lv/api/gemini'), env);
       expect(response.status).toBe(405);
     });
 
-    it('отвечает 400 на битый JSON', async () => {
-      const response = await worker.fetch(post('{oops'), { GEMINI_API_KEY: 'k' });
-      expect(response.status).toBe(400);
-    });
-
-    it('без ключа отвечает 400 и в Gemini не ходит', async () => {
+    it('без входа отвечает 401 и никуда не ходит', async () => {
       const fetchMock = vi.fn();
       vi.stubGlobal('fetch', fetchMock);
-
-      const response = await worker.fetch(post('{}'), {});
-
-      expect(response.status).toBe(400);
+      const response = await worker.fetch(post(request, ''), env);
+      expect(response.status).toBe(401);
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
-    it('при 429 переходит к следующей модели и разбирает ответ в обёртке ```json', async () => {
-      const modelText = '```json\n{"title_ru":"Задача","answer_latex":"$x=2$"}\n```';
-      const fetchMock = vi.fn()
-        .mockResolvedValueOnce(new Response('quota', { status: 429 }))
-        .mockResolvedValueOnce(new Response(JSON.stringify({
-          candidates: [{ content: { parts: [{ text: modelText }] } }]
-        })));
+    it('без ключа на сервере отвечает 501 и никуда не ходит', async () => {
+      const fetchMock = vi.fn();
       vi.stubGlobal('fetch', fetchMock);
+      const response = await worker.fetch(post(request), { ...env, GEMINI_API_KEY: undefined });
+      expect(response.status).toBe(501);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
 
-      const response = await worker.fetch(post('{"grade":9}'), { GEMINI_API_KEY: 'k' });
-      const data = await response.json();
+    it('битый JSON и чужую модель не пропускает', async () => {
+      vi.stubGlobal('fetch', vi.fn());
+      expect((await worker.fetch(post('{oops'), env)).status).toBe(400);
+      expect((await worker.fetch(post(JSON.stringify({ model: '../evil', request: {} })), env)).status).toBe(400);
+    });
 
-      expect(response.status).toBe(200);
-      expect(data.task).toMatchObject({ title_ru: 'Задача', answer_latex: '$x=2$', grade: 9 });
-      expect(fetchMock).toHaveBeenCalledTimes(2);
-      expect(fetchMock.mock.calls[0][0]).toContain('/models/gemini-3.6-flash:generateContent?key=k');
-      expect(fetchMock.mock.calls[1][0]).toContain('/models/gemini-flash-latest:generateContent?key=k');
+    it('не администратору отвечает 403, в Gemini не ходит', async () => {
+      const fetchMock = vi.fn().mockResolvedValueOnce(adminCheck(false));
+      vi.stubGlobal('fetch', fetchMock);
+      const response = await worker.fetch(post(request, tokenFor('visitor-1')), env);
+      expect(response.status).toBe(403);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toBe('https://db.example/rest/v1/rpc/is_admin');
+      expect(init.headers.Authorization).toBe(`Bearer ${tokenFor('visitor-1')}`);
+    });
+
+    it('администратору пересылает запрос с ключом из секретов и отдаёт ответ модели как есть', async () => {
+      const fetchMock = vi.fn()
+        .mockResolvedValueOnce(adminCheck(true))
+        .mockResolvedValueOnce(new Response('{"candidates":[]}', { status: 429, headers: { 'retry-after': '7' } }));
+      vi.stubGlobal('fetch', fetchMock);
+      const response = await worker.fetch(post(request, tokenFor('admin-2')), env);
+      expect(response.status).toBe(429);
+      expect(response.headers.get('retry-after')).toBe('7');
+      expect(await response.text()).toBe('{"candidates":[]}');
+      const [url, init] = fetchMock.mock.calls[1];
+      expect(url).toBe('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent');
+      expect(url).not.toContain('secret-key');
+      expect(init.headers['x-goog-api-key']).toBe('secret-key');
+      expect(JSON.parse(init.body)).toEqual({ contents: [{ parts: [{ text: 'hi' }] }] });
+    });
+
+    it('больше 30 запросов в минуту от одного человека — 429 с Retry-After', async () => {
+      vi.stubGlobal('fetch', vi.fn(async url => (String(url).includes('is_admin') ? adminCheck(true) : new Response('{}'))));
+      const token = tokenFor('admin-rate');
+      for (let i = 0; i < 30; i++) expect((await worker.fetch(post(request, token), env)).status).toBe(200);
+      const response = await worker.fetch(post(request, token), env);
+      expect(response.status).toBe(429);
+      expect(Number(response.headers.get('retry-after'))).toBeGreaterThan(0);
     });
   });
 });

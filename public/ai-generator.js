@@ -1,7 +1,7 @@
 /**
  * Модуль генерации математических задач по стандарту Skola2030
  * Поддерживает:
- * 1. Прямой вызов Google Gemini API (gemini-3.5-flash / gemini-3.6-flash)
+ * 1. Google Gemini через прокси сайта /api/gemini: ключ на сервере, от браузера — только вход администратора
  * 2. Встроенный автономный генератор параметризованных задач Skola2030 для всех классов (1–12)
  * 3. Полную мультиязычность: условие, ответ и пошаговое решение на RU, LV, EN с формулами KaTeX
  */
@@ -368,10 +368,44 @@
     }
   };
 
+  /* Ключ Gemini живёт на сервере: запрос уходит в воркер (/api/gemini)
+     с токеном входа, воркер проверяет роль администратора и сам
+     подставляет ключ. Раньше ключ лежал в localStorage и запрос шёл
+     прямо в Google — а политика безопасности сайта (connect-src) такие
+     запросы и вовсе не пропускала. Токен берём перед каждым запросом:
+     пачка идёт минутами, и клиент Supabase за это время его обновляет. */
+  async function authToken() {
+    const db = globalThis.MathTasks?.db;
+    const session = db ? (await db.auth.getSession())?.data?.session : null;
+    if (!session?.access_token) throw new Error('Генерация через Gemini доступна после входа администратора — войдите в админку заново.');
+    return session.access_token;
+  }
+
+  async function geminiRequest(model, requestBody, signal) {
+    return fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await authToken()}` },
+      body: `{"model":${JSON.stringify(model)},"request":${requestBody}}`,
+      signal
+    });
+  }
+
+  /* Нет входа, нет прав, нет ключа на сервере — ни повтор, ни другая
+     модель не помогут. Сообщение воркера показываем как есть. */
+  const FATAL_STATUSES = new Set([401, 403, 501]);
+  const serverError = text => {
+    try {
+      const { error } = JSON.parse(text);
+      if (typeof error === 'string') return error;
+    } catch {}
+    return text.slice(0, 300);
+  };
+
   /**
    * Вызов Google Gemini API
    */
-  async function callGeminiApi({ onRetry, apiKey, grade, topicTitle, subtopic, difficulty, taskType, context, customPrompt }) {
+  async function callGeminiApi({ onRetry, grade, topicTitle, subtopic, difficulty, taskType, context, customPrompt }) {
+    await authToken();
     const prompt = `Ты — ведущий методист и преподаватель математики в Латвии, создающий учебные материалы строго по государственному стандарту Skola2030.
 Создай качественную математическую задачу для ${grade} класса.
 Тема Skola2030: "${topicTitle}".
@@ -426,22 +460,16 @@ ${customPrompt ? `Дополнительные математические тр
 
     outer:
     for (const model of candidateModels) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         const control = new AbortController();
         const timer = setTimeout(() => control.abort(), REQUEST_TIMEOUT_MS);
         try {
-          const r = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: requestBody,
-            signal: control.signal
-          });
+          const r = await geminiRequest(model, requestBody, control.signal);
 
           if (r.ok) { res = r; break outer; }
 
           const errText = await r.text();
+          if (FATAL_STATUSES.has(r.status)) { lastError = new Error(serverError(errText)); break outer; }
           lastError = new Error(`Ошибка модели ${model} (${r.status}): ${errText.slice(0, 300)}`);
 
           if (!RETRYABLE.has(r.status) || attempt === MAX_ATTEMPTS) break;
@@ -503,18 +531,13 @@ ${customPrompt ? `Дополнительные математические тр
       taskType = 'Уравнение',
       context = '',
       customPrompt = '',
-      apiKey = '',
       useGemini = false
     } = options;
 
-    // 1. Попытка через Gemini API (если запрошен Gemini)
+    // 1. Через Gemini, если он выбран: ключ на сервере, см. geminiRequest
     if (useGemini) {
-      if (!apiKey) {
-        throw new Error('API-ключ Google Gemini не указан. Нажмите «⚙️ Настройки AI» в генераторе задач и сохраните ваш ключ.');
-      }
       return await callGeminiApi({
         onRetry: options.onRetry,
-        apiKey,
         grade,
         topicTitle,
         subtopic,
@@ -543,7 +566,8 @@ ${customPrompt ? `Дополнительные математические тр
    * За один сетевой запрос генерирует массив из нескольких задач (до 10-12 шт.),
    * что в 10 раз быстрее и предотвращает ошибки превышения лимитов 15 RPM.
    */
-  async function callGeminiBatchApi({ onRetry, apiKey, grade, topicTitle, topicsList, count = 10, difficulty = 'mix', taskType, context, customPrompt, subtopic = '', subtopicCode = '' }) {
+  async function callGeminiBatchApi({ onRetry, grade, topicTitle, topicsList, count = 10, difficulty = 'mix', taskType, context, customPrompt, subtopic = '', subtopicCode = '' }) {
+    await authToken();
     const isMultiTopic = Array.isArray(topicsList) && topicsList.length > 0;
     const topicsInstruction = isMultiTopic
       ? `Темы Skola2030 (распредели ${count} задач равномерно по этим темам): ${topicsList.map(t => `"${t}"`).join(', ')}.`
@@ -637,19 +661,13 @@ ${customPrompt ? `Дополнительные математические тр
 
     outer:
     for (const model of candidateModels) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
       let body = requestBody;
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         const control = new AbortController();
         const timer = setTimeout(() => control.abort(), REQUEST_TIMEOUT_MS);
         try {
-          const r = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body,
-            signal: control.signal
-          });
+          const r = await geminiRequest(model, body, control.signal);
 
           if (r.ok) { res = r; break outer; }
 
@@ -660,6 +678,7 @@ ${customPrompt ? `Дополнительные математические тр
           }
 
           const errText = await r.text();
+          if (FATAL_STATUSES.has(r.status)) { lastError = new Error(serverError(errText)); break outer; }
           lastError = new Error(`Ошибка модели ${model} (${r.status}): ${errText.slice(0, 300)}`);
           if (!RETRYABLE.has(r.status) || attempt === MAX_ATTEMPTS) break;
 
@@ -725,18 +744,13 @@ ${customPrompt ? `Дополнительные математические тр
       taskType = 'Уравнение',
       context = '',
       customPrompt = '',
-      apiKey = '',
       useGemini = false,
       onRetry
     } = options;
 
     if (useGemini) {
-      if (!apiKey) {
-        throw new Error('API-ключ Google Gemini не указан. Нажмите «⚙️ Настройки AI» в генераторе задач и сохраните ваш ключ.');
-      }
       return await callGeminiBatchApi({
         onRetry,
-        apiKey,
         grade,
         topicTitle,
         topicsList,
@@ -771,6 +785,7 @@ ${customPrompt ? `Дополнительные математические тр
     generateTasksBatch,
     callGeminiApi,
     callGeminiBatchApi,
+    geminiRequest,
     translateMathText,
     GENERATORS
   };
