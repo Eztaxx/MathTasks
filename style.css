@@ -3658,30 +3658,7 @@ body.dark .trainer-feedback-card.wrong {
   font-size: 15px;
   font-weight: 700;
 }
-.feedback-hint-wrap {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(0, 0, 0, 0.15);
-  font-size: 13px;
-  color: var(--ink);
-}
-body.dark .feedback-hint-wrap {
-  border-top-color: rgba(255, 255, 255, 0.15);
-}
-.feedback-hint-math {
 
-/* Условия задач — Literata; текст внутри формул (\text{ см}, °C) — ею же:
-   у шрифтов KaTeX нет кириллицы, и «см» падал в Times New Roman */
-.task-condition .katex .text{font-family:Literata,Georgia,'Times New Roman',serif}
-
-  overflow-x: auto;
-}
-.feedback-hint-math .katex-display {
-  margin: 4px 0;
-}
-.feedback-next-btn {
-  margin-top: 12px;
-}
 .trainer-review-btn {
   align-self: flex-start;
 }
@@ -3691,6 +3668,22 @@ body.dark .feedback-hint-wrap {
   justify-content: center;
   gap: 10px;
 }
+
+/* Итоги карточек: ошибки сессии — пример, ответ ученика, правильный ответ */
+.res-mistakes{margin:4px 0 18px;text-align:left}
+.res-mistakes-title{margin:0 0 8px;font-size:14px}
+.res-mistakes-list{list-style:none;margin:0;padding:0;max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.res-mistake{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:14px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px}
+.res-mistake-expr{overflow-x:auto}
+.res-mistake-given{color:#b91c1c;text-decoration:line-through}
+.res-mistake-answer{color:#15803d;font-weight:700}
+body.dark .res-mistake{border-color:#243550}
+body.dark .res-mistake-given{color:#fca5a5}
+body.dark .res-mistake-answer{color:#86efac}
+
+/* Условия задач — Literata; текст внутри формул (\text{ см}, °C) — ею же:
+   у шрифтов KaTeX нет кириллицы, и «см» падал в Times New Roman */
+.task-condition .katex .text{font-family:Literata,Georgia,'Times New Roman',serif}
 
 /* Разделы «Уравнения» и «Выражения»: подгруппа категорий, подпись задания,
    широкие ячейки листа — уравнение не влезает в треть строки */

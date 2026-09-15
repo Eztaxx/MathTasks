@@ -236,6 +236,12 @@
       </div>
 
       <div class="trainer-timer-progress-wrap" id="timer-progress-wrap" hidden>
+        <div class="trainer-stat-badge" id="hud-stopwatch">
+          <span class="stat-icon">⏱️</span>
+          <span class="stat-val" id="val-stopwatch">00:00</span>
+          <span class="stat-caption" data-i18n="trainer_caption_time">время</span>
+        </div>
+
         <div class="trainer-timer-progress-bar" id="timer-progress-bar"></div>
       </div>
 
@@ -284,6 +290,9 @@
           <button type="button" class="numpad-key action" data-key="backspace">⌫</button>
 
           <button type="button" class="numpad-key" data-key="4">4</button>
+            <button type="button" class="text-button trainer-skip-btn trainer-finish-btn" id="btn-finish-session" data-i18n="trainer_btn_finish">
+              Завершить ✓
+            </button>
           <button type="button" class="numpad-key" data-key="5">5</button>
           <button type="button" class="numpad-key" data-key="6">6</button>
           <button type="button" class="numpad-key op" data-key="/">/</button>
@@ -312,10 +321,6 @@
             <span class="feedback-icon" id="feedback-icon">✓</span>
             <span class="feedback-text" id="feedback-text"></span>
           </div>
-          <div class="feedback-hint-wrap" id="feedback-hint-wrap" hidden>
-            <div class="feedback-hint-math" id="feedback-hint-content"></div>
-          </div>
-          <button type="button" class="primary-button feedback-next-btn" id="btn-next-question" data-i18n="trainer_btn_next" hidden>Дальше →</button>
         </div>
       </div>
     </div>
@@ -323,7 +328,7 @@
     <!-- Модальное окно завершения спринта -->
     <dialog class="auth-dialog trainer-modal" id="sprint-modal">
       <div class="trainer-modal-head">
-        <h2 data-i18n="trainer_sprint_done_title">⏱️ Спринт завершён!</h2>
+        <h2 id="sprint-title" data-i18n="trainer_sprint_done_title">⏱️ Спринт завершён!</h2>
       </div>
       <p class="trainer-modal-subtitle" id="sprint-subtitle" data-i18n="trainer_sprint_done_subtitle">Отличный результат тренировки устного счёта!</p>
 
@@ -340,7 +345,7 @@
           <span class="sprint-stat-num" id="res-max-streak">0</span>
           <span class="sprint-stat-label" data-i18n="trainer_sprint_stat_streak">Лучшая серия 🔥</span>
         </div>
-        <div class="sprint-stat-item">
+        <div class="sprint-stat-item" id="res-best-item">
           <span class="sprint-stat-num" id="res-best-score">0</span>
           <span class="sprint-stat-label" data-i18n="trainer_sprint_stat_record">Личный рекорд 🏆</span>
         </div>
@@ -360,3 +365,5 @@
   <script src="/trainer-page.js?v=20260915-1"></script>
 </body>
 </html>
+      <div class="res-mistakes" id="res-mistakes" hidden></div>
+

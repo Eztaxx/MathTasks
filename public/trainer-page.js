@@ -31,9 +31,10 @@
         diff: 'normal', // 'normal', 'hard', 'expert'
         mode: 'zen',
         currentQuestion: null,
-        phase: 'answer', // 'answer' — ждём ответ, 'correct' — засчитан, 'reveal' — показан правильный ответ
+        phase: 'answer', // 'answer' — ждём ответ, 'checked' — проверен, сейчас будет следующий пример
         reviewQueue: [], // очередь работы над ошибками в режиме карточек
         currentFromReview: false,
+        sessionLog: [], // ошибки текущей сессии карточек: показываются в итогах
         streak: 0,
         maxStreak: 0,
         score: 0,
@@ -41,7 +42,8 @@
         soundEnabled: true,
         timerSec: 60,
         totalSec: 60,
-        timerInterval: null
+        timerInterval: null,
+        timerArmed: false // спринт выбран, отсчёт начнётся с первого ввода
       };
 
       // Состояние режима «Куча примеров (Лист-тренажёр)»
@@ -51,9 +53,7 @@
         solvedSet: new Set(),
         erredSet: new Set(), // примеры листа, где была хоть одна ошибка
         review: false, // лист собран из списка ошибок
-        elapsedSec: 0,
-        startTime: null,
-        timerInterval: null
+        done: false // лист решён целиком, секундомер остановлен
       };
 
       // Звук
@@ -79,8 +79,6 @@
       const feedbackCard = document.querySelector('#feedback-card');
       const feedbackIcon = document.querySelector('#feedback-icon');
       const feedbackText = document.querySelector('#feedback-text');
-      const feedbackHintWrap = document.querySelector('#feedback-hint-wrap');
-      const feedbackHintContent = document.querySelector('#feedback-hint-content');
       const sprintModal = document.querySelector('#sprint-modal');
       const trainerCard = document.querySelector('#trainer-card');
       const trainerArena = document.querySelector('#trainer-arena');
@@ -89,7 +87,7 @@
       const trainerSheetGrid = document.querySelector('#trainer-sheet-grid');
       const tabViewSheet = document.querySelector('#tab-view-sheet');
       const tabViewCard = document.querySelector('#tab-view-card');
-      const btnNext = document.querySelector('#btn-next-question');
+      const btnFinish = document.querySelector('#btn-finish-session');
       const hudReview = document.querySelector('#hud-review');
       const valReview = document.querySelector('#val-review');
       const t = (key, params) => window.MathTasks.t(key, params);
@@ -127,9 +125,10 @@
       const addMistake = q => setMistakes(window.MathTasksTrainer.rememberMistake(mistakes, q));
       const removeMistake = q => setMistakes(window.MathTasksTrainer.forgetMistake(mistakes, q));
 
+      // В режиме карточек работа над ошибками — только из итогов, не по ходу
       function updateReviewButtons() {
         document.querySelectorAll('[data-review-btn]').forEach(btn => {
-          btn.hidden = mistakes.length === 0;
+          btn.hidden = mistakes.length === 0 || (btn.id === 'btn-review' && state.view === 'card');
           btn.textContent = t('trainer_review_btn', { count: mistakes.length });
         });
       }
@@ -138,24 +137,48 @@
       // trainer.js подключён раньше этого файла, запасная копия не нужна.
       const formatTime = sec => window.MathTasksTrainer.formatTime(sec);
 
-      function startSheetStopwatch() {
-        stopSheetStopwatch();
-        sheetState.elapsedSec = 0;
-        sheetState.startTime = Date.now();
-        const swEl = document.querySelector('#sheet-stopwatch');
-        if (swEl) swEl.textContent = '⏱️ 00:00';
-        sheetState.timerInterval = setInterval(() => {
-          sheetState.elapsedSec = Math.floor((Date.now() - sheetState.startTime) / 1000);
-          if (swEl) swEl.textContent = `⏱️ ${formatTime(sheetState.elapsedSec)}`;
-        }, 1000);
+      /* Секундомер стоит на 00:00, пока человек не начал вводить ответ.
+         При уходе на другую вкладку встаёт на паузу и идёт дальше
+         с первого же ввода. */
+      function createStopwatch(onTick) {
+        let accumulated = 0;
+        let startedAt = null;
+        let interval = null;
+        const seconds = () => Math.floor((accumulated + (startedAt === null ? 0 : Date.now() - startedAt)) / 1000);
+        const tick = () => onTick(seconds());
+        return {
+          get seconds() { return seconds(); },
+          start() {
+            if (startedAt !== null) return;
+            startedAt = Date.now();
+            interval = setInterval(tick, 1000);
+            tick();
+          },
+          pause() {
+            if (startedAt === null) return;
+            accumulated += Date.now() - startedAt;
+            startedAt = null;
+            clearInterval(interval);
+            tick();
+          },
+          reset() {
+            this.pause();
+            accumulated = 0;
+            tick();
+          }
+        };
       }
 
-      function stopSheetStopwatch() {
-        if (sheetState.timerInterval) {
-          clearInterval(sheetState.timerInterval);
-          sheetState.timerInterval = null;
-        }
-      }
+      const sheetStopwatchEl = document.querySelector('#sheet-stopwatch');
+      const sheetWatch = createStopwatch(sec => {
+        if (sheetStopwatchEl) sheetStopwatchEl.textContent = `⏱️ ${formatTime(sec)}`;
+      });
+      const hudStopwatch = document.querySelector('#hud-stopwatch');
+      const valStopwatch = document.querySelector('#val-stopwatch');
+      const cardWatch = createStopwatch(sec => {
+        if (valStopwatch) valStopwatch.textContent = formatTime(sec);
+      });
+      const isSprint = () => state.mode === 'sprint60' || state.mode === 'sprint120';
 
       // reviewList — примеры для работы над ошибками; без него лист генерируется заново
       function renderSheet(reviewList = null) {
@@ -217,7 +240,8 @@
           }
         });
 
-        startSheetStopwatch();
+        sheetState.done = false;
+        sheetWatch.reset();
 
         // Фокусируем первое поле ввода
         setTimeout(() => {
@@ -308,7 +332,8 @@
       }
 
       function onSheetCompleted() {
-        stopSheetStopwatch();
+        sheetWatch.pause();
+        sheetState.done = true;
         if (state.soundEnabled) {
           window.MathTasksTrainer.playSound('correct');
           setTimeout(() => window.MathTasksTrainer.playSound('correct'), 180);
@@ -317,7 +342,7 @@
         const textEl = document.querySelector('#sheet-completion-text');
         if (textEl) {
           const count = sheetState.questions.length;
-          const time = formatTime(sheetState.elapsedSec);
+          const time = formatTime(sheetWatch.seconds);
           textEl.innerHTML = sheetState.review
             ? t('trainer_review_done', { time, left: mistakes.length })
             : t('trainer_sheet_done_text', {
@@ -345,16 +370,16 @@
         if (trainerSheetContainer) trainerSheetContainer.hidden = !isSheet;
         if (trainerArena) trainerArena.hidden = isSheet;
         if (trainerModeRow) trainerModeRow.hidden = isSheet;
+        updateReviewButtons();
 
+        // Время на скрытой вкладке не идёт: продолжится с первого ввода
         if (isSheet) {
           stopTimer();
-          if (!sheetState.questions.length) {
-            renderSheet();
-          } else {
-            startSheetStopwatch();
-          }
+          cardWatch.pause();
+          if (!sheetState.questions.length) renderSheet();
         } else {
-          stopSheetStopwatch();
+          sheetWatch.pause();
+          state.timerArmed = isSprint() && state.timerSec > 0;
           updateHUD();
           nextQuestion();
         }
@@ -367,6 +392,11 @@
       document.querySelector('#btn-sheet-refresh')?.addEventListener('click', () => renderSheet());
       document.querySelector('#btn-sheet-next-pack')?.addEventListener('click', () => renderSheet());
       document.querySelector('#btn-sheet-check-all')?.addEventListener('click', () => checkAllSheetInputs());
+
+      // Секундомер листа идёт с первого введённого символа
+      trainerSheetGrid?.addEventListener('input', () => {
+        if (!sheetState.done) sheetWatch.start();
+      });
 
       // Количество примеров на листе (10, 20, 30)
       document.querySelectorAll('.sheet-count-chip').forEach(btn => {
@@ -458,52 +488,21 @@
 
         state.phase = 'answer';
         if (feedbackCard) feedbackCard.hidden = true;
-        if (feedbackHintWrap) feedbackHintWrap.hidden = true;
-        if (btnNext) btnNext.hidden = true;
         if (trainerCard) {
           trainerCard.classList.remove('correct-flash', 'wrong-flash');
         }
       }
 
-      // Показывает правильный ответ и разбор; дальше — по Enter или кнопке «Дальше»
-      function revealAnswer(message) {
-        const q = state.currentQuestion;
-        state.phase = 'reveal';
-        if (!feedbackCard) return;
-        feedbackCard.className = 'trainer-feedback-card wrong';
-        if (feedbackIcon) feedbackIcon.textContent = '✕';
-        if (feedbackText) feedbackText.textContent = message;
-        if (feedbackHintContent && q.hint) {
-          // В подсказках десятичные через точку, а в примерах — через запятую
-          const hint = q.hint.replace(/(\d)\.(\d)/g, '$1{,}$2');
-          try {
-            feedbackHintContent.innerHTML = window.katex.renderToString(hint, { displayMode: true, throwOnError: false });
-          } catch (e) {
-            feedbackHintContent.textContent = hint;
-          }
-        }
-        if (feedbackHintWrap) feedbackHintWrap.hidden = !q.hint;
-        feedbackCard.hidden = false;
-        if (btnNext) {
-          btnNext.hidden = false;
-          btnNext.focus();
-        }
-      }
-
       function checkCurrentAnswer() {
         if (!state.currentQuestion || !window.MathTasksTrainer) return;
-        if (state.phase === 'reveal') {
-          nextQuestion();
-          return;
-        }
-        // Засчитанный ответ не проверяем второй раз, пока пример не сменился
+        // Проверенный ответ не проверяем второй раз, пока пример не сменился
         if (state.phase !== 'answer') return;
         const val = trainerInput ? trainerInput.value : '';
         if (!val.trim()) return;
         const check = window.MathTasksTrainer.checkAnswer(state.currentQuestion, val);
 
         if (check.isCorrect) {
-          state.phase = 'correct';
+          state.phase = 'checked';
           state.score++;
           state.streak++;
           if (state.streak > state.maxStreak) state.maxStreak = state.streak;
@@ -542,9 +541,12 @@
             trainerCard.classList.add('wrong-flash');
           }
 
+          // Правильный ответ — не сейчас, а в итогах сессии
+          state.phase = 'checked';
+          state.sessionLog.push({ q: state.currentQuestion, given: val.trim() });
           updateHUD();
           addMistake(state.currentQuestion);
-          revealAnswer(t('trainer_feedback_wrong', { answer: check.expectedDisplay }));
+          setTimeout(nextQuestion, 450);
         }
       }
 
@@ -553,21 +555,16 @@
         checkCurrentAnswer();
       });
 
-      // Пропуск тоже показывает правильный ответ
+      // Пропуск считается ошибкой; правильный ответ — в итогах сессии
       btnSkip?.addEventListener('click', () => {
-        if (state.phase === 'reveal') {
-          nextQuestion();
-          return;
-        }
         if (state.phase !== 'answer' || !state.currentQuestion) return;
         state.errors++;
         state.streak = 0;
+        state.sessionLog.push({ q: state.currentQuestion, given: '' });
         updateHUD();
         addMistake(state.currentQuestion);
-        revealAnswer(t('trainer_feedback_skipped', { answer: state.currentQuestion.answer }));
+        nextQuestion();
       });
-
-      btnNext?.addEventListener('click', () => nextQuestion());
 
       /* ── Разделы: счёт, уравнения, выражения ─────────────────────── */
       const SECTION_TEXT = {
@@ -638,6 +635,7 @@
       function restartTraining() {
         state.streak = 0;
         state.reviewQueue = [];
+        cardWatch.reset();
         if (state.view === 'sheet') {
           renderSheet();
         } else {
@@ -695,26 +693,43 @@
           state.reviewQueue = [];
           stopTimer();
 
+          // Спринт — обратный отсчёт вместо секундомера; оба стартуют с первого ввода
           if (mode === 'sprint60' || mode === 'sprint120') {
             const sec = mode === 'sprint60' ? 60 : 120;
             state.timerSec = sec;
             state.totalSec = sec;
+            state.timerArmed = true;
+            updateTimerDisplay();
             if (hudTimer) hudTimer.hidden = false;
             if (timerProgressWrap) timerProgressWrap.hidden = false;
-            startTimer();
+            if (hudStopwatch) hudStopwatch.hidden = true;
+            if (btnFinish) btnFinish.hidden = true;
           } else {
+            state.timerArmed = false;
             if (hudTimer) hudTimer.hidden = true;
             if (timerProgressWrap) timerProgressWrap.hidden = true;
+            if (hudStopwatch) hudStopwatch.hidden = false;
+            if (btnFinish) btnFinish.hidden = false;
           }
 
-          state.score = 0;
-          state.errors = 0;
-          state.streak = 0;
-          state.maxStreak = 0;
-          updateHUD();
+          resetSession();
           nextQuestion();
         });
       });
+
+      // Новая сессия карточек: счёт, серия, ошибки сессии и секундомер с нуля
+      function resetSession() {
+        state.score = 0;
+        state.errors = 0;
+        state.streak = 0;
+        state.maxStreak = 0;
+        state.sessionLog = [];
+        cardWatch.reset();
+        updateHUD();
+      }
+
+      // Марафон заканчивается по кнопке, спринт — когда вышло время
+      btnFinish?.addEventListener('click', () => finishSession());
 
       // Таймер спринта
       function startTimer() {
@@ -724,8 +739,7 @@
           state.timerSec--;
           updateTimerDisplay();
           if (state.timerSec <= 0) {
-            stopTimer();
-            finishSprint();
+            finishSession();
           }
         }, 1000);
       }
@@ -745,14 +759,58 @@
         }
       }
 
-      function finishSprint() {
-        // Рекорд — свой для каждого уровня и школы: рекорд «Базового» не должен закрывать «Эксперт»
-        const key = `math-tasks:trainer-record:${state.category}:${state.diff}:${state.school}:${state.mode}`;
-        const prevBest = Number(localStorage.getItem(key)) || 0;
-        const isNewRecord = state.score > prevBest;
-        if (isNewRecord) {
-          localStorage.setItem(key, String(state.score));
+      // Ошибки этой сессии — в итогах: пример, ответ ученика, правильный ответ
+      function renderSessionMistakes() {
+        const box = document.querySelector('#res-mistakes');
+        if (!box) return;
+        const log = state.sessionLog;
+        box.hidden = !log.length;
+        if (!log.length) {
+          box.innerHTML = '';
+          return;
         }
+        const rows = log.map(({ q, given }) => {
+          let expr;
+          try {
+            expr = window.katex.renderToString(shownLatex(q, '='), { throwOnError: false });
+          } catch (e) {
+            expr = escapeHtml(shownLatex(q, '='));
+          }
+          return `<li class="res-mistake">
+            <span class="res-mistake-expr">${expr}</span>
+            <span class="res-mistake-given">${escapeHtml(given || t('trainer_res_skipped'))}</span>
+            <span class="res-mistake-answer">${escapeHtml(q.answer)}</span>
+          </li>`;
+        }).join('');
+        box.innerHTML = `<h3 class="res-mistakes-title">${escapeHtml(t('trainer_res_mistakes', { count: log.length }))}</h3>
+          <ul class="res-mistakes-list">${rows}</ul>`;
+      }
+
+      // Итоги сессии карточек: спринт — по истечении времени, марафон — по кнопке «Завершить»
+      function finishSession() {
+        const sprint = isSprint();
+        stopTimer();
+        state.timerArmed = false;
+        cardWatch.pause();
+
+        // Рекорд — только у спринта и свой для каждого уровня и школы
+        let prevBest = 0;
+        let isNewRecord = false;
+        if (sprint) {
+          const key = `math-tasks:trainer-record:${state.category}:${state.diff}:${state.school}:${state.mode}`;
+          prevBest = Number(localStorage.getItem(key)) || 0;
+          isNewRecord = state.score > prevBest;
+          if (isNewRecord) localStorage.setItem(key, String(state.score));
+        }
+
+        const title = document.querySelector('#sprint-title');
+        if (title) {
+          title.dataset.i18n = sprint ? 'trainer_sprint_done_title' : 'trainer_session_done_title';
+          title.textContent = t(title.dataset.i18n);
+        }
+        const bestItem = document.querySelector('#res-best-item');
+        if (bestItem) bestItem.hidden = !sprint;
+        renderSessionMistakes();
 
         const resScore = document.querySelector('#res-score');
         const resAccuracy = document.querySelector('#res-accuracy');
@@ -768,7 +826,9 @@
         if (resBestScore) resBestScore.textContent = Math.max(state.score, prevBest);
 
         if (sprintSubtitle) {
-          sprintSubtitle.textContent = t(isNewRecord ? 'trainer_sprint_new_record' : 'trainer_sprint_good');
+          sprintSubtitle.textContent = sprint
+            ? t(isNewRecord ? 'trainer_sprint_new_record' : 'trainer_sprint_good')
+            : t('trainer_session_done_subtitle', { time: formatTime(cardWatch.seconds) });
         }
 
         if (sprintModal && typeof sprintModal.showModal === 'function') {
@@ -778,13 +838,12 @@
 
       document.querySelector('#btn-restart-sprint')?.addEventListener('click', () => {
         if (sprintModal) sprintModal.close();
-        state.score = 0;
-        state.errors = 0;
-        state.streak = 0;
-        state.maxStreak = 0;
-        state.timerSec = state.totalSec;
-        updateHUD();
-        startTimer();
+        resetSession();
+        if (isSprint()) {
+          state.timerSec = state.totalSec;
+          state.timerArmed = true;
+          updateTimerDisplay();
+        }
         nextQuestion();
       });
 
@@ -796,11 +855,16 @@
         });
         if (hudTimer) hudTimer.hidden = true;
         if (timerProgressWrap) timerProgressWrap.hidden = true;
+        if (hudStopwatch) hudStopwatch.hidden = false;
+        if (btnFinish) btnFinish.hidden = false;
+        state.timerArmed = false;
+        cardWatch.reset();
       }
 
       document.querySelector('#btn-close-sprint')?.addEventListener('click', () => {
         if (sprintModal) sprintModal.close();
         setZenMode();
+        resetSession();
         nextQuestion();
       });
 
@@ -816,6 +880,7 @@
         } else {
           stopTimer();
           setZenMode();
+          resetSession();
           state.reviewQueue = list;
           updateHUD();
           nextQuestion();
@@ -824,6 +889,18 @@
 
       document.querySelectorAll('[data-review-btn]').forEach(btn => btn.addEventListener('click', startReview));
       window.addEventListener('languagechange', updateReviewButtons);
+
+      // Время в карточках идёт с первого введённого символа:
+      // в марафоне — секундомер, в спринте — обратный отсчёт
+      function onCardTyping() {
+        if (!isSprint()) {
+          cardWatch.start();
+        } else if (state.timerArmed) {
+          state.timerArmed = false;
+          startTimer();
+        }
+      }
+      trainerInput?.addEventListener('input', onCardTyping);
 
       // Виртуальный Numpad
       document.querySelectorAll('.numpad-key').forEach(keyBtn => {
@@ -836,6 +913,7 @@
             checkCurrentAnswer();
           } else if (key) {
             trainerInput.value += key;
+            onCardTyping();
           }
           trainerInput.focus();
         });
