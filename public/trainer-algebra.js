@@ -306,11 +306,12 @@
     return (n.a && containsSum(n.a)) || (n.e && containsSum(n.e)) || (n.items || []).some(containsSum);
   };
 
-  // Раскрытый вид: сумма мономов без скобок, подобные приведены
+  // Раскрытый вид: сумма мономов без скобок, подобные приведены.
+  // Нулевой многочлен — пустой объект, но записывается одним членом «0»
   function isExpandedForm(tree, poly) {
     const top = unwrap(tree);
     const terms = top.t === 'sum' ? top.items : [top];
-    return terms.every(x => !containsSum(x)) && terms.length === Object.keys(poly).length;
+    return terms.every(x => !containsSum(x)) && terms.length === Math.max(1, Object.keys(poly).length);
   }
 
   // Разложено до конца: произведение (или степень), в скобках — только

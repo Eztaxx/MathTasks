@@ -232,6 +232,17 @@ describe('проверка ответов: многочлены', () => {
     expect(check(common, '3(2x+5)')).toBe(true);
   });
 
+  it('выражение, тождественно равное 0: ответ «0» принимается', () => {
+    // Такое выдаёт expr_poly/expert, когда L1 = L2 = L3: пустой многочлен {}
+    const zero = poly('(x - 6)(x - 6) - (x - 6)^2');
+    expect(zero).toEqual({});
+    expect(algebra.polyToString(zero)).toBe('0');
+    const q = { type: 'poly', poly: zero, form: 'expanded', answer: '0' };
+    ['0', ' 0 ', '(0)'].forEach(s => expect(check(q, s), s).toBe(true));
+    expect(check(JSON.parse(JSON.stringify(q)), '0')).toBe(true);
+    ['x - x', '0 + 0', '1', '-6', 'x', ''].forEach(s => expect(check(q, s), s).toBe(false));
+  });
+
   it('два переменных и сокращение дроби', () => {
     const q = { type: 'poly', poly: poly('(a+2b)(a-b)'), form: 'expanded' };
     expect(check(q, 'a^2 + ab - 2b^2')).toBe(true);
