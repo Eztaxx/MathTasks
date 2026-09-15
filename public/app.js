@@ -1101,7 +1101,9 @@ document.addEventListener('focusin', event => {
   bar.hidden = false;
 });
 
-function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number } = {}) {
+/* inlineFigure: false — чертёж в карточку не вставляется и не грузится;
+   так в задаче дня, где он открывается только по кнопке. */
+function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number, inlineFigure = true } = {}) {
   const tr = window.MathTasks.t || (k => k);
   currentTasksMap.set(task.id, task);
   const subject = subjectOf(task);
@@ -1234,7 +1236,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
       ${numBadge}
       <div class="math task-condition" data-condition></div>
     </div>
-    ${taskFigure(task.condition_image, taskTitle, 'Zīmējums')}
+    ${inlineFigure ? taskFigure(task.condition_image, taskTitle, 'Zīmējums') : ''}
     ${tagsRowHtml}
     ${selfCheck}
     ${selfAssess}
@@ -1737,12 +1739,18 @@ function dailyCard(task) {
   const topicLink = topic
     ? `<span>${escapeHtml(tr('home_daily_topic'))} <a href="/topic/${encodeURIComponent(topic.slug)}">${escapeHtml(topicTitleOf(topic))}</a></span>`
     : '';
+  /* Чертёж на главной сам не грузится: только по кнопке, поверх страницы. */
+  const figureUrl = task.condition_image ? imageUrl(task.condition_image) : '';
+  const figureBtn = figureUrl
+    ? `<button type="button" class="home-daily-other home-daily-figure" data-daily-figure="${escapeHtml(figureUrl)}" data-figure-alt="${escapeHtml(loc(task, 'title') || tr('home_daily_badge'))}">📐 ${escapeHtml(tr('home_daily_figure'))}</button>`
+    : '';
   return `<div class="home-daily-head">
       <span class="home-daily-badge">${escapeHtml(tr('home_daily_badge'))}</span>
       <span class="home-daily-meta">${escapeHtml(meta)}</span>
+      ${figureBtn}
       <button type="button" class="home-daily-other" data-daily-other>↻ ${escapeHtml(tr('home_daily_other'))}</button>
     </div>
-    ${taskCard(task, { linkTitle: false })}
+    ${taskCard(task, { linkTitle: false, inlineFigure: false })}
     <div class="home-daily-foot">${enterHint}${topicLink}</div>`;
 }
 
@@ -1763,13 +1771,14 @@ function homeContinueCard() {
     loc(subjectById(topic.subject_id), 'title'),
     number ? tr('home_continue_stopped', { n: number }) : tr('home_continue_start')
   ].filter(Boolean).join(' · ');
+  /* «Продолжить →» — ссылкой в строке с меткой, а не отдельной кнопкой внизу:
+     столбец справа не выше задачи дня, и ряд не растягивается пустотой. */
   return `<div class="home-card home-continue">
-    ${label}
+    <div class="home-card-head">${label}<a class="home-continue-go" href="${href}">${escapeHtml(tr('home_continue_btn'))}</a></div>
     <a class="home-continue-title" href="${href}">${escapeHtml(topicTitleOf(topic))}</a>
     <span class="home-continue-where">${escapeHtml(where)}</span>
     ${progressBar(progress.percent)}
     <span class="home-continue-count"><span>${escapeHtml(tr('home_continue_solved', { solved: progress.solved, total: progress.total }))}</span><b>${progress.percent}%</b></span>
-    <a class="home-continue-btn" href="${href}">${escapeHtml(tr('home_continue_btn'))}</a>
   </div>`;
 }
 
@@ -1900,6 +1909,12 @@ async function renderHomeToday() {
 }
 
 document.addEventListener('click', event => {
+  const figureBtn = event.target.closest('[data-daily-figure]');
+  if (figureBtn) {
+    event.preventDefault();
+    openLightbox(figureBtn.dataset.dailyFigure, figureBtn.dataset.figureAlt || '');
+    return;
+  }
   if (!event.target.closest('[data-daily-other]')) return;
   event.preventDefault();
   dailyShift++;
