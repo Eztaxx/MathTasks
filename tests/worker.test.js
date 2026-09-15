@@ -505,4 +505,42 @@ describe('Cloudflare Worker: чистые функции', () => {
       expect(Number(response.headers.get('retry-after'))).toBeGreaterThan(0);
     });
   });
+
+  describe('/assets/* — файл сборки с устаревшим хешем', () => {
+    const SHELL = '<!doctype html><link rel="stylesheet" href="/assets/style-NEW123.css"><div id="view-home"></div>';
+    const files = {
+      '/': [SHELL, 'text/html; charset=utf-8'],
+      '/assets/style-NEW123.css': [':root{--ink:#000}', 'text/css']
+    };
+    // Как статика Cloudflare: нет файла — SPA-оболочка с кодом 200.
+    const env = {
+      ASSETS: {
+        fetch: vi.fn(async req => {
+          const [body, type] = files[new URL(req.url).pathname] || files['/'];
+          return new Response(body, { headers: { 'content-type': type, 'cache-control': 'public, max-age=31536000, immutable' } });
+        })
+      }
+    };
+    const get = path => worker.fetch(new Request(`https://mathtasks.lv${path}`), env);
+
+    it('существующий файл отдаётся как есть', async () => {
+      const response = await get('/assets/style-NEW123.css');
+      expect(response.headers.get('content-type')).toBe('text/css');
+      expect(response.headers.get('cache-control')).toContain('immutable');
+      expect(await response.text()).toBe(':root{--ink:#000}');
+    });
+
+    it('удалённый style-<старый хеш>.css получает текущий CSS, а не HTML, и не кэшируется', async () => {
+      const response = await get('/assets/style-_OLD99.css');
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-type')).toBe('text/css');
+      expect(response.headers.get('cache-control')).toBe('no-store');
+      expect(await response.text()).toBe(':root{--ink:#000}');
+    });
+
+    it('файл, которого нет и в свежей сборке, — 404, а не HTML', async () => {
+      const response = await get('/assets/chart-ABC.js');
+      expect(response.status).toBe(404);
+    });
+  });
 });

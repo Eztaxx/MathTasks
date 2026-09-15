@@ -336,6 +336,33 @@ async function geminiProxy(request, env) {
   return new Response(upstream.body, { status: upstream.status, headers });
 }
 
+/* ── Файлы сборки с устаревшим хешем ─────────────────────────────── */
+
+/* Выкладка сразу удаляет прежние файлы сборки, а новая страница расходится
+   по серверам не мгновенно: несколько секунд посетителю ещё отдаётся старая,
+   и она просит assets/style-<старый хеш>.css. Статика отвечает на это
+   SPA-оболочкой (text/html) — браузер отказывается её применять, и сайт
+   показывается без стилей. Такой запрос получает текущий файл того же вида
+   (имя из свежего index.html); под старым именем его не кэшируем. */
+const STALE_ASSET = /^\/assets\/([A-Za-z0-9]+)-[\w-]+\.(css|js)$/;
+
+async function serveAsset(request, env) {
+  const response = await env.ASSETS.fetch(request);
+  const url = new URL(request.url);
+  const stale = (response.headers.get('content-type') || '').includes('text/html') && url.pathname.match(STALE_ASSET);
+  if (!stale) return response;
+
+  const [, name, ext] = stale;
+  const shell = await (await env.ASSETS.fetch(new Request(new URL('/', url)))).text();
+  const current = shell.match(new RegExp(`/assets/${name}-[\\w-]+\\.${ext}`));
+  if (!current || current[0] === url.pathname) return new Response('Not found', { status: 404 });
+
+  const fresh = await env.ASSETS.fetch(new Request(new URL(current[0], url)));
+  const headers = new Headers(fresh.headers);
+  headers.set('Cache-Control', 'no-store');
+  return new Response(fresh.body, { status: fresh.status, headers });
+}
+
 export {
   TRANSLIT,
   CROSS_TAG_SLUGS,
@@ -350,7 +377,8 @@ export {
   renderTaskPreviewHtml,
   sitemap,
   taskPreview,
-  geminiProxy
+  geminiProxy,
+  serveAsset
 };
 
 export default {
@@ -359,6 +387,7 @@ export default {
 
     if (url.pathname === '/sitemap.xml') return sitemap(request, env);
     if (url.pathname === '/api/gemini') return geminiProxy(request, env);
+    if (url.pathname.startsWith('/assets/')) return serveAsset(request, env);
 
     // Страница задачи: ботам отдаём мета-теги, людям — обычное приложение.
     const taskMatch = url.pathname.match(/^(?:\/lv)?\/task\/(\d+)/);

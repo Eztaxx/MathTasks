@@ -1,0 +1,21 @@
+# Переводы строк — LF во всех копиях, и на Windows тоже.
+#
+# Cloudflare собирает сайт после каждого пуша на Linux (LF), а сборка на
+# Windows с core.autocrlf=true шла из файлов с CRLF. Байты style.css
+# различались — различался и хеш в имени (style-<хеш>.css). Две выкладки
+# подряд с разными именами: вторая удаляла файл стилей первой, и страница,
+# которую ещё отдавали некоторые серверы, открывалась без стилей.
+* text=auto eol=lf
+
+# Двоичные файлы не трогаем.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.docx binary
+*.xlsx binary
