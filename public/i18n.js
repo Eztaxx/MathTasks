@@ -71,7 +71,6 @@
       section_grades: 'Klases un kursi',
       all_grades: 'Visas klases',
       all_grades_short: 'Visi',
-      popular_topics: 'Populāras tēmas',
       topics_heading: 'Tēmas',
       new_tasks: 'Jauni uzdevumi',
       view_all: 'Skatīt visus →',
@@ -218,9 +217,6 @@
       sort_reshuffle: 'Sajaukt vēlreiz 🔀',
       admin_renumber: 'Pārnumurēt (1..N)',
       admin_renumber_tooltip: 'Pārnumurēt šīs tēmas uzdevumus pēc kārtas (1..N)',
-      admin_renumber_confirm: 'Vai pārnumurēt visus {count} šīs tēmas uzdevumus pēc kārtas (1..N) bez izlaidumiem?',
-      admin_renumber_already_perfect: 'Visiem uzdevumiem šajā tēmā jau ir pareiza numerācija (1..N).',
-      admin_renumber_success: '✓ Uzdevumi veiksmīgi pārnumurēti!',
 
       // Taimeris
       timer_title: 'Eksāmena taimeris',
@@ -526,9 +522,9 @@
       cat_negatives: '❄️ Negatīvie skaitļi',
       cat_mix: '🎲 Mikss (viss kopā)',
       diff_label: 'Sarežģītības līmenis:',
-      diff_normal: '🟢 Pamata',
-      diff_hard: '🟡 Padziļināts',
-      diff_expert: '🔴 Eksperta',
+      trainer_diff_normal: '🟢 Pamata',
+      trainer_diff_hard: '🟡 Padziļināts',
+      trainer_diff_expert: '🔴 Eksperta',
       mode_label: 'Spēles režīms:',
       mode_zen: '♾️ Marafons (bez steigas)',
       mode_sprint60: '⏱️ Sprints 60 sek',
@@ -1011,9 +1007,6 @@
       sort_reshuffle: 'Перемешать ещё раз 🔀',
       admin_renumber: 'Перенумеровать (1..N)',
       admin_renumber_tooltip: 'Перенумеровать задачи этой темы по порядку (1..N)',
-      admin_renumber_confirm: 'Перенумеровать все {count} задач в этой теме строго по порядку (1..N) без пропусков?',
-      admin_renumber_already_perfect: 'Все задачи в этой теме уже имеют правильные порядковые номера (1..N).',
-      admin_renumber_success: '✓ Задачи успешно перенумерованы!',
 
       // Таймер
       timer_title: 'Экзаменационный таймер',
@@ -1319,9 +1312,9 @@
       cat_negatives: '❄️ Отрицательные числа',
       cat_mix: '🎲 Микс (всё подряд)',
       diff_label: 'Уровень сложности:',
-      diff_normal: '🟢 Базовый',
-      diff_hard: '🟡 Продвинутый',
-      diff_expert: '🔴 Эксперт',
+      trainer_diff_normal: '🟢 Базовый',
+      trainer_diff_hard: '🟡 Продвинутый',
+      trainer_diff_expert: '🔴 Эксперт',
       mode_label: 'Режим игры:',
       mode_zen: '♾️ Марафон (без спешки)',
       mode_sprint60: '⏱️ Спринт 60 сек',
@@ -1421,7 +1414,6 @@
       tags_count_badge: '23 тега по навыкам',
       promo_trainer_title: 'Тренажёр счёта',
       promo_trainer_sub: 'Устный счёт и дроби',
-      popular_topics: 'Популярные темы',
 
       // Тренажёр (trainer.html)
       trainer_view_tabs_label: 'Формат отображения',
