@@ -1440,6 +1440,62 @@ function moreButton(total) {
     </nav>`;
 }
 
+/* ── Вид «по одной» ─────────────────────────────────────────────────
+   По образцу: «Задача 3 из 54» с полосой и подтемой; карточка — крупное
+   условие, ответ с единицей, подсказка и решение слева, «Назад / Дальше»
+   справа; ниже — карта темы: решено, с ошибкой, не решали, текущая.
+   Кнопки те же по атрибутам (data-pager-dir, data-pager-idx) — клики и
+   стрелки клавиатуры обрабатываются как раньше. */
+function singleTaskView(tasks, index, cardOptions) {
+  const tr = window.MathTasks.t || (k => k);
+  const task = tasks[index];
+  const total = tasks.length;
+  const topic = allTopics.find(item => item.id === task.topic_id);
+  const sub = task.subtopic_id ? allSubtopics.find(item => item.id === task.subtopic_id) : null;
+  const nav = `<div class="sv-nav">
+      <button type="button" class="sv-nav-btn" data-pager-dir="prev" ${index === 0 ? 'disabled' : ''}>← ${escapeHtml(tr('single_prev'))}</button>
+      <button type="button" class="sv-nav-btn is-next" data-pager-dir="next" ${index === total - 1 ? 'disabled' : ''}>${escapeHtml(tr('single_next'))} →</button>
+    </div>`;
+  const cells = tasks.map((item, i) => {
+    const state = i === index ? ' is-current' : isTaskSolved(item.id) ? ' is-solved' : getTaskWrongAttempts(item.id) > 0 ? ' is-wrong' : '';
+    const num = taskNumber(item, i);
+    return `<button type="button" class="sv-cell${state}" data-pager-idx="${i}" aria-label="${escapeHtml(tr('single_goto', { n: num }))}"${i === index ? ' aria-current="step"' : ''}>${num}</button>`;
+  }).join('');
+  return `<div class="single-view">
+    <div class="sv-top">
+      <span class="sv-count">${escapeHtml(tr('single_counter', { cur: taskNumber(task, index), total }))}</span>
+      <span class="sv-track" aria-hidden="true"><i style="width:${Math.round(((index + 1) / total) * 100)}%"></i></span>
+      ${sub && topic ? `<span class="sv-sub">${escapeHtml(subtopicTitle(sub, topic))}</span>` : ''}
+    </div>
+    <div class="sv-card">${taskCard(task, cardOptions)}${nav}</div>
+    <div class="sv-map">
+      <span class="sv-map-label">${escapeHtml(tr('single_map_title'))} · ${escapeHtml(countLabel('topic_tasks', total))}</span>
+      <div class="sv-map-grid">${cells}</div>
+      <div class="sv-legend"><span class="is-solved">${escapeHtml(tr('single_legend_solved'))}</span><span class="is-wrong">${escapeHtml(tr('single_legend_wrong'))}</span><span>${escapeHtml(tr('single_legend_new'))}</span></div>
+    </div>
+  </div>`;
+}
+
+/* Единица ответа («см», «м²», «кг») — подпись у поля, как в образце. Берём
+   из хвоста ответа (\text{ см}); значение ответа этим не раскрывается. */
+function answerUnit(task) {
+  const match = String(loc(task, 'answer_latex') || '').match(/\\(?:text|mathrm)\{\s*([^{}]{1,8}?)\s*\}(\^\{?[23]\}?)?\s*\$*\s*$/);
+  if (!match || !/\p{L}/u.test(match[1])) return '';
+  const power = match[2] ? (match[2].includes('2') ? '²' : '³') : '';
+  return match[1] + power;
+}
+
+/* «Назад / Дальше» — в одну строку с «Подсказкой» и «Решением»: кнопки
+   ступеней живут внутри карточки, поэтому строку переносим к ним. */
+function finishSingleView(container, task) {
+  const nav = container.querySelector('.sv-nav');
+  const bar = container.querySelector('.sv-card .task-actions-bar');
+  if (nav && bar) bar.appendChild(nav);
+  const unit = answerUnit(task);
+  const button = container.querySelector('.sv-card .self-check-form .self-check-btn');
+  if (unit && button) button.insertAdjacentHTML('beforebegin', `<span class="sv-unit">${escapeHtml(unit)}</span>`);
+}
+
 function renderTaskList(container, tasks, emptyText, options = {}) {
   listCursor = -1;
   /* Полосу номеров перерисовывает не эта функция, поэтому при смене режима
@@ -1469,39 +1525,9 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     if (singleTaskIndex < 0) singleTaskIndex = 0;
     if (singleTaskIndex >= tasks.length) singleTaskIndex = 0;
     const task = tasks[singleTaskIndex];
-    const currentNum = taskNumber(tasks[singleTaskIndex], singleTaskIndex);
-    const totalNum = tasks.length;
-
-    const tr = window.MathTasks.t || (k => k);
-    const pagerTop = `
-      <div class="single-task-pager">
-        <div class="single-task-nav">
-          <button type="button" class="pager-btn prev" data-pager-dir="prev" ${singleTaskIndex === 0 ? 'disabled' : ''} aria-label="${escapeHtml(tr('prev_task'))}">${escapeHtml(tr('prev_task'))}</button>
-          <div class="pager-counter">
-            ${tr('task_counter', { cur: `<strong>${currentNum}</strong>`, total: `<strong>${totalNum}</strong>` })}
-          </div>
-          <button type="button" class="pager-btn next" data-pager-dir="next" ${singleTaskIndex === totalNum - 1 ? 'disabled' : ''} aria-label="${escapeHtml(tr('next_task'))}">${escapeHtml(tr('next_task'))}</button>
-        </div>
-        <div class="pager-dots" role="tablist" aria-label="Tabs">
-          ${tasks.map((_, i) => `
-            <button type="button" class="pager-dot${i === singleTaskIndex ? ' active' : ''}" data-pager-idx="${i}" title="${taskNumber(tasks[i], i)}" aria-label="${taskNumber(tasks[i], i)}">${taskNumber(tasks[i], i)}</button>
-          `).join('')}
-        </div>
-      </div>
-    `;
-
-    const cardHtml = taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery });
-
-    const pagerBottom = `
-      <div class="single-task-bottom-nav">
-        <button type="button" class="text-button" data-pager-dir="prev" ${singleTaskIndex === 0 ? 'disabled' : ''}>${escapeHtml(tr('prev_task'))}</button>
-        <span class="pager-shortcuts-hint">${escapeHtml(tr('keyboard_shortcuts_hint'))}</span>
-        <button type="button" class="text-button" data-pager-dir="next" ${singleTaskIndex === totalNum - 1 ? 'disabled' : ''}>${escapeHtml(tr('next_task'))}</button>
-      </div>
-    `;
-
-    container.innerHTML = pagerTop + cardHtml + pagerBottom;
+    container.innerHTML = singleTaskView(tasks, singleTaskIndex, { showTopicLink, showGrade, linkTitle, highlightQuery });
     fillTaskMath(container, [task]);
+    finishSingleView(container, task);
   } else if (taskViewMode === 'compact') {
     const tr = window.MathTasks.t || (k => k);
     const cleanFn = (window.MathTasksLib && window.MathTasksLib.cleanMathExample) || (s => s);
