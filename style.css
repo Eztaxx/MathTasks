@@ -599,6 +599,20 @@ body.dark .sidebar-continue .nav-icon{color:#6a9bff}
 body.sidebar-collapsed .sidebar-continue{justify-content:center;padding:8px 0}
 body.sidebar-collapsed .sidebar-continue .label{display:none}
 
+/* ── Верх меню: ⌂ «На главную» и «Продолжить задание» в одну строку ── */
+.sidebar-quick{display:flex;align-items:stretch;gap:8px;margin:0 0 14px}
+.sidebar-quick .sidebar-home-btn{flex:none;width:44px;margin:0;padding:0;justify-content:center;border-radius:12px}
+.sidebar-quick .sidebar-home-btn .nav-icon{font-size:18px}
+.sidebar-quick .sidebar-continue{flex:1;min-width:0;display:flex;align-items:center;gap:9px;margin:0;padding:6px 10px 6px 6px;border-radius:12px;background:linear-gradient(135deg,rgba(23,100,255,.14),rgba(23,100,255,.04));border:1px solid rgba(90,146,255,.32);color:var(--ink);transform:none}
+.sidebar-quick .sidebar-continue[hidden]{display:none}
+.sidebar-quick .sidebar-continue:hover{border-color:#5a92ff;background:linear-gradient(135deg,rgba(23,100,255,.22),rgba(23,100,255,.08))}
+.sidebar-continue-play{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#1764ff;color:#fff;font-size:11px;padding-left:2px;box-shadow:0 3px 10px rgba(23,100,255,.35)}
+.sidebar-quick .sidebar-continue-body strong{font-size:12.5px;color:var(--ink)}
+.sidebar-quick .sidebar-continue-body small{display:block;font-size:10.5px;opacity:1;color:var(--muted)}
+body.dark .sidebar-quick .sidebar-continue{border-color:rgba(90,146,255,.38)}
+body.sidebar-collapsed .sidebar-quick{flex-direction:column;align-items:center}
+body.sidebar-collapsed .sidebar-quick .sidebar-continue{flex:none;width:44px;padding:6px 0;justify-content:center;background:none;border-color:transparent}
+
 /* ── «Ваш класс» внизу меню, рядом — ⓘ «О сайте» ─────────────────── */
 .sidebar-footer{display:flex;align-items:stretch;gap:6px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
 .sidebar-grade{position:relative;flex:1;min-width:0;display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}
@@ -718,7 +732,7 @@ body.dark .home-streak-day.is-today i{box-shadow:inset 0 0 0 2px #6a9bff}
 @media(max-width:900px){.home-today{grid-template-columns:1fr}}
 
 /* ── Главная: слабые места, контрольные, экзамен ─────────────────── */
-.home-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 24px}
+.home-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:28px 0 24px}
 .home-insights[hidden]{display:none}
 .home-insight{display:flex;flex-direction:column;gap:6px;padding:13px 16px;border:1px solid var(--line);border-radius:13px;background:#fff;min-width:0}
 .home-insight-label{font:800 10.5px Manrope,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
@@ -736,6 +750,34 @@ body.dark .home-insight.is-weak .home-insight-label,body.dark .home-insight.is-w
 body.dark .home-insight.is-cw .home-insight-go{color:#4ade80}
 body.dark .home-insight.is-exam .home-insight-go{color:#6a9bff}
 @media(max-width:900px){.home-insights{grid-template-columns:1fr}}
+
+/* ── Карточки тем: номер, прогресс и фон — в цвете раздела ────────── */
+.subj-blue{--subj:#3b82f6}
+.subj-violet{--subj:#8b5cf6}
+.subj-orange{--subj:#f97316}
+.subj-cyan{--subj:#06b6d4}
+.subj-pink{--subj:#ec4899}
+.subj-teal{--subj:#14b8a6}
+.subj-amber{--subj:#f59e0b}
+.topic-card.tc{display:flex;flex-direction:column;align-items:stretch;gap:10px;min-height:0;padding:14px 16px;border-radius:12px;border:1px solid color-mix(in srgb,var(--subj) 24%,var(--line));background:color-mix(in srgb,var(--subj) 5%,#fff)}
+a.topic-card.tc:hover{border-color:color-mix(in srgb,var(--subj) 55%,var(--line))}
+body.dark .topic-card.tc{background:color-mix(in srgb,var(--subj) 8%,#111a2d);border-color:color-mix(in srgb,var(--subj) 22%,#26344f)}
+body.dark a.topic-card.tc:hover{border-color:color-mix(in srgb,var(--subj) 55%,#26344f)}
+.tc-head{display:flex;align-items:center;gap:8px;min-width:0;font-size:11.5px}
+.tc-num{flex:none;padding:3px 7px;border-radius:6px;font:800 11.5px Manrope,sans-serif;font-variant-numeric:tabular-nums;color:var(--subj);background:color-mix(in srgb,var(--subj) 15%,transparent)}
+.tc-subject{min-width:0;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tc-state{flex:none;margin-left:auto;font-weight:800;color:var(--subj)}
+.tc-state.is-new{font-weight:600;color:var(--muted)}
+.tc-state.is-done{color:#16a34a}
+.topic-card.tc .tc-title{margin:0;font-size:14px;font-weight:800;line-height:1.35;color:var(--ink)}
+.tc-bar{display:block;height:5px;margin-top:auto;border-radius:99px;overflow:hidden;background:color-mix(in srgb,var(--subj) 14%,var(--line))}
+.tc-bar i{display:block;height:100%;border-radius:inherit;background:var(--subj)}
+.tc-bar.is-done i{background:#22a06b}
+.tc-foot{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--muted)}
+body.dark .tc-state.is-done{color:#4ade80}
+body.dark .tc-bar.is-done i{background:#2f9e6e}
+/* Разделы — тем же цветом: значок раздела в меню и у заголовка группы тем. */
+.tc-subj{background:color-mix(in srgb,var(--subj) 16%,transparent)!important;color:var(--subj)!important;border-color:transparent!important}
 /* На телефоне тема задачи дня — своей строкой под меткой и «Другая»,
    иначе она сжималась в узкий столбец между ними. */
 @media(max-width:640px){.home-daily-meta{order:3;flex-basis:100%}}

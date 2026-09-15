@@ -334,7 +334,7 @@ function renderTopicSidebar(topic) {
     }).join('');
     const sTitle = loc(subj, 'title');
     return `<section class="nav-group open" data-subject="${subj.id}">
-      <button class="group-title" title="${escapeHtml(sTitle)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(sTitle)}</span><span class="chevron">⌃</span></button>
+      <button class="group-title" title="${escapeHtml(sTitle)}"><span class="nav-icon tc-subj subj-${subjectColor(subj)}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(sTitle)}</span><span class="chevron">⌃</span></button>
       <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">${escapeHtml((window.MathTasks.t || (k => k))('subject_all_topics'))}</a>${links}</div>
     </section>`;
   }).filter(Boolean).join('');
@@ -366,7 +366,7 @@ function renderClassSidebar(grade) {
     if (!sTopics.length) return '';
     const links = sTopics.map(t => `<a href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(topicTitleOf(t))}</a>`).join('');
     return `<section class="nav-group open" data-subject="${subj.id}">
-      <button class="group-title" title="${escapeHtml(subj.title)}"><span class="nav-icon ${index % 2 ? 'blue' : 'purple'}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(subj.title)}</span><span class="chevron">⌃</span></button>
+      <button class="group-title" title="${escapeHtml(subj.title)}"><span class="nav-icon tc-subj subj-${subjectColor(subj)}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(subj.title)}</span><span class="chevron">⌃</span></button>
       <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">${escapeHtml((window.MathTasks.t || (k => k))('subject_all_topics'))}</a>${links}</div>
     </section>`;
   }).filter(Boolean).join('');
@@ -1647,42 +1647,71 @@ document.addEventListener('click', event => {
 
 /* ── Карточки тем ─────────────────────────────────────────────────── */
 
+/* Цвет раздела: им подсвечены номер темы, прогресс и фон карточки, значок
+   раздела в меню и заголовок группы тем. Смайлики — только у разделов. */
+const SUBJECT_COLORS = {
+  algebra: 'blue',
+  geometry: 'violet',
+  planimetrija: 'violet',
+  stereometrija: 'orange',
+  funkcijas: 'cyan',
+  trigonometrija: 'pink',
+  'matematiskais-analizs': 'teal',
+  'kombinatorika-un-varbutibas': 'amber',
+  statistics: 'amber'
+};
+const subjectColor = subject => SUBJECT_COLORS[subject?.slug] || 'blue';
+
+/* «1 задача», «3 задачи», «5 задач» — форма по Intl.PluralRules языка страницы. */
+function countLabel(base, count) {
+  const tr = window.MathTasks.t || (k => k);
+  let form = 'other';
+  try {
+    form = new Intl.PluralRules(progressLocale()).select(count);
+  } catch {}
+  const key = `${base}_${form}`;
+  const word = tr(key);
+  return `${count} ${word && word !== key ? word : tr(`${base}_other`)}`;
+}
+
+/* Карточка темы: полный номер в цвете раздела, раздел, состояние (процент,
+   «не начата», «пройдена»), полоса прогресса, задачи и подтемы. */
 function topicCard(topic, index, showGrade) {
   const tr = window.MathTasks.t || (k => k);
   const subject = subjectById(topic.subject_id);
   const count = taskCount(topic.id);
   const progress = getTopicProgress(topic.id);
+  const fullTitle = topicTitleOf(topic);
+  const numbered = fullTitle.match(/^(\d+(?:\.\d+)*)\.?\s+(.+)$/);
+  const num = numbered ? numbered[1] : '';
+  const title = numbered ? numbered[2] : fullTitle;
+  const subCount = (subtopicsByTopic.get(topic.id) || []).length;
 
-  let progressBadge = '';
-  if (count > 0 && progress.solved > 0) {
-    progressBadge = `<span class="topic-progress-badge${progress.isComplete ? ' done' : ''}" title="${escapeHtml(tr('topic_progress', { solved: progress.solved, total: progress.total, percent: progress.percent }))}">
-      ${progress.isComplete ? '✓ ' : ''}${progress.solved}/${progress.total} (${progress.percent}%)
-    </span>`;
+  let state = `${progress.percent}%`;
+  let stateCls = '';
+  if (!count) {
+    state = tr('topic_no_tasks');
+    stateCls = ' is-new';
+  } else if (progress.isComplete) {
+    state = tr('topic_state_done');
+    stateCls = ' is-done';
+  } else if (!progress.solved) {
+    state = tr('topic_state_new');
+    stateCls = ' is-new';
   }
+  const foot = [showGrade && topic.grade ? gradeLabel(topic.grade) : '', count ? countLabel('topic_tasks', count) : '']
+    .filter(Boolean).join(' · ');
+  const progressTitle = count ? tr('topic_progress', { solved: progress.solved, total: progress.total, percent: progress.percent }) : '';
 
-  const progressBar = (count > 0 && progress.solved > 0) ? `
-    <div class="topic-progress-bar-wrap" title="${escapeHtml(tr('topic_progress', { solved: progress.solved, total: progress.total, percent: progress.percent }))}">
-      <div class="topic-progress-bar-fill${progress.isComplete ? ' done' : ''}" style="width: ${progress.percent}%"></div>
-    </div>
-  ` : '';
-
-  const badges = [
-    showGrade && topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : '',
-    `<span class="topic-count">${count ? tr('tasks_in_topic', { count }) : tr('topic_no_tasks')}</span>`,
-    progressBadge
-  ].filter(Boolean).join('');
-
-  const topicTitle = topicTitleOf(topic);
-  const topicDesc = loc(topic, 'description');
-
-  return `<a class="topic-card" href="/topic/${encodeURIComponent(topic.slug)}">
-    <div class="topic-icon ${topicClass(index)}">${escapeHtml(subjectIcon(subject))}</div>
-    <div class="topic-card-content">
-      <h3>${escapeHtml(topicTitle)}</h3>
-      <p>${escapeHtml(topicDesc || '')}</p>
-      ${progressBar}
-      <div class="topic-badges">${badges}</div>
-    </div>
+  return `<a class="topic-card tc subj-${subjectColor(subject)}" href="/topic/${encodeURIComponent(topic.slug)}" title="${escapeHtml(fullTitle)}">
+    <span class="tc-head">
+      ${num ? `<span class="tc-num">${escapeHtml(num)}</span>` : ''}
+      <span class="tc-subject">${escapeHtml(loc(subject, 'title') || '')}</span>
+      <span class="tc-state${stateCls}">${escapeHtml(state)}</span>
+    </span>
+    <h3 class="tc-title">${escapeHtml(title)}</h3>
+    <span class="tc-bar${progress.isComplete ? ' is-done' : ''}"${progressTitle ? ` title="${escapeHtml(progressTitle)}"` : ''}><i style="width:${count ? progress.percent : 0}%"></i></span>
+    <span class="tc-foot"><span>${escapeHtml(foot)}</span><span>${subCount ? escapeHtml(countLabel('topic_subtopics', subCount)) : ''}</span></span>
   </a>`;
 }
 
@@ -1695,7 +1724,7 @@ function renderTopicGroups(container, groups) {
   container.hidden = !groups.length;
   container.innerHTML = groups.map(({ subject, topics }) => `<section class="topic-group">
     <div class="topic-group-head">
-      <h2><span class="topic-group-icon">${escapeHtml(subjectIcon(subject))}</span>${escapeHtml(loc(subject, 'title'))}</h2>
+      <h2><span class="topic-group-icon tc-subj subj-${subjectColor(subject)}">${escapeHtml(subjectIcon(subject))}</span>${escapeHtml(loc(subject, 'title'))}</h2>
       <a href="/subject/${encodeURIComponent(subject.slug)}">${escapeHtml((window.MathTasks.t || (k => k))('subject_all_topics_arrow'))}</a>
     </div>
     ${topics.length
