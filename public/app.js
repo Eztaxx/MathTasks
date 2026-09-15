@@ -504,6 +504,7 @@ function renderHubSidebar() {
 
 function renderSidebar() {
   renderSidebarContinue();
+  renderSidebarGrade();
   if (currentActiveTopic) {
     renderTopicSidebar(currentActiveTopic);
   } else if (appPath() === '/tasks' && selectedGrade) {
@@ -814,6 +815,53 @@ function renderSidebarContinue() {
   link.title = topicTitle ? `${text}: ${topicTitle}` : text;
   link.hidden = false;
 }
+
+/* «Ваш класс» внизу меню: текущий класс и список для смены. Список —
+   прозрачный select поверх карточки: открывается системным меню и
+   работает с клавиатуры. У 9 класса и уровней старшей школы — «Экзамен»,
+   у 3 и 6 — «Диагностика»: для них на сайте есть итоговые работы. */
+function renderSidebarGrade() {
+  const select = document.querySelector('#sidebar-grade-select');
+  if (!select) return;
+  const tr = window.MathTasks.t || (k => k);
+  fillGradeSelect(select, tr('all_grades'));
+  select.value = selectedGrade ? String(selectedGrade) : '';
+  const isExam = selectedGrade === 9 || ['visparigais', 'matematika-1', 'matematika-2'].includes(selectedGrade);
+  const isDiag = selectedGrade === 3 || selectedGrade === 6;
+  const note = isExam ? tr('stage_exam_badge') : isDiag ? tr('track_diag_short') : '';
+  /* Пометка — в верхней мелкой строке: «Augstākais līmenis · Экзамен»
+     одной строкой в узкое меню не помещается. */
+  const label = document.querySelector('#sidebar-grade-label');
+  if (label) label.textContent = [tr('sidebar_grade_label'), note].filter(Boolean).join(' · ');
+  const value = document.querySelector('#sidebar-grade-value');
+  if (value) value.textContent = selectedGrade ? gradeLabel(selectedGrade) : tr('all_grades');
+  // В свёрнутом меню — коротко: цифра класса или сокращение уровня.
+  const SHORT_LEVELS = { visparigais: 'Visp.', 'matematika-1': 'Opt.', 'matematika-2': 'Aug.' };
+  const short = document.querySelector('#sidebar-grade-short');
+  if (short) short.textContent = selectedGrade ? (SHORT_LEVELS[selectedGrade] || String(selectedGrade)) : tr('all_grades_short');
+}
+
+document.querySelector('#sidebar-grade-select')?.addEventListener('change', async event => {
+  const raw = event.target.value || null;
+  const parsed = parseGradeValue(raw);
+  const target = parsed ? `/grade/${parsed}` : '/';
+  if (currentView !== 'home') {
+    navigate(target);
+    return;
+  }
+  // На главной — как клик по чипу класса: остаёмся на месте и перестраиваем её.
+  if (location.pathname !== langPath(target)) {
+    history.pushState(null, '', langPath(target));
+    lastRoute = location.pathname + location.search;
+  }
+  applyGrade(raw);
+  const label = gradeLabel(selectedGrade);
+  setMeta(
+    selectedGrade ? metaText('meta_grade_title', { grade: label }) : '',
+    selectedGrade ? metaText('meta_grade_desc', { grade: label }) : metaText('meta_home_desc')
+  );
+  await loadHome();
+});
 
 function progressCounterText() {
   const tr = window.MathTasks.t || (k => k);
@@ -1666,7 +1714,6 @@ function renderHeadings() {
   const tr = window.MathTasks.t || (k => k);
   const suffix = selectedGrade ? ` — ${gradeLabel(selectedGrade)}` : '';
   topicsHeading.textContent = (selectedGrade ? (tr('topics_heading') || 'Tēmas') : tr('popular_topics')) + suffix;
-  tasksHeading.textContent = tr('new_tasks') + suffix;
 }
 
 /* Полоса «решать весь класс»: без неё до задач класса можно было добраться
@@ -1932,17 +1979,79 @@ async function loadHome() {
     ? (selectedGrade ? topics : popularTopics(topics)).map((topic, index) => topicCard(topic, index, !selectedGrade)).join('')
     : `<p class="empty-state">${selectedGrade ? `Тем для ${gradeLabel(selectedGrade)} пока нет.` : 'Темы ещё не добавлены.'}</p>`;
 
-  let query = db.from('tasks').select(TASK_SELECT).eq('is_published', true).order('created_at', { ascending: false }).limit(10);
-  if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) {
-    query = query.in('grade', [10, 11]);
-  } else if (selectedGrade === 'matematika-2' || selectedGrade === 12) {
-    query = query.eq('grade', 12);
-  } else if (selectedGrade) {
-    query = query.eq('grade', Number(selectedGrade));
+  // «Новые задачи» убраны: их место заняли задача дня и карточки ниже.
+  renderHomeInsights();
+}
+
+/* ── Главная: слабые места, контрольные, экзамен ─────────────────── */
+
+/* Слабое место — тема, где у ученика больше всего неверных попыток.
+   Считаем по счётчику ошибок в браузере: верная попытка — по одной на
+   решённую задачу. Разобрать предлагаем то, что с ошибкой и ещё не решено. */
+function weakSpot() {
+  const wrong = getWrongAttemptCounts();
+  const solved = new Set(getSolvedTasks());
+  const topicOfTask = new Map(publishedTaskRows.map(row => [row.id, row.topic_id]));
+  const byTopic = new Map();
+  for (const [id, count] of Object.entries(wrong)) {
+    const misses = Number(count) || 0;
+    const topicId = topicOfTask.get(Number(id));
+    if (!misses || !topicId) continue;
+    const row = byTopic.get(topicId) || { wrong: 0, tasks: [] };
+    row.wrong += misses;
+    row.tasks.push(Number(id));
+    byTopic.set(topicId, row);
   }
-  const { data, error } = await query;
-  if (error) { console.warn('Не удалось загрузить задачи.', error); return; }
-  renderTaskList(tasksElement, data || [], selectedGrade ? `Задач для ${gradeLabel(selectedGrade)} пока нет.` : 'Задач пока нет. Загляните позже.');
+  let worst = null;
+  for (const [topicId, row] of byTopic) {
+    if (!worst || row.wrong > worst.wrong) worst = { topicId, ...row };
+  }
+  const topic = worst ? allTopics.find(item => item.id === worst.topicId) : null;
+  if (!topic) return null;
+  const solvedCount = worst.tasks.filter(id => solved.has(id)).length;
+  return {
+    topic,
+    wrong: worst.wrong,
+    attempts: worst.wrong + solvedCount,
+    toReview: worst.tasks.length - solvedCount
+  };
+}
+
+/* Экзамен по контексту класса. Цифры — со страницы пробных экзаменов:
+   основная школа — 2 части, 120 минут; Optimālais — 180; Augstākais — 210. */
+function homeExamKind() {
+  if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) return 'opt';
+  if (selectedGrade === 'matematika-2' || selectedGrade === 12) return 'augst';
+  if (selectedGrade === 'visparigais') return 'visp';
+  return 'pamat';
+}
+
+function renderHomeInsights() {
+  const box = document.querySelector('#home-insights');
+  if (!box) return;
+  const tr = window.MathTasks.t || (k => k);
+  const card = (kind, label, body, href, go) => `<article class="home-insight is-${kind}">
+      <span class="home-insight-label">${escapeHtml(label)}</span>
+      <p>${body}</p>
+      <a class="home-insight-go" href="${href}">${escapeHtml(go)}</a>
+    </article>`;
+
+  const weak = weakSpot();
+  const weakCard = weak
+    ? card('weak', tr('home_weak_title'),
+      `${escapeHtml(tr('home_weak_before'))} <b>${escapeHtml(topicTitleOf(weak.topic))}</b>: ${escapeHtml(tr('home_weak_after', { wrong: weak.wrong, attempts: weak.attempts }))}`,
+      `/topic/${encodeURIComponent(weak.topic.slug)}`,
+      weak.toReview ? tr('home_weak_go', { count: weak.toReview }) : tr('home_weak_repeat'))
+    : card('weak', tr('home_weak_title'), escapeHtml(tr('home_weak_empty')), '/tasks', tr('home_weak_empty_go'));
+
+  const cwTopics = topicsForGrade(allTopics).filter(topic => (taskCounts.get(topic.id) || 0) >= MIN_CONTROL_WORK_TASKS).length;
+  const cwCard = card('cw', tr('home_cw_title'), escapeHtml(tr('home_cw_text', { count: cwTopics })), '/control-works', tr('home_cw_go'));
+
+  const exam = homeExamKind();
+  const examCard = card('exam', tr(`home_exam_title_${exam}`), escapeHtml(tr(`home_exam_text_${exam}`)), '/mock-exams.html', tr('home_exam_go'));
+
+  box.innerHTML = weakCard + cwCard + examCard;
+  box.hidden = false;
 }
 
 /* ── Виды и заголовок списка ──────────────────────────────────────── */

@@ -157,7 +157,15 @@
         </a>
       </div>
     </nav>
-    <a class="about" href="/about" title="О сайте" data-i18n-title="nav_about"><span class="nav-icon">ⓘ</span><span class="label" data-i18n="nav_about">О сайте</span></a>
+    <div class="sidebar-footer">
+      <label class="sidebar-grade" title="Ваш класс" data-i18n-title="sidebar_grade_label">
+        <span class="sidebar-grade-body"><small id="sidebar-grade-label">Ваш класс</small><strong id="sidebar-grade-value">Все классы</strong></span>
+        <span class="sidebar-grade-short" id="sidebar-grade-short" aria-hidden="true">Все</span>
+        <span class="sidebar-grade-chevron" aria-hidden="true">⌄</span>
+        <select id="sidebar-grade-select" aria-label="Ваш класс" data-i18n-aria="sidebar_grade_label"></select>
+      </label>
+      <a class="about" href="/about" title="О сайте" data-i18n-title="nav_about" aria-label="О сайте" data-i18n-aria="nav_about"><span class="nav-icon">ⓘ</span></a>
+    </div>
   </aside>
 
   <main id="home">
@@ -182,6 +190,7 @@
     <div id="view-home">
       <h1 class="visually-hidden" data-i18n="hero_title">Сборник задач по математике</h1>
       <section class="home-today" id="home-today" aria-label="Задача дня и прогресс" data-i18n-aria="home_today_aria" hidden></section>
+      <section class="home-insights" id="home-insights" aria-label="Слабые места, контрольные и экзамен" data-i18n-aria="home_insights_aria" hidden></section>
 
       <section class="grades">
         <h2 data-i18n="section_grades">Классы</h2>
@@ -189,7 +198,6 @@
       </section>
 
       <section class="topics"><div class="section-heading"><h2 id="topics-heading">Популярные темы</h2><span class="grade-actions" id="grade-actions" hidden></span></div><div class="topic-grid" id="topics"></div></section>
-      <section class="tasks"><div class="section-heading"><h2 id="tasks-heading">Новые задачи</h2><a href="/tasks" data-i18n="view_all">Смотреть все →</a></div><div class="task-list" id="tasks"></div></section>
     </div>
 
     <div id="view-list" hidden>
