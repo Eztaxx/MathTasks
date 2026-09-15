@@ -661,14 +661,14 @@
 | `9.8.3` | Четырёхугольник и окружность | Četrstūris un riņķa līnija |
 | `9.8.4` | Правильный многоугольник | Regulārs daudzstūris |
 
-### 9.11. Олимпиадные методы, инварианты и диофантовы уравнения
+### 9.9. Олимпиадные методы, инварианты и диофантовы уравнения
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `9.11.1` | Инварианты и раскраски | Invarianti un krāsojumi |
-| `9.11.2` | Принцип Дирихле | Dirihlē princips |
-| `9.11.3` | Диофантовы уравнения в целых числах | Diofanta vienadojumi veselos skaitlos |
-| `9.11.4` | Оценка и пример в олимпиадной задаче | Novertejums un piemers olimpiades uzdevuma |
+| `9.9.1` | Инварианты и раскраски | Invarianti un krāsojumi |
+| `9.9.2` | Принцип Дирихле | Dirihlē princips |
+| `9.9.3` | Диофантовы уравнения в целых числах | Diofanta vienādojumi veselos skaitļos |
+| `9.9.4` | Оценка и пример в олимпиадной задаче | Novērtējums un piemērs olimpiādes uzdevumā |
 
 
 ## 10 класс
