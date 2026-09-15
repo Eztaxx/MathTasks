@@ -642,14 +642,16 @@
         });
       });
 
-      // Переключение школы: основная / средняя
+      // Переключение школы: основная / средняя — вкладки над панелью
       const syncSchoolChips = () => {
-        document.querySelectorAll('.trainer-school-chip').forEach(b => {
-          b.classList.toggle('active', b.dataset.school === state.school);
+        document.querySelectorAll('[data-school]').forEach(b => {
+          const active = b.dataset.school === state.school;
+          b.classList.toggle('active', active);
+          b.setAttribute('aria-selected', String(active));
         });
       };
       syncSchoolChips();
-      document.querySelectorAll('.trainer-school-chip').forEach(btn => {
+      document.querySelectorAll('[data-school]').forEach(btn => {
         btn.addEventListener('click', () => {
           state.school = btn.dataset.school === 'high' ? 'high' : 'basic';
           localStorage.setItem(SCHOOL_KEY, state.school);

@@ -70,23 +70,20 @@
       <p data-i18n="trainer_sub">Развивайте математическую скорость: рандомные примеры, дроби, умножение, деление и мгновенный разбор.</p>
     </div>
 
-    <!-- Переключение формата: Куча примеров (Тренажёр) vs По одной карточке -->
-    <div class="trainer-view-tabs" role="tablist" aria-label="Формат отображения" data-i18n-aria="trainer_view_tabs_label">
-      <button type="button" class="trainer-view-tab active" id="tab-view-sheet" data-view="sheet" role="tab" aria-selected="true" data-i18n="trainer_view_sheet">
-        📋 Куча примеров на страницу (Тренажёр)
-      </button>
-      <button type="button" class="trainer-view-tab" id="tab-view-card" data-view="card" role="tab" aria-selected="false" data-i18n="trainer_view_card">
-        🗂️ По одной карточке (Спринт / Марафон)
-      </button>
+    <!-- Школа — отдельными вкладками: основная и средняя. Раздел, категория,
+         сложность и формат — в панели под ними. -->
+    <div class="trainer-view-tabs" id="trainer-school-group" role="tablist" aria-label="Школа" data-i18n-aria="school_tabs_label">
+      <button type="button" class="trainer-view-tab active" data-school="basic" role="tab" aria-selected="true" data-i18n="school_basic">🏫 Основная (1–9 кл.)</button>
+      <button type="button" class="trainer-view-tab" data-school="high" role="tab" aria-selected="false" data-i18n="school_high">🎓 Средняя (10–12 кл.)</button>
     </div>
 
     <!-- Панель выбора темы и режима -->
     <div class="trainer-panel">
-      <div class="trainer-school-row" id="trainer-school-row">
-        <span class="trainer-label" data-i18n="school_label">Школа:</span>
-        <div class="trainer-chip-group" id="trainer-school-group">
-          <button type="button" class="trainer-school-chip active" data-school="basic" data-i18n="school_basic">🏫 Основная (1–9 кл.)</button>
-          <button type="button" class="trainer-school-chip" data-school="high" data-i18n="school_high">🎓 Средняя (10–12 кл.)</button>
+      <div class="trainer-school-row" id="trainer-format-row">
+        <span class="trainer-label" data-i18n="view_label">Формат:</span>
+        <div class="trainer-chip-group" role="tablist" aria-label="Формат отображения" data-i18n-aria="trainer_view_tabs_label">
+          <button type="button" class="trainer-format-chip active" id="tab-view-sheet" data-view="sheet" role="tab" aria-selected="true" data-i18n="trainer_view_sheet">📋 Куча примеров на страницу (Тренажёр)</button>
+          <button type="button" class="trainer-format-chip" id="tab-view-card" data-view="card" role="tab" aria-selected="false" data-i18n="trainer_view_card">🗂️ По одной карточке (Спринт / Марафон)</button>
         </div>
       </div>
 
@@ -352,7 +349,7 @@
         </div>
       </div>
 
-      <div class="form-actions" style="margin-top: 24px; justify-content: center; gap: 12px;">
+      <div class="form-actions sprint-modal-actions">
         <button type="button" class="primary-button" id="btn-restart-sprint" data-i18n="trainer_btn_restart_sprint">⚡ Попробовать снова</button>
         <button type="button" class="secondary-button" id="btn-close-sprint" data-i18n="trainer_btn_close_sprint">Вернуться к тренировке</button>
         <button type="button" class="secondary-button" id="btn-sprint-review" data-review-btn hidden>🔁 Работа над ошибками</button>
