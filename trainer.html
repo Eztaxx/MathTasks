@@ -37,7 +37,12 @@
       </a>
       <a class="topbar-home-btn" href="/" aria-label="На главную" data-i18n-aria="nav_to_home"><svg class="topbar-home-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span class="topbar-home-label" data-i18n="nav_to_home">На главную</span></a>
     </div>
-    <span class="admin-badge" data-i18n="trainer_badge">⚡ Тренажёр устного счёта</span>
+    <!-- Все тренажёры — ссылками в шапке; текущий подсвечен (trainer-page.js). -->
+    <nav class="trainer-switch" aria-label="Тренажёры" data-i18n-aria="track_heading_trainers">
+      <a class="trainer-switch-link" href="/trainer.html" data-section-link="count" data-i18n="section_count">🧮 Счёт</a>
+      <a class="trainer-switch-link" href="/trainer.html?section=equations" data-section-link="equations" data-i18n="section_equations">⚖️ Уравнения</a>
+      <a class="trainer-switch-link" href="/trainer.html?section=expressions" data-section-link="expressions" data-i18n="section_expressions">🔣 Выражения</a>
+    </nav>
 
     <div class="trainer-top-actions">
       <a class="nav-btn-link" href="/exams.html" data-i18n="nav_exams">🎯 Подготовка к экзаменам</a>

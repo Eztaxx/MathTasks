@@ -611,13 +611,13 @@
           sub.dataset.i18n = subKey;
           sub.textContent = t(subKey);
         }
-        // Плашка в шапке — по разделу, а не всегда «Тренажёр устного счёта».
-        const badge = document.querySelector('.admin-badge[data-i18n^="trainer_"]');
-        if (badge) {
-          const badgeKey = state.section === 'count' ? 'trainer_badge' : titleKey;
-          badge.dataset.i18n = badgeKey;
-          badge.textContent = t(badgeKey);
-        }
+        // Шапка: ссылки на все тренажёры, текущий подсвечен.
+        document.querySelectorAll('[data-section-link]').forEach(link => {
+          const current = link.dataset.sectionLink === state.section;
+          link.classList.toggle('active', current);
+          if (current) link.setAttribute('aria-current', 'page');
+          else link.removeAttribute('aria-current');
+        });
       }
 
       document.querySelectorAll('.trainer-section-chip').forEach(btn => {
