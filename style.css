@@ -241,7 +241,7 @@ body.dark .auth-dialog input,body.dark .task-form input,body.dark .task-form sel
 .grade-stage-header{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
 .stage-badge{display:inline-flex;align-items:center;gap:6px;font:700 12px Manrope;letter-spacing:.02em;padding:4px 10px;border-radius:8px;white-space:nowrap}
 .stage-badge-pamat{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
-.stage-badge-vidus{background:#effcf9;color:#0f766e;border:1px solid #99e2d6}
+.stage-badge-vidus{background:#f3f5f9;color:#334155;border:1px solid #dbe2ec}
 .stage-sub{font-size:12px;font-weight:500;color:var(--muted)}
 .grade-chips-list{display:flex;flex-wrap:wrap;gap:8px;scrollbar-width:thin}
 .grade-chip{border:1px solid var(--line);border-radius:999px;background:#fff;color:#455471;font:600 12.5px Manrope;padding:7px 15px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,0.02)}
@@ -289,7 +289,7 @@ body.dark .auth-dialog input,body.dark .task-form input,body.dark .task-form sel
 
 body.dark .grade-stage-block{background:transparent;border:none}
 body.dark .stage-badge-pamat{background:#172554;color:#93c5fd;border-color:#1e3a8a}
-body.dark .stage-badge-vidus{background:#0b2a28;color:#5eead4;border-color:#155e57}
+body.dark .stage-badge-vidus{background:#121824;color:#c9d2e3;border-color:#1c2331}
 body.dark .grade-chip{background:#0f1420;border-color:#1f2839;color:#c4cce0;box-shadow:none}
 body.dark .grade-chip:hover{background:#1e2e4d;border-color:#5a92ff;color:#93c5fd}
 body.dark .grade-chip.active{background:#1764ff;border-color:#1764ff;color:#fff}
@@ -961,12 +961,16 @@ body.dark .sv-cell.is-current{background:#1764ff;color:#fff}
 a.grade-chip{text-decoration:none;display:inline-block}
 /* Уровни старшей школы: бирюзовый — не спорит ни с золотым 9 классом,
    ни с синими чипами классов. Знак уровня — смайлик в подписи. */
-a.grade-chip.grade-chip-level{border-color:#99e2d6;background:#effcf9;color:#0f766e}
-a.grade-chip.grade-chip-level:hover{border-color:#2dd4bf;background:#ccfbf1;color:#115e59}
-a.grade-chip.grade-chip-level.active{border-color:#0d9488;background:#0d9488;color:#fff;box-shadow:0 2px 8px rgba(13,148,136,.3)}
-body.dark a.grade-chip.grade-chip-level{background:#0b2a28;border-color:#155e57;color:#5eead4}
-body.dark a.grade-chip.grade-chip-level:hover{background:#0f3a36;border-color:#14b8a6;color:#99f6e4}
-body.dark a.grade-chip.grade-chip-level.active{background:#0d9488;border-color:#0d9488;color:#fff}
+/* Уровни старшей школы — у каждого свой цвет: основа — зелёный, рост —
+   синий, вершина — бордовый. Фон и рамка — оттенки того же цвета (--lvl). */
+a.grade-chip.grade-chip-level{--lvl:#15803d;border-color:color-mix(in srgb,var(--lvl) 35%,#fff);background:color-mix(in srgb,var(--lvl) 8%,#fff);color:var(--lvl)}
+a.grade-chip.level-matematika-1{--lvl:#2563eb}
+a.grade-chip.level-matematika-2{--lvl:#9f1239}
+a.grade-chip.grade-chip-level:hover{border-color:var(--lvl);background:color-mix(in srgb,var(--lvl) 14%,#fff);color:var(--lvl)}
+a.grade-chip.grade-chip-level.active{border-color:var(--lvl);background:var(--lvl);color:#fff;box-shadow:0 2px 8px color-mix(in srgb,var(--lvl) 30%,transparent)}
+body.dark a.grade-chip.grade-chip-level{background:color-mix(in srgb,var(--lvl) 14%,#0a0d14);border-color:color-mix(in srgb,var(--lvl) 45%,#0a0d14);color:color-mix(in srgb,var(--lvl) 50%,#fff)}
+body.dark a.grade-chip.grade-chip-level:hover{background:color-mix(in srgb,var(--lvl) 24%,#0a0d14);border-color:color-mix(in srgb,var(--lvl) 70%,#fff);color:color-mix(in srgb,var(--lvl) 35%,#fff)}
+body.dark a.grade-chip.grade-chip-level.active{background:var(--lvl);border-color:var(--lvl);color:#fff}
 
 /* Метка класса у темы в меню, когда выбран режим «Все классы». */
 .subnav-grade{margin-left:6px;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#fff3dd;color:#8a5a00}

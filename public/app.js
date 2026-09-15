@@ -211,11 +211,11 @@ function renderGradeControls() {
     return String(selectedGrade ?? '') === String(val);
   };
 
-  /* kind: 'exam' — 9 класс (золотой), 'level' — уровень старшей школы
-     (бирюзовый, как плашка «Старшая школа»). */
+  /* kind: 'exam' — 9 класс (золотой), 'level' — уровень старшей школы,
+     у каждого уровня свой цвет (level-<значение>). */
   const renderChip = ([value, label, href, kind]) => {
     const active = isCurrent(value);
-    const cls = ['grade-chip', active ? 'active' : '', kind === 'exam' ? 'grade-chip-exam' : '', kind === 'level' ? 'grade-chip-level' : '']
+    const cls = ['grade-chip', active ? 'active' : '', kind === 'exam' ? 'grade-chip-exam' : '', kind === 'level' ? `grade-chip-level level-${value}` : '']
       .filter(Boolean).join(' ');
     return `<a class="${cls}" href="${href}"${active ? ' aria-current="page"' : ''}>${escapeHtml(label)}</a>`;
   };
