@@ -486,7 +486,7 @@ function renderHubSidebar() {
       </a>
 
       <a class="sidebar-action-card${appPath() === '/tags' ? ' active' : ''}" href="/tags" title="${escapeHtml(tr('tags_label') || (getLang() === 'lv' ? 'Krustbirkas' : 'Кросс-теги'))}">
-        <div class="action-card-icon tag-icon" style="background:#f0f7ff;color:#1764ff">🏷️</div>
+        <div class="action-card-icon tag-icon">🏷️</div>
         <div class="action-card-body">
           <strong>${escapeHtml(tr('tags_label') || (getLang() === 'lv' ? 'Krustbirkas' : 'Кросс-теги'))}</strong>
           <span>${getLang() === 'lv' ? '23 krostagi prasmēm' : '23 тега по навыкам'}</span>
