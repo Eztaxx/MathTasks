@@ -1849,10 +1849,16 @@ function writeDailyCache(key, task) {
   } catch {}
 }
 
+/* Запомненную задачу могли снять с публикации в тот же день — такую не
+   показываем. Список опубликованных приходит заново при каждом входе. */
+function isStillPublished(task) {
+  return publishedTaskRows.some(row => row.id === task.id);
+}
+
 async function fetchDailyTask(shift) {
   const key = dailyKey(shift);
   const cached = readDailyCache()[key];
-  if (cached) return cached;
+  if (cached && isStillPublished(cached)) return cached;
   const rows = dailyCandidates();
   if (!rows.length) return null;
   const pick = rows[(dailySeed(key.split('|')[0]) + shift) % rows.length];
@@ -1877,7 +1883,8 @@ async function renderHomeToday() {
     slot.innerHTML = dailyCard(task);
     fillTaskMath(slot, [task]);
   };
-  const cached = readDailyCache()[dailyKey(dailyShift)];
+  const stored = readDailyCache()[dailyKey(dailyShift)];
+  const cached = stored && isStillPublished(stored) ? stored : null;
   if (cached) show(cached);
   else slot.innerHTML = '<div class="home-daily-skeleton" aria-hidden="true"></div>';
   const task = cached || await fetchDailyTask(dailyShift);
