@@ -584,13 +584,44 @@ body.sidebar-collapsed .sidebar-home-btn .label {
 body.sidebar-collapsed .sidebar-continue{justify-content:center;padding:8px 0}
 body.sidebar-collapsed .sidebar-continue .label{display:none}
 
+/* Меню помещается в экран без прокрутки. На невысоких экранах подписи под
+   пунктами прячутся (название пункта и всплывающая подсказка остаются),
+   «Продолжить задание» — в одну строку, отступы меньше. */
+@media (max-height:1000px){
+  .sidebar{padding-top:14px;padding-bottom:14px}
+  .brand{height:44px;margin-bottom:10px}
+  .sidebar-home-btn{padding:6px 12px;margin-bottom:6px}
+  .sidebar-continue{padding:6px 12px;margin-bottom:6px}
+  .sidebar-continue-body small{display:none}
+  .sidebar-track-header{padding-top:8px}
+  .track-card-body span,.action-card-body span{display:none}
+  .sidebar-track-card,.sidebar-action-card{padding:4px 8px}
+  .track-card-badge,.action-card-icon{width:24px;height:24px}
+  .about{margin-top:8px;padding-top:10px}
+}
+
 /* ── Главная: задача дня, «Продолжить», серия ─────────────────────── */
 .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;margin:-1px;padding:0!important;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0!important}
-.home-today{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start;margin:4px 0 26px}
+/* Задача дня уже, «Продолжить» и «Серия» шире: раньше колонка справа
+   была 300 px, а задача дня занимала полэкрана. */
+.home-today{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,1fr);gap:14px;align-items:start;margin:0 0 22px}
 .home-today[hidden]{display:none}
 .home-today.no-daily{grid-template-columns:1fr}
-.home-daily,.home-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-.home-daily{display:flex;flex-direction:column;gap:12px;min-width:0}
+.home-daily,.home-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 16px}
+.home-daily{display:flex;flex-direction:column;gap:8px;min-width:0}
+/* Заглушка на время первой загрузки за день — той же высоты, что задача,
+   чтобы блоки ниже не прыгали. */
+.home-daily-skeleton{height:132px;border-radius:9px;background:linear-gradient(90deg,#eef2f9 0%,#f6f8fc 50%,#eef2f9 100%);background-size:200% 100%;animation:home-skeleton 1.2s ease-in-out infinite}
+@keyframes home-skeleton{from{background-position:100% 0}to{background-position:-100% 0}}
+@media(prefers-reduced-motion:reduce){.home-daily-skeleton{animation:none}}
+body.dark .home-daily-skeleton{background:linear-gradient(90deg,#18233a 0%,#1f2c47 50%,#18233a 100%);background-size:200% 100%}
+/* Внутри задачи дня — только условие и строка ответа: без рамки вокруг
+   поля, без пустой строки под кнопками. */
+.home-daily .task-self-check{border:0;background:none;padding:0;margin:0}
+.home-daily .self-check-form{margin:0}
+.home-daily .self-check-lock{margin:4px 0 0;font-size:11.5px}
+.home-daily .solution-missing{display:none}
+.home-daily .task-actions-bar:not(:has(.solution-toggle:not([hidden]))){display:none}
 .home-daily-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .home-daily-badge{font:800 10.5px Manrope,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#b45309;background:#fff4dc;border:1px solid #fcd9a0;border-radius:6px;padding:3px 8px}
 .home-daily-meta{flex:1;min-width:0;font-size:12px;color:var(--muted)}
@@ -598,8 +629,8 @@ body.sidebar-collapsed .sidebar-continue .label{display:none}
 .home-daily-other:hover{border-color:#bad1fa;color:#1764ff}
 .home-daily .task{border:0;background:none;box-shadow:none;padding:0;margin:0}
 .home-daily .task-meta,.home-daily .quick-math-bar,.home-daily .task-tags-row{display:none}
-.home-daily .task-condition{font-size:17px;line-height:1.6}
-.home-daily-foot{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px}
+.home-daily .task-condition{font-size:15.5px;line-height:1.5}
+.home-daily-foot{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
 .home-daily-foot:empty{display:none}
 .home-daily-foot a{color:#1764ff;text-decoration:none}
 .home-daily-foot a:hover{text-decoration:underline}
@@ -647,6 +678,15 @@ body.dark .home-streak-day.is-today i{box-shadow:inset 0 0 0 2px #6a9bff}
 
 /* Чипы классов на главной стали ссылками на страницу класса. */
 a.grade-chip{text-decoration:none;display:inline-block}
+/* Уровни старшей школы: цвет плашки «Старшая школа», значок уровня. */
+a.grade-chip.grade-chip-level{display:inline-flex;align-items:center;gap:7px;border-color:#c4b5fd;background:#f7f3ff;color:#5b21b6}
+a.grade-chip.grade-chip-level:hover{border-color:#8b5cf6;background:#ede4ff;color:#4c1d95}
+a.grade-chip.grade-chip-level.active{border-color:#7c3aed;background:#7c3aed;color:#fff;box-shadow:0 2px 8px rgba(124,58,237,.3)}
+.grade-level-icon{width:12px;height:12px;flex:none;fill:currentColor}
+.grade-level-icon .off{opacity:.28}
+body.dark a.grade-chip.grade-chip-level{background:#221538;border-color:#4c2a85;color:#c4b5fd}
+body.dark a.grade-chip.grade-chip-level:hover{background:#2c1b4a;border-color:#7c3aed;color:#ddd6fe}
+body.dark a.grade-chip.grade-chip-level.active{background:#7c3aed;border-color:#7c3aed;color:#fff}
 
 /* Метка класса у темы в меню, когда выбран режим «Все классы». */
 .subnav-grade{margin-left:6px;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#fff3dd;color:#8a5a00}
@@ -1430,6 +1470,7 @@ body.dark .task-solved-badge{background:#0d281a;color:#4ade80;border-color:#1665
 
 /* ── Виртуальная математическая панель (Quick Math Bar) ──────────── */
 .quick-math-bar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:8px;padding-bottom:6px;border-bottom:1px dashed #e2e8f0}
+.quick-math-bar[hidden]{display:none}
 .quick-math-bar.plotter-math-bar{margin-bottom:4px;padding-bottom:8px}
 .quick-math-btn{min-width:28px;height:26px;padding:0 7px;border:1px solid #d0ddec;border-radius:6px;background:#fff;color:#243247;font:600 12px/1 'KaTeX_Main',Manrope,sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .12s ease;box-shadow:0 1px 2px rgba(0,0,0,0.04);user-select:none}
 .quick-math-btn:hover{background:#edf4ff;border-color:#1764ff;color:#1764ff;transform:translateY(-1px);box-shadow:0 2px 5px rgba(23,100,255,0.15)}

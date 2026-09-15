@@ -211,24 +211,30 @@ function renderGradeControls() {
     return String(selectedGrade ?? '') === String(val);
   };
 
-  const renderChip = ([value, label, href, isExam]) => {
+  /* kind: 'exam' — 9 класс (золотой), 'level' — уровень старшей школы
+     (фиолетовый, как плашка «Старшая школа»). */
+  const renderChip = ([value, label, href, kind, iconHtml = '']) => {
     const active = isCurrent(value);
-    const cls = ['grade-chip', active ? 'active' : '', isExam ? 'grade-chip-exam' : ''].filter(Boolean).join(' ');
-    return `<a class="${cls}" href="${href}"${active ? ' aria-current="page"' : ''}>${escapeHtml(label)}</a>`;
+    const cls = ['grade-chip', active ? 'active' : '', kind === 'exam' ? 'grade-chip-exam' : '', kind === 'level' ? 'grade-chip-level' : '']
+      .filter(Boolean).join(' ');
+    return `<a class="${cls}" href="${href}"${active ? ' aria-current="page"' : ''}>${iconHtml}${escapeHtml(label)}</a>`;
   };
+
+  /* Значок уровня: одна, две, три ступени — Vispārīgais, Optimālais,
+     Augstākais. Уровень читается по значку, а не только по названию. */
+  const levelIcon = level => `<svg class="grade-level-icon" viewBox="0 0 12 12" aria-hidden="true">${[0, 1, 2]
+    .map(i => `<rect x="${i * 4.5}" y="${8 - i * 3}" width="3" height="${4 + i * 3}" rx="1"${i < level ? '' : ' class="off"'}/>`).join('')}</svg>`;
 
   const pamatChips = [
     ['', tr('all_grades_short') || 'Visi', '/'],
     ...[1, 2, 3, 4, 5, 6, 7, 8].map(g => [String(g), tr(`grade_${g}`) || tr('grade_N', { n: g }) || `${g}. klase`, `/grade/${g}`]),
-    ['9', `${tr('grade_9') || '9. klase'} 🎯`, '/grade/9', true]
+    ['9', `${tr('grade_9') || '9. klase'} 🎯`, '/grade/9', 'exam']
   ];
 
   const vidusChips = [
-    /* Уровни старшей школы — это централизованные экзамены, как и 9 класс:
-       помечены так же. */
-    ['visparigais', `${tr('grade_visparigais') || 'Vispārīgais līmenis'} 🎯`, '/grade/visparigais', true],
-    ['matematika-1', `${tr('grade_matematika_1') || 'Matemātika I (Optimālais)'} 🎯`, '/grade/matematika-1', true],
-    ['matematika-2', `${tr('grade_matematika_2') || 'Matemātika II (Augstākais)'} 🎯`, '/grade/matematika-2', true]
+    ['visparigais', tr('grade_visparigais') || 'Vispārīgais līmenis', '/grade/visparigais', 'level', levelIcon(1)],
+    ['matematika-1', tr('grade_matematika_1') || 'Matemātika I (Optimālais)', '/grade/matematika-1', 'level', levelIcon(2)],
+    ['matematika-2', tr('grade_matematika_2') || 'Matemātika II (Augstākais)', '/grade/matematika-2', 'level', levelIcon(3)]
   ];
 
   gradeFilter.innerHTML = `
@@ -304,15 +310,6 @@ let currentSubtopic = null;
 function renderTopicSidebar(topic) {
   const subject = subjectById(topic.subject_id);
   const grade = topic.grade ?? selectedGrade;
-  const gradeSlug = (grade === 10 || grade === 11 || grade === 'matematika-1') ? 'matematika-1' : (grade === 12 || grade === 'matematika-2') ? 'matematika-2' : grade;
-  const backHref = grade ? `/grade/${gradeSlug}` : '/';
-
-  // Кнопка возврата к общему списку / экзаменам
-  const backBtn = `<a class="sidebar-back-button" href="${backHref}" title="${escapeHtml((window.MathTasks.t || (k => k))('back_to_catalog'))}">
-    <span class="back-icon">←</span>
-    <span class="label">${escapeHtml((window.MathTasks.t || (k => k))('all_exams_tracks'))}</span>
-  </a>`;
-
   const topicTitle = topicTitleOf(topic);
   const subjectTitle = loc(subject, 'title');
 
@@ -346,19 +343,13 @@ function renderTopicSidebar(topic) {
     </section>`;
   }).filter(Boolean).join('');
 
-  sidebarNav.innerHTML = backBtn + banner + heading + (groups || `<p class="subnav-empty">${(window.MathTasks.t || (k => k))('course_no_topics_yet')}</p>`);
+  sidebarNav.innerHTML = banner + heading + (groups || `<p class="subnav-empty">${(window.MathTasks.t || (k => k))('course_no_topics_yet')}</p>`);
   markActiveNav(topic.slug);
 }
 
 function renderClassSidebar(grade) {
   const label = gradeLabel(grade);
   const labelShort = gradeLabelShort(grade);
-  const backHref = '/';
-
-  const backBtn = `<a class="sidebar-back-button" href="${backHref}" title="${escapeHtml((window.MathTasks.t || (k => k))('back_to_catalog'))}">
-    <span class="back-icon">←</span>
-    <span class="label">${escapeHtml((window.MathTasks.t || (k => k))('all_exams_tracks'))}</span>
-  </a>`;
 
   const banner = `<div class="sidebar-topic-banner">
     <div class="topic-banner-top">
@@ -384,7 +375,7 @@ function renderClassSidebar(grade) {
     </section>`;
   }).filter(Boolean).join('');
 
-  sidebarNav.innerHTML = backBtn + banner + heading + (groups || `<p class="subnav-empty">${(window.MathTasks.t || (k => k))('course_no_topics_yet')}</p>`);
+  sidebarNav.innerHTML = banner + heading + (groups || `<p class="subnav-empty">${(window.MathTasks.t || (k => k))('course_no_topics_yet')}</p>`);
   markActiveNav();
 }
 
@@ -1088,6 +1079,28 @@ async function submitReport(event) {
   showToast(tr('report_thanks'));
 }
 
+/* Клавиатура формул строится при первом фокусе на поле ответа, а не в
+   каждой карточке заранее: на странице темы это было 341 кнопка, почти все
+   — у задач, которые ученик в этот раз и не открывал. */
+const QUICK_MATH_KEYS = [['√(', '√x', '√x'], ['²', 'x²', 'x²'], ['^', 'xⁿ', 'xⁿ'], ['/', '/', '/'], ['π', 'π', 'π'], ['±', '±', '±'],
+  ['|', '|x|', '|x|'], ['(', '( )', '( )'], ['x', 'x', 'x'], ['·', '·', '·'], ['≤', '≤', '≤'], ['≥', '≥', '≥'], ['∞', '∞', '∞']];
+
+function ensureQuickMathBar(bar) {
+  if (!bar || bar.childElementCount) return;
+  const tr = window.MathTasks.t || (k => k);
+  bar.innerHTML = `<span class="quick-math-bar-label" title="Quick Math">${escapeHtml(tr('quick_math_label'))}</span>`
+    + QUICK_MATH_KEYS.map(([insert, title, label]) => `<button type="button" class="quick-math-btn" data-insert="${escapeHtml(insert)}" title="${escapeHtml(title)}">${escapeHtml(label)}</button>`).join('');
+}
+
+document.addEventListener('focusin', event => {
+  const input = event.target.closest?.('.self-check-input');
+  if (!input || input.disabled) return;
+  const bar = input.closest('.task-self-check')?.querySelector('.quick-math-bar');
+  if (!bar) return;
+  ensureQuickMathBar(bar);
+  bar.hidden = false;
+});
+
 function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number } = {}) {
   const tr = window.MathTasks.t || (k => k);
   currentTasksMap.set(task.id, task);
@@ -1124,22 +1137,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   const reveal = taskRevealState(task);
   const selfCheck = reveal.checkable ? `
     <div class="task-self-check" data-self-check="${task.id}">
-      <div class="quick-math-bar" ${solved ? 'hidden' : ''} aria-label="Quick Math Bar">
-        <span class="quick-math-bar-label" title="Quick Math">${escapeHtml(tr('quick_math_label'))}</span>
-        <button type="button" class="quick-math-btn" data-insert="√(" title="√x">√x</button>
-        <button type="button" class="quick-math-btn" data-insert="²" title="x²">x²</button>
-        <button type="button" class="quick-math-btn" data-insert="^" title="xⁿ">xⁿ</button>
-        <button type="button" class="quick-math-btn" data-insert="/" title="/">/</button>
-        <button type="button" class="quick-math-btn" data-insert="π" title="π">π</button>
-        <button type="button" class="quick-math-btn" data-insert="±" title="±">±</button>
-        <button type="button" class="quick-math-btn" data-insert="|" title="|x|">|x|</button>
-        <button type="button" class="quick-math-btn" data-insert="(" title="( )">( )</button>
-        <button type="button" class="quick-math-btn" data-insert="x" title="x">x</button>
-        <button type="button" class="quick-math-btn" data-insert="·" title="·">·</button>
-        <button type="button" class="quick-math-btn" data-insert="≤" title="≤">≤</button>
-        <button type="button" class="quick-math-btn" data-insert="≥" title="≥">≥</button>
-        <button type="button" class="quick-math-btn" data-insert="∞" title="∞">∞</button>
-      </div>
+      <div class="quick-math-bar" hidden aria-label="Quick Math Bar"></div>
       <form class="self-check-form" data-check-id="${task.id}">
         <span class="self-check-icon" aria-hidden="true">✏️</span>
         <input type="text" class="self-check-input" placeholder="${escapeHtml(tr('self_check_placeholder'))}" aria-label="${escapeHtml(tr('self_check_placeholder'))}" autocomplete="off" ${solved ? `disabled value="${escapeHtml(tr('solved_badge'))}"` : ''} />
@@ -1245,6 +1243,37 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   </article>`;
 }
 
+/* Подсказку, ответ и решение рисуем не сразу, а когда панель открывают.
+   Замер на боевом: формулы в закрытых панелях — 60 % узлов страницы
+   (тема — 4 852 из 8 215, главная — 3 261 из 5 453), хотя ученик видит их
+   только после попыток. Пока панель закрыта, её латех ждёт в pendingMath;
+   открыли — дорисовываем. Следим за атрибутом hidden, а не за кнопкой:
+   панель открывают и кнопка, и самопроверка, и «Не сошлось». */
+const pendingMath = new WeakMap();
+
+function deferMath(element, latex) {
+  const panel = element.closest('.reveal');
+  if (!panel || !panel.hidden) renderMath(element, latex);
+  else pendingMath.set(element, latex);
+}
+
+function renderPendingMath(root) {
+  root.querySelectorAll('[data-answer], [data-hint], [data-solution]').forEach(element => {
+    if (!pendingMath.has(element)) return;
+    renderMath(element, pendingMath.get(element));
+    pendingMath.delete(element);
+  });
+}
+
+new MutationObserver(records => {
+  for (const { target } of records) {
+    if (target.classList?.contains('reveal') && !target.hidden) renderPendingMath(target);
+  }
+}).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden'] });
+
+// Печать с решениями открывает панели стилями, без атрибута — дорисовываем всё.
+window.addEventListener('beforeprint', () => renderPendingMath(document));
+
 /* Формулы рендерим по спискам тех задач, у которых соответствующее поле есть:
    у панелей нет собственной привязки к задаче, а порядок узлов совпадает. */
 function fillTaskMath(container, tasks) {
@@ -1253,15 +1282,15 @@ function fillTaskMath(container, tasks) {
   });
   const answerSource = tasks.filter(task => loc(task, 'answer_latex'));
   container.querySelectorAll('[data-answer]').forEach((element, index) => {
-    renderMath(element, loc(answerSource[index], 'answer_latex'));
+    deferMath(element, loc(answerSource[index], 'answer_latex'));
   });
   const hintSource = tasks.filter(task => loc(task, 'hint_latex'));
   container.querySelectorAll('[data-hint]').forEach((element, index) => {
-    renderMath(element, loc(hintSource[index], 'hint_latex'));
+    deferMath(element, loc(hintSource[index], 'hint_latex'));
   });
   const solutionSource = tasks.filter(task => loc(task, 'solution_latex'));
   container.querySelectorAll('[data-solution]').forEach((element, index) => {
-    renderMath(element, loc(solutionSource[index], 'solution_latex'));
+    deferMath(element, loc(solutionSource[index], 'solution_latex'));
   });
 }
 
@@ -1790,30 +1819,77 @@ function refreshHomeSide() {
   if (side) side.innerHTML = homeContinueCard() + homeStreakCard();
 }
 
+/* Задача дня показывается сразу: загруженная задача лежит в браузере до
+   конца дня (ключ — дата, класс и сдвиг «Другой»), а следующая по
+   «Другой» подгружается заранее. Сеть нужна только при первом заходе за день. */
+const DAILY_CACHE_KEY = 'math-tasks:daily';
+
+function dailyKey(shift) {
+  const lib = window.MathTasksLib;
+  const today = lib?.localDateKey ? lib.localDateKey() : new Date().toISOString().slice(0, 10);
+  return `${today}|${selectedGrade ?? 'all'}|${shift}`;
+}
+
+function readDailyCache() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(DAILY_CACHE_KEY) || '{}');
+    return raw && typeof raw === 'object' ? raw : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeDailyCache(key, task) {
+  const today = key.split('|')[0];
+  // Вчерашние записи выбрасываем: хранится только сегодняшний день.
+  const cache = Object.fromEntries(Object.entries(readDailyCache()).filter(([k]) => k.startsWith(`${today}|`)));
+  cache[key] = task;
+  try {
+    localStorage.setItem(DAILY_CACHE_KEY, JSON.stringify(cache));
+  } catch {}
+}
+
+async function fetchDailyTask(shift) {
+  const key = dailyKey(shift);
+  const cached = readDailyCache()[key];
+  if (cached) return cached;
+  const rows = dailyCandidates();
+  if (!rows.length) return null;
+  const pick = rows[(dailySeed(key.split('|')[0]) + shift) % rows.length];
+  const { data } = await db.from('tasks').select(TASK_SELECT).eq('is_published', true).eq('id', pick.id).limit(1);
+  const task = data?.[0] || null;
+  if (task) writeDailyCache(key, task);
+  return task;
+}
+
 async function renderHomeToday() {
   const box = document.querySelector('#home-today');
   if (!box) return;
   const request = ++dailyRequest;
-  const rows = dailyCandidates();
-  box.innerHTML = `${rows.length ? '<div class="home-daily" id="home-daily"></div>' : ''}<div class="home-side"></div>`;
-  box.classList.toggle('no-daily', !rows.length);
+  const hasCandidates = dailyCandidates().length > 0;
+  box.innerHTML = `${hasCandidates ? '<div class="home-daily" id="home-daily"></div>' : ''}<div class="home-side"></div>`;
+  box.classList.toggle('no-daily', !hasCandidates);
   refreshHomeSide();
   box.hidden = false;
-  if (!rows.length) return;
-  const lib = window.MathTasksLib;
-  const today = lib?.localDateKey ? lib.localDateKey() : new Date().toISOString().slice(0, 10);
-  const pick = rows[(dailySeed(today) + dailyShift) % rows.length];
-  const { data } = await db.from('tasks').select(TASK_SELECT).eq('is_published', true).eq('id', pick.id).limit(1);
+  if (!hasCandidates) return;
   const slot = box.querySelector('#home-daily');
-  if (request !== dailyRequest || !slot) return;
-  const task = data?.[0];
+  const show = task => {
+    slot.innerHTML = dailyCard(task);
+    fillTaskMath(slot, [task]);
+  };
+  const cached = readDailyCache()[dailyKey(dailyShift)];
+  if (cached) show(cached);
+  else slot.innerHTML = '<div class="home-daily-skeleton" aria-hidden="true"></div>';
+  const task = cached || await fetchDailyTask(dailyShift);
+  if (request !== dailyRequest) return;
   if (!task) {
     slot.remove();
     box.classList.add('no-daily');
     return;
   }
-  slot.innerHTML = dailyCard(task);
-  fillTaskMath(slot, [task]);
+  if (!cached) show(task);
+  // «Другая» потом откроется без ожидания.
+  fetchDailyTask(dailyShift + 1).catch(() => {});
 }
 
 document.addEventListener('click', event => {
@@ -4381,7 +4457,10 @@ document.addEventListener('click', event => {
       if (form) form.querySelector('.self-check-btn').hidden = false;
       if (resultDiv) resultDiv.hidden = true;
       const quickBar = checkBlock.querySelector('.quick-math-bar');
-      if (quickBar) quickBar.hidden = false;
+      if (quickBar) {
+        ensureQuickMathBar(quickBar);
+        quickBar.hidden = false;
+      }
     }
     const card = resetBtn.closest('.task');
     card?.querySelector('.task-solved-badge')?.remove();
