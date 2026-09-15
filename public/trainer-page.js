@@ -94,8 +94,8 @@
 
       // Где ответ бывает дробью, с минусом, с x или из нескольких корней — обычная клавиатура
       const TEXT_INPUT_CATEGORIES = new Set(['fractions', 'negatives', 'algebra_powers', 'powers']);
-      const needsTextInput = q => q.type === 'roots' || q.type === 'poly' || TEXT_INPUT_CATEGORIES.has(q.category);
-      const inputHintKey = q => ({ roots: 'trainer_roots_hint', poly: 'trainer_poly_hint' })[q.type]
+      const needsTextInput = q => ['roots', 'poly', 'value'].includes(q.type) || TEXT_INPUT_CATEGORIES.has(q.category);
+      const inputHintKey = q => ({ roots: 'trainer_roots_hint', poly: 'trainer_poly_hint', value: 'trainer_value_hint' })[q.type]
         || (q.category === 'algebra_powers' ? 'trainer_algebra_hint' : 'trainer_fraction_hint');
       // Уравнение уже содержит «=», к выражению его дописываем
       const shownLatex = (q, tail) => (q.eq ? q.latex : `${q.latex} ${tail}`);

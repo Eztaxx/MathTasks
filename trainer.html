@@ -101,10 +101,24 @@
           <button type="button" class="trainer-cat-chip" data-cat="multdiv" data-i18n="cat_multdiv">✖️ Умножение и деление</button>
           <button type="button" class="trainer-cat-chip" data-cat="fractions" data-i18n="cat_fractions">🍰 Обыкновенные дроби</button>
           <button type="button" class="trainer-cat-chip" data-cat="decimals" data-i18n="cat_decimals">🎯 Десятичные дроби</button>
-          <button type="button" class="trainer-cat-chip" data-cat="powers" data-i18n="cat_powers">⚡ Степени и корни</button>
-          <button type="button" class="trainer-cat-chip" data-cat="algebra_powers" data-i18n="cat_algebra_powers">🔤 Степени с переменными</button>
           <button type="button" class="trainer-cat-chip" data-cat="negatives" data-i18n="cat_negatives">❄️ Отрицательные числа</button>
-          <button type="button" class="trainer-cat-chip" data-cat="mix" data-i18n="cat_mix">🎲 Микс (всё подряд)</button>
+          <button type="button" class="trainer-cat-chip" data-cat="mix" data-i18n="cat_mix">🎲 Микс (базовые действия)</button>
+        </div>
+        <div class="trainer-chip-subgroup" data-section-group="count">
+          <span class="trainer-sublabel" data-i18n="cat_group_powers">Степени и корни — отдельно, в микс не входят</span>
+          <div class="trainer-chip-group">
+            <button type="button" class="trainer-cat-chip" data-cat="powers" data-i18n="cat_powers">⚡ Степени и корни</button>
+            <button type="button" class="trainer-cat-chip" data-cat="algebra_powers" data-i18n="cat_algebra_powers">🔤 Степени с переменными</button>
+          </div>
+        </div>
+        <div class="trainer-chip-subgroup" data-section-group="count" data-high-only hidden>
+          <span class="trainer-sublabel" data-i18n="cat_group_high_count">Средняя школа</span>
+          <div class="trainer-chip-group">
+            <button type="button" class="trainer-cat-chip" data-cat="logs" data-i18n="cat_logs">🪵 Логарифмы</button>
+            <button type="button" class="trainer-cat-chip" data-cat="trig_values" data-i18n="cat_trig_values">🌀 Значения sin, cos, tg</button>
+            <button type="button" class="trainer-cat-chip" data-cat="angles" data-i18n="cat_angles">📐 Градусы и радианы</button>
+            <button type="button" class="trainer-cat-chip" data-cat="combinatorics" data-i18n="cat_combinatorics">🧮 Факториалы и сочетания</button>
+          </div>
         </div>
         <div class="trainer-chip-group" data-section-group="equations" hidden>
           <button type="button" class="trainer-cat-chip" data-cat="eq_linear" data-i18n="cat_eq_linear">📏 Линейные</button>
@@ -222,6 +236,12 @@
           <span class="stat-caption" data-i18n="hud_accuracy">точность</span>
         </div>
 
+        <div class="trainer-stat-badge" id="hud-stopwatch">
+          <span class="stat-icon">⏱️</span>
+          <span class="stat-val" id="val-stopwatch">00:00</span>
+          <span class="stat-caption" data-i18n="trainer_caption_time">время</span>
+        </div>
+
         <div class="trainer-stat-badge timer-badge" id="hud-timer" hidden>
           <span class="timer-icon">⏱️</span>
           <span class="timer-val" id="val-timer">60s</span>
@@ -236,12 +256,6 @@
       </div>
 
       <div class="trainer-timer-progress-wrap" id="timer-progress-wrap" hidden>
-        <div class="trainer-stat-badge" id="hud-stopwatch">
-          <span class="stat-icon">⏱️</span>
-          <span class="stat-val" id="val-stopwatch">00:00</span>
-          <span class="stat-caption" data-i18n="trainer_caption_time">время</span>
-        </div>
-
         <div class="trainer-timer-progress-bar" id="timer-progress-bar"></div>
       </div>
 
@@ -276,6 +290,9 @@
             <button type="button" class="text-button trainer-skip-btn" id="btn-skip-question" title="Пропустить пример" data-i18n-title="trainer_skip_tooltip" data-i18n="trainer_btn_skip">
               Пропустить →
             </button>
+            <button type="button" class="text-button trainer-skip-btn trainer-finish-btn" id="btn-finish-session" data-i18n="trainer_btn_finish">
+              Завершить ✓
+            </button>
           </div>
           <p class="trainer-input-hint" id="trainer-input-hint" data-i18n-html="trainer_fraction_hint">
             Подсказка: для обыкновенных дробей пишите <code>3/4</code>, для десятичных — через точку или запятую (<code>2.5</code> или <code>2,5</code>).
@@ -290,9 +307,6 @@
           <button type="button" class="numpad-key action" data-key="backspace">⌫</button>
 
           <button type="button" class="numpad-key" data-key="4">4</button>
-            <button type="button" class="text-button trainer-skip-btn trainer-finish-btn" id="btn-finish-session" data-i18n="trainer_btn_finish">
-              Завершить ✓
-            </button>
           <button type="button" class="numpad-key" data-key="5">5</button>
           <button type="button" class="numpad-key" data-key="6">6</button>
           <button type="button" class="numpad-key op" data-key="/">/</button>
@@ -351,6 +365,8 @@
         </div>
       </div>
 
+      <div class="res-mistakes" id="res-mistakes" hidden></div>
+
       <div class="form-actions sprint-modal-actions">
         <button type="button" class="primary-button" id="btn-restart-sprint" data-i18n="trainer_btn_restart_sprint">⚡ Попробовать снова</button>
         <button type="button" class="secondary-button" id="btn-close-sprint" data-i18n="trainer_btn_close_sprint">Вернуться к тренировке</button>
@@ -360,10 +376,8 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/trainer.js?v=20260915-1"></script>
-  <script src="/trainer-algebra.js?v=20260915-1"></script>
-  <script src="/trainer-page.js?v=20260915-1"></script>
+  <script src="/trainer.js?v=20260916-1"></script>
+  <script src="/trainer-algebra.js?v=20260916-1"></script>
+  <script src="/trainer-page.js?v=20260916-3"></script>
 </body>
 </html>
-      <div class="res-mistakes" id="res-mistakes" hidden></div>
-

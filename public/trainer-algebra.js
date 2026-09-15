@@ -62,7 +62,8 @@
         tokens.push({ t: 'sqrt' });
         i++;
       } else if (ch === 'π' || s.startsWith('pi', i)) {
-        tokens.push({ t: 'num', v: Math.PI });
+        // Отдельный тип, чтобы 3π и 0.75π умножались без знака, как 2x
+        tokens.push({ t: 'const', v: Math.PI });
         i += ch === 'π' ? 1 : 2;
       } else if (/[a-z]/.test(ch)) {
         tokens.push({ t: 'var', name: ch });
@@ -89,7 +90,7 @@
       pos++;
       return tok;
     };
-    const startsImplicit = tok => tok && (tok.t === 'var' || tok.t === 'sqrt' || tok.t === '(');
+    const startsImplicit = tok => tok && (tok.t === 'var' || tok.t === 'const' || tok.t === 'sqrt' || tok.t === '(');
 
     function expr() {
       const items = [term()];
@@ -142,7 +143,7 @@
     }
     function primary() {
       const tok = take();
-      if (tok.t === 'num') return { t: 'num', v: tok.v };
+      if (tok.t === 'num' || tok.t === 'const') return { t: 'num', v: tok.v };
       if (tok.t === 'var') return { t: 'var', name: tok.name };
       if (tok.t === 'sqrt') return { t: 'sqrt', a: power() };
       if (tok.t === '(') {
@@ -1265,8 +1266,202 @@
     expr_mix: (diff = 'normal', school = 'high') => GENERATORS[pick(['expr_poly', 'expr_formulas', 'expr_factor', 'expr_fractions'])](diff, school)
   });
 
+  /* ── Счёт для средней школы: логарифмы, sin/cos/tg, радианы, комбинаторика ── */
+  // Ответ — одно число в любой точной записи: 3/2 и 1,5, √3/2, 3π/4
+  const valueQ = (latex, value, answer, hint, category, task = null) => ({ latex, type: 'value', value, answer, hint, category, task });
+
+  function checkValue(q, userInput) {
+    const raw = String(userInput || '').trim();
+    const v = raw ? evalNumber(raw) : NaN;
+    const ok = Number.isFinite(v) && Math.abs(v - q.value) <= 1e-9 * Math.max(1, Math.abs(q.value));
+    return { isCorrect: ok, expectedDisplay: q.answer, userNormalized: raw };
+  }
+
+  const LOG_MAX = { 2: 6, 3: 4, 5: 3, 10: 4 };
+  const logOf = b => (b === 10 ? '\\lg' : `\\log_{${b}}`);
+  const decimalTex = k => `0{,}${'0'.repeat(k - 1)}1`;
+
+  function genLogs(diff = 'normal') {
+    const q = (latex, r, hint) => valueQ(latex, r.v, r.text, hint, 'logs');
+    return byDiff(diff, {
+      normal: [() => {
+        const b = pick([2, 3, 5, 10]);
+        const k = randInt(0, LOG_MAX[b]);
+        return q(`${logOf(b)} ${b ** k}`, rat(k), `${b}^{${k}} = ${b ** k}`);
+      }],
+      hard: [() => {
+        const b = pick([2, 3, 5]);
+        const k = randInt(1, Math.min(3, LOG_MAX[b]));
+        return q(`${logOf(b)} \\frac{1}{${b ** k}}`, rat(-k), `${b}^{-${k}} = \\frac{1}{${b ** k}}`);
+      }, () => {
+        // log_{b^m} b^n = n/m
+        const b = pick([2, 3]);
+        const m = randInt(2, 3);
+        let n = randInt(1, 4);
+        while (n === m) n = randInt(1, 4);
+        const r = rat(n, m);
+        return q(`\\log_{${b ** m}} ${b ** n}`, r, `${b ** m} = ${b}^{${m}},\\; ${b ** n} = ${b}^{${n}} \\Rightarrow ${r.tex}`);
+      }, () => {
+        const k = randInt(1, 3);
+        return q(`\\lg ${decimalTex(k)}`, rat(-k), `${decimalTex(k)} = 10^{-${k}}`);
+      }],
+      expert: [() => {
+        // log_b x + log_b y, где xy = b²
+        const [b, x, y] = pick([[6, 4, 9], [6, 3, 12], [6, 2, 18], [10, 4, 25], [10, 2, 50], [10, 5, 20], [12, 16, 9], [12, 8, 18], [12, 3, 48], [15, 9, 25], [15, 5, 45]]);
+        return q(`\\log_{${b}} ${x} + \\log_{${b}} ${y}`, rat(2), `\\log_{${b}}(${x} \\cdot ${y}) = \\log_{${b}} ${b * b} = 2`);
+      }, () => {
+        const b = pick([2, 3]);
+        const y = b === 2 ? pick([3, 5, 6, 7]) : pick([2, 4, 5]);
+        const k = randInt(1, b === 2 ? 4 : 3);
+        return q(`\\log_{${b}} ${y * b ** k} - \\log_{${b}} ${y}`, rat(k), `\\log_{${b}} \\frac{${y * b ** k}}{${y}} = \\log_{${b}} ${b ** k} = ${k}`);
+      }, () => {
+        const b = pick([2, 3, 5, 7]);
+        const n = randInt(2, 20);
+        return q(`${b}^{\\log_{${b}} ${n}}`, rat(n), 'a^{\\log_{a} b} = b');
+      }, () => {
+        const a = pick([2, 3]);
+        const c = pick([5, 7]);
+        const k = randInt(2, 4);
+        return q(`\\log_{${a}} ${c} \\cdot \\log_{${c}} ${a ** k}`, rat(k), `\\log_{${a}} ${c} \\cdot \\log_{${c}} ${a ** k} = \\log_{${a}} ${a ** k} = ${k}`);
+      }]
+    });
+  }
+
+  // Угол в радианах: 150° → 5π/6 (для ответа) и \frac{5\pi}{6} (для LaTeX)
+  function radParts(deg) {
+    if (deg === 0) return { text: '0', tex: '0' };
+    const sign = deg < 0 ? '-' : '';
+    const g = gcd(Math.abs(deg), 180);
+    const p = Math.abs(deg) / g;
+    const q = 180 / g;
+    const num = p === 1 ? '' : String(p);
+    if (q === 1) return { text: `${sign}${num}π`, tex: `${sign}${num}\\pi` };
+    return { text: `${sign}${num}π/${q}`, tex: `${sign}\\frac{${num}\\pi}{${q}}` };
+  }
+
+  // Значения в первой четверти: [ответ, LaTeX, число]
+  const SIN_BASE = {
+    0: ['0', '0', 0],
+    30: ['1/2', '\\frac{1}{2}', 1 / 2],
+    45: ['√2/2', '\\frac{\\sqrt{2}}{2}', Math.SQRT2 / 2],
+    60: ['√3/2', '\\frac{\\sqrt{3}}{2}', Math.sqrt(3) / 2],
+    90: ['1', '1', 1]
+  };
+  const TG_BASE = {
+    0: ['0', '0', 0],
+    30: ['√3/3', '\\frac{\\sqrt{3}}{3}', Math.sqrt(3) / 3],
+    45: ['1', '1', 1],
+    60: ['√3', '\\sqrt{3}', Math.sqrt(3)]
+  };
+  const baseValue = (f, a) => (f === 'sin' ? SIN_BASE[a] : f === 'cos' ? SIN_BASE[90 - a] : TG_BASE[a]);
+  const FN_TEX = { sin: '\\sin', cos: '\\cos', tg: '\\operatorname{tg}' };
+  const FN = { sin: Math.sin, cos: Math.cos, tg: Math.tan };
+
+  // Значение по формулам приведения: модуль — от острого угла, знак — от четверти
+  function trigValueQ(f, deg, inRad) {
+    let ref = Math.abs(deg) % 180;
+    if (ref > 90) ref = 180 - ref;
+    const raw = FN[f]((deg * Math.PI) / 180);
+    const sign = Math.abs(raw) < 1e-9 ? 0 : Math.sign(raw);
+    const [text, texV, num] = baseValue(f, ref);
+    const valTex = sign < 0 ? `-${texV}` : texV;
+    const angle = inRad ? radParts(deg).tex : `${deg}^\\circ`;
+    const latex = `${FN_TEX[f]}${deg < 0 ? `\\left(${angle}\\right)` : ` ${angle}`}`;
+    const refAngle = inRad ? radParts(ref).tex : `${ref}^\\circ`;
+    const hint = deg === ref ? `${latex} = ${valTex}` : `${latex} = ${sign < 0 ? '-' : ''}${FN_TEX[f]} ${refAngle} = ${valTex}`;
+    return valueQ(latex, sign * num, sign < 0 ? `-${text}` : text, hint, 'trig_values');
+  }
+
+  function genTrigValues(diff = 'normal') {
+    const FIRST = [0, 30, 45, 60, 90];
+    const ALL = [0, 30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330, 360];
+    const make = (angles, inRad, negative = false) => {
+      let f;
+      let deg;
+      do {
+        f = pick(['sin', 'cos', 'tg']);
+        deg = pick(angles) * (negative ? -1 : 1);
+      } while (f === 'tg' && Math.abs(deg) % 180 === 90);
+      return trigValueQ(f, deg, inRad);
+    };
+    return byDiff(diff, {
+      normal: [() => make(FIRST, false)],
+      hard: [() => make(FIRST, true), () => make(ALL, false)],
+      expert: [() => make(ALL, true), () => make(FIRST.slice(1), Math.random() < 0.5, true)]
+    });
+  }
+
+  function genAngles(diff = 'normal') {
+    const LEVEL = {
+      normal: [30, 45, 60, 90, 180, 270, 360],
+      hard: [120, 135, 150, 210, 225, 240, 300, 315, 330],
+      expert: [15, 75, 105, 165, 390, 450, 540, 720]
+    };
+    const deg = pick(LEVEL[diff] || LEVEL.normal);
+    const r = radParts(deg);
+    if (Math.random() < 0.5) {
+      return valueQ(`${deg}^\\circ`, (deg * Math.PI) / 180, r.text, `${deg}^\\circ = ${deg} \\cdot \\frac{\\pi}{180} = ${r.tex}`, 'angles', 'to_rad');
+    }
+    return valueQ(r.tex, deg, `${deg}°`, `${r.tex} \\cdot \\frac{180^\\circ}{\\pi} = ${deg}^\\circ`, 'angles', 'to_deg');
+  }
+
+  const fact = n => (n <= 1 ? 1 : n * fact(n - 1));
+  const choose = (n, k) => Math.round(fact(n) / (fact(k) * fact(n - k)));
+  const arrange = (n, k) => Math.round(fact(n) / fact(n - k));
+  // n · (n−1) · … — count множителей
+  const prodTex = (from, count) => Array.from({ length: count }, (_, i) => from - i).join(' \\cdot ');
+
+  function genCombinatorics(diff = 'normal') {
+    const q = (latex, value, hint) => ({ latex, type: 'integer', answer: String(value), hint, category: 'combinatorics' });
+    return byDiff(diff, {
+      normal: [() => {
+        const n = randInt(0, 7);
+        return q(`${n}!`, fact(n), n < 2 ? `${n}! = 1` : `${n}! = ${prodTex(n, n)} = ${fact(n)}`);
+      }, () => {
+        const n = randInt(5, 12);
+        return q(`\\frac{${n}!}{${n - 1}!}`, n, `\\frac{${n}!}{${n - 1}!} = ${n}`);
+      }],
+      hard: [() => {
+        const n = randInt(4, 10);
+        const k = pick([1, 2, 3, n - 2, n - 1].filter(x => x >= 1 && x < n));
+        const kk = Math.min(k, n - k);
+        return q(`C_{${n}}^{${k}}`, choose(n, k), `C_{${n}}^{${k}} = \\frac{${prodTex(n, kk)}}{${kk}!} = ${choose(n, k)}`);
+      }, () => {
+        const n = randInt(4, 9);
+        const k = randInt(1, 3);
+        return q(`A_{${n}}^{${k}}`, arrange(n, k), `A_{${n}}^{${k}} = ${prodTex(n, k)} = ${arrange(n, k)}`);
+      }, () => {
+        const n = randInt(5, 12);
+        return q(`\\frac{${n}!}{${n - 2}!}`, n * (n - 1), `\\frac{${n}!}{${n - 2}!} = ${n} \\cdot ${n - 1} = ${n * (n - 1)}`);
+      }],
+      expert: [() => {
+        // C_n^k = C_n^{n−k}
+        const n = randInt(8, 12);
+        const k = randInt(n - 4, n - 2);
+        const kk = n - k;
+        return q(`C_{${n}}^{${k}}`, choose(n, k), `C_{${n}}^{${k}} = C_{${n}}^{${kk}} = \\frac{${prodTex(n, kk)}}{${kk}!} = ${choose(n, k)}`);
+      }, () => {
+        const n = randInt(4, 9);
+        return q(`\\frac{${n + 1}!}{${n - 1}!}`, (n + 1) * n, `\\frac{${n + 1}!}{${n - 1}!} = ${n + 1} \\cdot ${n} = ${(n + 1) * n}`);
+      }, () => {
+        const n = randInt(5, 10);
+        return q(`C_{${n}}^{2} + C_{${n}}^{1}`, choose(n, 2) + n, `C_{${n}}^{2} + C_{${n}}^{1} = ${choose(n, 2)} + ${n} = ${choose(n, 2) + n}`);
+      }]
+    });
+  }
+
+  Object.assign(GENERATORS, {
+    logs: genLogs,
+    trig_values: genTrigValues,
+    angles: genAngles,
+    combinatorics: genCombinatorics
+  });
+
   // Категории только для средней школы: в основной их кнопок нет
-  const HIGH_SCHOOL_CATEGORIES = new Set(['eq_irrational', 'eq_trig', 'eq_exp', 'eq_log', 'eq_adv_mix']);
+  const HIGH_SCHOOL_CATEGORIES = new Set([
+    'eq_irrational', 'eq_trig', 'eq_exp', 'eq_log', 'eq_adv_mix',
+    'logs', 'trig_values', 'angles', 'combinatorics'
+  ]);
 
   const api = {
     GENERATORS,
@@ -1278,12 +1473,13 @@
     polyToString,
     isFactoredForm,
     checkRoots,
-    checkPoly
+    checkPoly,
+    checkValue
   };
 
   const trainer = globalThis.MathTasksTrainer;
   if (trainer && typeof trainer.register === 'function') {
-    trainer.register({ generators: GENERATORS, checkers: { roots: checkRoots, poly: checkPoly } });
+    trainer.register({ generators: GENERATORS, checkers: { roots: checkRoots, poly: checkPoly, value: checkValue } });
   }
 
   if (typeof module !== 'undefined' && module.exports) {

@@ -1502,8 +1502,9 @@
     },
 
     // 8. Микс (все типы)
+    // Микс — только базовые действия; степени и корни тренируются отдельно
     mix: (diff = 'normal', school = 'high') => {
-      const cat = pick(['addsub2', 'addsub3', 'multdiv', 'fractions', 'decimals', 'powers', 'algebra_powers', 'negatives']);
+      const cat = pick(['addsub2', 'addsub3', 'multdiv', 'fractions', 'decimals', 'negatives']);
       const gen = GENERATORS[cat];
       return gen ? gen(diff, school) : GENERATORS.addsub2(diff);
     }

@@ -72,6 +72,15 @@ describe('Mental Math Trainer Engine', () => {
     }
   });
 
+  it('микс — только базовые действия, без степеней и корней', () => {
+    const basic = ['addsub2', 'addsub3', 'multdiv', 'fractions', 'decimals', 'negatives'];
+    ['normal', 'hard', 'expert'].forEach(diff => {
+      for (let i = 0; i < 200; i++) {
+        expect(basic).toContain(trainer.generateQuestion('mix', diff).category);
+      }
+    });
+  });
+
   it('генератор mix равномерно возвращает все типы задач', () => {
     const counts = {};
     for (let i = 0; i < 100; i++) {
