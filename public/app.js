@@ -631,10 +631,19 @@ function toggleFavorite(taskId) {
   } catch {}
 
   document.querySelectorAll(`[data-fav-id="${id}"]`).forEach(btn => {
+    const tr = window.MathTasks.t || (k => k);
     const active = favs.includes(id);
     btn.classList.toggle('active', active);
-    btn.textContent = active ? (window.MathTasks.t || (k => k))('fav_added') : (window.MathTasks.t || (k => k))('fav_add');
-    btn.title = active ? 'В закладках' : 'Добавить в закладки';
+    // Значок-закладка в карточке: текст не трогаем, меняем подпись и состояние.
+    const label = btn.querySelector('.visually-hidden');
+    if (label) {
+      label.textContent = tr(active ? 'favorite_active' : 'favorite');
+      btn.title = label.textContent;
+      btn.setAttribute('aria-pressed', String(active));
+    } else {
+      btn.textContent = active ? tr('fav_added') : tr('fav_add');
+      btn.title = active ? 'В закладках' : 'Добавить в закладки';
+    }
   });
 
   const counter = document.querySelector('#fav-count-text');
@@ -699,12 +708,16 @@ function createRevealItem(kind, body, { hidden = false, icon = '' } = {}) {
     solution: '📘'
   };
   const [showKey, hideKey] = KEYS[kind] || KEYS.solution;
-  const showText = tr(showKey);
+  const showText = tr(`step_${kind}`);
   const hideText = tr(hideKey);
-  const labelText = showText.replace(/^(Rādīt|Показать|Show)\s*/i, '');
+  const labelText = tr(showKey).replace(/^(Rādīt|Показать|Show)\s*/i, '');
   const btnIcon = icon || ICONS[kind] || '';
 
-  const button = `<button class="solution-toggle${kind === 'hint' ? ' solution-toggle-hint' : ''}" type="button" data-reveal="${kind}" data-kind="${kind}" aria-expanded="false" ${hidden ? 'hidden' : ''} data-show-label="${escapeHtml(showText)}" data-hide-label="${escapeHtml(hideText)}"><span class="toggle-icon">${btnIcon}</span> <span class="toggle-text">${escapeHtml(showText)}</span></button>`;
+  /* Закрытые подсказка и решение видны сразу — с замком, неактивные: ученик
+     знает, что они есть. Ответ до открытия не показываем вовсе. */
+  const locked = hidden && kind !== 'answer';
+  const text = locked && kind === 'solution' ? tr('step_solution_locked') : showText;
+  const button = `<button class="solution-toggle${kind === 'hint' ? ' solution-toggle-hint' : ''}${locked ? ' is-locked' : ''}" type="button" data-reveal="${kind}" data-kind="${kind}" aria-expanded="false"${hidden && !locked ? ' hidden' : ''}${locked ? ' disabled' : ''} data-icon="${btnIcon}" data-show-label="${escapeHtml(showText)}" data-hide-label="${escapeHtml(hideText)}"><span class="toggle-icon">${locked ? '🔒' : btnIcon}</span> <span class="toggle-text">${escapeHtml(text)}</span></button>`;
 
   const panel = `<div class="reveal ${kind}" hidden><span class="reveal-label">${escapeHtml(labelText)}</span>${body}</div>`;
 
@@ -950,7 +963,8 @@ function markCardSolved(card) {
   const badge = document.createElement('span');
   badge.className = 'task-solved-badge';
   badge.textContent = (window.MathTasks.t || (k => k))('solved_badge');
-  meta.appendChild(badge);
+  // Перед значками справа, а не за ними.
+  meta.insertBefore(badge, meta.querySelector('.task-actions'));
 }
 
 /* Строка под полем ответа: что и когда откроется. Пустая — всё открыто. */
@@ -964,8 +978,14 @@ function revealLockText(task, attempts) {
 function unlockTaskReveals(card, kinds) {
   for (const kind of kinds) {
     const button = card.querySelector(`.solution-toggle[data-kind="${kind}"]`);
-    if (!button || !button.hidden) continue;
+    if (!button || !(button.hidden || button.disabled)) continue;
     button.hidden = false;
+    if (button.disabled) {
+      button.disabled = false;
+      button.classList.remove('is-locked');
+      button.querySelector('.toggle-icon').textContent = button.dataset.icon || '';
+      button.querySelector('.toggle-text').textContent = button.dataset.showLabel;
+    }
     button.classList.remove('hint-unlocked-pulse');
     void button.offsetWidth;
     button.classList.add('hint-unlocked-pulse');
@@ -1163,37 +1183,49 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
     ? `<a class="task-topic" href="/topic/${encodeURIComponent(task.topics.slug)}">${escapeHtml(topicTitleOf(task.topics))}</a>`
     : '';
   const isFav = isFavorite(task.id);
-  const favBtn = `<button class="task-action-btn${isFav ? ' active' : ''}" type="button" data-fav-id="${task.id}" title="${isFav ? escapeHtml(tr('favorite_remove')) : escapeHtml(tr('favorite'))}" aria-label="${escapeHtml(tr('favorite'))}">${isFav ? `★ ${escapeHtml(tr('favorite_active'))}` : `☆ ${escapeHtml(tr('favorite'))}`}</button>`;
-  const shareBtn = `<button class="task-action-btn" type="button" data-copy-link="${task.id}" title="${escapeHtml(tr('copy_link'))}" aria-label="${escapeHtml(tr('copy_link'))}">
-    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-    <span>${escapeHtml(tr('copy_link'))}</span>
-  </button>`;
-  const copyBtn = `<button class="task-action-btn" type="button" data-copy-text="${task.id}" title="${escapeHtml(tr('copy_text'))}" aria-label="${escapeHtml(tr('copy_text'))}">
-    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-    <span>${escapeHtml(tr('copy_text'))}</span>
-  </button>`;
-  const reportBtn = `<button class="task-action-btn report-btn" type="button" data-report-task="${task.id}" title="${escapeHtml(tr('report_title'))}" aria-label="${escapeHtml(tr('report_title'))}">
-    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22V4"/><path d="M4 4h12l-2 4 2 4H4"/></svg>
-    <span>${escapeHtml(tr('report_error'))}</span>
-  </button>`;
+  /* Действия — значками, как в образце: ссылка, закладка, ошибка в задаче.
+     Подпись — в title и в скрытом тексте для экранного диктора. */
+  const iconBtn = (attrs, label, paths, extra = '') => `<button class="task-action-btn task-icon-btn${extra}" type="button" ${attrs} title="${escapeHtml(label)}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg><span class="visually-hidden">${escapeHtml(label)}</span></button>`;
+  const shareBtn = iconBtn(`data-copy-link="${task.id}"`, tr('copy_link'),
+    '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>');
+  const favBtn = iconBtn(`data-fav-id="${task.id}" aria-pressed="${isFav}"`, tr(isFav ? 'favorite_active' : 'favorite'),
+    '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>', isFav ? ' active' : '');
+  const reportBtn = iconBtn(`data-report-task="${task.id}"`, tr('report_title'),
+    '<circle cx="12" cy="12" r="9.5"/><path d="M12 16.5v-5"/><path d="M12 8h.01"/>', ' report-btn');
   const solved = isTaskSolved(task.id);
   const solvedBadge = solved ? `<span class="task-solved-badge">${escapeHtml(tr('solved_badge'))}</span>` : '';
+
+  /* Шапка карточки по образцу: номер, подтема с кодом, сложность, справа
+     значки. Раздел и ссылку на тему показываем только вне темы; класс —
+     если он не совпадает с классом открытой темы. */
+  const numBadge = number
+    ? (linkTitle ? `<a class="task-number" href="${taskPath(task)}">${number}</a>` : `<span class="task-number">${number}</span>`)
+    : '';
+  const sub = task.subtopic_id ? allSubtopics.find(item => item.id === task.subtopic_id) : null;
+  const subCode = sub ? subtopicCode(sub, allTopics.find(item => item.id === sub.topic_id)) : '';
+  const where = sub && !topicLink
+    ? `<span class="task-where">${subCode ? `<b>${escapeHtml(subCode)}</b> ` : ''}${escapeHtml(loc(sub, 'title'))}</span>`
+    : '';
+  const gradeShown = grade && !(currentActiveTopic && String(currentActiveTopic.grade) === String(grade));
   const meta = [
-    `<span class="tag ${tagClass(subject)}">${escapeHtml(loc(subject, 'title') || tr('subject_fallback'))}</span>`,
-    grade ? `<span class="grade-badge">${gradeLabel(grade)}</span>` : '',
+    numBadge,
+    showTopicLink ? `<span class="tag ${tagClass(subject)}">${escapeHtml(loc(subject, 'title') || tr('subject_fallback'))}</span>` : '',
+    gradeShown ? `<span class="grade-badge">${gradeLabel(grade)}</span>` : '',
+    where,
+    topicLink,
     difficultyBadge(task.difficulty),
     solvedBadge,
-    topicLink,
-    `<div class="task-actions">${shareBtn}${copyBtn}${favBtn}${reportBtn}</div>`
+    `<div class="task-actions">${shareBtn}${favBtn}${reportBtn}</div>`
   ].filter(Boolean).join('');
+  const unit = answerUnit(task);
 
   const reveal = taskRevealState(task);
   const selfCheck = reveal.checkable ? `
     <div class="task-self-check" data-self-check="${task.id}">
       <div class="quick-math-bar" hidden aria-label="Quick Math Bar"></div>
       <form class="self-check-form" data-check-id="${task.id}">
-        <span class="self-check-icon" aria-hidden="true">✏️</span>
         <input type="text" class="self-check-input" placeholder="${escapeHtml(tr('self_check_placeholder'))}" aria-label="${escapeHtml(tr('self_check_placeholder'))}" autocomplete="off" ${solved ? `disabled value="${escapeHtml(tr('solved_badge'))}"` : ''} />
+        ${unit ? `<span class="answer-unit">${escapeHtml(unit)}</span>` : ''}
         <button type="submit" class="self-check-btn" ${solved ? 'hidden' : ''}>${escapeHtml(tr('self_check_btn'))}</button>
       </form>
       <div class="self-check-result${solved ? ' success' : ''}" ${solved ? '' : 'hidden'}>
@@ -1262,11 +1294,6 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   const actionsBar = toggleButtons.length > 0 ? `<div class="task-actions-bar">${toggleButtons.join('')}</div>` : '';
   const revealsWrap = revealPanels.length > 0 ? `<div class="task-reveals-wrap">${revealPanels.join('')}</div>` : '';
 
-  /* Номер задачи напротив условия для экономии места и компактности */
-  const numBadge = number
-    ? (linkTitle ? `<a class="task-number" href="${taskPath(task)}">${number}.</a>` : `<span class="task-number">${number}.</span>`)
-    : '';
-
   // Кросс-теги задачи
   const rawTaskTags = Array.isArray(task.task_tags)
     ? task.task_tags.map(tt => tt.tags).filter(Boolean)
@@ -1284,7 +1311,6 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   return `<article class="task" id="task-${task.id}" data-task="${task.id}" data-task-id="${task.id}">
     <div class="task-meta">${meta}</div>
     <div class="task-condition-wrap">
-      ${numBadge}
       <div class="math task-condition" data-condition></div>
     </div>
     ${inlineFigure ? taskFigure(task.condition_image, taskTitle, 'Zīmējums') : ''}
@@ -1487,13 +1513,10 @@ function answerUnit(task) {
 
 /* «Назад / Дальше» — в одну строку с «Подсказкой» и «Решением»: кнопки
    ступеней живут внутри карточки, поэтому строку переносим к ним. */
-function finishSingleView(container, task) {
+function finishSingleView(container) {
   const nav = container.querySelector('.sv-nav');
   const bar = container.querySelector('.sv-card .task-actions-bar');
   if (nav && bar) bar.appendChild(nav);
-  const unit = answerUnit(task);
-  const button = container.querySelector('.sv-card .self-check-form .self-check-btn');
-  if (unit && button) button.insertAdjacentHTML('beforebegin', `<span class="sv-unit">${escapeHtml(unit)}</span>`);
 }
 
 function renderTaskList(container, tasks, emptyText, options = {}) {
@@ -1527,7 +1550,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     const task = tasks[singleTaskIndex];
     container.innerHTML = singleTaskView(tasks, singleTaskIndex, { showTopicLink, showGrade, linkTitle, highlightQuery });
     fillTaskMath(container, [task]);
-    finishSingleView(container, task);
+    finishSingleView(container);
   } else if (taskViewMode === 'compact') {
     const tr = window.MathTasks.t || (k => k);
     const cleanFn = (window.MathTasksLib && window.MathTasksLib.cleanMathExample) || (s => s);
@@ -1679,10 +1702,10 @@ const SUBJECT_COLORS = {
   algebra: 'blue',
   geometry: 'violet',
   planimetrija: 'violet',
-  stereometrija: 'orange',
+  stereometrija: 'bordeaux',
   funkcijas: 'cyan',
   trigonometrija: 'pink',
-  'matematiskais-analizs': 'teal',
+  'matematiskais-analizs': 'indigo',
   'kombinatorika-un-varbutibas': 'amber',
   statistics: 'amber'
 };
@@ -2379,21 +2402,11 @@ function renderSubtopicNav(topic, activeSubtopicId = null) {
   const list = subtopicsOf(topic.id);
   if (!list.length) { listSubtopics.hidden = true; listSubtopics.innerHTML = ''; return; }
   const tr = window.MathTasks.t || (k => k);
-  const lang = window.MathTasks?.getLang ? window.MathTasks.getLang() : 'ru';
   const total = taskCounts.get(topic.id) || 0;
 
   const isAllActive = !activeSubtopicId;
-  const summaryText = formatSubtopicSummary(list.length, total, lang);
 
-  const allPill = `<a class="subtopic-pill subtopic-pill-all${isAllActive ? ' active' : ''}" href="/topic/${encodeURIComponent(topic.slug)}" title="${escapeHtml(tr('subtopic_all'))}">
-    <span class="subtopic-pill-icon" aria-hidden="true">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
-        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
-        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-      </svg>
-    </span>
+  const allPill = `<a class="subtopic-pill subtopic-pill-all${isAllActive ? ' active' : ''}" href="/topic/${encodeURIComponent(topic.slug)}"${isAllActive ? ' aria-current="page"' : ''}>
     <span class="subtopic-pill-title">${escapeHtml(tr('subtopic_all'))}</span>
     <span class="subtopic-pill-count">${total}</span>
   </a>`;
@@ -2402,34 +2415,15 @@ function renderSubtopicNav(topic, activeSubtopicId = null) {
     const count = subtopicCounts.get(s.id) || 0;
     const isActive = s.id === activeSubtopicId;
     const code = subtopicCode(s, topic);
-    return `<a class="subtopic-pill${isActive ? ' active' : ''}${count ? '' : ' empty'}" href="/subtopic/${encodeURIComponent(s.slug)}" title="${escapeHtml(subtopicTitle(s, topic))}">
+    return `<a class="subtopic-pill${isActive ? ' active' : ''}${count ? '' : ' empty'}" href="/subtopic/${encodeURIComponent(s.slug)}" title="${escapeHtml(subtopicTitle(s, topic))}"${isActive ? ' aria-current="page"' : ''}>
       <span class="subtopic-pill-code">${escapeHtml(code)}</span>
       <span class="subtopic-pill-title">${escapeHtml(loc(s, 'title'))}</span>
       <span class="subtopic-pill-count">${count}</span>
     </a>`;
   }).join('');
 
-  listSubtopics.innerHTML = `
-    <div class="subtopic-panel">
-      <div class="subtopic-panel-header">
-        <div class="subtopic-panel-title-group">
-          <span class="subtopic-panel-icon" aria-hidden="true">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-            </svg>
-          </span>
-          <span class="subtopic-panel-name">${escapeHtml(tr('subtopics_title'))}</span>
-          <span class="subtopic-panel-summary">${escapeHtml(summaryText)}</span>
-        </div>
-        <span class="subtopic-panel-tag">Skola2030</span>
-      </div>
-      <div class="subtopic-pills">
-        ${allPill}
-        ${pills}
-      </div>
-    </div>
-  `;
+  // Одна строка подтем с прокруткой вбок; «Skola2030» — значком в шапке темы.
+  listSubtopics.innerHTML = `<div class="subtopic-pills">${allPill}${pills}</div>`;
   listSubtopics.hidden = false;
 }
 
@@ -2473,17 +2467,12 @@ async function showSubtopic(slug) {
   renderCurrentTopicTasks();
 }
 
-function renderTopicAnchors(tasks) {
-  /* Полоса нужна только в списке. В режиме «по одной» у пагинатора есть
-     своя такая же, и две подряд сбивали с толку. В тренажёре номер стоит
-     на каждой карточке, карточки мелкие и лежат плиткой — полоса сверху
-     повторяет то, что и так перед глазами. */
-  const enough = tasks.length >= 3 && taskViewMode === 'list';
-  listAnchors.hidden = !enough;
-  if (!enough) { listAnchors.innerHTML = ''; return; }
-  listAnchors.innerHTML = `<span class="topic-anchors-label">${(window.MathTasks.t || (k => k))('anchors_label')}</span>` + tasks
-    .map((task, index) => `<a class="topic-anchor" href="#task-${task.id}" data-anchor-task="${task.id}" title="${escapeHtml(loc(task, 'title'))}">${taskNumber(task, index)}</a>`)
-    .join('');
+/* Полосу номеров над списком убрали (по образцу): в списке номер стоит на
+   каждой карточке, в виде «по одной» есть карта темы, в тренажёре номера
+   на плитках. */
+function renderTopicAnchors() {
+  listAnchors.hidden = true;
+  listAnchors.innerHTML = '';
 }
 
 function cleanupPrint() {
@@ -2564,27 +2553,17 @@ function renderPrintActions(tasks) {
   if (!enough) { listActions.innerHTML = ''; return; }
   const tr = window.MathTasks.t || (k => k);
 
+  // Вид — одним переключателем из трёх частей, как в образце.
+  const modes = [['list', '≡', 'view_mode_list'], ['compact', '⚡', 'view_mode_compact'], ['single', '▤', 'view_mode_single']];
   const viewToggle = tasks.length > 1 ? `
-    <div class="view-mode-toggle" role="radiogroup" aria-label="${escapeHtml(tr('view_mode'))}">
-      <span class="view-mode-label">${escapeHtml(tr('view_mode'))}</span>
-      <button class="view-mode-btn${taskViewMode === 'list' ? ' active' : ''}" type="button" data-view-mode="list" title="${escapeHtml(tr('view_mode_list'))}">
-        <span class="view-mode-icon">☰</span> ${escapeHtml(tr('view_mode_list'))}
-      </button>
-      <button class="view-mode-btn${taskViewMode === 'compact' ? ' active' : ''}" type="button" data-view-mode="compact" title="${escapeHtml(tr('view_mode_compact'))}">
-        <span class="view-mode-icon">⚡</span> ${escapeHtml(tr('view_mode_compact'))}
-      </button>
-      <button class="view-mode-btn${taskViewMode === 'single' ? ' active' : ''}" type="button" data-view-mode="single" title="${escapeHtml(tr('view_mode_single'))}">
-        <span class="view-mode-icon">📄</span> ${escapeHtml(tr('view_mode_single'))} (${tasks.length})
-      </button>
+    <div class="view-mode-toggle" role="group" aria-label="${escapeHtml(tr('view_mode'))}">
+      ${modes.map(([mode, icon, key]) => `<button class="view-mode-btn${taskViewMode === mode ? ' active' : ''}" type="button" data-view-mode="${mode}" aria-pressed="${taskViewMode === mode}"><span class="view-mode-icon" aria-hidden="true">${icon}</span>${escapeHtml(tr(key))}</button>`).join('')}
     </div>
   ` : '';
 
   const sortControl = tasks.length > 1 ? `
-    <div class="tasks-sort-wrap">
-      <label for="tasks-sort-select" class="tasks-sort-label">
-        <span class="sort-icon" aria-hidden="true">⇅</span>
-        <span>${escapeHtml(tr('sort_label'))}</span>
-      </label>
+    <div class="tasks-sort-wrap" title="${escapeHtml(tr('sort_label'))}">
+      <span class="sort-icon" aria-hidden="true">⇅</span>
       <select id="tasks-sort-select" class="tasks-sort-select" data-tasks-sort aria-label="${escapeHtml(tr('sort_label'))}">
         <option value="default"${currentTasksSort === 'default' ? ' selected' : ''}>${escapeHtml(tr('sort_default'))}</option>
         <option value="num_desc"${currentTasksSort === 'num_desc' ? ' selected' : ''}>${escapeHtml(tr('sort_num_desc'))}</option>
@@ -2603,26 +2582,18 @@ function renderPrintActions(tasks) {
 
   const solvedCount = tasks.filter(t => isTaskSolved(t.id)).length;
   const unsolvedFilterBtn = (tasks.length > 1 && solvedCount > 0) ? `
-    <button class="view-mode-btn${filterOnlyUnsolved ? ' active' : ''}" type="button" data-toggle-unsolved="true" title="${escapeHtml(tr('filter_unsolved_title'))}">
-      <span class="view-mode-icon">🎯</span> ${escapeHtml(tr('filter_unsolved'))} ${filterOnlyUnsolved ? `(${tasks.length - solvedCount})` : ''}
+    <button class="list-tool-btn${filterOnlyUnsolved ? ' active' : ''}" type="button" data-toggle-unsolved="true" aria-pressed="${filterOnlyUnsolved}" title="${escapeHtml(tr('filter_unsolved_title'))}">
+      <span aria-hidden="true">🎯</span>${escapeHtml(tr('filter_unsolved_short'))}${filterOnlyUnsolved ? ` · ${tasks.length - solvedCount}` : ''}
     </button>
   ` : '';
 
-  const cwQuickBtn = currentActiveTopic ? `
-    <a class="view-mode-btn cw-quick-jump-btn" href="#topic-control-work" title="${escapeHtml(tr('btn_start_cw'))}">
-      <span class="view-mode-icon">📝</span> ${escapeHtml(tr('btn_start_cw_short'))}
-    </a>
-  ` : '';
-
   listActions.innerHTML = `
-    <div class="list-actions-main">
-      ${viewToggle}
-      ${sortControl}
-      ${unsolvedFilterBtn}
-    </div>
+    ${viewToggle}
+    ${sortControl}
+    ${unsolvedFilterBtn}
     <div class="print-menu-wrap">
-      <button class="view-mode-btn print-toggle-btn" type="button" id="print-toggle-btn" aria-haspopup="true" aria-expanded="false" title="${escapeHtml(tr('print') || 'Печать')}">
-        <span class="view-mode-icon">🖨️</span> <span>${escapeHtml(tr('print') || 'Печать')}</span> <span class="dropdown-caret">▾</span>
+      <button class="list-tool-btn print-toggle-btn" type="button" id="print-toggle-btn" aria-haspopup="true" aria-expanded="false">
+        <span aria-hidden="true">🖨</span>${escapeHtml(tr('print') || 'Печать')}
       </button>
       <div class="print-dropdown-menu" id="print-dropdown-menu" hidden>
         <button class="print-dropdown-item" type="button" data-print-mode="blank">
@@ -2773,16 +2744,16 @@ function renderTopicHeaderMeta(topic, tasks) {
   if (!metaEl || !topic) return;
   const tr = window.MathTasks.t || (k => k);
   const prog = getTopicProgress(topic.id);
-  const progHtml = prog.total > 0 ? `
-    <div class="topic-header-progress${prog.isComplete ? ' done' : ''}" id="topic-header-progress">
-      <span class="topic-header-progress-text">${prog.isComplete ? escapeHtml(tr('topic_mastered')) : escapeHtml(tr('topic_progress', { solved: prog.solved, total: prog.total, percent: prog.percent }))}</span>
-      <div class="topic-header-progress-bar">
-        <div class="topic-header-progress-fill" style="width: ${prog.percent}%"></div>
-      </div>
-    </div>
-  ` : '';
-
   const taskList = tasks || currentTopicTasks || [];
+  const total = prog.total || taskList.length;
+  // По образцу: полоса, «22% темы решено · 54 задачи», значок Skola2030.
+  const progHtml = total > 0 ? `
+    <div class="topic-header-progress${prog.isComplete ? ' done' : ''}" id="topic-header-progress" title="${escapeHtml(tr('topic_progress', { solved: prog.solved, total, percent: prog.percent }))}">
+      <span class="topic-header-progress-bar" aria-hidden="true"><span class="topic-header-progress-fill" style="width:${prog.percent}%"></span></span>
+      <span class="topic-header-progress-text">${escapeHtml(prog.isComplete ? tr('topic_mastered') : tr('topic_solved_share', { percent: prog.percent }))} · ${escapeHtml(countLabel('topic_tasks', total))}</span>
+    </div>` : '';
+  const skolaChip = subtopicsOf(topic.id).length ? '<span class="skola-chip">Skola2030</span>' : '';
+
   const isCwEligible = taskList.length >= MIN_CONTROL_WORK_TASKS;
   const isCwReady = prog.percent >= 80;
   const cwBtnHtml = isCwEligible ? `
@@ -2793,8 +2764,7 @@ function renderTopicHeaderMeta(topic, tasks) {
     </a>
   ` : '';
 
-  const gradeBadge = topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : '';
-  metaEl.innerHTML = `<div class="topic-header-meta-row">${gradeBadge} ${progHtml} ${cwBtnHtml}</div>`;
+  metaEl.innerHTML = `<div class="topic-header-meta-row">${progHtml}${skolaChip}${cwBtnHtml}</div>`;
 }
 
 /* ── Все задачи ───────────────────────────────────────────────────── */
@@ -4339,15 +4309,7 @@ document.addEventListener('submit', event => {
     const quickBar = form.closest('.task-self-check')?.querySelector('.quick-math-bar');
     if (quickBar) quickBar.hidden = true;
     const card = form.closest('.task');
-    if (card && !card.querySelector('.task-solved-badge')) {
-      const meta = card.querySelector('.task-meta');
-      if (meta) {
-        const badge = document.createElement('span');
-        badge.className = 'task-solved-badge';
-        badge.textContent = tr('solved_badge');
-        meta.appendChild(badge);
-      }
-    }
+    markCardSolved(card);
     // Решил сам — разбор открыт, чтобы сверить ход решения.
     if (card) {
       unlockTaskReveals(card, ['hint', 'answer', 'solution']);
@@ -4757,7 +4719,10 @@ document.addEventListener('click', event => {
     if (mode === 'list' || mode === 'single' || mode === 'compact') {
       taskViewMode = mode;
       try { localStorage.setItem('math-tasks:view-mode', mode); } catch {}
-      document.querySelectorAll('[data-view-mode]').forEach(b => b.classList.toggle('active', b.dataset.viewMode === mode));
+      document.querySelectorAll('[data-view-mode]').forEach(b => {
+        b.classList.toggle('active', b.dataset.viewMode === mode);
+        b.setAttribute('aria-pressed', String(b.dataset.viewMode === mode));
+      });
       if (lastRenderedContainer && lastRenderedTasks.length) {
         renderTaskList(lastRenderedContainer, lastRenderedTasks, lastRenderedEmptyText, lastRenderedOptions);
       }
