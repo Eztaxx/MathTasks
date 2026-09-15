@@ -2108,7 +2108,7 @@ function renderHomeInsights() {
   const cwCard = card('cw', tr('home_cw_title'), escapeHtml(tr('home_cw_text', { count: cwTopics })), '/control-works', tr('home_cw_go'));
 
   const exam = homeExamKind();
-  const examCard = card('exam', tr(`home_exam_title_${exam}`), escapeHtml(tr(`home_exam_text_${exam}`)), '/mock-exams.html', tr('home_exam_go'));
+  const examCard = card('exam', tr(`home_exam_title_${exam}`), escapeHtml(tr(`home_exam_text_${exam}`)), `/exam/${exam}`, tr('home_exam_go'));
 
   box.innerHTML = weakCard + cwCard + examCard;
   box.hidden = false;
@@ -3032,11 +3032,387 @@ let currentCwTasks = [];
 let currentCwUserAnswers = {};
 let currentCwTimer = null;
 let currentCwSubmitted = false;
+let currentCwMode = 'cw'; // 'cw' — контрольная темы, 'exam' — пробный экзамен
+let currentExamKind = null;
+let currentExamSession = null;
+
+/* ── Честный режим контрольной и экзамена ──────────────────────────
+   Пока идёт работа, уход со страницы — другая вкладка, другое приложение,
+   окно поверх браузера — и клавиша PrintScreen блокируют решение на
+   минуту; время работы при этом идёт. Снимок экрана на телефоне браузер
+   не видит вообще: ловится только уход в другое приложение, например
+   чтобы снимком поделиться. Конец блокировки хранится в localStorage —
+   перезагрузка страницы его не снимает. */
+const CW_LOCK_KEY = 'math-tasks:cw-lock';
+const CW_LOCK_MS = 60 * 1000;
+let cwGuardObj = null;
+let cwGuardActive = false;
+let cwBlurTimer = null;
+let cwLockTicker = null;
+
+const cwGuard = () => (cwGuardObj ||= window.MathTasksLib.createFocusGuard({ lockMs: CW_LOCK_MS }));
+
+function storedCwLock() {
+  try {
+    return Number(JSON.parse(localStorage.getItem(CW_LOCK_KEY) || '{}').lockedUntil) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function beginCwGuard({ lockedUntil = 0, violations = 0 } = {}) {
+  cwGuard().restore({ lockedUntil: Math.max(lockedUntil, storedCwLock()), violations });
+  cwGuardActive = true;
+  renderCwLock();
+}
+
+function endCwGuard() {
+  cwGuardActive = false;
+  clearTimeout(cwBlurTimer);
+  renderCwLock();
+}
+
+const isCwLocked = () => cwGuardActive && cwGuard().remaining() > 0;
+
+function onCwViolation() {
+  const guard = cwGuard();
+  try { localStorage.setItem(CW_LOCK_KEY, JSON.stringify({ lockedUntil: guard.lockedUntil })); } catch {}
+  if (currentCwMode === 'exam' && currentExamSession) {
+    currentExamSession.violations = guard.violations;
+    currentExamSession.lockedUntil = guard.lockedUntil;
+    saveExamSession();
+  }
+  renderCwLock();
+}
+
+/* Блокировка — экран поверх работы с обратным отсчётом; задания, поля
+   ответа и «Сдать» на это время недоступны (inert). */
+function renderCwLock() {
+  const overlay = document.querySelector('#cw-lock');
+  if (!overlay) return;
+  const locked = isCwLocked();
+  overlay.hidden = !locked;
+  for (const selector of ['#cw-task-list', '#cw-sticky-bar', '#cw-actions-bar']) {
+    const element = document.querySelector(selector);
+    if (element) element.inert = locked;
+  }
+  clearInterval(cwLockTicker);
+  if (!locked) return;
+  const tick = () => {
+    const rest = cwGuard().remaining();
+    const time = document.querySelector('#cw-lock-time');
+    if (time) time.textContent = window.MathTasksLib.formatTimerDisplay(Math.ceil(rest / 1000));
+    if (rest <= 0) renderCwLock();
+  };
+  tick();
+  cwLockTicker = setInterval(tick, 250);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!cwGuardActive) return;
+  if (document.hidden) cwGuard().leave();
+  else if (cwGuard().back()) onCwViolation();
+});
+window.addEventListener('blur', () => {
+  if (!cwGuardActive) return;
+  clearTimeout(cwBlurTimer);
+  // Мгновенная потеря фокуса — клик по адресной строке, системное окно — не уход.
+  cwBlurTimer = setTimeout(() => {
+    if (cwGuardActive && !document.hasFocus()) cwGuard().leave();
+  }, 1500);
+});
+window.addEventListener('focus', () => {
+  clearTimeout(cwBlurTimer);
+  if (cwGuardActive && cwGuard().back()) onCwViolation();
+});
+document.addEventListener('keyup', event => {
+  if (cwGuardActive && event.key === 'PrintScreen') {
+    cwGuard().strike();
+    onCwViolation();
+  }
+});
+// Закрыл вкладку посреди экзамена и открыл снова — это тоже уход.
+window.addEventListener('pagehide', () => {
+  if (cwGuardActive && currentCwMode === 'exam' && currentExamSession && !currentCwSubmitted) {
+    currentExamSession.away = true;
+    saveExamSession();
+  }
+});
+
+/* Ушли с работы по ссылке внутри сайта: таймер и честный режим встают.
+   Незаконченный экзамен запоминает уход — вернувшись, ученик получит ту
+   же минуту блокировки, что и за другую вкладку. */
+function leaveCwWork() {
+  if (!cwGuardActive) return;
+  if (currentCwMode === 'exam' && currentExamSession && !currentCwSubmitted) {
+    currentExamSession.away = true;
+    saveExamSession();
+  }
+  endCwGuard();
+  if (currentCwTimer) currentCwTimer.stop();
+}
+
+/* Время работы: большие цифры в шапке и строка «время · отвечено · Сдать»,
+   прилипающая к верху экрана. Последние 10 минут — жёлтым, последняя — красным. */
+function showCwTime(seconds) {
+  const text = window.MathTasksLib.formatTimerDisplay(seconds);
+  for (const element of document.querySelectorAll('#cw-timer-display, #cw-sticky-time')) {
+    element.textContent = text;
+    element.classList.toggle('is-low', seconds <= 600 && seconds > 60);
+    element.classList.toggle('warning', seconds <= 60 && seconds > 0);
+  }
+}
+
+function startCwTimer(seconds) {
+  if (currentCwTimer) currentCwTimer.stop();
+  showCwTime(seconds);
+  currentCwTimer = window.MathTasksLib.createExamTimer({ initialSeconds: seconds });
+  currentCwTimer.on((event, state) => {
+    if (event === 'tick') showCwTime(state.seconds);
+    else if (event === 'finish' && !currentCwSubmitted) submitControlWork(true);
+  });
+  currentCwTimer.start();
+}
+
+function showCwWorkBars(on) {
+  const bar = document.querySelector('#cw-sticky-bar');
+  if (bar) bar.hidden = !on;
+  const submitBtn = document.querySelector('#cw-submit-btn');
+  if (submitBtn) submitBtn.hidden = !on;
+  updateCwProgress();
+}
+
+function updateCwProgress() {
+  const element = document.querySelector('#cw-sticky-progress');
+  if (!element) return;
+  const answered = currentCwTasks.filter(task => String(currentCwUserAnswers[task.id] || '').trim()).length;
+  element.textContent = (window.MathTasks.t || (k => k))('cw_answered', { done: answered, total: currentCwTasks.length });
+}
+
+function rememberCwAnswer(taskId, value) {
+  currentCwUserAnswers[taskId] = value;
+  if (currentCwMode === 'exam' && currentExamSession) {
+    currentExamSession.answers[taskId] = value;
+    saveExamSession();
+  }
+  updateCwProgress();
+}
+
+/* «Сдать» при пустых ответах — только вторым нажатием: случайное касание
+   на телефоне не должно сдать экзамен за час до конца. Без confirm():
+   он уводит фокус со страницы и засчитался бы как уход. */
+function requestCwSubmit(button) {
+  if (currentCwSubmitted || isCwLocked()) return;
+  document.querySelectorAll('.cw-answer-input').forEach(input => {
+    const taskId = Number(input.dataset.taskId);
+    if (taskId) currentCwUserAnswers[taskId] = input.value.trim();
+  });
+  const empty = currentCwTasks.filter(task => !String(currentCwUserAnswers[task.id] || '').trim()).length;
+  if (empty && button.dataset.confirm !== '1') {
+    const tr = window.MathTasks.t || (k => k);
+    button.dataset.label = button.textContent;
+    button.dataset.confirm = '1';
+    button.textContent = tr('cw_submit_confirm', { count: empty });
+    clearTimeout(button.confirmTimer);
+    button.confirmTimer = setTimeout(() => {
+      button.dataset.confirm = '';
+      button.textContent = button.dataset.label;
+    }, 4000);
+    return;
+  }
+  submitControlWork();
+}
+
+/* Один экран на контрольную и экзамен: режим меняет плашку и описание
+   в шапке и сбрасывает прошлую работу. */
+function setCwMode(mode, kind = null) {
+  endCwGuard();
+  if (currentCwTimer) currentCwTimer.stop();
+  currentCwMode = mode;
+  currentExamKind = kind;
+  if (mode !== 'exam') currentExamSession = null;
+  currentCwTopic = null;
+  currentCwTasks = [];
+  currentCwUserAnswers = {};
+  currentCwSubmitted = false;
+  showCwWorkBars(false);
+  const tr = window.MathTasks.t || (k => k);
+  const badge = document.querySelector('.cw-badge');
+  const badgeKey = mode === 'exam' ? 'exam_badge' : 'cw_badge';
+  if (badge) {
+    badge.dataset.i18n = badgeKey;
+    badge.textContent = tr(badgeKey);
+  }
+  const desc = document.querySelector('#cw-desc');
+  if (desc) {
+    desc.dataset.i18n = 'cw_topic_card_desc';
+    desc.textContent = tr('cw_topic_card_desc');
+  }
+  const resCard = document.querySelector('#cw-result-card');
+  if (resCard) {
+    resCard.hidden = true;
+    resCard.innerHTML = '';
+  }
+}
+
+/* ── Пробный экзамен ──────────────────────────────────────────────
+   Тот же экран, что у контрольной: задания из всех тем уровня, таймер на
+   всё время экзамена, автопроверка и оценка по 10-балльной шкале VISC.
+   Сессия хранится в браузере: перезагрузка не сбрасывает ни вариант, ни
+   ответы, ни время, ни блокировку. */
+const EXAM_SESSION_KEY = 'math-tasks:exam-session';
+const EXAM_RESULTS_KEY = 'math-tasks:exam-results';
+
+function loadExamSession(kind) {
+  try {
+    const session = JSON.parse(localStorage.getItem(EXAM_SESSION_KEY) || 'null');
+    return session && session.kind === kind && Array.isArray(session.ids) ? session : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveExamSession() {
+  try {
+    if (currentExamSession) localStorage.setItem(EXAM_SESSION_KEY, JSON.stringify(currentExamSession));
+    else localStorage.removeItem(EXAM_SESSION_KEY);
+  } catch {}
+}
+
+function saveExamResult(kind, result) {
+  try {
+    const list = JSON.parse(localStorage.getItem(EXAM_RESULTS_KEY) || '[]');
+    list.unshift({ kind, ...result, at: Date.now() });
+    localStorage.setItem(EXAM_RESULTS_KEY, JSON.stringify(list.slice(0, 30)));
+  } catch {}
+}
+
+async function startExam(kind, { fresh = false } = {}) {
+  showView('control-work');
+  resetListBlocks();
+  setCwMode('exam', kind);
+  const tr = window.MathTasks.t || (k => k);
+  const config = window.MathTasksLib.EXAM_KINDS[kind];
+  const list = document.querySelector('#cw-task-list');
+  const title = config ? tr(`home_exam_title_${kind}`) : tr('exam_not_found');
+
+  const crumbs = document.querySelector('#cw-breadcrumb');
+  if (crumbs) {
+    crumbs.innerHTML = `<a href="/">${escapeHtml(tr('nav_home'))}</a><span class="crumb-sep">/</span>`
+      + `<a href="/exams.html">${escapeHtml(tr('nav_exams'))}</a><span class="crumb-sep">/</span><span>${escapeHtml(title)}</span>`;
+  }
+  const titleEl = document.querySelector('#cw-title');
+  if (titleEl) titleEl.textContent = title;
+  const desc = document.querySelector('#cw-desc');
+  if (!config) {
+    if (desc) desc.textContent = '';
+    if (list) list.innerHTML = `<p class="empty-state">${escapeHtml(tr('exam_not_found'))}</p>`;
+    return;
+  }
+  const descText = tr('exam_desc', { count: config.tasks, minutes: config.minutes });
+  if (desc) {
+    delete desc.dataset.i18n;
+    desc.textContent = descText;
+  }
+  setMeta(title, descText);
+  showCwTime(config.minutes * 60);
+
+  const session = fresh ? null : loadExamSession(kind);
+  if (session) {
+    await runExam(session);
+    return;
+  }
+  if (list) {
+    list.innerHTML = `
+      <section class="exam-intro">
+        <ul class="exam-rules">
+          <li>${escapeHtml(tr('exam_rule_time', { minutes: config.minutes }))}</li>
+          <li>${escapeHtml(tr('exam_rule_tasks', { count: config.tasks }))}</li>
+          <li>${escapeHtml(tr('exam_rule_guard'))}</li>
+          <li>${escapeHtml(tr('exam_rule_save'))}</li>
+        </ul>
+        <button type="button" class="primary-button exam-start-btn" data-exam-start="${escapeHtml(kind)}">${escapeHtml(tr('exam_start_btn'))}</button>
+      </section>`;
+  }
+}
+
+// «Начать экзамен»: собрать вариант из всех тем уровня и запустить время.
+async function beginExam(kind) {
+  const tr = window.MathTasks.t || (k => k);
+  const lib = window.MathTasksLib;
+  const config = lib.EXAM_KINDS[kind];
+  const list = document.querySelector('#cw-task-list');
+  if (!config || !list) return;
+  list.innerHTML = `<p class="empty-state">${escapeHtml(tr('state_loading_tasks'))}</p>`;
+  const topicIds = allTopics.filter(topic => Number(topic.grade) === config.grade).map(topic => topic.id);
+  const { data, error } = topicIds.length
+    ? await lib.fetchAllRows(() => db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('topic_id', topicIds).order('id'))
+    : { data: [], error: null };
+  if (error) {
+    list.innerHTML = `<p class="empty-state">${escapeHtml(tr('err_load_tasks'))}</p>`;
+    return;
+  }
+  const tasks = lib.selectExamTasks(data || [], { count: config.tasks });
+  if (tasks.length < 3) {
+    list.innerHTML = `<p class="empty-state">${escapeHtml(tr('exam_too_few'))}</p>`;
+    return;
+  }
+  currentExamSession = {
+    kind,
+    ids: tasks.map(task => task.id),
+    startedAt: Date.now(),
+    durationSec: config.minutes * 60,
+    answers: {},
+    violations: 0,
+    lockedUntil: 0
+  };
+  saveExamSession();
+  await runExam(currentExamSession, tasks);
+}
+
+async function runExam(session, tasks = null) {
+  const tr = window.MathTasks.t || (k => k);
+  const list = document.querySelector('#cw-task-list');
+  currentExamSession = session;
+  if (!tasks) {
+    const { data, error } = await db.from('tasks').select(TASK_SELECT).in('id', session.ids);
+    if (error) {
+      if (list) list.innerHTML = `<p class="empty-state">${escapeHtml(tr('err_load_tasks'))}</p>`;
+      return;
+    }
+    const byId = new Map((data || []).map(task => [task.id, task]));
+    tasks = session.ids.map(id => byId.get(id)).filter(Boolean);
+  }
+  // Задачи варианта сняли с публикации — начинаем заново, а не с пустым листом.
+  if (!tasks.length) {
+    currentExamSession = null;
+    saveExamSession();
+    await startExam(session.kind, { fresh: true });
+    return;
+  }
+  currentCwTasks = tasks;
+  currentCwUserAnswers = { ...(session.answers || {}) };
+  renderControlWorkCards();
+  showCwWorkBars(true);
+  beginCwGuard({ lockedUntil: session.lockedUntil || 0, violations: session.violations || 0 });
+  if (session.away) {
+    session.away = false;
+    cwGuard().strike();
+    onCwViolation();
+  }
+  const remaining = session.durationSec - Math.floor((Date.now() - session.startedAt) / 1000);
+  if (remaining <= 0) {
+    submitControlWork(true);
+    return;
+  }
+  startCwTimer(remaining);
+}
 
 async function startControlWork(slug) {
   showView('control-work');
   resetListBlocks();
   const tr = window.MathTasks.t || (k => k);
+  setCwMode('cw');
   let topic = allTopics.find(item => item.slug === slug);
   if (!topic && db) {
     const { data } = await db.from('topics').select('*').eq('slug', slug).maybeSingle();
@@ -3113,33 +3489,11 @@ async function startControlWork(slug) {
   currentCwUserAnswers = {};
   currentCwSubmitted = false;
 
-  // Инициализация 40-минутного таймера
-  if (currentCwTimer) currentCwTimer.stop();
-  const timerDisplay = document.querySelector('#cw-timer-display');
-  if (timerDisplay) {
-    timerDisplay.textContent = '40:00';
-    timerDisplay.classList.remove('warning');
-  }
-  currentCwTimer = window.MathTasksLib?.createExamTimer ? window.MathTasksLib.createExamTimer({ initialSeconds: 40 * 60 }) : null;
-
-  if (currentCwTimer) {
-    currentCwTimer.on((event, state) => {
-      if (event === 'tick') {
-        const fmt = window.MathTasksLib?.formatTimerDisplay ? window.MathTasksLib.formatTimerDisplay(state.seconds) : `${Math.floor(state.seconds / 60)}:${state.seconds % 60}`;
-        if (timerDisplay) {
-          timerDisplay.textContent = fmt;
-          timerDisplay.classList.toggle('warning', state.seconds <= 60 && state.seconds > 0);
-        }
-      } else if (event === 'finish') {
-        if (!currentCwSubmitted) {
-          submitControlWork(true);
-        }
-      }
-    });
-    currentCwTimer.start();
-  }
-
+  // Таймер на 40 минут и честный режим — с первой секунды работы.
   renderControlWorkCards();
+  showCwWorkBars(true);
+  startCwTimer(40 * 60);
+  beginCwGuard();
 }
 
 function renderControlWorkCards() {
@@ -3208,6 +3562,13 @@ function submitControlWork(isTimeout = false) {
     elapsedSec = currentCwTimer.getElapsed();
     currentCwTimer.stop();
   }
+  // Экзамен мог продолжиться после перезагрузки: время — от начала сессии.
+  if (currentCwMode === 'exam' && currentExamSession) {
+    elapsedSec = Math.min(currentExamSession.durationSec, Math.round((Date.now() - currentExamSession.startedAt) / 1000));
+  }
+  const violations = cwGuard().violations;
+  endCwGuard();
+  showCwWorkBars(false);
 
   document.querySelectorAll('.cw-answer-input').forEach(input => {
     const taskId = Number(input.dataset.taskId);
@@ -3247,6 +3608,18 @@ function submitControlWork(isTimeout = false) {
       timeSpentSec: elapsedSec
     });
   }
+  if (currentCwMode === 'exam' && currentExamKind) {
+    saveExamResult(currentExamKind, {
+      score: gradeInfo.score,
+      total: gradeInfo.total,
+      grade: gradeInfo.grade,
+      percent: gradeInfo.percent,
+      timeSpentSec: elapsedSec,
+      violations
+    });
+    currentExamSession = null;
+    saveExamSession();
+  }
 
   const resCard = document.querySelector('#cw-result-card');
   if (resCard) {
@@ -3262,7 +3635,7 @@ function submitControlWork(isTimeout = false) {
           <span class="cw-grade-scale">/ 10</span>
         </div>
         <div class="cw-result-info">
-          <h2 class="cw-result-title">${escapeHtml(tr('cw_result_heading'))}</h2>
+          <h2 class="cw-result-title">${escapeHtml(tr(currentCwMode === 'exam' ? 'exam_result_heading' : 'cw_result_heading'))}</h2>
           <div class="cw-result-stats">
             <div class="cw-result-stat">
               <strong>${escapeHtml(tr('cw_score_line', { correct: gradeInfo.score, total: gradeInfo.total, percent: gradeInfo.percent }))}</strong>
@@ -3273,13 +3646,16 @@ function submitControlWork(isTimeout = false) {
             <div class="cw-result-stat">
               <span>${escapeHtml(tr('cw_time_spent_line', { time: timeFormatted }))}</span>
             </div>
+            ${violations ? `<div class="cw-result-stat cw-result-violations"><span>${escapeHtml(tr('cw_violations_line', { count: violations }))}</span></div>` : ''}
           </div>
           <p class="cw-result-notice">💡 ${escapeHtml(tr('cw_solutions_unlocked'))}</p>
         </div>
       </div>
       <div class="cw-result-footer">
         <button type="button" class="primary-button" id="btn-cw-retry">${escapeHtml(tr('cw_retry_btn'))}</button>
-        <a href="/topic/${encodeURIComponent(currentCwTopic ? currentCwTopic.slug : '')}" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('cw_back_to_topic'))}</a>
+        ${currentCwMode === 'exam'
+          ? `<a href="/exams.html" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('exam_back'))}</a>`
+          : `<a href="/topic/${encodeURIComponent(currentCwTopic ? currentCwTopic.slug : '')}" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('cw_back_to_topic'))}</a>`}
       </div>
     `;
   }
@@ -3904,8 +4280,10 @@ async function route({ force = false } = {}) {
   const path = appPath();
   const params = new URLSearchParams(location.search);
 
+  if (!path.startsWith('/control-work/') && !path.startsWith('/exam/')) leaveCwWork();
+
   // Сброс контекста темы в сайдбаре при уходе со страницы темы или задачи
-  if (!path.startsWith('/topic/') && !path.startsWith('/subtopic/') && !path.startsWith('/task/') && !path.startsWith('/control-work/')) {
+  if (!path.startsWith('/topic/') && !path.startsWith('/subtopic/') && !path.startsWith('/task/') && !path.startsWith('/control-work/') && !path.startsWith('/exam/')) {
     if (currentActiveTopic !== null) {
       currentActiveTopic = null;
       renderSidebar();
@@ -3920,6 +4298,8 @@ async function route({ force = false } = {}) {
   if (searchInput.value) searchInput.value = '';
   searchAcrossGrades = false;
 
+  const examMatch = path.match(/^\/exam\/([a-z]+)$/);
+  if (examMatch) { await startExam(examMatch[1]); return; }
   const cwMatch = path.match(/^\/control-work\/(.+)$/);
   if (cwMatch) { await startControlWork(decodeURIComponent(cwMatch[1])); return; }
   if (path === '/control-works') { await showControlWorksCatalog(); return; }
@@ -4542,7 +4922,7 @@ document.addEventListener('click', event => {
       if (input && !input.disabled) {
         insertIntoInput(input, mathBtn.dataset.cwInsert);
         const taskId = Number(input.dataset.taskId);
-        if (taskId) currentCwUserAnswers[taskId] = input.value;
+        if (taskId) rememberCwAnswer(taskId, input.value);
       }
       return;
     }
@@ -4556,18 +4936,28 @@ document.addEventListener('click', event => {
     return;
   }
 
-  // Кнопки сдачи и повтора контрольной работы
-  const submitCwBtn = event.target.closest('#cw-submit-btn');
+  // Кнопки сдачи и повтора контрольной работы и экзамена
+  const submitCwBtn = event.target.closest('#cw-submit-btn, [data-cw-submit]');
   if (submitCwBtn) {
     event.preventDefault();
-    submitControlWork();
+    requestCwSubmit(submitCwBtn);
+    return;
+  }
+
+  const examStartBtn = event.target.closest('[data-exam-start]');
+  if (examStartBtn) {
+    event.preventDefault();
+    examStartBtn.disabled = true;
+    beginExam(examStartBtn.dataset.examStart);
     return;
   }
 
   const retryCwBtn = event.target.closest('#btn-cw-retry');
   if (retryCwBtn) {
     event.preventDefault();
-    if (currentCwTopic) {
+    if (currentCwMode === 'exam' && currentExamKind) {
+      startExam(currentExamKind, { fresh: true });
+    } else if (currentCwTopic) {
       startControlWork(currentCwTopic.slug);
     }
     return;
@@ -5233,7 +5623,7 @@ document.querySelector('#lang-switcher')?.addEventListener('click', event => {
 document.addEventListener('input', event => {
   if (event.target.matches('.cw-answer-input')) {
     const taskId = Number(event.target.dataset.taskId);
-    if (taskId) currentCwUserAnswers[taskId] = event.target.value.trim();
+    if (taskId) rememberCwAnswer(taskId, event.target.value.trim());
   }
 });
 

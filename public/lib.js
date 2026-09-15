@@ -2053,6 +2053,90 @@
     };
   };
 
+  /* Пробный экзамен: уровни и их параметры. Время — со страницы пробных
+     экзаменов: основная школа — 120 минут, Optimālais — 180, Augstākais —
+     210; у Vispārīgais своего числа там нет, берём 180, как у Optimālais.
+     Заданий меньше, чем в настоящем варианте: машина сверяет только
+     краткий ответ, развёрнутые решения ей не проверить. */
+  const EXAM_KINDS = {
+    pamat: { grade: 9, minutes: 120, tasks: 12 },
+    visp: { grade: 10, minutes: 180, tasks: 12 },
+    opt: { grade: 11, minutes: 180, tasks: 14 },
+    augst: { grade: 12, minutes: 210, tasks: 14 }
+  };
+
+  /* Вариант экзамена: только задачи с автопроверкой, по одной из темы за
+     круг — чтобы вариант покрывал весь уровень, а не одну тему, — с долей
+     сложности как в настоящем экзамене: 40 % простых, 40 % средних, 20 %
+     сложных. Порядок — от простых к сложным. Темы кончились раньше, чем
+     набралось задач, — второй круг по тем же темам. */
+  const selectExamTasks = (tasks = [], { count = 12, random = Math.random } = {}) => {
+    const level = task => {
+      const weight = getDifficultyWeight(task.difficulty);
+      return weight === 1 ? 1 : weight >= 3 ? 3 : 2;
+    };
+    const pool = shuffleArray(
+      (Array.isArray(tasks) ? tasks : []).filter(task => isTaskAutoCheckable(task.answer_latex, task.answer_check)),
+      random
+    );
+    const need = { 1: Math.round(count * 0.4), 3: Math.round(count * 0.2) };
+    need[2] = count - need[1] - need[3];
+
+    const byTopic = new Map();
+    for (const task of pool) {
+      if (!byTopic.has(task.topic_id)) byTopic.set(task.topic_id, []);
+      byTopic.get(task.topic_id).push(task);
+    }
+    const picked = [];
+    while (picked.length < count) {
+      let added = false;
+      for (const list of byTopic.values()) {
+        if (picked.length >= count) break;
+        if (!list.length) continue;
+        const wanted = list.findIndex(task => need[level(task)] > 0);
+        const [task] = list.splice(wanted >= 0 ? wanted : 0, 1);
+        need[level(task)] -= 1;
+        picked.push(task);
+        added = true;
+      }
+      if (!added) break;
+    }
+    return picked.sort((a, b) => level(a) - level(b));
+  };
+
+  /* Честный режим контрольной и экзамена (без DOM). leave() — ученик ушёл
+     со страницы; back() — вернулся: это нарушение, и решение блокируется
+     на lockMs с момента возвращения, а не ухода — иначе долгий уход прошёл
+     бы без последствий. strike() — нарушение на месте (PrintScreen).
+     Блокировку не укорачивает новое нарушение, только продлевает. */
+  const createFocusGuard = ({ lockMs = 60 * 1000, now = () => Date.now() } = {}) => {
+    let away = false;
+    let lockedUntil = 0;
+    let violations = 0;
+    const lock = () => {
+      violations += 1;
+      lockedUntil = Math.max(lockedUntil, now() + lockMs);
+    };
+    return {
+      leave() { away = true; },
+      back() {
+        if (!away) return false;
+        away = false;
+        lock();
+        return true;
+      },
+      strike() { lock(); },
+      remaining: () => Math.max(0, lockedUntil - now()),
+      get violations() { return violations; },
+      get lockedUntil() { return lockedUntil; },
+      restore({ lockedUntil: until = 0, violations: count = 0 } = {}) {
+        away = false;
+        lockedUntil = Number(until) || 0;
+        violations = Number(count) || 0;
+      }
+    };
+  };
+
   /* Инициализация UI экзаменационного таймера в DOM */
   const initExamTimerUi = (root = (typeof document !== 'undefined' ? document : null)) => {
     if (!root) return null;
@@ -2486,6 +2570,9 @@
     calculateControlWorkGrade,
     createExamTimer,
     initExamTimerUi,
+    EXAM_KINDS,
+    selectExamTasks,
+    createFocusGuard,
     parseCsvRows,
     csvToTsv,
     parseCsvToTasks,

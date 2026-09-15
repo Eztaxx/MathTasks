@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="/style.css" />
   <script src="/theme-init.js"></script>
-  <script src="/i18n.js?v=20260916-1"></script>
+  <script src="/i18n.js?v=20260916-3"></script>
 </head>
 <body>
   <noscript>
@@ -225,16 +225,32 @@
           <span class="cw-badge" data-i18n="cw_badge">📝 Pārbaudes darbs • Skola2030</span>
           <h1 id="cw-title"></h1>
           <p id="cw-desc" data-i18n="cw_topic_card_desc">Проверьте свои знания в условиях реального школьного урока без подсказок. Рекомендуемое время: 40 минут.</p>
+          <p class="cw-guard-note" data-i18n="cw_guard_note">🔒 Не уходите со страницы: другая вкладка, другое приложение или клавиша Print Screen блокируют решение на 1 минуту — время работы при этом идёт.</p>
         </div>
         <div class="cw-header-timer" id="cw-header-timer">
           <span class="cw-timer-label" data-i18n="cw_time_left">Осталось времени:</span>
           <span class="cw-timer-val" id="cw-timer-display">40:00</span>
         </div>
       </header>
+      <!-- Время, сколько отвечено и «Сдать» — всегда на виду, пока идёт работа. -->
+      <div class="cw-sticky-bar" id="cw-sticky-bar" hidden>
+        <span class="cw-sticky-time" id="cw-sticky-time">40:00</span>
+        <span class="cw-sticky-progress" id="cw-sticky-progress"></span>
+        <button type="button" class="primary-button cw-sticky-submit" data-cw-submit data-i18n="cw_submit_short">Сдать</button>
+      </div>
       <div class="cw-result-card" id="cw-result-card" hidden></div>
       <div class="task-list cw-task-list" id="cw-task-list"></div>
       <div class="cw-actions-bar" id="cw-actions-bar">
         <button type="button" class="primary-button cw-submit-btn" id="cw-submit-btn" data-i18n="cw_submit_btn">✅ Сдать работу на проверку</button>
+      </div>
+      <!-- Блокировка за уход со страницы: поверх работы, с обратным отсчётом. -->
+      <div class="cw-lock" id="cw-lock" hidden role="alertdialog" aria-modal="true" aria-labelledby="cw-lock-title">
+        <div class="cw-lock-card">
+          <span class="cw-lock-icon" aria-hidden="true">🔒</span>
+          <strong id="cw-lock-title" data-i18n="cw_lock_title">Решение заблокировано</strong>
+          <span class="cw-lock-time" id="cw-lock-time">01:00</span>
+          <p data-i18n="cw_lock_text">Вы уходили со страницы — на другую вкладку или в другое приложение — или нажимали Print Screen. Во время контрольной и экзамена это запрещено. Время работы при этом идёт.</p>
+        </div>
       </div>
     </div>
 

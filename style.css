@@ -880,6 +880,56 @@ body .trainer-sheet-grid .compact-drill-item .compact-drill-body:has(> .compact-
 body.dark .trainer-switch{background:transparent;border-color:#1c2331}
 body.dark .trainer-switch-link.active{background:#1c2331;color:#fff;box-shadow:none}
 @media(max-width:720px){.trainer-switch{order:3;width:100%;margin-right:0}}
+
+/* ── Меню «☰» в шапке тренажёра: ссылки на экзамены ──
+   Раньше две кнопки стояли в шапке и на телефоне раздували её на лишнюю
+   строку. <details> открывается с клавиатуры без кода; закрытие кликом
+   мимо и Escape — в trainer-page.js. */
+.topbar-menu{position:relative}
+.topbar-menu-btn{display:grid;place-items:center;width:36px;height:36px;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;color:var(--ink);cursor:pointer;list-style:none}
+.topbar-menu-btn::-webkit-details-marker{display:none}
+.topbar-menu-btn:hover,.topbar-menu[open] .topbar-menu-btn{border-color:#b9c6dc}
+.topbar-menu-btn:focus-visible{outline:2px solid #5a92ff;outline-offset:2px}
+.topbar-menu-panel{position:absolute;top:calc(100% + 6px);right:0;z-index:30;display:flex;flex-direction:column;min-width:230px;padding:6px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 12px 32px rgba(15,23,42,.14)}
+.topbar-menu-panel a{padding:9px 12px;border-radius:8px;color:var(--ink);font:600 13px Manrope,sans-serif;text-decoration:none;white-space:nowrap}
+.topbar-menu-panel a:hover,.topbar-menu-panel a:focus-visible{background:#f1f4f9;outline:0}
+body.dark .topbar-menu-btn{border-color:#1c2331;color:#e9eefb}
+body.dark .topbar-menu-btn:hover,body.dark .topbar-menu[open] .topbar-menu-btn{border-color:#2c3547}
+body.dark .topbar-menu-panel{background:#0f141f;border-color:#1c2331;box-shadow:0 12px 32px rgba(0,0,0,.5)}
+body.dark .topbar-menu-panel a:hover,body.dark .topbar-menu-panel a:focus-visible{background:#161c28}
+/* На телефоне «☰» стоит у левого края — меню во всю ширину, иначе уезжало за экран. */
+@media(max-width:720px){.topbar-menu-panel{position:fixed;left:16px;right:16px;top:auto;min-width:0}}
+
+/* ── Контрольная и экзамен: строка времени, блокировка, начало экзамена ──
+   Строка «⏱ время · отвечено · Сдать» прилипает к верху экрана: на
+   экзамене в три часа до шапки с большими цифрами не докрутишься.
+   Последние 10 минут — жёлтым, последняя — красным. */
+.cw-guard-note{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:var(--muted)}
+.cw-sticky-bar{position:sticky;top:0;z-index:15;display:flex;align-items:center;gap:14px;margin:0 0 14px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,#fff 92%,transparent);backdrop-filter:blur(8px)}
+.cw-sticky-time{font:800 18px ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cw-sticky-time::before{content:'⏱ ';font-size:15px}
+.cw-sticky-progress{font-size:13px;color:var(--muted)}
+.cw-sticky-submit{margin-left:auto;height:36px;padding:0 16px;font-size:13px}
+.cw-sticky-time.is-low,.cw-timer-val.is-low{color:#b45309}
+.cw-sticky-time.warning{color:#dc2626;animation:timerPulse .8s infinite alternate}
+body.dark .cw-sticky-bar{background:color-mix(in srgb,#0c1019 90%,transparent);border-color:#1c2331}
+body.dark .cw-sticky-time.is-low,body.dark .cw-timer-val.is-low{color:#fbbf24}
+.cw-lock{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;background:rgba(10,13,20,.72);backdrop-filter:blur(6px)}
+.cw-lock-card{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:420px;padding:28px 26px;border-radius:16px;background:#fff;color:var(--ink);text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+.cw-lock-icon{font-size:34px;line-height:1}
+.cw-lock-card strong{font:800 18px Manrope,sans-serif}
+.cw-lock-time{font:800 40px ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums;color:#dc2626}
+.cw-lock-card p{margin:0;font-size:13.5px;line-height:1.5;color:var(--muted)}
+body.dark .cw-lock-card{background:#0f141f;border:1px solid #1c2331}
+body.dark .cw-lock-time{color:#f87171}
+.cw-result-violations{color:#b91c1c}
+body.dark .cw-result-violations{color:#f87171}
+.exam-intro{display:flex;flex-direction:column;gap:18px;padding:22px 24px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.exam-rules{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;font-size:14px;line-height:1.55}
+.exam-start-btn{align-self:flex-start;height:44px;padding:0 24px;font-size:14px}
+body.dark .exam-intro{background:#0e1219;border-color:#1c2331}
+@media (prefers-reduced-motion:reduce){.cw-sticky-time.warning{animation:none}}
+@media(max-width:640px){.cw-sticky-bar{gap:10px;padding:8px 10px}.cw-sticky-progress{font-size:12px}.exam-intro{padding:18px 16px}}
 .sv-legend{display:flex;flex-wrap:wrap;gap:16px;font-size:11.5px;color:var(--muted)}
 .sv-legend span::before{content:'';display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:var(--line);vertical-align:1px}
 .sv-legend .is-solved::before{background:#22a06b}

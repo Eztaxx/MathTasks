@@ -566,6 +566,20 @@
         nextQuestion();
       });
 
+      // Меню «☰» в шапке: закрывается кликом мимо и клавишей Escape.
+      const topbarMenu = document.querySelector('.topbar-menu');
+      if (topbarMenu) {
+        document.addEventListener('click', event => {
+          if (topbarMenu.open && !topbarMenu.contains(event.target)) topbarMenu.open = false;
+        });
+        document.addEventListener('keydown', event => {
+          if (event.key === 'Escape' && topbarMenu.open) {
+            topbarMenu.open = false;
+            topbarMenu.querySelector('summary')?.focus();
+          }
+        });
+      }
+
       /* ── Разделы: счёт, уравнения, выражения ─────────────────────── */
       const SECTION_TEXT = {
         count: ['trainer_title', 'trainer_sub'],
