@@ -503,7 +503,6 @@ function renderHubSidebar() {
 }
 
 function renderSidebar() {
-  renderSidebarContinue();
   renderSidebarGrade();
   if (currentActiveTopic) {
     renderTopicSidebar(currentActiveTopic);
@@ -762,7 +761,6 @@ function setTaskSolved(taskId, solved) {
     localStorage.setItem('math-tasks:solved', JSON.stringify(list));
   } catch {}
   updateProgressCounter();
-  renderSidebarContinue();
   if (currentView === 'home') refreshHomeSide();
 }
 
@@ -811,22 +809,6 @@ function rememberPlace(topicId, number = null) {
   try {
     localStorage.setItem(LAST_PLACE_KEY, JSON.stringify({ topicId, number: number ?? kept, at: Date.now() }));
   } catch {}
-}
-
-/* Кнопка в меню вместо выбора класса: ведёт в тему, где ученик
-   остановился. Пока истории нет — к списку задач. */
-function renderSidebarContinue() {
-  const link = document.querySelector('#sidebar-continue');
-  if (!link) return;
-  const tr = window.MathTasks.t || (k => k);
-  const place = continuePlace();
-  const text = place ? tr('sidebar_continue') : tr('sidebar_continue_start');
-  const topicTitle = place ? topicTitleOf(place.topic) : '';
-  link.setAttribute('href', langPath(place ? `/topic/${encodeURIComponent(place.topic.slug)}` : '/tasks'));
-  link.querySelector('strong').textContent = text;
-  link.querySelector('small').textContent = topicTitle;
-  link.title = topicTitle ? `${text}: ${topicTitle}` : text;
-  link.hidden = false;
 }
 
 /* «Ваш класс» внизу меню: текущий класс и список для смены. Список —
@@ -2714,7 +2696,6 @@ async function showTopic(slug) {
     renderSidebar();
   }
   rememberPlace(topic.id);
-  renderSidebarContinue();
   fillTopicHeader(topic);
   listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_loading_tasks')}</p>`;
   // Внутри темы порядок задаёт админ полем «порядок»; при равных значениях — по дате.
@@ -3647,7 +3628,6 @@ async function showTask(rawId) {
   const taskNum = taskNumber(task);
   if (topic) {
     rememberPlace(topic.id, taskNum);
-    renderSidebarContinue();
   }
   const tr = window.MathTasks.t || (k => k);
   const crumbsTaskTitle = `${tr('task_prefix') || 'Задача'} №${taskNum}`;
