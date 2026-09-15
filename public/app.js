@@ -334,7 +334,7 @@ function renderTopicSidebar(topic) {
     }).join('');
     const sTitle = loc(subj, 'title');
     return `<section class="nav-group open" data-subject="${subj.id}">
-      <button class="group-title" title="${escapeHtml(sTitle)}"><span class="nav-icon tc-subj subj-${subjectColor(subj)}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(sTitle)}</span><span class="chevron">⌃</span></button>
+      <button class="group-title" title="${escapeHtml(sTitle)}"><span class="nav-icon tc-subj subj-${subjectColor(subj)}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(sTitle)}</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></span></button>
       <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">${escapeHtml((window.MathTasks.t || (k => k))('subject_all_topics'))}</a>${links}</div>
     </section>`;
   }).filter(Boolean).join('');
@@ -366,7 +366,7 @@ function renderClassSidebar(grade) {
     if (!sTopics.length) return '';
     const links = sTopics.map(t => `<a href="/topic/${encodeURIComponent(t.slug)}">${escapeHtml(topicTitleOf(t))}</a>`).join('');
     return `<section class="nav-group open" data-subject="${subj.id}">
-      <button class="group-title" title="${escapeHtml(subj.title)}"><span class="nav-icon tc-subj subj-${subjectColor(subj)}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(subj.title)}</span><span class="chevron">⌃</span></button>
+      <button class="group-title" title="${escapeHtml(subj.title)}"><span class="nav-icon tc-subj subj-${subjectColor(subj)}">${escapeHtml(subjectIcon(subj))}</span><span class="label">${escapeHtml(subj.title)}</span><span class="chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></span></button>
       <div class="subnav"><a class="subnav-all" href="/subject/${encodeURIComponent(subj.slug)}">${escapeHtml((window.MathTasks.t || (k => k))('subject_all_topics'))}</a>${links}</div>
     </section>`;
   }).filter(Boolean).join('');
@@ -710,7 +710,8 @@ function createRevealItem(kind, body, { hidden = false, icon = '' } = {}) {
   const [showKey, hideKey] = KEYS[kind] || KEYS.solution;
   const showText = tr(`step_${kind}`);
   const hideText = tr(hideKey);
-  const labelText = tr(showKey).replace(/^(Rādīt|Показать|Show)\s*/i, '');
+  // Подпись открытой панели — тем же словом, что на кнопке: «Подсказка», не «подсказку».
+  const labelText = showText;
   const btnIcon = icon || ICONS[kind] || '';
 
   /* Закрытая подсказка видна сразу — с замком, неактивная: ученик знает,
@@ -890,7 +891,8 @@ function updateProgressCounter() {
    вторая — ответ и решение. Раньше хранился только факт ошибки (список id):
    такой список читается как «по одной ошибке». */
 const WRONG_ATTEMPTS_KEY = 'math-tasks:wrong-attempts';
-const ATTEMPTS_FOR_HINT = 1;
+// Подсказка открыта сразу — кнопкой, для того, кто не знает, с чего начать.
+const ATTEMPTS_FOR_HINT = 0;
 const ATTEMPTS_FOR_ANSWER = 2;
 
 function getWrongAttemptCounts() {
@@ -970,8 +972,7 @@ function markCardSolved(card) {
 function revealLockText(task, attempts) {
   const tr = window.MathTasks.t || (k => k);
   if (attempts >= ATTEMPTS_FOR_ANSWER) return '';
-  if (attempts >= ATTEMPTS_FOR_HINT) return tr('reveal_lock_one_more');
-  return tr(loc(task, 'hint_latex') ? 'reveal_lock_hint_first' : 'reveal_lock_two');
+  return tr(attempts >= ATTEMPTS_FOR_ANSWER - 1 ? 'reveal_lock_one_more' : 'reveal_lock_two');
 }
 
 function unlockTaskReveals(card, kinds) {

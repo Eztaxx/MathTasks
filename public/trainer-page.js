@@ -587,6 +587,13 @@
           const offSchool = el.hasAttribute('data-high-only') && state.school === 'basic';
           el.hidden = Boolean(offSection || offSchool);
         });
+        /* Вкладки школы нужны только разделу, где есть темы средней школы;
+           в выражениях их нет — вкладки прячем. */
+        const schoolTabs = document.querySelector('#trainer-school-group');
+        if (schoolTabs) {
+          const group = `[data-section-group="${state.section}"]`;
+          schoolTabs.hidden = !document.querySelector(`${group}[data-high-only], ${group} [data-high-only]`);
+        }
         const active = document.querySelector('.trainer-cat-chip.active');
         if (!active || !isChipVisible(active)) {
           const first = [...document.querySelectorAll('.trainer-cat-chip')].find(isChipVisible);
@@ -603,6 +610,13 @@
         if (sub) {
           sub.dataset.i18n = subKey;
           sub.textContent = t(subKey);
+        }
+        // Плашка в шапке — по разделу, а не всегда «Тренажёр устного счёта».
+        const badge = document.querySelector('.admin-badge[data-i18n^="trainer_"]');
+        if (badge) {
+          const badgeKey = state.section === 'count' ? 'trainer_badge' : titleKey;
+          badge.dataset.i18n = badgeKey;
+          badge.textContent = t(badgeKey);
         }
       }
 

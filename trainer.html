@@ -70,8 +70,9 @@
       <p data-i18n="trainer_sub">Развивайте математическую скорость: рандомные примеры, дроби, умножение, деление и мгновенный разбор.</p>
     </div>
 
-    <!-- Школа — отдельными вкладками: основная и средняя. Раздел, категория,
-         сложность и формат — в панели под ними. -->
+    <!-- Раздел (счёт, уравнения, выражения) выбирают в меню сайта — отдельными
+         ссылками, здесь его нет. Школа — вкладками, только там, где есть темы
+         средней школы. Категория, сложность и формат — в панели под ними. -->
     <div class="trainer-view-tabs" id="trainer-school-group" role="tablist" aria-label="Школа" data-i18n-aria="school_tabs_label">
       <button type="button" class="trainer-view-tab active" data-school="basic" role="tab" aria-selected="true" data-i18n="school_basic">🏫 Основная (1–9 кл.)</button>
       <button type="button" class="trainer-view-tab" data-school="high" role="tab" aria-selected="false" data-i18n="school_high">🎓 Средняя (10–12 кл.)</button>
@@ -84,15 +85,6 @@
         <div class="trainer-chip-group" role="tablist" aria-label="Формат отображения" data-i18n-aria="trainer_view_tabs_label">
           <button type="button" class="trainer-format-chip active" id="tab-view-sheet" data-view="sheet" role="tab" aria-selected="true" data-i18n="trainer_view_sheet">📋 Куча примеров на страницу (Тренажёр)</button>
           <button type="button" class="trainer-format-chip" id="tab-view-card" data-view="card" role="tab" aria-selected="false" data-i18n="trainer_view_card">🗂️ По одной карточке (Спринт / Марафон)</button>
-        </div>
-      </div>
-
-      <div class="trainer-section-row">
-        <span class="trainer-label" data-i18n="section_label">Раздел:</span>
-        <div class="trainer-chip-group" id="trainer-section-group">
-          <button type="button" class="trainer-section-chip active" data-section="count" data-i18n="section_count">🧮 Счёт</button>
-          <button type="button" class="trainer-section-chip" data-section="equations" data-i18n="section_equations">⚖️ Уравнения</button>
-          <button type="button" class="trainer-section-chip" data-section="expressions" data-i18n="section_expressions">🔣 Выражения</button>
         </div>
       </div>
 
@@ -151,8 +143,6 @@
           <button type="button" class="trainer-mode-chip" data-mode="sprint120" data-i18n="mode_sprint120">⏱️ Спринт 120 сек</button>
         </div>
       </div>
-
-      <button type="button" class="secondary-button trainer-review-btn" id="btn-review" data-review-btn hidden>🔁 Работа над ошибками</button>
     </div>
 
     <!-- Режим: Лист примеров (Куча примеров на страницу, в точности как «Тренажёр» в каталоге) -->
@@ -166,6 +156,8 @@
         </div>
 
         <div class="sheet-action-btns">
+          <!-- Работа над ошибками — рядом с действиями над листом. -->
+          <button type="button" class="secondary-button trainer-review-btn" id="btn-review" data-review-btn hidden>🔁 Работа над ошибками</button>
           <button type="button" class="secondary-button" id="btn-sheet-refresh" data-i18n="trainer_btn_new_sheet" data-i18n-title="trainer_btn_new_sheet_title" title="Сгенерировать новые случайные примеры">
             🔄 Новый лист
           </button>
