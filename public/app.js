@@ -1,8 +1,6 @@
 const { db, escapeHtml, loadViewer, renderMath, imageUrl, GRADES, fillGradeSelect, t = (k => k), getLang = () => 'ru', setLang = () => {}, applyTranslations = () => {} } = window.MathTasks;
 
 const sidebarNav = document.querySelector('#sidebar-nav');
-const gradeSelect = document.querySelector('#grade-select');
-const gradePill = document.querySelector('#grade-pill');
 const viewHome = document.querySelector('#view-home');
 const viewList = document.querySelector('#view-list');
 const viewAbout = document.querySelector('#view-about');
@@ -204,16 +202,6 @@ const taskCount = topicId => taskCounts.get(topicId) || 0;
 
 function renderGradeControls() {
   const tr = window.MathTasks.t || (k => k);
-  gradeSelect.value = selectedGrade ? String(selectedGrade) : '';
-  let pillText = tr('all_grades_short');
-  if (selectedGrade) {
-    if (selectedGrade === 'visparigais') pillText = 'Visp.';
-    else if (selectedGrade === 'matematika-1') pillText = 'Mat. I';
-    else if (selectedGrade === 'matematika-2') pillText = 'Mat. II';
-    else pillText = String(selectedGrade);
-  }
-  gradePill.textContent = pillText;
-  gradePill.title = selectedGrade ? gradeLabel(selectedGrade) : tr('all_grades');
 
   const isCurrent = val => {
     if (val === '' && selectedGrade == null) return true;
@@ -236,9 +224,11 @@ function renderGradeControls() {
   ];
 
   const vidusChips = [
-    ['visparigais', tr('grade_visparigais') || 'Vispārīgais līmenis', '/grade/visparigais'],
-    ['matematika-1', tr('grade_matematika_1') || 'Matemātika I (Optimālais)', '/grade/matematika-1'],
-    ['matematika-2', tr('grade_matematika_2') || 'Matemātika II (Augstākais)', '/grade/matematika-2']
+    /* Уровни старшей школы — это централизованные экзамены, как и 9 класс:
+       помечены так же. */
+    ['visparigais', `${tr('grade_visparigais') || 'Vispārīgais līmenis'} 🎯`, '/grade/visparigais', true],
+    ['matematika-1', `${tr('grade_matematika_1') || 'Matemātika I (Optimālais)'} 🎯`, '/grade/matematika-1', true],
+    ['matematika-2', `${tr('grade_matematika_2') || 'Matemātika II (Augstākais)'} 🎯`, '/grade/matematika-2', true]
   ];
 
   gradeFilter.innerHTML = `
@@ -303,31 +293,6 @@ gradeFilter.addEventListener('click', async event => {
   await loadHome();
 });
 
-// Смена класса из селектора в сайдбаре
-gradeSelect.addEventListener('change', async () => {
-  const raw = gradeSelect.value || null;
-  const parsed = parseGradeValue(raw);
-  const target = parsed ? `/grade/${parsed}` : '/';
-  if (currentView === 'home' && location.pathname !== langPath(target)) {
-    history.pushState(null, '', langPath(target));
-    lastRoute = location.pathname + location.search;
-  }
-  applyGrade(raw);
-  if (currentView === 'home') {
-    const label = gradeLabel(selectedGrade);
-    setMeta(
-      selectedGrade ? metaText('meta_grade_title', { grade: label }) : '',
-      selectedGrade ? metaText('meta_grade_desc', { grade: label }) : metaText('meta_home_desc')
-    );
-    await loadHome();
-    return;
-  }
-  if (appPath().startsWith('/grade/')) {
-    navigate(target);
-    return;
-  }
-  route({ force: true });
-});
 
 /* ── Боковое меню: Два режима (Хаб экзаменов / Фокус на теме) ───── */
 
@@ -427,13 +392,6 @@ function renderHubSidebar() {
   const tr = window.MathTasks.t || (k => k);
   const home = '';
 
-  const isGradeActive = val => {
-    if (val === 'visparigais') return selectedGrade === 'visparigais';
-    if (val === 'matematika-1') return selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11;
-    if (val === 'matematika-2') return selectedGrade === 'matematika-2' || selectedGrade === 12;
-    return selectedGrade === val;
-  };
-
   // 0. Treniņi un sagatavošanās eksāmeniem
   const prepTrack = `
     <div class="sidebar-track-header">
@@ -486,71 +444,7 @@ function renderHubSidebar() {
     </div>
   `;
 
-  // 1. Pamatskola: 9. klases valsts eksāmens un diagnostikas darbi (3. un 6. klase)
-  const pamatTrack = `
-    <div class="sidebar-track-header">
-      <span class="track-header-icon">🎓</span>
-      <span class="track-header-title">${escapeHtml(tr('track_heading_pamat') || 'Pamatskola (1.–9. klase)')}</span>
-    </div>
-    <div class="sidebar-track-subgroup">
-      <a class="sidebar-track-card${isGradeActive(9) ? ' active' : ''}" href="/grade/9" title="${escapeHtml(tr('track_9'))}">
-        <div class="track-card-badge gold">9. kl.</div>
-        <div class="track-card-body">
-          <strong>${escapeHtml(tr('track_9'))} 🎯</strong>
-          <span>${escapeHtml(tr('track_9_desc'))}</span>
-        </div>
-      </a>
-    </div>
-
-    <div class="sidebar-track-subgroup">
-      <span class="track-subgroup-label">${escapeHtml(tr('track_diag'))}</span>
-      <a class="sidebar-track-card${isGradeActive(3) ? ' active' : ''}" href="/grade/3" title="${escapeHtml(tr('grade_3'))}">
-        <div class="track-card-badge orange">3. kl.</div>
-        <div class="track-card-body">
-          <strong>${escapeHtml(tr('grade_3'))}</strong>
-          <span>${escapeHtml(tr('track_diag_short'))}</span>
-        </div>
-      </a>
-      <a class="sidebar-track-card${isGradeActive(6) ? ' active' : ''}" href="/grade/6" title="${escapeHtml(tr('grade_6'))}">
-        <div class="track-card-badge green">6. kl.</div>
-        <div class="track-card-body">
-          <strong>${escapeHtml(tr('grade_6'))}</strong>
-          <span>${escapeHtml(tr('track_diag_short'))}</span>
-        </div>
-      </a>
-    </div>
-  `;
-
-  // 2. Vidusskola: Centralizētie eksāmeni (Vispārīgais, Optimālais, Augstākais līmenis)
-  const vidusTrack = `
-    <div class="sidebar-track-header">
-      <span class="track-header-icon">🏛️</span>
-      <span class="track-header-title">${escapeHtml(tr('track_heading_vidus') || 'Vidusskola (Līmeņi)')}</span>
-    </div>
-    <div class="sidebar-track-subgroup">
-      <a class="sidebar-track-card${isGradeActive('visparigais') ? ' active' : ''}" href="/grade/visparigais" title="${escapeHtml(tr('track_visp'))}">
-        <div class="track-card-badge teal">Visp</div>
-        <div class="track-card-body">
-          <strong>${escapeHtml(tr('track_visp'))}</strong>
-          <span>${escapeHtml(tr('track_visp_desc'))}</span>
-        </div>
-      </a>
-      <a class="sidebar-track-card${isGradeActive('matematika-1') ? ' active' : ''}" href="/grade/matematika-1" title="${escapeHtml(tr('track_opt'))}">
-        <div class="track-card-badge blue">Opt</div>
-        <div class="track-card-body">
-          <strong>${escapeHtml(tr('track_opt'))}</strong>
-          <span>${escapeHtml(tr('track_opt_desc'))}</span>
-        </div>
-      </a>
-      <a class="sidebar-track-card${isGradeActive('matematika-2') ? ' active' : ''}" href="/grade/matematika-2" title="${escapeHtml(tr('track_augst'))}">
-        <div class="track-card-badge purple">Aug</div>
-        <div class="track-card-body">
-          <strong>${escapeHtml(tr('track_augst'))}</strong>
-          <span>${escapeHtml(tr('track_augst_desc'))}</span>
-        </div>
-      </a>
-    </div>
-  `;
+  // Классы и уровни выбираются на главной — в меню их больше нет.
 
   // Инструменты и практика
   const favCount = getFavorites().length;
@@ -610,11 +504,12 @@ function renderHubSidebar() {
     </div>
   `;
 
-  sidebarNav.innerHTML = home + prepTrack + pamatTrack + vidusTrack + toolsSection;
+  sidebarNav.innerHTML = home + prepTrack + toolsSection;
   markActiveNav();
 }
 
 function renderSidebar() {
+  renderSidebarContinue();
   if (currentActiveTopic) {
     renderTopicSidebar(currentActiveTopic);
   } else if (appPath() === '/tasks' && selectedGrade) {
@@ -850,6 +745,8 @@ function setTaskSolved(taskId, solved) {
       if (!list.includes(id)) {
         list.push(id);
         recordActivity();
+        const solvedTask = currentTasksMap.get(id);
+        if (solvedTask?.topic_id) rememberPlace(solvedTask.topic_id, taskNumber(solvedTask));
       }
     } else {
       list = list.filter(item => item !== id);
@@ -857,6 +754,8 @@ function setTaskSolved(taskId, solved) {
     localStorage.setItem('math-tasks:solved', JSON.stringify(list));
   } catch {}
   updateProgressCounter();
+  renderSidebarContinue();
+  if (currentView === 'home') refreshHomeSide();
 }
 
 /* Сколько задач решено в какой день: из этого — серия дней подряд и
@@ -882,6 +781,44 @@ function recordActivity() {
   try {
     localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activity));
   } catch {}
+}
+
+/* Где ученик остановился: тема и номер задачи. Пишется при открытии темы
+   и задачи и при решении; по нему — «Продолжить» на главной и в меню. */
+const LAST_PLACE_KEY = 'math-tasks:last-place';
+
+function getLastPlace() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LAST_PLACE_KEY) || 'null');
+    return raw && typeof raw === 'object' && raw.topicId ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+function rememberPlace(topicId, number = null) {
+  if (!topicId) return;
+  const prev = getLastPlace();
+  const kept = prev && prev.topicId === topicId ? prev.number : null;
+  try {
+    localStorage.setItem(LAST_PLACE_KEY, JSON.stringify({ topicId, number: number ?? kept, at: Date.now() }));
+  } catch {}
+}
+
+/* Кнопка в меню вместо выбора класса: ведёт в тему, где ученик
+   остановился. Пока истории нет — к списку задач. */
+function renderSidebarContinue() {
+  const link = document.querySelector('#sidebar-continue');
+  if (!link) return;
+  const tr = window.MathTasks.t || (k => k);
+  const place = continuePlace();
+  const text = place ? tr('sidebar_continue') : tr('sidebar_continue_start');
+  const topicTitle = place ? topicTitleOf(place.topic) : '';
+  link.setAttribute('href', langPath(place ? `/topic/${encodeURIComponent(place.topic.slug)}` : '/tasks'));
+  link.querySelector('strong').textContent = text;
+  link.querySelector('small').textContent = topicTitle;
+  link.title = topicTitle ? `${text}: ${topicTitle}` : text;
+  link.hidden = false;
 }
 
 function progressCounterText() {
@@ -1726,8 +1663,169 @@ function popularTopics(topics) {
     .slice(0, POPULAR_TOPICS_LIMIT);
 }
 
+/* ── Главная: задача дня, «Продолжить», серия ────────────────────── */
+
+/* Задача дня — одна на весь день: номер выбирается от даты, а не
+   случайно, чтобы утром и вечером ученик видел ту же задачу. «Другая»
+   сдвигает выбор на одну вперёд. В контексте класса — из его задач. */
+let dailyShift = 0;
+let dailyRequest = 0;
+
+function dailySeed(key) {
+  let hash = 0;
+  for (const char of String(key)) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return hash;
+}
+
+function dailyCandidates() {
+  const topicIds = new Set(topicsForGrade(allTopics).map(topic => topic.id));
+  const rows = publishedTaskRows.filter(row => topicIds.has(row.topic_id));
+  return rows.length ? rows : publishedTaskRows;
+}
+
+function difficultyText(diff) {
+  if (!diff) return '';
+  const tr = window.MathTasks.t || (k => k);
+  const d = String(diff).trim().toLowerCase();
+  if (/лёгк|легк|баз|easy|pamat/.test(d)) return tr('diff_easy');
+  if (/сложн|hard|проф|augst|padziļ/.test(d)) return tr('diff_hard');
+  return tr('diff_medium');
+}
+
+function dailyCard(task) {
+  const tr = window.MathTasks.t || (k => k);
+  const topic = allTopics.find(item => item.id === task.topic_id);
+  const sub = task.subtopic_id ? allSubtopics.find(item => item.id === task.subtopic_id) : null;
+  const grade = task.grade ?? topic?.grade;
+  const meta = [
+    sub && topic ? subtopicTitle(sub, topic) : '',
+    grade ? gradeLabel(grade) : '',
+    difficultyText(task.difficulty)
+  ].filter(Boolean).join(' · ');
+  const enterHint = taskRevealState(task).checkable && !isTaskSolved(task.id)
+    ? `<span>${escapeHtml(tr('home_daily_enter_hint'))}</span>`
+    : '';
+  const topicLink = topic
+    ? `<span>${escapeHtml(tr('home_daily_topic'))} <a href="/topic/${encodeURIComponent(topic.slug)}">${escapeHtml(topicTitleOf(topic))}</a></span>`
+    : '';
+  return `<div class="home-daily-head">
+      <span class="home-daily-badge">${escapeHtml(tr('home_daily_badge'))}</span>
+      <span class="home-daily-meta">${escapeHtml(meta)}</span>
+      <button type="button" class="home-daily-other" data-daily-other>↻ ${escapeHtml(tr('home_daily_other'))}</button>
+    </div>
+    ${taskCard(task, { linkTitle: false })}
+    <div class="home-daily-foot">${enterHint}${topicLink}</div>`;
+}
+
+function continuePlace() {
+  const place = getLastPlace();
+  const topic = place ? allTopics.find(item => item.id === place.topicId) : null;
+  return topic ? { topic, number: place.number, progress: getTopicProgress(topic.id) } : null;
+}
+
+function homeContinueCard() {
+  const tr = window.MathTasks.t || (k => k);
+  const label = `<span class="home-card-label">${escapeHtml(tr('progress_continue_title'))}</span>`;
+  const place = continuePlace();
+  if (!place) return `<div class="home-card home-continue is-empty">${label}<p>${escapeHtml(tr('home_continue_empty'))}</p></div>`;
+  const { topic, number, progress } = place;
+  const href = `/topic/${encodeURIComponent(topic.slug)}`;
+  const where = [
+    loc(subjectById(topic.subject_id), 'title'),
+    number ? tr('home_continue_stopped', { n: number }) : tr('home_continue_start')
+  ].filter(Boolean).join(' · ');
+  return `<div class="home-card home-continue">
+    ${label}
+    <a class="home-continue-title" href="${href}">${escapeHtml(topicTitleOf(topic))}</a>
+    <span class="home-continue-where">${escapeHtml(where)}</span>
+    ${progressBar(progress.percent)}
+    <span class="home-continue-count"><span>${escapeHtml(tr('home_continue_solved', { solved: progress.solved, total: progress.total }))}</span><b>${progress.percent}%</b></span>
+    <a class="home-continue-btn" href="${href}">${escapeHtml(tr('home_continue_btn'))}</a>
+  </div>`;
+}
+
+/* Серия: число дней подряд и текущая неделя с понедельника. Считают те же
+   функции, что и страница «Мой прогресс», — цифры там и здесь совпадают. */
+function homeStreakCard() {
+  const lib = window.MathTasksLib;
+  if (!lib?.computeStreak || !lib?.buildActivityWeeks) return '';
+  const tr = window.MathTasks.t || (k => k);
+  const today = lib.localDateKey();
+  const activity = getActivity();
+  const streak = lib.computeStreak(activity, today);
+  const [week] = lib.buildActivityWeeks(activity, today, 1);
+  const days = week.map(day => {
+    const [y, m, d] = day.key.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    const cls = ['home-streak-day', day.count > 0 ? 'is-done' : '', day.key === today ? 'is-today' : '', day.future ? 'is-future' : '']
+      .filter(Boolean).join(' ');
+    const title = `${date.toLocaleDateString(progressLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}: ${tr('progress_day_count', { count: day.count })}`;
+    return `<span class="${cls}" title="${escapeHtml(title)}"><i></i><small>${escapeHtml(date.toLocaleDateString(progressLocale(), { weekday: 'narrow' }))}</small></span>`;
+  }).join('');
+  return `<a class="home-card home-streak" href="/progress" title="${escapeHtml(tr('nav_progress'))}">
+    <span class="home-streak-count">
+      <span class="home-card-label">${escapeHtml(tr('home_streak_title'))}</span>
+      <strong>${streak.current}</strong>
+      <small>${escapeHtml(streakUnit(streak.current))}</small>
+    </span>
+    <span class="home-streak-week">${days}</span>
+  </a>`;
+}
+
+/* «1 день», «3 дня», «5 дней» — форму выбирает Intl.PluralRules языка
+   страницы. Нет ключа для формы — общая подпись «дней подряд». */
+function streakUnit(count) {
+  const tr = window.MathTasks.t || (k => k);
+  let form = 'other';
+  try {
+    form = new Intl.PluralRules(progressLocale()).select(count);
+  } catch {}
+  const key = `home_streak_unit_${form}`;
+  const text = tr(key);
+  return text && text !== key ? text : tr('progress_stat_streak');
+}
+
+function refreshHomeSide() {
+  const side = document.querySelector('#home-today .home-side');
+  if (side) side.innerHTML = homeContinueCard() + homeStreakCard();
+}
+
+async function renderHomeToday() {
+  const box = document.querySelector('#home-today');
+  if (!box) return;
+  const request = ++dailyRequest;
+  const rows = dailyCandidates();
+  box.innerHTML = `${rows.length ? '<div class="home-daily" id="home-daily"></div>' : ''}<div class="home-side"></div>`;
+  box.classList.toggle('no-daily', !rows.length);
+  refreshHomeSide();
+  box.hidden = false;
+  if (!rows.length) return;
+  const lib = window.MathTasksLib;
+  const today = lib?.localDateKey ? lib.localDateKey() : new Date().toISOString().slice(0, 10);
+  const pick = rows[(dailySeed(today) + dailyShift) % rows.length];
+  const { data } = await db.from('tasks').select(TASK_SELECT).eq('is_published', true).eq('id', pick.id).limit(1);
+  const slot = box.querySelector('#home-daily');
+  if (request !== dailyRequest || !slot) return;
+  const task = data?.[0];
+  if (!task) {
+    slot.remove();
+    box.classList.add('no-daily');
+    return;
+  }
+  slot.innerHTML = dailyCard(task);
+  fillTaskMath(slot, [task]);
+}
+
+document.addEventListener('click', event => {
+  if (!event.target.closest('[data-daily-other]')) return;
+  event.preventDefault();
+  dailyShift++;
+  renderHomeToday();
+});
+
 async function loadHome() {
   renderGradeActions();
+  renderHomeToday();
   const topics = topicsForGrade(allTopics);
   topicsElement.innerHTML = topics.length
     ? (selectedGrade ? topics : popularTopics(topics)).map((topic, index) => topicCard(topic, index, !selectedGrade)).join('')
@@ -2379,6 +2477,8 @@ async function showTopic(slug) {
   } else {
     renderSidebar();
   }
+  rememberPlace(topic.id);
+  renderSidebarContinue();
   fillTopicHeader(topic);
   listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_loading_tasks')}</p>`;
   // Внутри темы порядок задаёт админ полем «порядок»; при равных значениях — по дате.
@@ -3310,6 +3410,10 @@ async function showTask(rawId) {
     renderSidebar();
   }
   const taskNum = taskNumber(task);
+  if (topic) {
+    rememberPlace(topic.id, taskNum);
+    renderSidebarContinue();
+  }
   const tr = window.MathTasks.t || (k => k);
   const crumbsTaskTitle = `${tr('task_prefix') || 'Задача'} №${taskNum}`;
   const topicTitle = topic ? topicTitleOf(topic) : '';
@@ -4941,7 +5045,6 @@ function rememberScrollAnchor() {
 
 window.addEventListener('languagechange', async () => {
   window.MathTasksI18n?.applyTranslations(document);
-  fillGradeSelect(gradeSelect, window.MathTasks.t('all_grades'));
   renderGradeControls();
   renderSidebar();
   renderHeadings();
@@ -4996,7 +5099,6 @@ document.querySelector('#ssr-content')?.remove();
 window.MathTasksI18n?.applyTranslations(document);
 window.MathTasksI18n?.updateSwitcherUI();
 
-fillGradeSelect(gradeSelect, window.MathTasks.t ? window.MathTasks.t('all_grades') : 'Все классы');
 renderGradeControls();
 renderHeadings();
 (async () => {

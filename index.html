@@ -47,10 +47,10 @@
       <span class="nav-icon">⌂</span>
       <span class="label" data-i18n="nav_to_home">На главную</span>
     </a>
-    <div class="grade-context">
-      <label class="grade-select-label" for="grade-select"><span data-i18n="grade_label">Класс</span><select id="grade-select"></select></label>
-      <button data-i18n="grade_all_short" class="grade-pill" id="grade-pill" type="button" aria-label="Выбрать класс" data-i18n-aria="grade_pick">Все</button>
-    </div>
+    <a class="sidebar-continue" id="sidebar-continue" href="/tasks" hidden>
+      <span class="nav-icon" aria-hidden="true">▶</span>
+      <span class="sidebar-continue-body label"><strong>Продолжить задание</strong><small></small></span>
+    </a>
     <nav id="sidebar-nav">
       <div class="sidebar-track-header">
         <span class="track-header-icon">⚡</span>
@@ -97,65 +97,6 @@
           <div class="track-card-body">
             <strong data-i18n="nav_control_works">Контрольные работы</strong>
             <span data-i18n="nav_control_works_desc">Тематические работы, 40 мин</span>
-          </div>
-        </a>
-      </div>
-
-      <div class="sidebar-track-header">
-        <span class="track-header-icon">🎓</span>
-        <span class="track-header-title" data-i18n="track_heading_pamat">Основная школа</span>
-      </div>
-      <div class="sidebar-track-subgroup">
-        <a class="sidebar-track-card" href="/grade/9" title="Экзамен основной школы" data-i18n-title="nav_pamatskola_title">
-          <div class="track-card-badge gold">9. kl.</div>
-          <div class="track-card-body">
-            <strong><span data-i18n="track_9">Экзамен основной школы</span> 🎯</strong>
-            <span data-i18n="track_9_desc">Итоговая работа основной школы</span>
-          </div>
-        </a>
-      </div>
-      <div class="sidebar-track-subgroup">
-        <span class="track-subgroup-label" data-i18n="track_diag">Диагностические работы</span>
-        <a class="sidebar-track-card" href="/grade/3" title="3 класс" data-i18n-title="nav_grade_3_title">
-          <div class="track-card-badge orange">3. kl.</div>
-          <div class="track-card-body">
-            <strong data-i18n="grade_3">3 класс</strong>
-            <span data-i18n="track_diag_short">Диагностика</span>
-          </div>
-        </a>
-        <a class="sidebar-track-card" href="/grade/6" title="6 класс" data-i18n-title="nav_grade_6_title">
-          <div class="track-card-badge green">6. kl.</div>
-          <div class="track-card-body">
-            <strong data-i18n="grade_6">6 класс</strong>
-            <span data-i18n="track_diag_short">Диагностика</span>
-          </div>
-        </a>
-      </div>
-
-      <div class="sidebar-track-header">
-        <span class="track-header-icon">🏛️</span>
-        <span class="track-header-title" data-i18n="track_heading_vidus">Старшая школа (Уровни)</span>
-      </div>
-      <div class="sidebar-track-subgroup">
-        <a class="sidebar-track-card" href="/grade/visparigais" title="Vispārīgais līmenis">
-          <div class="track-card-badge teal">Visp</div>
-          <div class="track-card-body">
-            <strong data-i18n="track_visp">Vispārīgais līmenis</strong>
-            <span data-i18n="track_visp_desc">Старшая школа и техникум</span>
-          </div>
-        </a>
-        <a class="sidebar-track-card" href="/grade/matematika-1" title="Optimālais līmenis">
-          <div class="track-card-badge blue">Opt</div>
-          <div class="track-card-body">
-            <strong data-i18n="track_opt">Optimālais līmenis</strong>
-            <span data-i18n="track_opt_desc">Стандартный курс (Математика I)</span>
-          </div>
-        </a>
-        <a class="sidebar-track-card" href="/grade/matematika-2" title="Augstākais līmenis">
-          <div class="track-card-badge purple">Aug</div>
-          <div class="track-card-body">
-            <strong data-i18n="track_augst">Augstākais līmenis</strong>
-            <span data-i18n="track_augst_desc">Углублённый курс к экзамену</span>
           </div>
         </a>
       </div>
@@ -232,48 +173,8 @@
     </header>
 
     <div id="view-home">
-      <section class="hero">
-        <div class="hero-copy"><h1 data-i18n="hero_title">Сборник задач<br>по математике</h1><p data-i18n="hero_subtitle">Выбирайте тему, решайте задачи и прокачивайте свои знания</p>
-          <div class="hero-badges">
-            <div class="hero-badge">
-              <div class="hero-badge-icon badge-blue" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-              </div>
-              <div class="hero-badge-info">
-                <strong data-i18n="badge_solutions_title">Понятные решения</strong>
-                <span data-i18n="badge_solutions_sub">Пошаговый разбор</span>
-              </div>
-            </div>
-            <div class="hero-badge">
-              <div class="hero-badge-icon badge-purple" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-              </div>
-              <div class="hero-badge-info">
-                <strong data-i18n="badge_levels_title">Все уровни</strong>
-                <span data-i18n="badge_levels_sub">От базы до профиля</span>
-              </div>
-            </div>
-            <div class="hero-badge">
-              <div class="hero-badge-icon badge-amber" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-              </div>
-              <div class="hero-badge-info">
-                <strong data-i18n="badge_skola_title">Skola2030</strong>
-                <span data-i18n="badge_skola_sub">Подготовка к экзаменам</span>
-              </div>
-            </div>
-            <a class="hero-badge" href="/trainer.html" style="text-decoration:none">
-              <div class="hero-badge-icon" aria-hidden="true" style="background:linear-gradient(135deg, #fef3c7, #fde68a); color:#b45309; font-size:18px">
-                ⚡
-              </div>
-              <div class="hero-badge-info">
-                <strong data-i18n="promo_trainer_title">Тренажёр счёта</strong>
-                <span data-i18n="promo_trainer_sub">Устный счёт и дроби</span>
-              </div>
-            </a>
-          </div>
-        </div>
-      </section>
+      <h1 class="visually-hidden" data-i18n="hero_title">Сборник задач по математике</h1>
+      <section class="home-today" id="home-today" aria-label="Задача дня и прогресс" data-i18n-aria="home_today_aria" hidden></section>
 
       <section class="grades">
         <h2 data-i18n="section_grades">Классы</h2>
@@ -340,7 +241,48 @@
 
     <div id="view-about" hidden>
       <nav class="breadcrumb" aria-label="Хлебные крошки" data-i18n-aria="breadcrumbs"><a href="/" data-i18n="nav_home">Главная</a><span class="crumb-sep">/</span><span data-i18n="nav_about">О сайте</span></nav>
-      <header class="list-header"><h1 data-i18n="about_title">О сайте</h1></header>
+      <section class="hero">
+        <div class="hero-copy"><h1 data-i18n="hero_title">Сборник задач<br>по математике</h1><p data-i18n="hero_subtitle">Выбирайте тему, решайте задачи и прокачивайте свои знания</p>
+          <div class="hero-badges">
+            <div class="hero-badge">
+              <div class="hero-badge-icon badge-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              </div>
+              <div class="hero-badge-info">
+                <strong data-i18n="badge_solutions_title">Понятные решения</strong>
+                <span data-i18n="badge_solutions_sub">Пошаговый разбор</span>
+              </div>
+            </div>
+            <div class="hero-badge">
+              <div class="hero-badge-icon badge-purple" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+              </div>
+              <div class="hero-badge-info">
+                <strong data-i18n="badge_levels_title">Все уровни</strong>
+                <span data-i18n="badge_levels_sub">От базы до профиля</span>
+              </div>
+            </div>
+            <div class="hero-badge">
+              <div class="hero-badge-icon badge-amber" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+              </div>
+              <div class="hero-badge-info">
+                <strong data-i18n="badge_skola_title">Skola2030</strong>
+                <span data-i18n="badge_skola_sub">Подготовка к экзаменам</span>
+              </div>
+            </div>
+            <a class="hero-badge" href="/trainer.html" style="text-decoration:none">
+              <div class="hero-badge-icon" aria-hidden="true" style="background:linear-gradient(135deg, #fef3c7, #fde68a); color:#b45309; font-size:18px">
+                ⚡
+              </div>
+              <div class="hero-badge-info">
+                <strong data-i18n="promo_trainer_title">Тренажёр счёта</strong>
+                <span data-i18n="promo_trainer_sub">Устный счёт и дроби</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
       <div class="about-page" data-i18n-html="about_body">
       </div>
     </div>
