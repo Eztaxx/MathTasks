@@ -448,6 +448,20 @@ function renderHubSidebar() {
           <span>${escapeHtml(tr('nav_trainer_desc'))}</span>
         </div>
       </a>
+      <a class="sidebar-track-card" href="/trainer.html?section=equations" title="${escapeHtml(tr('nav_trainer_eq'))}">
+        <div class="track-card-badge orange">⚖️</div>
+        <div class="track-card-body">
+          <strong>${escapeHtml(tr('nav_trainer_eq'))}</strong>
+          <span>${escapeHtml(tr('nav_trainer_eq_desc'))}</span>
+        </div>
+      </a>
+      <a class="sidebar-track-card" href="/trainer.html?section=expressions" title="${escapeHtml(tr('nav_trainer_expr'))}">
+        <div class="track-card-badge green">🔣</div>
+        <div class="track-card-body">
+          <strong>${escapeHtml(tr('nav_trainer_expr'))}</strong>
+          <span>${escapeHtml(tr('nav_trainer_expr_desc'))}</span>
+        </div>
+      </a>
       <a class="sidebar-track-card${appPath() === '/exams.html' ? ' active' : ''}" href="/exams.html" title="${escapeHtml(tr('nav_exams'))}">
         <div class="track-card-badge blue">🎯</div>
         <div class="track-card-body">
