@@ -241,7 +241,7 @@ body.dark .auth-dialog input,body.dark .task-form input,body.dark .task-form sel
 .grade-stage-header{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
 .stage-badge{display:inline-flex;align-items:center;gap:6px;font:700 12px Manrope;letter-spacing:.02em;padding:4px 10px;border-radius:8px;white-space:nowrap}
 .stage-badge-pamat{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
-.stage-badge-vidus{background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe}
+.stage-badge-vidus{background:#effcf9;color:#0f766e;border:1px solid #99e2d6}
 .stage-sub{font-size:12px;font-weight:500;color:var(--muted)}
 .grade-chips-list{display:flex;flex-wrap:wrap;gap:8px;scrollbar-width:thin}
 .grade-chip{border:1px solid var(--line);border-radius:999px;background:#fff;color:#455471;font:600 12.5px Manrope;padding:7px 15px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,0.02)}
@@ -289,7 +289,7 @@ body.dark .auth-dialog input,body.dark .task-form input,body.dark .task-form sel
 
 body.dark .grade-stage-block{background:transparent;border:none}
 body.dark .stage-badge-pamat{background:#172554;color:#93c5fd;border-color:#1e3a8a}
-body.dark .stage-badge-vidus{background:#2e1065;color:#c4b5fd;border-color:#4c1d95}
+body.dark .stage-badge-vidus{background:#0b2a28;color:#5eead4;border-color:#155e57}
 body.dark .grade-chip{background:#152137;border-color:#2b3a58;color:#c4cce0;box-shadow:none}
 body.dark .grade-chip:hover{background:#1e2e4d;border-color:#5a92ff;color:#93c5fd}
 body.dark .grade-chip.active{background:#1764ff;border-color:#1764ff;color:#fff}
@@ -603,16 +603,18 @@ body.sidebar-collapsed .sidebar-continue .label{display:none}
    пунктами прячутся (название пункта и всплывающая подсказка остаются),
    «Продолжить задание» — в одну строку, отступы меньше. */
 @media (max-height:1000px){
-  .sidebar{padding-top:14px;padding-bottom:14px}
-  .brand{height:44px;margin-bottom:10px}
-  .sidebar-home-btn{padding:6px 12px;margin-bottom:6px}
-  .sidebar-continue{padding:6px 12px;margin-bottom:6px}
+  .sidebar{padding-top:12px;padding-bottom:12px}
+  .brand{height:40px;margin-bottom:8px}
+  .sidebar-home-btn{padding:6px 12px;margin-bottom:5px}
+  .sidebar-continue{padding:6px 9px;margin-bottom:4px}
   .sidebar-continue-body small{display:none}
-  .sidebar-track-header{padding-top:8px}
+  .sidebar-track-header{padding-top:6px;padding-bottom:3px}
+  .track-header-icon{font-size:11px}
+  .sidebar-track-subgroup{margin-bottom:3px}
   .track-card-body span,.action-card-body span{display:none}
-  .sidebar-track-card,.sidebar-action-card{padding:4px 8px}
+  .sidebar-track-card,.sidebar-action-card{padding:3px 8px}
   .track-card-badge,.action-card-icon{width:24px;height:24px}
-  .about{margin-top:8px;padding-top:10px}
+  .about{margin-top:6px;padding-top:8px}
 }
 
 /* ── Главная: задача дня, «Продолжить», серия ─────────────────────── */
@@ -696,15 +698,14 @@ body.dark .home-streak-day.is-today i{box-shadow:inset 0 0 0 2px #6a9bff}
 
 /* Чипы классов на главной стали ссылками на страницу класса. */
 a.grade-chip{text-decoration:none;display:inline-block}
-/* Уровни старшей школы: цвет плашки «Старшая школа», значок уровня. */
-a.grade-chip.grade-chip-level{display:inline-flex;align-items:center;gap:7px;border-color:#c4b5fd;background:#f7f3ff;color:#5b21b6}
-a.grade-chip.grade-chip-level:hover{border-color:#8b5cf6;background:#ede4ff;color:#4c1d95}
-a.grade-chip.grade-chip-level.active{border-color:#7c3aed;background:#7c3aed;color:#fff;box-shadow:0 2px 8px rgba(124,58,237,.3)}
-.grade-level-icon{width:12px;height:12px;flex:none;fill:currentColor}
-.grade-level-icon .off{opacity:.28}
-body.dark a.grade-chip.grade-chip-level{background:#221538;border-color:#4c2a85;color:#c4b5fd}
-body.dark a.grade-chip.grade-chip-level:hover{background:#2c1b4a;border-color:#7c3aed;color:#ddd6fe}
-body.dark a.grade-chip.grade-chip-level.active{background:#7c3aed;border-color:#7c3aed;color:#fff}
+/* Уровни старшей школы: бирюзовый — не спорит ни с золотым 9 классом,
+   ни с синими чипами классов. Знак уровня — смайлик в подписи. */
+a.grade-chip.grade-chip-level{border-color:#99e2d6;background:#effcf9;color:#0f766e}
+a.grade-chip.grade-chip-level:hover{border-color:#2dd4bf;background:#ccfbf1;color:#115e59}
+a.grade-chip.grade-chip-level.active{border-color:#0d9488;background:#0d9488;color:#fff;box-shadow:0 2px 8px rgba(13,148,136,.3)}
+body.dark a.grade-chip.grade-chip-level{background:#0b2a28;border-color:#155e57;color:#5eead4}
+body.dark a.grade-chip.grade-chip-level:hover{background:#0f3a36;border-color:#14b8a6;color:#99f6e4}
+body.dark a.grade-chip.grade-chip-level.active{background:#0d9488;border-color:#0d9488;color:#fff}
 
 /* Метка класса у темы в меню, когда выбран режим «Все классы». */
 .subnav-grade{margin-left:6px;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:#fff3dd;color:#8a5a00}

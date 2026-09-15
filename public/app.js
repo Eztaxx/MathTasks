@@ -212,18 +212,13 @@ function renderGradeControls() {
   };
 
   /* kind: 'exam' — 9 класс (золотой), 'level' — уровень старшей школы
-     (фиолетовый, как плашка «Старшая школа»). */
-  const renderChip = ([value, label, href, kind, iconHtml = '']) => {
+     (бирюзовый, как плашка «Старшая школа»). */
+  const renderChip = ([value, label, href, kind]) => {
     const active = isCurrent(value);
     const cls = ['grade-chip', active ? 'active' : '', kind === 'exam' ? 'grade-chip-exam' : '', kind === 'level' ? 'grade-chip-level' : '']
       .filter(Boolean).join(' ');
-    return `<a class="${cls}" href="${href}"${active ? ' aria-current="page"' : ''}>${iconHtml}${escapeHtml(label)}</a>`;
+    return `<a class="${cls}" href="${href}"${active ? ' aria-current="page"' : ''}>${escapeHtml(label)}</a>`;
   };
-
-  /* Значок уровня: одна, две, три ступени — Vispārīgais, Optimālais,
-     Augstākais. Уровень читается по значку, а не только по названию. */
-  const levelIcon = level => `<svg class="grade-level-icon" viewBox="0 0 12 12" aria-hidden="true">${[0, 1, 2]
-    .map(i => `<rect x="${i * 4.5}" y="${8 - i * 3}" width="3" height="${4 + i * 3}" rx="1"${i < level ? '' : ' class="off"'}/>`).join('')}</svg>`;
 
   const pamatChips = [
     ['', tr('all_grades_short') || 'Visi', '/'],
@@ -232,9 +227,10 @@ function renderGradeControls() {
   ];
 
   const vidusChips = [
-    ['visparigais', tr('grade_visparigais') || 'Vispārīgais līmenis', '/grade/visparigais', 'level', levelIcon(1)],
-    ['matematika-1', tr('grade_matematika_1') || 'Matemātika I (Optimālais)', '/grade/matematika-1', 'level', levelIcon(2)],
-    ['matematika-2', tr('grade_matematika_2') || 'Matemātika II (Augstākais)', '/grade/matematika-2', 'level', levelIcon(3)]
+    /* У каждого уровня свой знак, как 🎯 у 9 класса: основа — рост — вершина. */
+    ['visparigais', `${tr('grade_visparigais') || 'Vispārīgais līmenis'} 🌱`, '/grade/visparigais', 'level'],
+    ['matematika-1', `${tr('grade_matematika_1') || 'Matemātika I (Optimālais)'} 📈`, '/grade/matematika-1', 'level'],
+    ['matematika-2', `${tr('grade_matematika_2') || 'Matemātika II (Augstākais)'} 🚀`, '/grade/matematika-2', 'level']
   ];
 
   gradeFilter.innerHTML = `
@@ -387,7 +383,7 @@ function renderHubSidebar() {
   const prepTrack = `
     <div class="sidebar-track-header">
       <span class="track-header-icon">⚡</span>
-      <span class="track-header-title">${escapeHtml(tr('track_heading_prep'))}</span>
+      <span class="track-header-title">${escapeHtml(tr('track_heading_trainers'))}</span>
     </div>
     <div class="sidebar-track-subgroup">
       <a class="sidebar-track-card${appPath() === '/trainer.html' ? ' active' : ''}" href="/trainer.html" title="${escapeHtml(tr('nav_trainer'))}">
@@ -411,6 +407,13 @@ function renderHubSidebar() {
           <span>${escapeHtml(tr('nav_trainer_expr_desc'))}</span>
         </div>
       </a>
+    </div>
+
+    <div class="sidebar-track-header">
+      <span class="track-header-icon">🎓</span>
+      <span class="track-header-title">${escapeHtml(tr('track_heading_exams'))}</span>
+    </div>
+    <div class="sidebar-track-subgroup">
       <a class="sidebar-track-card${appPath() === '/exams.html' ? ' active' : ''}" href="/exams.html" title="${escapeHtml(tr('nav_exams'))}">
         <div class="track-card-badge blue">🎯</div>
         <div class="track-card-body">
