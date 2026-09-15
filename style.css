@@ -743,10 +743,11 @@ body.dark #list-meta .topic-header-cw-btn{background:transparent}
 body.dark .skola-chip{border-color:#1c2331}
 
 #list-subtopics.subtopic-nav{margin:4px 0 18px}
-#list-subtopics .subtopic-pills{display:flex;flex-wrap:nowrap;gap:8px;margin:0;padding:0 0 6px;overflow-x:auto;scrollbar-width:thin}
-#list-subtopics .subtopic-pill{flex:none;display:inline-flex;align-items:center;gap:7px;height:34px;max-width:none;box-sizing:border-box;padding:0 14px;border:1px solid var(--line);border-radius:99px;background:transparent;color:var(--ink);font:600 12.5px Manrope,sans-serif;text-decoration:none;white-space:nowrap;box-shadow:none;transform:none}
+/* Подтемы переносятся на новые строки: при прокрутке вбок хвост ряда не видно */
+#list-subtopics .subtopic-pills{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0}
+#list-subtopics .subtopic-pill{flex:none;display:inline-flex;align-items:center;gap:7px;height:34px;max-width:100%;box-sizing:border-box;padding:0 14px;border:1px solid var(--line);border-radius:99px;background:transparent;color:var(--ink);font:600 12.5px Manrope,sans-serif;text-decoration:none;white-space:nowrap;box-shadow:none;transform:none}
 #list-subtopics .subtopic-pill:hover{border-color:#b9c6dc;background:transparent}
-#list-subtopics .subtopic-pill-title{max-width:none;overflow:visible}
+#list-subtopics .subtopic-pill-title{min-width:0;overflow:hidden;text-overflow:ellipsis}
 #list-subtopics .subtopic-pill-code,#list-subtopics .subtopic-pill-count{min-width:0;padding:0;border:0;background:none;color:var(--muted);font-size:12px}
 #list-subtopics .subtopic-pill-code{font-weight:800}
 #list-subtopics .subtopic-pill-count{font-weight:600}
