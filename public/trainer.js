@@ -1509,11 +1509,19 @@
     }
   };
 
+  // Дополнительные модули (trainer-algebra.js) добавляют свои категории и проверки
+  const CHECKERS = {};
+  function register({ generators = {}, checkers = {} } = {}) {
+    Object.assign(GENERATORS, generators);
+    Object.assign(CHECKERS, checkers);
+  }
+
   /**
    * Проверка ответа пользователя
    * Возвращает { isCorrect: boolean, expectedDisplay: string, userNormalized: string }
    */
   function checkAnswer(question, userInput) {
+    if (question && CHECKERS[question.type]) return CHECKERS[question.type](question, userInput);
     if (!userInput || !userInput.trim()) {
       return { isCorrect: false, expectedDisplay: question.answer, userNormalized: '' };
     }
@@ -1731,6 +1739,7 @@
     },
     generateBatch,
     checkAnswer,
+    register,
     rememberMistake,
     forgetMistake,
     shuffle,
