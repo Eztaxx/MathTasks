@@ -713,11 +713,10 @@ function createRevealItem(kind, body, { hidden = false, icon = '' } = {}) {
   const labelText = tr(showKey).replace(/^(Rādīt|Показать|Show)\s*/i, '');
   const btnIcon = icon || ICONS[kind] || '';
 
-  /* Закрытые подсказка и решение видны сразу — с замком, неактивные: ученик
-     знает, что они есть. Ответ до открытия не показываем вовсе. */
-  const locked = hidden && kind !== 'answer';
-  const text = locked && kind === 'solution' ? tr('step_solution_locked') : showText;
-  const button = `<button class="solution-toggle${kind === 'hint' ? ' solution-toggle-hint' : ''}${locked ? ' is-locked' : ''}" type="button" data-reveal="${kind}" data-kind="${kind}" aria-expanded="false"${hidden && !locked ? ' hidden' : ''}${locked ? ' disabled' : ''} data-icon="${btnIcon}" data-show-label="${escapeHtml(showText)}" data-hide-label="${escapeHtml(hideText)}"><span class="toggle-icon">${locked ? '🔒' : btnIcon}</span> <span class="toggle-text">${escapeHtml(text)}</span></button>`;
+  /* Закрытая подсказка видна сразу — с замком, неактивная: ученик знает,
+     что она есть. Ответ и решение до открытия не показываем. */
+  const locked = hidden && kind === 'hint';
+  const button = `<button class="solution-toggle${kind === 'hint' ? ' solution-toggle-hint' : ''}${locked ? ' is-locked' : ''}" type="button" data-reveal="${kind}" data-kind="${kind}" aria-expanded="false"${hidden && !locked ? ' hidden' : ''}${locked ? ' disabled' : ''} data-icon="${btnIcon}" data-show-label="${escapeHtml(showText)}" data-hide-label="${escapeHtml(hideText)}"><span class="toggle-icon">${locked ? '🔒' : btnIcon}</span> <span class="toggle-text">${escapeHtml(showText)}</span></button>`;
 
   const panel = `<div class="reveal ${kind}" hidden><span class="reveal-label">${escapeHtml(labelText)}</span>${body}</div>`;
 

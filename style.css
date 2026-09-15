@@ -888,8 +888,9 @@ body.dark .task .self-check-input:focus{border-color:#5a92ff}
 .answer-unit{flex:none;font-size:14px;color:var(--muted)}
 .task .self-check-btn{height:40px;padding:0 18px;border-radius:10px;font:700 13px Manrope,sans-serif}
 
-/* Низ карточки: черта, «💡 Подсказка» и «🔒 Решение закрыто». В списке —
-   кнопки-надписи; в виде «по одной» — с рамкой. Закрытые — серые. */
+/* Низ карточки: черта, «💡 Подсказка», «Ответ», «Решение». В списке —
+   кнопки-надписи; в виде «по одной» — с рамкой. Закрытая подсказка — серая
+   с замком; закрытые ответ и решение не показываем. */
 .task .task-actions-bar{margin:0;padding-top:12px;border-top:1px solid var(--line);gap:6px}
 body.dark .task .task-actions-bar{border-top-color:#1c2331}
 .task .solution-toggle{height:34px;padding:0 12px;border-radius:9px;font:600 13px Manrope,sans-serif;box-shadow:none;transform:none}
@@ -900,6 +901,8 @@ body.dark #list-tasks > .task .solution-toggle:not(.is-locked):hover{background:
 body.dark #list-tasks > .task .solution-toggle.active{background:#131a27!important}
 .task .solution-toggle.is-locked{background:transparent!important;color:var(--muted)!important;cursor:default;box-shadow:none;transform:none}
 body.dark .task .solution-toggle.is-locked{background:transparent!important;color:#6f7b93!important}
+/* В списке нечего показать внизу — нет и черты под полем ответа. */
+#list-tasks > .task .task-actions-bar:not(:has(.solution-toggle:not([hidden]))){display:none}
 @media print{#list-tasks.task-list{gap:0}#list-tasks > .task{border:0;border-bottom:1px solid #ccc;border-radius:0;padding:10px 0;background:none}.task .task-actions,.task .task-actions-bar{display:none!important}}
 @media(max-width:1100px){.list-header:has(> .list-actions:not([hidden])){display:flex}#list-actions.list-actions{justify-content:flex-start}}
 @media(max-width:640px){#list-tasks > .task{padding:14px 14px 12px}#list-tasks > .task .task-condition{font-size:16.5px}#list-meta .topic-header-progress-bar{width:110px}}
