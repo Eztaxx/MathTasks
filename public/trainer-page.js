@@ -26,6 +26,7 @@
       const state = {
         view: 'sheet', // 'sheet' (куча примеров) или 'card' (по одной)
         school: localStorage.getItem(SCHOOL_KEY) === 'high' ? 'high' : 'basic',
+        section: 'count', // 'count' — счёт, 'equations' — уравнения, 'expressions' — выражения
         category: 'addsub2',
         diff: 'normal', // 'normal', 'hard', 'expert'
         mode: 'zen',
@@ -93,8 +94,13 @@
       const valReview = document.querySelector('#val-review');
       const t = (key, params) => window.MathTasks.t(key, params);
 
-      // Где ответ бывает дробью, с минусом или с x — обычная клавиатура, иначе цифровая
+      // Где ответ бывает дробью, с минусом, с x или из нескольких корней — обычная клавиатура
       const TEXT_INPUT_CATEGORIES = new Set(['fractions', 'negatives', 'algebra_powers', 'powers']);
+      const needsTextInput = q => q.type === 'roots' || q.type === 'poly' || TEXT_INPUT_CATEGORIES.has(q.category);
+      const inputHintKey = q => ({ roots: 'trainer_roots_hint', poly: 'trainer_poly_hint' })[q.type]
+        || (q.category === 'algebra_powers' ? 'trainer_algebra_hint' : 'trainer_fraction_hint');
+      // Уравнение уже содержит «=», к выражению его дописываем
+      const shownLatex = (q, tail) => (q.eq ? q.latex : `${q.latex} ${tail}`);
 
       /* ── Работа над ошибками ──
          Неверно решённые и пропущенные примеры копятся в списке, который
@@ -171,23 +177,25 @@
         const bannerReview = document.querySelector('#sheet-banner-review');
         if (bannerNormal) bannerNormal.hidden = sheetState.review;
         if (bannerReview) bannerReview.hidden = !sheetState.review;
+        trainerSheetGrid.classList.toggle('trainer-sheet-grid--wide', sheetState.questions.some(q => q.task));
 
         trainerSheetGrid.innerHTML = sheetState.questions.map((q, idx) => `
           <div class="compact-drill-item" data-sheet-item="${idx}" id="sheet-item-${idx}">
             <span class="compact-drill-num">${idx + 1}.</span>
             <div class="compact-drill-body">
+              ${q.task ? `<div class="compact-drill-task">${escapeHtml(t(`trainer_task_${q.task}`))}</div>` : ''}
               <div class="compact-drill-expr math" id="sheet-expr-${idx}"></div>
               <div class="compact-drill-answer-wrap">
                 <input type="text" 
                        class="compact-drill-input" 
                        data-sheet-idx="${idx}" 
-                       placeholder="?" 
+                       placeholder="${q.eq ? 'x = ?' : '?'}"
                        aria-label="${escapeHtml(t('trainer_answer_aria', { n: idx + 1 }))}"
                        autocomplete="off" 
                        autocorrect="off" 
                        autocapitalize="off" 
                        spellcheck="false" 
-                       inputmode="${TEXT_INPUT_CATEGORIES.has(q.category) ? 'text' : 'decimal'}" />
+                       inputmode="${needsTextInput(q) ? 'text' : 'decimal'}" />
                 <span class="compact-drill-status"></span>
               </div>
             </div>
@@ -200,11 +208,11 @@
           if (exprEl && window.katex) {
             try {
               exprEl.innerHTML = window.katex.renderToString(
-                `${q.latex} =`,
+                shownLatex(q, '='),
                 { displayMode: false, throwOnError: false }
               );
             } catch (e) {
-              exprEl.textContent = `${q.latex} =`;
+              exprEl.textContent = shownLatex(q, '=');
             }
           }
         });
@@ -422,15 +430,21 @@
         if (formulaDisplay && window.katex) {
           try {
             formulaDisplay.innerHTML = window.katex.renderToString(
-              `${state.currentQuestion.latex} = ?`,
+              shownLatex(state.currentQuestion, '= ?'),
               { displayMode: true, throwOnError: false }
             );
           } catch (e) {
-            formulaDisplay.textContent = `${state.currentQuestion.latex} = ?`;
+            formulaDisplay.textContent = shownLatex(state.currentQuestion, '= ?');
           }
         }
 
-        const isText = TEXT_INPUT_CATEGORIES.has(state.currentQuestion.category);
+        const formulaTask = document.querySelector('#formula-task');
+        if (formulaTask) {
+          formulaTask.hidden = !state.currentQuestion.task;
+          formulaTask.textContent = state.currentQuestion.task ? t(`trainer_task_${state.currentQuestion.task}`) : '';
+        }
+        formulaDisplay?.classList.toggle('trainer-formula--task', Boolean(state.currentQuestion.task));
+        const isText = needsTextInput(state.currentQuestion);
         if (trainerInput) {
           trainerInput.setAttribute('inputmode', isText ? 'text' : 'decimal');
           trainerInput.value = '';
@@ -439,7 +453,7 @@
 
         const hintEl = document.querySelector('#trainer-input-hint');
         if (hintEl) {
-          hintEl.innerHTML = t(state.currentQuestion.category === 'algebra_powers' ? 'trainer_algebra_hint' : 'trainer_fraction_hint');
+          hintEl.innerHTML = t(inputHintKey(state.currentQuestion));
         }
 
         state.phase = 'answer';
@@ -555,6 +569,57 @@
 
       btnNext?.addEventListener('click', () => nextQuestion());
 
+      /* ── Разделы: счёт, уравнения, выражения ─────────────────────── */
+      const SECTION_TEXT = {
+        count: ['trainer_title', 'trainer_sub'],
+        equations: ['trainer_title_equations', 'trainer_sub_equations'],
+        expressions: ['trainer_title_expressions', 'trainer_sub_expressions']
+      };
+      const isChipVisible = chip => !chip.closest('[hidden]');
+
+      // Кнопки чужого раздела и темы средней школы в основной — скрыты
+      function syncPanel() {
+        document.querySelectorAll('.trainer-section-chip').forEach(b => {
+          b.classList.toggle('active', b.dataset.section === state.section);
+        });
+        document.querySelectorAll('[data-section-group], [data-high-only]').forEach(el => {
+          const offSection = el.dataset.sectionGroup && el.dataset.sectionGroup !== state.section;
+          const offSchool = el.hasAttribute('data-high-only') && state.school === 'basic';
+          el.hidden = Boolean(offSection || offSchool);
+        });
+        const active = document.querySelector('.trainer-cat-chip.active');
+        if (!active || !isChipVisible(active)) {
+          const first = [...document.querySelectorAll('.trainer-cat-chip')].find(isChipVisible);
+          document.querySelectorAll('.trainer-cat-chip').forEach(b => b.classList.toggle('active', b === first));
+          state.category = first ? first.dataset.cat : 'addsub2';
+        }
+        const [titleKey, subKey] = SECTION_TEXT[state.section];
+        const title = document.querySelector('.trainer-header h1');
+        const sub = document.querySelector('.trainer-header p');
+        if (title) {
+          title.dataset.i18n = titleKey;
+          title.textContent = t(titleKey);
+        }
+        if (sub) {
+          sub.dataset.i18n = subKey;
+          sub.textContent = t(subKey);
+        }
+      }
+
+      document.querySelectorAll('.trainer-section-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.dataset.section === state.section) return;
+          state.section = btn.dataset.section;
+          syncPanel();
+          const url = new URL(location.href);
+          url.searchParams.delete('cat');
+          if (state.section === 'count') url.searchParams.delete('section');
+          else url.searchParams.set('section', state.section);
+          history.replaceState(null, '', url);
+          restartTraining();
+        });
+      });
+
       // Новые настройки — новые примеры; работа над ошибками при этом прекращается
       function restartTraining() {
         state.streak = 0;
@@ -589,6 +654,7 @@
           state.school = btn.dataset.school === 'high' ? 'high' : 'basic';
           localStorage.setItem(SCHOOL_KEY, state.school);
           syncSchoolChips();
+          syncPanel();
           restartTraining();
         });
       });
@@ -758,6 +824,18 @@
           trainerInput.focus();
         });
       });
+
+      // Ссылка ?section=equations или ?cat=eq_quadratic открывает нужный раздел
+      const params = new URLSearchParams(location.search);
+      if (SECTION_TEXT[params.get('section')]) state.section = params.get('section');
+      const linkedChip = params.get('cat')
+        && document.querySelector(`.trainer-cat-chip[data-cat="${CSS.escape(params.get('cat'))}"]`);
+      if (linkedChip) {
+        document.querySelectorAll('.trainer-cat-chip').forEach(b => b.classList.toggle('active', b === linkedChip));
+        state.category = linkedChip.dataset.cat;
+        state.section = linkedChip.closest('[data-section-group]')?.dataset.sectionGroup || state.section;
+      }
+      syncPanel();
 
       // Запуск по умолчанию: открываем лист примеров (режим «Тренажёр»)
       updateReviewButtons();

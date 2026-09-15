@@ -3141,7 +3141,7 @@ body.dark .trainer-panel {
   border-color: #253554;
 }
 
-.trainer-school-row, .trainer-categories-row, .trainer-diff-row, .trainer-mode-row {
+.trainer-section-row, .trainer-school-row, .trainer-categories-row, .trainer-diff-row, .trainer-mode-row {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -3161,7 +3161,7 @@ body.dark .trainer-panel {
   gap: 8px;
 }
 
-.trainer-school-chip, .trainer-cat-chip, .trainer-mode-chip, .trainer-diff-chip, .sheet-count-chip {
+.trainer-section-chip, .trainer-school-chip, .trainer-cat-chip, .trainer-mode-chip, .trainer-diff-chip, .sheet-count-chip {
   border: 1.5px solid var(--line, #e2e8f0);
   background: #f8fafc;
   color: var(--ink);
@@ -3171,27 +3171,27 @@ body.dark .trainer-panel {
   cursor: pointer;
   transition: all 0.18s ease;
 }
-.trainer-school-chip:hover, .trainer-cat-chip:hover, .trainer-mode-chip:hover, .trainer-diff-chip:hover, .sheet-count-chip:hover {
+.trainer-section-chip:hover, .trainer-school-chip:hover, .trainer-cat-chip:hover, .trainer-mode-chip:hover, .trainer-diff-chip:hover, .sheet-count-chip:hover {
   border-color: #93c5fd;
   background: #eff6ff;
   transform: translateY(-1px);
 }
-.trainer-school-chip.active, .trainer-cat-chip.active, .trainer-mode-chip.active, .trainer-diff-chip.active, .sheet-count-chip.active {
+.trainer-section-chip.active, .trainer-school-chip.active, .trainer-cat-chip.active, .trainer-mode-chip.active, .trainer-diff-chip.active, .sheet-count-chip.active {
   background: #1764ff;
   border-color: #1764ff;
   color: #fff;
   box-shadow: 0 3px 12px rgba(23, 100, 255, 0.25);
 }
-body.dark .trainer-school-chip, body.dark .trainer-cat-chip, body.dark .trainer-mode-chip, body.dark .trainer-diff-chip, body.dark .sheet-count-chip {
+body.dark .trainer-section-chip, body.dark .trainer-school-chip, body.dark .trainer-cat-chip, body.dark .trainer-mode-chip, body.dark .trainer-diff-chip, body.dark .sheet-count-chip {
   background: #1b2944;
   border-color: #2a3d63;
   color: #e2e8f0;
 }
-body.dark .trainer-school-chip:hover, body.dark .trainer-cat-chip:hover, body.dark .trainer-mode-chip:hover, body.dark .trainer-diff-chip:hover, body.dark .sheet-count-chip:hover {
+body.dark .trainer-section-chip:hover, body.dark .trainer-school-chip:hover, body.dark .trainer-cat-chip:hover, body.dark .trainer-mode-chip:hover, body.dark .trainer-diff-chip:hover, body.dark .sheet-count-chip:hover {
   background: #233557;
   border-color: #3b82f6;
 }
-body.dark .trainer-school-chip.active, body.dark .trainer-cat-chip.active, body.dark .trainer-mode-chip.active, body.dark .trainer-diff-chip.active, body.dark .sheet-count-chip.active {
+body.dark .trainer-section-chip.active, body.dark .trainer-school-chip.active, body.dark .trainer-cat-chip.active, body.dark .trainer-mode-chip.active, body.dark .trainer-diff-chip.active, body.dark .sheet-count-chip.active {
   background: #2563eb;
   border-color: #2563eb;
   color: #fff;
@@ -3537,6 +3537,51 @@ body.dark .feedback-hint-wrap {
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
+}
+
+/* Разделы «Уравнения» и «Выражения»: подгруппа категорий, подпись задания,
+   широкие ячейки листа — уравнение не влезает в треть строки */
+.trainer-categories-row .trainer-chip-group + .trainer-chip-subgroup {
+  margin-top: 6px;
+}
+.trainer-chip-subgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.trainer-sublabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.trainer-question-box {
+  flex-direction: column;
+  gap: 10px;
+}
+.trainer-formula {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.trainer-formula.trainer-formula--task {
+  font-size: 26px;
+}
+.trainer-formula-task,
+.compact-drill-task {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.trainer-sheet-grid.trainer-sheet-grid--wide {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.trainer-sheet-grid--wide .compact-drill-answer-wrap,
+body.dark .trainer-sheet-grid--wide .compact-drill-answer-wrap {
+  width: 170px;
+}
+@media (max-width: 720px) {
+  .trainer-sheet-grid.trainer-sheet-grid--wide {
+    grid-template-columns: 1fr;
+  }
 }
 .feedback-hint-title {
   display: block;

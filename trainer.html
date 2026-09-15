@@ -90,9 +90,18 @@
         </div>
       </div>
 
+      <div class="trainer-section-row">
+        <span class="trainer-label" data-i18n="section_label">Раздел:</span>
+        <div class="trainer-chip-group" id="trainer-section-group">
+          <button type="button" class="trainer-section-chip active" data-section="count" data-i18n="section_count">🧮 Счёт</button>
+          <button type="button" class="trainer-section-chip" data-section="equations" data-i18n="section_equations">⚖️ Уравнения</button>
+          <button type="button" class="trainer-section-chip" data-section="expressions" data-i18n="section_expressions">🔣 Выражения</button>
+        </div>
+      </div>
+
       <div class="trainer-categories-row">
-        <span class="trainer-label" data-i18n="cat_label">Категория вычислений:</span>
-        <div class="trainer-chip-group" id="trainer-category-group">
+        <span class="trainer-label" data-i18n="cat_label">Категория:</span>
+        <div class="trainer-chip-group" id="trainer-category-group" data-section-group="count">
           <button type="button" class="trainer-cat-chip active" data-cat="addsub2" data-i18n="cat_addsub2">➕ Двузначные ±</button>
           <button type="button" class="trainer-cat-chip" data-cat="addsub3" data-i18n="cat_addsub3">➕ Трёхзначные ±</button>
           <button type="button" class="trainer-cat-chip" data-cat="multdiv" data-i18n="cat_multdiv">✖️ Умножение и деление</button>
@@ -102,6 +111,29 @@
           <button type="button" class="trainer-cat-chip" data-cat="algebra_powers" data-i18n="cat_algebra_powers">🔤 Степени с переменными</button>
           <button type="button" class="trainer-cat-chip" data-cat="negatives" data-i18n="cat_negatives">❄️ Отрицательные числа</button>
           <button type="button" class="trainer-cat-chip" data-cat="mix" data-i18n="cat_mix">🎲 Микс (всё подряд)</button>
+        </div>
+        <div class="trainer-chip-group" data-section-group="equations" hidden>
+          <button type="button" class="trainer-cat-chip" data-cat="eq_linear" data-i18n="cat_eq_linear">📏 Линейные</button>
+          <button type="button" class="trainer-cat-chip" data-cat="eq_quadratic" data-i18n="cat_eq_quadratic">📐 Квадратные</button>
+          <button type="button" class="trainer-cat-chip" data-cat="eq_rational" data-i18n="cat_eq_rational">🍰 Дробные</button>
+          <button type="button" class="trainer-cat-chip" data-cat="eq_irrational" data-i18n="cat_eq_irrational" data-high-only>√ С корнем</button>
+          <button type="button" class="trainer-cat-chip" data-cat="eq_mix" data-i18n="cat_eq_mix">🎲 Микс</button>
+        </div>
+        <div class="trainer-chip-subgroup" data-section-group="equations" data-high-only hidden>
+          <span class="trainer-sublabel" data-i18n="cat_group_advanced">Тригонометрические, показательные и логарифмические</span>
+          <div class="trainer-chip-group">
+            <button type="button" class="trainer-cat-chip" data-cat="eq_trig" data-i18n="cat_eq_trig">🌀 Тригонометрические</button>
+            <button type="button" class="trainer-cat-chip" data-cat="eq_exp" data-i18n="cat_eq_exp">🚀 Показательные</button>
+            <button type="button" class="trainer-cat-chip" data-cat="eq_log" data-i18n="cat_eq_log">🪵 Логарифмические</button>
+            <button type="button" class="trainer-cat-chip" data-cat="eq_adv_mix" data-i18n="cat_eq_adv_mix">🎲 Микс</button>
+          </div>
+        </div>
+        <div class="trainer-chip-group" data-section-group="expressions" hidden>
+          <button type="button" class="trainer-cat-chip" data-cat="expr_poly" data-i18n="cat_expr_poly">➕ Действия с многочленами</button>
+          <button type="button" class="trainer-cat-chip" data-cat="expr_formulas" data-i18n="cat_expr_formulas">✨ Формулы сокращённого умножения</button>
+          <button type="button" class="trainer-cat-chip" data-cat="expr_factor" data-i18n="cat_expr_factor">🧩 Разложение на множители</button>
+          <button type="button" class="trainer-cat-chip" data-cat="expr_fractions" data-i18n="cat_expr_fractions">➗ Алгебраические дроби</button>
+          <button type="button" class="trainer-cat-chip" data-cat="expr_mix" data-i18n="cat_expr_mix">🎲 Микс</button>
         </div>
       </div>
 
@@ -216,6 +248,7 @@
       <!-- Карточка с примером -->
       <div class="trainer-card" id="trainer-card">
         <div class="trainer-question-box" id="question-box">
+          <div class="trainer-formula-task" id="formula-task" hidden></div>
           <div class="trainer-formula" id="formula-display">
             <!-- KaTeX formula rendered here -->
           </div>
@@ -271,6 +304,11 @@
           <button type="button" class="numpad-key op" data-key="x">x</button>
           <button type="button" class="numpad-key op" data-key="^">^</button>
 
+          <button type="button" class="numpad-key op" data-key=";">;</button>
+          <button type="button" class="numpad-key op" data-key="(">(</button>
+          <button type="button" class="numpad-key op" data-key=")">)</button>
+          <button type="button" class="numpad-key op" data-key="√">√</button>
+
           <button type="button" class="numpad-key enter" data-key="enter" style="grid-column: span 4;" data-i18n="trainer_btn_check">↵ Проверить</button>
         </div>
 
@@ -323,7 +361,8 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/trainer.js?v=20260914-3"></script>
-  <script src="/trainer-page.js?v=20260914-3"></script>
+  <script src="/trainer.js?v=20260915-1"></script>
+  <script src="/trainer-algebra.js?v=20260915-1"></script>
+  <script src="/trainer-page.js?v=20260915-1"></script>
 </body>
 </html>
