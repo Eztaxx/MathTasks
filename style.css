@@ -234,22 +234,6 @@ body.dark .auth-dialog input,body.dark .task-form input,body.dark .task-form sel
 @media(max-width:720px){.admin-topbar{padding:12px 14px;gap:10px}.admin-main{padding:16px 14px 40px}}
 
 /* ── Фильтр по классам на главной ────────────────────────────────── */
-.grades{margin-top:28px}
-.grades h2{font-size:18px;font-weight:800;margin:0 0 14px;color:var(--ink);letter-spacing:-.01em}
-.grade-filter{display:flex;flex-direction:column;gap:18px}
-.grade-stage-block{display:flex;flex-direction:column;gap:10px;background:transparent;border:none;padding:0}
-.grade-stage-header{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
-.stage-badge{display:inline-flex;align-items:center;gap:6px;font:700 12px Manrope;letter-spacing:.02em;padding:4px 10px;border-radius:8px;white-space:nowrap}
-.stage-badge-pamat{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
-.stage-badge-vidus{background:#f3f5f9;color:#334155;border:1px solid #dbe2ec}
-.stage-sub{font-size:12px;font-weight:500;color:var(--muted)}
-.grade-chips-list{display:flex;flex-wrap:wrap;gap:8px;scrollbar-width:thin}
-.grade-chip{border:1px solid var(--line);border-radius:999px;background:#fff;color:#455471;font:600 12.5px Manrope;padding:7px 15px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,0.02)}
-.grade-chip:hover{border-color:#bad1fa;background:#f0f5ff;color:#1764ff;transform:translateY(-1px)}
-.grade-chip.active{border-color:#1764ff;background:#1764ff;color:#fff;box-shadow:0 2px 8px rgba(23,100,255,0.25);transform:translateY(-1px)}
-.grade-chip-exam{border-color:#fcd34d;background:#fffdf5;color:#92400e}
-.grade-chip-exam:hover{border-color:#f59e0b;background:#fef3c7;color:#78350f}
-.grade-chip-exam.active{border-color:#d97706;background:#d97706;color:#fff;box-shadow:0 2px 8px rgba(217,119,6,0.3)}
 .grade-badge{display:inline-block;font-size:11px;font-weight:600;padding:4px 9px;border-radius:6px;color:#8a5a00;background:#fff3dd;white-space:nowrap}
 .topic-card .grade-badge{margin-top:2px}
 
@@ -277,17 +261,7 @@ body.dark .auth-dialog input,body.dark .task-form input,body.dark .task-form sel
 .grade-header-badge.badge-purple{background:#f3e8ff;color:#6b21a8;border:1px solid #e9d5ff}
 .grade-topics-count{font:700 12px Manrope;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px 11px}
 
-/* Баннер фильтра по классу */
 
-body.dark .grade-stage-block{background:transparent;border:none}
-body.dark .stage-badge-pamat{background:#172554;color:#93c5fd;border-color:#1e3a8a}
-body.dark .stage-badge-vidus{background:#121824;color:#c9d2e3;border-color:#1c2331}
-body.dark .grade-chip{background:#0f1420;border-color:#1f2839;color:#c4cce0;box-shadow:none}
-body.dark .grade-chip:hover{background:#1e2e4d;border-color:#5a92ff;color:#93c5fd}
-body.dark .grade-chip.active{background:#1764ff;border-color:#1764ff;color:#fff}
-body.dark .grade-chip-exam{background:#2c210d;border-color:#78490a;color:#fcd34d}
-body.dark .grade-chip-exam:hover{background:#3b2d13;border-color:#a16207;color:#fef08a}
-body.dark .grade-chip-exam.active{background:#d97706;border-color:#d97706;color:#fff}
 body.dark .grade-badge{color:#ffcd7a;background:#3a2c14}
 
 body.dark .grade-bullet{background:#172554;color:#93c5fd}
@@ -301,11 +275,6 @@ body.dark .grade-header-badge.badge-blue{background:#1e3a8a;color:#bfdbfe;border
 body.dark .grade-header-badge.badge-purple{background:#581c87;color:#e9d5ff;border-color:#3b0764}
 
 @media(max-width:720px){
-  .grades{margin-top:20px}
-  .grade-stage-block{padding:0}
-  .grade-chips-list{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
-  .grade-chips-list::-webkit-scrollbar{height:4px}
-  .grade-chips-list::-webkit-scrollbar-thumb{background:#c3d2ea;border-radius:4px}
   .grade-header-title{font-size:17px}
 }
 
@@ -963,20 +932,6 @@ body.dark .exam-intro{background:#0e1219;border-color:#1c2331}
 @media(max-width:640px){.home-daily-meta{order:3;flex-basis:100%}}
 #view-about .hero{margin-bottom:22px}
 
-/* Чипы классов на главной стали ссылками на страницу класса. */
-a.grade-chip{text-decoration:none;display:inline-block}
-/* Уровни старшей школы: бирюзовый — не спорит ни с золотым 9 классом,
-   ни с синими чипами классов. Знак уровня — смайлик в подписи. */
-/* Уровни старшей школы — у каждого свой цвет: основа — зелёный, рост —
-   синий, вершина — бордовый. Фон и рамка — оттенки того же цвета (--lvl). */
-a.grade-chip.grade-chip-level{--lvl:#15803d;border-color:color-mix(in srgb,var(--lvl) 35%,#fff);background:color-mix(in srgb,var(--lvl) 8%,#fff);color:var(--lvl)}
-a.grade-chip.level-matematika-1{--lvl:#2563eb}
-a.grade-chip.level-matematika-2{--lvl:#9f1239}
-a.grade-chip.grade-chip-level:hover{border-color:var(--lvl);background:color-mix(in srgb,var(--lvl) 14%,#fff);color:var(--lvl)}
-a.grade-chip.grade-chip-level.active{border-color:var(--lvl);background:var(--lvl);color:#fff;box-shadow:0 2px 8px color-mix(in srgb,var(--lvl) 30%,transparent)}
-body.dark a.grade-chip.grade-chip-level{background:color-mix(in srgb,var(--lvl) 14%,#0a0d14);border-color:color-mix(in srgb,var(--lvl) 45%,#0a0d14);color:color-mix(in srgb,var(--lvl) 50%,#fff)}
-body.dark a.grade-chip.grade-chip-level:hover{background:color-mix(in srgb,var(--lvl) 24%,#0a0d14);border-color:color-mix(in srgb,var(--lvl) 70%,#fff);color:color-mix(in srgb,var(--lvl) 35%,#fff)}
-body.dark a.grade-chip.grade-chip-level.active{background:var(--lvl);border-color:var(--lvl);color:#fff}
 
 /* Метка класса у темы в меню, когда выбран режим «Все классы». */
 
