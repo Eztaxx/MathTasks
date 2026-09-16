@@ -4801,8 +4801,73 @@ document.addEventListener('click', event => {
 });
 
 /* ── Интерактивный графопостроитель (3.4) ─────────────────────────── */
-let plotterScale = 30;
-let plotterOrigin = { x: 340, y: 190 };
+/* Рисует общий движок public/plotter.js — тот же, что на полноэкранной
+   странице /plotter. Диалог берёт оттуда перетаскивание, колесо и щипок:
+   раньше масштаб менялся только кнопками, а центр каждый раз возвращался
+   в середину холста, и разглядеть график вблизи было нельзя. */
+let dialogPlotter = null;
+
+function plotterExprValue() {
+  const input = document.querySelector('#plotter-expr');
+  return input ? input.value : 'x^2';
+}
+
+/* Ссылка «на весь экран» несёт формулу и текущее окно просмотра,
+   чтобы большая страница открылась ровно на том же месте. */
+function syncPlotterFullLink() {
+  const link = document.querySelector('#plotter-fullscreen');
+  if (!link) return;
+  const params = new URLSearchParams({ f: plotterExprValue().trim() });
+  if (dialogPlotter) {
+    const view = dialogPlotter.getView();
+    params.set('cx', String(Math.round(view.cx * 1000) / 1000));
+    params.set('cy', String(Math.round(view.cy * 1000) / 1000));
+    params.set('s', String(Math.round(view.scale * 1000) / 1000));
+  }
+  link.href = '/plotter.html?' + params.toString();
+}
+
+function ensureDialogPlotter() {
+  if (dialogPlotter) return dialogPlotter;
+  const canvas = document.querySelector('#plotter-canvas');
+  const engine = window.MathPlotter;
+  if (!canvas || !engine) return null;
+  const tr = () => window.MathTasks.t || (k => k);
+  dialogPlotter = engine.createPlotter(canvas, {
+    onCoords: point => {
+      const coords = document.querySelector('#plotter-coords');
+      if (!coords) return;
+      coords.textContent = point ? `x: ${point.x.toFixed(2)}, y: ${point.y.toFixed(2)}` : '';
+    },
+    onRoots: roots => {
+      const info = document.querySelector('#plotter-roots');
+      if (!info) return;
+      const t = tr();
+      if (roots.length) {
+        const rootStrs = roots.slice(0, 4).map(r => r.toFixed(2)).join(', ');
+        info.innerHTML = `${escapeHtml(t('plot_roots'))}<strong>x ≈ ${escapeHtml(rootStrs)}</strong>`;
+      } else {
+        info.textContent = t('plot_no_roots');
+      }
+    },
+    onViewChange: syncPlotterFullLink
+  });
+  /* Жесты теперь наши: прокрутка страницы пальцем по холсту мешала бы
+     двигать график. */
+  canvas.style.touchAction = 'none';
+  return dialogPlotter;
+}
+
+function drawFunctionPlot() {
+  const plot = ensureDialogPlotter();
+  if (!plot) return;
+  const items = plot.setExpressions(plotterExprValue());
+  const info = document.querySelector('#plotter-roots');
+  if (info && (!items.length || items.some(item => !item.ok))) {
+    info.textContent = (window.MathTasks.t || (k => k))('plot_formula_error');
+  }
+  syncPlotterFullLink();
+}
 
 function openPlotterDialog() {
   const dialog = document.querySelector('#plotter-dialog');
@@ -4810,250 +4875,6 @@ function openPlotterDialog() {
   if (typeof dialog.showModal === 'function') dialog.showModal();
   else dialog.setAttribute('open', '');
   setTimeout(drawFunctionPlot, 50);
-}
-
-function parseMathExpr(expr) {
-  let clean = (expr || '')
-    .trim()
-    .replace(/\s+/g, '')
-    .replace(/²/g, '^2')
-    .replace(/³/g, '^3')
-    .replace(/√\s*\(([^)]+)\)/g, 'sqrt($1)')
-    .replace(/√\s*(\d+|[a-zA-Z]+)/g, 'sqrt($1)')
-    .replace(/√/g, 'sqrt')
-    .replace(/·/g, '*')
-    .replace(/π/g, 'pi')
-    // Поддержка модуля: |x| или |x - 2|
-    .replace(/\|([^|]+)\|/g, 'abs($1)')
-    // Поддержка русской математической нотации
-    .replace(/ctg/g, '(1/tan)')
-    .replace(/tg/g, 'tan')
-    .replace(/ln/g, 'log')
-    .replace(/lg/g, 'log10');
-
-  // 1. Вставка неявного умножения: 2x -> 2*x, 2(x) -> 2*(x), (x)(y) -> (x)*(y)
-  clean = clean
-    .replace(/(\d)([a-zA-Z(])/g, '$1*$2')
-    .replace(/(\))(\d|[a-zA-Z])/g, '$1*$2')
-    .replace(/\)\(/g, ')*(');
-
-  // 2. Исправление унарного минуса перед степенью: -x^2 или -sin(x)^2 или -(x+1)^2
-  // В JS синтаксис -x**2 запрещен (SyntaxError: unparenthesized unary expression before '**')
-  // В математике -x^2 означает -(x^2) = -1 * x^2
-  const basePattern = '(?:[a-zA-Z0-9_\\.]+(?:\\([^)]+\\))?|\\([^)]+\\))';
-  const expPattern = '(?:[a-zA-Z0-9_\\.]+|\\([^)]+\\))';
-  const powerWithUnaryMinus = new RegExp(`(^|[(+\\-*/])\\s*-\\s*(${basePattern})\\s*\\^\\s*(${expPattern})`, 'g');
-  clean = clean.replace(powerWithUnaryMinus, '$1-(($2)**($3))');
-
-  // 3. Замена всех оставшихся знаков степени ^ на **
-  clean = clean.replace(/\^/g, '**');
-
-  // 4. Привязка математических функций к объекту Math
-  clean = clean
-    .replace(/sin/g, 'Math.sin')
-    .replace(/cos/g, 'Math.cos')
-    .replace(/tan/g, 'Math.tan')
-    .replace(/sqrt/g, 'Math.sqrt')
-    .replace(/abs/g, 'Math.abs')
-    .replace(/log10/g, 'Math.log10')
-    .replace(/log/g, 'Math.log')
-    .replace(/exp/g, 'Math.exp')
-    .replace(/pi/gi, 'Math.PI')
-    .replace(/\be\b/g, 'Math.E');
-
-  // Безопасность: разрешаем только допустимые математические символы
-  if (!/^[0-9a-zA-Z_\.\+\-\*\/\(\)\,\s]+$/.test(clean)) {
-    return null;
-  }
-  // Проверяем, что все идентификаторы входят в белый список Math-функций и переменных
-  const words = clean.match(/[a-zA-Z_]+/g) || [];
-  const allowedWords = new Set(['x', 'Math', 'sin', 'cos', 'tan', 'sqrt', 'abs', 'PI', 'E', 'pow', 'log', 'log10', 'exp']);
-  if (!words.every(w => allowedWords.has(w))) {
-    return null;
-  }
-
-  try {
-    const fn = new Function('x', `"use strict"; return (${clean});`);
-    const test = fn(1);
-    if (typeof test !== 'number') return null;
-    return fn;
-  } catch {
-    return null;
-  }
-}
-
-/* Холст подгоняем под контейнер: жёсткие 680x380 на телефоне 360-430px
-   вызывали горизонтальную прокрутку всей страницы и разваливали диалог.
-   Рисуем в физических пикселях, а размер в CSS оставляем логическим —
-   иначе на экранах с высокой плотностью график был бы мыльным. */
-function resizePlotterCanvas(canvas) {
-  const box = canvas.parentElement;
-  const cssWidth = Math.max(240, Math.floor(box ? box.clientWidth : 320));
-  const cssHeight = Math.max(220, Math.min(380, Math.round(cssWidth * 0.56)));
-  const ratio = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.style.width = cssWidth + 'px';
-  canvas.style.height = cssHeight + 'px';
-  const wanted = { w: Math.round(cssWidth * ratio), h: Math.round(cssHeight * ratio) };
-  if (canvas.width !== wanted.w || canvas.height !== wanted.h) {
-    canvas.width = wanted.w;
-    canvas.height = wanted.h;
-  }
-  return ratio;
-}
-
-function drawFunctionPlot() {
-  const canvas = document.querySelector('#plotter-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const ratio = resizePlotterCanvas(canvas);
-  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  const w = canvas.width / ratio;
-  const h = canvas.height / ratio;
-  plotterOrigin = { x: w / 2, y: h / 2 };
-
-  ctx.clearRect(0, 0, w, h);
-
-  // Сетка
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = document.body.classList.contains('dark') ? '#1e293b' : '#e2e8f0';
-  ctx.beginPath();
-  for (let x = plotterOrigin.x % plotterScale; x < w; x += plotterScale) {
-    ctx.moveTo(x, 0); ctx.lineTo(x, h);
-  }
-  for (let y = plotterOrigin.y % plotterScale; y < h; y += plotterScale) {
-    ctx.moveTo(0, y); ctx.lineTo(w, y);
-  }
-  ctx.stroke();
-
-  // Оси координат
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = document.body.classList.contains('dark') ? '#94a3b8' : '#64748b';
-  ctx.beginPath();
-  ctx.moveTo(0, plotterOrigin.y); ctx.lineTo(w, plotterOrigin.y);
-  ctx.moveTo(plotterOrigin.x, 0); ctx.lineTo(plotterOrigin.x, h);
-  ctx.stroke();
-
-  // Подписи осей
-  ctx.font = '12px Manrope, sans-serif';
-  ctx.fillStyle = document.body.classList.contains('dark') ? '#cbd5e1' : '#475569';
-  ctx.fillText('X', w - 16, plotterOrigin.y - 8);
-  ctx.fillText('Y', plotterOrigin.x + 8, 16);
-  ctx.fillText('0', plotterOrigin.x + 4, plotterOrigin.y + 14);
-
-  // Оцифровка осей
-  ctx.font = '10px Manrope, sans-serif';
-  for (let x = plotterOrigin.x + plotterScale * 2; x < w - 20; x += plotterScale * 2) {
-    const val = Math.round((x - plotterOrigin.x) / plotterScale);
-    ctx.fillText(String(val), x - 4, plotterOrigin.y + 14);
-  }
-  for (let x = plotterOrigin.x - plotterScale * 2; x > 20; x -= plotterScale * 2) {
-    const val = Math.round((x - plotterOrigin.x) / plotterScale);
-    ctx.fillText(String(val), x - 8, plotterOrigin.y + 14);
-  }
-  for (let y = plotterOrigin.y - plotterScale * 2; y > 20; y -= plotterScale * 2) {
-    const val = Math.round((plotterOrigin.y - y) / plotterScale);
-    ctx.fillText(String(val), plotterOrigin.x + 6, y + 4);
-  }
-  for (let y = plotterOrigin.y + plotterScale * 2; y < h - 20; y += plotterScale * 2) {
-    const val = Math.round((plotterOrigin.y - y) / plotterScale);
-    ctx.fillText(String(val), plotterOrigin.x + 6, y + 4);
-  }
-
-  // Отрисовка графика функции
-  const exprInput = document.querySelector('#plotter-expr');
-  const expr = (exprInput ? exprInput.value : 'x^2 - 4') || 'x';
-  const fn = parseMathExpr(expr);
-  const infoRoots = document.querySelector('#plotter-roots');
-
-  if (!fn) {
-    if (infoRoots) infoRoots.textContent = (window.MathTasks.t || (k => k))('plot_formula_error');
-    return;
-  }
-
-  ctx.lineWidth = 2.5;
-  ctx.strokeStyle = '#1764ff';
-  ctx.beginPath();
-
-  let started = false;
-  const roots = [];
-  let prevY = null;
-  let prevMathX = null;
-  let prevPy = null;
-
-  for (let px = 0; px <= w; px += 1.5) {
-    const mathX = (px - plotterOrigin.x) / plotterScale;
-    let mathY;
-    try {
-      mathY = fn(mathX);
-    } catch {
-      started = false;
-      continue;
-    }
-
-    if (!Number.isFinite(mathY)) {
-      started = false;
-      continue;
-    }
-
-    /* Смена знака засчитывается за ноль только на непрерывном участке.
-       У tan(x) и 1/x знак меняется и через асимптоту, и без этой проверки
-       точки «нулей» вставали в разрывы: у tan(x) появлялись ложные
-       корни около -3.5пи и -2.5пи, где функция уходит в бесконечность. */
-    const visibleSpan = h / plotterScale;
-    const continuous = prevY !== null && Math.abs(mathY - prevY) < visibleSpan;
-    if (continuous && ((prevY < 0 && mathY >= 0) || (prevY > 0 && mathY <= 0))) {
-      const rootX = prevMathX + (mathX - prevMathX) * (-prevY) / (mathY - prevY);
-      roots.push(rootX);
-    }
-    prevY = mathY;
-    prevMathX = mathX;
-
-    const py = plotterOrigin.y - mathY * plotterScale;
-    if (py < -h * 2 || py > h * 3) {
-      started = false;
-      continue;
-    }
-
-    /* Разрыв функции: между соседними точками значение прыгнуло больше,
-       чем на высоту холста. Так tan(x) и 1/x перестают рисовать
-       паразитную вертикаль между +бесконечностью и -бесконечностью. */
-    if (started && prevPy !== null && Math.abs(py - prevPy) > h) {
-      started = false;
-    }
-    prevPy = py;
-
-    if (!started) {
-      ctx.moveTo(px, py);
-      started = true;
-    } else {
-      ctx.lineTo(px, py);
-    }
-  }
-  ctx.stroke();
-
-  // Нули функции (точки пересечения с осью X)
-  roots.forEach(rx => {
-    const rpx = plotterOrigin.x + rx * plotterScale;
-    const rpy = plotterOrigin.y;
-    if (rpx >= 0 && rpx <= w) {
-      ctx.fillStyle = '#e11d48';
-      ctx.beginPath();
-      ctx.arc(rpx, rpy, 4.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    }
-  });
-
-  if (infoRoots) {
-    if (roots.length) {
-      const rootStrs = roots.slice(0, 4).map(r => r.toFixed(2)).join(', ');
-      infoRoots.innerHTML = `${(window.MathTasks.t || (k => k))('plot_roots')}<strong>x ≈ ${rootStrs}</strong>`;
-    } else {
-      infoRoots.textContent = (window.MathTasks.t || (k => k))('plot_no_roots');
-    }
-  }
 }
 
 /* ── Обработчики интерактивных инструментов ── */
@@ -5612,20 +5433,17 @@ document.addEventListener('click', event => {
 
   if (event.target.closest('#plotter-zoom-in')) {
     event.preventDefault();
-    plotterScale = Math.min(100, plotterScale * 1.25);
-    drawFunctionPlot();
+    ensureDialogPlotter()?.zoomBy(1.4);
     return;
   }
   if (event.target.closest('#plotter-zoom-out')) {
     event.preventDefault();
-    plotterScale = Math.max(10, plotterScale / 1.25);
-    drawFunctionPlot();
+    ensureDialogPlotter()?.zoomBy(1 / 1.4);
     return;
   }
   if (event.target.closest('#plotter-zoom-reset')) {
     event.preventDefault();
-    plotterScale = 30;
-    drawFunctionPlot();
+    ensureDialogPlotter()?.reset();
     return;
   }
 
@@ -5701,40 +5519,6 @@ document.addEventListener('click', event => {
     document.querySelector('#lightbox-dialog')?.close();
     return;
   }
-});
-
-/* Координаты под указателем. Слушаем pointer-события, а не mousemove:
-   на телефоне мыши нет, и значения так и оставались x: 0.0, y: 0.0.
-   Координаты считаем в логических пикселях — холст отрисован
-   с масштабом devicePixelRatio. */
-const plotterCanvas = document.querySelector('#plotter-canvas');
-if (plotterCanvas) {
-  const showPlotterCoords = event => {
-    const canvas = event.currentTarget;
-    const rect = canvas.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    const ratio = Math.min(window.devicePixelRatio || 1, 2);
-    const px = (event.clientX - rect.left) * (canvas.width / ratio / rect.width);
-    const py = (event.clientY - rect.top) * (canvas.height / ratio / rect.height);
-    const mathX = ((px - plotterOrigin.x) / plotterScale).toFixed(2);
-    const mathY = ((plotterOrigin.y - py) / plotterScale).toFixed(2);
-    const coords = document.querySelector('#plotter-coords');
-    if (coords) coords.textContent = `x: ${mathX}, y: ${mathY}`;
-  };
-  plotterCanvas.addEventListener('pointermove', showPlotterCoords);
-  // Касание без движения тоже должно показывать точку.
-  plotterCanvas.addEventListener('pointerdown', showPlotterCoords);
-  // Прокрутку страницы пальцем по графику не перехватываем: жестов тут нет.
-  plotterCanvas.style.touchAction = 'pan-y';
-}
-
-// Поворот экрана и смена ширины окна меняют размер холста.
-let plotterResizeTimer;
-window.addEventListener('resize', () => {
-  const dialog = document.querySelector('#plotter-dialog');
-  if (!dialog?.open) return;
-  clearTimeout(plotterResizeTimer);
-  plotterResizeTimer = setTimeout(drawFunctionPlot, 150);
 });
 
 document.querySelector('#plotter-expr')?.addEventListener('keydown', event => {
