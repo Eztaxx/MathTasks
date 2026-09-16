@@ -123,9 +123,13 @@
   const params = new URLSearchParams(location.search);
   const startExpr = (params.get('f') || '').trim();
   if (startExpr) input.value = startExpr;
+  /* Пустой параметр — не ноль: Number(null) даёт 0, и масштаб из адреса
+     обнулялся, а график открывался вытянутым на десятки тысяч единиц. */
   const num = key => {
-    const raw = Number(params.get(key));
-    return Number.isFinite(raw) ? raw : undefined;
+    const raw = params.get(key);
+    if (raw === null || raw.trim() === '') return undefined;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : undefined;
   };
   plotter.setView({ cx: num('cx'), cy: num('cy'), scale: num('s') });
   apply(input.value);

@@ -76,7 +76,7 @@ const CROSS_TAG_SLUGS = [
 
 const BASE_SITEMAP_PATHS = [
   '/', '/tasks', '/tags', '/about', '/control-works', '/exams.html',
-  '/mock-exams.html', '/trainer.html', '/grade/visparigais',
+  '/mock-exams.html', '/trainer.html', '/plotter.html', '/grade/visparigais',
   '/grade/matematika-1', '/grade/matematika-2'
 ];
 

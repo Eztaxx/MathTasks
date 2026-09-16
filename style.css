@@ -1834,6 +1834,49 @@ body.dark .plotter-chip:hover{background:#172340;border-color:#1764ff;color:#70a
 body.dark .plotter-canvas-container{background:#0b0f18;border-color:#2a3a55}
 body.dark .plotter-coords{background:rgba(21,33,55,.85);border-color:#1f2839;color:#94a3b8}
 body.dark .plotter-zoom button{background:rgba(21,33,55,.9);border-color:#28324a;color:#cbd5e1}
+#plotter-canvas.is-dragging{cursor:grabbing}
+.plotter-info{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}
+.plotter-fullscreen{margin-left:auto;font:700 12px Manrope,sans-serif;color:#1764ff;text-decoration:none;border:1px solid #bad1fa;background:#f3f8ff;border-radius:7px;padding:5px 11px;white-space:nowrap;transition:background .15s,border-color .15s}
+.plotter-fullscreen:hover{background:#e6f0ff;border-color:#1764ff}
+body.dark .plotter-fullscreen{color:#70a3ff;background:#121c33;border-color:#28324a}
+body.dark .plotter-fullscreen:hover{background:#172340;border-color:#1764ff}
+
+/* ── Полноэкранная страница графика (plotter.html) ───────────────── */
+/* Холст занимает всё, что осталось от окна: ученику нужен график,
+   а не поля вокруг него. Поэтому страница — колонка на 100dvh,
+   а .plot-stage тянется (flex:1) и отдаёт высоту холсту. */
+.plot-page{min-height:100dvh;display:flex;flex-direction:column;background:var(--bg)}
+.plot-page .plot-main{flex:1;display:flex;flex-direction:column;gap:10px;margin:0;max-width:none;padding:14px clamp(12px,3vw,26px) 16px;min-height:0}
+.plot-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.plot-expr{flex:1;min-width:210px;height:42px;padding:0 14px;border:1px solid #cbd5e1;border-radius:9px;font:600 15px Manrope,sans-serif;color:var(--ink);background:#fff;outline:0}
+.plot-expr:focus{border-color:#1764ff;box-shadow:0 0 0 3px #1764ff18}
+.plot-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font:600 12.5px Manrope,sans-serif;color:var(--muted)}
+.plot-legend-item{display:inline-flex;align-items:center;gap:6px}
+.plot-legend-item i{width:12px;height:3px;border-radius:2px;display:inline-block}
+.plot-legend-item.is-bad{color:#e11d48;text-decoration:line-through}
+.plot-legend-error{color:#e11d48;font-weight:700}
+.plot-presets{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.plot-stage{position:relative;flex:1;min-height:260px;background:#fbfcfe;border:1px solid #dbe3f0;border-radius:12px;overflow:hidden;box-shadow:inset 0 1px 4px rgba(0,0,0,.03)}
+#plot-canvas{position:absolute;inset:0;display:block;cursor:crosshair;touch-action:none}
+#plot-canvas.is-dragging{cursor:grabbing}
+#plot-canvas:focus-visible{outline:2px solid #1764ff;outline-offset:-2px}
+.plot-readout{position:absolute;left:12px;bottom:10px;font:600 12px Manrope,sans-serif;color:#475569;background:rgba(255,255,255,.88);padding:4px 10px;border-radius:6px;border:1px solid #e2e8f0;pointer-events:none;opacity:0;transition:opacity .15s}
+.plot-readout.is-on{opacity:1}
+.plot-zoom{right:12px;bottom:10px}
+.plot-zoom button{width:34px;height:34px;font-size:14px}
+.plot-foot{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);min-height:18px}
+.plot-roots{font-weight:700;color:var(--ink)}
+.plot-hint{flex:1;min-width:220px}
+#plot-copy-link.is-done{color:#0f9d58;border-color:#0f9d58}
+body.dark .plot-expr{background:#121824;border-color:#28324a;color:#edf2ff}
+body.dark .plot-stage{background:#0b0f18;border-color:#2a3a55}
+body.dark .plot-readout{background:rgba(21,33,55,.94);border-color:#2a3a55;color:#dbe4f5}
+@media (max-width:640px){
+  .plot-main{padding:10px 12px 12px;gap:8px}
+  .plot-expr{min-width:150px;height:40px;font-size:14px}
+  .plot-hint{display:none}
+  .plot-zoom button{width:38px;height:38px}
+}
 
 /* ── Toast-уведомления (3.6) ─────────────────────────────────────── */
 .toast-notice{position:fixed;bottom:28px;right:28px;z-index:9999;display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(11,25,53,.92);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,.25);backdrop-filter:blur(10px);font:600 13px Manrope,sans-serif;opacity:0;transform:translateY(12px) scale(.96);pointer-events:none;transition:opacity .25s ease,transform .25s ease}
