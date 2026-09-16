@@ -1897,3 +1897,92 @@ describe('analyzeImportRows: разбор импорта до записи в б
     expect(rows[0].notes.join(' ')).not.toContain('vienadojumi');
   });
 });
+
+/* Строка-образец лежит внутри самого промпта (Few-Shot): словесных правил
+   моделям не хватало, кавычки вокруг ячейки с переносом строки терялись.
+   Раз она в промпте — она обязана разбираться импортом без замечаний,
+   иначе мы своими руками учим модель неправильному формату. */
+describe('buildTaskPrompt: строка-образец', () => {
+  // Образец идёт после строки-маркера и заканчивается пустой строкой.
+  const sampleOf = () => {
+    const lines = buildTaskPromptForTest({ grade: 8, gradeLabel: '8 класс' }).split('\n');
+    const at = lines.findIndex(line => line.startsWith('ОБРАЗЕЦ ОДНОЙ ЗАПОЛНЕННОЙ СТРОКИ'));
+    expect(at, 'в промпте нет образца строки').toBeGreaterThan(-1);
+    const rest = lines.slice(at + 1);
+    const end = rest.findIndex(line => line === '');
+    expect(end, 'образец не отделён пустой строкой').toBeGreaterThan(0);
+    return rest.slice(0, end).join('\n');
+  };
+
+  it('образец — ровно одна строка на 15 столбцов промпта', () => {
+    const tsv = PROMPT_COLUMNS_FOR_TEST.join('\t') + '\n' + sampleOf();
+    const rows = parseCsvRows(tsv, '\t');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toHaveLength(PROMPT_COLUMNS_FOR_TEST.length);
+    expect(rows[1]).toHaveLength(PROMPT_COLUMNS_FOR_TEST.length);
+  });
+
+  it('образец разбирается импортом в одну задачу без замечаний', () => {
+    const tsv = PROMPT_COLUMNS_FOR_TEST.join('\t') + '\n' + sampleOf();
+    const res = parseTasksImport(tsv);
+    expect(res.format).toBe('tsv');
+    expect(res.warnings || []).toEqual([]);
+    expect(res.tasks).toHaveLength(1);
+
+    const [task] = res.tasks;
+    expect(task.grade).toBe(8);
+    expect(task.subtopic_code).toBe('8.8.3');
+    expect(task.condition_latex_lv).toBeTruthy();
+    expect(task.answer_latex_lv).toBeTruthy();
+    expect(task.tags).toEqual(['planimetrija', 'merijumi']);
+    // Перенос внутри ячейки уцелел, удвоённая кавычка развернулась в одну.
+    expect(task.solution_latex).toContain('\n');
+    expect(task.solution_latex).toContain('"c^2=a^2+b^2"');
+    expect(task.solution_latex).not.toContain('""');
+    // Чертёж — одной строкой и проходит очистку.
+    expect(task.condition_svg).toMatch(/^<svg /);
+    expect(task.condition_svg).not.toContain('\n');
+    expect(sanitizeSvgForTest(task.condition_svg).error).toBeUndefined();
+  });
+});
+
+/* Модель иногда пишет «\\n» двумя символами вместо настоящего переноса. */
+describe('литеральное \\n в тексте задачи', () => {
+  const rowOf = solution => ['grade', 'topic_title', 'condition_latex', 'solution_latex'].join('\t')
+    + '\n' + ['8', 'Тема', 'Условие', solution].join('\t');
+
+  it('разворачивается в настоящий перенос строки', () => {
+    const [task] = parseTasksImport(rowOf('1. Первый шаг.\\n2. Второй шаг.')).tasks;
+    expect(task.solution_latex).toBe('1. Первый шаг.\n2. Второй шаг.');
+  });
+
+  it('команды LaTeX на \\n остаются нетронутыми', () => {
+    const latex = '$x \\neq 0$, $\\nu = 3$, $a \\notin B$, $\\nabla f$';
+    const [task] = parseTasksImport(rowOf(latex)).tasks;
+    expect(task.solution_latex).toBe(latex);
+    expect(task.solution_latex).not.toContain('\n');
+  });
+});
+
+/* Ячейка с переносом строки без кавычек разваливала задачу молча:
+   продолжение решения уезжало отдельной строкой, а та отбрасывалась. */
+describe('строка без условия', () => {
+  it('пропускается с предупреждением, а не молча', () => {
+    const tsv = ['grade', 'topic_title', 'condition_latex', 'solution_latex'].join('\t')
+      + '\n' + ['8', 'Тема', 'Условие', '1. Первый шаг.'].join('\t')
+      + '\n2. Второй шаг уехал отдельной строкой.';
+    const res = parseTasksImport(tsv);
+    expect(res.tasks).toHaveLength(1);
+    expect(res.warnings).toHaveLength(1);
+    expect(res.warnings[0]).toMatch(/Строка 3 пропущена/);
+    expect(res.warnings[0]).toMatch(/кавычки/);
+  });
+
+  it('пустые строки в конце файла предупреждений не дают', () => {
+    const tsv = ['grade', 'topic_title', 'condition_latex'].join('\t')
+      + '\n' + ['8', 'Тема', 'Условие'].join('\t') + '\n\n';
+    const res = parseTasksImport(tsv);
+    expect(res.tasks).toHaveLength(1);
+    expect(res.warnings || []).toEqual([]);
+  });
+});

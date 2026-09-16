@@ -1170,6 +1170,14 @@
   };
 
   /* ── Парсер CSV / TSV в структурированные темы, подтемы и задачи ── */
+  /* Модель нет-нет да и напишет «\n» двумя символами вместо настоящего
+     переноса строки. Разворачиваем — но только там, где следом не буква:
+     \neq, \nu, \notin, \nabla — обычные команды LaTeX, и замена всех
+     «\n» подряд превратила бы их в «⏎eq», «⏎u», «⏎otin», «⏎abla». */
+  const softenLiteralNewlines = value => (typeof value === 'string'
+    ? value.replace(/\\n(?![a-zA-Z])/g, '\n')
+    : value);
+
   const parseCsvToTasks = (csvText, delimiter) => {
     if (!csvText || typeof csvText !== 'string') {
       return { uniqueTopics: [], uniqueSubtopics: [], tasks: [] };
@@ -1220,9 +1228,20 @@
         const idx = headerMap[colKey];
         return (idx !== undefined && row[idx] !== undefined) ? String(row[idx]).trim() : '';
       };
+      // Условие, подсказка и решение — единственные поля, где перенос строки осмыслен.
+      const getText = colKey => softenLiteralNewlines(getVal(colKey));
 
-      const cond = getVal('condition_latex');
-      if (!cond) continue;
+      const cond = getText('condition_latex');
+      if (!cond) {
+        /* Непустая строка без условия — почти всегда ячейка с переносом
+           строки, не обёрнутая в кавычки: продолжение решения уехало
+           отдельной строкой. Раньше её молча пропускали, и решение
+           обрезалось по первую строку без единого слова. */
+        if (row.some(cell => String(cell ?? '').trim())) {
+          warnings.push(`Строка ${rIdx + 2} пропущена: нет условия. Если это продолжение решения, оберните ячейку с переносом строки в двойные кавычки "…" — иначе решение обрежется по первую строку.`);
+        }
+        continue;
+      }
 
       const gradeVal = parseFormGrade(getVal('grade'));
       /* Без столбца темы тему не придумываем. Раньше подставлялось «Без
@@ -1239,10 +1258,10 @@
       const subTitleLv = getVal('subtopic_title_lv') || null;
       const ans = getVal('answer_latex') || null;
       const ansLv = getVal('answer_latex_lv') || null;
-      const sol = getVal('solution_latex') || null;
-      const solLv = getVal('solution_latex_lv') || null;
-      const hint = getVal('hint_latex') || null;
-      const hintLv = getVal('hint_latex_lv') || null;
+      const sol = getText('solution_latex') || null;
+      const solLv = getText('solution_latex_lv') || null;
+      const hint = getText('hint_latex') || null;
+      const hintLv = getText('hint_latex_lv') || null;
       const diff = getVal('difficulty') || 'Средний';
       const pos = Number(getVal('position')) || (rIdx + 1);
       const rawTags = getVal('tags');
@@ -1275,7 +1294,7 @@
         subtopic_title: subTitle || null,
         subtopic_title_lv: subTitleLv,
         condition_latex: cond,
-        condition_latex_lv: getVal('condition_latex_lv') || null,
+        condition_latex_lv: getText('condition_latex_lv') || null,
         answer_latex: ans,
         answer_latex_lv: ansLv,
         answer_check: getVal('answer_check') || null,
@@ -1352,6 +1371,11 @@
     push('Ответ — одна таблица внутри одного блока кода ```tsv … ```: в блоке кода табуляции сохраняются при копировании, а в обычном тексте чат превращает их в пробелы или в картинку-таблицу. Столбцы разделены ТАБУЛЯЦИЕЙ, не запятой — запятая стоит в десятичных дробях и формулах. Первая строка — ровно эти заголовки:');
     push(TASK_PROMPT_COLUMNS.join('\t'));
     push('Одна строка — одна задача. Табуляции внутри ячейки нет. Если в ячейке нужен перенос строки (шаги решения), оберни всю ячейку в двойные кавычки "…", а кавычку внутри удвой: "".');
+    /* Готовая строка-образец рядом с правилами: на ней видно и кавычки
+       вокруг ячейки с переносом, и десятичную запятую, и единицы в
+       \text{}, и однострочный SVG. Словесных правил моделям не хватало. */
+    push('', 'ОБРАЗЕЦ ОДНОЙ ЗАПОЛНЕННОЙ СТРОКИ (после строки заголовков; решение в нём занимает две строки — так и должно быть, ячейка с переносом обёрнута в кавычки):');
+    push("8\tТеорема Пифагора\tPitagora teorēma\t8.8.3\tКатеты прямоугольного треугольника $ABC$ равны $6\\text{ см}$ и $8\\text{ см}$. Найдите гипотенузу.\tTaisnleņķa trijstūra $ABC$ katetes ir $6\\text{ cm}$ un $8\\text{ cm}$. Aprēķiniet hipotenūzu.\t$10\\text{ см}$\t$10\\text{ cm}$\tКвадрат гипотенузы равен сумме квадратов катетов.\tHipotenūzas kvadrāts ir vienāds ar katešu kvadrātu summu.\t\"1. По теореме Пифагора \"\"c^2=a^2+b^2\"\": $c^2=6^2+8^2$.\n2. $c^2=100$, значит $c=10\\text{ см}$.\"\t\"1. Pēc Pitagora teorēmas \"\"c^2=a^2+b^2\"\": $c^2=6^2+8^2$.\n2. $c^2=100$, tātad $c=10\\text{ cm}$.\"\tЛёгкий\tplanimetrija; merijumi\t<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><g stroke='#000' stroke-width='2' fill='none'><polygon points='80,240 320,240 80,60'/><polyline points='80,218 102,218 102,240'/></g><text x='66' y='54' fill='#000' font-family='system-ui, sans-serif' font-size='15'>B</text><text x='62' y='258' fill='#000' font-family='system-ui, sans-serif' font-size='15'>A</text><text x='330' y='258' fill='#000' font-family='system-ui, sans-serif' font-size='15'>C</text></svg>", '');
     push('Вне блока кода — ничего: ни вступления, ни заключения. Если задачи не помещаются в один ответ, остановись на конце целой строки, закрой блок кода и напиши под ним: ПРОДОЛЖЕНИЕ СЛЕДУЕТ. Когда я напишу «дальше», продолжи со следующей задачи новым блоком кода и снова начни его со строки заголовков.', '');
 
     push('СТОЛБЦЫ');

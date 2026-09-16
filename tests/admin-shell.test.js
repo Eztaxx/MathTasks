@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { parseTasksImport } from '../public/lib.js';
+import { parseTasksImport, TASK_PROMPT_COLUMNS } from '../public/lib.js';
 
 /* Каркас админки собирается при загрузке: admin.js переносит разделы на
    экраны по id и кладёт кнопки в слоты. Опечатка в id или слоте ничего
@@ -215,6 +215,15 @@ describe('каркас админки: меню и экраны', () => {
     expect(res.tasks.length).toBeGreaterThan(0);
   });
 
+
+  /* Образец на странице и промпт «🤖 Промпт для ИИ» должны просить одни и
+     те же столбцы: иначе модели достаются две разные спецификации и она
+     мешает их между собой. */
+  it('образец на странице совпадает со столбцами промпта', () => {
+    const decode = s => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    const tsv = decode(html.match(/id="tsv-sample-code">([\s\S]*?)<\/code>/)[1]);
+    expect(tsv.split('\n')[0].split('\t')).toEqual([...TASK_PROMPT_COLUMNS]);
+  });
   /* Поля выбора файла не должны звать CSV: импорт его больше не берёт. */
   it('в импорте не осталось приглашения загрузить CSV', () => {
     for (const accept of html.match(/accept="[^"]*"/g) || []) {
