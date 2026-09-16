@@ -2078,7 +2078,8 @@ function weakSpot() {
 }
 
 /* Экзамен по контексту класса. Цифры — со страницы пробных экзаменов:
-   основная школа — 2 части, 120 минут; Optimālais — 180; Augstākais — 210. */
+   основная школа — 105 + 75 минут; Vispārīgais и Optimālais — 135 + 105;
+   Augstākais — 180 одной частью (время — в EXAM_KINDS). */
 function homeExamKind() {
   if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) return 'opt';
   if (selectedGrade === 'matematika-2' || selectedGrade === 12) return 'augst';
@@ -3327,6 +3328,7 @@ async function startExam(kind, { fresh = false } = {}) {
       <section class="exam-intro">
         <ul class="exam-rules">
           <li>${escapeHtml(tr('exam_rule_time', { minutes: config.minutes }))}</li>
+          ${config.parts && config.parts.length > 1 ? `<li>${escapeHtml(tr('exam_rule_parts', { parts: config.parts.join(' + ') }))}</li>` : ''}
           <li>${escapeHtml(tr('exam_rule_tasks', { count: config.tasks }))}</li>
           <li>${escapeHtml(tr('exam_rule_guard'))}</li>
           <li>${escapeHtml(tr('exam_rule_save'))}</li>

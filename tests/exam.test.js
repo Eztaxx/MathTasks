@@ -55,13 +55,16 @@ describe('пробный экзамен: вариант', () => {
     expect(picked.map(task => task.id).sort()).toEqual([2, 3]);
   });
 
-  it('у каждого уровня есть время и число заданий', () => {
+  it('время уровня — сумма его частей, как на настоящем экзамене', () => {
     for (const kind of ['pamat', 'visp', 'opt', 'augst']) {
-      expect(EXAM_KINDS[kind].minutes).toBeGreaterThan(0);
-      expect(EXAM_KINDS[kind].tasks).toBeGreaterThan(0);
+      const config = EXAM_KINDS[kind];
+      expect(config.tasks).toBeGreaterThan(0);
+      expect(config.parts.reduce((sum, part) => sum + part, 0)).toBe(config.minutes);
     }
-    expect(EXAM_KINDS.pamat.minutes).toBe(120);
-    expect(EXAM_KINDS.augst.minutes).toBe(210);
+    expect(EXAM_KINDS.pamat.parts).toEqual([105, 75]);
+    expect(EXAM_KINDS.visp.parts).toEqual([135, 105]);
+    expect(EXAM_KINDS.opt.parts).toEqual([135, 105]);
+    expect(EXAM_KINDS.augst.parts).toEqual([180]);
   });
 });
 
