@@ -422,6 +422,116 @@
     return result;
   };
 
+
+  /* ── Журнал решений ───────────────────────────────────────────────
+     Запись: { id, at (мс), outcome, ms }. Исход: 'correct' — верно без
+     подсказки, 'hint' — верно, но подсказку или ответ открывали,
+     'wrong' — ответ не сошёлся. Массив id в 'math-tasks:solved' этого
+     не помнит: там нет ни дат, ни исхода, ни времени. */
+  const JOURNAL_OUTCOMES = ['correct', 'hint', 'wrong'];
+  const DAY_MS = 86400000;
+  /* Пока в окне меньше записей, разница точности — шум, а не тренд. */
+  const MIN_TREND_ENTRIES = 5;
+
+  const normalizeJournal = (journal = []) => (Array.isArray(journal) ? journal : [])
+    .map(entry => ({
+      id: Number(entry?.id) || 0,
+      at: Number(entry?.at) || 0,
+      outcome: JOURNAL_OUTCOMES.includes(entry?.outcome) ? entry.outcome : 'wrong',
+      ms: Number(entry?.ms) > 0 ? Number(entry.ms) : 0
+    }))
+    .filter(entry => entry.id && entry.at)
+    .sort((a, b) => b.at - a.at);
+
+  /* Время считается только по записям, где секундомер успел поработать:
+     решённые до его появления задачи в среднее не тянут. */
+  const summarizeSolveTime = (entries = []) => {
+    const timed = entries.filter(entry => entry.ms > 0);
+    const totalMs = timed.reduce((sum, entry) => sum + entry.ms, 0);
+    return { totalMs, count: timed.length, avgMs: timed.length ? Math.round(totalMs / timed.length) : 0 };
+  };
+
+  /* Тренд точности: последние 30 дней против предыдущих 30, в пунктах. */
+  const accuracyTrend = (entries = [], now = Date.now()) => {
+    const share = list => Math.round((list.filter(entry => entry.outcome === 'correct').length / list.length) * 100);
+    const recent = entries.filter(entry => entry.at > now - 30 * DAY_MS);
+    const earlier = entries.filter(entry => entry.at <= now - 30 * DAY_MS && entry.at > now - 60 * DAY_MS);
+    if (recent.length < MIN_TREND_ENTRIES || earlier.length < MIN_TREND_ENTRIES) return null;
+    return share(recent) - share(earlier);
+  };
+
+  /* Последние решения: по одной, самой свежей записи на задачу — иначе
+     одна задача с тремя промахами займёт весь список. */
+  const latestPerTask = (entries = [], limit = 8) => {
+    const seen = new Set();
+    const rows = [];
+    for (const entry of entries) {
+      if (seen.has(entry.id)) continue;
+      seen.add(entry.id);
+      rows.push(entry);
+      if (rows.length >= limit) break;
+    }
+    return rows;
+  };
+
+  /* Освоение по разделам. grade === null — все классы сразу. */
+  const buildSubjectBreakdown = (rows = [], { grade = null, subjects = [] } = {}) => {
+    const wanted = grade === null || grade === undefined || grade === '' ? null : String(grade);
+    const picked = wanted === null ? rows : rows.filter(row => String(row.topic.grade ?? '') === wanted);
+    const groups = new Map();
+    for (const row of picked) {
+      const subjectId = row.topic.subject_id ?? null;
+      const key = String(subjectId ?? '');
+      if (!groups.has(key)) {
+        groups.set(key, {
+          subjectId,
+          subject: subjects.find(item => item.id === subjectId) || null,
+          total: 0,
+          solved: 0
+        });
+      }
+      const group = groups.get(key);
+      group.total += row.total;
+      group.solved += row.solved;
+    }
+    return [...groups.values()]
+      .map(group => ({ ...group, percent: group.total ? Math.round((group.solved / group.total) * 100) : 0 }))
+      .sort((a, b) => b.total - a.total);
+  };
+
+  /* Слабые места: темы, где ученик уже спотыкался. «Верно» — задачи,
+     взятые с первой попытки; в знаменателе — все, за которые брался,
+     решённые и брошенные. Темы, пройденные без ошибок, сюда не попадают. */
+  const buildWeakSpots = ({
+    topicRows = [],
+    taskIdsOf = () => [],
+    solvedSet = new Set(),
+    wrongAttempts = {},
+    journalByTask = new Map(),
+    limit = 5
+  } = {}) => {
+    const rows = [];
+    for (const row of topicRows) {
+      let attempted = 0;
+      let correct = 0;
+      let hinted = 0;
+      for (const id of taskIdsOf(row.topic.id).map(Number)) {
+        const missed = Number(wrongAttempts[id]) > 0;
+        const solved = solvedSet.has(id);
+        if (!missed && !solved) continue;
+        attempted++;
+        if (solved && !missed) correct++;
+        if (journalByTask.get(id) === 'hint') hinted++;
+      }
+      if (attempted && correct < attempted) {
+        rows.push({ topic: row.topic, attempted, correct, hinted, percent: Math.round((correct / attempted) * 100) });
+      }
+    }
+    return rows
+      .sort((a, b) => a.percent - b.percent || b.attempted - a.attempted)
+      .slice(0, limit);
+  };
+
   /* Достижения: цель и текущее значение. counted: false — показывать
      только «получено / нет», без счёта (оценка 7 из 9 звучала бы странно). */
   const PROGRESS_ACHIEVEMENTS = [
@@ -444,7 +554,10 @@
     wrongAttempts = {},
     activity = {},
     controlWorks = {},
-    today = localDateKey()
+    journal = [],
+    subjects = [],
+    today = localDateKey(),
+    now = Date.now()
   } = {}) => {
     const taskIdsOf = id => (topicTaskIds instanceof Map ? topicTaskIds.get(id) : topicTaskIds[id]) || [];
     const solvedSet = new Set(solvedIds.map(Number));
@@ -483,6 +596,16 @@
       .map(([topicId, result]) => ({ topicId: Number(topicId), ...result }))
       .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
 
+    /* Журнал завели позже массива решённых задач, и у старых решений
+       записей в нём нет. Поэтому точность и слабые места считаем по
+       wrongAttempts (работает задним числом), а время, тренд и «последние
+       решения» — только по журналу. */
+    const entries = normalizeJournal(journal);
+    const journalByTask = new Map();
+    for (const entry of entries) {
+      if (!journalByTask.has(entry.id)) journalByTask.set(entry.id, entry.outcome);
+    }
+
     const summary = {
       solved: solvedList.length,
       total: catalogIds.size,
@@ -492,6 +615,15 @@
       inProgress,
       streak: computeStreak(activity, today),
       activityWeeks: buildActivityWeeks(activity, today),
+      rows: topicRows,
+      subjects,
+      accuracy: {
+        percent: solvedList.length ? Math.round((firstTry / solvedList.length) * 100) : 0,
+        deltaPoints: accuracyTrend(entries, now)
+      },
+      time: summarizeSolveTime(entries),
+      weakSpots: buildWeakSpots({ topicRows, taskIdsOf, solvedSet, wrongAttempts, journalByTask }),
+      recent: latestPerTask(entries),
       controlWorks: {
         list: cwList,
         count: cwList.length,
@@ -2543,6 +2675,12 @@
     computeStreak,
     buildActivityWeeks,
     buildProgressSummary,
+    buildSubjectBreakdown,
+    buildWeakSpots,
+    normalizeJournal,
+    summarizeSolveTime,
+    accuracyTrend,
+    latestPerTask,
     calcTopicProgress,
     formatTimerDisplay,
     getLocalizedText,

@@ -1585,6 +1585,91 @@ body.dark .self-assess-no{background:#2a1b05;color:#fcd34d;border-color:#854d0e}
 .progress-note{margin:0;font-size:12px;color:var(--muted)}
 .progress-icon{background:#eef4ff;color:#1764ff}
 
+/* ── Страница «Мой прогресс»: плитки, лента, разделы, слабые места ── */
+
+/* Подпись стоит над числом: сначала «что меряем», потом сама величина. */
+.progress-stat-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.progress-stat strong{margin-top:2px}
+.progress-stat-sub.is-up{color:#0f9d58}
+.progress-stat-sub.is-down{color:#d33c55}
+
+.progress-card{border:1px solid var(--line);border-radius:14px;background:#fff;padding:16px 18px}
+.progress-block-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.progress-block-head h2{margin:0}
+.progress-block-sub{margin:0 0 12px;font-size:12px;color:var(--muted)}
+.progress-card .progress-block-sub:last-child{margin-bottom:0}
+
+/* Лента активности — одна строка: недели разделены промежутком, внутри
+   недели клетки идут вплотную, поэтому ритм читается без подписей. */
+.progress-strip{display:flex;gap:10px;flex-wrap:wrap}
+.progress-strip-week{display:flex;gap:3px}
+.progress-streak-badge{font-size:12px;color:var(--muted);white-space:nowrap}
+.progress-activity .progress-legend{margin-top:10px}
+
+.progress-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+
+/* Переключатель «свой класс / все классы». */
+.progress-scope{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:10px;background:#f4f7fc}
+.progress-scope-btn{border:0;background:transparent;color:var(--muted);font:700 11.5px Manrope,sans-serif;padding:5px 10px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.progress-scope-btn:hover{color:var(--ink)}
+.progress-scope-btn.is-active{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(11,25,53,.12)}
+
+.progress-subjects{display:flex;flex-direction:column;gap:14px}
+.progress-subject-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px}
+.progress-subject-name{font-size:13px;font-weight:700;color:var(--ink)}
+.progress-subject-count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.progress-subject-bar{display:block;height:7px;border-radius:99px;background:#edf1f8;overflow:hidden}
+.progress-subject-bar i{display:block;height:100%;border-radius:inherit;background:var(--blue)}
+/* Меньше трети — раздел отстаёт, и полоса об этом говорит цветом. */
+.progress-subject-bar.is-warn i{background:#f59e0b}
+
+.progress-weaks{display:flex;flex-direction:column}
+.progress-weak{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}
+.progress-weak:first-child{padding-top:0}
+.progress-weak:last-child{border-bottom:0;padding-bottom:0}
+.progress-weak-body{display:flex;flex-direction:column;gap:3px;min-width:0}
+.progress-weak-body strong{font-size:13px;font-weight:700;color:var(--ink);line-height:1.35}
+.progress-weak-body small{font-size:11.5px;color:#d97706}
+.progress-weak-link{color:var(--blue);font:600 12.5px Manrope,sans-serif;text-decoration:none;white-space:nowrap}
+.progress-weak-link:hover{text-decoration:underline}
+
+.progress-recents{display:flex;flex-direction:column}
+.progress-recent{display:grid;grid-template-columns:76px minmax(0,1fr) auto;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none}
+.progress-recent:first-child{padding-top:0}
+.progress-recent:last-child{border-bottom:0;padding-bottom:0}
+.progress-recent:hover .progress-recent-text{color:var(--blue)}
+.progress-recent time{font-size:11.5px;color:var(--muted);white-space:nowrap}
+/* Условие держим в двух строках: выключные формулы иначе растягивают
+   строку втрое и список перестаёт читаться как список. */
+.progress-recent-text{font-size:13px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.progress-recent-text .katex-display{display:inline;margin:0}
+.progress-recent-text .katex{font-size:1em}
+.progress-outcome{font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px;white-space:nowrap}
+.progress-outcome.is-correct{background:#e6f9ed;color:#03853f}
+.progress-outcome.is-hint{background:#fff3d6;color:#b45309}
+.progress-outcome.is-wrong{background:#fff1f2;color:#be123c}
+
+@media(max-width:1100px){.progress-columns{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:560px){
+  .progress-recent{grid-template-columns:minmax(0,1fr) auto;gap:6px 10px}
+  .progress-recent time{grid-row:2;grid-column:1}
+  .progress-recent-text{grid-column:1/-1}
+  .progress-outcome{grid-row:2;grid-column:2;justify-self:end}
+}
+
+body.dark .progress-card{background:#0f1520;border-color:#1f2839}
+body.dark .progress-scope{background:#111c2e;border-color:#1f2839}
+body.dark .progress-scope-btn.is-active{background:#1a2b47;color:#edf2ff;box-shadow:0 1px 4px rgba(0,0,0,.45)}
+body.dark .progress-subject-bar{background:#223251}
+body.dark .progress-subject-bar i{background:#5a92ff}
+body.dark .progress-weak,body.dark .progress-recent{border-color:#1f2839}
+body.dark .progress-weak-body small{color:#fbbf24}
+body.dark .progress-stat-sub.is-up{color:#4ade80}
+body.dark .progress-stat-sub.is-down{color:#fda4af}
+body.dark .progress-outcome.is-correct{background:#0d281a;color:#4ade80}
+body.dark .progress-outcome.is-hint{background:#33240a;color:#fcd34d}
+body.dark .progress-outcome.is-wrong{background:#3b0d18;color:#fda4af}
+
 /* ── Текстовая версия страницы из воркера (worker/seo.js) ──
    Для поисковиков и тех, у кого нет JavaScript. Со скриптами её прячет
    класс js от theme-init.js, а app.js удаляет. */

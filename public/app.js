@@ -897,6 +897,78 @@ function recordActivity() {
   } catch {}
 }
 
+/* ── Журнал решений ───────────────────────────────────────────────
+   Что решено, когда, с какого раза и сколько это заняло. Отсюда на
+   странице «Мой прогресс» берутся точность с трендом, время, пометка
+   «с подсказкой» в слабых местах и список последних решений. В
+   'math-tasks:solved' лежат одни id — ни дат, ни исхода, ни времени,
+   поэтому журнал ведём отдельно. Храним последние 300 записей. */
+const JOURNAL_KEY = 'math-tasks:journal';
+const JOURNAL_LIMIT = 300;
+/* Больше получаса на задачу — это забытая вкладка, а не решение. */
+const MAX_TASK_MS = 30 * 60 * 1000;
+
+function getJournal() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(JOURNAL_KEY) || '[]');
+    return Array.isArray(raw) ? raw : [];
+  } catch {
+    return [];
+  }
+}
+
+/* Секундомер на задачу: пускается с первого касания поля ответа и живёт
+   до проверки. Пока ученик читает условия и листает страницу, время не
+   идёт — иначе в «среднее на задачу» попадёт всё чтение подряд. */
+const taskStartedAt = new Map();
+const taskHintOpened = new Set();
+
+function markTaskStarted(taskId) {
+  const id = Number(taskId);
+  if (id && !taskStartedAt.has(id)) taskStartedAt.set(id, Date.now());
+}
+
+function markTaskHintOpened(taskId) {
+  const id = Number(taskId);
+  if (id) taskHintOpened.add(id);
+}
+
+function takeTaskSpentMs(taskId) {
+  const id = Number(taskId);
+  const startedAt = taskStartedAt.get(id);
+  taskStartedAt.delete(id);
+  if (!startedAt) return 0;
+  const spent = Date.now() - startedAt;
+  return spent > 0 && spent <= MAX_TASK_MS ? spent : 0;
+}
+
+/* correct — решил сам, hint — верно, но подсказку или разбор открывал,
+   wrong — ответ не сошёлся. */
+function recordSolveEntry(taskId, correct) {
+  const id = Number(taskId);
+  if (!id) return;
+  const entry = {
+    id,
+    at: Date.now(),
+    outcome: correct ? (taskHintOpened.has(id) ? 'hint' : 'correct') : 'wrong',
+    ms: takeTaskSpentMs(id)
+  };
+  try {
+    const list = getJournal();
+    list.push(entry);
+    localStorage.setItem(JOURNAL_KEY, JSON.stringify(list.slice(-JOURNAL_LIMIT)));
+  } catch {}
+  if (correct) taskHintOpened.delete(id);
+}
+
+/* Секундомер стартует с первого касания поля ответа — и в обычной
+   карточке, и в компактном режиме «Примеры». */
+document.addEventListener('focusin', event => {
+  const input = event.target.closest?.('.self-check-input, .compact-drill-input');
+  if (!input) return;
+  markTaskStarted(input.dataset.drillId || input.closest('.self-check-form')?.dataset.checkId);
+});
+
 /* Где ученик остановился: тема и номер задачи. Пишется при открытии темы
    и задачи и при решении; по нему — «Продолжить» на главной и в меню. */
 const LAST_PLACE_KEY = 'math-tasks:last-place';
@@ -1774,6 +1846,9 @@ document.addEventListener('click', event => {
   panel.hidden = shown;
   toggle.setAttribute('aria-expanded', String(!shown));
   toggle.classList.toggle('active', !shown);
+  /* Открытая подсказка или разбор помечает задачу: в журнале она пойдёт
+     «с подсказкой», даже если ответ потом сошёлся с первого раза. */
+  if (!shown && card) markTaskHintOpened(card.dataset.taskId);
 
   const textEl = toggle.querySelector('.toggle-text');
   const newLabel = shown ? toggle.dataset.showLabel : toggle.dataset.hideLabel;
@@ -2958,6 +3033,217 @@ function progressTopicRow(row, { withGrade = true } = {}) {
 
 /* Страница собирается из того, что уже есть: каталог загружен при старте,
    остальное лежит в браузере. Запросов к базе она не делает. */
+/* ── Блоки страницы «Мой прогресс» ────────────────────────────────── */
+
+/* Лента активности — одна строка по неделям, а не сетка на год: за пять
+   недель видно текущий ритм, а не общий стаж. */
+const PROGRESS_ACTIVITY_WEEKS = 5;
+/* Раздел взят меньше чем на треть — полосу красим как отстающую. */
+const SUBJECT_WARN_PERCENT = 35;
+/* Какой класс показан в «Освоении по разделам»: null — все классы,
+   undefined — ученик ещё не выбирал, и берём его собственный класс. */
+let progressSubjectScope;
+
+/* «14 ч», пока часы целые, и «25 мин», пока часа не набралось. */
+function formatProgressSpan(ms) {
+  const tr = window.MathTasks.t || (k => k);
+  const minutes = ms / 60000;
+  if (minutes < 60) return tr('progress_unit_minutes', { value: Math.max(1, Math.round(minutes)) });
+  const hours = ms / 3600000;
+  const value = hours < 10 ? Math.round(hours * 10) / 10 : Math.round(hours);
+  return tr('progress_unit_hours', { value: value.toLocaleString(progressLocale()) });
+}
+
+function progressDateLabel(at) {
+  const tr = window.MathTasks.t || (k => k);
+  const lib = window.MathTasksLib;
+  const keyOf = date => (lib?.localDateKey ? lib.localDateKey(date) : new Date(date).toISOString().slice(0, 10));
+  const key = keyOf(new Date(at));
+  if (key === keyOf(new Date())) return tr('progress_date_today');
+  if (key === keyOf(new Date(Date.now() - 86400000))) return tr('progress_date_yesterday');
+  return new Date(at).toLocaleDateString(progressLocale(), { day: 'numeric', month: 'short' });
+}
+
+/* Четыре плитки сверху: сколько решено, серия, точность, время. */
+function renderProgressStats(summary) {
+  const tr = window.MathTasks.t || (k => k);
+  const solvedSub = selectedGrade
+    ? tr('progress_stat_solved_grade', {
+        solved: (summary.grades.find(group => String(group.grade ?? '') === String(selectedGrade))?.solved) || 0,
+        grade: gradeLabel(selectedGrade)
+      })
+    : (summary.total ? tr('progress_stat_solved_sub', { total: summary.total }) : '');
+
+  const delta = summary.accuracy.deltaPoints;
+  const accuracySub = delta === null
+    ? (summary.solved ? tr('progress_accuracy_sub', { count: summary.firstTry }) : tr('progress_accuracy_empty'))
+    : tr('progress_accuracy_delta', { sign: delta > 0 ? '+' : delta < 0 ? '−' : '±', points: Math.abs(delta) });
+
+  const time = summary.time;
+  const tiles = [
+    {
+      label: tr('progress_label_solved'),
+      value: String(summary.solved),
+      sub: solvedSub
+    },
+    {
+      label: tr('progress_label_streak'),
+      value: tr('progress_streak_value', { count: summary.streak.current }),
+      sub: tr('progress_stat_streak_record', { best: summary.streak.best }),
+      cls: summary.streak.today ? ' is-hot' : ''
+    },
+    {
+      label: tr('progress_label_accuracy'),
+      value: `${summary.accuracy.percent}%`,
+      sub: accuracySub,
+      subCls: delta === null ? '' : delta > 0 ? ' is-up' : delta < 0 ? ' is-down' : ''
+    },
+    {
+      label: tr('progress_label_time'),
+      value: time.totalMs ? formatProgressSpan(time.totalMs) : '—',
+      sub: time.avgMs
+        ? tr('progress_time_per_task', { value: formatProgressSpan(time.avgMs) })
+        : tr('progress_time_empty')
+    }
+  ];
+
+  return `<div class="progress-stats">${tiles.map(tile => `
+    <div class="progress-stat${tile.cls || ''}">
+      <span class="progress-stat-label">${escapeHtml(tile.label)}</span>
+      <strong>${escapeHtml(tile.value)}</strong>
+      ${tile.sub ? `<small class="progress-stat-sub${tile.subCls || ''}">${escapeHtml(tile.sub)}</small>` : ''}
+    </div>`).join('')}</div>`;
+}
+
+/* Лента активности: строка клеток, разбитая промежутками по неделям. */
+function renderProgressActivity(summary, activity) {
+  const tr = window.MathTasks.t || (k => k);
+  const lib = window.MathTasksLib;
+  const level = count => (count <= 0 ? 0 : count < 3 ? 1 : count < 6 ? 2 : count < 10 ? 3 : 4);
+  const dayTitle = day => {
+    const [y, m, d] = day.key.split('-').map(Number);
+    const date = new Date(y, m - 1, d).toLocaleDateString(progressLocale(), { day: 'numeric', month: 'long' });
+    return `${date}: ${tr('progress_day_count', { count: day.count })}`;
+  };
+  const weeks = lib.buildActivityWeeks(activity, lib.localDateKey(), PROGRESS_ACTIVITY_WEEKS);
+  const strip = weeks.map(week => `<span class="progress-strip-week">${week.map(day => (day.future
+    ? '<span class="progress-day is-future"></span>'
+    : `<span class="progress-day l${level(day.count)}" title="${escapeHtml(dayTitle(day))}"></span>`)).join('')}</span>`).join('');
+  const legend = [0, 1, 2, 3, 4].map(l => `<span class="progress-day l${l}"></span>`).join('');
+
+  return `<section class="progress-block progress-card progress-activity">
+    <div class="progress-block-head">
+      <h2>${escapeHtml(tr('progress_activity_weeks', { weeks: PROGRESS_ACTIVITY_WEEKS }))}</h2>
+      ${summary.streak.current ? `<span class="progress-streak-badge">${escapeHtml(tr('progress_streak_badge', { count: summary.streak.current }))}</span>` : ''}
+    </div>
+    <div class="progress-strip" role="img" aria-label="${escapeHtml(tr('progress_activity_aria', { days: summary.streak.activeDays }))}">${strip}</div>
+    <p class="progress-legend">${escapeHtml(tr('progress_activity_less'))} ${legend} ${escapeHtml(tr('progress_activity_more'))}</p>
+  </section>`;
+}
+
+/* Освоение по разделам. Переключатель «класс / все классы» показываем
+   только когда класс выбран: иначе выбирать не из чего. */
+function renderProgressSubjects(summary) {
+  const tr = window.MathTasks.t || (k => k);
+  const lib = window.MathTasksLib;
+  const rows = lib.buildSubjectBreakdown(summary.rows, {
+    grade: progressSubjectScope,
+    subjects: summary.subjects
+  });
+  const totals = rows.reduce((acc, row) => ({ solved: acc.solved + row.solved, total: acc.total + row.total }), { solved: 0, total: 0 });
+  const scopeLabel = progressSubjectScope ? gradeLabel(progressSubjectScope) : '';
+  const sub = totals.total
+    ? (scopeLabel
+        ? tr('progress_subjects_sub', { solved: totals.solved, total: totals.total, grade: scopeLabel })
+        : tr('progress_subjects_sub_all', { solved: totals.solved, total: totals.total }))
+    : tr('progress_subjects_empty');
+
+  const scope = selectedGrade
+    ? `<div class="progress-scope">
+        <button type="button" class="progress-scope-btn${progressSubjectScope ? ' is-active' : ''}" data-subject-scope="grade">${escapeHtml(gradeLabel(selectedGrade))}</button>
+        <button type="button" class="progress-scope-btn${progressSubjectScope ? '' : ' is-active'}" data-subject-scope="all">${escapeHtml(tr('progress_scope_all'))}</button>
+      </div>`
+    : '';
+
+  const bars = rows.map(row => {
+    const title = row.subject ? loc(row.subject, 'title') : tr('progress_no_subject');
+    return `<div class="progress-subject">
+      <div class="progress-subject-head">
+        <span class="progress-subject-name">${escapeHtml(title)}</span>
+        <span class="progress-subject-count">${escapeHtml(tr('topic_progress_short', { solved: row.solved, total: row.total }))}</span>
+      </div>
+      <span class="progress-subject-bar${row.percent < SUBJECT_WARN_PERCENT ? ' is-warn' : ''}"><i style="width:${row.percent}%"></i></span>
+    </div>`;
+  }).join('');
+
+  return `<section class="progress-block progress-card">
+    <div class="progress-block-head">
+      <h2>${escapeHtml(tr('progress_subjects_title'))}</h2>
+      ${scope}
+    </div>
+    <p class="progress-block-sub">${escapeHtml(sub)}</p>
+    <div class="progress-subjects">${bars}</div>
+  </section>`;
+}
+
+/* Слабые места: темы, где ученик уже спотыкался. */
+function renderProgressWeakSpots(summary) {
+  const tr = window.MathTasks.t || (k => k);
+  const rows = summary.weakSpots.map(row => `
+    <div class="progress-weak">
+      <div class="progress-weak-body">
+        <strong>${escapeHtml(topicTitleOf(row.topic))}</strong>
+        <small>${escapeHtml(tr('progress_weak_score', { correct: row.correct, attempted: row.attempted }))}${row.hinted ? ` · ${escapeHtml(tr('progress_weak_hint', { hinted: row.hinted, attempted: row.attempted }))}` : ''}</small>
+      </div>
+      <a class="progress-weak-link" href="/topic/${encodeURIComponent(row.topic.slug)}">${escapeHtml(tr('progress_weak_repeat'))}</a>
+    </div>`).join('');
+
+  return `<section class="progress-block progress-card">
+    <div class="progress-block-head"><h2>${escapeHtml(tr('progress_weak_title'))}</h2></div>
+    ${rows ? `<div class="progress-weaks">${rows}</div>` : `<p class="progress-block-sub">${escapeHtml(tr('progress_weak_empty'))}</p>`}
+  </section>`;
+}
+
+/* Последние решения. Условия задач лежат в базе, а в журнале — только id,
+   поэтому список дозаполняется после загрузки: так язык строк всегда
+   текущий, а не тот, на котором задачу решали. */
+async function fillProgressRecent(entries) {
+  const host = document.querySelector('#progress-recent');
+  if (!host) return;
+  const tr = window.MathTasks.t || (k => k);
+  const ids = entries.map(entry => entry.id);
+  let tasks = [];
+  if (ids.length && db) {
+    const { data } = await db.from('tasks').select(TASK_SELECT).in('id', ids);
+    tasks = data || [];
+  }
+  const byId = new Map(tasks.map(task => [Number(task.id), task]));
+  const rows = entries.filter(entry => byId.has(entry.id));
+  if (!rows.length) {
+    host.innerHTML = `<p class="progress-block-sub">${escapeHtml(tr('progress_recent_empty'))}</p>`;
+    return;
+  }
+  host.innerHTML = `<div class="progress-recents">${rows.map(entry => `
+    <a class="progress-recent" href="/task/${entry.id}">
+      <time datetime="${new Date(entry.at).toISOString()}">${escapeHtml(progressDateLabel(entry.at))}</time>
+      <span class="math progress-recent-text" data-recent-id="${entry.id}"></span>
+      <span class="progress-outcome is-${entry.outcome}">${escapeHtml(tr(`progress_outcome_${entry.outcome}`))}</span>
+    </a>`).join('')}</div>`;
+  host.querySelectorAll('[data-recent-id]').forEach(element => {
+    const task = byId.get(Number(element.dataset.recentId));
+    if (task) renderMath(element, loc(task, 'condition_latex'));
+  });
+  localizeLinks(host);
+}
+
+/* Переключатель «класс / все классы» в «Освоении по разделам». */
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-subject-scope]');
+  if (!button) return;
+  progressSubjectScope = button.dataset.subjectScope === 'all' ? null : selectedGrade;
+  showProgress();
+});
+
 function showProgress() {
   showView('progress');
   const tr = window.MathTasks.t || (k => k);
@@ -2965,6 +3251,7 @@ function showProgress() {
   const root = document.querySelector('#progress-root');
   const lib = window.MathTasksLib;
   if (!root || !lib?.buildProgressSummary) return;
+  if (progressSubjectScope === undefined) progressSubjectScope = selectedGrade;
 
   const s = lib.buildProgressSummary({
     solvedIds: getSolvedTasks(),
@@ -2972,36 +3259,18 @@ function showProgress() {
     topicTaskIds: topicTasksMap,
     wrongAttempts: getWrongAttemptCounts(),
     activity: getActivity(),
-    controlWorks: getControlWorkStorage()
+    controlWorks: getControlWorkStorage(),
+    journal: getJournal(),
+    subjects
   });
   const section = (title, body, extra = '') => `<section class="progress-block"><h2>${escapeHtml(title)}${extra}</h2>${body}</section>`;
 
-  const firstTryPercent = s.solved ? Math.round((s.firstTry / s.solved) * 100) : 0;
-  const stats = [
-    [s.solved, tr('progress_stat_solved'), s.total ? tr('progress_stat_solved_sub', { total: s.total }) : '', ''],
-    [s.streak.current, tr('progress_stat_streak'), tr('progress_stat_streak_sub', { best: s.streak.best }), s.streak.today ? ' is-hot' : ''],
-    [s.firstTry, tr('progress_stat_first_try'), s.solved ? tr('progress_stat_first_try_sub', { percent: firstTryPercent }) : '', ''],
-    [s.topicsDone, tr('progress_stat_topics'), tr('progress_stat_cw_sub', { count: s.controlWorks.count }), '']
-  ].map(([value, label, sub, cls]) => `<div class="progress-stat${cls}"><strong>${value}</strong><span>${escapeHtml(label)}</span>${sub ? `<small>${escapeHtml(sub)}</small>` : ''}</div>`).join('');
 
   const startHref = selectedGrade ? `/grade/${encodeURIComponent(selectedGrade)}` : '/';
   const empty = s.solved || s.controlWorks.count
     ? ''
     : `<p class="progress-empty">${escapeHtml(tr('progress_empty'))} <a href="${startHref}">${escapeHtml(tr('progress_empty_link'))}</a></p>`;
 
-  const level = count => (count <= 0 ? 0 : count < 3 ? 1 : count < 6 ? 2 : count < 10 ? 3 : 4);
-  const dayTitle = day => {
-    const [y, m, d] = day.key.split('-').map(Number);
-    const date = new Date(y, m - 1, d).toLocaleDateString(progressLocale(), { day: 'numeric', month: 'long' });
-    return `${date}: ${tr('progress_day_count', { count: day.count })}`;
-  };
-  const weeks = s.activityWeeks.map(week => `<div class="progress-week">${week.map(day => (day.future
-    ? '<span class="progress-day is-future"></span>'
-    : `<span class="progress-day l${level(day.count)}" title="${escapeHtml(dayTitle(day))}"></span>`)).join('')}</div>`).join('');
-  const legend = [0, 1, 2, 3, 4].map(l => `<span class="progress-day l${l}"></span>`).join('');
-  const activity = section(tr('progress_activity_title'), `
-    <div class="progress-heatmap" role="img" aria-label="${escapeHtml(tr('progress_activity_aria', { days: s.streak.activeDays }))}">${weeks}</div>
-    <p class="progress-legend">${escapeHtml(tr('progress_activity_less'))} ${legend} ${escapeHtml(tr('progress_activity_more'))}</p>`);
 
   const continueBlock = s.inProgress.length
     ? section(tr('progress_continue_title'), `<div class="progress-list">${s.inProgress.slice(0, 6).map(row => progressTopicRow(row)).join('')}</div>`)
@@ -3051,15 +3320,18 @@ function showProgress() {
   const cwBlock = cwRows ? section(tr('progress_cw_title'), `<div class="progress-list">${cwRows}</div>`) : '';
 
   root.innerHTML = [
-    `<div class="progress-stats">${stats}</div>`,
+    renderProgressStats(s),
     empty,
-    activity,
+    renderProgressActivity(s, getActivity()),
+    `<div class="progress-columns">${renderProgressSubjects(s)}${renderProgressWeakSpots(s)}</div>`,
+    `<section class="progress-block progress-card"><div class="progress-block-head"><h2>${escapeHtml(tr('progress_recent_title'))}</h2></div><div id="progress-recent"></div></section>`,
     continueBlock,
     gradesBlock,
     achievements,
     cwBlock,
     `<p class="progress-note">${escapeHtml(tr('progress_storage_note'))}</p>`
   ].join('');
+  fillProgressRecent(s.recent);
 }
 
 /* ── Контрольные работы (Pārbaudes darbi) ─────────────────────────── */
@@ -4773,6 +5045,7 @@ document.addEventListener('submit', event => {
   if (!userAns) return;
   const resultDiv = form.nextElementSibling;
   const isCorrect = checkTaskAnswer(userAns, loc(task, 'answer_latex'), loc(task, 'answer_check'));
+  recordSolveEntry(taskId, isCorrect);
   if (isCorrect) {
     setTaskSolved(taskId, true);
     resultDiv.className = 'self-check-result success';
@@ -4829,6 +5102,7 @@ document.addEventListener('click', event => {
     return;
   }
   if (event.target.closest('[data-self-assess-yes]')) {
+    recordSolveEntry(taskId, true);
     setTaskSolved(taskId, true);
     verdict.hidden = true;
     result.className = 'self-check-result success';
@@ -4842,6 +5116,7 @@ document.addEventListener('click', event => {
     return;
   }
   if (event.target.closest('[data-self-assess-no]')) {
+    recordSolveEntry(taskId, false);
     addTaskWrongAttempt(taskId);
     verdict.hidden = true;
     result.className = 'self-check-result error';
@@ -4925,6 +5200,7 @@ document.addEventListener('keydown', event => {
     if (!userAns) return;
 
     const isCorrect = checkTaskAnswer(userAns, loc(task, 'answer_latex'), loc(task, 'answer_check'));
+    recordSolveEntry(taskId, isCorrect);
     const item = input.closest('.compact-drill-item');
     const statusEl = item?.querySelector('.compact-drill-status');
 

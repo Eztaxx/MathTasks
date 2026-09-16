@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { buildActivityWeeks, buildProgressSummary, computeStreak, localDateKey } from '../public/lib.js';
+import {
+  accuracyTrend,
+  buildActivityWeeks,
+  buildProgressSummary,
+  buildSubjectBreakdown,
+  buildWeakSpots,
+  computeStreak,
+  latestPerTask,
+  localDateKey,
+  normalizeJournal,
+  summarizeSolveTime
+} from '../public/lib.js';
 
 describe('computeStreak', () => {
   it('серия идёт от сегодня, а без решений сегодня — от вчера', () => {
@@ -96,5 +107,131 @@ describe('buildProgressSummary', () => {
     const s = buildProgressSummary();
     expect(s).toMatchObject({ solved: 0, total: 0, firstTry: 0, topicsDone: 0, grades: [], inProgress: [] });
     expect(s.achievements.every(a => !a.earned)).toBe(true);
+  });
+});
+
+describe('normalizeJournal', () => {
+  it('чистит мусор, сортирует свежим вперёд и признаёт три исхода', () => {
+    const entries = normalizeJournal([
+      { id: 5, at: 100, outcome: 'correct', ms: 4000 },
+      { id: 0, at: 200, outcome: 'correct' },        // без задачи
+      { id: 7, at: 0, outcome: 'correct' },          // без даты
+      { id: 9, at: 300, outcome: 'выдумка', ms: -5 } // чужой исход и отрицательное время
+    ]);
+    expect(entries).toEqual([
+      { id: 9, at: 300, outcome: 'wrong', ms: 0 },
+      { id: 5, at: 100, outcome: 'correct', ms: 4000 }
+    ]);
+    expect(normalizeJournal(null)).toEqual([]);
+  });
+});
+
+describe('summarizeSolveTime', () => {
+  it('считает только записи с засечённым временем', () => {
+    const time = summarizeSolveTime([
+      { id: 1, at: 1, outcome: 'correct', ms: 60000 },
+      { id: 2, at: 2, outcome: 'wrong', ms: 120000 },
+      { id: 3, at: 3, outcome: 'correct', ms: 0 } // решено до появления секундомера
+    ]);
+    expect(time).toEqual({ totalMs: 180000, count: 2, avgMs: 90000 });
+    expect(summarizeSolveTime([])).toEqual({ totalMs: 0, count: 0, avgMs: 0 });
+  });
+});
+
+describe('accuracyTrend', () => {
+  const now = Date.UTC(2026, 8, 16);
+  const day = 86400000;
+  const make = (count, outcome, daysAgo) => Array.from({ length: count }, (_, i) => ({
+    id: i + daysAgo * 100, at: now - daysAgo * day, outcome, ms: 0
+  }));
+
+  it('молчит, пока в каком-то из окон мало записей', () => {
+    expect(accuracyTrend(make(4, 'correct', 2).concat(make(9, 'wrong', 40)), now)).toBe(null);
+    expect(accuracyTrend([], now)).toBe(null);
+  });
+
+  it('сравнивает последние 30 дней с предыдущими 30, в пунктах', () => {
+    // Свежее окно: 8 верных из 10 — 80%. Прошлое: 5 из 10 — 50%.
+    const entries = [
+      ...make(8, 'correct', 5), ...make(2, 'wrong', 6),
+      ...make(5, 'correct', 40), ...make(5, 'wrong', 41)
+    ];
+    expect(accuracyTrend(entries, now)).toBe(30);
+  });
+
+  it('старше 60 дней в счёт не идёт', () => {
+    const entries = [
+      ...make(6, 'correct', 3),
+      ...make(6, 'wrong', 45),
+      ...make(50, 'correct', 200)
+    ];
+    expect(accuracyTrend(entries, now)).toBe(100);
+  });
+});
+
+describe('latestPerTask', () => {
+  it('оставляет по одной, самой свежей записи на задачу', () => {
+    const entries = [
+      { id: 1, at: 300, outcome: 'correct', ms: 0 },
+      { id: 1, at: 200, outcome: 'wrong', ms: 0 },
+      { id: 2, at: 100, outcome: 'hint', ms: 0 }
+    ];
+    expect(latestPerTask(entries).map(e => [e.id, e.outcome])).toEqual([[1, 'correct'], [2, 'hint']]);
+    expect(latestPerTask(entries, 1)).toHaveLength(1);
+  });
+});
+
+describe('buildSubjectBreakdown', () => {
+  const subjects = [{ id: 1, title: 'Алгебра' }, { id: 2, title: 'Геометрия' }];
+  const rows = [
+    { topic: { id: 10, grade: 8, subject_id: 1 }, total: 10, solved: 6 },
+    { topic: { id: 11, grade: 8, subject_id: 2 }, total: 4, solved: 1 },
+    { topic: { id: 12, grade: 9, subject_id: 1 }, total: 6, solved: 0 }
+  ];
+
+  it('без класса складывает все классы и сортирует по объёму раздела', () => {
+    const all = buildSubjectBreakdown(rows, { subjects });
+    expect(all.map(r => [r.subject.title, r.solved, r.total, r.percent]))
+      .toEqual([['Алгебра', 6, 16, 38], ['Геометрия', 1, 4, 25]]);
+  });
+
+  it('с классом берёт только его темы', () => {
+    const grade8 = buildSubjectBreakdown(rows, { grade: 8, subjects });
+    expect(grade8.map(r => [r.subject.title, r.solved, r.total])).toEqual([['Алгебра', 6, 10], ['Геометрия', 1, 4]]);
+    expect(buildSubjectBreakdown(rows, { grade: 5, subjects })).toEqual([]);
+  });
+
+  it('тему без раздела не теряет', () => {
+    const orphan = buildSubjectBreakdown([{ topic: { id: 13, grade: 8, subject_id: null }, total: 3, solved: 3 }], { subjects });
+    expect(orphan).toHaveLength(1);
+    expect(orphan[0].subject).toBe(null);
+  });
+});
+
+describe('buildWeakSpots', () => {
+  const topicRows = [
+    { topic: { id: 1, slug: 'drobi' }, total: 4, solved: 2 },
+    { topic: { id: 2, slug: 'procenty' }, total: 3, solved: 3 },
+    { topic: { id: 3, slug: 'uravneniya' }, total: 2, solved: 0 }
+  ];
+  const taskIdsOf = id => ({ 1: [10, 11, 12, 13], 2: [20, 21, 22], 3: [30, 31] })[id] || [];
+
+  it('берёт только темы с осечками и ставит слабейшую первой', () => {
+    const weak = buildWeakSpots({
+      topicRows,
+      taskIdsOf,
+      solvedSet: new Set([10, 11, 20, 21, 22]),
+      // 11 решена со второй попытки, 12 брошена после ошибки, 30 — тоже.
+      wrongAttempts: { 11: 1, 12: 3, 30: 2 },
+      journalByTask: new Map([[11, 'hint']])
+    });
+    // «Проценты» пройдены без ошибок — их здесь нет; 13 не трогали и в счёт не идёт.
+    expect(weak.map(row => [row.topic.slug, row.correct, row.attempted, row.hinted]))
+      .toEqual([['uravneniya', 0, 1, 0], ['drobi', 1, 3, 1]]);
+  });
+
+  it('без ошибок список пуст', () => {
+    const weak = buildWeakSpots({ topicRows, taskIdsOf, solvedSet: new Set([20, 21, 22]), wrongAttempts: {} });
+    expect(weak).toEqual([]);
   });
 });
