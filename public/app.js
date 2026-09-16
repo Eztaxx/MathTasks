@@ -222,6 +222,79 @@ function renderGradeControls() {
   if (short) short.textContent = gradeShortLabel();
   select.closest('.topbar-grade')?.classList.toggle('is-set', Boolean(selectedGrade));
 }
+/* Свой список классов вместо системного: тот не оформляется, а длинные
+   названия курсов в кнопке приходилось резать многоточием. Родной select
+   остаётся в разметке — он хранит выбор, и по нему идёт то же событие
+   change, так что вся логика смены класса остаётся одна. */
+function renderGradeMenu() {
+  const select = document.querySelector('#topbar-grade-select');
+  const menu = document.querySelector('#topbar-grade-menu');
+  if (!select || !menu) return;
+  const current = select.value || '';
+  const optionHtml = option => `<button type="button" role="option" class="topbar-grade-option${option.value === current ? ' is-current' : ''}" aria-selected="${option.value === current}" data-grade-value="${escapeHtml(option.value)}">${escapeHtml(option.textContent)}</button>`;
+  menu.innerHTML = [...select.children].map(node => (node.tagName === 'OPTGROUP'
+    ? `<div class="topbar-grade-group">${escapeHtml(node.label)}</div>` + [...node.children].map(optionHtml).join('')
+    : optionHtml(node))).join('');
+}
+
+function openGradeMenu(open) {
+  const wrap = document.querySelector('#topbar-grade');
+  const button = document.querySelector('#topbar-grade-btn');
+  const menu = document.querySelector('#topbar-grade-menu');
+  if (!wrap || !button || !menu) return;
+  const show = open === undefined ? menu.hidden : Boolean(open);
+  if (show) renderGradeMenu();
+  menu.hidden = !show;
+  wrap.classList.toggle('is-open', show);
+  button.setAttribute('aria-expanded', String(show));
+  // Кнопка узкая, список широкий: на телефоне он иначе упирается в край экрана.
+  if (show) {
+    menu.style.marginLeft = '0px';
+    // Ширина без полосы прокрутки: innerWidth её учитывает и даёт сдвиг меньше нужного.
+    const viewport = document.documentElement.clientWidth || window.innerWidth;
+    const overflow = menu.getBoundingClientRect().right - (viewport - 12);
+    if (overflow > 0) menu.style.marginLeft = `-${Math.round(overflow)}px`;
+  }
+  if (show) (menu.querySelector('.is-current') || menu.querySelector('[data-grade-value]'))?.focus();
+}
+
+document.addEventListener('click', event => {
+  if (event.target.closest?.('#topbar-grade-btn')) { openGradeMenu(); return; }
+  const option = event.target.closest?.('[data-grade-value]');
+  if (option) {
+    const select = document.querySelector('#topbar-grade-select');
+    if (select) {
+      select.value = option.dataset.gradeValue;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    openGradeMenu(false);
+    document.querySelector('#topbar-grade-btn')?.focus();
+    return;
+  }
+  if (!event.target.closest?.('#topbar-grade')) openGradeMenu(false);
+});
+
+// Стрелками — по списку, Esc — закрыть и вернуть фокус кнопке.
+document.addEventListener('keydown', event => {
+  const menu = document.querySelector('#topbar-grade-menu');
+  if (!menu || menu.hidden) return;
+  if (event.key === 'Escape') {
+    openGradeMenu(false);
+    document.querySelector('#topbar-grade-btn')?.focus();
+    return;
+  }
+  if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+  const items = [...menu.querySelectorAll('[data-grade-value]')];
+  if (!items.length) return;
+  event.preventDefault();
+  const index = items.indexOf(document.activeElement);
+  const next = event.key === 'Home' ? 0
+    : event.key === 'End' ? items.length - 1
+      : event.key === 'ArrowDown' ? Math.min(items.length - 1, index + 1)
+        : Math.max(0, index - 1);
+  items[next]?.focus();
+});
+
 function parseGradeValue(val) {
   if (!val) return null;
   if (val === 'visparigais' || val === 'vispārīgais') return 'visparigais';

@@ -175,12 +175,16 @@
   <main id="home">
     <header class="topbar">
       <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="Свернуть меню" data-i18n-aria="menu_toggle"><span aria-hidden="true">☰</span></button>
-      <label class="topbar-grade" title="Ваш класс" data-i18n-title="sidebar_grade_label">
-        <span class="topbar-grade-value" id="topbar-grade-value">Все классы</span>
-        <span class="topbar-grade-short" id="topbar-grade-short" aria-hidden="true">Все</span>
-        <span class="topbar-grade-chevron" aria-hidden="true">⌄</span>
-        <select id="topbar-grade-select" aria-label="Ваш класс" data-i18n-aria="sidebar_grade_label"></select>
-      </label>
+      <div class="topbar-grade" id="topbar-grade">
+        <button class="topbar-grade-btn" id="topbar-grade-btn" type="button" aria-haspopup="listbox" aria-expanded="false" title="Ваш класс" data-i18n-title="sidebar_grade_label" aria-label="Ваш класс" data-i18n-aria="sidebar_grade_label">
+          <span class="topbar-grade-value" id="topbar-grade-value">Все классы</span>
+          <span class="topbar-grade-short" id="topbar-grade-short" aria-hidden="true">Все</span>
+          <span class="topbar-grade-chevron" aria-hidden="true">⌄</span>
+        </button>
+        <!-- Свой список: системный не оформить, и длинные названия курсов в нём режутся. -->
+        <div class="topbar-grade-menu" id="topbar-grade-menu" role="listbox" aria-label="Ваш класс" data-i18n-aria="sidebar_grade_label" hidden></div>
+        <select id="topbar-grade-select" tabindex="-1" aria-hidden="true"></select>
+      </div>
       <label class="search"><span>⌕</span><input id="search-input" type="search" aria-label="Поиск задач" placeholder="Поиск задач по теме или ключевому слову..." data-i18n-placeholder="search_placeholder" data-i18n-aria="search_placeholder" /></label>
       <div class="lang-switcher" id="lang-switcher" role="group" aria-label="Valodas izvēle / Выбор языка" data-i18n-aria="lang_switcher">
         <button type="button" class="lang-btn" data-lang="lv" title="Latviešu valoda" data-i18n-title="lang_lv">LV</button>
@@ -555,7 +559,7 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="/lib.js"></script>
   <script src="/client.js"></script>
-  <script src="/math-keyboard.js?v=20260916-1"></script>
+  <script src="/math-keyboard.js?v=20260916-2"></script>
   <script src="/ui.js"></script>
   <script src="/plotter.js?v=20260916-1"></script>
   <script src="/app.js"></script>
