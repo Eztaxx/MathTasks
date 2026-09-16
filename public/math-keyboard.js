@@ -42,7 +42,7 @@
     } else if (text === '|') {
       inserted = '||';
       newCursor = start + 1;
-    } else if (/^(sin|cos|tan|tg|ctg|ln|lg|sqrt)\($/.test(text)) {
+    } else if (/^(sin|cos|tan|tg|ctg|ln|lg|exp|sqrt)\($/.test(text)) {
       inserted = text + ')';
       newCursor = start + text.length;
     }
@@ -99,6 +99,26 @@
     ]
   };
 
+  /* Своя раскладка для графопостроителя: там набирают функцию, а не ответ.
+     Знаки сравнения, ∞, ∪, буквы y, a, b, n, k и «=» график не понимает —
+     вместо них цифры с «e» и слой функций, включая ctg и lg. */
+  const PLOT_FIELDS = '#plotter-expr, #plot-expr';
+  const PLOT_LAYERS = {
+    main: [
+      key('x'), key('x²', '²'), digit('7'), digit('8'), digit('9'), key('/'),
+      key('('), key(')'), digit('4'), digit('5'), digit('6'), key('·'),
+      key('√', '√('), key('xⁿ', '^'), digit('1'), digit('2'), digit('3'), key('−', '-'),
+      key('π'), key('e'), digit('0'), key(',', ',', 'num'), key(';'), key('+')
+    ],
+    more: [
+      fn('sin'), fn('cos'), fn('tg'), fn('ctg'), fn('ln'), fn('lg'),
+      fn('exp'), key('|x|', '|'), key('x³', '³'), key('1/x', '1/'), key('π'), key('e')
+    ]
+  };
+
+  const isPlotField = input => Boolean(input?.matches?.(PLOT_FIELDS));
+  const layers = () => (isPlotField(field) ? PLOT_LAYERS : LAYERS);
+
   // Клавиатура с клавишами и пробелом — рисунком: значок ⌨ мелкий и читается плохо.
   const TOGGLE_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3" stroke-width="1.8"/><path d="M6 9.5h.01M9.3 9.5h.01M12.6 9.5h.01M15.9 9.5h.01M18 9.5h.01M7.6 12.5h.01M10.9 12.5h.01M14.2 12.5h.01M17 12.5h.01" stroke-width="2.4"/><path d="M8 15.8h8" stroke-width="1.8"/></svg>';
 
@@ -109,20 +129,27 @@
 
   function actionKeys() {
     const touch = isTouch();
+    const plot = isPlotField(field);
     return [
-      { act: 'layer', label: layer === 'main' ? '±≤' : '123', title: layer === 'main' ? tr('mkb_more', 'Ещё символы') : tr('mkb_digits', 'Цифры') },
+      {
+        act: 'layer',
+        label: layer === 'main' ? (plot ? 'f(x)' : '±≤') : '123',
+        title: layer === 'main'
+          ? (plot ? tr('mkb_functions', 'Функции') : tr('mkb_more', 'Ещё символы'))
+          : tr('mkb_digits', 'Цифры')
+      },
       { act: 'abc', label: touch ? 'ABC' : '✕', title: touch ? tr('mkb_abc', 'Обычная клавиатура') : tr('mkb_hide', 'Скрыть клавиатуру') },
       { act: 'left', label: '←', title: tr('mkb_left', 'Курсор влево') },
       { act: 'right', label: '→', title: tr('mkb_right', 'Курсор вправо') },
       { act: 'backspace', label: '⌫', title: tr('mkb_backspace', 'Стереть') },
-      { act: 'enter', label: '↵', title: tr('mkb_enter', 'Проверить') }
+      { act: 'enter', label: '↵', title: plot ? tr('plotter_draw', 'Построить') : tr('mkb_enter', 'Проверить') }
     ];
   }
 
   function render() {
     if (!panel) return;
     panel.setAttribute('aria-label', tr('mkb_label', 'Математическая клавиатура'));
-    const keys = LAYERS[layer].map((k, i) =>
+    const keys = (layers()[layer] || layers().main).map((k, i) =>
       `<button type="button" tabindex="-1" class="math-kb-key${k.kind ? ` is-${k.kind}` : ''}" data-key="${i}">${esc(k.label)}</button>`);
     const actions = actionKeys().map(a =>
       `<button type="button" tabindex="-1" class="math-kb-key is-act${a.act === 'enter' ? ' is-enter' : ''}" data-act="${a.act}" title="${esc(a.title)}" aria-label="${esc(a.title)}">${esc(a.label)}</button>`);
@@ -212,11 +239,13 @@
     if (!panel) build();
     const host = hostFor(input);
     if (panel.parentElement !== host) host.appendChild(panel);
+    // Раскладка зависит от поля: из тренажёра можно перейти прямо в график
+    const sameProfile = isPlotField(field) === isPlotField(input);
     if (field && field !== input) release(field);
     field = input;
     if (isTouch()) silence(input);
     setToggle(input, true);
-    if (panel.hidden) {
+    if (panel.hidden || !sameProfile) {
       layer = 'main';
       render();
       panel.hidden = false;
@@ -337,7 +366,7 @@
     } else if (act === 'enter') {
       submit(field);
     } else {
-      const k = LAYERS[layer][Number(button.dataset.key)];
+      const k = (layers()[layer] || layers().main)[Number(button.dataset.key)];
       if (k) type(field, k.insert);
     }
   }
