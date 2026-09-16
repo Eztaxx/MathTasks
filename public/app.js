@@ -564,6 +564,20 @@ const FORMULAS_DATA = {
   ]
 };
 
+/* Дорисовать формулы в уже собранной разметке. renderMath(element, text)
+   сначала кладёт в элемент текст, то есть затирает содержимое; здесь нужен
+   прямой проход KaTeX по готовым карточкам. */
+function typesetMath(root) {
+  if (!root || typeof window.renderMathInElement !== 'function') return;
+  try {
+    window.renderMathInElement(root, {
+      delimiters: window.MathTasksLib.KATEX_DELIMITERS,
+      throwOnError: false,
+      errorColor: '#dc3151'
+    });
+  } catch {}
+}
+
 function renderFormulasTab(category = 'algebra') {
   const container = document.querySelector('#formulas-content');
   if (!container) return;
@@ -575,7 +589,7 @@ function renderFormulasTab(category = 'algebra') {
       <div class="formula-card-math">$${item.math}$</div>
     </div>
   `).join('');
-  renderMath(container);
+  typesetMath(container);
 }
 
 function switchFormulasMainTab(tab) {
@@ -602,6 +616,100 @@ function openFormulasDialog(defaultTab = 'sheets') {
   if (typeof dialog.showModal === 'function') dialog.showModal();
   else dialog.setAttribute('open', '');
 }
+
+/* ── Выдвижная шпаргалка формул ────────────────────────────────────
+   Панель справа, которую можно держать открытой прямо во время решения:
+   на настоящем экзамене формульный лист тоже разрешён, и уходить за ним
+   со страницы (то есть получать блокировку) ученик не должен. Панель не
+   модальная — страница остаётся рабочей; формулы рисуются при первом
+   открытии, а не на каждой загрузке. Во время блокировки её накрывает
+   тот же экран, что и задания. */
+const FORMULAS_DRAWER_KEY = 'math-tasks:formulas-drawer';
+let formulasDrawerReady = false;
+
+function formulasDrawerState() {
+  try { return JSON.parse(localStorage.getItem(FORMULAS_DRAWER_KEY) || '{}'); } catch { return {}; }
+}
+
+function saveFormulasDrawerState(patch) {
+  try { localStorage.setItem(FORMULAS_DRAWER_KEY, JSON.stringify({ ...formulasDrawerState(), ...patch })); } catch {}
+}
+
+function renderFormulasDrawerList() {
+  const box = document.querySelector('#formulas-drawer-list');
+  if (!box) return;
+  const tr = window.MathTasks.t || (k => k);
+  const isLv = window.MathTasksI18n?.getLang?.() === 'lv';
+  const state = formulasDrawerState();
+  const category = FORMULAS_DATA[state.cat] ? state.cat : 'algebra';
+  const query = (document.querySelector('#formulas-drawer-search')?.value || '').trim().toLowerCase();
+
+  // Поиск идёт по всем разделам сразу, без поиска — только выбранный.
+  const found = [];
+  for (const [key, items] of Object.entries(FORMULAS_DATA)) {
+    if (!query && key !== category) continue;
+    for (const item of items) {
+      if (query && !`${item.title} ${item.title_lv || ''}`.toLowerCase().includes(query)) continue;
+      found.push({ key, title: isLv && item.title_lv ? item.title_lv : item.title, math: item.math });
+    }
+  }
+
+  box.innerHTML = found.length
+    ? found.map(item => `<div class="formula-card">
+        <div class="formula-card-title">${escapeHtml(item.title)}${query ? ` <span class="formula-card-cat">${escapeHtml(tr(`cat_${item.key}`))}</span>` : ''}</div>
+        <div class="formula-card-math">$${item.math}$</div>
+      </div>`).join('')
+    : `<p class="empty-state">${escapeHtml(tr('formulas_drawer_empty'))}</p>`;
+  typesetMath(box);
+
+  document.querySelectorAll('.formulas-drawer-cat').forEach(btn => {
+    btn.classList.toggle('active', !query && btn.dataset.cat === category);
+  });
+}
+
+function toggleFormulasDrawer(open) {
+  const drawer = document.querySelector('#formulas-drawer');
+  const tab = document.querySelector('#formulas-drawer-tab');
+  if (!drawer || !tab) return;
+  const show = open === undefined ? !document.body.classList.contains('formulas-drawer-open') : Boolean(open);
+  document.body.classList.toggle('formulas-drawer-open', show);
+  tab.setAttribute('aria-expanded', String(show));
+  saveFormulasDrawerState({ open: show });
+  if (!show) return;
+  formulasDrawerReady = true;
+  renderFormulasDrawerList();
+}
+
+document.addEventListener('click', event => {
+  if (event.target.closest('#formulas-drawer-tab')) { toggleFormulasDrawer(); return; }
+  if (event.target.closest('#formulas-drawer-close')) { toggleFormulasDrawer(false); return; }
+  const catBtn = event.target.closest('.formulas-drawer-cat');
+  if (catBtn) {
+    const search = document.querySelector('#formulas-drawer-search');
+    if (search) search.value = '';
+    saveFormulasDrawerState({ cat: catBtn.dataset.cat });
+    renderFormulasDrawerList();
+    return;
+  }
+  // Официальные буклеты VISC — в прежнем окне, там PDF.
+  if (event.target.closest('#formulas-drawer-sheets')) openFormulasDialog('sheets');
+});
+
+document.addEventListener('input', event => {
+  if (event.target.id === 'formulas-drawer-search') renderFormulasDrawerList();
+});
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && document.body.classList.contains('formulas-drawer-open')) toggleFormulasDrawer(false);
+});
+
+// Сменили язык — меняются и подписи формул.
+window.addEventListener('languagechange', () => {
+  if (formulasDrawerReady) renderFormulasDrawerList();
+});
+
+// Была открыта в прошлый раз — открываем снова.
+if (formulasDrawerState().open) toggleFormulasDrawer(true);
 
 /* ── Закладки (Избранное) ─────────────────────────────────────────── */
 function getFavorites() {
@@ -1910,11 +2018,15 @@ function homeStreakCard() {
     const title = `${date.toLocaleDateString(progressLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}: ${tr('progress_day_count', { count: day.count })}`;
     return `<span class="${cls}" title="${escapeHtml(title)}"><i></i><small>${escapeHtml(date.toLocaleDateString(progressLocale(), { weekday: 'narrow' }))}</small></span>`;
   }).join('');
+  /* Нулевая серия — не «0 дней подряд», а что сделать, чтобы она началась:
+     новому посетителю ноль ничего не говорит. */
   return `<a class="home-card home-streak" href="/progress" title="${escapeHtml(tr('nav_progress'))}">
     <span class="home-streak-count">
       <span class="home-card-label">${escapeHtml(tr('home_streak_title'))}</span>
-      <strong>${streak.current}</strong>
-      <small>${escapeHtml(streakUnit(streak.current))}</small>
+      ${streak.current === 0
+        ? `<span class="home-streak-empty">${escapeHtml(tr('home_streak_empty'))}</span>`
+        : `<strong>${streak.current}</strong>
+      <small>${escapeHtml(streakUnit(streak.current))}</small>`}
     </span>
     <span class="home-streak-week">${days}</span>
   </a>`;
@@ -4798,7 +4910,8 @@ const drillAttempts = new Map();
 
 // Обработка ввода и проверки ответов в компактном тренажёре
 document.addEventListener('keydown', event => {
-  const input = event.target.closest('.compact-drill-input');
+  // closest() нет у document: событие могло прийти не с элемента.
+  const input = event.target.closest?.('.compact-drill-input');
   if (!input) return;
   const tr = window.MathTasks.t || (k => k);
 
@@ -4879,7 +4992,8 @@ document.addEventListener('keydown', event => {
 });
 
 document.addEventListener('input', event => {
-  const input = event.target.closest('.compact-drill-input');
+  // closest() нет у document: событие могло прийти не с элемента.
+  const input = event.target.closest?.('.compact-drill-input');
   if (!input) return;
   if (input.classList.contains('error')) {
     input.classList.remove('error');

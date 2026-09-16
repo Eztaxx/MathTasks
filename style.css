@@ -900,6 +900,44 @@ body.dark .topbar-menu-panel a:hover,body.dark .topbar-menu-panel a:focus-visibl
 /* На телефоне «☰» стоит у левого края — меню во всю ширину, иначе уезжало за экран. */
 @media(max-width:720px){.topbar-menu-panel{position:fixed;left:16px;right:16px;top:auto;min-width:0}}
 
+/* Нулевая серия: вместо большого «0» — что сделать, чтобы она началась. */
+.home-streak-empty{font:600 12.5px Manrope,sans-serif;line-height:1.35;color:var(--muted);max-width:200px}
+
+/* ── Выдвижная шпаргалка формул ──
+   Панель справа поверх страницы, но не модальная: можно решать с открытой.
+   Закрытая уезжает вправо и скрыта visibility — в обход табуляции. */
+.formulas-drawer-tab{position:fixed;right:18px;bottom:18px;z-index:40;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 16px;border:1px solid var(--line);border-radius:99px;background:#fff;color:var(--ink);font:700 13px Manrope,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(15,23,42,.16)}
+.formulas-drawer-tab:hover{border-color:#b9c6dc}
+.formulas-drawer-tab:focus-visible{outline:2px solid #5a92ff;outline-offset:2px}
+body.dark .formulas-drawer-tab{background:#0f141f;border-color:#1c2331;color:#e9eefb;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+body.formulas-drawer-open .formulas-drawer-tab{display:none}
+.formulas-drawer{position:fixed;top:0;right:0;bottom:0;z-index:45;display:flex;flex-direction:column;gap:12px;width:min(400px,100%);padding:16px 18px;border-left:1px solid var(--line);background:#fff;box-shadow:-12px 0 40px rgba(15,23,42,.18);visibility:hidden;transform:translateX(100%);transition:transform .22s ease,visibility .22s}
+body.formulas-drawer-open .formulas-drawer{visibility:visible;transform:none}
+body.dark .formulas-drawer{background:#0c1019;border-left-color:#1c2331;box-shadow:-12px 0 40px rgba(0,0,0,.6)}
+.formulas-drawer-head{display:flex;align-items:center;gap:12px}
+.formulas-drawer-head h2{margin:0;font:800 16px Manrope,sans-serif}
+.formulas-drawer-head .dialog-close{margin-left:auto}
+.formulas-drawer-search{height:38px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:500 13px Manrope,sans-serif}
+.formulas-drawer-search:focus{border-color:#1764ff;outline:0;box-shadow:0 0 0 3px #1764ff1f}
+body.dark .formulas-drawer-search{background:#0a0d14;border-color:#232b3b;color:#edf2ff}
+.formulas-drawer-cats{display:flex;flex-wrap:wrap;gap:6px}
+.formulas-drawer-cat{height:30px;padding:0 11px;border:1px solid var(--line);border-radius:99px;background:transparent;color:var(--muted);font:600 12px Manrope,sans-serif;cursor:pointer}
+.formulas-drawer-cat:hover{border-color:#b9c6dc;color:var(--ink)}
+.formulas-drawer-cat.active{background:#111827;border-color:#111827;color:#fff}
+body.dark .formulas-drawer-cat{border-color:#1c2331;color:#c9d2e3}
+body.dark .formulas-drawer-cat.active{background:#e9eefb;border-color:#e9eefb;color:#0a0d14}
+.formulas-drawer-list{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;padding-right:2px;overflow-y:auto}
+.formulas-drawer-list .formula-card{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:transparent}
+.formulas-drawer-list .formula-card-title{margin-bottom:6px;font:700 12.5px Manrope,sans-serif;color:var(--ink)}
+.formulas-drawer-list .formula-card-math{overflow-x:auto;font-size:14px}
+.formula-card-cat{margin-left:6px;font-weight:600;color:var(--muted)}
+body.dark .formulas-drawer-list .formula-card{border-color:#1c2331;background:#0f141f}
+.formulas-drawer-foot{padding-top:10px;border-top:1px solid var(--line)}
+body.dark .formulas-drawer-foot{border-top-color:#1c2331}
+@media (prefers-reduced-motion:reduce){.formulas-drawer{transition:none}}
+@media(max-width:640px){.formulas-drawer{width:100%;padding:14px}.formulas-drawer-tab{right:12px;bottom:12px;height:38px;padding:0 13px}}
+@media print{.formulas-drawer,.formulas-drawer-tab{display:none!important}}
+
 /* ── Контрольная и экзамен: строка времени, блокировка, начало экзамена ──
    Строка «⏱ время · отвечено · Сдать» прилипает к верху экрана: на
    экзамене в три часа до шапки с большими цифрами не докрутишься.

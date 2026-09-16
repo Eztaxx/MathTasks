@@ -520,6 +520,29 @@
     <span class="toast-msg"></span>
   </div>
 
+  <!-- Выдвижная шпаргалка формул: панель справа, которую можно держать
+       открытой во время решения — в том числе на контрольной и экзамене. -->
+  <button class="formulas-drawer-tab" id="formulas-drawer-tab" type="button" aria-expanded="false" aria-controls="formulas-drawer" title="Шпаргалка формул" data-i18n-title="formulas_drawer_title">
+    <span aria-hidden="true">📐</span><span data-i18n="formulas_drawer_btn">Формулы</span>
+  </button>
+  <aside class="formulas-drawer" id="formulas-drawer" aria-labelledby="formulas-drawer-title">
+    <div class="formulas-drawer-head">
+      <h2 id="formulas-drawer-title" data-i18n="formulas_drawer_title">📐 Шпаргалка формул</h2>
+      <button class="dialog-close" id="formulas-drawer-close" type="button" aria-label="Закрыть" data-i18n-aria="dialog_close">×</button>
+    </div>
+    <input type="search" class="formulas-drawer-search" id="formulas-drawer-search" placeholder="Поиск формулы…" data-i18n-placeholder="formulas_drawer_search" aria-label="Поиск формулы" data-i18n-aria="formulas_drawer_search" />
+    <div class="formulas-drawer-cats" role="group" aria-labelledby="formulas-drawer-title">
+      <button type="button" class="formulas-drawer-cat active" data-cat="algebra" data-i18n="cat_algebra">Алгебра</button>
+      <button type="button" class="formulas-drawer-cat" data-cat="geometry" data-i18n="cat_geometry">Геометрия</button>
+      <button type="button" class="formulas-drawer-cat" data-cat="trig" data-i18n="cat_trig">Тригонометрия</button>
+      <button type="button" class="formulas-drawer-cat" data-cat="analysis" data-i18n="cat_analysis">Анализ и вероятность</button>
+    </div>
+    <div class="formulas-drawer-list" id="formulas-drawer-list"></div>
+    <div class="formulas-drawer-foot">
+      <button type="button" class="text-button" id="formulas-drawer-sheets" data-i18n="formulas_drawer_sheets">Официальные листы экзаменов →</button>
+    </div>
+  </aside>
+
   <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
