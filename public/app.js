@@ -3397,7 +3397,9 @@ function saveControlWorkResult(topicId, result) {
    контрольной: работа по нескольким темам иначе нашлась бы только в
    разделе «Контрольные работы». */
 async function appendTopicPapers(topicId, slot) {
-  const papers = await listTopicPapers(topicId);
+  /* Работа по одной теме и так стоит на её странице вместо автоматической —
+     ссылка на неё была бы ссылкой на саму себя. */
+  const papers = (await listTopicPapers(topicId)).filter(paper => Number(paper.topic_id) !== Number(topicId));
   if (!papers.length || !slot || slot.hidden) return;
   const tr = window.MathTasks.t || (k => k);
   slot.insertAdjacentHTML('beforeend', `
@@ -3794,7 +3796,7 @@ async function listTopicPapers(topicId) {
   if (!db) return [];
   try {
     const { data, error } = await db.from('exam_papers')
-      .select('slug,title,title_lv,minutes,exam_paper_items(task_id),exam_paper_topics!inner(topic_id)')
+      .select('slug,title,title_lv,minutes,topic_id,exam_paper_items(task_id),exam_paper_topics!inner(topic_id)')
       .eq('is_published', true).eq('kind', 'cw').eq('exam_paper_topics.topic_id', topicId)
       .order('id');
     return error ? [] : (data || []);
