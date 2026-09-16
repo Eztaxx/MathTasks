@@ -16,8 +16,147 @@
   const COLORS = ['#1764ff', '#e11d48', '#0f9d58'];
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
-  /* Формула ученика → функция JS. Разрешён только счёт: и набор символов,
-     и список имён проверяются до создания функции. */
+  /* Что разрешено в формуле. Оба словаря без прототипа: иначе имя
+     «constructor» нашлось бы в них само собой и стало бы функцией. */
+  const FUNCS = Object.assign(Object.create(null), {
+    sin: Math.sin,
+    cos: Math.cos,
+    tan: Math.tan,
+    sqrt: Math.sqrt,
+    abs: Math.abs,
+    log: Math.log,
+    logten: Math.log10,
+    exp: Math.exp
+  });
+  const CONSTS = Object.assign(Object.create(null), { pi: Math.PI, e: Math.E });
+
+  /* Разбор на лексемы: числа, имена, скобки и пять знаков действий.
+     Любой другой символ — отказ, поэтому до разбора дерева не доходят
+     ни точки после имени, ни стрелки, ни кавычки. */
+  function tokenize(src) {
+    const tokens = [];
+    let i = 0;
+    while (i < src.length) {
+      const ch = src[i];
+      if (ch === ' ') { i += 1; continue; }
+      if (ch >= '0' && ch <= '9' || ch === '.') {
+        let j = i;
+        while (j < src.length && (src[j] >= '0' && src[j] <= '9' || src[j] === '.')) j += 1;
+        const value = Number(src.slice(i, j));
+        if (!Number.isFinite(value)) return null;
+        tokens.push({ t: 'num', v: value });
+        i = j;
+        continue;
+      }
+      if (/[a-zA-Z]/.test(ch)) {
+        let j = i;
+        while (j < src.length && /[a-zA-Z]/.test(src[j])) j += 1;
+        tokens.push({ t: 'name', v: src.slice(i, j) });
+        i = j;
+        continue;
+      }
+      if ('+-*/^()'.includes(ch)) { tokens.push({ t: ch }); i += 1; continue; }
+      return null;
+    }
+    return tokens;
+  }
+
+  /* Дерево разбора сразу собирается в замыкания: каждый узел — функция
+     от x. Считать потом нечего разбирать, а исполняемого кода из строки
+     ученика не возникает вовсе. */
+  function compile(tokens) {
+    let pos = 0;
+    const at = t => tokens[pos] && tokens[pos].t === t;
+
+    function expression() {
+      let left = term();
+      if (!left) return null;
+      while (at('+') || at('-')) {
+        const plus = tokens[pos].t === '+';
+        pos += 1;
+        const right = term();
+        if (!right) return null;
+        const l = left;
+        left = plus ? x => l(x) + right(x) : x => l(x) - right(x);
+      }
+      return left;
+    }
+
+    function term() {
+      let left = unary();
+      if (!left) return null;
+      while (at('*') || at('/')) {
+        const times = tokens[pos].t === '*';
+        pos += 1;
+        const right = unary();
+        if (!right) return null;
+        const l = left;
+        left = times ? x => l(x) * right(x) : x => l(x) / right(x);
+      }
+      return left;
+    }
+
+    /* Минус перед степенью слабее самой степени: −x² это −(x²).
+       Показатель разбираем как unary — 2^-1 и 2^3^2 читаются справа. */
+    function unary() {
+      if (at('-') || at('+')) {
+        const minus = tokens[pos].t === '-';
+        pos += 1;
+        const node = unary();
+        if (!node) return null;
+        return minus ? x => -node(x) : node;
+      }
+      return power();
+    }
+
+    function power() {
+      const base = primary();
+      if (!base) return null;
+      if (!at('^')) return base;
+      pos += 1;
+      const exp = unary();
+      if (!exp) return null;
+      return x => Math.pow(base(x), exp(x));
+    }
+
+    function primary() {
+      const tok = tokens[pos];
+      if (!tok) return null;
+      if (tok.t === 'num') {
+        pos += 1;
+        return () => tok.v;
+      }
+      if (tok.t === '(') {
+        pos += 1;
+        const node = expression();
+        if (!node || !at(')')) return null;
+        pos += 1;
+        return node;
+      }
+      if (tok.t !== 'name') return null;
+      pos += 1;
+      if (tok.v === 'x') return x => x;
+      if (tok.v in CONSTS) {
+        const value = CONSTS[tok.v];
+        return () => value;
+      }
+      const fn = FUNCS[tok.v];
+      if (typeof fn !== 'function' || !at('(')) return null;
+      pos += 1;
+      const arg = expression();
+      if (!arg || !at(')')) return null;
+      pos += 1;
+      return x => fn(arg(x));
+    }
+
+    const root = expression();
+    return root && pos === tokens.length ? root : null;
+  }
+
+  /* Формула ученика → функция от x. Запись сначала приводится к обычной
+     (², √, ·, π, |x|, ctg, lg, неявное умножение), потом разбирается
+     своим парсером. Через new Function это не идёт: из-за одного вызова
+     всему сайту пришлось бы держать 'unsafe-eval' в политике безопасности. */
   function parseExpr(expr) {
     let clean = (expr || '')
       .trim()
@@ -50,28 +189,12 @@
       .replace(/(\))(\d|[a-zA-Z])/g, '$1*$2')
       .replace(/\)\(/g, ')*(');
 
-    /* -x^2 в математике это -(x^2), а -x**2 в JS — синтаксическая ошибка. */
-    const base = '(?:[a-zA-Z0-9_\\.]+(?:\\([^)]+\\))?|\\([^)]+\\))';
-    const power = '(?:[a-zA-Z0-9_\\.]+|\\([^)]+\\))';
-    clean = clean.replace(new RegExp(`(^|[(+\\-*/])\\s*-\\s*(${base})\\s*\\^\\s*(${power})`, 'g'), '$1-(($2)**($3))');
-    clean = clean.replace(/\^/g, '**');
-
-    /* Имена функций заменяются за один проход: по очереди log10 сначала
-       становился Math.log10, а следующая замена log портила его до
-       Math.Math.log10 — и lg(x) не строился вовсе. */
-    clean = clean
-      .replace(/\blogten\b/g, 'Math.log10')
-      .replace(/\b(sin|cos|tan|sqrt|abs|log|exp)\b/g, 'Math.$1')
-      .replace(/\bpi\b/gi, 'Math.PI')
-      .replace(/\be\b/g, 'Math.E');
-
-    if (!/^[0-9a-zA-Z_.+\-*/()\s]+$/.test(clean)) return null;
-    const words = clean.match(/[a-zA-Z_]+/g) || [];
-    const allowed = new Set(['x', 'Math', 'sin', 'cos', 'tan', 'sqrt', 'abs', 'PI', 'E', 'pow', 'log', 'log10', 'exp']);
-    if (!words.every(w => allowed.has(w))) return null;
+    const tokens = tokenize(clean);
+    if (!tokens || !tokens.length) return null;
+    const fn = compile(tokens);
+    if (!fn) return null;
 
     try {
-      const fn = new Function('x', '"use strict"; return (' + clean + ');');
       if (typeof fn(1) !== 'number') return null;
       return fn;
     } catch {

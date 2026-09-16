@@ -43,15 +43,28 @@ describe('Разбор формул графопостроителя', () => {
     expect(Number.isFinite(g(0))).toBe(false);
   });
 
-  it('не пропускает посторонний код', () => {
-    for (const bad of ['alert(1)', 'x.constructor', 'eval(1)', 'globalThis', 'window.location', 'x=>1']) {
-      expect(parseExpr(bad)).toBeNull();
-    }
+  it('степень читается справа налево, минус слабее степени', () => {
+    near(parseExpr('-x^2'), 3, -9);
+    near(parseExpr('2^3^2'), 0, 512);
+    // 2^-1 через new Function было синтаксической ошибкой: 2**-1 в JS запрещено
+    near(parseExpr('2^-1'), 0, 0.5);
+    near(parseExpr('3(x+1)^2'), 1, 12);
   });
 
-  it('пустая и бессмысленная формула — null', () => {
-    expect(parseExpr('')).toBeNull();
-    expect(parseExpr('   ')).toBeNull();
+  it('не пропускает посторонний код', () => {
+    const bad = [
+      'alert(1)', 'x.constructor', 'eval(1)', 'globalThis', 'window.location', 'x=>1',
+      // имена из прототипа объекта не должны находиться в словарях функций
+      'constructor', 'constructor(x)', 'toString(x)', 'hasOwnProperty(x)',
+      'foo(x)', 'x;y', 'x`1`', 'x[0]'
+    ];
+    for (const src of bad) expect(parseExpr(src)).toBeNull();
+  });
+
+  it('незаконченная формула — null, а не половина ответа', () => {
+    for (const src of ['', '   ', 'x+', '(x', 'x)', 'sin', 'sin(', '^2']) {
+      expect(parseExpr(src)).toBeNull();
+    }
   });
 });
 
