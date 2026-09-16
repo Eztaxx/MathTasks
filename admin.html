@@ -59,6 +59,7 @@
             <a class="adm-nav-item" href="#tasks" data-view-link="tasks"><span>Каталог задач</span><span class="adm-count plain" id="adm-count-tasks"></span></a>
             <a class="adm-nav-item" href="#ai" data-view-link="ai"><span>Генератор задач</span></a>
             <a class="adm-nav-item" href="#catalog" data-view-link="catalog"><span>Разделы, темы, подтемы</span></a>
+            <a class="adm-nav-item" href="#papers" data-view-link="papers"><span>Варианты</span></a>
           </nav>
           <div class="adm-side-foot">
             <button class="adm-theme-btn" type="button" id="adm-theme-btn"><span id="adm-theme-label">Тема</span><small>сменить</small></button>
@@ -166,6 +167,48 @@
                   <div class="adm-review-empty-title">Очередь разобрана</div>
                   <p>Новые задачи появятся здесь после генератора или импорта.</p>
                 </div>
+              </div>
+            </section>
+
+            <!-- Варианты: собранные вручную экзамены и контрольные. -->
+            <section class="adm-view" data-view="papers" hidden>
+              <div class="adm-view-head">
+                <div><h1>Варианты</h1><p>Собранный вручную экзамен или контрольная: какие задачи, в каком порядке, сколько времени и на сколько частей. Пока варианта нет, сайт собирает работу сам — из задач темы или уровня.</p></div>
+                <div class="adm-view-actions"><button class="adm-btn primary" type="button" id="paper-new">+ Новый вариант</button></div>
+              </div>
+              <div class="adm-view-body">
+                <section class="adm-panel">
+                  <div class="adm-panel-head"><h2>Собранные варианты</h2><span class="adm-panel-note">опубликованный вариант сразу заменяет автоматический</span></div>
+                  <div id="paper-list"><p class="adm-empty">Загружаем…</p></div>
+                </section>
+
+                <section class="adm-panel" id="paper-editor" hidden>
+                  <div class="adm-panel-head"><h2 id="paper-editor-title">Новый вариант</h2><button type="button" class="adm-link-btn" id="paper-cancel">Закрыть</button></div>
+                  <div class="adm-paper-form">
+                    <label>Название<input type="text" id="paper-title" placeholder="Пробный экзамен основной школы, вариант 1" /></label>
+                    <label>Название на латышском<input type="text" id="paper-title-lv" placeholder="Izmēģinājuma eksāmens, 1. variants" /></label>
+                    <label>Тип работы<select id="paper-kind"><option value="exam">Экзамен</option><option value="cw">Контрольная работа</option></select></label>
+                    <label id="paper-level-label">Уровень<select id="paper-level"></select></label>
+                    <label id="paper-topic-label" hidden>Тема<select id="paper-topic"></select></label>
+                    <label>Адрес страницы<input type="text" id="paper-slug" placeholder="pamat-2026-1" /></label>
+                    <label>Время, минут<input type="number" id="paper-minutes" min="1" max="600" value="180" /></label>
+                    <label>Части, минуты через плюс<input type="text" id="paper-parts" placeholder="105 + 75" /></label>
+                    <label class="adm-paper-check"><input type="checkbox" id="paper-published" /><span>Опубликован — виден ученикам</span></label>
+                  </div>
+
+                  <div class="adm-paper-picker">
+                    <label>Найти задачу<input type="search" id="paper-search" placeholder="Номер задачи или слова из условия" /></label>
+                    <div id="paper-search-results"></div>
+                  </div>
+
+                  <div class="adm-panel-head"><h3>Задачи варианта</h3><span class="adm-panel-note" id="paper-items-note"></span></div>
+                  <div id="paper-items"></div>
+
+                  <div class="adm-paper-save">
+                    <button type="button" class="adm-btn primary" id="paper-save">Сохранить вариант</button>
+                    <span id="paper-save-note"></span>
+                  </div>
+                </section>
               </div>
             </section>
 

@@ -2282,6 +2282,34 @@
     return picked.sort((a, b) => level(a) - level(b));
   };
 
+  /* ── Собранный вариант ────────────────────────────────────────────
+     Вариант, составленный в админке: задачи идут в заданном порядке —
+     сперва по частям, внутри части по позиции. Снятая с публикации или
+     удалённая задача вариант не ломает: её просто нет в выдаче. */
+  const orderPaperTasks = (items = [], tasks = []) => {
+    const byId = new Map((Array.isArray(tasks) ? tasks : []).map(task => [Number(task.id), task]));
+    return (Array.isArray(items) ? items : [])
+      .slice()
+      .sort((a, b) =>
+        (Number(a.part) || 1) - (Number(b.part) || 1)
+        || (Number(a.position) || 0) - (Number(b.position) || 0)
+        || Number(a.task_id) - Number(b.task_id))
+      .map(item => {
+        const task = byId.get(Number(item.task_id));
+        return task ? { ...task, paperPart: Number(item.part) || 1 } : null;
+      })
+      .filter(Boolean);
+  };
+
+  /* Время варианта: сумма частей, если они заданы, иначе поле minutes.
+     Часть без времени в сумму не идёт — иначе опечатка в одной части
+     молча укоротила бы всю работу. */
+  const paperMinutes = paper => {
+    const parts = Array.isArray(paper?.parts) ? paper.parts : [];
+    const sum = parts.reduce((total, part) => total + Math.max(0, Number(part?.minutes) || 0), 0);
+    return sum > 0 ? sum : Math.max(1, Number(paper?.minutes) || 40);
+  };
+
   /* Честный режим контрольной и экзамена (без DOM). leave() — ученик ушёл
      со страницы; back() — вернулся: это нарушение, и решение блокируется
      на lockMs с момента возвращения, а не ухода — иначе долгий уход прошёл
@@ -2755,6 +2783,8 @@
     createExamTimer,
     initExamTimerUi,
     EXAM_KINDS,
+    orderPaperTasks,
+    paperMinutes,
     selectExamTasks,
     createFocusGuard,
     parseCsvRows,

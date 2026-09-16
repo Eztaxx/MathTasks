@@ -3372,6 +3372,7 @@ let currentCwSubmitted = false;
 let currentCwMode = 'cw'; // 'cw' — контрольная темы, 'exam' — пробный экзамен
 let currentExamKind = null;
 let currentExamSession = null;
+let currentExamPaper = null;
 
 /* ── Честный режим контрольной и экзамена ──────────────────────────
    Пока идёт работа, уход со страницы — другая вкладка, другое приложение,
@@ -3624,15 +3625,69 @@ function saveExamResult(kind, result) {
   } catch {}
 }
 
-async function startExam(kind, { fresh = false } = {}) {
+/* ── Собранный вариант ────────────────────────────────────────────
+   Вариант, составленный в админке: задачи, их порядок, время и части
+   заданы вручную. Берём только опубликованный. Если таблиц ещё нет или
+   доступ закрыт, запрос молча возвращает пусто и работа идёт по-старому,
+   случайным вариантом: страница экзамена не должна падать из-за этого. */
+const PAPER_SELECT = 'id,slug,title,title_lv,kind,level,topic_id,minutes,parts,exam_paper_items(task_id,position,part)';
+
+async function fetchPaper(apply) {
+  if (!db) return null;
+  try {
+    const { data, error } = await apply(db.from('exam_papers').select(PAPER_SELECT).eq('is_published', true)).limit(1);
+    if (error || !Array.isArray(data) || !data.length) return null;
+    return data[0];
+  } catch {
+    return null;
+  }
+}
+
+const paperTitle = paper => {
+  const isLv = window.MathTasksI18n?.getLang?.() === 'lv';
+  return (isLv && paper?.title_lv) || paper?.title || '';
+};
+
+// Задачи варианта в заданном порядке; снятые с публикации отсеиваются.
+async function fetchPaperTasks(paper) {
+  const items = paper?.exam_paper_items || [];
+  if (!items.length || !db) return [];
+  const { data, error } = await db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('id', items.map(item => item.task_id));
+  if (error) return [];
+  return window.MathTasksLib.orderPaperTasks(items, data || []);
+}
+
+// Собранные варианты уровня — ссылками под правилами, рядом со случайным.
+async function listLevelPapers(level) {
+  if (!db) return [];
+  try {
+    const { data, error } = await db.from('exam_papers')
+      .select('slug,title,title_lv')
+      .eq('is_published', true).eq('kind', 'exam').eq('level', level)
+      .order('id');
+    return error ? [] : (data || []);
+  } catch {
+    return [];
+  }
+}
+
+// Части: у уровня это числа [105, 75], у собранного варианта — объекты.
+const partsMinutesOf = parts => (Array.isArray(parts) ? parts : [])
+  .map(part => (typeof part === 'number' ? part : Number(part?.minutes) || 0))
+  .filter(minutes => minutes > 0);
+
+async function startExam(kindOrSlug, { fresh = false } = {}) {
   showView('control-work');
   resetListBlocks();
-  setCwMode('exam', kind);
+  setCwMode('exam', kindOrSlug);
   const tr = window.MathTasks.t || (k => k);
-  const config = window.MathTasksLib.EXAM_KINDS[kind];
+  const lib = window.MathTasksLib;
   const list = document.querySelector('#cw-task-list');
-  const title = config ? tr(`home_exam_title_${kind}`) : tr('exam_not_found');
+  const config = lib.EXAM_KINDS[kindOrSlug] || null;
+  const paper = config ? null : await fetchPaper(query => query.eq('kind', 'exam').eq('slug', kindOrSlug));
+  currentExamPaper = paper;
 
+  const title = paper ? paperTitle(paper) : (config ? tr(`home_exam_title_${kindOrSlug}`) : tr('exam_not_found'));
   const crumbs = document.querySelector('#cw-breadcrumb');
   if (crumbs) {
     crumbs.innerHTML = `<a href="/">${escapeHtml(tr('nav_home'))}</a><span class="crumb-sep">/</span>`
@@ -3641,65 +3696,85 @@ async function startExam(kind, { fresh = false } = {}) {
   const titleEl = document.querySelector('#cw-title');
   if (titleEl) titleEl.textContent = title;
   const desc = document.querySelector('#cw-desc');
-  if (!config) {
+  if (!config && !paper) {
     if (desc) desc.textContent = '';
     if (list) list.innerHTML = `<p class="empty-state">${escapeHtml(tr('exam_not_found'))}</p>`;
     return;
   }
-  const descText = tr('exam_desc', { count: config.tasks, minutes: config.minutes });
+
+  const minutes = paper ? lib.paperMinutes(paper) : config.minutes;
+  const count = paper ? (paper.exam_paper_items || []).length : config.tasks;
+  const parts = partsMinutesOf(paper ? paper.parts : config.parts);
+  const descText = tr('exam_desc', { count, minutes });
   if (desc) {
     delete desc.dataset.i18n;
     desc.textContent = descText;
   }
   setMeta(title, descText);
-  showCwTime(config.minutes * 60);
+  showCwTime(minutes * 60);
 
-  const session = fresh ? null : loadExamSession(kind);
+  const session = fresh ? null : loadExamSession(kindOrSlug);
   if (session) {
     await runExam(session);
     return;
   }
+  // У случайного варианта уровня под правилами — список собранных вариантов.
+  const papers = config ? await listLevelPapers(kindOrSlug) : [];
+  const papersHtml = papers.length ? `
+    <div class="exam-papers">
+      <span class="exam-papers-label">${escapeHtml(tr('exam_papers_title'))}</span>
+      ${papers.map(item => `<a class="exam-paper-link" href="/exam/${encodeURIComponent(item.slug)}">${escapeHtml(paperTitle(item))}</a>`).join('')}
+    </div>` : '';
   if (list) {
     list.innerHTML = `
       <section class="exam-intro">
         <ul class="exam-rules">
-          <li>${escapeHtml(tr('exam_rule_time', { minutes: config.minutes }))}</li>
-          ${config.parts && config.parts.length > 1 ? `<li>${escapeHtml(tr('exam_rule_parts', { parts: config.parts.join(' + ') }))}</li>` : ''}
-          <li>${escapeHtml(tr('exam_rule_tasks', { count: config.tasks }))}</li>
+          <li>${escapeHtml(tr('exam_rule_time', { minutes }))}</li>
+          ${parts.length > 1 ? `<li>${escapeHtml(tr('exam_rule_parts', { parts: parts.join(' + ') }))}</li>` : ''}
+          <li>${escapeHtml(tr('exam_rule_tasks', { count }))}</li>
           <li>${escapeHtml(tr('exam_rule_guard'))}</li>
           <li>${escapeHtml(tr('exam_rule_save'))}</li>
         </ul>
-        <button type="button" class="primary-button exam-start-btn" data-exam-start="${escapeHtml(kind)}">${escapeHtml(tr('exam_start_btn'))}</button>
-      </section>`;
+        <button type="button" class="primary-button exam-start-btn" data-exam-start="${escapeHtml(kindOrSlug)}">${escapeHtml(tr('exam_start_btn'))}</button>
+      </section>
+      ${papersHtml}`;
   }
 }
 
-// «Начать экзамен»: собрать вариант из всех тем уровня и запустить время.
-async function beginExam(kind) {
+// «Начать экзамен»: собрать вариант и запустить время.
+async function beginExam(kindOrSlug) {
   const tr = window.MathTasks.t || (k => k);
   const lib = window.MathTasksLib;
-  const config = lib.EXAM_KINDS[kind];
   const list = document.querySelector('#cw-task-list');
-  if (!config || !list) return;
+  if (!list) return;
+  const config = lib.EXAM_KINDS[kindOrSlug] || null;
+  const paper = config ? null : (currentExamPaper || await fetchPaper(query => query.eq('kind', 'exam').eq('slug', kindOrSlug)));
+  if (!config && !paper) return;
   list.innerHTML = `<p class="empty-state">${escapeHtml(tr('state_loading_tasks'))}</p>`;
-  const topicIds = allTopics.filter(topic => Number(topic.grade) === config.grade).map(topic => topic.id);
-  const { data, error } = topicIds.length
-    ? await lib.fetchAllRows(() => db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('topic_id', topicIds).order('id'))
-    : { data: [], error: null };
-  if (error) {
-    list.innerHTML = `<p class="empty-state">${escapeHtml(tr('err_load_tasks'))}</p>`;
-    return;
+
+  let tasks;
+  if (paper) {
+    tasks = await fetchPaperTasks(paper);
+  } else {
+    const topicIds = allTopics.filter(topic => Number(topic.grade) === config.grade).map(topic => topic.id);
+    const { data, error } = topicIds.length
+      ? await lib.fetchAllRows(() => db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('topic_id', topicIds).order('id'))
+      : { data: [], error: null };
+    if (error) {
+      list.innerHTML = `<p class="empty-state">${escapeHtml(tr('err_load_tasks'))}</p>`;
+      return;
+    }
+    tasks = lib.selectExamTasks(data || [], { count: config.tasks });
   }
-  const tasks = lib.selectExamTasks(data || [], { count: config.tasks });
   if (tasks.length < 3) {
     list.innerHTML = `<p class="empty-state">${escapeHtml(tr('exam_too_few'))}</p>`;
     return;
   }
   currentExamSession = {
-    kind,
+    kind: kindOrSlug,
     ids: tasks.map(task => task.id),
     startedAt: Date.now(),
-    durationSec: config.minutes * 60,
+    durationSec: (paper ? lib.paperMinutes(paper) : config.minutes) * 60,
     answers: {},
     violations: 0,
     lockedUntil: 0
@@ -3821,16 +3896,24 @@ async function startControlWork(slug) {
     return;
   }
 
-  const cwTasks = window.MathTasksLib?.selectControlWorkTasks ? window.MathTasksLib.selectControlWorkTasks(data) : data.slice(0, 5);
+  /* Собранная контрольная темы, если она есть: задачи, их порядок и время
+     берём из неё. Нет такой — как раньше: автоматический набор и 40 минут. */
+  const paper = await fetchPaper(query => query.eq('kind', 'cw').eq('topic_id', topic.id));
+  const paperTasks = paper ? await fetchPaperTasks(paper) : [];
+  const cwTasks = paperTasks.length
+    ? paperTasks
+    : (window.MathTasksLib?.selectControlWorkTasks ? window.MathTasksLib.selectControlWorkTasks(data) : data.slice(0, 5));
+  const cwMinutes = paperTasks.length ? window.MathTasksLib.paperMinutes(paper) : 40;
+  if (paperTasks.length && titleEl) titleEl.textContent = paperTitle(paper);
   currentCwTopic = topic;
   currentCwTasks = cwTasks;
   currentCwUserAnswers = {};
   currentCwSubmitted = false;
 
-  // Таймер на 40 минут и честный режим — с первой секунды работы.
+  // Таймер и честный режим — с первой секунды работы.
   renderControlWorkCards();
   showCwWorkBars(true);
-  startCwTimer(40 * 60);
+  startCwTimer(cwMinutes * 60);
   beginCwGuard();
 }
 

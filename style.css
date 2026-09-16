@@ -922,6 +922,42 @@ body.dark .cw-result-violations{color:#f87171}
 body.dark .exam-intro{background:#0e1219;border-color:#1c2331}
 @media (prefers-reduced-motion:reduce){.cw-sticky-time.warning{animation:none}}
 @media(max-width:640px){.cw-sticky-bar{gap:10px;padding:8px 10px}.cw-sticky-progress{font-size:12px}.exam-intro{padding:18px 16px}}
+/* Собранные варианты уровня — ссылками под правилами экзамена. */
+.exam-papers{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
+.exam-papers-label{font:800 10.5px Manrope,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.exam-paper-link{display:inline-flex;align-items:center;height:32px;padding:0 13px;border:1px solid var(--line);border-radius:99px;color:var(--ink);font:600 12.5px Manrope,sans-serif;text-decoration:none}
+.exam-paper-link:hover{border-color:#b9c6dc}
+body.dark .exam-paper-link{border-color:#1c2331;color:#e9eefb}
+body.dark .exam-paper-link:hover{border-color:#2c3547}
+
+/* ── Админка: экран «Варианты» ──
+   Список собранных вариантов и редактор: поля, поиск задач и состав. */
+.adm-view-actions{margin-left:auto;display:flex;gap:8px}
+.adm-paper-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.adm-paper-row:last-child{border-bottom:0}
+.adm-paper-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.adm-paper-main span{font-size:12.5px;color:var(--muted)}
+.adm-paper-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.adm-paper-state{font:700 11px Manrope,sans-serif;color:var(--muted)}
+.adm-paper-state.is-live{color:#15803d}
+.adm-paper-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px}
+.adm-paper-form label,.adm-paper-picker label{display:flex;flex-direction:column;gap:5px;font:600 12px Manrope,sans-serif;color:var(--muted)}
+.adm-paper-form input,.adm-paper-form select,.adm-paper-picker input{height:36px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font:500 13px Manrope,sans-serif}
+.adm-paper-check{flex-direction:row!important;align-items:center;gap:8px}
+.adm-paper-check input{width:auto;height:auto}
+.adm-paper-picker{margin-bottom:12px}
+.adm-paper-found,.adm-paper-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.adm-paper-found span,.adm-paper-task{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-paper-found button{margin-left:auto}
+.adm-paper-index{flex:none;width:22px;font-weight:800;color:var(--muted)}
+.adm-paper-task{flex:1}
+.adm-paper-part{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.adm-paper-part input{width:54px;height:30px;padding:0 6px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
+.adm-paper-save{display:flex;align-items:center;gap:12px;margin-top:14px}
+#paper-save-note{font-size:12.5px;color:var(--muted)}
+body.dark .adm-paper-form input,body.dark .adm-paper-form select,body.dark .adm-paper-picker input,body.dark .adm-paper-part input{background:#0f141f;border-color:#1c2331;color:#e9eefb}
+body.dark .adm-paper-row,body.dark .adm-paper-found,body.dark .adm-paper-item{border-bottom-color:#1c2331}
+@media(max-width:640px){.adm-paper-row,.adm-paper-item,.adm-paper-found{flex-wrap:wrap}.adm-paper-actions{margin-left:0;width:100%}}
 .sv-legend{display:flex;flex-wrap:wrap;gap:16px;font-size:11.5px;color:var(--muted)}
 .sv-legend span::before{content:'';display:inline-block;width:8px;height:8px;margin-right:6px;border-radius:50%;background:var(--line);vertical-align:1px}
 .sv-legend .is-solved::before{background:#22a06b}

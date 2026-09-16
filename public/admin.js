@@ -6263,8 +6263,330 @@ ${JSON.stringify(texts)}`;
       showTasksThenRender();
     } else if (currentView === 'home') {
       scheduleOverview();
+    } else if (currentView === 'papers') {
+      loadPapers();
     }
   }
+
+  /* ── Варианты экзаменов и контрольных ──────────────────────────────
+     Собранный вручную вариант: какие задачи, в каком порядке, сколько
+     времени и на сколько частей. Пока опубликованного варианта нет, сайт
+     собирает работу сам — из задач темы или уровня. */
+  const PAPER_LEVELS = [
+    ['pamat', 'Основная школа (9 класс)'],
+    ['visp', 'Vispārīgais līmenis'],
+    ['opt', 'Optimālais (Matemātika I)'],
+    ['augst', 'Augstākais (Matemātika II)']
+  ];
+  const paperView = document.querySelector('.adm-view[data-view="papers"]');
+  let papers = [];
+  let paperDraft = null;
+  let paperFound = new Map();
+  let paperSearchTimer = null;
+
+  const paperLevelName = level => (PAPER_LEVELS.find(([key]) => key === level) || [null, level || '—'])[1];
+  const paperTopicName = topicId => {
+    const topic = topics.find(item => item.id === Number(topicId));
+    if (!topic) return 'тема #' + topicId;
+    return (topic.grade ? topic.grade + ' кл · ' : '') + (topic.title || 'без названия');
+  };
+  const paperTargetName = paper => (paper.kind === 'cw' ? paperTopicName(paper.topic_id) : paperLevelName(paper.level));
+  const paperNote = text => {
+    const note = byId('paper-save-note');
+    if (note) note.textContent = text || '';
+  };
+  const taskLine = task => {
+    if (!task) return 'задача удалена';
+    const topic = topics.find(item => item.id === task.topic_id);
+    const where = topic ? (topic.title || '') : '';
+    const text = String(task.condition_latex || task.title || '').replace(/\s+/g, ' ').slice(0, 80);
+    return (task.position ? '№' + task.position + ' · ' : '') + (where ? where + ' · ' : '') + text;
+  };
+
+  async function loadPapers() {
+    const list = byId('paper-list');
+    if (!list) return;
+    const { data, error } = await db.from('exam_papers')
+      .select('id,slug,title,title_lv,kind,level,topic_id,minutes,parts,is_published,exam_paper_items(task_id,part,position)')
+      .order('id');
+    if (error) {
+      /* Таблиц ещё нет: говорим, что сделать, а не прячем экран — иначе о
+         нём просто не узнать. */
+      papers = [];
+      list.innerHTML = '<p class="adm-empty">Варианты пока недоступны: примените миграцию <code>supabase/migrations/025_exam_papers.sql</code> в SQL Editor Supabase.</p>';
+      return;
+    }
+    papers = data || [];
+    renderPapers();
+  }
+
+  function renderPapers() {
+    const list = byId('paper-list');
+    if (!list) return;
+    if (!papers.length) {
+      list.innerHTML = '<p class="adm-empty">Вариантов пока нет. Экзамен и контрольная собираются автоматически, пока здесь пусто.</p>';
+      return;
+    }
+    list.innerHTML = papers.map(paper => `
+      <div class="adm-paper-row">
+        <div class="adm-paper-main">
+          <strong>${escapeHtml(paper.title || 'Без названия')}</strong>
+          <span>${paper.kind === 'cw' ? 'Контрольная' : 'Экзамен'} · ${escapeHtml(paperTargetName(paper))} · задач: ${(paper.exam_paper_items || []).length} · ${paper.minutes} мин · /${escapeHtml(paper.kind === 'cw' ? 'control-work' : 'exam')}/${escapeHtml(paper.slug)}</span>
+        </div>
+        <div class="adm-paper-actions">
+          <span class="adm-paper-state ${paper.is_published ? 'is-live' : ''}">${paper.is_published ? 'опубликован' : 'черновик'}</span>
+          <button type="button" class="adm-btn soft" data-paper-edit="${paper.id}">Изменить</button>
+          <button type="button" class="adm-link-btn" data-paper-delete="${paper.id}">Удалить</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function fillPaperSelects() {
+    const levelSelect = byId('paper-level');
+    if (levelSelect && !levelSelect.options.length) {
+      levelSelect.innerHTML = PAPER_LEVELS.map(([key, name]) => `<option value="${key}">${escapeHtml(name)}</option>`).join('');
+    }
+    const topicSelectEl = byId('paper-topic');
+    if (topicSelectEl) {
+      const sorted = [...topics].sort((a, b) => (a.grade || 0) - (b.grade || 0) || (a.position || 0) - (b.position || 0));
+      topicSelectEl.innerHTML = '<option value="">— выберите тему —</option>'
+        + sorted.map(topic => `<option value="${topic.id}">${escapeHtml(paperTopicName(topic.id))}</option>`).join('');
+    }
+  }
+
+  function syncPaperKindFields() {
+    const kind = byId('paper-kind')?.value || 'exam';
+    const levelLabel = byId('paper-level-label');
+    const topicLabel = byId('paper-topic-label');
+    if (levelLabel) levelLabel.hidden = kind !== 'exam';
+    if (topicLabel) topicLabel.hidden = kind !== 'cw';
+  }
+
+  function renderPaperItems() {
+    const box = byId('paper-items');
+    const note = byId('paper-items-note');
+    if (!box || !paperDraft) return;
+    if (note) note.textContent = paperDraft.items.length ? 'порядок сверху вниз; часть — номер части работы' : '';
+    if (!paperDraft.items.length) {
+      box.innerHTML = '<p class="adm-empty">Задач пока нет — найдите их поиском выше.</p>';
+      return;
+    }
+    box.innerHTML = paperDraft.items.map((item, index) => `
+      <div class="adm-paper-item">
+        <span class="adm-paper-index">${index + 1}</span>
+        <span class="adm-paper-task">${escapeHtml(taskLine(item.task))}</span>
+        <label class="adm-paper-part">часть <input type="number" min="1" max="9" value="${item.part || 1}" data-paper-part="${index}" /></label>
+        <button type="button" class="adm-link-btn" data-paper-up="${index}" title="Выше">↑</button>
+        <button type="button" class="adm-link-btn" data-paper-down="${index}" title="Ниже">↓</button>
+        <button type="button" class="adm-link-btn" data-paper-remove="${index}" title="Убрать">✕</button>
+      </div>`).join('');
+  }
+
+  function openPaperEditorForm(paper) {
+    const editor = byId('paper-editor');
+    if (!editor) return;
+    fillPaperSelects();
+    editor.hidden = false;
+    byId('paper-editor-title').textContent = paper.id ? 'Вариант: ' + (paper.title || 'без названия') : 'Новый вариант';
+    byId('paper-title').value = paper.title || '';
+    byId('paper-title-lv').value = paper.title_lv || '';
+    byId('paper-kind').value = paper.kind || 'exam';
+    byId('paper-level').value = paper.level || 'pamat';
+    byId('paper-topic').value = paper.topic_id || '';
+    byId('paper-slug').value = paper.slug || '';
+    byId('paper-minutes').value = paper.minutes || 180;
+    byId('paper-parts').value = (Array.isArray(paper.parts) ? paper.parts : [])
+      .map(part => Number(part?.minutes) || 0).filter(Boolean).join(' + ');
+    byId('paper-published').checked = Boolean(paper.is_published);
+    byId('paper-search').value = '';
+    byId('paper-search-results').innerHTML = '';
+    paperNote('');
+    syncPaperKindFields();
+    renderPaperItems();
+    editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function closePaperEditor() {
+    paperDraft = null;
+    const editor = byId('paper-editor');
+    if (editor) editor.hidden = true;
+  }
+
+  async function editPaper(id) {
+    const paper = papers.find(item => item.id === Number(id));
+    if (!paper) return;
+    const items = (paper.exam_paper_items || []).slice()
+      .sort((a, b) => (a.part || 1) - (b.part || 1) || (a.position || 0) - (b.position || 0));
+    const ids = items.map(item => item.task_id);
+    const { data } = ids.length
+      ? await db.from('tasks').select('id,title,position,topic_id,condition_latex').in('id', ids)
+      : { data: [] };
+    const tasksById = new Map((data || []).map(task => [task.id, task]));
+    paperDraft = {
+      ...paper,
+      parts: Array.isArray(paper.parts) ? paper.parts : [],
+      items: items.map(item => ({ task_id: item.task_id, part: item.part || 1, task: tasksById.get(item.task_id) || null }))
+    };
+    openPaperEditorForm(paperDraft);
+  }
+
+  function newPaper() {
+    paperDraft = { id: null, slug: '', title: '', title_lv: '', kind: 'exam', level: 'pamat', topic_id: null, minutes: 180, parts: [], is_published: false, items: [] };
+    openPaperEditorForm(paperDraft);
+  }
+
+  async function searchPaperTasks(query) {
+    const box = byId('paper-search-results');
+    if (!box) return;
+    const text = String(query || '').trim();
+    if (text.length < 2) { box.innerHTML = ''; return; }
+    const numeric = /^\d+$/.test(text);
+    let request = db.from('tasks').select('id,title,position,topic_id,condition_latex').eq('is_published', true).limit(20);
+    request = numeric ? request.eq('id', Number(text)) : request.ilike('condition_latex', '%' + text + '%');
+    const { data, error } = await request;
+    if (error) {
+      box.innerHTML = '<p class="adm-empty">Поиск не удался: ' + escapeHtml(error.message) + '</p>';
+      return;
+    }
+    const found = data || [];
+    found.forEach(task => paperFound.set(task.id, task));
+    if (!found.length) {
+      box.innerHTML = '<p class="adm-empty">Ничего не нашлось. Ищется только опубликованная задача.</p>';
+      return;
+    }
+    box.innerHTML = found.map(task => `
+      <div class="adm-paper-found">
+        <span>${escapeHtml(taskLine(task))}</span>
+        <button type="button" class="adm-btn soft" data-paper-add="${task.id}">Добавить</button>
+      </div>`).join('');
+  }
+
+  async function savePaper() {
+    if (!paperDraft) return;
+    const kind = byId('paper-kind').value === 'cw' ? 'cw' : 'exam';
+    const title = byId('paper-title').value.trim();
+    const slug = (byId('paper-slug').value.trim() || makeSlug(title)).toLowerCase();
+    const row = {
+      slug,
+      title,
+      title_lv: byId('paper-title-lv').value.trim() || null,
+      kind,
+      level: kind === 'exam' ? byId('paper-level').value : null,
+      topic_id: kind === 'cw' ? (Number(byId('paper-topic').value) || null) : null,
+      minutes: Math.max(1, Math.min(600, Number(byId('paper-minutes').value) || 40)),
+      parts: byId('paper-parts').value.split(/[+,;]/)
+        .map(part => Number(String(part).trim()))
+        .filter(minutes => minutes > 0)
+        .map(minutes => ({ minutes })),
+      is_published: byId('paper-published').checked
+    };
+    if (!title) return paperNote('Впишите название.');
+    if (!slug) return paperNote('Впишите адрес страницы.');
+    if (kind === 'exam' && !row.level) return paperNote('Выберите уровень.');
+    if (kind === 'cw' && !row.topic_id) return paperNote('Выберите тему.');
+    if (!paperDraft.items.length) return paperNote('Добавьте хотя бы одну задачу.');
+
+    paperNote('Сохраняем…');
+    let paperId = paperDraft.id;
+    if (paperId) {
+      const { error } = await db.from('exam_papers').update(row).eq('id', paperId);
+      if (error) return paperNote('Не сохранилось: ' + error.message);
+    } else {
+      const { data, error } = await db.from('exam_papers').insert(row).select('id').single();
+      if (error) return paperNote('Не сохранилось: ' + error.message);
+      paperId = data.id;
+    }
+    /* Состав переписываем целиком: так порядок и части совпадают с тем,
+       что видно на экране, без сверки «что изменилось». */
+    await db.from('exam_paper_items').delete().eq('paper_id', paperId);
+    const items = paperDraft.items.map((item, index) => ({
+      paper_id: paperId,
+      task_id: item.task_id,
+      part: Math.max(1, Math.min(9, Number(item.part) || 1)),
+      position: index + 1
+    }));
+    const { error: itemsError } = await db.from('exam_paper_items').insert(items);
+    if (itemsError) return paperNote('Задачи не сохранились: ' + itemsError.message);
+    paperNote('Сохранено.');
+    await loadPapers();
+    closePaperEditor();
+  }
+
+  async function deletePaper(id) {
+    const paper = papers.find(item => item.id === Number(id));
+    if (!paper) return;
+    if (!confirm('Удалить вариант «' + (paper.title || 'без названия') + '»? Задачи останутся на месте.')) return;
+    const { error } = await db.from('exam_papers').delete().eq('id', paper.id);
+    if (error) {
+      alert('Не удалилось: ' + error.message);
+      return;
+    }
+    if (paperDraft?.id === paper.id) closePaperEditor();
+    await loadPapers();
+  }
+
+  paperView?.addEventListener('click', event => {
+    const target = event.target;
+    if (target.closest('#paper-new')) { newPaper(); return; }
+    if (target.closest('#paper-cancel')) { closePaperEditor(); return; }
+    if (target.closest('#paper-save')) { savePaper(); return; }
+    const edit = target.closest('[data-paper-edit]');
+    if (edit) { editPaper(edit.dataset.paperEdit); return; }
+    const remove = target.closest('[data-paper-delete]');
+    if (remove) { deletePaper(remove.dataset.paperDelete); return; }
+    const add = target.closest('[data-paper-add]');
+    if (add && paperDraft) {
+      const task = paperFound.get(Number(add.dataset.paperAdd));
+      if (task && !paperDraft.items.some(item => item.task_id === task.id)) {
+        paperDraft.items.push({ task_id: task.id, part: 1, task });
+        renderPaperItems();
+      }
+      return;
+    }
+    const up = target.closest('[data-paper-up]');
+    if (up && paperDraft) {
+      const index = Number(up.dataset.paperUp);
+      if (index > 0) {
+        const items = paperDraft.items;
+        [items[index - 1], items[index]] = [items[index], items[index - 1]];
+        renderPaperItems();
+      }
+      return;
+    }
+    const down = target.closest('[data-paper-down]');
+    if (down && paperDraft) {
+      const index = Number(down.dataset.paperDown);
+      const items = paperDraft.items;
+      if (index < items.length - 1) {
+        [items[index + 1], items[index]] = [items[index], items[index + 1]];
+        renderPaperItems();
+      }
+      return;
+    }
+    const drop = target.closest('[data-paper-remove]');
+    if (drop && paperDraft) {
+      paperDraft.items.splice(Number(drop.dataset.paperRemove), 1);
+      renderPaperItems();
+    }
+  });
+
+  paperView?.addEventListener('input', event => {
+    if (event.target.id === 'paper-search') {
+      clearTimeout(paperSearchTimer);
+      const value = event.target.value;
+      paperSearchTimer = setTimeout(() => searchPaperTasks(value), 250);
+      return;
+    }
+    const part = event.target.closest('[data-paper-part]');
+    if (part && paperDraft) {
+      const item = paperDraft.items[Number(part.dataset.paperPart)];
+      if (item) item.part = Math.max(1, Math.min(9, Number(part.value) || 1));
+    }
+  });
+
+  paperView?.addEventListener('change', event => {
+    if (event.target.id === 'paper-kind') syncPaperKindFields();
+  });
 
   function showViewOfElement(el) {
     const view = el?.closest?.('.adm-view')?.dataset.view;

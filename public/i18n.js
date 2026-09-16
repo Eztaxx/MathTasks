@@ -276,6 +276,7 @@
       exam_too_few: 'Šim līmenim vēl ir par maz uzdevumu ar automātisku pārbaudi — vajag vismaz 3.',
       exam_not_found: 'Šāda eksāmena nav.',
       exams_try_btn: '🎯 Izmēģinājuma eksāmens',
+      exam_papers_title: 'Sagatavotie varianti',
       menu_label: 'Izvēlne',
 
       // Pašpārbaude
@@ -1217,6 +1218,7 @@
       exam_too_few: 'Для этого уровня пока мало задач с автопроверкой — нужно хотя бы 3.',
       exam_not_found: 'Такого экзамена нет.',
       exams_try_btn: '🎯 Пробный экзамен',
+      exam_papers_title: 'Собранные варианты',
       menu_label: 'Меню',
 
       // Самопроверка
