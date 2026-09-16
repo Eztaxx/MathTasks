@@ -484,6 +484,14 @@ function renderHubSidebar() {
         </div>
       </button>
 
+      <a class="sidebar-action-card${appPath() === '/plotter.html' ? ' active' : ''}" href="/plotter.html" title="${escapeHtml(tr('tool_plotter_page'))}">
+        <div class="action-card-icon plotter-icon">⛶</div>
+        <div class="action-card-body">
+          <strong>${escapeHtml(tr('tool_plotter_page'))}</strong>
+          <span>${escapeHtml(tr('tool_plotter_page_desc'))}</span>
+        </div>
+      </a>
+
       <button class="sidebar-action-card" id="random-task-btn" type="button" title="${escapeHtml(tr('tool_random'))}">
         <div class="action-card-icon dice-icon">🎲</div>
         <div class="action-card-body">
