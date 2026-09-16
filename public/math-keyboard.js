@@ -54,12 +54,12 @@
   MathTasks.insertIntoInput = insertIntoInput;
 
   /* Поля ответов: самопроверка в карточке, контрольная, экспресс-режим,
-     лист и карточка тренажёра. Графопостроителя здесь нет: он в модальном
-     окне, поверх которого панель не показать, а строка символов у него своя. */
-  const FIELDS = '.self-check-input, .cw-answer-input, .compact-drill-input, #trainer-input';
+     лист и карточка тренажёра, а также формула графопостроителя — и в
+     диалоге на главной, и на отдельной странице. */
+  const FIELDS = '.self-check-input, .cw-answer-input, .compact-drill-input, #trainer-input, #plotter-expr, #plot-expr';
   /* Кнопка в поле — там, где поле одно и широкое. В экспресс-режиме полей
      десятки, они узкие, а справа в них уже стоит отметка ✓/✕. */
-  const TOGGLE_FIELDS = '.self-check-input, .cw-answer-input, #trainer-input';
+  const TOGGLE_FIELDS = '.self-check-input, .cw-answer-input, #trainer-input, #plotter-expr, #plot-expr';
   const PREF_KEY = 'math-tasks:math-kb';
   const touchQuery = window.matchMedia?.('(hover: none) and (pointer: coarse)');
   const isTouch = () => Boolean(touchQuery?.matches);
@@ -201,8 +201,17 @@
     }
   });
 
+  /* Модальный диалог живёт в верхнем слое: панель из <body> осталась бы
+     под его затемнением, поэтому переносим её внутрь открытого диалога
+     (и возвращаем в <body>, когда поле обычное). */
+  function hostFor(input) {
+    return input.closest('dialog[open]') || document.body;
+  }
+
   function open(input) {
     if (!panel) build();
+    const host = hostFor(input);
+    if (panel.parentElement !== host) host.appendChild(panel);
     if (field && field !== input) release(field);
     field = input;
     if (isTouch()) silence(input);
@@ -222,7 +231,11 @@
     watcher.disconnect();
     if (field) release(field);
     field = null;
-    if (panel) panel.hidden = true;
+    if (panel) {
+      panel.hidden = true;
+      // Диалог могут закрыть вместе с панелью внутри — держим её в <body>.
+      if (panel.parentElement !== document.body) document.body.appendChild(panel);
+    }
     document.body.classList.remove('math-kb-open');
   }
 

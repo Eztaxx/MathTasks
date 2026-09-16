@@ -4907,6 +4907,8 @@ function ensureDialogPlotter() {
   if (!canvas || !engine) return null;
   const tr = () => window.MathTasks.t || (k => k);
   dialogPlotter = engine.createPlotter(canvas, {
+    fillParent: true,
+    minHeight: 180,
     onCoords: point => {
       const coords = document.querySelector('#plotter-coords');
       if (!coords) return;

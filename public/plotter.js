@@ -28,6 +28,9 @@
       .replace(/√\s*(\d+|[a-zA-Z]+)/g, 'sqrt($1)')
       .replace(/√/g, 'sqrt')
       .replace(/[·×]/g, '*')
+      /* Десятичная запятая: её даёт и математическая клавиатура, и привычка.
+         Без замены (1,5) в JS — оператор «запятая», то есть просто 5. */
+      .replace(/(\d),(\d)/g, '$1.$2')
       .replace(/[−–—]/g, '-')
       .replace(/π/g, 'pi')
       .replace(/\|([^|]+)\|/g, 'abs($1)')
@@ -62,7 +65,7 @@
       .replace(/\bpi\b/gi, 'Math.PI')
       .replace(/\be\b/g, 'Math.E');
 
-    if (!/^[0-9a-zA-Z_.+\-*/(),\s]+$/.test(clean)) return null;
+    if (!/^[0-9a-zA-Z_.+\-*/()\s]+$/.test(clean)) return null;
     const words = clean.match(/[a-zA-Z_]+/g) || [];
     const allowed = new Set(['x', 'Math', 'sin', 'cos', 'tan', 'sqrt', 'abs', 'PI', 'E', 'pow', 'log', 'log10', 'exp']);
     if (!words.every(w => allowed.has(w))) return null;

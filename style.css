@@ -1827,7 +1827,9 @@ body.dark .quick-math-btn:active{background:#233c69}
 body.dark .math-kb-toggle{color:#8b9bbb}
 body.dark .math-kb-toggle[aria-pressed="true"]{background:#2563eb;color:#fff}
 body.math-kb-open{padding-bottom:var(--math-kb-h,260px)}
-body.math-kb-open .quick-math-bar:not(.plotter-math-bar),body.math-kb-open .trainer-numpad{display:none}
+body.math-kb-open .quick-math-bar,body.math-kb-open .trainer-numpad{display:none}
+body.math-kb-open .plotter-dialog{margin:12px auto auto;max-height:calc(100dvh - var(--math-kb-h,260px) - 24px)}
+body.math-kb-open .plot-stage{min-height:180px}
 @media(hover:hover) and (pointer:fine){.math-kb{left:50%;right:auto;width:min(560px,100%);transform:translateX(-50%);border:1px solid #d3ddec;border-bottom:0;border-radius:14px 14px 0 0}.math-kb-key{height:40px}.math-kb-key:hover{background:#edf4ff}.math-kb-key.is-act:hover{background:#c9d5e6}.math-kb-key.is-enter:hover{background:#0d55e4}body.dark .math-kb-key:hover{background:#243252}body.dark .math-kb-key.is-enter:hover{background:#1d4fd8}}
 @media print{.math-kb{display:none}}
 body.dark .math-kb{background:#0b1019;border-color:#1f2839;box-shadow:0 -10px 30px #0009}
@@ -1850,8 +1852,8 @@ body.dark .math-kb-key.is-enter{background:#2563eb;color:#fff}
 .plotter-presets-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-right:4px}
 .plotter-chip{border:1px solid var(--line);border-radius:6px;background:#f8faff;color:#334155;font:600 11.5px Manrope;padding:4px 10px;cursor:pointer;transition:all .15s}
 .plotter-chip:hover{background:#edf4ff;border-color:#bad1fa;color:#1764ff}
-.plotter-canvas-container{position:relative;background:#fbfcfe;border:1px solid #dbe3f0;border-radius:10px;overflow:hidden;box-shadow:inset 0 1px 4px rgba(0,0,0,.03)}
-#plotter-canvas{display:block;width:100%;height:auto;cursor:crosshair}
+.plotter-canvas-container{position:relative;flex:1 1 auto;height:min(380px,46vh);min-height:180px;background:#fbfcfe;border:1px solid #dbe3f0;border-radius:10px;overflow:hidden;box-shadow:inset 0 1px 4px rgba(0,0,0,.03)}
+#plotter-canvas{position:absolute;inset:0;display:block;cursor:crosshair}
 .plotter-coords{position:absolute;left:10px;bottom:8px;font-size:11px;font-weight:600;color:#64748b;background:rgba(255,255,255,.85);padding:2px 8px;border-radius:5px;border:1px solid #e2e8f0;pointer-events:none}
 .plotter-zoom{position:absolute;right:10px;bottom:8px;display:flex;gap:4px}
 .plotter-zoom button{width:28px;height:28px;border:1px solid #cbd5e1;border-radius:6px;background:rgba(255,255,255,.9);font:700 12px Manrope;color:#334155;cursor:pointer;display:grid;place-items:center;transition:background .15s}
