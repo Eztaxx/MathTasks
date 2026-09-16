@@ -9,7 +9,6 @@ const viewControlWorks = document.querySelector('#view-control-works');
 const viewProgress = document.querySelector('#view-progress');
 const topicsElement = document.querySelector('#topics');
 const tasksElement = document.querySelector('#tasks');
-const gradeFilter = document.querySelector('#grade-filter');
 const searchInput = document.querySelector('#search-input');
 const listTopics = document.querySelector('#list-topics');
 const listGroups = document.querySelector('#list-groups');
@@ -200,57 +199,29 @@ const taskCount = topicId => taskCounts.get(topicId) || 0;
 
 /* ── Контекст класса ──────────────────────────────────────────────── */
 
-function renderGradeControls() {
+/* Коротко: цифра класса или сокращение уровня. Нужна там, где полная
+   подпись не помещается, — в свёрнутом меню и в шапке на телефоне. */
+const GRADE_SHORT_LEVELS = { visparigais: 'Visp.', 'matematika-1': 'Opt.', 'matematika-2': 'Aug.' };
+
+function gradeShortLabel() {
   const tr = window.MathTasks.t || (k => k);
-
-  const isCurrent = val => {
-    if (val === '' && selectedGrade == null) return true;
-    if (val === 'visparigais' && selectedGrade === 'visparigais') return true;
-    if (val === 'matematika-1' && (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11)) return true;
-    if (val === 'matematika-2' && (selectedGrade === 'matematika-2' || selectedGrade === 12)) return true;
-    return String(selectedGrade ?? '') === String(val);
-  };
-
-  /* kind: 'exam' — 9 класс (золотой), 'level' — уровень старшей школы,
-     у каждого уровня свой цвет (level-<значение>). */
-  const renderChip = ([value, label, href, kind]) => {
-    const active = isCurrent(value);
-    const cls = ['grade-chip', active ? 'active' : '', kind === 'exam' ? 'grade-chip-exam' : '', kind === 'level' ? `grade-chip-level level-${value}` : '']
-      .filter(Boolean).join(' ');
-    return `<a class="${cls}" href="${href}"${active ? ' aria-current="page"' : ''}>${escapeHtml(label)}</a>`;
-  };
-
-  const pamatChips = [
-    ['', tr('all_grades_short') || 'Visi', '/'],
-    ...[1, 2, 3, 4, 5, 6, 7, 8].map(g => [String(g), tr(`grade_${g}`) || tr('grade_N', { n: g }) || `${g}. klase`, `/grade/${g}`]),
-    ['9', `${tr('grade_9') || '9. klase'} 🎯`, '/grade/9', 'exam']
-  ];
-
-  const vidusChips = [
-    /* У каждого уровня свой знак, как 🎯 у 9 класса: основа — рост — вершина. */
-    ['visparigais', `${tr('grade_visparigais') || 'Vispārīgais līmenis'} 🌱`, '/grade/visparigais', 'level'],
-    ['matematika-1', `${tr('grade_matematika_1') || 'Matemātika I (Optimālais)'} 📈`, '/grade/matematika-1', 'level'],
-    ['matematika-2', `${tr('grade_matematika_2') || 'Matemātika II (Augstākais)'} 🚀`, '/grade/matematika-2', 'level']
-  ];
-
-  gradeFilter.innerHTML = `
-    <div class="grade-stage-block">
-      <div class="grade-stage-header">
-        <span class="stage-badge stage-badge-pamat">🎓 ${escapeHtml(tr('stage_pamatskola'))}</span>
-        <span class="stage-sub">${escapeHtml(tr('stage_pamatskola_desc'))}</span>
-      </div>
-      <div class="grade-chips-list">${pamatChips.map(renderChip).join('')}</div>
-    </div>
-    <div class="grade-stage-block">
-      <div class="grade-stage-header">
-        <span class="stage-badge stage-badge-vidus">🏛️ ${escapeHtml(tr('stage_vidusskola'))}</span>
-        <span class="stage-sub">${escapeHtml(tr('stage_vidusskola_desc'))}</span>
-      </div>
-      <div class="grade-chips-list">${vidusChips.map(renderChip).join('')}</div>
-    </div>
-  `;
+  return selectedGrade ? (GRADE_SHORT_LEVELS[selectedGrade] || String(selectedGrade)) : tr('all_grades_short');
 }
 
+function renderGradeControls() {
+  const select = document.querySelector('#topbar-grade-select');
+  if (!select) return;
+  const tr = window.MathTasks.t || (k => k);
+  fillGradeSelect(select, tr('all_grades'));
+  select.value = selectedGrade ? String(selectedGrade) : '';
+  const value = document.querySelector('#topbar-grade-value');
+  if (value) value.textContent = selectedGrade ? gradeLabel(selectedGrade) : tr('all_grades');
+  /* Класс выбран — плашка подсвечена: иначе на странице класса непонятно,
+     почему тем меньше, чем на главной. */
+  const short = document.querySelector('#topbar-grade-short');
+  if (short) short.textContent = gradeShortLabel();
+  select.closest('.topbar-grade')?.classList.toggle('is-set', Boolean(selectedGrade));
+}
 function parseGradeValue(val) {
   if (!val) return null;
   if (val === 'visparigais' || val === 'vispārīgais') return 'visparigais';
@@ -273,27 +244,6 @@ function applyGrade(grade) {
   renderSidebar();
   renderHeadings();
 }
-
-// Клик по чипсу класса на главной странице: остаёмся на главной,
-// фильтруем темы и задачи прямо на месте без переключения на view-list.
-gradeFilter.addEventListener('click', async event => {
-  const chip = event.target.closest('.grade-chip');
-  if (!chip) return;
-  event.preventDefault();
-  const href = stripLangPath(chip.getAttribute('href'));
-  const raw = href === '/' ? null : href.replace('/grade/', '');
-  if (location.pathname !== langPath(href)) {
-    history.pushState(null, '', langPath(href));
-    lastRoute = location.pathname + location.search;
-  }
-  applyGrade(raw);
-  const label = gradeLabel(selectedGrade);
-  setMeta(
-    selectedGrade ? metaText('meta_grade_title', { grade: label }) : '',
-    selectedGrade ? metaText('meta_grade_desc', { grade: label }) : metaText('meta_home_desc')
-  );
-  await loadHome();
-});
 
 
 /* ── Боковое меню: Два режима (Хаб экзаменов / Фокус на теме) ───── */
@@ -1010,13 +960,14 @@ function renderSidebarGrade() {
   if (label) label.textContent = [tr('sidebar_grade_label'), note].filter(Boolean).join(' · ');
   const value = document.querySelector('#sidebar-grade-value');
   if (value) value.textContent = selectedGrade ? gradeLabel(selectedGrade) : tr('all_grades');
-  // В свёрнутом меню — коротко: цифра класса или сокращение уровня.
-  const SHORT_LEVELS = { visparigais: 'Visp.', 'matematika-1': 'Opt.', 'matematika-2': 'Aug.' };
   const short = document.querySelector('#sidebar-grade-short');
-  if (short) short.textContent = selectedGrade ? (SHORT_LEVELS[selectedGrade] || String(selectedGrade)) : tr('all_grades_short');
+  if (short) short.textContent = gradeShortLabel();
 }
 
-document.querySelector('#sidebar-grade-select')?.addEventListener('change', async event => {
+/* Класс меняется из двух мест: плашка в топбаре и карточка внизу меню.
+   Обработчик один — селекты различаются только местом на экране, а
+   applyGrade перерисовывает оба, так что они не разъезжаются. */
+async function onGradeSelectChange(event) {
   const raw = event.target.value || null;
   const parsed = parseGradeValue(raw);
   const target = parsed ? `/grade/${parsed}` : '/';
@@ -1024,7 +975,7 @@ document.querySelector('#sidebar-grade-select')?.addEventListener('change', asyn
     navigate(target);
     return;
   }
-  // На главной — как клик по чипу класса: остаёмся на месте и перестраиваем её.
+  // На главной остаёмся на месте и перестраиваем её, без ухода в список.
   if (location.pathname !== langPath(target)) {
     history.pushState(null, '', langPath(target));
     lastRoute = location.pathname + location.search;
@@ -1036,7 +987,10 @@ document.querySelector('#sidebar-grade-select')?.addEventListener('change', asyn
     selectedGrade ? metaText('meta_grade_desc', { grade: label }) : metaText('meta_home_desc')
   );
   await loadHome();
-});
+}
+
+document.querySelector('#sidebar-grade-select')?.addEventListener('change', onGradeSelectChange);
+document.querySelector('#topbar-grade-select')?.addEventListener('change', onGradeSelectChange);
 
 function progressCounterText() {
   const tr = window.MathTasks.t || (k => k);
@@ -2085,26 +2039,40 @@ function homeStreakCard() {
   const activity = getActivity();
   const streak = lib.computeStreak(activity, today);
   const [week] = lib.buildActivityWeeks(activity, today, 1);
+  const weekSolved = week.reduce((sum, day) => sum + day.count, 0);
+
+  /* В клетке стоит само число решённых за день: точка вместо нуля читается
+     как пропуск, а цифра сразу говорит, насколько плотным был день. */
   const days = week.map(day => {
     const [y, m, d] = day.key.split('-').map(Number);
     const date = new Date(y, m - 1, d);
     const cls = ['home-streak-day', day.count > 0 ? 'is-done' : '', day.key === today ? 'is-today' : '', day.future ? 'is-future' : '']
       .filter(Boolean).join(' ');
     const title = `${date.toLocaleDateString(progressLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}: ${tr('progress_day_count', { count: day.count })}`;
-    return `<span class="${cls}" title="${escapeHtml(title)}"><i></i><small>${escapeHtml(date.toLocaleDateString(progressLocale(), { weekday: 'narrow' }))}</small></span>`;
+    const mark = day.future ? '' : String(day.count || '·');
+    return `<span class="${cls}" title="${escapeHtml(title)}"><i>${escapeHtml(mark)}</i><small>${escapeHtml(date.toLocaleDateString(progressLocale(), { weekday: 'short' }))}</small></span>`;
   }).join('');
+
+  const sub = [
+    tr('home_streak_week', { count: weekSolved }),
+    streak.best ? tr('progress_stat_streak_record', { best: streak.best }) : ''
+  ].filter(Boolean).join(' · ');
+
   /* Нулевая серия — не «0 дней подряд», а что сделать, чтобы она началась:
      новому посетителю ноль ничего не говорит. */
-  return `<a class="home-card home-streak" href="/progress" title="${escapeHtml(tr('nav_progress'))}">
-    <span class="home-streak-count">
-      <span class="home-card-label">${escapeHtml(tr('home_streak_title'))}</span>
-      ${streak.current === 0
-        ? `<span class="home-streak-empty">${escapeHtml(tr('home_streak_empty'))}</span>`
-        : `<strong>${streak.current}</strong>
-      <small>${escapeHtml(streakUnit(streak.current))}</small>`}
-    </span>
-    <span class="home-streak-week">${days}</span>
-  </a>`;
+  const head = streak.current === 0
+    ? `<span class="home-streak-empty">${escapeHtml(tr('home_streak_empty'))}</span>`
+    : `<span class="home-streak-value"><strong>${streak.current}</strong> <b>${escapeHtml(streakUnit(streak.current))}</b></span>
+      <span class="home-card-label">${escapeHtml(tr('home_streak_title'))}</span>`;
+
+  return `<section class="home-card home-streak">
+    <div class="home-streak-count">
+      <span class="home-streak-head">${head}</span>
+      <small>${escapeHtml(sub)}</small>
+    </div>
+    <div class="home-streak-week">${days}</div>
+    <a class="home-streak-link" href="/progress">${escapeHtml(tr('home_streak_all'))}</a>
+  </section>`;
 }
 
 /* «1 день», «3 дня», «5 дней» — форму выбирает Intl.PluralRules языка
@@ -2117,12 +2085,14 @@ function streakUnit(count) {
   } catch {}
   const key = `home_streak_unit_${form}`;
   const text = tr(key);
-  return text && text !== key ? text : tr('progress_stat_streak');
+  return text && text !== key ? text : tr('home_streak_unit_other');
 }
 
 function refreshHomeSide() {
   const side = document.querySelector('#home-today .home-side');
-  if (side) side.innerHTML = homeContinueCard() + homeStreakCard();
+  if (side) side.innerHTML = homeContinueCard();
+  const streakRow = document.querySelector('#home-streak-row');
+  if (streakRow) streakRow.innerHTML = homeStreakCard();
 }
 
 /* Задача дня показывается сразу: загруженная задача лежит в браузере до
@@ -2179,7 +2149,7 @@ async function renderHomeToday() {
   if (!box) return;
   const request = ++dailyRequest;
   const hasCandidates = dailyCandidates().length > 0;
-  box.innerHTML = `${hasCandidates ? '<div class="home-daily" id="home-daily"></div>' : ''}<div class="home-side"></div>`;
+  box.innerHTML = `${hasCandidates ? '<div class="home-daily" id="home-daily"></div>' : ''}<div class="home-side"></div><div class="home-streak-row" id="home-streak-row"></div>`;
   box.classList.toggle('no-daily', !hasCandidates);
   refreshHomeSide();
   box.hidden = false;

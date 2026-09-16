@@ -616,18 +616,6 @@ body.dark .home-daily .task-self-check,body.dark .sv-card .task-self-check{backg
 .home-continue-count{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)}
 .home-continue-count b{color:#1764ff;font-variant-numeric:tabular-nums}
 .home-continue.is-empty p{margin:0;font-size:13px;color:var(--muted)}
-.home-streak{flex-direction:row;align-items:center;gap:14px}
-.home-streak:hover{border-color:#bad1fa}
-.home-streak-count{display:flex;flex-direction:column;gap:2px;flex:none}
-.home-streak-count strong{font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
-.home-streak-count small{font-size:11px;color:var(--muted)}
-.home-streak-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;flex:1;min-width:0}
-.home-streak-day{display:flex;flex-direction:column;align-items:center;gap:4px}
-.home-streak-day i{display:block;width:100%;height:14px;border-radius:4px;background:#e8edf6}
-.home-streak-day.is-done i{background:#22a06b}
-.home-streak-day.is-today i{box-shadow:inset 0 0 0 2px #1764ff}
-.home-streak-day.is-future i{opacity:.45}
-.home-streak-day small{font-size:10px;color:var(--muted);text-transform:uppercase}
 body.dark .home-daily,body.dark .home-card{background:#0f141f;border-color:#1d2534}
 body.dark .home-daily-badge{background:#3a2908;border-color:#5c4312;color:#ffce6b}
 body.dark .home-daily-other{border-color:#1f2839;color:#dbe4f5}
@@ -635,10 +623,6 @@ body.dark .home-daily-other:hover{border-color:#5a92ff;color:#93c5fd}
 body.dark .home-daily-foot{border-top-color:#1d2534}
 body.dark .home-daily-foot a,body.dark .home-continue-count b{color:#6a9bff}
 body.dark .home-continue-go{color:#6a9bff}
-body.dark .home-streak:hover{border-color:#3a5286}
-body.dark .home-streak-day i{background:#171e2c}
-body.dark .home-streak-day.is-done i{background:#2f9e6e}
-body.dark .home-streak-day.is-today i{box-shadow:inset 0 0 0 2px #6a9bff}
 @media(max-width:900px){.home-today{grid-template-columns:1fr}}
 
 /* ── Главная: слабые места, контрольные, экзамен ─────────────────── */
@@ -903,7 +887,6 @@ body.dark .topbar-menu-panel a:hover,body.dark .topbar-menu-panel a:focus-visibl
 @media(max-width:720px){.topbar-menu-panel{position:fixed;left:16px;right:16px;top:auto;min-width:0}}
 
 /* Нулевая серия: вместо большого «0» — что сделать, чтобы она началась. */
-.home-streak-empty{font:600 12.5px Manrope,sans-serif;line-height:1.35;color:var(--muted);max-width:200px}
 
 /* ── Выдвижная шпаргалка формул ──
    Панель справа поверх страницы, но не модальная: можно решать с открытой.
@@ -1667,6 +1650,82 @@ body.dark .progress-stat-sub.is-down{color:#fda4af}
 body.dark .progress-outcome.is-correct{background:#0d281a;color:#4ade80}
 body.dark .progress-outcome.is-hint{background:#33240a;color:#fcd34d}
 body.dark .progress-outcome.is-wrong{background:#3b0d18;color:#fda4af}
+
+/* ── Выбор класса в топбаре ───────────────────────────────────────
+   Плашка стоит вплотную к логотипу и видна на всех страницах. Список —
+   тот же <select>, что и внизу меню, поэтому раскрывается системным
+   меню и работает с клавиатуры; сам он лежит прозрачным поверх плашки. */
+.topbar-grade{position:relative;flex:none;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;border:1px solid #dfe6f1;border-radius:10px;background:#f8fafc;cursor:pointer}
+.topbar-grade:hover{border-color:#c3d2ea;background:#edf4ff}
+.topbar-grade:focus-within{outline:2px solid var(--blue);outline-offset:1px}
+.topbar-grade-value{font:700 12.5px Manrope,sans-serif;color:var(--ink);white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}
+.topbar-grade-chevron{flex:none;font-size:13px;line-height:1;color:var(--muted)}
+.topbar-grade select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;font-size:14px}
+/* Класс выбран — иначе на странице класса непонятно, почему тем меньше. */
+.topbar-grade.is-set{border-color:#bfd5ff;background:#eef4ff}
+.topbar-grade.is-set .topbar-grade-value{color:var(--blue)}
+body.dark .topbar-grade{background:#111c2e;border-color:#1f2839}
+body.dark .topbar-grade:hover{background:#1a2b47;border-color:#3a5286}
+body.dark .topbar-grade.is-set{background:#17294a;border-color:#3a5286}
+body.dark .topbar-grade.is-set .topbar-grade-value{color:#7aa7ff}
+.topbar-grade-short{display:none;font:800 12.5px Manrope,sans-serif;color:var(--ink)}
+.topbar-grade.is-set .topbar-grade-short{color:var(--blue)}
+/* На телефоне в шапке помещается только цифра класса — полная подпись
+   отъедала место у кнопки «Войти» и роняла её на отдельную строку. */
+@media(max-width:720px){
+  .topbar-grade{padding:0 10px;gap:5px}
+  .topbar-grade-value{display:none}
+  .topbar-grade-short{display:inline}
+}
+
+/* ── Серия и активность за неделю ─────────────────────────────────
+   Ряд на всю ширину под задачей дня: семь клеток с числами и ссылка на
+   прогресс в правый столбец на 300 px не помещались. */
+.home-streak-row{grid-column:1/-1}
+.home-streak{flex-direction:row;align-items:center;gap:20px;flex-wrap:wrap}
+.home-streak-count{display:flex;flex-direction:column;gap:3px;flex:1;min-width:190px}
+.home-streak-head{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.home-streak-value{display:inline-flex;align-items:baseline;gap:5px}
+.home-streak-value strong{font:800 27px/1 Manrope,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.home-streak-value b{font-size:15px;font-weight:700}
+.home-streak-head .home-card-label{text-transform:none;letter-spacing:0;font-size:12px;font-weight:600}
+.home-streak-count small{font-size:11.5px;color:var(--muted)}
+.home-streak-empty{font-size:14px;font-weight:700;color:var(--ink)}
+
+.home-streak-week{display:flex;gap:6px;flex:none}
+.home-streak-day{display:flex;flex-direction:column;align-items:center;gap:5px}
+.home-streak-day i{display:grid;place-items:center;width:34px;height:30px;border-radius:9px;background:#eef2f9;color:var(--muted);font:700 12.5px/1 Manrope,sans-serif;font-style:normal;font-variant-numeric:tabular-nums}
+.home-streak-day small{font-size:10px;color:var(--muted);text-transform:lowercase}
+.home-streak-day.is-done i{background:#e3edff;color:var(--blue)}
+.home-streak-day.is-today i{box-shadow:inset 0 0 0 2px var(--blue)}
+.home-streak-day.is-future i{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+
+.home-streak-link{flex:none;display:inline-flex;align-items:center;height:36px;padding:0 15px;border:1px solid var(--line);border-radius:9px;color:var(--ink);font:700 12.5px Manrope,sans-serif;text-decoration:none;white-space:nowrap}
+.home-streak-link:hover{border-color:#bad1fa;background:#f0f5ff;color:var(--blue)}
+
+body.dark .home-streak-day i{background:#162034;color:#94a3b8}
+body.dark .home-streak-day.is-done i{background:#1b2f55;color:#7aa7ff}
+body.dark .home-streak-day.is-future i{background:transparent;box-shadow:inset 0 0 0 1px #1f2839}
+body.dark .home-streak-link{border-color:#1f2839;color:#cbd5e1}
+body.dark .home-streak-link:hover{background:#17294a;border-color:#3a5286;color:#7aa7ff}
+
+/* На узком экране блок складывается в три этажа: счётчик, неделя,
+   ссылка. В одну строку клетки сжимались до 12 px и числа в них терялись. */
+@media(max-width:620px){
+  .home-streak{flex-direction:column;align-items:stretch;gap:14px}
+  .home-streak-count{min-width:0}
+  .home-streak-week{flex:none;justify-content:space-between;gap:4px}
+  .home-streak-day{flex:1;min-width:0}
+  .home-streak-day i{width:100%}
+  .home-streak-link{width:100%;justify-content:center}
+}
+
+/* Плашка класса прибавила к шапке 120 px, и на телефоне строка перестала
+   помещаться: поиск уезжает на второй этаж, остальное остаётся в одной. */
+@media(max-width:720px){
+  .topbar{flex-wrap:wrap;gap:10px}
+  .topbar .search{order:3;flex:1 0 100%}
+}
 
 /* ── Текстовая версия страницы из воркера (worker/seo.js) ──
    Для поисковиков и тех, у кого нет JavaScript. Со скриптами её прячет
