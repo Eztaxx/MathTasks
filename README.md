@@ -29,6 +29,7 @@
 | `public/ai-generator.js` | Генератор задач на базе Google Gemini |
 | `public/i18n.js` | Словарь переводов и логика локализации (RU / LV) |
 | `public/trainer.js`, `public/trainer-page.js` | Логика генерации примеров и интерфейс тренажёра |
+| `public/math-keyboard.js` | Экранная математическая клавиатура для полей ответа: на телефоне заменяет системную, на компьютере открывается кнопкой ⌨; здесь же вставка символов в поле (`insertIntoInput`) |
 | `public/ui.js` | Диалог входа и сворачивание боковой панели |
 | `public/theme-init.js` | Мгновенная инициализация светлой/тёмной темы до рендера DOM |
 | `public/_headers` | Заголовки безопасности (CSP, Cache-Control, X-Frame-Options) для Cloudflare Workers |

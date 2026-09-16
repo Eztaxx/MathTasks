@@ -788,7 +788,7 @@ body.dark .task .task-action-btn.task-icon-btn.copied{color:#4ade80}
 .task .task-self-check{margin:0;padding:0;border:0;background:none}
 body.dark .task .task-self-check{background:none}
 .task .self-check-form{gap:10px}
-.task .self-check-input{flex:0 1 200px;width:200px;min-width:0;height:40px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:#fff;font:500 14px Manrope,sans-serif}
+.task .self-check-input{flex:0 1 280px;width:280px;min-width:0;height:40px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:#fff;font:500 14px Manrope,sans-serif}
 .task .self-check-input:focus{border-color:#1764ff;box-shadow:0 0 0 3px #1764ff1f}
 body.dark .task .self-check-input{background:#0a0d14;border-color:#232b3b;color:#edf2ff}
 body.dark .task .self-check-input:focus{border-color:#5a92ff}
@@ -821,7 +821,9 @@ body.dark .sv-card{background:#0e1219;border-color:#1c2331}
 .sv-card .task-meta,.sv-card .task-tags-row{display:none}
 .sv-card .task-condition{font-family:Literata,Georgia,'Times New Roman',serif;font-size:21px;line-height:1.6}
 .sv-card .task-self-check{margin:22px 0 0}
-.sv-card .self-check-input{flex:0 1 165px;width:165px}
+.sv-card .self-check-input{flex:0 1 300px;width:300px}
+/* На телефоне поле занимает остаток ряда: при ширине с компьютера «Проверить» уезжал бы на новую строку. */
+@media(max-width:640px){.task .self-check-input,.sv-card .self-check-input{flex:1 1 140px;width:auto}}
 .sv-card .task-actions-bar{margin-top:22px;padding-top:16px}
 .sv-card .solution-toggle,.sv-card .solution-toggle-hint{border-color:var(--line)!important;background:transparent!important}
 .sv-card .solution-toggle:not(.is-locked):hover{border-color:#b9c6dc!important}
@@ -1627,6 +1629,48 @@ body.dark .quick-math-bar{border-bottom-color:#1f2839}
 body.dark .quick-math-btn{background:#121824;border-color:#28324a;color:#cbd5e1;box-shadow:0 1px 2px rgba(0,0,0,0.2)}
 body.dark .quick-math-btn:hover{background:#172340;border-color:#5a92ff;color:#5a92ff}
 body.dark .quick-math-btn:active{background:#233c69}
+
+/* ── Экранная математическая клавиатура (math-keyboard.js) ──────────
+   На сенсорном экране заменяет системную, на компьютере открывается
+   кнопкой ⌨. Пока она открыта, строка «Вставка» и цифровая панель
+   тренажёра не нужны, а низ страницы получает отступ высотой с панель —
+   иначе последнее поле оказалось бы под ней. */
+.math-kb{position:fixed;left:0;right:0;bottom:0;z-index:950;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:#e9eef6;border-top:1px solid #d3ddec;box-shadow:0 -10px 30px #07142d1f;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.math-kb[hidden]{display:none}
+.math-kb-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;max-width:520px;margin:0 auto}
+.math-kb-key{height:46px;min-width:0;padding:0;border:0;border-radius:9px;background:#fff;color:var(--ink);font:500 19px/1 'KaTeX_Main',Manrope,sans-serif;box-shadow:0 1px 0 #b8c5da;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.math-kb-key:active{background:#d6e3f8;box-shadow:none}
+.math-kb-key.is-num{font:700 20px/1 Manrope,sans-serif}
+.math-kb-key.is-fn{font:600 14px/1 Manrope,sans-serif}
+.math-kb-key.is-act{background:#d5deeb;color:#243247;font:700 15px/1 Manrope,sans-serif}
+.math-kb-key.is-enter{background:var(--blue);color:#fff;box-shadow:0 1px 0 #0d4fd0;font-size:20px}
+.math-kb-key.is-enter:active{background:#0d55e4}
+/* Кнопка клавиатуры стоит за полем и отрицательным отступом заходит на его
+   правый край: слева — ширина кнопки, её отступ справа и промежуток ряда
+   (--mkb-gap), чтобы соседи поля остались на прежних местах. */
+.math-kb-toggle{position:relative;z-index:1;flex:none;align-self:center;display:inline-flex;align-items:center;justify-content:center;width:32px;height:30px;margin:0 5px 0 calc(-37px - var(--mkb-gap,10px));padding:0;border:0;border-radius:7px;background:transparent;color:#6f7f9c;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .15s,background .15s}
+.math-kb-toggle[aria-pressed="true"]{background:var(--blue);color:#fff}
+.math-kb-host{padding-right:42px!important}
+.math-kb-host:disabled+.math-kb-toggle{display:none}
+.cw-answer-input-wrap>.math-kb-toggle{--mkb-gap:12px}
+.trainer-input-wrap>.math-kb-toggle{width:40px;height:40px;margin:0 6px 0 calc(-46px - var(--mkb-gap,10px))}
+.trainer-input.math-kb-host{padding-inline:54px!important}
+/* Здесь ряд тренажёра встаёт в столбец: кнопка поднимается на высоту поля.
+   flex:1 в столбце делал высоту поля по содержимому (32px вместо 52px) —
+   кнопка в такое не помещалась. */
+@media(max-width:600px){.trainer-input.math-kb-host{flex:none}.trainer-input-wrap>.math-kb-toggle{align-self:flex-end;margin:-56px 6px 6px 0}}
+@media(hover:hover){.math-kb-toggle:hover{background:#edf4ff;color:var(--blue)}.math-kb-toggle[aria-pressed="true"]:hover{background:#0d55e4;color:#fff}body.dark .math-kb-toggle:hover{background:#172340;color:#5a92ff}}
+body.dark .math-kb-toggle{color:#8b9bbb}
+body.dark .math-kb-toggle[aria-pressed="true"]{background:#2563eb;color:#fff}
+body.math-kb-open{padding-bottom:var(--math-kb-h,260px)}
+body.math-kb-open .quick-math-bar:not(.plotter-math-bar),body.math-kb-open .trainer-numpad{display:none}
+@media(hover:hover) and (pointer:fine){.math-kb{left:50%;right:auto;width:min(560px,100%);transform:translateX(-50%);border:1px solid #d3ddec;border-bottom:0;border-radius:14px 14px 0 0}.math-kb-key{height:40px}.math-kb-key:hover{background:#edf4ff}.math-kb-key.is-act:hover{background:#c9d5e6}.math-kb-key.is-enter:hover{background:#0d55e4}body.dark .math-kb-key:hover{background:#243252}body.dark .math-kb-key.is-enter:hover{background:#1d4fd8}}
+@media print{.math-kb{display:none}}
+body.dark .math-kb{background:#0b1019;border-color:#1f2839;box-shadow:0 -10px 30px #0009}
+body.dark .math-kb-key{background:#1a2338;color:#edf2ff;box-shadow:0 1px 0 #05080e}
+body.dark .math-kb-key:active{background:#243252}
+body.dark .math-kb-key.is-act{background:#121a2b;color:#cbd5e1}
+body.dark .math-kb-key.is-enter{background:#2563eb;color:#fff}
 
 /* ── Построитель графиков функций (3.4) ──────────────────────────── */
 .plotter-dialog{width:min(92vw,740px);max-height:90vh;border:0;border-radius:14px;padding:24px;background:#fff;box-shadow:0 24px 70px #07142d55;color:var(--ink);overflow-y:auto;position:fixed;inset:0;margin:auto}

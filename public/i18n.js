@@ -450,6 +450,16 @@
       ach_cw_excellent_desc: 'Pārbaudes darbs ar 9 vai 10 ballēm',
       solved_badge: '✓ Atrisināts',
       quick_math_label: 'Ievade:',
+      mkb_label: 'Matemātikas tastatūra',
+      mkb_open: 'Atvērt matemātikas tastatūru',
+      mkb_abc: 'Parastā tastatūra',
+      mkb_hide: 'Paslēpt tastatūru',
+      mkb_more: 'Vairāk simbolu',
+      mkb_digits: 'Cipari',
+      mkb_left: 'Kursors pa kreisi',
+      mkb_right: 'Kursors pa labi',
+      mkb_backspace: 'Dzēst',
+      mkb_enter: 'Pārbaudīt',
 
       // Atbildes un atrisinājumi
       reveal_answer: 'Rādīt atbildi',
@@ -1348,6 +1358,16 @@
       ach_cw_excellent_desc: 'Контрольная на 9 или 10',
       solved_badge: '✓ Решено',
       quick_math_label: 'Вставка:',
+      mkb_label: 'Математическая клавиатура',
+      mkb_open: 'Открыть математическую клавиатуру',
+      mkb_abc: 'Обычная клавиатура',
+      mkb_hide: 'Скрыть клавиатуру',
+      mkb_more: 'Ещё символы',
+      mkb_digits: 'Цифры',
+      mkb_left: 'Курсор влево',
+      mkb_right: 'Курсор вправо',
+      mkb_backspace: 'Стереть',
+      mkb_enter: 'Проверить',
 
       // Ответы
       reveal_answer: 'Показать ответ',

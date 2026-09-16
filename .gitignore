@@ -6,6 +6,9 @@ config.js
 node_modules/
 dist/
 
+# Локальное состояние wrangler dev
+.wrangler/
+
 # Стихийная резервная копия, оставшаяся от ранних правок
 package.json.backup
 

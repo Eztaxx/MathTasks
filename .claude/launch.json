@@ -20,6 +20,20 @@
       ],
       "port": 4173,
       "url": "http://localhost:4173"
+    },
+    {
+      "name": "wrangler-dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "wrangler",
+        "dev",
+        "--port",
+        "8788",
+        "--ip",
+        "127.0.0.1"
+      ],
+      "port": 8788,
+      "url": "http://localhost:8788"
     }
   ]
 }
