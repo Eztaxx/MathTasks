@@ -44,7 +44,6 @@ window.MathTasks = window.MathTasks || {};
     const emptyText = emptyLabel || (t('all_grades') !== 'all_grades' ? t('all_grades') : 'Все классы и курсы');
     const stagePamatskola = t('stage_pamatskola') !== 'stage_pamatskola' ? t('stage_pamatskola') : 'Pamatskola (1.–9. klase)';
     const stageVidusskola = t('stage_vidusskola') !== 'stage_vidusskola' ? t('stage_vidusskola') : 'Vidusskola (10.–12. klase / Līmeņi)';
-    const examSuffix = t('stage_exam_badge') !== 'stage_exam_badge' ? ` (${t('stage_exam_badge')})` : ' (Eksāmens)';
 
     const optVisp = t('grade_visparigais') !== 'grade_visparigais' ? t('grade_visparigais') : 'Vispārīgais līmenis';
     const optOpt = t('grade_matematika_1') !== 'grade_matematika_1' ? t('grade_matematika_1') : 'Optimālais līmenis (Matemātika I)';
@@ -52,8 +51,7 @@ window.MathTasks = window.MathTasks || {};
 
     const pamatHtml = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(grade => {
       const name = resolveGradeName(grade, t);
-      const is9 = grade === 9;
-      return `<option value="${grade}">${name}${is9 ? examSuffix : ''}</option>`;
+      return `<option value="${grade}">${name}</option>`;
     }).join('');
 
     const useNumeric = Boolean(options && (options.numeric || options.useNumeric || select.dataset.numeric === 'true'));

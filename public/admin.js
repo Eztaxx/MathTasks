@@ -2131,7 +2131,7 @@ ${JSON.stringify(texts)}`;
   const PLACE_GRADES = [
     { g: 1, label: '1. klase' }, { g: 2, label: '2. klase' }, { g: 3, label: '3. klase' },
     { g: 4, label: '4. klase' }, { g: 5, label: '5. klase' }, { g: 6, label: '6. klase' },
-    { g: 7, label: '7. klase' }, { g: 8, label: '8. klase' }, { g: 9, label: '9. klase (Eksāmens)' },
+    { g: 7, label: '7. klase' }, { g: 8, label: '8. klase' }, { g: 9, label: '9. klase' },
     { g: 10, label: '10. klase (Vispārīgais)' }, { g: 11, label: '11. klase (Matemātika I)' },
     { g: 12, label: '12. klase (Matemātika II)' }
   ];
