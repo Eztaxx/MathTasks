@@ -3276,23 +3276,6 @@ function showProgress() {
     ? section(tr('progress_continue_title'), `<div class="progress-list">${s.inProgress.slice(0, 6).map(row => progressTopicRow(row)).join('')}</div>`)
     : '';
 
-  const order = (GRADES || []).map(String);
-  const rank = group => {
-    const index = order.indexOf(String(group.grade));
-    return index < 0 ? order.length : index;
-  };
-  const grades = [...s.grades].sort((a, b) => rank(a) - rank(b)).map(group => `
-    <details class="progress-grade${group.solved ? '' : ' is-empty'}">
-      <summary>
-        <span class="progress-grade-name">${escapeHtml(group.grade ? gradeLabel(group.grade) : tr('progress_no_grade'))}</span>
-        ${progressBar(group.percent)}
-        <span class="progress-grade-count">${group.solved}/${group.total}</span>
-        <small>${escapeHtml(tr('progress_grade_topics', { done: group.topicsDone, total: group.topics.length }))}</small>
-      </summary>
-      <div class="progress-list progress-grade-topics">${group.topics.map(row => progressTopicRow(row, { withGrade: false })).join('')}</div>
-    </details>`).join('');
-  const gradesBlock = grades ? section(tr('progress_grades_title'), grades) : '';
-
   const earnedCount = s.achievements.filter(a => a.earned).length;
   const badges = s.achievements.map(a => `
     <li class="progress-badge${a.earned ? ' is-earned' : ''}">
@@ -3326,7 +3309,6 @@ function showProgress() {
     `<div class="progress-columns">${renderProgressSubjects(s)}${renderProgressWeakSpots(s)}</div>`,
     `<section class="progress-block progress-card"><div class="progress-block-head"><h2>${escapeHtml(tr('progress_recent_title'))}</h2></div><div id="progress-recent"></div></section>`,
     continueBlock,
-    gradesBlock,
     achievements,
     cwBlock,
     `<p class="progress-note">${escapeHtml(tr('progress_storage_note'))}</p>`

@@ -539,11 +539,23 @@
     { id: 'solved_10', icon: '✏️', goal: 10, value: s => s.solved },
     { id: 'solved_50', icon: '📚', goal: 50, value: s => s.solved },
     { id: 'solved_100', icon: '🏅', goal: 100, value: s => s.solved },
+    { id: 'solved_250', icon: '🎖', goal: 250, value: s => s.solved },
     { id: 'first_try_10', icon: '🎯', goal: 10, value: s => s.firstTry },
+    { id: 'first_try_50', icon: '🏹', goal: 50, value: s => s.firstTry },
+    /* Точность засчитываем только на заметной выборке: 100% с одной
+       решённой задачи — не меткость, а совпадение. */
+    { id: 'accuracy_90', icon: '💎', goal: 90, value: s => (s.solved >= 20 ? s.accuracy.percent : 0), counted: false },
     { id: 'streak_3', icon: '🔥', goal: 3, value: s => s.streak.best },
     { id: 'streak_7', icon: '⚡', goal: 7, value: s => s.streak.best },
+    { id: 'streak_14', icon: '📅', goal: 14, value: s => s.streak.best },
+    { id: 'streak_30', icon: '🗓️', goal: 30, value: s => s.streak.best },
     { id: 'topic_done', icon: '🏁', goal: 1, value: s => s.topicsDone },
     { id: 'topics_5', icon: '🗺️', goal: 5, value: s => s.topicsDone },
+    { id: 'topics_15', icon: '🧭', goal: 15, value: s => s.topicsDone },
+    /* Время копится только по журналу, поэтому у старых пользователей
+       эта полоса начинается с нуля — как и плитка «Время». */
+    { id: 'time_10h', icon: '⏳', goal: 10, value: s => Math.floor(s.time.totalMs / 3600000) },
+    { id: 'cw_five', icon: '📋', goal: 5, value: s => s.controlWorks.count },
     { id: 'cw_excellent', icon: '🏆', goal: 9, value: s => s.controlWorks.bestGrade, counted: false }
   ];
 

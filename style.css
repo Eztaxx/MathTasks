@@ -1556,17 +1556,7 @@ body.dark .self-assess-no{background:#2a1b05;color:#fcd34d;border-color:#854d0e}
 .progress-topic-title small{color:var(--muted);font-weight:500;margin-left:4px;white-space:nowrap}
 .progress-bar{display:block;height:6px;border-radius:99px;background:#edf1f8;overflow:hidden}
 .progress-bar i{display:block;height:100%;border-radius:inherit;background:var(--blue)}
-.progress-topic-count,.progress-grade-count{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px}
-.progress-grade{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:#fff;overflow:hidden}
-.progress-grade summary{display:grid;grid-template-columns:minmax(120px,1fr) minmax(80px,2fr) 70px minmax(0,150px);align-items:center;gap:14px;padding:12px 14px;cursor:pointer;list-style:none}
-.progress-grade summary::-webkit-details-marker{display:none}
-.progress-grade summary:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
-.progress-grade summary small{color:var(--muted);font-size:11.5px;text-align:right}
-.progress-grade-name{font-weight:700}
-.progress-grade-name::before{content:'▸';display:inline-block;width:14px;color:var(--muted);transition:transform .15s}
-.progress-grade[open] .progress-grade-name::before{transform:rotate(90deg)}
-.progress-grade.is-empty summary{color:var(--muted)}
-.progress-grade-topics{border:0;border-top:1px solid var(--line);border-radius:0}
+.progress-topic-count{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px}
 .progress-badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;list-style:none;margin:0;padding:0}
 .progress-badge{position:relative;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;background:#fff;color:var(--muted)}
 .progress-badge.is-earned{border-color:#f5c451;background:#fffbeb;color:var(--ink)}
@@ -1601,8 +1591,9 @@ body.dark .self-assess-no{background:#2a1b05;color:#fcd34d;border-color:#854d0e}
 
 /* Лента активности — одна строка: недели разделены промежутком, внутри
    недели клетки идут вплотную, поэтому ритм читается без подписей. */
-.progress-strip{display:flex;gap:10px;flex-wrap:wrap}
-.progress-strip-week{display:flex;gap:3px}
+.progress-strip{display:flex;gap:12px}
+.progress-strip-week{display:flex;gap:4px;flex:1;min-width:0}
+.progress-strip .progress-day{flex:1;width:auto;height:auto;min-width:0;aspect-ratio:1;border-radius:6px}
 .progress-streak-badge{font-size:12px;color:var(--muted);white-space:nowrap}
 .progress-activity .progress-legend{margin-top:10px}
 
@@ -1650,6 +1641,13 @@ body.dark .self-assess-no{background:#2a1b05;color:#fcd34d;border-color:#854d0e}
 .progress-outcome.is-wrong{background:#fff1f2;color:#be123c}
 
 @media(max-width:1100px){.progress-columns{grid-template-columns:minmax(0,1fr)}}
+/* На узком экране 35 клеток в строку сжимаются до 4 px и перестают
+   читаться — там лента переносится по неделям, клетки фиксированные. */
+@media(max-width:1000px){
+  .progress-strip{flex-wrap:wrap;gap:8px 12px}
+  .progress-strip-week{flex:0 0 auto}
+  .progress-strip .progress-day{flex:0 0 auto;width:18px;height:18px;aspect-ratio:auto}
+}
 @media(max-width:560px){
   .progress-recent{grid-template-columns:minmax(0,1fr) auto;gap:6px 10px}
   .progress-recent time{grid-row:2;grid-column:1}
@@ -1682,9 +1680,9 @@ body.dark .progress-outcome.is-wrong{background:#3b0d18;color:#fda4af}
 .ssr-content a{color:var(--blue)}
 .ssr-crumbs{font-size:13px;color:var(--muted)}
 html.js .ssr-content{display:none}
-@media(max-width:900px){.progress-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.progress-grade summary{grid-template-columns:minmax(0,1fr) 70px}.progress-grade summary .progress-bar,.progress-grade summary small{grid-column:1/-1;text-align:left}}
+@media(max-width:900px){.progress-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.progress-topic{grid-template-columns:minmax(0,1fr) 52px}.progress-topic .progress-bar{grid-column:1/-1;order:3}.progress-cw{grid-template-columns:minmax(0,1fr) auto}.progress-cw time{grid-column:1}.progress-stat strong{font-size:26px}}
-body.dark .progress-stat,body.dark .progress-grade,body.dark .progress-badge,body.dark .progress-list{background:#0f1520;border-color:#1f2839}
+body.dark .progress-stat,body.dark .progress-badge,body.dark .progress-list{background:#0f1520;border-color:#1f2839}
 body.dark .progress-day,body.dark .progress-bar{background:#223251}
 
 body.dark .progress-day.is-future{background:transparent}

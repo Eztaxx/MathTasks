@@ -235,3 +235,50 @@ describe('buildWeakSpots', () => {
     expect(weak).toEqual([]);
   });
 });
+
+describe('достижения', () => {
+  const topics = [{ id: 1, grade: 8, slug: 'a', subject_id: 1 }];
+  const many = Array.from({ length: 30 }, (_, i) => i + 1);
+  const build = extra => buildProgressSummary({
+    topics,
+    topicTaskIds: new Map([[1, many]]),
+    today: '2026-09-14',
+    ...extra
+  });
+  const byId = s => Object.fromEntries(s.achievements.map(a => [a.id, a]));
+
+  it('точность засчитывается только на заметной выборке', () => {
+    // 100% из 5 решённых — совпадение, а не меткость: значок не даём.
+    const small = byId(build({ solvedIds: many.slice(0, 5) })).accuracy_90;
+    expect(small.earned).toBe(false);
+    expect(small.value).toBe(0);
+    // 25 решённых без единой ошибки — уже показатель.
+    const big = byId(build({ solvedIds: many.slice(0, 25) })).accuracy_90;
+    expect(big.earned).toBe(true);
+    // Порог выборки взят, но точность ниже 90% — значка нет.
+    const sloppy = byId(build({
+      solvedIds: many.slice(0, 25),
+      wrongAttempts: Object.fromEntries(many.slice(0, 10).map(id => [id, 1]))
+    })).accuracy_90;
+    expect(sloppy.earned).toBe(false);
+  });
+
+  it('часы за задачами считаются по журналу, целыми', () => {
+    const hour = 3600000;
+    const journal = [
+      { id: 1, at: 1, outcome: 'correct', ms: 4 * hour },
+      { id: 2, at: 2, outcome: 'correct', ms: 3.5 * hour }
+    ];
+    const badge = byId(build({ solvedIds: [1, 2], journal })).time_10h;
+    expect(badge.value).toBe(7);
+    expect(badge.earned).toBe(false);
+    expect(badge.goal).toBe(10);
+  });
+
+  it('значение не перескакивает цель', () => {
+    const s = build({ solvedIds: many });
+    expect(byId(s).solved_10.value).toBe(10);
+    expect(byId(s).solved_250.value).toBe(30);
+    expect(s.achievements).toHaveLength(18);
+  });
+});
