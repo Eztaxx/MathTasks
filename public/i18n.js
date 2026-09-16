@@ -279,6 +279,10 @@
       exam_not_found: 'Šāda eksāmena nav.',
       exams_try_btn: '🎯 Izmēģinājuma eksāmens',
       exam_papers_title: 'Sagatavotie varianti',
+      cw_papers_title: 'Sagatavotie darbi',
+      cw_papers_catalog_title: 'Sagatavotie kontroldarbi',
+      cw_minutes_short: 'min',
+      cw_paper_desc: '{count} uzdevumi, laiks — {minutes} minūtes; kad tas beigsies, darbs tiks iesniegts automātiski.',
       menu_label: 'Izvēlne',
 
       // Pašpārbaude
@@ -1230,6 +1234,10 @@
       exam_not_found: 'Такого экзамена нет.',
       exams_try_btn: '🎯 Пробный экзамен',
       exam_papers_title: 'Собранные варианты',
+      cw_papers_title: 'Составленные работы',
+      cw_papers_catalog_title: 'Составленные контрольные',
+      cw_minutes_short: 'мин',
+      cw_paper_desc: '{count} заданий, время — {minutes} минут; когда оно кончится, работа сдастся сама.',
       menu_label: 'Меню',
 
       // Самопроверка

@@ -929,6 +929,11 @@ body.dark .exam-intro{background:#0e1219;border-color:#1c2331}
 .exam-paper-link:hover{border-color:#b9c6dc}
 body.dark .exam-paper-link{border-color:#1c2331;color:#e9eefb}
 body.dark .exam-paper-link:hover{border-color:#2c3547}
+/* Ссылки на составленные работы: под карточкой темы и в каталоге. */
+.cw-paper-links{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px}
+.cw-paper-links-label{font:800 10.5px Manrope,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.cw-papers-block{margin:0 0 18px}
+.cw-papers-title{margin:0 0 10px;font:800 17px Manrope,sans-serif}
 
 /* ── Админка: экран «Варианты» ──
    Список собранных вариантов и редактор: поля, поиск задач и состав. */
@@ -954,6 +959,24 @@ body.dark .exam-paper-link:hover{border-color:#2c3547}
 .adm-paper-part{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
 .adm-paper-part input{width:54px;height:30px;padding:0 6px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
 .adm-paper-save{display:flex;align-items:center;gap:12px;margin-top:14px}
+/* Экран «Работы»: темы работы, фильтры поиска заданий, свой редактор. */
+.adm-paper-topics,.adm-paper-task-editor{margin:0 0 14px;padding:12px;border:1px solid var(--line);border-radius:10px}
+.adm-paper-topics-add{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
+.adm-paper-topics-add select{height:36px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font:500 13px Manrope,sans-serif;max-width:min(420px,100%)}
+.adm-paper-chip{display:inline-flex;align-items:center;gap:6px;margin:0 8px 8px 0;padding:5px 6px 5px 10px;border:1px solid var(--line);border-radius:999px;font:600 12px Manrope,sans-serif}
+.adm-paper-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:10px 0}
+.adm-paper-filters select{height:36px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font:500 13px Manrope,sans-serif}
+.adm-paper-picker-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px}
+.adm-paper-found-actions{display:flex;flex:none;align-items:center;gap:8px;margin-left:auto;overflow:visible!important;white-space:normal!important}
+.adm-paper-found-text{flex:1}
+.adm-paper-flags{font:700 10.5px Manrope,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.adm-paper-peek{padding:8px 0 10px;font-size:13px;line-height:1.5;border-bottom:1px solid var(--line)}
+.adm-paper-task-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.adm-paper-task-form label{display:flex;flex-direction:column;gap:5px;font:600 12px Manrope,sans-serif;color:var(--muted)}
+.adm-paper-task-form input,.adm-paper-task-form select,.adm-paper-task-form textarea{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font:500 13px Manrope,sans-serif}
+.adm-paper-task-form input,.adm-paper-task-form select{height:36px;padding:0 10px}
+.adm-paper-wide{grid-column:1/-1}
+body.dark .adm-paper-topics-add select,body.dark .adm-paper-filters select,body.dark .adm-paper-task-form input,body.dark .adm-paper-task-form select,body.dark .adm-paper-task-form textarea{background:var(--panel);color:var(--ink)}
 #paper-save-note{font-size:12.5px;color:var(--muted)}
 body.dark .adm-paper-form input,body.dark .adm-paper-form select,body.dark .adm-paper-picker input,body.dark .adm-paper-part input{background:#0f141f;border-color:#1c2331;color:#e9eefb}
 body.dark .adm-paper-row,body.dark .adm-paper-found,body.dark .adm-paper-item{border-bottom-color:#1c2331}

@@ -59,7 +59,7 @@
             <a class="adm-nav-item" href="#tasks" data-view-link="tasks"><span>Каталог задач</span><span class="adm-count plain" id="adm-count-tasks"></span></a>
             <a class="adm-nav-item" href="#ai" data-view-link="ai"><span>Генератор задач</span></a>
             <a class="adm-nav-item" href="#catalog" data-view-link="catalog"><span>Разделы, темы, подтемы</span></a>
-            <a class="adm-nav-item" href="#papers" data-view-link="papers"><span>Варианты</span></a>
+            <a class="adm-nav-item" href="#papers" data-view-link="papers"><span>Работы</span></a>
           </nav>
           <div class="adm-side-foot">
             <button class="adm-theme-btn" type="button" id="adm-theme-btn"><span id="adm-theme-label">Тема</span><small>сменить</small></button>
@@ -173,39 +173,84 @@
             <!-- Варианты: собранные вручную экзамены и контрольные. -->
             <section class="adm-view" data-view="papers" hidden>
               <div class="adm-view-head">
-                <div><h1>Варианты</h1><p>Собранный вручную экзамен или контрольная: какие задачи, в каком порядке, сколько времени и на сколько частей. Пока варианта нет, сайт собирает работу сам — из задач темы или уровня.</p></div>
-                <div class="adm-view-actions"><button class="adm-btn primary" type="button" id="paper-new">+ Новый вариант</button></div>
+                <div><h1>Работы</h1><p>Контрольная или экзамен, собранные вручную: какие задания, в каком порядке, сколько времени и на сколько частей. Задания берутся из решебника, клонируются с правкой или пишутся прямо здесь — своё задание остаётся черновиком и живёт только внутри работы. Пока опубликованной работы нет, сайт собирает её сам.</p></div>
+                <div class="adm-view-actions"><button class="adm-btn primary" type="button" id="paper-new">+ Новая работа</button></div>
               </div>
               <div class="adm-view-body">
+                <div class="adm-seg" id="paper-tabs" role="group" aria-label="Тип работы">
+                  <button type="button" class="adm-seg-btn is-active" data-paper-tab="cw">Контрольные <span class="adm-seg-n" data-paper-count="cw"></span></button>
+                  <button type="button" class="adm-seg-btn" data-paper-tab="exam">Экзамены <span class="adm-seg-n" data-paper-count="exam"></span></button>
+                </div>
+
                 <section class="adm-panel">
-                  <div class="adm-panel-head"><h2>Собранные варианты</h2><span class="adm-panel-note">опубликованный вариант сразу заменяет автоматический</span></div>
+                  <div class="adm-panel-head"><h2 id="paper-list-title">Контрольные работы</h2><span class="adm-panel-note" id="paper-list-note">опубликованная работа заменяет автоматическую</span></div>
                   <div id="paper-list"><p class="adm-empty">Загружаем…</p></div>
                 </section>
 
                 <section class="adm-panel" id="paper-editor" hidden>
-                  <div class="adm-panel-head"><h2 id="paper-editor-title">Новый вариант</h2><button type="button" class="adm-link-btn" id="paper-cancel">Закрыть</button></div>
+                  <div class="adm-panel-head"><h2 id="paper-editor-title">Новая работа</h2><button type="button" class="adm-link-btn" id="paper-cancel">Закрыть</button></div>
                   <div class="adm-paper-form">
-                    <label>Название<input type="text" id="paper-title" placeholder="Пробный экзамен основной школы, вариант 1" /></label>
-                    <label>Название на латышском<input type="text" id="paper-title-lv" placeholder="Izmēģinājuma eksāmens, 1. variants" /></label>
-                    <label>Тип работы<select id="paper-kind"><option value="exam">Экзамен</option><option value="cw">Контрольная работа</option></select></label>
-                    <label id="paper-level-label">Уровень<select id="paper-level"></select></label>
-                    <label id="paper-topic-label" hidden>Тема<select id="paper-topic"></select></label>
-                    <label>Адрес страницы<input type="text" id="paper-slug" placeholder="pamat-2026-1" /></label>
-                    <label>Время, минут<input type="number" id="paper-minutes" min="1" max="600" value="180" /></label>
+                    <label>Название<input type="text" id="paper-title" placeholder="Контрольная: квадратные уравнения" /></label>
+                    <label>Название на латышском<input type="text" id="paper-title-lv" placeholder="Kontroldarbs: kvadrātvienādojumi" /></label>
+                    <label id="paper-level-label" hidden>Уровень<select id="paper-level"></select></label>
+                    <label>Адрес страницы<input type="text" id="paper-slug" placeholder="kvadratnye-uravneniya-1" /></label>
+                    <label>Время, минут<input type="number" id="paper-minutes" min="1" max="600" value="40" /></label>
                     <label>Части, минуты через плюс<input type="text" id="paper-parts" placeholder="105 + 75" /></label>
-                    <label class="adm-paper-check"><input type="checkbox" id="paper-published" /><span>Опубликован — виден ученикам</span></label>
+                    <label class="adm-paper-check"><input type="checkbox" id="paper-published" /><span>Опубликована — видна ученикам</span></label>
+                  </div>
+
+                  <div class="adm-paper-topics" id="paper-topics-box">
+                    <div class="adm-panel-head"><h3>Темы работы</h3><span class="adm-panel-note">работа появится на странице каждой темы; несколько тем — контрольная по разделу</span></div>
+                    <div class="adm-paper-topics-add">
+                      <select id="paper-topic"></select>
+                      <button type="button" class="adm-btn soft" id="paper-topic-add">Добавить тему</button>
+                    </div>
+                    <div id="paper-topic-chips"></div>
                   </div>
 
                   <div class="adm-paper-picker">
-                    <label>Найти задачу<input type="search" id="paper-search" placeholder="Номер задачи или слова из условия" /></label>
+                    <div class="adm-panel-head"><h3>Найти задание</h3><span class="adm-panel-note">по всему решебнику</span></div>
+                    <div class="adm-paper-filters">
+                      <label>Поиск<input type="search" id="paper-search" placeholder="Номер задачи или слова из условия" /></label>
+                      <label>Класс / курс<select id="paper-f-grade"></select></label>
+                      <label>Тема<select id="paper-f-topic"></select></label>
+                      <label>Сложность<select id="paper-f-diff"><option value="">любая</option><option>Лёгкий</option><option>Средний</option><option>Сложный</option></select></label>
+                      <label class="adm-paper-check"><input type="checkbox" id="paper-f-auto" checked /><span>только с автопроверкой</span></label>
+                      <label class="adm-paper-check"><input type="checkbox" id="paper-f-drafts" /><span>включая черновики</span></label>
+                    </div>
+                    <div class="adm-paper-picker-actions">
+                      <button type="button" class="adm-btn soft" id="paper-autofill">Добрать автоматически</button>
+                      <button type="button" class="adm-btn soft" id="paper-own">+ Своё задание</button>
+                      <span class="adm-panel-note" id="paper-picker-note"></span>
+                    </div>
                     <div id="paper-search-results"></div>
                   </div>
 
-                  <div class="adm-panel-head"><h3>Задачи варианта</h3><span class="adm-panel-note" id="paper-items-note"></span></div>
+                  <div class="adm-paper-task-editor" id="paper-task-editor" hidden>
+                    <div class="adm-panel-head"><h3 id="paper-task-editor-title">Своё задание</h3><button type="button" class="adm-link-btn" id="paper-task-cancel">Отменить</button></div>
+                    <p class="adm-panel-note">Сохраняется черновиком: в решебнике его не будет, ученик увидит его только внутри этой работы.</p>
+                    <div class="adm-paper-task-form">
+                      <label>Тема<select id="paper-task-topic"></select></label>
+                      <label>Сложность<select id="paper-task-diff"><option>Лёгкий</option><option selected>Средний</option><option>Сложный</option></select></label>
+                      <label>Название для админки<input type="text" id="paper-task-title" placeholder="Задание работы" /></label>
+                      <label class="adm-paper-wide">Условие<textarea id="paper-task-condition" rows="3" spellcheck="false"></textarea></label>
+                      <label class="adm-paper-wide">Условие на латышском<textarea id="paper-task-condition-lv" rows="2" spellcheck="false"></textarea></label>
+                      <label>Ответ<input type="text" id="paper-task-answer" placeholder="$x = 5$" /></label>
+                      <label>Ответ на латышском<input type="text" id="paper-task-answer-lv" /></label>
+                      <label>Другие записи ответа<input type="text" id="paper-task-check" placeholder="5 | x=5" /></label>
+                      <label class="adm-paper-wide">Решение<textarea id="paper-task-solution" rows="3" spellcheck="false"></textarea></label>
+                    </div>
+                    <div class="adm-paper-save">
+                      <button type="button" class="adm-btn primary" id="paper-task-save">Сохранить задание в работу</button>
+                      <span id="paper-task-note"></span>
+                    </div>
+                  </div>
+
+                  <div class="adm-panel-head"><h3>Состав работы</h3><span class="adm-panel-note" id="paper-items-note"></span></div>
                   <div id="paper-items"></div>
 
                   <div class="adm-paper-save">
-                    <button type="button" class="adm-btn primary" id="paper-save">Сохранить вариант</button>
+                    <button type="button" class="adm-btn primary" id="paper-save">Сохранить работу</button>
                     <span id="paper-save-note"></span>
                   </div>
                 </section>

@@ -3393,6 +3393,39 @@ function saveControlWorkResult(topicId, result) {
   }
 }
 
+/* Составленные работы, куда входит тема, — ссылками под карточкой
+   контрольной: работа по нескольким темам иначе нашлась бы только в
+   разделе «Контрольные работы». */
+async function appendTopicPapers(topicId, slot) {
+  const papers = await listTopicPapers(topicId);
+  if (!papers.length || !slot || slot.hidden) return;
+  const tr = window.MathTasks.t || (k => k);
+  slot.insertAdjacentHTML('beforeend', `
+    <div class="cw-paper-links">
+      <span class="cw-paper-links-label">${escapeHtml(tr('cw_papers_title'))}</span>
+      ${papers.map(paper => `<a class="exam-paper-link" href="/control-work/${encodeURIComponent(paper.slug)}">${escapeHtml(paperTitle(paper))} · ${escapeHtml(countLabel('topic_tasks', (paper.exam_paper_items || []).length))}</a>`).join('')}
+    </div>`);
+}
+
+// Составленные контрольные в начале раздела «Контрольные работы».
+async function renderCatalogPapers() {
+  const block = document.querySelector('#cw-papers-block');
+  if (!block) return;
+  const papers = await listCwPapers();
+  if (!papers.length) {
+    block.hidden = true;
+    block.innerHTML = '';
+    return;
+  }
+  const tr = window.MathTasks.t || (k => k);
+  block.hidden = false;
+  block.innerHTML = `
+    <h2 class="cw-papers-title">${escapeHtml(tr('cw_papers_catalog_title'))}</h2>
+    <div class="cw-paper-links">
+      ${papers.map(paper => `<a class="exam-paper-link" href="/control-work/${encodeURIComponent(paper.slug)}">${escapeHtml(paperTitle(paper))} · ${escapeHtml(countLabel('topic_tasks', (paper.exam_paper_items || []).length))} · ${paper.minutes} ${escapeHtml(tr('cw_minutes_short'))}</a>`).join('')}
+    </div>`;
+}
+
 function renderTopicControlWorkCard(topic, tasks) {
   const slot = document.querySelector('#topic-control-work-slot');
   if (!slot) return;
@@ -3418,6 +3451,7 @@ function renderTopicControlWorkCard(topic, tasks) {
   }
 
   slot.hidden = false;
+  void appendTopicPapers(topic.id, slot);
   slot.innerHTML = `
     <div class="topic-control-work-card" id="topic-control-work">
       <div class="cw-card-top">
@@ -3451,6 +3485,7 @@ let currentCwMode = 'cw'; // 'cw' — контрольная темы, 'exam' �
 let currentExamKind = null;
 let currentExamSession = null;
 let currentExamPaper = null;
+let currentCwPaperSlug = null;
 
 /* ── Честный режим контрольной и экзамена ──────────────────────────
    Пока идёт работа, уход со страницы — другая вкладка, другое приложение,
@@ -3646,6 +3681,7 @@ function setCwMode(mode, kind = null) {
   if (currentCwTimer) currentCwTimer.stop();
   currentCwMode = mode;
   currentExamKind = kind;
+  currentCwPaperSlug = null;
   if (mode !== 'exam') currentExamSession = null;
   currentCwTopic = null;
   currentCwTasks = [];
@@ -3726,11 +3762,14 @@ const paperTitle = paper => {
   return (isLv && paper?.title_lv) || paper?.title || '';
 };
 
-// Задачи варианта в заданном порядке; снятые с публикации отсеиваются.
+/* Задачи варианта в заданном порядке. Публикацию здесь не спрашиваем:
+   задание, составленное для работы, остаётся черновиком и видно только
+   внутри неё — это разрешает правило доступа в миграции 026. Удалённая
+   задача просто выпадет из списка. */
 async function fetchPaperTasks(paper) {
   const items = paper?.exam_paper_items || [];
   if (!items.length || !db) return [];
-  const { data, error } = await db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('id', items.map(item => item.task_id));
+  const { data, error } = await db.from('tasks').select(TASK_SELECT).in('id', items.map(item => item.task_id));
   if (error) return [];
   return window.MathTasksLib.orderPaperTasks(items, data || []);
 }
@@ -3742,6 +3781,35 @@ async function listLevelPapers(level) {
     const { data, error } = await db.from('exam_papers')
       .select('slug,title,title_lv')
       .eq('is_published', true).eq('kind', 'exam').eq('level', level)
+      .order('id');
+    return error ? [] : (data || []);
+  } catch {
+    return [];
+  }
+}
+
+/* Работы, в которые входит эта тема. Контрольная может охватывать
+   несколько тем сразу, поэтому связь лежит отдельной таблицей. */
+async function listTopicPapers(topicId) {
+  if (!db) return [];
+  try {
+    const { data, error } = await db.from('exam_papers')
+      .select('slug,title,title_lv,minutes,exam_paper_items(task_id),exam_paper_topics!inner(topic_id)')
+      .eq('is_published', true).eq('kind', 'cw').eq('exam_paper_topics.topic_id', topicId)
+      .order('id');
+    return error ? [] : (data || []);
+  } catch {
+    return [];
+  }
+}
+
+// Все составленные контрольные — для раздела «Контрольные работы».
+async function listCwPapers() {
+  if (!db) return [];
+  try {
+    const { data, error } = await db.from('exam_papers')
+      .select('slug,title,title_lv,minutes,exam_paper_items(task_id),exam_paper_topics(topic_id)')
+      .eq('is_published', true).eq('kind', 'cw')
       .order('id');
     return error ? [] : (data || []);
   } catch {
@@ -3910,6 +3978,13 @@ async function startControlWork(slug) {
     if (data) topic = data;
   }
   if (!topic) {
+    /* Адрес не темы — значит, это составленная работа по нескольким темам:
+       у неё свой адрес и свой состав. */
+    const slugPaper = await fetchPaper(query => query.eq('kind', 'cw').eq('slug', slug));
+    if (slugPaper) {
+      await runCwPaper(slugPaper);
+      return;
+    }
     const list = document.querySelector('#cw-task-list');
     if (list) list.innerHTML = `<p class="empty-state">${escapeHtml(tr('err_load_tasks'))}</p>`;
     return;
@@ -3992,6 +4067,48 @@ async function startControlWork(slug) {
   renderControlWorkCards();
   showCwWorkBars(true);
   startCwTimer(cwMinutes * 60);
+  beginCwGuard();
+}
+
+/* Контрольная по нескольким темам: задачи берём из работы, тема как
+   контекст не годится — прогресс темы такой работой не меряется. */
+async function runCwPaper(paper) {
+  const tr = window.MathTasks.t || (k => k);
+  const lib = window.MathTasksLib;
+  const list = document.querySelector('#cw-task-list');
+  currentCwTopic = null;
+  currentCwPaperSlug = paper.slug;
+  const title = paperTitle(paper);
+  const crumbs = document.querySelector('#cw-breadcrumb');
+  if (crumbs) {
+    crumbs.innerHTML = `<a href="/">${escapeHtml(tr('nav_home'))}</a><span class="crumb-sep">/</span>`
+      + `<a href="/control-works">${escapeHtml(tr('nav_control_works'))}</a><span class="crumb-sep">/</span><span>${escapeHtml(title)}</span>`;
+  }
+  const titleEl = document.querySelector('#cw-title');
+  if (titleEl) titleEl.textContent = title;
+  const minutes = lib.paperMinutes(paper);
+  const descText = tr('cw_paper_desc', { count: (paper.exam_paper_items || []).length, minutes });
+  const desc = document.querySelector('#cw-desc');
+  if (desc) {
+    delete desc.dataset.i18n;
+    desc.textContent = descText;
+  }
+  setMeta(title, descText);
+  const submitBtn = document.querySelector('#cw-submit-btn');
+  if (submitBtn) submitBtn.hidden = false;
+  if (list) list.innerHTML = `<p class="empty-state">${escapeHtml(tr('state_loading_tasks'))}</p>`;
+
+  const tasks = await fetchPaperTasks(paper);
+  if (!tasks.length) {
+    if (list) list.innerHTML = `<p class="empty-state">${escapeHtml(tr('err_load_tasks'))}</p>`;
+    return;
+  }
+  currentCwTasks = tasks;
+  currentCwUserAnswers = {};
+  currentCwSubmitted = false;
+  renderControlWorkCards();
+  showCwWorkBars(true);
+  startCwTimer(minutes * 60);
   beginCwGuard();
 }
 
@@ -4154,7 +4271,9 @@ function submitControlWork(isTimeout = false) {
         <button type="button" class="primary-button" id="btn-cw-retry">${escapeHtml(tr('cw_retry_btn'))}</button>
         ${currentCwMode === 'exam'
           ? `<a href="/exams.html" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('exam_back'))}</a>`
-          : `<a href="/topic/${encodeURIComponent(currentCwTopic ? currentCwTopic.slug : '')}" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('cw_back_to_topic'))}</a>`}
+          : currentCwTopic
+            ? `<a href="/topic/${encodeURIComponent(currentCwTopic.slug)}" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('cw_back_to_topic'))}</a>`
+            : `<a href="/control-works" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('nav_control_works'))}</a>`}
       </div>
     `;
   }
@@ -4219,6 +4338,8 @@ async function showControlWorksCatalog() {
   const tr = window.MathTasks.t || (k => k);
   setMeta(tr('cw_catalog_title'), tr('cw_catalog_desc'));
   renderSidebar();
+
+  void renderCatalogPapers();
 
   const container = document.querySelector('#cw-catalog-list');
   if (!container) return;
@@ -4797,7 +4918,7 @@ async function route({ force = false } = {}) {
   if (searchInput.value) searchInput.value = '';
   searchAcrossGrades = false;
 
-  const examMatch = path.match(/^\/exam\/([a-z]+)$/);
+  const examMatch = path.match(/^\/exam\/([a-z0-9-]+)$/);
   if (examMatch) { await startExam(examMatch[1]); return; }
   const cwMatch = path.match(/^\/control-work\/(.+)$/);
   if (cwMatch) { await startControlWork(decodeURIComponent(cwMatch[1])); return; }
@@ -5287,6 +5408,8 @@ document.addEventListener('click', event => {
       startExam(currentExamKind, { fresh: true });
     } else if (currentCwTopic) {
       startControlWork(currentCwTopic.slug);
+    } else if (currentCwPaperSlug) {
+      startControlWork(currentCwPaperSlug);
     }
     return;
   }
