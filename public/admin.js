@@ -51,7 +51,7 @@
   const btnUploadFileTasks = document.querySelector('#btn-upload-file-tasks');
   const bulkDialogPickFileBtn = document.querySelector('#bulk-dialog-pick-file-btn');
   const bulkDialogTemplateBtn = document.querySelector('#bulk-dialog-template-btn');
-  const bulkDialogCsvTemplateBtn = document.querySelector('#bulk-dialog-csv-template-btn');
+  const bulkDialogTsvTemplateBtn = document.querySelector('#bulk-dialog-tsv-template-btn');
   const topicListCloseTop = document.querySelector('#topic-list-close');
   const bulkFileTasksLabel = document.querySelector('#btn-upload-file-tasks-label');
   const bulkFileInput = document.querySelector('#bulk-file-input');
@@ -75,12 +75,12 @@
   const jsonSampleCard = document.querySelector('#json-sample-card');
   const jsonSampleCode = document.querySelector('#json-sample-code');
 
-  const btnToggleSampleCsv = document.querySelector('#btn-toggle-sample-csv');
-  const btnCloseSampleCsv = document.querySelector('#btn-close-sample-csv');
-  const btnCopySampleCsv = document.querySelector('#btn-copy-sample-csv');
-  const btnInsertSampleCsvToDialog = document.querySelector('#btn-insert-sample-csv-to-dialog');
-  const csvSampleCard = document.querySelector('#csv-sample-card');
-  const csvSampleCode = document.querySelector('#csv-sample-code');
+  const btnToggleSampleTsv = document.querySelector('#btn-toggle-sample-tsv');
+  const btnCloseSampleTsv = document.querySelector('#btn-close-sample-tsv');
+  const btnCopySampleTsv = document.querySelector('#btn-copy-sample-tsv');
+  const btnInsertSampleTsvToDialog = document.querySelector('#btn-insert-sample-tsv-to-dialog');
+  const tsvSampleCard = document.querySelector('#tsv-sample-card');
+  const tsvSampleCode = document.querySelector('#tsv-sample-code');
 
   const btnShowAiPrompt = document.querySelector('#btn-show-ai-prompt');
   const aiPromptDialog = document.querySelector('#ai-prompt-dialog');
@@ -3894,10 +3894,10 @@ ${JSON.stringify(texts)}`;
       bulkDialogCopy.hidden = false;
       if (bulkDialogTagList) bulkDialogTagList.hidden = true;
     } else {
-      bulkDialogTitle.textContent = 'Массовый импорт задач (JSON / CSV / Таблица)';
-      bulkDialogDesc.innerHTML = 'Загрузите файл <code>.json</code>, <code>.csv</code>, <code>.tsv</code> или вставьте скопированную таблицу из Excel / Google Таблиц прямо в поле ниже. Формат определится автоматически. Недостающие темы и подтемы создаются автоматически.';
+      bulkDialogTitle.textContent = 'Массовый импорт задач (JSON / TSV / Таблица)';
+      bulkDialogDesc.innerHTML = 'Загрузите файл <code>.json</code> или <code>.tsv</code> либо вставьте скопированную таблицу из Excel / Google Таблиц прямо в поле ниже. Формат определится автоматически. Недостающие темы и подтемы создаются автоматически.';
       bulkDialogTextarea.value = '';
-      bulkDialogTextarea.placeholder = 'Вставьте сюда JSON, CSV или скопированные из Google Таблиц / Excel ячейки...';
+      bulkDialogTextarea.placeholder = 'Вставьте сюда JSON, TSV или скопированные из Google Таблиц / Excel ячейки...';
       const vocab = (allTags.length ? allTags : (window.MathTasksLib?.CROSS_TAGS || []));
       if (bulkDialogTagList) {
         bulkDialogTagList.innerHTML = vocab.length
@@ -4223,7 +4223,7 @@ ${JSON.stringify(texts)}`;
   bulkDialogClose?.addEventListener('click', () => bulkDialog?.close());
   bulkDialogCancel?.addEventListener('click', () => bulkDialog?.close());
 
-  // Выбор файла .json, .csv или .tsv с диска
+  // Выбор файла .json или .tsv с диска
   const handleBulkFile = event => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -4235,10 +4235,10 @@ ${JSON.stringify(texts)}`;
       try {
         const parseFn = window.MathTasksLib?.parseTasksImport || parseMultiTopicJson;
         const result = parseFn(content);
-        const isCsv = result.format === 'csv';
+        const isTable = result.format === 'tsv';
         const { uniqueTopics, uniqueSubtopics, tasks: parsedTasks } = result;
         bulkDialogStatus.className = 'bulk-dialog-status success';
-        bulkDialogStatus.innerHTML = `📁 Файл <strong>${escapeHtml(file.name)}</strong> (${isCsv ? 'Таблица CSV/TSV' : 'JSON'}) загружен!<br>` +
+        bulkDialogStatus.innerHTML = `📁 Файл <strong>${escapeHtml(file.name)}</strong> (${isTable ? 'Таблица TSV' : 'JSON'}) загружен!<br>` +
           `Обнаружено: тем: <strong>${uniqueTopics.length}</strong>, подтем: <strong>${uniqueSubtopics.length}</strong>, задач: <strong>${parsedTasks.length}</strong>.<br>` +
           `Нажмите <strong>«Выполнить импорт»</strong>, чтобы сохранить данные в Supabase.`;
         bulkDialogStatus.hidden = false;
@@ -4413,7 +4413,7 @@ ${JSON.stringify(texts)}`;
     bulkDialogStatus.hidden = false;
   });
 
-  // Подсчёт тем, подтем и задач при вводе в поле (JSON / CSV / TSV)
+  // Подсчёт тем, подтем и задач при вводе в поле (JSON / TSV)
   bulkDialogTextarea?.addEventListener('input', () => {
     if (bulkMode !== 'import') return;
     const val = bulkDialogTextarea.value.trim();
@@ -4427,7 +4427,7 @@ ${JSON.stringify(texts)}`;
       const { uniqueTopics, uniqueSubtopics, tasks: parsedTasks, format } = result;
       if (parsedTasks.length > 0 || uniqueTopics.length > 0) {
         bulkDialogStatus.className = 'bulk-dialog-status';
-        const formatBadge = format === 'csv' ? 'Таблица CSV / TSV' : 'JSON';
+        const formatBadge = format === 'tsv' ? 'Таблица TSV' : 'JSON';
         bulkDialogStatus.innerHTML = `📊 Обнаружено (<strong>${formatBadge}</strong>): тем: <strong>${uniqueTopics.length}</strong>, подтем: <strong>${uniqueSubtopics.length}</strong>, задач: <strong>${parsedTasks.length}</strong>. Нажмите «Выполнить импорт».`;
         bulkDialogStatus.hidden = false;
       }
@@ -4436,18 +4436,18 @@ ${JSON.stringify(texts)}`;
     }
   });
 
-  /* 📊 Образец таблицы CSV / Excel / Google Таблиц */
-  btnToggleSampleCsv?.addEventListener('click', () => {
-    if (!csvSampleCard) return;
-    csvSampleCard.hidden = !csvSampleCard.hidden;
+  /* 📊 Образец таблицы TSV / Excel / Google Таблиц */
+  btnToggleSampleTsv?.addEventListener('click', () => {
+    if (!tsvSampleCard) return;
+    tsvSampleCard.hidden = !tsvSampleCard.hidden;
   });
 
-  btnCloseSampleCsv?.addEventListener('click', () => {
-    if (csvSampleCard) csvSampleCard.hidden = true;
+  btnCloseSampleTsv?.addEventListener('click', () => {
+    if (tsvSampleCard) tsvSampleCard.hidden = true;
   });
 
-  btnCopySampleCsv?.addEventListener('click', async () => {
-    const text = csvSampleCode?.textContent?.trim() || '';
+  btnCopySampleTsv?.addEventListener('click', async () => {
+    const text = tsvSampleCode?.textContent?.trim() || '';
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
@@ -4459,22 +4459,22 @@ ${JSON.stringify(texts)}`;
       document.execCommand('copy');
       document.body.removeChild(ta);
     }
-    const orig = btnCopySampleCsv.textContent;
-    btnCopySampleCsv.textContent = '✓ Скопировано!';
-    setTimeout(() => { btnCopySampleCsv.textContent = orig; }, 2000);
+    const orig = btnCopySampleTsv.textContent;
+    btnCopySampleTsv.textContent = '✓ Скопировано!';
+    setTimeout(() => { btnCopySampleTsv.textContent = orig; }, 2000);
   });
 
-  const insertCsvSampleToDialog = () => {
-    const text = csvSampleCode?.textContent?.trim() || '';
+  const insertTsvSampleToDialog = () => {
+    const text = tsvSampleCode?.textContent?.trim() || '';
     openBulkDialog('import');
     bulkDialogTextarea.value = text;
     bulkDialogStatus.className = 'bulk-dialog-status success';
-    bulkDialogStatus.innerHTML = '📊 Образец таблицы CSV вставлен в окно! Нажмите «Выполнить импорт» для добавления.';
+    bulkDialogStatus.innerHTML = '📊 Образец таблицы TSV вставлен в окно! Нажмите «Выполнить импорт» для добавления.';
     bulkDialogStatus.hidden = false;
   };
 
-  btnInsertSampleCsvToDialog?.addEventListener('click', insertCsvSampleToDialog);
-  bulkDialogCsvTemplateBtn?.addEventListener('click', insertCsvSampleToDialog);
+  btnInsertSampleTsvToDialog?.addEventListener('click', insertTsvSampleToDialog);
+  bulkDialogTsvTemplateBtn?.addEventListener('click', insertTsvSampleToDialog);
 
   /* 🤖 Промпт для ИИ: собирается под выбранные класс, тему и подтему — с
      точными названиями из базы, настоящими номерами подтем и закрытым
@@ -4858,12 +4858,12 @@ ${JSON.stringify(texts)}`;
       return;
     }
 
-    // Режим импорта (JSON / CSV / TSV)
+    // Режим импорта (JSON / TSV)
     bulkDialogStatus.hidden = true;
     const raw = bulkDialogTextarea.value.trim();
     if (!raw) {
       bulkDialogStatus.className = 'bulk-dialog-status error';
-      bulkDialogStatus.textContent = 'Вставьте JSON, CSV или выберите файл для импорта.';
+      bulkDialogStatus.textContent = 'Вставьте JSON, TSV или выберите файл для импорта.';
       bulkDialogStatus.hidden = false;
       return;
     }
@@ -4882,7 +4882,7 @@ ${JSON.stringify(texts)}`;
     const { uniqueTopics, uniqueSubtopics, tasks: items, format } = parsedResult;
     if (!items.length) {
       bulkDialogStatus.className = 'bulk-dialog-status error';
-      bulkDialogStatus.textContent = 'В данных не найдено задач для импорта (проверьте формат JSON или CSV).';
+      bulkDialogStatus.textContent = 'В данных не найдено задач для импорта (проверьте формат JSON или TSV).';
       bulkDialogStatus.hidden = false;
       return;
     }
@@ -6218,7 +6218,7 @@ ${JSON.stringify(texts)}`;
     moveInto(viewBody('tasks'), byId('section-tasks-database'));
     // Кнопки загрузки, выгрузки, образцы и промпт — из тулбара каталога на экран импорта.
     moveInto(slot('import-tools'), document.querySelector('#task-toolbar .admin-bulk-actions'));
-    moveInto(viewBody('import'), byId('csv-sample-card'), byId('json-sample-card'));
+    moveInto(viewBody('import'), byId('tsv-sample-card'), byId('json-sample-card'));
     // Перенумерация — действие каталога, а не импорта.
     moveInto(slot('tasks-actions'), byId('btn-renumber-tasks'));
     // Заголовок формы меняет код («Редактировать задачу №…») — он и есть заголовок экрана.
@@ -6994,10 +6994,7 @@ ${JSON.stringify(texts)}`;
     byId('imp-stat-bad').textContent = a.counts.bad;
     byId('imp-stat-dup').textContent = a.counts.dup;
     byId('imp-stat-new').textContent = `${a.newTopics} / ${a.newSubtopics}`;
-    // Разбор отдаёт format: 'csv' для любой таблицы — TSV узнаём по табуляции в первой строке.
-    const firstLine = (imp.text?.value || '').split(/\r?\n/).find(line => line.trim()) || '';
-    const tableLabel = firstLine.includes('\t') ? 'таблица TSV (через табуляцию)' : 'таблица CSV';
-    const notes = [`Формат: ${a.parsed.format === 'json' ? 'JSON' : tableLabel}, строк с задачами: ${a.rows.length}.`];
+    const notes = [`Формат: ${a.parsed.format === 'json' ? 'JSON' : 'таблица TSV (через табуляцию)'}, строк с задачами: ${a.rows.length}.`];
     if (a.dupCheckFailed) notes.push('С задачами базы сверить не удалось — дубликаты проверены только внутри файла.');
     for (const warning of a.parsed.warnings || []) notes.push(warning);
     imp.notes.innerHTML = notes.map(text => `<p>${escapeHtml(text)}</p>`).join('');
@@ -7163,11 +7160,9 @@ ${JSON.stringify(texts)}`;
     const sample = event.target.closest('[data-imp-sample]');
     if (sample && imp.text) {
       const kind = sample.dataset.impSample;
-      const csv = byId('csv-sample-code')?.textContent || '';
-      // TSV собирается из образца CSV, отдельной копии в разметке нет.
-      imp.text.value = kind === 'tsv'
-        ? (window.MathTasksLib?.csvToTsv?.(csv) || csv)
-        : ((kind === 'csv' ? csv : byId('json-sample-code')?.textContent) || '');
+      imp.text.value = (kind === 'tsv'
+        ? byId('tsv-sample-code')?.textContent
+        : byId('json-sample-code')?.textContent) || '';
       if (imp.fileName) imp.fileName.textContent = `образец ${sample.dataset.impSample.toUpperCase()}`;
       analyzeImport();
     }

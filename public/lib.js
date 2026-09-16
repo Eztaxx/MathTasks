@@ -1170,12 +1170,12 @@
   };
 
   /* ── Парсер CSV / TSV в структурированные темы, подтемы и задачи ── */
-  const parseCsvToTasks = csvText => {
+  const parseCsvToTasks = (csvText, delimiter) => {
     if (!csvText || typeof csvText !== 'string') {
       return { uniqueTopics: [], uniqueSubtopics: [], tasks: [] };
     }
     const cleanText = csvText.replace(/^\uFEFF/, '').trim();
-    const rows = parseCsvRows(cleanText);
+    const rows = parseCsvRows(cleanText, delimiter);
     if (!rows.length) return { uniqueTopics: [], uniqueSubtopics: [], tasks: [] };
 
     const firstRow = rows[0];
@@ -1480,7 +1480,16 @@
         throw new Error(`JSON не разобрался: ${e.message}`);
       }
     }
-    return { ...parseCsvToTasks(trimmed), format: 'csv' };
+    /* Таблицу принимаем только с табуляцией. CSV убран намеренно: и «;»,
+       и «,» постоянно встречаются внутри самих задач — в координатах
+       $(x; y)$, в перечислении корней $x_1=2, x_2=3$ и в списке тегов, — и
+       строка тихо разъезжалась на лишние ячейки: ответ уезжал в решение,
+       второй тег — в чертёж. У табуляции такого спора с содержимым нет. */
+    const firstLine = trimmed.split(/\r?\n/).find(line => line.trim()) || '';
+    if (!firstLine.includes('\t')) {
+      throw new Error('Таблица принимается только с табуляцией (TSV). Похоже, столбцы разделены запятой или точкой с запятой — пересохраните файл как «Текст с разделителями-табуляциями» или скопируйте ячейки прямо из Excel / Google Таблиц.');
+    }
+    return { ...parseCsvToTasks(trimmed, '\t'), format: 'tsv' };
   };
 
   /* ── Экспорт задач в Excel / Google Таблицы (CSV с UTF-8 BOM) ── */

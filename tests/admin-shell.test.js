@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { csvToTsv, parseTasksImport } from '../public/lib.js';
+import { parseTasksImport } from '../public/lib.js';
 
 /* Каркас админки собирается при загрузке: admin.js переносит разделы на
    экраны по id и кладёт кнопки в слоты. Опечатка в id или слоте ничего
@@ -182,14 +182,14 @@ describe('каркас админки: меню и экраны', () => {
 
   /* Образцы на экране импорта — то, что копируют как шаблон. Старый JSON
      ссылался на несуществующие темы: его импорт заводил мусорные темы. */
-  it('образцы CSV и JSON разбираются без замечаний, у каждой задачи латышский текст и номер подтемы', () => {
+  it('образцы TSV и JSON разбираются без замечаний, у каждой задачи латышский текст и номер подтемы', () => {
     const decode = s => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
     const sample = id => decode(html.match(new RegExp(`id="${id}">([\\s\\S]*?)</code>`))[1]);
     const json = sample('json-sample-code');
     expect(() => JSON.parse(json)).not.toThrow();
     // Импорт всегда сохраняет черновиками — флаг публикации в образце только сбивал бы с толку.
     expect(json).not.toContain('is_published');
-    for (const id of ['csv-sample-code', 'json-sample-code']) {
+    for (const id of ['tsv-sample-code', 'json-sample-code']) {
       const res = parseTasksImport(sample(id));
       expect(res.warnings || []).toEqual([]);
       expect(res.tasks.length).toBeGreaterThan(0);
@@ -200,18 +200,25 @@ describe('каркас админки: меню и экраны', () => {
     }
   });
 
-  /* TSV — формат, в котором отвечает нейросеть по промпту. Отдельной копии
-     в разметке нет: кнопка «TSV» собирает его из образца CSV. */
-  it('образец TSV: кнопка есть, он собирается из CSV и даёт те же задачи', () => {
+  /* TSV — единственный табличный формат импорта и то, в чём отвечает
+     нейросеть по промпту. Образец в разметке лежит уже с табуляцией. */
+  it('образец TSV: кнопка есть, образец разделён табуляцией и разбирается', () => {
     expect(html).toContain('data-imp-sample="tsv"');
-    expect(js).toContain('csvToTsv');
+    expect(html).not.toContain('data-imp-sample="csv"');
     const decode = s => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
-    const csv = decode(html.match(/id="csv-sample-code">([\s\S]*?)<\/code>/)[1]);
-    const tsv = csvToTsv(csv);
+    const tsv = decode(html.match(/id="tsv-sample-code">([\s\S]*?)<\/code>/)[1]);
     expect(tsv.split('\n')[0]).toContain('\t');
-    const fromCsv = parseTasksImport(csv);
-    const fromTsv = parseTasksImport(tsv);
-    expect(fromTsv.warnings || []).toEqual([]);
-    expect(fromTsv.tasks).toEqual(fromCsv.tasks);
+    expect(tsv.split('\n')[0]).not.toContain(';');
+    const res = parseTasksImport(tsv);
+    expect(res.format).toBe('tsv');
+    expect(res.warnings || []).toEqual([]);
+    expect(res.tasks.length).toBeGreaterThan(0);
+  });
+
+  /* Поля выбора файла не должны звать CSV: импорт его больше не берёт. */
+  it('в импорте не осталось приглашения загрузить CSV', () => {
+    for (const accept of html.match(/accept="[^"]*"/g) || []) {
+      if (accept.includes('json')) expect(accept, accept).not.toContain('csv');
+    }
   });
 });

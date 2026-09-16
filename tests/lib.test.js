@@ -1394,12 +1394,35 @@ describe('parseTasksImport: универсальный детектор JSON / C
     expect(res.tasks[0].condition_latex).toBe('$x=1$');
   });
 
-  it('распознаёт CSV / TSV формат', () => {
-    const csvStr = 'grade,topic_title,condition_latex\n8,Алгебра,$2x=4$';
-    const res = parseTasksImport(csvStr);
-    expect(res.format).toBe('csv');
+  it('распознаёт TSV формат', () => {
+    const tsvStr = 'grade\ttopic_title\tcondition_latex\n8\tАлгебра\t$2x=4$';
+    const res = parseTasksImport(tsvStr);
+    expect(res.format).toBe('tsv');
     expect(res.tasks).toHaveLength(1);
     expect(res.tasks[0].condition_latex).toBe('$2x=4$');
+  });
+
+  /* CSV убран из импорта: «;» и «,» стоят внутри самих задач — в координатах,
+     в перечислении корней, в списке тегов — и строка тихо разъезжалась на
+     лишние ячейки. Отказ должен быть внятным, а не молчаливым нулём задач. */
+  it('таблицу с запятой или точкой с запятой не принимает и объясняет почему', () => {
+    for (const bad of [
+      'grade,topic_title,condition_latex\n8,Алгебра,$2x=4$',
+      'grade;topic_title;condition_latex\n8;Алгебра;$2x=4$'
+    ]) {
+      expect(() => parseTasksImport(bad)).toThrow(/только с табуляцией/i);
+    }
+  });
+
+  /* Точка с запятой внутри ячейки — обычное дело: координаты и список тегов.
+     В TSV она больше не спорит с разделителем. */
+  it('точка с запятой внутри ячейки TSV не ломает строку', () => {
+    const tsv = 'grade\ttopic_title\tcondition_latex\tanswer_latex\ttags\n'
+      + '8\tКоординаты\tТочка $(3; 4)$ — найдите расстояние.\t$5$\tkoordinatu-metode; vektori';
+    const [task] = parseTasksImport(tsv).tasks;
+    expect(task.condition_latex).toBe('Точка $(3; 4)$ — найдите расстояние.');
+    expect(task.answer_latex).toBe('$5$');
+    expect(task.tags).toEqual(['koordinatu-metode', 'vektori']);
   });
 });
 
@@ -1411,7 +1434,7 @@ describe('parseTasksImport: ответ нейросети как есть', () =
 
   it('таблица в блоке ```tsv с текстом вокруг', () => {
     const res = parseTasksImport(`Вот задачи:\n\n\`\`\`tsv\n${header}\n${row(10)}\n\`\`\`\n\nУдачи!`);
-    expect(res.format).toBe('csv');
+    expect(res.format).toBe('tsv');
     expect(res.tasks).toHaveLength(1);
     expect(res.tasks[0].condition_latex).toBe('Найдите 10% от $50$.');
   });
