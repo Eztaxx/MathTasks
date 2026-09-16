@@ -1351,19 +1351,20 @@ body.dark .track-card-badge.green{background:#092e18;color:#5de292;border-color:
 
 /* ── Сайдбар: Тематический режим (Когда тема выбрана) ─────────────── */
 
-.sidebar-topic-banner{padding:12px 13px;border-radius:11px;background:linear-gradient(135deg,#f2f6ff,#e7efff);border:1px solid #d4e2fc;margin-bottom:14px}
-.topic-banner-top{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.sidebar-topic-banner{padding:12px 13px;border-radius:11px;background:#f6f8fc;border:1px solid #e4e9f2;margin-bottom:14px}
+.topic-banner-top{display:flex;align-items:center;gap:7px;margin-bottom:8px}
 /* Без верхнего регистра: «Vispārīgais līmenis» — имя курса, а не ярлык,
    и в капсе на десяти пикселях латышская диакритика читается плохо.
    Плюс перенос по словам — в узком сайдбаре в строку оно не влезает. */
-.topic-banner-pill{padding:3px 8px;border-radius:6px;background:#1764ff;color:#fff;font-size:11px;font-weight:700;line-height:1.25;white-space:normal}
+.topic-banner-pill{display:inline-flex;max-width:100%;padding:5px 11px;border-radius:8px;background:#1f2937;color:#fff;font-size:11.5px;font-weight:700;line-height:1.3;white-space:normal}
 .topic-banner-subject{font-size:11px;font-weight:600;color:var(--muted)}
 .topic-banner-title{font-size:13px;font-weight:800;line-height:1.35;color:#0b1935}
 
 .sidebar-focus-heading{display:flex;align-items:center;justify-content:space-between;padding:4px 6px 8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);margin-bottom:10px}
 .focus-count{padding:1px 6px;border-radius:999px;background:#eef2fa;color:#455471;font-size:10px;font-weight:700}
 
-body.dark .sidebar-topic-banner{background:linear-gradient(135deg,#0f1522,#111c30);border-color:#222c42}
+body.dark .sidebar-topic-banner{background:#0f141f;border-color:#1c2331}
+body.dark .topic-banner-pill{background:#232b3b;color:#e9eefb}
 body.dark .topic-banner-title{color:#edf2ff}
 body.dark .focus-count{background:#23324d;color:#a9b4ca}
 

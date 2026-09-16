@@ -254,16 +254,13 @@ let currentActiveTopic = null;
 let currentSubtopic = null;
 
 function renderTopicSidebar(topic) {
-  const subject = subjectById(topic.subject_id);
   const grade = topic.grade ?? selectedGrade;
   const topicTitle = topicTitleOf(topic);
-  const subjectTitle = loc(subject, 'title');
 
   // Контекстная плашка открытой темы
   const banner = `<div class="sidebar-topic-banner">
     <div class="topic-banner-top">
       ${grade ? `<span class="topic-banner-pill">${escapeHtml(gradeLabelShort(grade))}</span>` : ''}
-      <span class="topic-banner-subject">${escapeHtml(subjectTitle || 'Математика')}</span>
     </div>
     <div class="topic-banner-title">${escapeHtml(topicTitle)}</div>
   </div>`;

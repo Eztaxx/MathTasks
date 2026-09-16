@@ -538,6 +538,12 @@
       plotter_presets: 'Piemēri:',
       plotter_roots_title: 'Krustpunkti ar X asi (saknes):',
       plotter_roots_none: 'Reālu sakņu redzamajā apgabalā nav.',
+      plotter_badge: '📈 Grafiku zīmētājs',
+      plotter_page_title: 'Funkciju grafiku zīmētājs',
+      plotter_open_full: '⛶ Atvērt pa visu ekrānu',
+      plotter_copy_link: '🔗 Kopēt saiti',
+      plotter_link_copied: '✓ Saite nokopēta',
+      plotter_hint: 'Velciet ar peli vai pirkstu, ritenītis un divu pirkstu žests maina mērogu, dubultklikšķis atiestata. Vairākas funkcijas atdaliet ar semikolu.',
 
       // Favorītu lapa
       favorites_title: 'Mani favorīti',
@@ -1483,6 +1489,12 @@
       plotter_presets: 'Примеры:',
       plotter_roots_title: 'Точки пересечения с осью X (нули):',
       plotter_roots_none: 'Действительных нулей функции в текущей области не найдено.',
+      plotter_badge: '📈 Графопостроитель',
+      plotter_page_title: 'Графопостроитель функций',
+      plotter_open_full: '⛶ Открыть на весь экран',
+      plotter_copy_link: '🔗 Скопировать ссылку',
+      plotter_link_copied: '✓ Ссылка скопирована',
+      plotter_hint: 'Тяните мышью или пальцем, колесо и щипок — масштаб, двойной щелчок — сброс. Несколько функций разделяйте точкой с запятой.',
 
       // Закладки
       favorites_title: 'Мои закладки',
