@@ -1986,3 +1986,25 @@ describe('строка без условия', () => {
     expect(res.warnings || []).toEqual([]);
   });
 });
+
+/* Список слагов в промпте — вторая копия CROSS_TAGS. Если словарь тегов
+   пополнят, а промпт забудут, модель будет ставить тег, которого нет, и
+   импорт молча его отбросит. */
+describe('промпт и словарь тегов', () => {
+  it('список тегов в промпте не разошёлся с CROSS_TAGS', () => {
+    const prompt = buildTaskPromptForTest({ grade: 8 });
+    const line = prompt.split('\n').find(l => l.startsWith('- tags'));
+    expect(line, 'в промпте нет строки про теги').toBeTruthy();
+    // Список кончается точкой, а дальше идёт пояснение — в нём тоже есть
+    // запятые, поэтому сначала отрезаем хвост, и только потом делим.
+    const after = line.slice(line.indexOf("только из этого списка:") + "только из этого списка:".length);
+    const listed = after.slice(0, after.indexOf(String.fromCharCode(46))).split(String.fromCharCode(44)).map(x => x.trim()).filter(Boolean);
+    expect(listed).toEqual(CROSS_TAGS.map(t => t.slug));
+  });
+
+  it('промпт не обещает разделитель, которого импорт не понимает', () => {
+    const prompt = buildTaskPromptForTest({ grade: 8 });
+    expect(prompt).toContain('Столбцы разделены ТАБУЛЯЦИЕЙ');
+    expect(prompt).not.toMatch(/CSV/i);
+  });
+});
