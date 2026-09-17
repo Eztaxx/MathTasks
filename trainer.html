@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="/style.css" />
   <script src="/theme-init.js"></script>
-  <script src="/i18n.js?v=20260917-1"></script>
+  <script src="/i18n.js?v=20260917-2"></script>
 </head>
 <body class="trainer-page">
   <header class="admin-topbar">
@@ -191,6 +191,7 @@
         <div class="sheet-action-btns">
           <!-- Работа над ошибками — рядом с действиями над листом. -->
           <button type="button" class="secondary-button trainer-review-btn" id="btn-review" data-review-btn hidden>🔁 Работа над ошибками</button>
+          <button type="button" class="text-button danger trainer-review-clear" id="btn-review-clear" data-review-clear hidden>🧹 Очистить ошибки</button>
           <button type="button" class="secondary-button" id="btn-sheet-refresh" data-i18n="trainer_btn_new_sheet" data-i18n-title="trainer_btn_new_sheet_title" title="Сгенерировать новые случайные примеры">
             🔄 Новый лист
           </button>
@@ -224,6 +225,7 @@
             🚀 Сгенерировать новый лист
           </button>
           <button type="button" class="secondary-button" id="btn-sheet-review" data-review-btn hidden>🔁 Работа над ошибками</button>
+          <button type="button" class="text-button danger" id="btn-sheet-review-clear" data-review-clear hidden>🧹 Очистить ошибки</button>
         </div>
       </div>
     </div>
@@ -385,6 +387,7 @@
         <button type="button" class="primary-button" id="btn-restart-sprint" data-i18n="trainer_btn_restart_sprint">⚡ Попробовать снова</button>
         <button type="button" class="secondary-button" id="btn-close-sprint" data-i18n="trainer_btn_close_sprint">Вернуться к тренировке</button>
         <button type="button" class="secondary-button" id="btn-sprint-review" data-review-btn hidden>🔁 Работа над ошибками</button>
+        <button type="button" class="text-button danger" id="btn-sprint-review-clear" data-review-clear hidden>🧹 Очистить ошибки</button>
       </div>
     </dialog>
   </main>
@@ -392,7 +395,7 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="/trainer.js?v=20260916-1"></script>
   <script src="/trainer-algebra.js?v=20260916-1"></script>
-  <script src="/math-keyboard.js?v=20260916-3"></script>
-  <script src="/trainer-page.js?v=20260916-3"></script>
+  <script src="/math-keyboard.js?v=20260917-2"></script>
+  <script src="/trainer-page.js?v=20260917-2"></script>
 </body>
 </html>

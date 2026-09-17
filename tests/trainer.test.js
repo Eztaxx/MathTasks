@@ -421,6 +421,95 @@ describe('Mental Math Trainer Engine', () => {
     });
   });
 
+  /* Ответ — это результат, а не обязательно готовое число: «2^5» и «√16»
+     ученик пишет так же законно, как «32» и «4». Раньше такие записи
+     не засчитывались вовсе. */
+  describe('checkAnswer: ответ записан выражением', () => {
+    const q = (type, answer, extra = {}) => ({ type, answer, ...extra });
+
+    it('степень — через ^, **, ² и верхние индексы', () => {
+      const qi = q('integer', '32');
+      for (const input of ['2^5', '2**5', '2⁵', '(2)^5', '2^5 ']) {
+        expect(trainer.checkAnswer(qi, input).isCorrect).toBe(true);
+      }
+      expect(trainer.checkAnswer(q('integer', '25'), '5²').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(q('integer', '-8'), '-2^3').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(q('decimal', '0.25'), '2^-2').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(qi, '2^4').isCorrect).toBe(false);
+    });
+
+    it('корень — знаком, словом и с неявным умножением', () => {
+      expect(trainer.checkAnswer(q('integer', '4'), '√16').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(q('integer', '4'), '√(16)').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(q('integer', '4'), 'sqrt(16)').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(q('integer', '3'), '∛27').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(q('integer', '3'), 'cbrt(27)').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(q('integer', '6'), '2√9').isCorrect).toBe(true);
+      // Радикал берёт только следующий множитель, а не всю сумму
+      expect(trainer.checkAnswer(q('integer', '19'), '√9+16').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(q('integer', '4'), '√-16').isCorrect).toBe(false);
+    });
+
+    it('действия, скобки и модуль', () => {
+      expect(trainer.checkAnswer(q('integer', '12'), '144/12').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(q('integer', '12'), '3·4').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(q('integer', '25'), '(2+3)^2').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(q('integer', '7'), '|-7|').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(q('integer', '1119'), '(791 + 328)').isCorrect).toBe(true);
+    });
+
+    it('обыкновенная дробь принимает выражение в числителе', () => {
+      const qf = q('fraction', '1/2', { resNum: 1, resDen: 2 });
+      expect(trainer.checkAnswer(qf, '√4/4').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(qf, '2/4').isCorrect).toBe(true);
+      expect(trainer.checkAnswer(qf, '1/3').isCorrect).toBe(false);
+    });
+
+    it('незакрытая запись и слова ответом не считаются', () => {
+      const qi = q('integer', '5');
+      for (const input of ['2+', '5)', '(5', '2 3', 'пять', '√', '^2']) {
+        expect(trainer.checkAnswer(qi, input).isCorrect).toBe(false);
+      }
+    });
+  });
+
+  /* «Эксперт» должен быть сложнее «продвинутого». В трёхзначном сложении
+     все числа были кратны десяти — пример считался в уме легче, чем на
+     уровне ниже. */
+  describe('addsub3: уровни сложности различаются по-настоящему', () => {
+    const sample = (diff, n = 400) => Array.from({ length: n }, () => trainer.generateQuestion('addsub3', diff));
+    const operands = qs => qs.flatMap(item => item.latex.match(/\d+/g).map(Number));
+
+    it('на «эксперте» круглых десятков нет, а на «базовом» они везде', () => {
+      expect(operands(sample('normal')).every(n => n % 10 === 0)).toBe(true);
+      expect(operands(sample('expert')).some(n => n % 10 === 0)).toBe(false);
+    });
+
+    it('«эксперт» считает дальше «продвинутого» и не даёт отрицательных ответов', () => {
+      const expert = sample('expert');
+      const answers = expert.map(item => Number(item.answer));
+      expect(Math.min(...answers)).toBeGreaterThan(0);
+      expect(Math.max(...answers)).toBeGreaterThan(1000);
+      // Переход через 1000 и три числа в примере — то, чего нет на «продвинутом»
+      expect(expert.some(item => item.latex.split(/[+-]/).length > 2)).toBe(true);
+      expect(sample('hard').every(item => item.latex.split(/[+-]/).length === 2)).toBe(true);
+    });
+
+    it('ответ сходится с примером на всех уровнях', () => {
+      for (const diff of ['normal', 'hard', 'expert']) {
+        for (const item of sample(diff, 200)) {
+          const toks = item.latex.trim().split(/\s+/);
+          let acc = Number(toks[0]);
+          for (let i = 1; i < toks.length; i += 2) {
+            acc = toks[i] === '-' ? acc - Number(toks[i + 1]) : acc + Number(toks[i + 1]);
+          }
+          expect(String(acc)).toBe(item.answer);
+          expect(trainer.checkAnswer(item, item.answer).isCorrect).toBe(true);
+        }
+      }
+    });
+  });
+
   describe('formatTime: форматирование времени', () => {
     it('корректно форматирует секунды в MM:SS', () => {
       expect(trainer.formatTime(0)).toBe('00:00');

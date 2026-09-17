@@ -35,6 +35,30 @@
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
+  /* Число не кратное десяти: на сложных уровнях круглые десятки считаются
+     в уме почти без усилий — пример перестаёт быть сложным. */
+  function notRound(min, max) {
+    if (min > max) [min, max] = [max, min];
+    for (let i = 0; i < 20; i++) {
+      const v = randInt(min, max);
+      if (v % 10 !== 0) return v;
+    }
+    // Диапазон из одних десятков — сдвигаем на единицу, не выходя за края.
+    const v = randInt(min, max);
+    return v + 1 <= max ? v + 1 : Math.max(min, v - 1);
+  }
+
+  /* Вычитаемое с занятием в разряде единиц: «903 - 247» вместо «903 - 241».
+     Если у уменьшаемого единиц девять, занять нечем: цифра больше девяти
+     не бывает, а ноль сделал бы вычитаемое круглым. Тогда оставляем как есть. */
+  function withBorrow(a, b) {
+    if (a % 10 === 9 || b % 10 > a % 10) return b;
+    const shift = (a % 10) + 1 - (b % 10);
+    if (b + shift < a) return b + shift;
+    if (b - 10 + shift > 0) return b - 10 + shift;
+    return b;
+  }
+
   // Виды примеров только для средней школы
   const HIGH_SCHOOL_MODES = new Set([
     'cbrt_table', 'root_4_basic', 'root_degrees', 'root_mult_div', 'fractional_powers',
@@ -96,6 +120,106 @@
     '\u2079': '9',
     '\u207B': '-'
   };
+
+
+  /* ── Числовой ответ выражением ──────────────────────────────────────
+     Ученик вправе написать не готовое число, а то, что у него вышло:
+     «2^5», «√16», «sqrt(16)», «∛27», «12/4», «2·3», «5²». Свой разбор, а
+     не eval: 'unsafe-eval' в CSP закрыт, и чужой текст исполнять незачем.
+     Что разобрать не удалось — NaN, и ответ считается неверным, как раньше. */
+  function evalNumeric(raw) {
+    if (raw === null || raw === undefined) return NaN;
+    const text = String(raw).trim();
+    if (!text) return NaN;
+    // Обычное число — без разбора: и быстрее, и поведение точно прежнее.
+    const plain = Number(text.replace(/−|–|—/g, '-').replace(',', '.'));
+    if (Number.isFinite(plain)) return plain;
+
+    const s = text
+      .replace(/\s+/g, '')
+      .replace(/[−–—]/g, '-')
+      .replace(/,/g, '.')
+      .replace(/\*\*/g, '^')
+      .replace(/[⁰¹²³⁴-⁹⁻]+/g, m => '^' + [...m].map(ch => SUPERSCRIPT_MAP[ch] || '').join(''))
+      .replace(/[·×∙]/g, '*')
+      .replace(/[:÷]/g, '/')
+      .replace(/sqrt/gi, '√')
+      .replace(/cbrt/gi, '∛');
+    if (!/^[0-9.+\-*/^()|√∛]+$/.test(s)) return NaN;
+
+    let i = 0;
+    const at = () => s[i];
+    const eat = ch => (s[i] === ch ? (i++, true) : false);
+    const starts = ch => ch !== undefined && (/[0-9.(√∛|]/.test(ch));
+
+    // atom: число, скобки, корень, модуль
+    function atom() {
+      if (eat('(')) {
+        const v = expr();
+        if (!eat(')')) return NaN;
+        return v;
+      }
+      if (eat('|')) {
+        const v = expr();
+        if (!eat('|')) return NaN;
+        return Math.abs(v);
+      }
+      if (eat('√')) {
+        const v = atom();
+        return v < 0 ? NaN : Math.sqrt(v);
+      }
+      if (eat('∛')) {
+        return Math.cbrt(atom());
+      }
+      const start = i;
+      while (at() !== undefined && /[0-9.]/.test(at())) i++;
+      if (i === start) return NaN;
+      const num = Number(s.slice(start, i));
+      return Number.isFinite(num) ? num : NaN;
+    }
+
+    // Степень правее основания и правоассоциативна: 2^3^2 = 2^9
+    function power() {
+      const base = atom();
+      if (!eat('^')) return base;
+      return base ** unary();
+    }
+
+    function unary() {
+      if (eat('-')) return -unary();
+      if (eat('+')) return unary();
+      return power();
+    }
+
+    /* Знак умножения можно не писать: «2√9» — это 2·√9, как в учебнике.
+       После числа подряд второе число не ставим: «2 3» — это не пример. */
+    function term() {
+      let v = unary();
+      for (;;) {
+        if (eat('*')) v *= unary();
+        else if (eat('/')) v /= unary();
+        else if (/[(√∛]/.test(at() || '')) v *= unary();
+        else break;
+      }
+      return v;
+    }
+
+    function expr() {
+      let v = term();
+      for (;;) {
+        if (eat('+')) v += term();
+        else if (eat('-')) v -= term();
+        else break;
+      }
+      return v;
+    }
+
+    if (!starts(at()) && !/[+-]/.test(at() || '')) return NaN;
+    const value = expr();
+    // Остался хвост — значит запись не разобрана целиком.
+    if (i !== s.length) return NaN;
+    return Number.isFinite(value) ? value : NaN;
+  }
 
   // Парсинг алгебраического одночлена (поддерживает x^5, x⁵, 6x^7, -2x, 5, 1/x^2, x^-2, x**3)
   function parseAlgebraicTerm(str) {
@@ -228,11 +352,16 @@
     // 2. Трёхзначные числа: сложение и вычитание
     addsub3: (diff = 'normal') => {
       if (diff === 'expert') {
-        const isTri = Math.random() < 0.6;
-        if (isTri) {
-          const a = randInt(15, 60) * 10;
-          const b = randInt(12, 45) * 10;
-          const c = randInt(10, Math.floor((a + b - 50) / 10)) * 10;
+        /* Эксперт сложнее продвинутого: полные трёхзначные числа (круглых
+           десятков здесь быть не должно — раньше все примеры кончались на
+           ноль и считались легче, чем на «продвинутом»), переносы в разрядах
+           и переход через 1000. */
+        const kind = Math.random();
+        if (kind < 0.4) {
+          // Три числа: сложить и сразу вычесть, с переносом и занятием
+          const a = notRound(147, 698);
+          const b = notRound(126, 489);
+          const c = notRound(118, Math.min(789, a + b - 150));
           const ans = a + b - c;
           return {
             latex: `${a} + ${b} - ${c}`,
@@ -241,10 +370,22 @@
             hint: `${a} + ${b} - ${c} = ${a + b} - ${c} = ${ans}`,
             category: 'addsub3'
           };
+        } else if (kind < 0.7) {
+          // Сложение с переходом через 1000
+          const a = notRound(456, 897);
+          const b = notRound(Math.max(126, 1012 - a), 949);
+          const ans = a + b;
+          return {
+            latex: `${a} + ${b}`,
+            answer: String(ans),
+            type: 'integer',
+            hint: `${a} + ${b} = ${ans}`,
+            category: 'addsub3'
+          };
         } else {
-          // Переход через 1000
-          const a = randInt(115, 185) * 10;
-          const b = randInt(45, 95) * 10;
+          // Вычитание из-за 1000: занимать приходится через два разряда
+          const a = notRound(1024, 1897);
+          const b = withBorrow(a, notRound(247, 989));
           const ans = a - b;
           return {
             latex: `${a} - ${b}`,
@@ -1526,7 +1667,10 @@
     if (!userInput || !userInput.trim()) {
       return { isCorrect: false, expectedDisplay: question.answer, userNormalized: '' };
     }
-    const clean = userInput.trim().replace(/\s+/g, '').replace(/[\u2212\u2013\u2014]/g, '-').replace(',', '.');
+    /* «sqrt» и «cbrt» сводим к знакам сразу: иначе ответ с буквами уходит в
+       разбор одночлена и не считается числом. */
+    const clean = userInput.trim().replace(/\s+/g, '').replace(/[\u2212\u2013\u2014]/g, '-').replace(',', '.')
+      .replace(/sqrt/gi, '√').replace(/cbrt/gi, '∛');
 
     // Проверка алгебраических выражений (степени и корни с переменными)
     if (question.type === 'algebra' || /[a-z]/i.test(question.answer) || /[a-z]/i.test(clean)) {
@@ -1569,10 +1713,18 @@
       // Если введено n/d
       if (clean.includes('/')) {
         const parts = clean.split('/');
-        const uNum = Number(parts[0]);
-        const uDen = Number(parts[1]);
-        if (!Number.isFinite(uNum) || !Number.isFinite(uDen) || uDen === 0) {
-          return { isCorrect: false, expectedDisplay: question.answer, userNormalized: clean };
+        const uNum = evalNumeric(parts[0]);
+        const uDen = evalNumeric(parts[1]);
+        if (!Number.isFinite(uNum) || !Number.isFinite(uDen) || uDen === 0
+            || !Number.isInteger(uNum) || !Number.isInteger(uDen) || parts.length > 2) {
+          // Не пара целых («√2/2», «1/2/3») — сверяем по значению целиком.
+          const uAny = evalNumeric(clean);
+          const expAny = expectedNum / expectedDen;
+          return {
+            isCorrect: Number.isFinite(uAny) && Math.abs(uAny - expAny) < 1e-9,
+            expectedDisplay: expectedDen === 1 ? String(expectedNum) : `${expectedNum}/${expectedDen}`,
+            userNormalized: clean
+          };
         }
         const uReduced = reduceFraction(uNum, uDen);
         const isCorrect = uReduced.num === expectedNum && uReduced.den === expectedDen;
@@ -1585,16 +1737,16 @@
 
       // Если введено целое число (например, результат 1 или 2)
       if (expectedDen === 1) {
-        const uVal = Number(clean);
+        const uVal = evalNumeric(clean);
         return {
-          isCorrect: uVal === expectedNum,
+          isCorrect: Number.isFinite(uVal) && Math.abs(uVal - expectedNum) < 1e-9,
           expectedDisplay: String(expectedNum),
           userNormalized: clean
         };
       }
 
       // Если ученик ввёл десятичную дробь вместо обыкновенной (например, 0.5 вместо 1/2)
-      const uVal = Number(clean);
+      const uVal = evalNumeric(clean);
       if (Number.isFinite(uVal)) {
         const expectedVal = expectedNum / expectedDen;
         const isClose = Math.abs(uVal - expectedVal) < 1e-4;
@@ -1610,20 +1762,16 @@
 
     // Если введено n/d для десятичной дроби (например, 1/2 для 0.5 или 1/4 для 0.25)
     if (clean.includes('/')) {
-      const parts = clean.split('/');
-      const uNum = Number(parts[0]);
-      const uDen = Number(parts[1]);
-      if (Number.isFinite(uNum) && Number.isFinite(uDen) && uDen !== 0) {
-        const uVal = uNum / uDen;
-        const expVal = Number(question.answer.replace(',', '.'));
-        if (Number.isFinite(expVal) && Math.abs(uVal - expVal) < 1e-4) {
-          return { isCorrect: true, expectedDisplay: question.answer, userNormalized: clean };
-        }
+      const uVal = evalNumeric(clean);
+      const expVal = Number(question.answer.replace(',', '.'));
+      if (Number.isFinite(uVal) && Number.isFinite(expVal) && Math.abs(uVal - expVal) < 1e-4) {
+        return { isCorrect: true, expectedDisplay: question.answer, userNormalized: clean };
       }
     }
 
-    // Проверка десятичных дробей и целых чисел
-    const uNum = Number(clean);
+    /* Проверка десятичных дробей и целых чисел. Ответ разбираем выражением:
+       «2^5» и «√16» — такая же запись результата, как «32» и «4». */
+    const uNum = evalNumeric(clean);
     const expNum = Number(question.answer.replace(',', '.'));
 
     if (Number.isFinite(uNum) && Number.isFinite(expNum)) {

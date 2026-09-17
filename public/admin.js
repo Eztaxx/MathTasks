@@ -7127,70 +7127,122 @@ ${JSON.stringify(texts)}`;
      кнопки «Опубликовать», «Править», «Отклонить», «Пропустить» и
      горячие клавиши Enter и →. */
   let reviewAll = [];       // все черновики
-  let reviewQueue = [];     // то, что сейчас проверяем: всё или одна тема
-  let reviewTopicId = 'all';
+  let reviewQueue = [];     // то, что сейчас проверяем, — с учётом фильтров
   let reviewIndex = 0;
   let reviewLoading = false;
 
-  /* Очередь разбита по темам: однородные задачи проверяются быстрее, да и
-     начать удобнее с той темы, что полегче. Ключ — id темы, у задач без
-     темы — 'none'. */
-  const reviewTopicKey = task => (task.topic_id == null ? 'none' : String(task.topic_id));
+  /* ── Фильтр очереди: класс → тема → подтема ─────────────────────────
+     Однородные задачи проверяются быстрее, да и начать удобнее с того,
+     что полегче. Списки вложенные: темы — только выбранного класса,
+     подтемы — только выбранной темы. Что не выбрано, то и не сужает:
+     одна подтема без темы и класса тоже рабочий фильтр. 'all' — «любой»,
+     'none' — «не указан». */
+  const REVIEW_LEVELS = ['grade', 'topic', 'sub'];
+  let reviewPick = { grade: 'all', topic: 'all', sub: 'all' };
 
-  function reviewTopicGroups() {
-    const groups = new Map();
-    for (const task of reviewAll) {
-      const key = reviewTopicKey(task);
-      if (!groups.has(key)) {
-        const topic = key === 'none' ? null : topics.find(t => String(t.id) === key);
-        groups.set(key, {
-          key,
-          grade: Number(task.grade ?? topic?.grade) || 0,
-          // Темы ещё не подгрузились — лучше номер, чем «Без темы» у всех подряд.
-          title: topic?.title || (key === 'none' ? 'Без темы' : `Тема #${key}`),
-          count: 0
-        });
-      }
-      groups.get(key).count += 1;
+  const reviewTopicOf = task => topics.find(item => String(item.id) === String(task.topic_id)) || null;
+
+  const reviewKey = {
+    grade: task => {
+      const grade = task.grade ?? reviewTopicOf(task)?.grade;
+      return grade == null || grade === '' ? 'none' : String(grade);
+    },
+    topic: task => (task.topic_id == null ? 'none' : String(task.topic_id)),
+    sub: task => (task.subtopic_id == null ? 'none' : String(task.subtopic_id))
+  };
+
+  const reviewLabel = {
+    grade: key => (key === 'none' ? 'Без класса' : gradeText(Number(key) || key)),
+    topic: key => {
+      if (key === 'none') return 'Без темы';
+      // Темы ещё не подгрузились — лучше номер, чем «Без темы» у всех подряд.
+      return topics.find(item => String(item.id) === key)?.title || `Тема #${key}`;
+    },
+    sub: key => {
+      if (key === 'none') return 'Без подтемы';
+      const sub = subtopics.find(item => String(item.id) === key);
+      if (!sub) return `Подтема #${key}`;
+      return sub.code ? `${sub.code} ${sub.title || ''}`.trim() : (sub.title || `Подтема #${key}`);
     }
-    /* Младшие классы первыми: с лёгких тем проверку и начинают. Задачи без
-       темы — в конец: там сначала тему и проставить. */
-    return [...groups.values()].sort((a, b) =>
-      (Number(a.key === 'none') - Number(b.key === 'none'))
-      || (a.grade - b.grade)
-      || a.title.localeCompare(b.title, 'ru'));
+  };
+
+  // Подходит ли задача под выбор целиком.
+  const reviewMatches = task => REVIEW_LEVELS.every(level =>
+    reviewPick[level] === 'all' || reviewKey[level](task) === reviewPick[level]);
+
+  /* Подходит ли задача под уровни выше этого: тема смотрит на класс,
+     подтема — на класс и тему. Свой уровень и те, что ниже, не учитываются —
+     иначе выбор подтемы оставил бы в списке классов один пункт, и сменить
+     класс было бы нечем. */
+  const reviewMatchesAbove = (task, level) => REVIEW_LEVELS
+    .slice(0, REVIEW_LEVELS.indexOf(level))
+    .every(upper => reviewPick[upper] === 'all' || reviewKey[upper](task) === reviewPick[upper]);
+
+  /* Варианты одного списка: только то, что есть в очереди при выбранных
+     уровнях выше. Пустых фильтров в списке не будет. */
+  function reviewOptions(level) {
+    const counts = new Map();
+    for (const task of reviewAll) {
+      if (!reviewMatchesAbove(task, level)) continue;
+      const key = reviewKey[level](task);
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    const order = key => (key === 'none' ? 1 : 0);
+    return [...counts.entries()]
+      .map(([key, count]) => ({ key, count, label: reviewLabel[level](key) }))
+      .sort((a, b) => (order(a.key) - order(b.key))
+        || (level === 'grade' ? (Number(a.key) || 99) - (Number(b.key) || 99) : 0)
+        || a.label.localeCompare(b.label, 'ru'));
   }
 
-  function renderReviewTopics() {
-    const box = byId('adm-review-topics');
+  const REVIEW_ANY = { grade: 'Любой класс', topic: 'Любая тема', sub: 'Любая подтема' };
+  const REVIEW_TITLES = { grade: 'Класс', topic: 'Тема', sub: 'Подтема' };
+
+  function renderReviewFilters() {
+    const box = byId('adm-review-filters');
     if (!box) return;
-    const groups = reviewTopicGroups();
-    // Одна тема на всю очередь — делить нечего.
-    if (groups.length < 2) {
+    const total = reviewAll.length;
+    // Один черновик или пустая очередь — фильтровать нечего.
+    if (total < 2) {
       box.hidden = true;
       box.innerHTML = '';
       return;
     }
-    const chip = (key, label, count) => `<button type="button" class="adm-review-topic${key === reviewTopicId ? ' active' : ''}" data-review-topic="${escapeHtml(key)}" aria-pressed="${key === reviewTopicId}">${escapeHtml(label)}<span class="adm-review-topic-count">${count}</span></button>`;
     box.hidden = false;
-    box.innerHTML = [
-      chip('all', 'Все темы', reviewAll.length),
-      ...groups.map(group => chip(group.key, group.grade ? `${group.grade} кл. · ${group.title}` : group.title, group.count))
-    ].join('');
+    box.innerHTML = REVIEW_LEVELS.map(level => {
+      const options = reviewOptions(level);
+      const opts = [`<option value="all">${escapeHtml(REVIEW_ANY[level])} (${options.reduce((sum, o) => sum + o.count, 0)})</option>`]
+        .concat(options.map(o => `<option value="${escapeHtml(o.key)}"${o.key === reviewPick[level] ? ' selected' : ''}>${escapeHtml(o.label)} (${o.count})</option>`));
+      return `<label class="adm-review-filter"><span>${escapeHtml(REVIEW_TITLES[level])}</span><select data-review-level="${level}">${opts.join('')}</select></label>`;
+    }).join('') + `<button type="button" class="text-button" id="adm-review-filter-reset"${REVIEW_LEVELS.every(l => reviewPick[l] === 'all') ? ' hidden' : ''}>Сбросить</button>`;
   }
 
-  /* Отбираем очередь по выбранной теме. Тема кончилась — возвращаемся ко
-     всем, иначе экран остался бы пустым при непустой очереди. */
+  /* Отбираем очередь по выбранному. Выбор, под который не подходит ни одна
+     задача (тему проверили целиком), снимаем — иначе экран остался бы
+     пустым при непустой очереди. */
   function applyReviewFilter(preserveIndex = false) {
-    if (reviewTopicId !== 'all' && !reviewAll.some(task => reviewTopicKey(task) === reviewTopicId)) {
-      reviewTopicId = 'all';
+    for (const level of REVIEW_LEVELS) {
+      if (reviewPick[level] === 'all') continue;
+      if (!reviewAll.some(task => reviewKey[level](task) === reviewPick[level])) reviewPick[level] = 'all';
     }
-    reviewQueue = reviewTopicId === 'all'
-      ? [...reviewAll]
-      : reviewAll.filter(task => reviewTopicKey(task) === reviewTopicId);
+    // Уровни вложены: выбор ниже не должен противоречить выбору выше.
+    if (!reviewAll.some(task => reviewMatches(task))) {
+      for (const level of [...REVIEW_LEVELS].reverse()) {
+        if (reviewPick[level] === 'all') continue;
+        reviewPick[level] = 'all';
+        if (reviewAll.some(task => reviewMatches(task))) break;
+      }
+    }
+    reviewQueue = reviewAll.filter(task => reviewMatches(task));
     if (!preserveIndex || reviewIndex >= reviewQueue.length) reviewIndex = 0;
-    renderReviewTopics();
+    renderReviewFilters();
   }
+
+  // Подпись выбранного фильтра — для строки «N из M».
+  const reviewScopeLabel = () => REVIEW_LEVELS
+    .filter(level => reviewPick[level] !== 'all')
+    .map(level => reviewLabel[level](reviewPick[level]))
+    .join(' · ');
 
   // Задачу опубликовали или отклонили — убираем из очереди целиком.
   function dropFromReviewQueue(taskId) {
@@ -7198,10 +7250,26 @@ ${JSON.stringify(texts)}`;
     applyReviewFilter(true);
   }
 
-  byId('adm-review-topics')?.addEventListener('click', event => {
-    const btn = event.target.closest('[data-review-topic]');
-    if (!btn) return;
-    reviewTopicId = btn.dataset.reviewTopic;
+  byId('adm-review-filters')?.addEventListener('change', event => {
+    const select = event.target.closest('[data-review-level]');
+    if (!select) return;
+    const level = select.dataset.reviewLevel;
+    reviewPick[level] = select.value;
+    /* Сменили класс или тему — выбор ниже мог остаться от прошлой темы.
+       Оставляем его, только если он ещё встречается под новым выбором. */
+    for (const lower of REVIEW_LEVELS.slice(REVIEW_LEVELS.indexOf(level) + 1)) {
+      if (reviewPick[lower] === 'all') continue;
+      const stillThere = reviewAll.some(task =>
+        reviewMatchesAbove(task, lower) && reviewKey[lower](task) === reviewPick[lower]);
+      if (!stillThere) reviewPick[lower] = 'all';
+    }
+    applyReviewFilter();
+    renderReviewCard();
+  });
+
+  byId('adm-review-filters')?.addEventListener('click', event => {
+    if (!event.target.closest('#adm-review-filter-reset')) return;
+    reviewPick = { grade: 'all', topic: 'all', sub: 'all' };
     applyReviewFilter();
     renderReviewCard();
   });
@@ -7267,11 +7335,9 @@ ${JSON.stringify(texts)}`;
     if (!task) return;
 
     if (progress) {
-      // При фильтре по теме счёт идёт внутри неё — видно, сколько ещё осталось.
-      const scope = reviewTopicId === 'all'
-        ? ''
-        : ` · ${reviewTopicGroups().find(group => group.key === reviewTopicId)?.title || 'тема'}`;
-      progress.textContent = `${reviewIndex + 1} из ${reviewQueue.length}${scope}`;
+      // При фильтре счёт идёт внутри него — видно, сколько ещё осталось.
+      const scope = reviewScopeLabel();
+      progress.textContent = `${reviewIndex + 1} из ${reviewQueue.length}${scope ? ` · ${scope}` : ''}`;
     }
 
     const idEl = byId('adm-review-id');

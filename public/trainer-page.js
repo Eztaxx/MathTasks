@@ -127,10 +127,26 @@
 
       // В режиме карточек работа над ошибками — только из итогов, не по ходу
       function updateReviewButtons() {
+        const hideReview = btn => mistakes.length === 0 || (btn.id === 'btn-review' && state.view === 'card');
         document.querySelectorAll('[data-review-btn]').forEach(btn => {
-          btn.hidden = mistakes.length === 0 || (btn.id === 'btn-review' && state.view === 'card');
+          btn.hidden = hideReview(btn);
           btn.textContent = t('trainer_review_btn', { count: mistakes.length });
         });
+        /* «Очистить» стоит рядом со своей кнопкой работы над ошибками и
+           прячется вместе с ней: пустой список чистить нечего. */
+        document.querySelectorAll('[data-review-clear]').forEach(btn => {
+          const near = btn.parentElement?.querySelector('[data-review-btn]');
+          btn.hidden = !mistakes.length || (near ? near.hidden : false);
+          btn.textContent = t('trainer_review_clear');
+        });
+      }
+
+      /* Список ошибок копится и переживает перезагрузку, поэтому убрать его
+         можно только руками — и только с подтверждения: восстановить нельзя. */
+      function clearMistakes() {
+        if (!mistakes.length) return;
+        if (!window.confirm(t('trainer_review_clear_confirm', { count: mistakes.length }))) return;
+        setMistakes([]);
       }
 
       /* ── Логика режима «Куча примеров на страницу» ──────────────────── */
@@ -902,6 +918,7 @@
       }
 
       document.querySelectorAll('[data-review-btn]').forEach(btn => btn.addEventListener('click', startReview));
+      document.querySelectorAll('[data-review-clear]').forEach(btn => btn.addEventListener('click', clearMistakes));
       window.addEventListener('languagechange', updateReviewButtons);
 
       // Время в карточках идёт с первого введённого символа:

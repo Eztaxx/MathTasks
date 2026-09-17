@@ -138,7 +138,11 @@
           ? (plot ? tr('mkb_functions', 'Функции') : tr('mkb_more', 'Ещё символы'))
           : tr('mkb_digits', 'Цифры')
       },
-      { act: 'abc', label: touch ? 'ABC' : '✕', title: touch ? tr('mkb_abc', 'Обычная клавиатура') : tr('mkb_hide', 'Скрыть клавиатуру') },
+      /* «ABC» отдаёт поле системной клавиатуре и нужна только на сенсорном
+         экране. «✕» убирает панель совсем: на телефоне вместе с полем, чтобы
+         вместо неё не выехала системная. */
+      ...(touch ? [{ act: 'abc', label: 'ABC', title: tr('mkb_abc', 'Обычная клавиатура') }] : []),
+      { act: 'hide', label: '✕', title: tr('mkb_hide', 'Скрыть клавиатуру') },
       { act: 'left', label: '←', title: tr('mkb_left', 'Курсор влево') },
       { act: 'right', label: '→', title: tr('mkb_right', 'Курсор вправо') },
       { act: 'backspace', label: '⌫', title: tr('mkb_backspace', 'Стереть') },
@@ -153,7 +157,9 @@
       `<button type="button" tabindex="-1" class="math-kb-key${k.kind ? ` is-${k.kind}` : ''}" data-key="${i}">${esc(k.label)}</button>`);
     const actions = actionKeys().map(a =>
       `<button type="button" tabindex="-1" class="math-kb-key is-act${a.act === 'enter' ? ' is-enter' : ''}" data-act="${a.act}" title="${esc(a.title)}" aria-label="${esc(a.title)}">${esc(a.label)}</button>`);
-    panel.innerHTML = `<div class="math-kb-grid">${keys.join('')}${actions.join('')}</div>`;
+    /* Служебные клавиши — отдельным ряом, а не в сетке: на сенсорном экране
+       их семь, и седьмая свисала бы под ряд из шести. */
+    panel.innerHTML = `<div class="math-kb-grid">${keys.join('')}</div><div class="math-kb-acts">${actions.join('')}</div>`;
   }
 
   function build() {
@@ -349,6 +355,16 @@
     input.focus();
   }
 
+  /* Панель убрали кнопкой — на компьютере это запоминается (дальше поле
+     работает с обычной клавиатурой), на телефоне уводим и фокус: иначе
+     система тут же покажет свою клавиатуру вместо нашей. */
+  function hidePanel() {
+    const input = field;
+    if (!isTouch()) savePref('off');
+    close();
+    if (isTouch()) input?.blur();
+  }
+
   function onKey(event) {
     const button = event.target.closest('button');
     if (!button || !field) return;
@@ -359,6 +375,8 @@
       render();
     } else if (act === 'abc') {
       toSystemKeyboard();
+    } else if (act === 'hide') {
+      hidePanel();
     } else if (act === 'left' || act === 'right') {
       moveCaret(field, act === 'left' ? -1 : 1);
     } else if (act === 'backspace') {
