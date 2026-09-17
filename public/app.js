@@ -1192,6 +1192,23 @@ function updateRevealLock(card, text) {
   note.textContent = text;
   note.hidden = !text;
 }
+
+/* Когда показывать «Ответ всё же совпал». Засчитать задачу самому можно
+   только тогда, когда есть с чем сверить: открыта панель ответа или
+   решения. Сразу после ошибки кнопка была бы приглашением нажать её
+   вслепую — верного ответа ученик ещё не видел. Закрыл панель — кнопка
+   ушла. В журнале такая задача и так идёт «с подсказкой»: это помечает
+   само открытие панели. */
+function syncAcceptVisibility(card) {
+  const box = card?.querySelector('.self-check-override');
+  if (!box) return;
+  const taskId = card.dataset.taskId;
+  const panelOpen = ['answer', 'solution'].some(kind => {
+    const panel = card.querySelector(`.reveal.${kind}`);
+    return panel && !panel.hidden;
+  });
+  box.hidden = !(panelOpen && !isTaskSolved(taskId) && getTaskWrongAttempts(taskId) > 0);
+}
 const insertIntoInput = window.MathTasks?.insertIntoInput || ((input, text) => { if (input) input.value += text; });
 
 function taskPath(task) {
@@ -1428,6 +1445,10 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
       </form>
       <div class="self-check-result${solved ? ' success' : ''}" ${solved ? '' : 'hidden'}>
         ${solved ? `${escapeHtml(tr('self_check_success'))} <button type="button" class="self-check-reset" data-reset-id="${task.id}">${escapeHtml(tr('self_check_reset'))}</button>` : ''}
+      </div>
+      <div class="self-check-override" hidden>
+        <span>${escapeHtml(tr('self_check_accept_lead'))}</span>
+        <button type="button" class="self-check-accept" data-accept-id="${task.id}" title="${escapeHtml(tr('self_check_accept_title'))}">${escapeHtml(tr('self_check_accept'))}</button>
       </div>
       <p class="self-check-lock" ${reveal.answer ? 'hidden' : ''}>${reveal.answer ? '' : escapeHtml(revealLockText(task, reveal.attempts))}</p>
     </div>` : '';
@@ -1893,6 +1914,7 @@ document.addEventListener('click', event => {
   } else {
     toggle.textContent = newLabel;
   }
+  if (card) syncAcceptVisibility(card);
 });
 
 /* ── Карточки тем ─────────────────────────────────────────────────── */
@@ -5157,6 +5179,7 @@ function markSelfCheckSolved(form, taskId, messageKey) {
   if (card) {
     unlockTaskReveals(card, ['hint', 'answer', 'solution']);
     updateRevealLock(card, '');
+    syncAcceptVisibility(card);
   }
   updateTopicHeaderProgress();
 }
@@ -5185,13 +5208,16 @@ document.addEventListener('submit', event => {
     const messageKey = opened ? 'self_check_error_open' : (hasHint ? 'self_check_error_hint' : 'self_check_error_retry');
     resultDiv.className = 'self-check-result error';
     /* Записал иначе, чем ждёт автопроверка («3; -0,5» вместо «x=3»), —
-       ученик отмечает совпадение сам, как в задачах без автопроверки. */
-    resultDiv.innerHTML = `${escapeHtml(tr(messageKey))} <button type="button" class="self-check-accept" data-accept-id="${taskId}" title="${escapeHtml(tr('self_check_accept_title'))}">${escapeHtml(tr('self_check_accept'))}</button>`;
+       ученик отмечает совпадение сам, как в задачах без автопроверки.
+       Но не отсюда: кнопка появляется, когда открыт ответ или решение
+       (syncAcceptVisibility), — до этого сверять не с чем. */
+    resultDiv.textContent = tr(messageKey);
     resultDiv.hidden = false;
     const card = form.closest('.task');
     if (card) {
       unlockTaskReveals(card, opened ? ['hint', 'answer', 'solution'] : ['hint']);
       updateRevealLock(card, revealLockText(task, attempts));
+      syncAcceptVisibility(card);
     }
   }
 });
@@ -5300,6 +5326,43 @@ function openDrillHintDialog(task) {
 /* Сколько раз ученик нажал Enter на этой задаче с неверным ответом. */
 const drillAttempts = new Map();
 
+/* Пример экспресс-режима засчитан: верным ответом или кнопкой
+   «Ответ всё же совпал» рядом с показанным верным ответом. */
+function markDrillItemSolved(input, taskId) {
+  const item = input.closest('.compact-drill-item');
+  const statusEl = item?.querySelector('.compact-drill-status');
+  setTaskSolved(taskId, true);
+  input.classList.remove('error');
+  input.classList.add('success');
+  input.disabled = true;
+  if (statusEl) {
+    statusEl.className = 'compact-drill-status success';
+    statusEl.textContent = '✓';
+  }
+  if (item) item.classList.add('is-solved');
+  drillAttempts.delete(taskId);
+  const okNote = item?.querySelector('.compact-drill-note');
+  if (okNote) { okNote.textContent = ''; okNote.hidden = true; }
+
+  updateTopicHeaderProgress();
+  const statsEl = document.querySelector('#compact-drill-stats');
+  if (statsEl && lastRenderedTasks.length) {
+    const solvedCount = lastRenderedTasks.filter(t => isTaskSolved(t.id)).length;
+    statsEl.textContent = `${solvedCount} / ${lastRenderedTasks.length}`;
+  }
+
+  // Автоматический переход к следующему нерешённому примеру
+  const allInputs = Array.from(document.querySelectorAll('.compact-drill-input:not([disabled])'));
+  if (allInputs.length > 0) {
+    const curIdx = Number(input.dataset.drillIndex);
+    const nextInput = allInputs.find(inp => Number(inp.dataset.drillIndex) > curIdx) || allInputs[0];
+    if (nextInput) {
+      nextInput.focus();
+      nextInput.select();
+    }
+  }
+}
+
 // Обработка ввода и проверки ответов в компактном тренажёре
 document.addEventListener('keydown', event => {
   // closest() нет у document: событие могло прийти не с элемента.
@@ -5322,36 +5385,7 @@ document.addEventListener('keydown', event => {
     const statusEl = item?.querySelector('.compact-drill-status');
 
     if (isCorrect) {
-      setTaskSolved(taskId, true);
-      input.classList.remove('error');
-      input.classList.add('success');
-      input.disabled = true;
-      if (statusEl) {
-        statusEl.className = 'compact-drill-status success';
-        statusEl.textContent = '✓';
-      }
-      if (item) item.classList.add('is-solved');
-      drillAttempts.delete(taskId);
-      const okNote = item?.querySelector('.compact-drill-note');
-      if (okNote) { okNote.textContent = ''; okNote.hidden = true; }
-
-      updateTopicHeaderProgress();
-      const statsEl = document.querySelector('#compact-drill-stats');
-      if (statsEl && lastRenderedTasks.length) {
-        const solvedCount = lastRenderedTasks.filter(t => isTaskSolved(t.id)).length;
-        statsEl.textContent = `${solvedCount} / ${lastRenderedTasks.length}`;
-      }
-
-      // Автоматический переход к следующему нерешённому примеру
-      const allInputs = Array.from(document.querySelectorAll('.compact-drill-input:not([disabled])'));
-      if (allInputs.length > 0) {
-        const curIdx = Number(input.dataset.drillIndex);
-        const nextInput = allInputs.find(inp => Number(inp.dataset.drillIndex) > curIdx) || allInputs[0];
-        if (nextInput) {
-          nextInput.focus();
-          nextInput.select();
-        }
-      }
+      markDrillItemSolved(input, taskId);
     } else {
       /* Первое нажатие — мягкое: «не сошлось», ответ можно поправить.
          Второе по той же задаче — окончательный вердикт с верным ответом:
@@ -5373,7 +5407,8 @@ document.addEventListener('keydown', event => {
           noteEl.textContent = tr('drill_not_match');
         } else {
           noteEl.className = 'compact-drill-note wrong';
-          noteEl.innerHTML = '<span></span> <span class="math" data-note-answer></span>';
+          // Верный ответ на экране — есть с чем сверить, значит, можно и засчитать самому.
+          noteEl.innerHTML = `<span></span> <span class="math" data-note-answer></span> <button type="button" class="self-check-accept" data-drill-accept="${taskId}" title="${escapeHtml(tr('self_check_accept_title'))}">${escapeHtml(tr('self_check_accept'))}</button>`;
           noteEl.firstElementChild.textContent = tr('drill_wrong_answer');
           renderMath(noteEl.querySelector('[data-note-answer]'), loc(task, 'answer_latex') || '');
         }
@@ -5490,6 +5525,18 @@ document.addEventListener('click', event => {
 
   /* «Ответ всё же совпал»: автопроверка не приняла запись, но ученик видит,
      что решил верно. Засчитываем как решённую и открываем разбор. */
+  const drillAcceptBtn = event.target.closest('[data-drill-accept]');
+  if (drillAcceptBtn) {
+    event.preventDefault();
+    const taskId = Number(drillAcceptBtn.dataset.drillAccept);
+    const input = drillAcceptBtn.closest('.compact-drill-item')?.querySelector('.compact-drill-input');
+    if (input) {
+      recordSolveEntry(taskId, true);
+      markDrillItemSolved(input, taskId);
+    }
+    return;
+  }
+
   const acceptBtn = event.target.closest('.self-check-accept');
   if (acceptBtn) {
     event.preventDefault();
@@ -5526,6 +5573,7 @@ document.addEventListener('click', event => {
     }
     const card = resetBtn.closest('.task');
     card?.querySelector('.task-solved-badge')?.remove();
+    if (card) syncAcceptVisibility(card);
     updateTopicHeaderProgress();
     return;
   }
