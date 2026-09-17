@@ -3488,6 +3488,12 @@ let currentCwUserAnswers = {};
 let currentCwTimer = null;
 let currentCwSubmitted = false;
 let currentCwMode = 'cw'; // 'cw' — контрольная темы, 'exam' — пробный экзамен
+/* Верный по сути ответ автопроверка может не принять из-за записи. Такие
+   задачи ученик отмечает сам после сдачи, и работа пересобирается целиком:
+   оценка и сохранённый результат должны сойтись с новым числом верных. */
+let currentCwAccepted = new Set();
+let currentCwElapsedSec = 0;
+let currentCwViolations = 0;
 let currentExamKind = null;
 let currentExamSession = null;
 let currentExamPaper = null;
@@ -3693,6 +3699,7 @@ function setCwMode(mode, kind = null) {
   currentCwTasks = [];
   currentCwUserAnswers = {};
   currentCwSubmitted = false;
+  currentCwAccepted = new Set();
   showCwWorkBars(false);
   const tr = window.MathTasks.t || (k => k);
   const badge = document.querySelector('.cw-badge');
@@ -3737,10 +3744,12 @@ function saveExamSession() {
   } catch {}
 }
 
-function saveExamResult(kind, result) {
+function saveExamResult(kind, result, replaceLast = false) {
   try {
     const list = JSON.parse(localStorage.getItem(EXAM_RESULTS_KEY) || '[]');
-    list.unshift({ kind, ...result, at: Date.now() });
+    // Пересчёт после «Ответ всё же совпал» — та же сдача, а не вторая попытка.
+    if (replaceLast && list[0]?.kind === kind) list[0] = { ...list[0], ...result };
+    else list.unshift({ kind, ...result, at: Date.now() });
     localStorage.setItem(EXAM_RESULTS_KEY, JSON.stringify(list.slice(0, 30)));
   } catch {}
 }
@@ -4068,6 +4077,7 @@ async function startControlWork(slug) {
   currentCwTasks = cwTasks;
   currentCwUserAnswers = {};
   currentCwSubmitted = false;
+  currentCwAccepted = new Set();
 
   // Таймер и честный режим — с первой секунды работы.
   renderControlWorkCards();
@@ -4112,6 +4122,7 @@ async function runCwPaper(paper) {
   currentCwTasks = tasks;
   currentCwUserAnswers = {};
   currentCwSubmitted = false;
+  currentCwAccepted = new Set();
   renderControlWorkCards();
   showCwWorkBars(true);
   startCwTimer(minutes * 60);
@@ -4140,6 +4151,10 @@ function renderControlWorkCards() {
           ${figure}
         </div>
         <div class="cw-task-answer-area">
+          <ul class="self-check-tips cw-tips">
+            <li class="self-check-tip tip-keyboard">${escapeHtml(tr('self_check_tip_keyboard'))}</li>
+            <li class="self-check-tip tip-full">${escapeHtml(tr('self_check_tip_full'))}</li>
+          </ul>
           <div class="quick-math-bar" aria-label="Quick Math">
             <span class="quick-math-bar-label" title="Quick Math">${escapeHtml(tr('quick_math_label'))}</span>
             <button type="button" class="quick-math-btn" data-cw-insert="√(" title="√x">√x</button>
@@ -4177,7 +4192,6 @@ function renderControlWorkCards() {
 function submitControlWork(isTimeout = false) {
   if (currentCwSubmitted || !currentCwTasks.length) return;
   currentCwSubmitted = true;
-  const tr = window.MathTasks.t || (k => k);
 
   let elapsedSec = 40 * 60;
   if (currentCwTimer) {
@@ -4188,7 +4202,8 @@ function submitControlWork(isTimeout = false) {
   if (currentCwMode === 'exam' && currentExamSession) {
     elapsedSec = Math.min(currentExamSession.durationSec, Math.round((Date.now() - currentExamSession.startedAt) / 1000));
   }
-  const violations = cwGuard().violations;
+  currentCwViolations = cwGuard().violations;
+  currentCwElapsedSec = elapsedSec;
   endCwGuard();
   showCwWorkBars(false);
 
@@ -4197,13 +4212,34 @@ function submitControlWork(isTimeout = false) {
     if (taskId) currentCwUserAnswers[taskId] = input.value.trim();
   });
 
+  if (currentCwMode === 'exam' && currentExamKind) {
+    currentExamSession = null;
+    saveExamSession();
+  }
+
+  const submitBtn = document.querySelector('#cw-submit-btn');
+  if (submitBtn) submitBtn.hidden = true;
+
+  renderCwOutcome(true);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* Итог работы: сколько верных, оценка, разбор каждой задачи. Считаем заново
+   и после сдачи — ученик мог отметить «Ответ всё же совпал», и тогда всё,
+   что зависит от числа верных, должно пересобраться. */
+function renderCwOutcome(firstRun) {
+  const tr = window.MathTasks.t || (k => k);
+  const elapsedSec = currentCwElapsedSec;
+  const violations = currentCwViolations;
+
   let correctCount = 0;
   const gradedResults = currentCwTasks.map(task => {
     const userAns = currentCwUserAnswers[task.id] || '';
     const correctAns = loc(task, 'answer_latex') || '';
-    const isCorrect = checkTaskAnswer(userAns, correctAns, loc(task, 'answer_check'));
+    const accepted = currentCwAccepted.has(task.id);
+    const isCorrect = accepted || checkTaskAnswer(userAns, correctAns, loc(task, 'answer_check'));
     if (isCorrect) correctCount++;
-    return { task, userAns, correctAns, isCorrect };
+    return { task, userAns, correctAns, isCorrect, accepted };
   });
 
   /* Функция отдаёт подпись на двух языках отдельными полями; какая нужна,
@@ -4238,9 +4274,7 @@ function submitControlWork(isTimeout = false) {
       percent: gradeInfo.percent,
       timeSpentSec: elapsedSec,
       violations
-    });
-    currentExamSession = null;
-    saveExamSession();
+    }, !firstRun);
   }
 
   const resCard = document.querySelector('#cw-result-card');
@@ -4284,26 +4318,30 @@ function submitControlWork(isTimeout = false) {
     `;
   }
 
-  const submitBtn = document.querySelector('#cw-submit-btn');
-  if (submitBtn) submitBtn.hidden = true;
-
-  gradedResults.forEach(({ task, userAns, correctAns, isCorrect }) => {
+  gradedResults.forEach(({ task, userAns, correctAns, isCorrect, accepted }) => {
     const card = document.querySelector(`#cw-task-${task.id}`);
     if (!card) return;
 
-    card.classList.add(isCorrect ? 'cw-is-correct' : 'cw-is-wrong');
+    card.classList.toggle('cw-is-correct', isCorrect);
+    card.classList.toggle('cw-is-wrong', !isCorrect);
     const input = card.querySelector('.cw-answer-input');
     if (input) input.disabled = true;
 
     const quickBar = card.querySelector('.quick-math-bar');
     if (quickBar) quickBar.hidden = true;
+    const tips = card.querySelector('.self-check-tips');
+    if (tips) tips.hidden = true;
 
     const reviewEl = card.querySelector(`[data-cw-review="${task.id}"]`);
     if (reviewEl) {
       reviewEl.hidden = false;
       const statusBadge = isCorrect
-        ? `<span class="cw-eval-badge success">✅ ${escapeHtml(tr('self_check_success'))}</span>`
+        ? `<span class="cw-eval-badge success">${accepted ? '🙋' : '✅'} ${escapeHtml(tr(accepted ? 'self_check_accepted' : 'self_check_success'))}</span>`
         : `<span class="cw-eval-badge wrong">❌ ${escapeHtml(tr('self_check_error'))}</span>`;
+      /* Записал иначе, чем ждёт автопроверка, — ученик отмечает совпадение
+         сам, и работа пересчитывается вместе с оценкой. */
+      const acceptBtn = isCorrect ? '' :
+        `<button type="button" class="self-check-accept cw-accept" data-cw-accept="${task.id}" title="${escapeHtml(tr('self_check_accept_title'))}">${escapeHtml(tr('self_check_accept'))}</button>`;
 
       const solutionLatex = loc(task, 'solution_latex');
       const solImg = task.solution_image ? `<img class="task-figure" src="${imageUrl(task.solution_image)}" alt="Solution figure" />` : '';
@@ -4318,6 +4356,7 @@ function submitControlWork(isTimeout = false) {
               <div class="math cw-correct-math" data-cw-ans="${task.id}"></div>
             </div>
           </div>
+          ${acceptBtn}
         </div>
         <details class="cw-solution-dropdown" open>
           <summary class="cw-solution-summary">${escapeHtml(tr('atrisinajums') || 'Разбор решения')}</summary>
@@ -4335,8 +4374,6 @@ function submitControlWork(isTimeout = false) {
       if (solEl && solutionLatex) renderMath(solEl, solutionLatex);
     }
   });
-
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function showControlWorksCatalog() {
@@ -5433,6 +5470,20 @@ document.addEventListener('click', event => {
       startControlWork(currentCwTopic.slug);
     } else if (currentCwPaperSlug) {
       startControlWork(currentCwPaperSlug);
+    }
+    return;
+  }
+
+  /* То же в контрольной и экзамене: отмечаем задачу и пересобираем итог —
+     оценка и сохранённый результат считаются заново. */
+  const cwAcceptBtn = event.target.closest('[data-cw-accept]');
+  if (cwAcceptBtn) {
+    event.preventDefault();
+    const taskId = Number(cwAcceptBtn.dataset.cwAccept);
+    if (taskId && !currentCwAccepted.has(taskId)) {
+      currentCwAccepted.add(taskId);
+      renderCwOutcome(false);
+      document.querySelector(`#cw-task-${taskId}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
     return;
   }

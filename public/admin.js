@@ -7126,9 +7126,85 @@ ${JSON.stringify(texts)}`;
      автопроверки (формулы, ответ, перевод на латышский, чертёж),
      кнопки «Опубликовать», «Править», «Отклонить», «Пропустить» и
      горячие клавиши Enter и →. */
-  let reviewQueue = [];
+  let reviewAll = [];       // все черновики
+  let reviewQueue = [];     // то, что сейчас проверяем: всё или одна тема
+  let reviewTopicId = 'all';
   let reviewIndex = 0;
   let reviewLoading = false;
+
+  /* Очередь разбита по темам: однородные задачи проверяются быстрее, да и
+     начать удобнее с той темы, что полегче. Ключ — id темы, у задач без
+     темы — 'none'. */
+  const reviewTopicKey = task => (task.topic_id == null ? 'none' : String(task.topic_id));
+
+  function reviewTopicGroups() {
+    const groups = new Map();
+    for (const task of reviewAll) {
+      const key = reviewTopicKey(task);
+      if (!groups.has(key)) {
+        const topic = key === 'none' ? null : topics.find(t => String(t.id) === key);
+        groups.set(key, {
+          key,
+          grade: Number(task.grade ?? topic?.grade) || 0,
+          // Темы ещё не подгрузились — лучше номер, чем «Без темы» у всех подряд.
+          title: topic?.title || (key === 'none' ? 'Без темы' : `Тема #${key}`),
+          count: 0
+        });
+      }
+      groups.get(key).count += 1;
+    }
+    /* Младшие классы первыми: с лёгких тем проверку и начинают. Задачи без
+       темы — в конец: там сначала тему и проставить. */
+    return [...groups.values()].sort((a, b) =>
+      (Number(a.key === 'none') - Number(b.key === 'none'))
+      || (a.grade - b.grade)
+      || a.title.localeCompare(b.title, 'ru'));
+  }
+
+  function renderReviewTopics() {
+    const box = byId('adm-review-topics');
+    if (!box) return;
+    const groups = reviewTopicGroups();
+    // Одна тема на всю очередь — делить нечего.
+    if (groups.length < 2) {
+      box.hidden = true;
+      box.innerHTML = '';
+      return;
+    }
+    const chip = (key, label, count) => `<button type="button" class="adm-review-topic${key === reviewTopicId ? ' active' : ''}" data-review-topic="${escapeHtml(key)}" aria-pressed="${key === reviewTopicId}">${escapeHtml(label)}<span class="adm-review-topic-count">${count}</span></button>`;
+    box.hidden = false;
+    box.innerHTML = [
+      chip('all', 'Все темы', reviewAll.length),
+      ...groups.map(group => chip(group.key, group.grade ? `${group.grade} кл. · ${group.title}` : group.title, group.count))
+    ].join('');
+  }
+
+  /* Отбираем очередь по выбранной теме. Тема кончилась — возвращаемся ко
+     всем, иначе экран остался бы пустым при непустой очереди. */
+  function applyReviewFilter(preserveIndex = false) {
+    if (reviewTopicId !== 'all' && !reviewAll.some(task => reviewTopicKey(task) === reviewTopicId)) {
+      reviewTopicId = 'all';
+    }
+    reviewQueue = reviewTopicId === 'all'
+      ? [...reviewAll]
+      : reviewAll.filter(task => reviewTopicKey(task) === reviewTopicId);
+    if (!preserveIndex || reviewIndex >= reviewQueue.length) reviewIndex = 0;
+    renderReviewTopics();
+  }
+
+  // Задачу опубликовали или отклонили — убираем из очереди целиком.
+  function dropFromReviewQueue(taskId) {
+    reviewAll = reviewAll.filter(item => String(item.id) !== String(taskId));
+    applyReviewFilter(true);
+  }
+
+  byId('adm-review-topics')?.addEventListener('click', event => {
+    const btn = event.target.closest('[data-review-topic]');
+    if (!btn) return;
+    reviewTopicId = btn.dataset.reviewTopic;
+    applyReviewFilter();
+    renderReviewCard();
+  });
 
   async function loadReviewQueue(preserveIndex = false) {
     if (!shell || !adminAppStarted || !db) return;
@@ -7144,10 +7220,8 @@ ${JSON.stringify(texts)}`;
         if (progressEl) progressEl.textContent = 'Ошибка загрузки';
         return;
       }
-      reviewQueue = data || [];
-      if (!preserveIndex || reviewIndex >= reviewQueue.length) {
-        reviewIndex = 0;
-      }
+      reviewAll = data || [];
+      applyReviewFilter(preserveIndex);
       await renderReviewCard();
     } finally {
       reviewLoading = false;
@@ -7193,7 +7267,11 @@ ${JSON.stringify(texts)}`;
     if (!task) return;
 
     if (progress) {
-      progress.textContent = `${reviewIndex + 1} из ${reviewQueue.length}`;
+      // При фильтре по теме счёт идёт внутри неё — видно, сколько ещё осталось.
+      const scope = reviewTopicId === 'all'
+        ? ''
+        : ` · ${reviewTopicGroups().find(group => group.key === reviewTopicId)?.title || 'тема'}`;
+      progress.textContent = `${reviewIndex + 1} из ${reviewQueue.length}${scope}`;
     }
 
     const idEl = byId('adm-review-id');
@@ -7453,8 +7531,7 @@ ${JSON.stringify(texts)}`;
         if (row) row.is_published = true;
       }
       updateReviewChip();
-      reviewQueue.splice(reviewIndex, 1);
-      if (reviewIndex >= reviewQueue.length) reviewIndex = 0;
+      dropFromReviewQueue(task.id);
       await renderReviewCard();
     } finally {
       reviewBusy = false;
@@ -7493,8 +7570,7 @@ ${JSON.stringify(texts)}`;
       taskIndex = taskIndex.filter(t => String(t.id) !== String(task.id));
       tasks = tasks.filter(t => String(t.id) !== String(task.id));
       updateReviewChip();
-      reviewQueue.splice(reviewIndex, 1);
-      if (reviewIndex >= reviewQueue.length) reviewIndex = 0;
+      dropFromReviewQueue(task.id);
       await renderReviewCard();
     } finally {
       reviewBusy = false;
