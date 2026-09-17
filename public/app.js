@@ -1416,6 +1416,10 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   const reveal = taskRevealState(task);
   const selfCheck = reveal.checkable ? `
     <div class="task-self-check" data-self-check="${task.id}">
+      <ul class="self-check-tips"${solved ? ' hidden' : ''}>
+        <li class="self-check-tip tip-keyboard">${escapeHtml(tr('self_check_tip_keyboard'))}</li>
+        <li class="self-check-tip tip-full">${escapeHtml(tr('self_check_tip_full'))}</li>
+      </ul>
       <div class="quick-math-bar" hidden aria-label="Quick Math Bar"></div>
       <form class="self-check-form" data-check-id="${task.id}">
         <input type="text" class="self-check-input" placeholder="${escapeHtml(tr('self_check_placeholder'))}" aria-label="${escapeHtml(tr('self_check_placeholder'))}" autocomplete="off" ${solved ? `disabled value="${escapeHtml(tr('solved_badge'))}"` : ''} />
@@ -5090,6 +5094,36 @@ function updateTopicHeaderProgress() {
   renderTopicHeaderMeta(currentActiveTopic, currentTopicTasks);
 }
 
+/* Задача засчитана по полю ответа: и когда автопроверка сошлась, и когда
+   ученик сам отметил «Ответ всё же совпал». Разбор открываем целиком —
+   решил сам, значит есть с чем сверить ход решения. */
+function markSelfCheckSolved(form, taskId, messageKey) {
+  const tr = window.MathTasks.t || (k => k);
+  const block = form.closest('.task-self-check');
+  const resultDiv = block?.querySelector('.self-check-result');
+  const input = form.querySelector('.self-check-input');
+  setTaskSolved(taskId, true);
+  if (resultDiv) {
+    resultDiv.className = 'self-check-result success';
+    resultDiv.innerHTML = `${escapeHtml(tr(messageKey))} <button type="button" class="self-check-reset" data-reset-id="${taskId}">${escapeHtml(tr('self_check_reset'))}</button>`;
+    resultDiv.hidden = false;
+  }
+  if (input) input.disabled = true;
+  const submitBtn = form.querySelector('.self-check-btn');
+  if (submitBtn) submitBtn.hidden = true;
+  const tips = block?.querySelector('.self-check-tips');
+  if (tips) tips.hidden = true;
+  const quickBar = block?.querySelector('.quick-math-bar');
+  if (quickBar) quickBar.hidden = true;
+  const card = form.closest('.task');
+  markCardSolved(card);
+  if (card) {
+    unlockTaskReveals(card, ['hint', 'answer', 'solution']);
+    updateRevealLock(card, '');
+  }
+  updateTopicHeaderProgress();
+}
+
 // Интерактивная самопроверка: отправка ответа
 document.addEventListener('submit', event => {
   const form = event.target.closest('.self-check-form');
@@ -5106,29 +5140,16 @@ document.addEventListener('submit', event => {
   const isCorrect = checkTaskAnswer(userAns, loc(task, 'answer_latex'), loc(task, 'answer_check'));
   recordSolveEntry(taskId, isCorrect);
   if (isCorrect) {
-    setTaskSolved(taskId, true);
-    resultDiv.className = 'self-check-result success';
-    resultDiv.innerHTML = `${escapeHtml(tr('self_check_success'))} <button type="button" class="self-check-reset" data-reset-id="${taskId}">${escapeHtml(tr('self_check_reset'))}</button>`;
-    resultDiv.hidden = false;
-    input.disabled = true;
-    form.querySelector('.self-check-btn').hidden = true;
-    const quickBar = form.closest('.task-self-check')?.querySelector('.quick-math-bar');
-    if (quickBar) quickBar.hidden = true;
-    const card = form.closest('.task');
-    markCardSolved(card);
-    // Решил сам — разбор открыт, чтобы сверить ход решения.
-    if (card) {
-      unlockTaskReveals(card, ['hint', 'answer', 'solution']);
-      updateRevealLock(card, '');
-    }
-    updateTopicHeaderProgress();
+    markSelfCheckSolved(form, taskId, 'self_check_success');
   } else {
     const attempts = addTaskWrongAttempt(taskId);
     const opened = attempts >= ATTEMPTS_FOR_ANSWER;
     const hasHint = Boolean(loc(task, 'hint_latex'));
     const messageKey = opened ? 'self_check_error_open' : (hasHint ? 'self_check_error_hint' : 'self_check_error_retry');
     resultDiv.className = 'self-check-result error';
-    resultDiv.innerHTML = escapeHtml(tr(messageKey));
+    /* Записал иначе, чем ждёт автопроверка («3; -0,5» вместо «x=3»), —
+       ученик отмечает совпадение сам, как в задачах без автопроверки. */
+    resultDiv.innerHTML = `${escapeHtml(tr(messageKey))} <button type="button" class="self-check-accept" data-accept-id="${taskId}" title="${escapeHtml(tr('self_check_accept_title'))}">${escapeHtml(tr('self_check_accept'))}</button>`;
     resultDiv.hidden = false;
     const card = form.closest('.task');
     if (card) {
@@ -5416,6 +5437,20 @@ document.addEventListener('click', event => {
     return;
   }
 
+  /* «Ответ всё же совпал»: автопроверка не приняла запись, но ученик видит,
+     что решил верно. Засчитываем как решённую и открываем разбор. */
+  const acceptBtn = event.target.closest('.self-check-accept');
+  if (acceptBtn) {
+    event.preventDefault();
+    const taskId = acceptBtn.dataset.acceptId;
+    const form = acceptBtn.closest('.task-self-check')?.querySelector('.self-check-form');
+    if (form) {
+      recordSolveEntry(taskId, true);
+      markSelfCheckSolved(form, taskId, 'self_check_accepted');
+    }
+    return;
+  }
+
   // Сброс решённой задачи
   const resetBtn = event.target.closest('.self-check-reset');
   if (resetBtn) {
@@ -5430,6 +5465,8 @@ document.addEventListener('click', event => {
       if (input) { input.disabled = false; input.value = ''; input.focus(); }
       if (form) form.querySelector('.self-check-btn').hidden = false;
       if (resultDiv) resultDiv.hidden = true;
+      const tips = checkBlock.querySelector('.self-check-tips');
+      if (tips) tips.hidden = false;
       const quickBar = checkBlock.querySelector('.quick-math-bar');
       if (quickBar) {
         ensureQuickMathBar(quickBar);

@@ -1503,9 +1503,21 @@ body.dark .search-highlight{background:#634b00;color:#ffeb84}
 .self-check-btn{flex:none;height:34px;padding:0 16px;background:#1764ff;color:#fff;border:0;border-radius:8px;font:600 12px Manrope;cursor:pointer;transition:background .15s,transform .1s}
 .self-check-btn:hover{background:#0d55e4}
 .self-check-btn:active{transform:scale(.98)}
-.self-check-result{margin-top:8px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;animation:fadeIn .2s ease}
+.self-check-result{margin-top:8px;font-size:12.5px;font-weight:600;display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;padding:6px 10px;border-radius:6px;animation:fadeIn .2s ease}
 .self-check-result.success{background:#e6f9ed;color:#03853f;border:1px solid #b7ecc8}
 .self-check-result.error{background:#fff8eb;color:#b45309;border:1px solid #fedfa4}
+/* Напоминание перед вводом ответа: автопроверка сверяет запись, а не смысл. */
+.self-check-tips{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0 0 8px;padding:0;list-style:none;font-size:12px;line-height:1.45;color:var(--muted)}
+.self-check-tips[hidden]{display:none}
+.self-check-tip{display:inline-flex;align-items:center;gap:5px}
+.self-check-tip.tip-keyboard::before{content:'⌨️'}
+.self-check-tip.tip-full::before{content:'✍️'}
+/* «Ответ всё же совпал»: записал иначе, чем ждёт автопроверка, но решил верно. */
+.self-check-accept{margin-left:auto;flex:none;border:1px solid #fedfa4;border-radius:8px;background:#fff;color:#b45309;font:600 12px Manrope,sans-serif;padding:5px 10px;cursor:pointer}
+.self-check-accept:hover{background:#fff3dc}
+.self-check-accept:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+body.dark .self-check-accept{background:#1a1205;color:#fcd34d;border-color:#854d0e}
+body.dark .self-check-accept:hover{background:#2a1b05}
 /* Что и когда откроется: подсказка — после первой ошибки, ответ и решение — после второй. */
 .self-check-lock,.drill-hint-lock{margin:6px 0 0;font-size:12px;line-height:1.45;color:var(--muted)}
 .self-check-lock::before,.drill-hint-lock::before{content:'🔒 ';font-size:11px}
