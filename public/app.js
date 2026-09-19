@@ -1081,13 +1081,16 @@ function updateProgressCounter() {
   if (counter) counter.textContent = progressCounterText();
 }
 
-/* Сколько раз ученик ошибся в задаче. Первая ошибка открывает подсказку,
-   вторая — ответ и решение. Раньше хранился только факт ошибки (список id):
-   такой список читается как «по одной ошибке». */
+/* Сколько раз ученик ошибся в задаче. Первая ошибка открывает подсказку
+   и ответ, вторая — решение. Раньше хранился только факт ошибки (список
+   id): такой список читается как «по одной ошибке». */
 const WRONG_ATTEMPTS_KEY = 'math-tasks:wrong-attempts';
-// Подсказка открыта сразу — кнопкой, для того, кто не знает, с чего начать.
-const ATTEMPTS_FOR_HINT = 0;
-const ATTEMPTS_FOR_ANSWER = 2;
+/* Подсказка и ответ — после первой ошибки: одна честная попытка, дальше
+   ученику дают, с чем сверить. Полный разбор — после второй: с известным
+   ответом стоит дойти до него самому ещё раз. */
+const ATTEMPTS_FOR_HINT = 1;
+const ATTEMPTS_FOR_ANSWER = 1;
+const ATTEMPTS_FOR_SOLUTION = 2;
 
 function getWrongAttemptCounts() {
   try {
@@ -1126,8 +1129,8 @@ const checkTaskAnswer = (userAns, answer, variants) => (window.MathTasksLib?.che
   : compareAnswers(userAns, answer));
 
 /* Что уже открыто в карточке задачи. Три случая:
-   - ответ сверяется (сам или по вариантам) — поле ответа; подсказка после
-     первой ошибки, ответ и решение — после второй;
+   - ответ сверяется (сам или по вариантам) — поле ответа; подсказка и
+     ответ после первой ошибки, решение — после второй;
    - ответ есть, но не сверить («Доказано», «Да, подобны» без вариантов) —
      самопроверка: подсказка сразу, ответ по кнопке «Сверить с ответом»,
      решение — после «Не сошлось» или «Сошлось»;
@@ -1139,14 +1142,15 @@ function taskRevealState(task) {
   const selfAssess = Boolean(answer) && !checkable;
   const attempts = getTaskWrongAttempts(task.id);
   const open = !answer || isTaskSolved(task.id);
-  const needed = checkable ? ATTEMPTS_FOR_ANSWER : 1;
+  const needAnswer = checkable ? ATTEMPTS_FOR_ANSWER : 1;
+  const needSolution = checkable ? ATTEMPTS_FOR_SOLUTION : 1;
   return {
     checkable,
     selfAssess,
     attempts,
     hint: open || selfAssess || attempts >= ATTEMPTS_FOR_HINT,
-    answer: open || attempts >= needed,
-    solution: open || attempts >= needed
+    answer: open || attempts >= needAnswer,
+    solution: open || attempts >= needSolution
   };
 }
 
@@ -1165,8 +1169,9 @@ function markCardSolved(card) {
 /* Строка под полем ответа: что и когда откроется. Пустая — всё открыто. */
 function revealLockText(task, attempts) {
   const tr = window.MathTasks.t || (k => k);
-  if (attempts >= ATTEMPTS_FOR_ANSWER) return '';
-  return tr(attempts >= ATTEMPTS_FOR_ANSWER - 1 ? 'reveal_lock_one_more' : 'reveal_lock_two');
+  if (attempts >= ATTEMPTS_FOR_SOLUTION) return '';
+  if (attempts >= ATTEMPTS_FOR_ANSWER) return tr('reveal_lock_solution');
+  return tr(loc(task, 'hint_latex') ? 'reveal_lock_first' : 'reveal_lock_first_nohint');
 }
 
 function unlockTaskReveals(card, kinds) {
@@ -5203,7 +5208,7 @@ document.addEventListener('submit', event => {
     markSelfCheckSolved(form, taskId, 'self_check_success');
   } else {
     const attempts = addTaskWrongAttempt(taskId);
-    const opened = attempts >= ATTEMPTS_FOR_ANSWER;
+    const opened = attempts >= ATTEMPTS_FOR_SOLUTION;
     const hasHint = Boolean(loc(task, 'hint_latex'));
     const messageKey = opened ? 'self_check_error_open' : (hasHint ? 'self_check_error_hint' : 'self_check_error_retry');
     resultDiv.className = 'self-check-result error';
@@ -5215,7 +5220,7 @@ document.addEventListener('submit', event => {
     resultDiv.hidden = false;
     const card = form.closest('.task');
     if (card) {
-      unlockTaskReveals(card, opened ? ['hint', 'answer', 'solution'] : ['hint']);
+      unlockTaskReveals(card, opened ? ['hint', 'answer', 'solution'] : ['hint', 'answer']);
       updateRevealLock(card, revealLockText(task, attempts));
       syncAcceptVisibility(card);
     }
