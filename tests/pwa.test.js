@@ -187,3 +187,20 @@ describe('service worker без сети', () => {
     expect(await respond(dev, req('/trainer', { mode: 'navigate' }))).toBeNull();
   });
 });
+
+/* Отдельные страницы воркер не переписывает: превью и canonical должны
+   лежать прямо в файле, иначе ссылка на тренажёр приходит голой строкой. */
+describe('отдельные страницы: превью ссылки', () => {
+  const PAGES = ['exams.html', 'mock-exams.html', 'trainer.html', 'plotter.html'];
+
+  it.each(PAGES)('%s — карточка 1200×630 и canonical', file => {
+    const html = read(file);
+    expect(html).toContain('<meta property="og:image" content="https://mathtasks.lv/og-cover.png" />');
+    expect(html).toContain('<meta property="og:image:width" content="1200" />');
+    expect(html).toContain('<meta name="twitter:card" content="summary_large_image" />');
+    expect(html).toContain(`<link rel="canonical" href="https://mathtasks.lv/${file}" />`);
+    // Описание в превью — то же, что в поиске: два разных текста расходятся.
+    const description = html.match(/<meta name="description" content="([^"]*)" \/>/)[1];
+    expect(html).toContain(`<meta property="og:description" content="${description}" />`);
+  });
+});
