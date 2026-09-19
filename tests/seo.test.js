@@ -115,6 +115,57 @@ describe('seo: страницы из каталога', () => {
     expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/task/321-delenie-otrezka" />');
   });
 
+  /* Страница задачи должна нести собственный текст: заголовок «Задача №N»
+     и одна строка условия — ровно тот пустой шаблон, из-за которого Google
+     складывал такие страницы в «просканировано, но не проиндексировано». */
+  it('задача: условие в заголовке, ответ, подтема и соседние задачи темы', async () => {
+    const FULL = {
+      ...TASK,
+      answer_latex: '$x = 5$',
+      difficulty: 'Сложный',
+      topics: TOPIC,
+      subtopics: { title: 'Отношения чисел', code: '6.1.3' }
+    };
+    const NEIGHBOUR = { id: 322, title: 'Соседняя', position: 10, condition_latex: 'Сколько будет $2+2$?' };
+    vi.stubGlobal('fetch', supabase([
+      ['tasks?id=eq.321', [FULL]],
+      ['tasks?topic_id=eq.107', [NEIGHBOUR]]
+    ]));
+    const html = await (await page('/task/321', makeEnv())).text();
+    expect(html).toContain('<h1>Задача №9. Найдите 1/2 от 10.</h1>');
+    expect(html).toContain('<p>Ответ: x = 5</p>');
+    expect(html).toContain('Подтема: 6.1.3. Отношения чисел');
+    expect(html).toContain('Сложность: Сложный');
+    expect(html).toContain('<h2>Другие задачи темы</h2>');
+    expect(html).toContain('<a href="/task/322-sosednyaya">Задача №10</a> — Сколько будет 2+2?');
+  });
+
+  it('задача на латышском: факты и соседние задачи на латышском', async () => {
+    const FULL_LV = {
+      ...TASK,
+      condition_latex_lv: 'Atrodiet $\\frac{1}{2}$ no $10$.',
+      answer_latex_lv: '$x = 5$',
+      difficulty: 'Сложный',
+      topics: { ...TOPIC, title_lv: 'Kā kopumu sadala noteiktā attiecībā?' },
+      subtopics: { title_lv: 'Skaitļu attiecības', code: '6.1.3' }
+    };
+    vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [FULL_LV]]]));
+    const html = await (await page('/lv/task/321', makeEnv())).text();
+    expect(html).toContain('<h1>Uzdevums №9. Atrodiet 1/2 no 10.</h1>');
+    expect(html).toContain('<p>Atbilde: x = 5</p>');
+    expect(html).toContain('Apakštēma: 6.1.3. Skaitļu attiecības');
+    expect(html).toContain('Grūtības pakāpe: Padziļināts');
+  });
+
+  it('длинное условие: в заголовке обрезано по слову, целиком — абзацем ниже', async () => {
+    const LONG = 'Турист прошёл первую часть пути пешком за три часа, вторую часть проехал на велосипеде, '
+      + 'а третью часть проплыл на лодке. Найдите длину всего маршрута.';
+    vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [{ ...TASK, condition_latex: LONG, topics: TOPIC }]]]));
+    const html = await (await page('/task/321', makeEnv())).text();
+    expect(html).toContain('<h1>Задача №9. Турист прошёл первую часть пути пешком за три часа, вторую часть проехал на велосипеде, а третью часть…</h1>');
+    expect(html).toContain('<p>' + LONG + '</p>');
+  });
+
   it('нет задачи — код 404 и noindex, приложение всё равно загружается', async () => {
     vi.stubGlobal('fetch', supabase([]));
     const response = await page('/task/999', makeEnv());

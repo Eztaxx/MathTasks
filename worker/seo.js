@@ -20,6 +20,7 @@ import {
   formatSubtopicCode,
   formatTopicTitle,
   getCrossTag,
+  getDifficultyWeight,
   getLocalizedText,
   langOfPath,
   latexToPlainText,
@@ -104,6 +105,13 @@ async function query(env, path) {
 }
 
 const eq = value => encodeURIComponent(String(value));
+const shorten = (value, limit) => {
+  const text = String(value || '');
+  if (text.length <= limit) return text;
+  const cut = text.slice(0, limit);
+  const space = cut.lastIndexOf(' ');
+  return `${(space > limit * 0.6 ? cut.slice(0, space) : cut).trimEnd()}…`;
+};
 const taskHref = task => `/task/${task.id}-${makeSlug(task.title)}`;
 const taskNumber = task => (Number(task.position) > 0 ? Number(task.position) : null);
 
@@ -117,6 +125,10 @@ export async function buildPage(route, env, lang = 'ru') {
   const topicTitleOf = topic => formatTopicTitle(topic, lang);
   const withGrade = (title, grade) => (grade ? `${title}, ${gradeLabelOf(grade, lang)}` : title);
   const taskLabel = task => (taskNumber(task) ? `${tr('task_prefix')} №${taskNumber(task)}` : tr('task_prefix'));
+  const difficultyName = value => {
+    const weight = getDifficultyWeight(value);
+    return tr(weight === 1 ? 'diff_easy' : weight >= 3 ? 'diff_hard' : 'diff_medium');
+  };
   const home = () => [tr('nav_home'), '/'];
   const taskItems = tasks => tasks.map(task => ({
     href: taskHref(task),
@@ -268,22 +280,47 @@ export async function buildPage(route, env, lang = 'ru') {
 
     case 'task': {
       const [task] = await query(env,
-        `tasks?id=eq.${eq(route.id)}&is_published=eq.true&select=id,title,position,condition_latex,condition_latex_lv,topics(title,title_lv,slug,grade,position)&limit=1`);
+        `tasks?id=eq.${eq(route.id)}&is_published=eq.true&select=id,title,position,condition_latex,condition_latex_lv,answer_latex,answer_latex_lv,difficulty,topics(id,title,title_lv,slug,grade,position),subtopics(title,title_lv,code)&limit=1`);
       if (!task) return notFound('meta_not_found_task');
       const topic = task.topics || null;
       const topicTitle = topic ? topicTitleOf(topic) : '';
       const label = taskLabel(task);
       const condition = text(task, 'condition_latex');
+      const conditionText = latexToPlainText(condition, 2000);
       const crumbs = [home()];
       if (topic?.grade) crumbs.push([gradeLabelOf(topic.grade, lang), `/grade/${topic.grade}`]);
       if (topic?.slug) crumbs.push([topicTitle, `/topic/${topic.slug}`]);
+
+      /* Страница задачи была самой пустой на сайте: заголовок «Задача №N»,
+         одинаковый по форме у сотен страниц, и одна строка условия — ни
+         ответа, ни ссылок дальше. Условие в заголовке, ответ, подтема со
+         сложностью и соседние задачи темы дают ей собственный текст и путь
+         вглубь каталога. Разбор в разметку не идёт: его ученик открывает
+         сам после попытки. */
+      const answer = latexToPlainText(text(task, 'answer_latex'), 300);
+      const sub = task.subtopics || null;
+      const subCode = sub ? formatSubtopicCode(sub.code, topic?.grade) : '';
+      const subTitle = sub ? `${subCode ? `${subCode}. ` : ''}${text(sub, 'title')}` : '';
+      const facts = [
+        topicTitle ? `${tr('meta_topic_label')}: ${topicTitle}` : '',
+        subTitle ? `${tr('meta_subtopic_label')}: ${subTitle}` : '',
+        task.difficulty ? `${tr('meta_difficulty_label')}: ${difficultyName(task.difficulty)}` : ''
+      ].filter(Boolean).join(' · ');
+      const siblings = topic?.id
+        ? await query(env, `tasks?topic_id=eq.${eq(topic.id)}&is_published=eq.true&id=neq.${eq(task.id)}`
+          + `&select=id,title,position,condition_latex,condition_latex_lv&order=position.asc,id.asc&limit=8`)
+        : [];
       return {
         title: topic ? `${label} — ${withGrade(topicTitle, topic.grade)}` : label,
         description: taskDescription({ condition, number: taskNumber(task), topicTitle, lang }),
         canonicalPath: taskHref(task),
-        heading: label,
-        intro: latexToPlainText(condition, 2000),
-        crumbs
+        heading: conditionText ? `${label}. ${shorten(conditionText, 110)}` : label,
+        // Условие целиком — только если в заголовок оно не поместилось.
+        intro: conditionText.length > 110 ? conditionText : '',
+        details: [answer ? `${tr('label_answer')} ${answer}` : '', facts],
+        crumbs,
+        items: taskItems(siblings),
+        itemsTitle: siblings.length ? tr('meta_other_tasks_heading') : ''
       };
     }
 
@@ -317,7 +354,7 @@ export async function buildPage(route, env, lang = 'ru') {
 
 /* Текстовая версия страницы: заголовок, «хлебные крошки», вводный текст,
    список ссылок. Ссылки ведут на версию того же языка. */
-export function renderSsrBody({ heading, intro = '', crumbs = [], items = [], itemsTitle = '' }, lang = 'ru') {
+export function renderSsrBody({ heading, intro = '', details = [], crumbs = [], items = [], itemsTitle = '' }, lang = 'ru') {
   const href = path => esc(localizeHref(path, lang));
   const crumbHtml = crumbs.length
     ? `<nav class="ssr-crumbs" aria-label="${esc(t('breadcrumbs', {}, lang))}">${crumbs
@@ -329,7 +366,8 @@ export function renderSsrBody({ heading, intro = '', crumbs = [], items = [], it
       .map(item => `<li><a href="${href(item.href)}">${esc(item.label)}</a>${item.text ? ` — ${esc(item.text)}` : ''}</li>`)
       .join('')}</ol>`
     : '';
-  return `<section id="ssr-content" class="ssr-content">${crumbHtml}<h1>${esc(heading)}</h1>${intro ? `<p>${esc(intro)}</p>` : ''}${list}</section>`;
+  const detailHtml = details.filter(Boolean).map(line => `<p>${esc(line)}</p>`).join('');
+  return `<section id="ssr-content" class="ssr-content">${crumbHtml}<h1>${esc(heading)}</h1>${intro ? `<p>${esc(intro)}</p>` : ''}${detailHtml}${list}</section>`;
 }
 
 /* Подстановка в оболочку index.html. Замены делаются функцией, а не
