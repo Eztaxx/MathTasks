@@ -98,17 +98,57 @@ function buildSitemapPaths({ subjects = [], topics = [], tasks = [], tags = [], 
   return [...new Set(paths)];
 }
 
+/* Дата последнего изменения страницы. updated_at есть только у задач,
+   поэтому свежесть списка — это свежесть самой свежей задачи в нём: именно
+   её появление и меняет страницу. Страницы без своего содержимого («О
+   проекте», тренажёры) даты не получают: выдуманный lastmod поисковик
+   быстро перестаёт принимать всерьёз. */
+function buildSitemapDates({ subjects = [], topics = [], tasks = [], subtopics = [] } = {}) {
+  const dates = new Map();
+  const bump = (path, value) => {
+    const day = String(value || '').slice(0, 10);
+    if (!path || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
+    const known = dates.get(path);
+    if (!known || known < day) dates.set(path, day);
+  };
+  const topicById = new Map(topics.map(topic => [topic.id, topic]));
+  const subjectById = new Map(subjects.map(subject => [subject.id, subject]));
+  const subtopicById = new Map((subtopics || []).map(sub => [sub.id, sub]));
+
+  for (const task of tasks) {
+    const day = task.updated_at || task.created_at;
+    bump(`/task/${task.id}-${slugify(task.title)}`, day);
+    bump('/', day);
+    bump('/tasks', day);
+    const topic = topicById.get(task.topic_id);
+    if (topic) {
+      bump(`/topic/${topic.slug}`, day);
+      if (topic.grade) {
+        bump(`/grade/${topic.grade}`, day);
+        bump(`/grade/${topic.grade}/tasks`, day);
+      }
+      const subject = subjectById.get(topic.subject_id);
+      if (subject) bump(`/subject/${subject.slug}`, day);
+    }
+    const sub = subtopicById.get(task.subtopic_id);
+    if (sub) bump(`/subtopic/${sub.slug}`, day);
+  }
+  return dates;
+}
+
 /* У страниц каталога две языковые версии: русская без префикса и латышская
    на /lv/…. В карту идут обе, и у каждой — ссылки на обе версии
    (xhtml:link hreflang, x-default — латышская). Файлы — trainer.html,
    exams.html — одноязычные по адресу и идут одной строкой. */
-function buildSitemapXml(paths, origin = 'https://mathtasks.lv') {
+function buildSitemapXml(paths, origin = 'https://mathtasks.lv', dates = new Map()) {
   const cleanOrigin = String(origin || '').replace(/\/+$/, '');
   const entries = [];
   for (const p of new Set(paths)) {
     const pathOnly = p.split(/[?#]/)[0];
+    const day = dates.get(pathOnly);
+    const lastmod = day ? `<lastmod>${day}</lastmod>` : '';
     if (!isLocalizablePath(pathOnly)) {
-      entries.push(`  <url><loc>${escapeHtml(cleanOrigin + p)}</loc></url>`);
+      entries.push(`  <url><loc>${escapeHtml(cleanOrigin + p)}</loc>${lastmod}</url>`);
       continue;
     }
     const rest = p.slice(pathOnly.length);
@@ -117,8 +157,8 @@ function buildSitemapXml(paths, origin = 'https://mathtasks.lv') {
     const alternates = [['ru', ru], ['lv', lv], ['x-default', lv]]
       .map(([lang, href]) => `\n    <xhtml:link rel="alternate" hreflang="${lang}" href="${escapeHtml(href)}"/>`)
       .join('');
-    entries.push(`  <url><loc>${escapeHtml(ru)}</loc>${alternates}\n  </url>`);
-    entries.push(`  <url><loc>${escapeHtml(lv)}</loc>${alternates}\n  </url>`);
+    entries.push(`  <url><loc>${escapeHtml(ru)}</loc>${lastmod}${alternates}\n  </url>`);
+    entries.push(`  <url><loc>${escapeHtml(lv)}</loc>${lastmod}${alternates}\n  </url>`);
   }
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
@@ -129,19 +169,21 @@ ${entries.join('\n')}
 async function sitemap(request, env) {
   const origin = new URL(request.url).origin;
   let paths;
+  let dates = new Map();
 
   if (env.SUPABASE_URL && supabaseKeyOf(env)) {
     try {
       const [subjects, topics, tasks, tags, subtopics] = await Promise.all([
-        readSupabase(env, 'subjects?select=slug'),
-        readSupabase(env, 'topics?select=slug,grade'),
+        readSupabase(env, 'subjects?select=id,slug'),
+        readSupabase(env, 'topics?select=id,slug,grade,subject_id'),
         // Черновики в карту не попадают — их и на сайте не видно.
-        readSupabase(env, 'tasks?select=id,title&is_published=eq.true'),
+        readSupabase(env, 'tasks?select=id,title,topic_id,subtopic_id,updated_at,created_at&is_published=eq.true'),
         readSupabase(env, 'tags?select=slug').catch(() => []),
         // Подтемы появляются миграцией 020: до неё запрос падает, карта живёт без них.
-        readSupabase(env, 'subtopics?select=slug').catch(() => [])
+        readSupabase(env, 'subtopics?select=id,slug').catch(() => [])
       ]);
       paths = buildSitemapPaths({ subjects, topics, tasks, tags, subtopics });
+      dates = buildSitemapDates({ subjects, topics, tasks, subtopics });
     } catch (error) {
       // Каталог не прочитался — отдаём статические адреса, а не пустоту.
       console.error('sitemap:', error.message);
@@ -152,7 +194,7 @@ async function sitemap(request, env) {
   }
 
   // Адреса в карте — всегда основного домена: там же указывает и canonical.
-  const body = buildSitemapXml(paths, origin.endsWith('.workers.dev') ? CANONICAL_ORIGIN : origin);
+  const body = buildSitemapXml(paths, origin.endsWith('.workers.dev') ? CANONICAL_ORIGIN : origin, dates);
 
   return new Response(body, {
     headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600' }
@@ -372,6 +414,7 @@ export {
   escapeHtml,
   cleanLatexForPreview,
   isSocialBot,
+  buildSitemapDates,
   buildSitemapPaths,
   buildSitemapXml,
   renderTaskPreviewHtml,

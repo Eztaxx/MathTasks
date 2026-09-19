@@ -11,6 +11,7 @@ import worker, {
   buildSitemapPaths,
   buildSitemapXml,
   renderTaskPreviewHtml,
+  buildSitemapDates,
   sitemap
 } from '../worker/index.js';
 
@@ -542,5 +543,47 @@ describe('Cloudflare Worker: чистые функции', () => {
       const response = await get('/assets/chart-ABC.js');
       expect(response.status).toBe(404);
     });
+  });
+});
+
+/* lastmod в карте сайта: он говорит поисковику, куда возвращаться. Дата
+   должна быть настоящей — выдуманную Google перестаёт учитывать. */
+describe('sitemap: даты последнего изменения', () => {
+  const DATA = {
+    subjects: [{ id: 1, slug: 'algebra' }],
+    topics: [{ id: 7, slug: 'kv', grade: 8, subject_id: 1 }],
+    subtopics: [{ id: 3, slug: 'kv-1' }],
+    tasks: [
+      { id: 10, title: 'Старая', topic_id: 7, subtopic_id: 3, updated_at: '2026-01-05T10:00:00+00:00' },
+      { id: 11, title: 'Свежая', topic_id: 7, subtopic_id: null, updated_at: '2026-09-19T12:05:45+00:00' }
+    ]
+  };
+
+  it('у задачи — своя дата, у списков — дата самой свежей задачи', () => {
+    const dates = buildSitemapDates(DATA);
+    expect(dates.get('/task/10-staraya')).toBe('2026-01-05');
+    expect(dates.get('/task/11-svezhaya')).toBe('2026-09-19');
+    expect(dates.get('/topic/kv')).toBe('2026-09-19');
+    expect(dates.get('/subtopic/kv-1')).toBe('2026-01-05');
+    expect(dates.get('/grade/8')).toBe('2026-09-19');
+    expect(dates.get('/grade/8/tasks')).toBe('2026-09-19');
+    expect(dates.get('/subject/algebra')).toBe('2026-09-19');
+    expect(dates.get('/')).toBe('2026-09-19');
+  });
+
+  it('страницы без своего содержимого даты не получают', () => {
+    const dates = buildSitemapDates(DATA);
+    expect(dates.has('/about')).toBe(false);
+    expect(dates.has('/trainer.html')).toBe(false);
+  });
+
+  it('дата попадает в обе языковые версии и в одноязычные файлы', () => {
+    const dates = new Map([['/topic/kv', '2026-09-19'], ['/trainer.html', '2026-09-19']]);
+    const xml = buildSitemapXml(['/topic/kv', '/trainer.html', '/about'], 'https://mathtasks.lv', dates);
+    expect(xml).toContain('<loc>https://mathtasks.lv/topic/kv</loc><lastmod>2026-09-19</lastmod>');
+    expect(xml).toContain('<loc>https://mathtasks.lv/lv/topic/kv</loc><lastmod>2026-09-19</lastmod>');
+    expect(xml).toContain('<url><loc>https://mathtasks.lv/trainer.html</loc><lastmod>2026-09-19</lastmod></url>');
+    expect(xml).toContain('<url><loc>https://mathtasks.lv/about</loc>');
+    expect(xml.match(/<lastmod>/g)).toHaveLength(3);
   });
 });

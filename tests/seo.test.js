@@ -318,7 +318,8 @@ describe('seo: разметка сайта для поиска', () => {
     expect(site.name).toBe('MathTasks');
     expect(site.potentialAction.target.urlTemplate).toBe('https://mathtasks.lv/search?q={search_term_string}');
     expect(org.logo).toBe('https://mathtasks.lv/icons/icon-512.png');
-    expect(html).toContain('<meta property="og:image" content="https://mathtasks.lv/icons/icon-512.png" />');
+    expect(html).toContain('<meta property="og:image" content="https://mathtasks.lv/og-cover.png" />');
+    expect(html).toContain('<meta property="og:image:width" content="1200" />');
   });
 
   it('латышская главная: своё имя и свой адрес поиска', async () => {

@@ -371,6 +371,9 @@ export function renderSsrBody({ heading, intro = '', details = [], crumbs = [], 
 }
 
 const SITE_LOGO = '/icons/icon-512.png';
+// Превью ссылки: 1200×630, как ждут Facebook, WhatsApp и Telegram.
+// Рисуется из логотипа скриптом scripts/make-og-cover.cjs.
+const SITE_COVER = '/og-cover.png';
 
 /* Разметка Schema.org. Главное здесь — имя: по запросу «mathtasks» Google
    должен знать, что так называется этот сайт, а не выводить это из текста
@@ -446,6 +449,8 @@ export function injectPage(html, page, lang = 'ru') {
   out = setAttr(out, /(<meta property="og:title" content=")[^"]*(")/, fullTitle);
   out = setAttr(out, /(<meta property="og:description" content=")[^"]*(")/, description);
   out = setAttr(out, /(<meta property="og:locale" content=")[^"]*(")/, LOCALES[lang] || LOCALES.ru);
+  // Карточка широкая — значит и в X она должна быть широкой, а не квадратом.
+  out = setAttr(out, /(<meta name="twitter:card" content=")[^"]*(")/, 'summary_large_image');
 
   /* Ссылки на обе языковые версии — только у страниц, которые попадают в
      поиск: у 404 и noindex их нет. */
@@ -461,8 +466,10 @@ export function injectPage(html, page, lang = 'ru') {
     `<meta property="og:url" content="${esc(canonical)}" />`,
     /* Без картинки ссылка на сайт в мессенджере выглядит голой строкой, а
        репост — самый дешёвый способ, которым имя сайта расходится по сети. */
-    `<meta property="og:image" content="${esc(CANONICAL_ORIGIN + SITE_LOGO)}" />`,
-    `<meta name="twitter:image" content="${esc(CANONICAL_ORIGIN + SITE_LOGO)}" />`,
+    `<meta property="og:image" content="${esc(CANONICAL_ORIGIN + SITE_COVER)}" />`,
+    '<meta property="og:image:width" content="1200" />',
+    '<meta property="og:image:height" content="630" />',
+    `<meta name="twitter:image" content="${esc(CANONICAL_ORIGIN + SITE_COVER)}" />`,
     page.robots ? `<meta name="robots" content="${esc(page.robots)}" />` : '',
     structuredData(page, lang, canonical)
   ].filter(Boolean).join('\n  ');
