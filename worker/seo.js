@@ -370,6 +370,66 @@ export function renderSsrBody({ heading, intro = '', details = [], crumbs = [], 
   return `<section id="ssr-content" class="ssr-content">${crumbHtml}<h1>${esc(heading)}</h1>${intro ? `<p>${esc(intro)}</p>` : ''}${detailHtml}${list}</section>`;
 }
 
+const SITE_LOGO = '/icons/icon-512.png';
+
+/* Разметка Schema.org. Главное здесь — имя: по запросу «mathtasks» Google
+   должен знать, что так называется этот сайт, а не выводить это из текста
+   страниц. WebSite и Organization описывают сам сайт, BreadcrumbList —
+   путь по каталогу, который поисковик показывает вместо голого адреса.
+   «<» внутри JSON экранируем: иначе строка вида «a < b» из условия задачи
+   закрыла бы тег script. */
+function structuredData(page, lang, canonical) {
+  if (page.status === 404) return '';
+  const graph = [];
+  const home = CANONICAL_ORIGIN + toLangPath('/', lang);
+  const path = page.canonicalPath || '/';
+
+  if (path === '/') {
+    graph.push({
+      '@type': 'WebSite',
+      '@id': `${CANONICAL_ORIGIN}#website`,
+      url: home,
+      name: SITE_NAME,
+      alternateName: 'MathTasks.lv',
+      inLanguage: lang,
+      publisher: { '@id': `${CANONICAL_ORIGIN}#organization` },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${CANONICAL_ORIGIN}${toLangPath('/search', lang)}?q={search_term_string}`
+        },
+        'query-input': 'required name=search_term_string'
+      }
+    });
+    graph.push({
+      '@type': 'EducationalOrganization',
+      '@id': `${CANONICAL_ORIGIN}#organization`,
+      name: SITE_NAME,
+      url: CANONICAL_ORIGIN,
+      logo: CANONICAL_ORIGIN + SITE_LOGO,
+      areaServed: 'LV',
+      description: t('meta_home_desc', {}, lang)
+    });
+  }
+
+  const crumbs = (page.crumbs || []).filter(([name]) => name);
+  if (crumbs.length > 1) {
+    graph.push({
+      '@type': 'BreadcrumbList',
+      itemListElement: crumbs.map(([name, crumbPath], index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name,
+        item: crumbPath ? CANONICAL_ORIGIN + toLangPath(crumbPath, lang) : canonical
+      }))
+    });
+  }
+  if (!graph.length) return '';
+  const json = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c');
+  return `<script type="application/ld+json">${json}</script>`;
+}
+
 /* Подстановка в оболочку index.html. Замены делаются функцией, а не
    строкой: в описании может встретиться «$&», и String.replace принял бы
    его за ссылку на найденный текст. */
@@ -399,7 +459,12 @@ export function injectPage(html, page, lang = 'ru') {
     indexable ? `<link rel="alternate" hreflang="lv" href="${esc(lvUrl)}" />` : '',
     indexable ? `<link rel="alternate" hreflang="x-default" href="${esc(lvUrl)}" />` : '',
     `<meta property="og:url" content="${esc(canonical)}" />`,
-    page.robots ? `<meta name="robots" content="${esc(page.robots)}" />` : ''
+    /* Без картинки ссылка на сайт в мессенджере выглядит голой строкой, а
+       репост — самый дешёвый способ, которым имя сайта расходится по сети. */
+    `<meta property="og:image" content="${esc(CANONICAL_ORIGIN + SITE_LOGO)}" />`,
+    `<meta name="twitter:image" content="${esc(CANONICAL_ORIGIN + SITE_LOGO)}" />`,
+    page.robots ? `<meta name="robots" content="${esc(page.robots)}" />` : '',
+    structuredData(page, lang, canonical)
   ].filter(Boolean).join('\n  ');
   out = out.replace('</head>', () => `  ${head}\n</head>`);
 

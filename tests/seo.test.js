@@ -301,3 +301,47 @@ describe('описание задачи (taskDescription)', () => {
     expect(latexToPlainText('S = \\pi r^2, $30^\\circ$')).toBe('S = π r², 30°');
   });
 });
+
+/* Разметка Schema.org отвечает за одно: поисковик должен знать имя сайта,
+   а не догадываться о нём по тексту страниц. */
+describe('seo: разметка сайта для поиска', () => {
+  const ldOf = html => {
+    const match = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+    return match ? JSON.parse(match[1].replace(/\u003c/g, '<')) : null;
+  };
+
+  it('главная: имя сайта, логотип и строка поиска', async () => {
+    const html = await (await page('/', makeEnv())).text();
+    const graph = ldOf(html)['@graph'];
+    const site = graph.find(item => item['@type'] === 'WebSite');
+    const org = graph.find(item => item['@type'] === 'EducationalOrganization');
+    expect(site.name).toBe('MathTasks');
+    expect(site.potentialAction.target.urlTemplate).toBe('https://mathtasks.lv/search?q={search_term_string}');
+    expect(org.logo).toBe('https://mathtasks.lv/icons/icon-512.png');
+    expect(html).toContain('<meta property="og:image" content="https://mathtasks.lv/icons/icon-512.png" />');
+  });
+
+  it('латышская главная: своё имя и свой адрес поиска', async () => {
+    const html = await (await page('/lv/', makeEnv())).text();
+    const site = ldOf(html)['@graph'].find(item => item['@type'] === 'WebSite');
+    expect(site.url).toBe('https://mathtasks.lv/lv/');
+    expect(site.inLanguage).toBe('lv');
+    expect(site.potentialAction.target.urlTemplate).toBe('https://mathtasks.lv/lv/search?q={search_term_string}');
+  });
+
+  it('страница задачи: путь по каталогу, «<» не закрывает тег script', async () => {
+    vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [{ ...TASK, condition_latex: 'Верно ли, что $a < b$?', topics: TOPIC }]]]));
+    const html = await (await page('/task/321', makeEnv())).text();
+    expect(html).toContain('\u003c');
+    const crumbs = ldOf(html)['@graph'].find(item => item['@type'] === 'BreadcrumbList');
+    expect(crumbs.itemListElement.map(item => item.name)).toEqual(
+      ['Главная', '6 класс', '6.1. Как совокупность делят в определенном отношении']);
+    expect(crumbs.itemListElement[1].item).toBe('https://mathtasks.lv/grade/6');
+  });
+
+  it('страницы, которых нет, разметку не получают', async () => {
+    vi.stubGlobal('fetch', supabase([]));
+    const html = await (await page('/task/999', makeEnv())).text();
+    expect(html).not.toContain('application/ld+json');
+  });
+});

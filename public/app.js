@@ -1081,16 +1081,13 @@ function updateProgressCounter() {
   if (counter) counter.textContent = progressCounterText();
 }
 
-/* Сколько раз ученик ошибся в задаче. Первая ошибка открывает подсказку
-   и ответ, вторая — решение. Раньше хранился только факт ошибки (список
-   id): такой список читается как «по одной ошибке». */
+/* Сколько раз ученик ошибся в задаче. Счётчик, а не факт: раньше
+   хранился список id, и он читался как «по одной ошибке». */
 const WRONG_ATTEMPTS_KEY = 'math-tasks:wrong-attempts';
-/* Подсказка и ответ — после первой ошибки: одна честная попытка, дальше
-   ученику дают, с чем сверить. Полный разбор — после второй: с известным
-   ответом стоит дойти до него самому ещё раз. */
-const ATTEMPTS_FOR_HINT = 1;
-const ATTEMPTS_FOR_ANSWER = 1;
-const ATTEMPTS_FOR_SOLUTION = 2;
+/* Одна честная попытка — и открыто всё: подсказка, ответ и решение.
+   Второй ошибки ждать не нужно: ученик, который не решил, должен
+   сразу увидеть, как это делается. */
+const ATTEMPTS_TO_REVEAL = 1;
 
 function getWrongAttemptCounts() {
   try {
@@ -1129,8 +1126,8 @@ const checkTaskAnswer = (userAns, answer, variants) => (window.MathTasksLib?.che
   : compareAnswers(userAns, answer));
 
 /* Что уже открыто в карточке задачи. Три случая:
-   - ответ сверяется (сам или по вариантам) — поле ответа; подсказка и
-     ответ после первой ошибки, решение — после второй;
+   - ответ сверяется (сам или по вариантам) — поле ответа; подсказка,
+     ответ и решение — после первой ошибки;
    - ответ есть, но не сверить («Доказано», «Да, подобны» без вариантов) —
      самопроверка: подсказка сразу, ответ по кнопке «Сверить с ответом»,
      решение — после «Не сошлось» или «Сошлось»;
@@ -1142,15 +1139,14 @@ function taskRevealState(task) {
   const selfAssess = Boolean(answer) && !checkable;
   const attempts = getTaskWrongAttempts(task.id);
   const open = !answer || isTaskSolved(task.id);
-  const needAnswer = checkable ? ATTEMPTS_FOR_ANSWER : 1;
-  const needSolution = checkable ? ATTEMPTS_FOR_SOLUTION : 1;
+  const revealed = open || attempts >= ATTEMPTS_TO_REVEAL;
   return {
     checkable,
     selfAssess,
     attempts,
-    hint: open || selfAssess || attempts >= ATTEMPTS_FOR_HINT,
-    answer: open || attempts >= needAnswer,
-    solution: open || attempts >= needSolution
+    hint: revealed || selfAssess,
+    answer: revealed,
+    solution: revealed
   };
 }
 
@@ -1169,8 +1165,7 @@ function markCardSolved(card) {
 /* Строка под полем ответа: что и когда откроется. Пустая — всё открыто. */
 function revealLockText(task, attempts) {
   const tr = window.MathTasks.t || (k => k);
-  if (attempts >= ATTEMPTS_FOR_SOLUTION) return '';
-  if (attempts >= ATTEMPTS_FOR_ANSWER) return tr('reveal_lock_solution');
+  if (attempts >= ATTEMPTS_TO_REVEAL) return '';
   return tr(loc(task, 'hint_latex') ? 'reveal_lock_first' : 'reveal_lock_first_nohint');
 }
 
@@ -5208,9 +5203,7 @@ document.addEventListener('submit', event => {
     markSelfCheckSolved(form, taskId, 'self_check_success');
   } else {
     const attempts = addTaskWrongAttempt(taskId);
-    const opened = attempts >= ATTEMPTS_FOR_SOLUTION;
-    const hasHint = Boolean(loc(task, 'hint_latex'));
-    const messageKey = opened ? 'self_check_error_open' : (hasHint ? 'self_check_error_hint' : 'self_check_error_retry');
+    const messageKey = loc(task, 'hint_latex') ? 'self_check_error_open' : 'self_check_error_open_nohint';
     resultDiv.className = 'self-check-result error';
     /* Записал иначе, чем ждёт автопроверка («3; -0,5» вместо «x=3»), —
        ученик отмечает совпадение сам, как в задачах без автопроверки.
@@ -5220,7 +5213,7 @@ document.addEventListener('submit', event => {
     resultDiv.hidden = false;
     const card = form.closest('.task');
     if (card) {
-      unlockTaskReveals(card, opened ? ['hint', 'answer', 'solution'] : ['hint', 'answer']);
+      unlockTaskReveals(card, ['hint', 'answer', 'solution']);
       updateRevealLock(card, revealLockText(task, attempts));
       syncAcceptVisibility(card);
     }
@@ -5328,9 +5321,6 @@ function openDrillHintDialog(task) {
   if (typeof dialog.showModal === 'function') dialog.showModal();
 }
 
-/* Сколько раз ученик нажал Enter на этой задаче с неверным ответом. */
-const drillAttempts = new Map();
-
 /* Пример экспресс-режима засчитан: верным ответом или кнопкой
    «Ответ всё же совпал» рядом с показанным верным ответом. */
 function markDrillItemSolved(input, taskId) {
@@ -5345,7 +5335,6 @@ function markDrillItemSolved(input, taskId) {
     statusEl.textContent = '✓';
   }
   if (item) item.classList.add('is-solved');
-  drillAttempts.delete(taskId);
   const okNote = item?.querySelector('.compact-drill-note');
   if (okNote) { okNote.textContent = ''; okNote.hidden = true; }
 
@@ -5392,31 +5381,22 @@ document.addEventListener('keydown', event => {
     if (isCorrect) {
       markDrillItemSolved(input, taskId);
     } else {
-      /* Первое нажатие — мягкое: «не сошлось», ответ можно поправить.
-         Второе по той же задаче — окончательный вердикт с верным ответом:
-         иначе ученик перебирает варианты вслепую и застревает. */
-      const attempts = (drillAttempts.get(taskId) || 0) + 1;
-      drillAttempts.set(taskId, attempts);
-      // Общий счётчик ошибок: он же открывает подсказку и разбор в 💡.
+      /* Неверно — сразу верный ответ, как и в карточке: второй попытки
+         вслепую не ждём. Общий счётчик ошибок открывает подсказку и разбор в 💡. */
       addTaskWrongAttempt(taskId);
       input.classList.remove('success');
       input.classList.add('error');
       if (statusEl) {
         statusEl.className = 'compact-drill-status error';
-        statusEl.textContent = attempts === 1 ? '?' : '✗';
+        statusEl.textContent = '✗';
       }
       const noteEl = item?.querySelector('.compact-drill-note');
       if (noteEl) {
-        if (attempts === 1) {
-          noteEl.className = 'compact-drill-note warn';
-          noteEl.textContent = tr('drill_not_match');
-        } else {
-          noteEl.className = 'compact-drill-note wrong';
-          // Верный ответ на экране — есть с чем сверить, значит, можно и засчитать самому.
-          noteEl.innerHTML = `<span></span> <span class="math" data-note-answer></span> <button type="button" class="self-check-accept" data-drill-accept="${taskId}" title="${escapeHtml(tr('self_check_accept_title'))}">${escapeHtml(tr('self_check_accept'))}</button>`;
-          noteEl.firstElementChild.textContent = tr('drill_wrong_answer');
-          renderMath(noteEl.querySelector('[data-note-answer]'), loc(task, 'answer_latex') || '');
-        }
+        noteEl.className = 'compact-drill-note wrong';
+        // Верный ответ на экране — есть с чем сверить, значит, можно и засчитать самому.
+        noteEl.innerHTML = `<span></span> <span class="math" data-note-answer></span> <button type="button" class="self-check-accept" data-drill-accept="${taskId}" title="${escapeHtml(tr('self_check_accept_title'))}">${escapeHtml(tr('self_check_accept'))}</button>`;
+        noteEl.firstElementChild.textContent = tr('drill_wrong_answer');
+        renderMath(noteEl.querySelector('[data-note-answer]'), loc(task, 'answer_latex') || '');
         noteEl.hidden = false;
       }
       input.select();
