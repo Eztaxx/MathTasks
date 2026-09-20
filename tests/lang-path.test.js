@@ -40,6 +40,19 @@ describe('язык в адресе', () => {
     expect(isLocalizablePath('/topic/x')).toBe(true);
     expect(isLocalizablePath('/exams.html')).toBe(false);
   });
+
+  it('отдельные страницы без расширения — не адреса приложения', () => {
+    /* Cloudflare отдаёт /trainer вместо /trainer.html; роутер и латышский
+       префикс должны узнавать их и без «.html» — иначе клик по меню
+       оставлял главную, а в латышской версии вёл на /lv/trainer. */
+    for (const path of ['/trainer', '/trainer?section=equations', '/exams', '/mock-exams', '/plotter', '/plotter?f=x']) {
+      expect(localizeHref(path, 'lv'), path).toBe(path);
+      expect(isLocalizablePath(path.split('?')[0]), path).toBe(false);
+    }
+    // Экзамен по адресу /exam/<уровень> — экран приложения, у него есть /lv/
+    expect(localizeHref('/exam/pamat', 'lv')).toBe('/lv/exam/pamat');
+    expect(isLocalizablePath('/examsomething')).toBe(true);
+  });
 });
 
 describe('словарь: заголовки страниц на обоих языках', () => {

@@ -120,6 +120,9 @@ const langLib = window.MathTasksLib || {};
 const stripLangPath = path => (langLib.stripLangPath ? langLib.stripLangPath(path) : (path || '/'));
 const appPath = () => stripLangPath(location.pathname);
 const langPath = (path, lang = getLang()) => (langLib.localizeHref ? langLib.localizeHref(path, lang) : path);
+/* Адрес приложения — или отдельная страница (тренажёр, экзамены, PDF,
+   админка), которую роутер не трогает. Без lib.js — по расширению. */
+const isLocalizablePath = path => (langLib.isLocalizablePath ? langLib.isLocalizablePath(path) : !/\.[a-z0-9]+$/i.test(path));
 
 // Заголовки и описания страниц — из словаря i18n.js; те же ключи отдаёт воркер (worker/seo.js).
 const metaText = (key, params) => (window.MathTasks.t || (k => k))(key, params);
@@ -5062,7 +5065,10 @@ document.addEventListener('click', event => {
   if (link.origin !== location.origin) return;
   // Якорь внутри текущей страницы — работа браузера, а не роутера.
   if (link.hash && link.pathname === location.pathname) return;
-  if (/\.[a-z0-9]+$/i.test(link.pathname)) return;
+  /* Отдельные страницы (/trainer, /exams, /plotter, PDF, админка) — обычные
+     переходы браузера. Раньше их узнавали по «.html»; с адресами без
+     расширения роутер перехватывал клик, менял адрес и оставлял главную. */
+  if (!isLocalizablePath(link.pathname)) return;
   event.preventDefault();
   navigate(link.pathname + link.search);
 });

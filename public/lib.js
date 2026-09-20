@@ -2696,15 +2696,19 @@
      Русская версия — на адресах без префикса (/topic/…), латышская — на
      /lv/… (/lv/topic/…, главная — /lv/). У каждой страницы два адреса, и
      поисковик получает каждую версию отдельно, со ссылками друг на друга
-     (hreflang). Файлы (trainer.html, PDF), /api и админка префикса не
-     получают: языковых версий по адресу у них нет. */
+     (hreflang). Файлы (PDF), /api, админка и отдельные страницы — тренажёр,
+     экзамены, пробники, графопостроитель — префикса не получают: языковых
+     версий по адресу у них нет. Cloudflare отдаёт эти страницы без
+     расширения (/trainer), поэтому узнавать их по «.html» нельзя:
+     /lv/trainer вернул бы оболочку приложения, то есть главную. */
   const isLvPath = pathname => pathname === '/lv' || String(pathname || '').startsWith('/lv/');
   const stripLangPath = pathname => (isLvPath(pathname) ? (String(pathname).slice(3) || '/') : (pathname || '/'));
   const langOfPath = pathname => (isLvPath(pathname) ? 'lv' : 'ru');
+  const PAGE_FILES = /^\/(?:api|admin|assets|formulas|trainer|exams|mock-exams|plotter)(?:\/|$)/;
   const isLocalizablePath = pathname => typeof pathname === 'string'
     && pathname.startsWith('/') && !pathname.startsWith('//')
     && !/\.[a-z0-9]+$/i.test(pathname)
-    && !/^\/(?:api|admin|assets|formulas)(?:\/|$)/.test(pathname);
+    && !PAGE_FILES.test(pathname);
   const toLangPath = (pathname, lang) => {
     const clean = stripLangPath(pathname);
     if (lang !== 'lv') return clean;
