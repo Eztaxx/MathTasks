@@ -88,6 +88,7 @@ export function routeOf(pathname) {
   if ((m = path.match(/^\/subject\/([^/]+)$/))) return { kind: 'subject', slug: decode(m[1]) };
   if ((m = path.match(/^\/tag\/([^/]+)$/))) return { kind: 'tag', slug: decode(m[1]) };
   if ((m = path.match(/^\/control-work\/([^/]+)$/))) return { kind: 'controlWork', slug: decode(m[1]) };
+  if ((m = path.match(/^\/exam\/([^/]+)$/))) return { kind: 'exam', slug: decode(m[1]) };
   return null;
 }
 
@@ -324,6 +325,19 @@ export async function buildPage(route, env, lang = 'ru') {
       };
     }
 
+    /* Экзамен идёт по собственному адресу, но в поиске ему делать нечего:
+       это рабочий экран с таймером, а не страница с содержимым. Без этой
+       ветки он попал бы под правило «адрес неизвестен — 404». */
+    case 'exam':
+      return {
+        title: tr('nav_exams'),
+        description: tr('meta_exams_desc'),
+        canonicalPath: '/exams',
+        robots: 'noindex, follow',
+        heading: tr('nav_exams'),
+        crumbs: [home(), [tr('nav_exams'), '/exams']]
+      };
+
     case 'tag': {
       let tag = null;
       try {
@@ -371,6 +385,7 @@ export function renderSsrBody({ heading, intro = '', details = [], crumbs = [], 
 }
 
 const SITE_LOGO = '/icons/icon-512.png';
+const SPA_SHELL_MARKER = '<div id="view-home">';
 // Превью ссылки: 1200×630, как ждут Facebook, WhatsApp и Telegram.
 // Рисуется из логотипа скриптом scripts/make-og-cover.cjs.
 const SITE_COVER = '/og-cover.png';
@@ -489,12 +504,37 @@ export async function renderPage(request, env) {
   const assetResponse = await env.ASSETS.fetch(request);
   const { pathname } = new URL(request.url);
   const route = routeOf(pathname);
-  if (!route || !['GET', 'HEAD'].includes(request.method)) return assetResponse;
+  if (!['GET', 'HEAD'].includes(request.method)) return assetResponse;
   const type = assetResponse.headers.get('content-type') || '';
   if (assetResponse.status !== 200 || !type.includes('text/html')) return assetResponse;
 
   const lang = langOfPath(pathname);
   let page;
+  if (!route) {
+    /* Несуществующий адрес Cloudflare отдаёт оболочкой приложения с кодом
+       200, и для поисковика это бесконечное число копий главной — «мягкая
+       404», из-за которой отчёт об индексировании заполняется мусором.
+       Отдаём честный 404 и noindex. Приложение при этом грузится и
+       показывает главную, как и раньше: код ответа ему не мешает. */
+    const html = await assetResponse.text();
+    if (!html.includes(SPA_SHELL_MARKER)) return new Response(html, assetResponse);
+    page = {
+      status: 404,
+      title: t('meta_not_found_page', {}, lang),
+      description: t('meta_not_found_desc', {}, lang),
+      robots: 'noindex',
+      heading: t('meta_not_found_page', {}, lang),
+      intro: t('meta_not_found_desc', {}, lang),
+      crumbs: [[t('nav_home', {}, lang), '/']]
+    };
+    const headers = new Headers(assetResponse.headers);
+    headers.delete('content-length');
+    headers.delete('etag');
+    headers.set('content-type', 'text/html; charset=utf-8');
+    headers.set('content-language', lang);
+    const body = injectPage(html, page, lang);
+    return new Response(request.method === 'HEAD' ? null : body, { status: 404, headers });
+  }
   try {
     page = await buildPage(route, env, lang);
   } catch (error) {

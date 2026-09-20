@@ -346,3 +346,42 @@ describe('seo: разметка сайта для поиска', () => {
     expect(html).not.toContain('application/ld+json');
   });
 });
+
+/* Несуществующий адрес Cloudflare отдаёт оболочкой приложения с кодом 200.
+   Для поисковика это бесконечное число копий главной, поэтому такие адреса
+   должны получать честную 404. */
+describe('seo: адрес, которого нет', () => {
+  it('неизвестный путь — 404 и noindex, приложение всё равно грузится', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const response = await page('/foo', makeEnv());
+    const html = await response.text();
+    expect(response.status).toBe(404);
+    expect(html).toContain('<meta name="robots" content="noindex" />');
+    expect(html).toContain('<h1>Страница не найдена</h1>');
+    expect(html).toContain('<div id="view-home">');
+    // Ходить в базу за несуществующим адресом незачем.
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('латышский адрес, которого нет, отвечает по-латышски', async () => {
+    const html = await (await page('/lv/foo', makeEnv())).text();
+    expect(html).toContain('<h1>Lapa nav atrasta</h1>');
+  });
+
+  it('отдельная страница (не оболочка) проходит как есть', async () => {
+    const standalone = () => new Response('<!doctype html><html><head></head><body>тренажёр</body></html>',
+      { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } });
+    const response = await page('/trainer', makeEnv(standalone));
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain('тренажёр');
+  });
+
+  it('экзамен — рабочий экран: не 404, но и не для поиска', async () => {
+    const response = await page('/exam/pamat', makeEnv());
+    const html = await response.text();
+    expect(response.status).toBe(200);
+    expect(html).toContain('<meta name="robots" content="noindex, follow" />');
+    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/exams" />');
+  });
+});

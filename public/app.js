@@ -406,21 +406,21 @@ function renderHubSidebar() {
       <span class="track-header-title">${escapeHtml(tr('track_heading_trainers'))}</span>
     </div>
     <div class="sidebar-track-subgroup">
-      <a class="sidebar-track-card${appPath() === '/trainer.html' ? ' active' : ''}" href="/trainer.html" title="${escapeHtml(tr('nav_trainer'))}">
+      <a class="sidebar-track-card${appPath() === '/trainer' ? ' active' : ''}" href="/trainer" title="${escapeHtml(tr('nav_trainer'))}">
         <div class="track-card-badge gold">⚡</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('nav_trainer'))}</strong>
           <span>${escapeHtml(tr('nav_trainer_desc'))}</span>
         </div>
       </a>
-      <a class="sidebar-track-card" href="/trainer.html?section=equations" title="${escapeHtml(tr('nav_trainer_eq'))}">
+      <a class="sidebar-track-card" href="/trainer?section=equations" title="${escapeHtml(tr('nav_trainer_eq'))}">
         <div class="track-card-badge orange">⚖️</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('nav_trainer_eq'))}</strong>
           <span>${escapeHtml(tr('nav_trainer_eq_desc'))}</span>
         </div>
       </a>
-      <a class="sidebar-track-card" href="/trainer.html?section=expressions" title="${escapeHtml(tr('nav_trainer_expr'))}">
+      <a class="sidebar-track-card" href="/trainer?section=expressions" title="${escapeHtml(tr('nav_trainer_expr'))}">
         <div class="track-card-badge green">🔣</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('nav_trainer_expr'))}</strong>
@@ -434,14 +434,14 @@ function renderHubSidebar() {
       <span class="track-header-title">${escapeHtml(tr('track_heading_exams'))}</span>
     </div>
     <div class="sidebar-track-subgroup">
-      <a class="sidebar-track-card${appPath() === '/exams.html' ? ' active' : ''}" href="/exams.html" title="${escapeHtml(tr('nav_exams'))}">
+      <a class="sidebar-track-card${appPath() === '/exams' ? ' active' : ''}" href="/exams" title="${escapeHtml(tr('nav_exams'))}">
         <div class="track-card-badge blue">🎯</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('nav_exams'))}</strong>
           <span>${escapeHtml(tr('nav_exams_desc'))}</span>
         </div>
       </a>
-      <a class="sidebar-track-card${appPath() === '/mock-exams.html' ? ' active' : ''}" href="/mock-exams.html" title="${escapeHtml(tr('nav_mock_exams'))}">
+      <a class="sidebar-track-card${appPath() === '/mock-exams' ? ' active' : ''}" href="/mock-exams" title="${escapeHtml(tr('nav_mock_exams'))}">
         <div class="track-card-badge purple">📋</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('nav_mock_exams'))}</strong>
@@ -484,7 +484,7 @@ function renderHubSidebar() {
         </div>
       </button>
 
-      <a class="sidebar-action-card${appPath() === '/plotter.html' ? ' active' : ''}" href="/plotter.html" title="${escapeHtml(tr('tool_plotter_page'))}">
+      <a class="sidebar-action-card${appPath() === '/plotter' ? ' active' : ''}" href="/plotter" title="${escapeHtml(tr('tool_plotter_page'))}">
         <div class="action-card-icon plotter-icon">⛶</div>
         <div class="action-card-body">
           <strong>${escapeHtml(tr('tool_plotter_page'))}</strong>
@@ -3874,7 +3874,7 @@ async function startExam(kindOrSlug, { fresh = false } = {}) {
   const crumbs = document.querySelector('#cw-breadcrumb');
   if (crumbs) {
     crumbs.innerHTML = `<a href="/">${escapeHtml(tr('nav_home'))}</a><span class="crumb-sep">/</span>`
-      + `<a href="/exams.html">${escapeHtml(tr('nav_exams'))}</a><span class="crumb-sep">/</span><span>${escapeHtml(title)}</span>`;
+      + `<a href="/exams">${escapeHtml(tr('nav_exams'))}</a><span class="crumb-sep">/</span><span>${escapeHtml(title)}</span>`;
   }
   const titleEl = document.querySelector('#cw-title');
   if (titleEl) titleEl.textContent = title;
@@ -4332,7 +4332,7 @@ function renderCwOutcome(firstRun) {
       <div class="cw-result-footer">
         <button type="button" class="primary-button" id="btn-cw-retry">${escapeHtml(tr('cw_retry_btn'))}</button>
         ${currentCwMode === 'exam'
-          ? `<a href="/exams.html" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('exam_back'))}</a>`
+          ? `<a href="/exams" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('exam_back'))}</a>`
           : currentCwTopic
             ? `<a href="/topic/${encodeURIComponent(currentCwTopic.slug)}" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('cw_back_to_topic'))}</a>`
             : `<a href="/control-works" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('nav_control_works'))}</a>`}
@@ -5091,7 +5091,7 @@ function syncPlotterFullLink() {
     params.set('cy', String(Math.round(view.cy * 1000) / 1000));
     params.set('s', String(Math.round(view.scale * 1000) / 1000));
   }
-  link.href = '/plotter.html?' + params.toString();
+  link.href = '/plotter?' + params.toString();
 }
 
 function ensureDialogPlotter() {
