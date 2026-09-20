@@ -198,7 +198,10 @@ describe('отдельные страницы: превью ссылки', () =>
     expect(html).toContain('<meta property="og:image" content="https://mathtasks.lv/og-cover.png" />');
     expect(html).toContain('<meta property="og:image:width" content="1200" />');
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image" />');
-    expect(html).toContain(`<link rel="canonical" href="https://mathtasks.lv/${file}" />`);
+    // Cloudflare отдаёт эти страницы без .html: canonical должен вести туда же.
+    const served = file.replace(/.html$/, '');
+    expect(html).toContain(`<link rel="canonical" href="https://mathtasks.lv/${served}" />`);
+    expect(html).toContain(`<meta property="og:url" content="https://mathtasks.lv/${served}" />`);
     // Описание в превью — то же, что в поиске: два разных текста расходятся.
     const description = html.match(/<meta name="description" content="([^"]*)" \/>/)[1];
     expect(html).toContain(`<meta property="og:description" content="${description}" />`);

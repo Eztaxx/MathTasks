@@ -74,9 +74,14 @@ const CROSS_TAG_SLUGS = [
   'modelesana', 'teksta-uzdevumi', 'pieradijumi'
 ];
 
+/* Cloudflare отдаёт файлы страниц без расширения и перенаправляет на такой
+   адрес с .html. В карту идёт то, что отдаётся, а не то, что редиректит.
+   Латышской версии у этих страниц нет: /lv/exams вернул бы оболочку
+   приложения, то есть копию главной. */
+const SINGLE_LANGUAGE_PAGES = new Set(['/exams', '/mock-exams', '/trainer', '/plotter']);
 const BASE_SITEMAP_PATHS = [
-  '/', '/tasks', '/tags', '/about', '/control-works', '/exams.html',
-  '/mock-exams.html', '/trainer.html', '/plotter.html', '/grade/visparigais',
+  '/', '/tasks', '/tags', '/about', '/control-works', '/exams',
+  '/mock-exams', '/trainer', '/plotter', '/grade/visparigais',
   '/grade/matematika-1', '/grade/matematika-2'
 ];
 
@@ -147,7 +152,7 @@ function buildSitemapXml(paths, origin = 'https://mathtasks.lv', dates = new Map
     const pathOnly = p.split(/[?#]/)[0];
     const day = dates.get(pathOnly);
     const lastmod = day ? `<lastmod>${day}</lastmod>` : '';
-    if (!isLocalizablePath(pathOnly)) {
+    if (SINGLE_LANGUAGE_PAGES.has(pathOnly) || !isLocalizablePath(pathOnly)) {
       entries.push(`  <url><loc>${escapeHtml(cleanOrigin + p)}</loc>${lastmod}</url>`);
       continue;
     }

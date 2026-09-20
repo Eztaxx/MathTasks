@@ -141,9 +141,9 @@ describe('Cloudflare Worker: чистые функции', () => {
       expect(paths).toContain('/tags');
       expect(paths).toContain('/about');
       expect(paths).toContain('/control-works');
-      expect(paths).toContain('/exams.html');
-      expect(paths).toContain('/mock-exams.html');
-      expect(paths).toContain('/trainer.html');
+      expect(paths).toContain('/exams');
+      expect(paths).toContain('/mock-exams');
+      expect(paths).toContain('/trainer');
       expect(paths).toContain('/tag/algebriskie-parveidojumi');
       expect(paths).toContain('/tag/planimetrija');
     });
@@ -214,10 +214,10 @@ describe('Cloudflare Worker: чистые функции', () => {
       }
     });
 
-    it('файлы (trainer.html) — одной строкой, без латышской версии', () => {
-      const xml = buildSitemapXml(['/trainer.html'], 'https://mathtasks.lv');
-      expect(xml).toContain('  <url><loc>https://mathtasks.lv/trainer.html</loc></url>');
-      expect(xml).not.toContain('/lv/trainer.html');
+    it('страницы без латышской версии — одной строкой', () => {
+      const xml = buildSitemapXml(['/trainer'], 'https://mathtasks.lv');
+      expect(xml).toContain('  <url><loc>https://mathtasks.lv/trainer</loc></url>');
+      expect(xml).not.toContain('/lv/trainer');
     });
 
     it('нормализует слэш в origin и экранирует спецсимволы в URL', () => {
@@ -574,15 +574,15 @@ describe('sitemap: даты последнего изменения', () => {
   it('страницы без своего содержимого даты не получают', () => {
     const dates = buildSitemapDates(DATA);
     expect(dates.has('/about')).toBe(false);
-    expect(dates.has('/trainer.html')).toBe(false);
+    expect(dates.has('/trainer')).toBe(false);
   });
 
   it('дата попадает в обе языковые версии и в одноязычные файлы', () => {
-    const dates = new Map([['/topic/kv', '2026-09-19'], ['/trainer.html', '2026-09-19']]);
-    const xml = buildSitemapXml(['/topic/kv', '/trainer.html', '/about'], 'https://mathtasks.lv', dates);
+    const dates = new Map([['/topic/kv', '2026-09-19'], ['/trainer', '2026-09-19']]);
+    const xml = buildSitemapXml(['/topic/kv', '/trainer', '/about'], 'https://mathtasks.lv', dates);
     expect(xml).toContain('<loc>https://mathtasks.lv/topic/kv</loc><lastmod>2026-09-19</lastmod>');
     expect(xml).toContain('<loc>https://mathtasks.lv/lv/topic/kv</loc><lastmod>2026-09-19</lastmod>');
-    expect(xml).toContain('<url><loc>https://mathtasks.lv/trainer.html</loc><lastmod>2026-09-19</lastmod></url>');
+    expect(xml).toContain('<url><loc>https://mathtasks.lv/trainer</loc><lastmod>2026-09-19</lastmod></url>');
     expect(xml).toContain('<url><loc>https://mathtasks.lv/about</loc>');
     expect(xml.match(/<lastmod>/g)).toHaveLength(3);
   });
