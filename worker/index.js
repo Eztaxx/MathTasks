@@ -14,7 +14,7 @@
      npx wrangler secret put GEMINI_API_KEY   (без него генератор только встроенный) */
 
 import { isLocalizablePath, latexToPlainText, toLangPath } from './lib.js';
-import { CANONICAL_ORIGIN, renderPage, routeOf } from './seo.js';
+import { CANONICAL_ORIGIN, renderPage } from './seo.js';
 
 const TRANSLIT = {
   а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i',
@@ -444,9 +444,16 @@ export default {
       if (preview) return preview;
     }
 
-    // Страницы каталога: заголовок, описание, canonical и текст — в самом HTML.
-    if (routeOf(url.pathname)) return renderPage(request, env);
+    /* Отдельных страниц под /lv не существует: /lv/trainer отдавал оболочку
+       главной с кодом 200. Уводим на сам адрес — старые ссылки живут. */
+    const langPage = url.pathname.match(/^\/lv\/(trainer|exams|mock-exams|plotter)\/?$/);
+    if (langPage) return Response.redirect(new URL(`/${langPage[1]}`, url).toString(), 301);
 
-    return env.ASSETS.fetch(request);
+    /* Через renderPage идёт всё: для известного адреса он подставляет
+       заголовок, описание и canonical; файл (картинку, скрипт, отдельную
+       страницу) отдаёт как есть; а на неизвестном адресе возвращает честный
+       404 вместо оболочки приложения с кодом 200. Раньше сюда попадали
+       только известные адреса, и ветка с 404 была недостижима. */
+    return renderPage(request, env);
   }
 };

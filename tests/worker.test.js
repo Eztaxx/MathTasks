@@ -354,6 +354,64 @@ describe('Cloudflare Worker: чистые функции', () => {
       expect(env.ASSETS.fetch).toHaveBeenCalledWith(request);
       expect(response).toBe(mockAssetResponse);
     });
+
+    /* Эти три случая раньше проверялись только у renderPage напрямую, поэтому
+       тесты были зелёные, а на боевом воркер до них не доходил: в fetch стояла
+       проверка routeOf, а ветка с 404 живёт внутри renderPage. Проверяем через
+       сам worker.fetch — то есть тем же путём, каким идёт запрос с сайта. */
+    const SHELL = '<!doctype html><html lang="ru"><head><title>MathTasks — сборник задач по математике</title></head><body><main id="home"><div id="view-home"></div></main></body></html>';
+    const shellEnv = () => ({
+      ASSETS: {
+        fetch: vi.fn().mockImplementation(async () => new Response(SHELL, {
+          status: 200,
+          headers: { 'content-type': 'text/html; charset=utf-8' }
+        }))
+      }
+    });
+
+    it('несуществующий адрес получает 404 и noindex, а не оболочку с кодом 200', async () => {
+      const response = await worker.fetch(new Request('https://mathtasks.lv/this-page-does-not-exist'), shellEnv());
+      const html = await response.text();
+
+      expect(response.status).toBe(404);
+      expect(html).toContain('<meta name="robots" content="noindex"');
+      expect(html).not.toContain('<link rel="canonical"');
+    });
+
+    it('страница экзамена закрыта от индексации и указывает canonical на /exams', async () => {
+      const response = await worker.fetch(new Request('https://mathtasks.lv/exam/pamat'), shellEnv());
+      const html = await response.text();
+
+      expect(response.status).toBe(200);
+      expect(html).toContain('<meta name="robots" content="noindex, follow"');
+      expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/exams"');
+    });
+
+    it('отдельная страница под /lv уводит на сам адрес: /lv/trainer → /trainer', async () => {
+      const env = shellEnv();
+      const response = await worker.fetch(new Request('https://mathtasks.lv/lv/trainer'), env);
+
+      expect(response.status).toBe(301);
+      expect(response.headers.get('location')).toBe('https://mathtasks.lv/trainer');
+      expect(env.ASSETS.fetch).not.toHaveBeenCalled();
+    });
+
+    it('отдельная страница отдаётся как есть: воркер не трогает trainer.html', async () => {
+      const page = '<!doctype html><html lang="ru"><head><title>Тренажёр — MathTasks</title></head><body><div id="trainer"></div></body></html>';
+      const env = {
+        ASSETS: {
+          fetch: vi.fn().mockImplementation(async () => new Response(page, {
+            status: 200,
+            headers: { 'content-type': 'text/html; charset=utf-8' }
+          }))
+        }
+      };
+
+      const response = await worker.fetch(new Request('https://mathtasks.lv/trainer'), env);
+
+      expect(response.status).toBe(200);
+      expect(await response.text()).toBe(page);
+    });
   });
 
   describe('превью задачи для ботов', () => {
