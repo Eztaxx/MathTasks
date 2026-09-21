@@ -338,6 +338,23 @@
               <div class="adm-view-body adm-editor-body">
                 <!-- Справа от формы — как задача будет выглядеть на сайте (макет «Админка Skola2030») -->
                 <aside class="adm-preview-col" id="adm-preview-col" aria-label="Как увидит посетитель" aria-hidden="true">
+                  <!-- Служебное о задаче: видит только админ, на сайт не идёт. -->
+                  <section class="adm-preview adm-taskinfo" id="adm-taskinfo">
+                    <div class="adm-preview-head"><span>Информация о задаче</span></div>
+                    <dl class="adm-taskinfo-grid" id="adm-taskinfo-grid"></dl>
+                  </section>
+                  <section class="adm-preview adm-answer-preview">
+                    <div class="adm-preview-head"><span>Как ученик вводит ответ</span></div>
+                    <div class="adm-answer-preview-body">
+                      <div class="adm-answer-fields" id="adm-answer-fields"></div>
+                      <p class="adm-answer-note" id="adm-answer-note"></p>
+                      <div class="adm-answer-try">
+                        <input type="text" id="adm-answer-try-input" placeholder="Проверить свой ответ" autocomplete="off" />
+                        <button type="button" class="adm-btn soft" id="adm-answer-try-btn">Проверить</button>
+                        <span class="adm-answer-try-result" id="adm-answer-try-result"></span>
+                      </div>
+                    </div>
+                  </section>
                   <section class="adm-preview">
                     <div class="adm-preview-head"><span>Как увидит посетитель</span><span class="adm-preview-langs" role="group" aria-label="Язык предпросмотра">
                       <button type="button" class="adm-preview-lang-btn" data-preview-lang="ru" aria-pressed="true">RU</button>

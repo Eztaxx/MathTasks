@@ -1392,6 +1392,8 @@
 
   // Предпросмотр показывает ровно то, что увидит посетитель, — до сохранения.
   const updatePreviews = () => {
+    renderTaskInfo();
+    renderAnswerPreview();
     if (conditionPreview && conditionInput) renderMath(conditionPreview, conditionInput.value);
     if (answerPreview && answerInput) renderMath(answerPreview, answerInput.value);
     if (solutionPreview && solutionInput) renderMath(solutionPreview, solutionInput.value);
@@ -2676,6 +2678,76 @@ ${JSON.stringify(texts)}`;
      место задачи и кросс-теги. Сломанная формула подсвечивается красным:
      renderMath рисует её с throwOnError: false. Элементы ищем при каждом
      вызове — функцию зовут и до того, как дошла очередь до констант ниже. */
+  /* Служебная карточка задачи: то, чего нет в форме, но что нужно, чтобы
+     понять, с чем имеешь дело, — номер в базе, место, статус, даты. */
+  function renderTaskInfo() {
+    const grid = byId('adm-taskinfo-grid');
+    if (!grid) return;
+    const task = editingTaskId ? taskIndex.find(item => item.id === editingTaskId) : null;
+    const answer = (answerInput?.value || '').trim();
+    const variants = (byId('answer-check-input')?.value || '').trim();
+    const lib = window.MathTasksLib;
+    const fields = lib?.answerFields ? lib.answerFields(answer, variants) : [];
+    const checkable = lib?.isTaskAutoCheckable ? lib.isTaskAutoCheckable(answer, variants) : false;
+    const date = value => (value ? new Date(value).toLocaleDateString('ru-RU') : '—');
+    const rows = [
+      ['id в базе', task ? '#' + task.id : 'появится после сохранения'],
+      ['Номер в теме', taskForm.elements.position?.value || '0'],
+      ['Статус', task ? (task.is_published ? 'опубликована' : 'черновик, на проверке') : 'новая, ещё не сохранена'],
+      ['Ввод ответа', !answer ? 'ответа нет' : (!checkable ? 'самопроверка: автоматом не сверить' : (fields.length ? fields.length + ' поля' : (lib?.answerLabelMarkup?.(answer) ? 'одно поле с подписью' : 'одно поле, ответ строкой')))],
+      ['Латышская версия', (conditionInputLv?.value || '').trim() ? 'есть' : 'нет'],
+      ['Чертёж', images.condition.current || images.solution.current ? 'есть' : 'нет'],
+      ['Создана', date(task?.created_at)],
+      ['Ссылка на сайте', task && task.is_published ? '/task/' + task.id : '—']
+    ];
+    grid.innerHTML = rows.map(([name, value]) =>
+      `<div class="adm-taskinfo-row"><dt>${escapeHtml(name)}</dt><dd>${escapeHtml(String(value))}</dd></div>`).join('');
+  }
+
+  /* Поля ввода такими, какими их увидит ученик: автор сразу замечает, что
+     ответ разбирается не так, как он думал, или что поля нет вовсе. */
+  function renderAnswerPreview() {
+    const box = byId('adm-answer-fields');
+    const note = byId('adm-answer-note');
+    if (!box) return;
+    const answer = (answerInput?.value || '').trim();
+    const variants = (byId('answer-check-input')?.value || '').trim();
+    const lib = window.MathTasksLib;
+    if (!answer) {
+      box.innerHTML = '<span class="adm-answer-empty">Ответа пока нет — поля ввода у задачи не будет.</span>';
+      if (note) note.textContent = '';
+      return;
+    }
+    if (!lib?.isTaskAutoCheckable(answer, variants)) {
+      box.innerHTML = '<span class="adm-answer-empty">Ответ не сверить автоматически: ученик решает сам и отмечает «сошлось / не сошлось».</span>';
+      if (note) note.textContent = 'Чтобы включить проверку, впишите короткий ответ или добавьте записи в «Другие записи ответа».';
+      return;
+    }
+    const fields = lib.answerFields(answer, variants);
+    const single = [{ label: lib.answerLabelMarkup(answer), unit: lib.answerUnitOf ? lib.answerUnitOf(answer) : '' }];
+    const shown = fields.length ? fields : single;
+    box.innerHTML = shown.map(field =>
+      `<span class="adm-answer-field"><span class="adm-answer-label math"></span><span class="adm-answer-box"></span><span class="adm-answer-unit">${escapeHtml(field.unit || '')}</span></span>`).join('');
+    [...box.querySelectorAll('.adm-answer-label')].forEach((el, i) => renderMath(el, shown[i].label || ''));
+    if (note) {
+      note.textContent = shown.some(field => field.ordered)
+        ? 'Значения без имён: ученику подсказано писать их от меньшего к большему.'
+        : (shown.length > 1 ? 'Каждое значение проверяется отдельно.' : '');
+    }
+  }
+
+  byId('adm-answer-try-btn')?.addEventListener('click', () => {
+    const result = byId('adm-answer-try-result');
+    const value = (byId('adm-answer-try-input')?.value || '').trim();
+    const answer = (answerInput?.value || '').trim();
+    const variants = (byId('answer-check-input')?.value || '').trim();
+    if (!result) return;
+    if (!value || !answer) { result.textContent = ''; return; }
+    const ok = window.MathTasksLib.checkTaskAnswer(value, answer, variants);
+    result.textContent = ok ? '✓ принимается' : '✗ не принимается';
+    result.className = 'adm-answer-try-result ' + (ok ? 'ok' : 'bad');
+  });
+
   function renderVisitorPreview() {
     const cond = byId('adm-preview-cond');
     if (!cond) return;

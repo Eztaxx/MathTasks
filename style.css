@@ -6522,6 +6522,22 @@ body .adm-shell #section-tasks-database{padding:0;border:0;background:none}
 .adm-preview-lang-btn.is-on{border-color:var(--adm-acc);background:var(--adm-acc);color:#fff}
 .adm-preview-lang-btn:focus-visible{outline:2px solid var(--adm-acc);outline-offset:1px}
 .adm-preview-body{display:flex;flex-direction:column;gap:14px;padding:16px}
+.adm-taskinfo-grid{display:flex;flex-direction:column;gap:0;margin:0;padding:6px 15px 10px}
+.adm-taskinfo-row{display:flex;gap:10px;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--adm-line)}
+.adm-taskinfo-row:last-child{border-bottom:0}
+.adm-taskinfo-row dt{margin:0;font-size:12px;color:var(--adm-mute)}
+.adm-taskinfo-row dd{margin:0;font-size:12px;font-weight:600;color:var(--adm-ink);text-align:right}
+.adm-answer-preview-body{display:flex;flex-direction:column;gap:10px;padding:12px 15px 14px}
+.adm-answer-fields{display:flex;flex-wrap:wrap;gap:10px 14px}
+.adm-answer-field{display:inline-flex;align-items:center;gap:6px}
+.adm-answer-box{display:inline-block;width:92px;height:30px;border:1px solid var(--adm-line);border-radius:7px;background:var(--adm-panel)}
+.adm-answer-unit,.adm-answer-empty{font-size:12.5px;color:var(--adm-mute)}
+.adm-answer-note{margin:0;font-size:12px;line-height:1.45;color:var(--adm-dim)}
+.adm-answer-try{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.adm-answer-try input{flex:1 1 150px;height:32px;padding:0 10px;border:1px solid var(--adm-line);border-radius:7px;background:var(--adm-panel);color:var(--adm-ink);font:inherit;font-size:12.5px}
+.adm-answer-try-result{font-size:12.5px;font-weight:600}
+.adm-answer-try-result.ok{color:var(--adm-ok, #16a34a)}
+.adm-answer-try-result.bad{color:var(--adm-bad, #dc2626)}
 .adm-preview-path{font:11px ui-monospace,Menlo,Consolas,monospace;color:var(--adm-dim)}
 .adm-preview-label{margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--adm-dim)}
 /* KaTeX выступает за строку на пиксель — без overflow-y:hidden у каждой
