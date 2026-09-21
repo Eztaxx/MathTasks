@@ -136,8 +136,14 @@
      из «sqrt», и «2√3» не совпадало с «2\sqrt{3} см». */
   const UNIT_WORDS = /(?<![a-zа-яёāčēģīķļņšūž])(?:см|мм|дм|км|м|га|кг|мг|г|тонн[аы]?|л|мл|ч|мин|сек|с|руб|евро|гц|квт|вт|cm|mm|dm|km|ha|kg|mg|g|t|ml|min|sec|h|s|hz|eur)(?:\^\d)?(?![a-zа-яёāčēģīķļņšūž])|(?:€|%|°c?)(?:\^\d)?/gi;
 
+  /* Счётное слово в конце ответа — такая же единица: «19 дней», «5 книг»,
+     «12 рейсов». Снимаем только кириллицу и латышские слова с диакритикой:
+     латиница после числа — это переменные («3ab»), а не счёт. */
+  const COUNTING_WORD = /(?<=\d)\s*(?:[а-яё]{2,}|[a-zāčēģīķļņšūž]*[āčēģīķļņšūž][a-zāčēģīķļņšūž]*)\.?$/i;
+
   const stripUnits = str => String(str)
     .replace(UNIT_WORDS, '')
+    .replace(COUNTING_WORD, '')
     .replace(/[\s;,]+$/, '')
     .trim();
 
@@ -419,6 +425,18 @@
     return (text.match(ANSWER_WORD_RE) || []).some(word => !ANSWER_NON_WORDS.has(word.toLowerCase()));
   };
 
+  /* Счётное слово в конце ответа — единица, а не текст: «19 дней»,
+     «5 книг», «12 рейсов». Значение при этом остаётся числом, и ученику
+     достаточно написать само число — такой ответ сверяется. Убираем такой
+     хвост только когда впереди действительно число и других слов нет. */
+  const withoutCountingUnit = value => {
+    const text = String(value || '');
+    const stripped = text.replace(/\\(?:text|mathrm)\{[^{}]*\}(\^\{?[23]\}?)?\s*$/, '').trim();
+    if (stripped === text.trim()) return text;
+    if (!/\d/.test(stripped) || /\\(?:text|mathrm)\{/.test(stripped)) return text;
+    return stripped;
+  };
+
   /* Можно ли сверить ответ автоматически. Нельзя — если в нём слова
      («Да, подобны», «Даугавпилс»), тождество или доказательство, «≠» и
      «k ∈ ℤ». Такой задаче поле ответа не показывается: ученик сравнивает
@@ -429,7 +447,8 @@
     if (/\\(?:ne|neq|mathbb|forall|exists|Rightarrow|Leftrightarrow)(?![a-zA-Z])|≠/.test(text)) return false;
     const parts = parseAnswerParts(answerAlternatives(text)[0] || '');
     if (!parts.length) return false;
-    return parts.every(part => (part.pieceCount === 1 || part.equivalent) && part.values.every(value => !answerHasWords(value)));
+    return parts.every(part => (part.pieceCount === 1 || part.equivalent)
+      && part.values.every(value => !answerHasWords(withoutCountingUnit(value))));
   };
 
   /* ── Личный прогресс ученика ─────────────────────────────────────

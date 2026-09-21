@@ -84,3 +84,27 @@ describe('проверка по полям', () => {
     expect(checkAnswerFields(['-1', '3'], answer).allCorrect).toBe(true);
   });
 });
+
+/* Счётное слово в конце ответа — такая же единица, как «см»: ученик пишет
+   число, а проверка его принимает. Латиницу так снимать нельзя — «3ab» это
+   произведение переменных. */
+describe('счётные слова в ответе', () => {
+  it('число со счётным словом принимается без слова', () => {
+    expect(checkTaskAnswer('19', '$19\\text{ дней}$')).toBe(true);
+    expect(checkTaskAnswer('5', '$5\\text{ книг}$')).toBe(true);
+    expect(checkTaskAnswer('12', '$12\\text{ рейсов}$')).toBe(true);
+  });
+
+  it('со словом тоже принимается', () => {
+    expect(checkTaskAnswer('19 дней', '$19\\text{ дней}$')).toBe(true);
+  });
+
+  it('неверное число не проходит', () => {
+    expect(checkTaskAnswer('20', '$19\\text{ дней}$')).toBe(false);
+  });
+
+  it('буквенный множитель не считается счётным словом', () => {
+    expect(checkTaskAnswer('3', '$3ab$')).toBe(false);
+    expect(checkTaskAnswer('2', '$2\\pi$')).toBe(false);
+  });
+});

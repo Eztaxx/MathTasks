@@ -20,11 +20,19 @@ describe('answerCheckVariants', () => {
 });
 
 describe('isTaskAutoCheckable', () => {
-  it('ответ со словами становится проверяемым, когда есть варианты', () => {
-    expect(isTaskAutoCheckable('$120\\text{ книг}$')).toBe(false);
-    expect(isTaskAutoCheckable('$120\\text{ книг}$', '120')).toBe(true);
+  /* «120 книг» — это число, а не текст: счётное слово в конце такая же
+     единица, как «см», и сверка его снимает. Раньше такой ответ уходил в
+     самопроверку, пока автор не выпишет вариант руками. */
+  it('счётное слово в конце не мешает автопроверке', () => {
+    expect(isTaskAutoCheckable('$120\\text{ книг}$')).toBe(true);
+    expect(isTaskAutoCheckable('$19\\text{ дней}$')).toBe(true);
     expect(isTaskAutoCheckable('$x = 4$')).toBe(true);
+  });
+
+  it('ответ со словами становится проверяемым, когда есть варианты', () => {
     expect(isTaskAutoCheckable('$\\text{Доказано}$', '')).toBe(false);
+    expect(isTaskAutoCheckable('$\\text{Доказано}$', 'Доказано')).toBe(true);
+    expect(isTaskAutoCheckable('$\\text{XLIX}$')).toBe(false);
   });
 });
 
