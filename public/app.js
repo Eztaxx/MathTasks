@@ -2807,8 +2807,22 @@ let printableTasks = [];
 
 // Задачи с учётом диапазона «с какой по какую» — на них и считается лист.
 function printRangeTasks() {
-  const slice = window.MathTasksLib?.sliceTaskRange;
-  return slice ? slice(printableTasks, printOptions.from, printOptions.to) : printableTasks;
+  const { from, to } = printOptions;
+  if (!from && !to) return printableTasks;
+  /* Границы — те самые номера, что напечатаны на карточках. Раньше резалось
+     по месту в списке, и «с 31 по 40» в теме с номерами 1, 2, 31, 32 … брало
+     совсем другие задачи. */
+  const start = from ?? -Infinity;
+  const end = to ?? Infinity;
+  const low = Math.min(start, end);
+  const high = Math.max(start, end);
+  const picked = printableTasks.filter((task, index) => {
+    const number = taskNumber(task, index);
+    return number >= low && number <= high;
+  });
+  /* Номеров в этом промежутке может не оказаться вовсе (после «Вперемешку»
+     или фильтра): тогда честнее отдать пустой список, чем чужие задачи. */
+  return picked;
 }
 
 function chipHtml(name, value, active, label) {
@@ -3034,12 +3048,26 @@ document.addEventListener('input', event => {
   if (!field) return;
   const value = field.value.trim() ? Math.max(1, Math.floor(Number(field.value))) : null;
   printOptions[field.id === 'print-from' ? 'from' : 'to'] = Number.isFinite(value) ? value : null;
+  const error = document.querySelector('#print-error');
+  if (error) error.hidden = true;
   // Размеры подборки считаются от диапазона: «30» на десяти задачах не нужно.
   if (printOptions.count >= printRangeTasks().length) printOptions.count = 0;
   renderPrintDialog();
 });
 
-document.querySelector('#print-form')?.addEventListener('submit', () => {
+document.querySelector('#print-form')?.addEventListener('submit', event => {
+  const tr = window.MathTasks.t || (k => k);
+  const error = document.querySelector('#print-error');
+  if (!printRangeTasks().length) {
+    // Диалог не закрываем: иначе «Печать» просто ничего не делает.
+    event.preventDefault();
+    if (error) {
+      error.textContent = tr('print_range_empty');
+      error.hidden = false;
+    }
+    return;
+  }
+  if (error) error.hidden = true;
   printOptions.fields = Boolean(document.querySelector('#print-fields')?.checked);
   const options = { ...printOptions };
   // Диалог закрывается сам (method="dialog"); печать — следующим кадром,
@@ -5614,9 +5642,15 @@ function markDrillItemSolved(input, taskId) {
   const item = input.closest('.compact-drill-item');
   const statusEl = item?.querySelector('.compact-drill-status');
   setTaskSolved(taskId, true);
-  input.classList.remove('error');
-  input.classList.add('success');
-  input.disabled = true;
+  /* Задача решена целиком, поэтому зеленеют все её ячейки. Раньше
+     закрывалась только та, где нажали Enter, и у решённой строки
+     оставались красные поля, открытые для ввода. */
+  const cells = item ? [...item.querySelectorAll('.compact-drill-input')] : [input];
+  for (const cell of cells) {
+    cell.classList.remove('error');
+    cell.classList.add('success');
+    cell.disabled = true;
+  }
   if (statusEl) {
     statusEl.className = 'compact-drill-status success';
     statusEl.textContent = '✓';

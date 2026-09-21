@@ -452,6 +452,8 @@
   const plainFields = parts => {
     if (parts.length < 2 || parts.length > 5) return null;
     if (!parts.every(part => !part.label && part.pieceCount === 1 && isFieldValue(part.values[0]))) return null;
+    // Точка и промежуток — составные значения: в одно поле их не впишешь.
+    if (parts.some(part => /[();]/.test(part.values[0]))) return null;
     const sameKind = parts.every(part => isNumericValue(part.values[0]) && !/[:]/.test(part.values[0]));
     return parts.map(part => ({
       label: '',
@@ -516,9 +518,18 @@
     });
     const filled = list.filter(Boolean);
     const joined = filled.join('; ');
-    const allCorrect = (correct.length > 0 && correct.every(Boolean) && filled.length === list.length)
-      || (filled.length === list.length && checkTaskAnswer(joined, answer, variants));
-    return { correct, allCorrect, filled: filled.length };
+    const byField = correct.length > 0 && correct.every(Boolean) && filled.length === list.length;
+    /* Подстраховка на случай, когда разбор по полям не сошёлся, а обычная
+       сверка ответ принимает: корни «3; 0,5» можно писать в любом порядке,
+       и поле в поле они тогда не совпадают. */
+    const byWhole = !byField && filled.length === list.length && checkTaskAnswer(joined, answer, variants);
+    /* Раз ответ принят целиком, красных полей быть не должно: раньше
+       ученик видел два красных поля и «Ответ верный» одновременно. */
+    return {
+      correct: byWhole ? list.map(() => true) : correct,
+      allCorrect: byField || byWhole,
+      filled: filled.length
+    };
   };
 
   const matchAnswerParts = (userParts, correctParts) => {
@@ -3003,7 +3014,12 @@
         ? pool.slice(0, size)
         : shuffleArray(pool, random).slice(0, size);
       if (mode === 'shuffle') return sample;
-      if (mode === 'topic') return [...sample].sort((a, b) => place.get(a) - place.get(b));
+      /* Вся тема в нескольких вариантах: задачи у всех одни и те же, и
+         различать листы может только порядок. */
+      const wholeTopic = size === pool.length && sheets > 1;
+      if (mode === 'topic') {
+        return wholeTopic ? sample : [...sample].sort((a, b) => place.get(a) - place.get(b));
+      }
       return sortTasks(sample, mode, { subtopics });
     });
   };

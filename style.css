@@ -2001,6 +2001,9 @@ body.dark .print-dialog .print-range input{border-color:#1c2331;color:#e9eefb}
 .print-dialog .print-check{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:9px;width:auto;font-size:13.5px;color:var(--ink);cursor:pointer}
 .print-dialog .print-check input{flex:none;width:16px;height:16px;margin:0}
 .print-form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:4px}
+.print-error{margin:0;font-size:13px;color:#dc2626}
+.print-error[hidden]{display:none}
+body.dark .print-error{color:#f87171}
 body.dark .print-chip{border-color:#1c2331;color:#e9eefb}
 body.dark .print-chip:hover{border-color:#2c3547}
 body.dark .print-chip.is-active{border-color:#e9eefb;background:#e9eefb;color:#0a0d14}

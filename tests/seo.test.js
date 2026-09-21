@@ -385,3 +385,20 @@ describe('seo: адрес, которого нет', () => {
     expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/exams" />');
   });
 });
+
+/* HEAD раньше отвечал 200 на несуществующий адрес: тело пустое, маркер
+   оболочки не находился, и страница проходила как «файл, отдать как есть». */
+describe('HEAD на несуществующий адрес', () => {
+  it('отвечает 404 без тела', async () => {
+    const env = makeEnv();
+    const response = await renderPage(new Request('https://mathtasks.lv/nothing-here-xyz', { method: 'HEAD' }), env);
+    expect(response.status).toBe(404);
+    expect(await response.text()).toBe('');
+  });
+
+  it('у известной страницы HEAD остаётся успешным', async () => {
+    const env = makeEnv();
+    const response = await renderPage(new Request('https://mathtasks.lv/about', { method: 'HEAD' }), env);
+    expect(response.status).toBe(200);
+  });
+});

@@ -501,7 +501,14 @@ export function injectPage(html, page, lang = 'ru') {
    базы, база ответила ошибкой, ответ не HTML) — отдаём статику как есть:
    страница без подстановки лучше, чем сломанная. */
 export async function renderPage(request, env) {
-  const assetResponse = await env.ASSETS.fetch(request);
+  /* У HEAD тело пустое, и по нему не отличить оболочку приложения от
+     отдельной страницы: маркер не находился, и несуществующий адрес
+     отвечал 200 вместо 404. Поэтому для HEAD спрашиваем страницу как GET,
+     а тело в ответе всё равно не отдаём. */
+  const probe = request.method === 'HEAD'
+    ? new Request(request.url, { method: 'GET', headers: request.headers })
+    : request;
+  const assetResponse = await env.ASSETS.fetch(probe);
   const { pathname } = new URL(request.url);
   const route = routeOf(pathname);
   if (!['GET', 'HEAD'].includes(request.method)) return assetResponse;
