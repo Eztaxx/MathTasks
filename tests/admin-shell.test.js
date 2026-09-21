@@ -57,7 +57,7 @@ describe('каркас админки: меню и экраны', () => {
 
   it('каждый сегмент статуса в каталоге есть среди значений фильтра статуса', () => {
     const segs = [...html.matchAll(/data-seg-status="([\w-]*)"/g)].map(m => m[1]);
-    expect(segs).toEqual(['', 'draft', 'published', 'no_lv']);
+    expect(segs).toEqual(['', 'draft', 'published', 'no_lv', 'no_label']);
     const select = html.match(/<select id="task-filter-status"[\s\S]*?<\/select>/)[0];
     const values = [...select.matchAll(/value="([\w-]*)"/g)].map(m => m[1]);
     expect(segs.filter(v => !values.includes(v))).toEqual([]);

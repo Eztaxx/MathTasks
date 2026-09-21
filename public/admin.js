@@ -99,7 +99,9 @@
      не сохранялся бы — молча, потому что поле просто отбрасывалось. */
   /* Колонки для списка задач: нужны для поиска по условию, фильтрации по чертежам,
      решениям, сортировки по дате и подтемам. */
-  const TASK_LIST_COLS = 'id,title,topic_id,subtopic_id,grade,difficulty,is_published,position,condition_image,solution_image,condition_latex,condition_latex_lv,solution_latex,created_at';
+  /* Ответ в списке нужен отбору «Без подписи ответа»: по нему видно,
+     увидит ли ученик подпись перед полем ввода. */
+  const TASK_LIST_COLS = 'id,title,topic_id,subtopic_id,grade,difficulty,is_published,position,condition_image,solution_image,condition_latex,condition_latex_lv,solution_latex,answer_latex,created_at';
   /* title_lv нужен выгрузке (иначе столбец topic_title_lv пуст у всех задач)
      и импорту — без него тема по латышскому названию не находилась, и
      вместо совпадения заводился дубль. */
@@ -3445,8 +3447,22 @@ ${JSON.stringify(texts)}`;
       if (statusVal === 'with_image' && !hasImage) return false;
       if (statusVal === 'without_image' && hasImage) return false;
       if (statusVal === 'no_lv' && (task.condition_latex_lv || '').trim()) return false;
+      /* «Без подписи ответа» — ответ есть, сверяется, но это голое значение:
+         перед полем ввода ученику нечего показать, и он не знает, что от
+         него хотят. Такую задачу автор переписывает: «AB = 7 см». */
+      if (statusVal === 'no_label' && !needsAnswerLabel(task)) return false;
       return true;
     });
+  }
+
+  /* Ответ без подписи: сверяется автоматически, но имени величины в нём
+     нет — ни подписи перед полем, ни отдельных полей не будет. */
+  function needsAnswerLabel(task) {
+    const lib = window.MathTasksLib;
+    const answer = (task.answer_latex || '').trim();
+    if (!lib || !answer) return false;
+    if (!lib.isTaskAutoCheckable(answer, task.answer_check || '')) return false;
+    return !lib.answerFields(answer, task.answer_check || '').length && !lib.answerLabelMarkup(answer);
   }
 
   function resetTaskFilters() {
@@ -3562,11 +3578,13 @@ ${JSON.stringify(texts)}`;
     /* До загрузки списка числа берём из указателя задач — в нём нет
        латышского условия, поэтому «Без LV» показываем только после загрузки. */
     const source = tasksLoaded ? tasks : taskIndex;
-    const counts = { all: source.length, draft: 0, published: 0, no_lv: tasksLoaded ? 0 : '' };
+    const counts = { all: source.length, draft: 0, published: 0, no_lv: tasksLoaded ? 0 : '', no_label: tasksLoaded ? 0 : '' };
     for (const task of source) {
       if (task.is_published) counts.published++;
       else counts.draft++;
       if (tasksLoaded && !(task.condition_latex_lv || '').trim()) counts.no_lv++;
+      // Ответ в указателе задач не лежит — считаем только по загруженному списку.
+      if (tasksLoaded && needsAnswerLabel(task)) counts.no_label++;
     }
     document.querySelectorAll('[data-seg-count]').forEach(el => {
       el.textContent = counts[el.dataset.segCount] ?? '';

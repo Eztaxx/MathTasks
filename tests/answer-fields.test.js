@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { answerFields, checkAnswerFields, checkTaskAnswer } from '../public/lib.js';
+import { answerFields, buildTaskPrompt, checkAnswerFields, checkTaskAnswer } from '../public/lib.js';
 
 /* Строки ответов взяты из базы как есть: разбор должен держать именно их,
    а не причёсанные примеры. */
@@ -134,5 +134,21 @@ describe('счётные слова в ответе', () => {
   it('буквенный множитель не считается счётным словом', () => {
     expect(checkTaskAnswer('3', '$3ab$')).toBe(false);
     expect(checkTaskAnswer('2', '$2\\pi$')).toBe(false);
+  });
+});
+
+/* Промпт для ИИ должен требовать тот же вид ответа, который сайт умеет
+   разложить на поля: иначе новые задачи снова придут голыми числами. */
+describe('промпт для ИИ про ответы', () => {
+  it('называет правило про имя величины и разбор на поля', () => {
+    const prompt = buildTaskPrompt({ grade: 8, count: 5 });
+    expect(prompt).toContain('Называй величину, которую спрашивают');
+    expect(prompt).toContain('Несколько величин — через запятую');
+    expect(prompt).toContain('по возрастанию');
+    expect(prompt).toContain('промежуток');
+  });
+
+  it('образец строки показывает ответ с именем величины', () => {
+    expect(buildTaskPrompt({ grade: 8, count: 1 })).toContain('c = 10');
   });
 });
