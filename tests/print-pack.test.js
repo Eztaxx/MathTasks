@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPrintVariants, orderTopicsByGrade } from '../public/lib.js';
+import { buildPrintVariants, orderTopicsByGrade, sliceTaskRange } from '../public/lib.js';
 
 // Предсказуемый «случай»: одна и та же подборка при каждом прогоне.
 const seeded = (seed = 1) => () => {
@@ -88,6 +88,40 @@ describe('порядок задач в листе', () => {
   it('неизвестный порядок — как в теме, а не пустой лист', () => {
     const [sheet] = buildPrintVariants(mixed, { order: 'неведомо', random: seeded() });
     expect(ids(sheet)).toEqual([1, 2, 3, 4]);
+  });
+});
+
+describe('диапазон «с какой по какую»', () => {
+  it('берёт задачи с пятой по восьмую включительно', () => {
+    expect(ids(sliceTaskRange(tasks, 5, 8))).toEqual([5, 6, 7, 8]);
+  });
+
+  it('пустое начало — от первой; пустой конец — до последней', () => {
+    expect(ids(sliceTaskRange(tasks, null, 3))).toEqual([1, 2, 3]);
+    expect(sliceTaskRange(tasks, 20, null)).toHaveLength(5);
+  });
+
+  it('обе границы пусты — вся тема', () => {
+    expect(sliceTaskRange(tasks, null, null)).toHaveLength(tasks.length);
+  });
+
+  it('границы перепутаны местами — понимаем как есть', () => {
+    expect(ids(sliceTaskRange(tasks, 8, 5))).toEqual([5, 6, 7, 8]);
+  });
+
+  it('конец за пределами темы — обрезаем по последней задаче', () => {
+    expect(sliceTaskRange(tasks, 20, 500)).toHaveLength(5);
+  });
+
+  it('мусор вместо числа — не сужает список', () => {
+    expect(sliceTaskRange(tasks, 'пять', -3)).toHaveLength(tasks.length);
+  });
+
+  it('подборка считается уже внутри диапазона', () => {
+    const range = sliceTaskRange(tasks, 11, 20);
+    const [sheet] = buildPrintVariants(range, { count: 4, order: 'topic', random: seeded() });
+    expect(sheet).toHaveLength(4);
+    expect(ids(sheet).every(id => id >= 11 && id <= 20)).toBe(true);
   });
 });
 

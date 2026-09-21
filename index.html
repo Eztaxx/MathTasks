@@ -359,6 +359,15 @@
     <p class="print-dialog-lead" data-i18n="print_sheet_lead">Соберите лист для класса: сколько задач, сколько вариантов и что на листе видно.</p>
     <form class="print-form" id="print-form" method="dialog">
       <fieldset class="print-field">
+        <legend data-i18n="print_range_label">С какой по какую задачу</legend>
+        <div class="print-range">
+          <label><span data-i18n="print_range_from">с</span><input type="number" id="print-from" min="1" inputmode="numeric" /></label>
+          <label><span data-i18n="print_range_to">по</span><input type="number" id="print-to" min="1" inputmode="numeric" /></label>
+          <button type="button" class="print-chip" id="print-range-reset" data-i18n="print_range_all">Вся тема</button>
+        </div>
+        <p class="print-field-hint" data-i18n="print_range_hint">Номера по порядку в списке. Пусто — с начала или до конца.</p>
+      </fieldset>
+      <fieldset class="print-field">
         <legend data-i18n="print_count_label">Сколько задач</legend>
         <div class="print-chips" id="print-count-chips"></div>
       </fieldset>

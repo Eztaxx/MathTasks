@@ -1976,6 +1976,12 @@ body.dark .toast-notice{background:rgba(21,33,55,.95);border-color:rgba(255,255,
 .print-chip.is-active{border-color:#111827;background:#111827;color:#fff}
 .print-chip:focus-visible{outline:2px solid #5a92ff;outline-offset:1px}
 /* .auth-dialog ставит своим label колонку по центру — для галочки нужна строка. */
+/* Поля диапазона: .auth-dialog делает своим label колонку по центру. */
+.print-range{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.print-dialog .print-range label{display:flex;flex-direction:row;align-items:center;gap:6px;width:auto;margin:0;font-size:13px;color:var(--muted)}
+.print-dialog .print-range input{width:74px;height:34px;padding:0 9px;border:1px solid var(--line);border-radius:9px;background:transparent;color:var(--ink);font:600 13px Manrope,sans-serif}
+.print-dialog .print-range input:focus-visible{outline:2px solid #5a92ff;outline-offset:1px}
+body.dark .print-dialog .print-range input{border-color:#1c2331;color:#e9eefb}
 .print-dialog .print-check{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:9px;width:auto;font-size:13.5px;color:var(--ink);cursor:pointer}
 .print-dialog .print-check input{flex:none;width:16px;height:16px;margin:0}
 .print-form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:4px}

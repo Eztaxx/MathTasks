@@ -2735,6 +2735,21 @@
   /* Подборка на печать: сколько задач в листе и сколько разных вариантов.
      Вариантов больше одного — каждому своя выборка, чтобы соседи по парте
      решали разное; задач в теме меньше запрошенного — берём сколько есть. */
+  /* Кусок списка «с какой по какую»: номера — порядковые, как их видит
+     учитель на экране. Пустое поле — от начала или до конца, перепутанные
+     местами границы меняем сами, выход за края обрезаем. */
+  const sliceTaskRange = (tasks = [], from = null, to = null) => {
+    const list = Array.isArray(tasks) ? tasks : [];
+    const num = value => {
+      const n = Number(value);
+      return Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
+    };
+    let start = num(from);
+    let end = num(to);
+    if (start && end && start > end) [start, end] = [end, start];
+    return list.slice(start ? start - 1 : 0, end ? Math.min(end, list.length) : list.length);
+  };
+
   const PRINT_ORDERS = ['topic', 'shuffle', 'diff_asc', 'subtopic'];
   const buildPrintVariants = (tasks = [], { count = 0, variants = 1, order = 'topic', random = Math.random, subtopics = [] } = {}) => {
     const pool = Array.isArray(tasks) ? tasks.filter(Boolean) : [];
@@ -2760,6 +2775,7 @@
   const api = {
     orderTopicsByGrade,
     buildPrintVariants,
+    sliceTaskRange,
     makeSlug,
     isLvPath,
     stripLangPath,

@@ -2733,8 +2733,14 @@ const PRINT_CONTENTS = ['blank', 'key', 'full'];
 const PRINT_SPACES = ['none', 'lines', 'half'];
 const PRINT_VARIANTS = [1, 2, 4];
 const PRINT_ORDERS = ['topic', 'shuffle', 'diff_asc', 'subtopic'];
-let printOptions = { count: 0, content: 'blank', space: 'none', variants: 1, order: 'topic', fields: true };
+let printOptions = { count: 0, content: 'blank', space: 'none', variants: 1, order: 'topic', from: null, to: null, fields: true };
 let printableTasks = [];
+
+// Задачи с учётом диапазона «с какой по какую» — на них и считается лист.
+function printRangeTasks() {
+  const slice = window.MathTasksLib?.sliceTaskRange;
+  return slice ? slice(printableTasks, printOptions.from, printOptions.to) : printableTasks;
+}
 
 function chipHtml(name, value, active, label) {
   return `<button type="button" class="print-chip${active ? ' is-active' : ''}" data-print-${name}="${value}" aria-pressed="${active}">${escapeHtml(label)}</button>`;
@@ -2742,7 +2748,22 @@ function chipHtml(name, value, active, label) {
 
 function renderPrintDialog() {
   const tr = window.MathTasks.t || (k => k);
-  const total = printableTasks.length;
+  const total = printRangeTasks().length;
+
+  const from = document.querySelector('#print-from');
+  const to = document.querySelector('#print-to');
+  // В подсказке полей — границы всей темы, чтобы не гадать, сколько задач.
+  if (from) {
+    from.max = String(printableTasks.length);
+    from.placeholder = '1';
+    if (from.value !== (printOptions.from ?? '')) from.value = printOptions.from ?? '';
+  }
+  if (to) {
+    to.max = String(printableTasks.length);
+    to.placeholder = String(printableTasks.length);
+    if (to.value !== (printOptions.to ?? '')) to.value = printOptions.to ?? '';
+  }
+
   const counts = document.querySelector('#print-count-chips');
   if (counts) {
     // Показываем только те размеры, которые в теме наберутся.
@@ -2785,6 +2806,9 @@ function renderPrintDialog() {
 
 function openPrintDialog(tasks) {
   printableTasks = Array.isArray(tasks) ? tasks : [];
+  // Диапазон от прошлой темы к новой не относится.
+  printOptions.from = null;
+  printOptions.to = null;
   if (printOptions.count >= printableTasks.length) printOptions.count = 0;
   renderPrintDialog();
   document.querySelector('#print-dialog')?.showModal();
@@ -2862,14 +2886,15 @@ function buildPrintSheet(options) {
   const sheet = document.querySelector('#print-sheet');
   if (!sheet) return false;
   const build = window.MathTasksLib?.buildPrintVariants;
+  const pool = printRangeTasks();
   const variants = build
-    ? build(printableTasks, {
+    ? build(pool, {
       count: options.count,
       variants: options.variants,
       order: options.order,
       subtopics: allSubtopics
     })
-    : [printableTasks];
+    : [pool];
   if (!variants.some(list => list.length)) return false;
 
   sheet.innerHTML = variants.map((list, i) => printVariantHtml(list, i, variants.length, options)).join('');
@@ -2908,9 +2933,27 @@ document.addEventListener('click', event => {
     renderPrintDialog();
     return;
   }
+  if (event.target.closest?.('#print-range-reset')) {
+    printOptions.from = null;
+    printOptions.to = null;
+    renderPrintDialog();
+    return;
+  }
   if (event.target.closest?.('#print-cancel, #print-dialog-close')) {
     document.querySelector('#print-dialog')?.close();
   }
+});
+
+/* Границы диапазона — числа в полях. Пустое поле значит «с начала» или
+   «до конца», поэтому пустота хранится как null, а не как ноль. */
+document.addEventListener('input', event => {
+  const field = event.target.closest?.('#print-from, #print-to');
+  if (!field) return;
+  const value = field.value.trim() ? Math.max(1, Math.floor(Number(field.value))) : null;
+  printOptions[field.id === 'print-from' ? 'from' : 'to'] = Number.isFinite(value) ? value : null;
+  // Размеры подборки считаются от диапазона: «30» на десяти задачах не нужно.
+  if (printOptions.count >= printRangeTasks().length) printOptions.count = 0;
+  renderPrintDialog();
 });
 
 document.querySelector('#print-form')?.addEventListener('submit', () => {
