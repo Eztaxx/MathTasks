@@ -2728,7 +2728,7 @@ function renderTopicAnchors() {
    решения и ключ с ответами отдельно от листа ученика. Поэтому лист
    собирается в отдельный контейнер #print-sheet, а на бумагу уходит
    только он. */
-const PRINT_COUNTS = [0, 10, 20, 30];
+const PRINT_COUNTS = [0, 5, 10, 20, 30];
 const PRINT_CONTENTS = ['blank', 'key', 'full'];
 const PRINT_SPACES = ['none', 'lines', 'half'];
 const PRINT_VARIANTS = [1, 2, 4];
