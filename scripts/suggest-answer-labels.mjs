@@ -53,6 +53,12 @@ const NOUNS = [
   [/(?<!\p{L})(?:масштаб\p{L}*)(?!\p{L})/iu, 'Масштаб'],
   [/(?<!\p{L})(?:стоимост[ьи])(?!\p{L})/iu, 'Стоимость'],
   [/(?<!\p{L})(?:цен[ауы])(?!\p{L})/iu, 'Цена'],
+  /* Тригонометрия идёт раньше «угла»: в «найдите косинус угла» спрашивают
+     косинус, а не угол, и подпись «Угол» к дроби была бы враньём. */
+  [/(?<!\p{L})косинус\p{L}*(?!\p{L})/iu, 'Косинус'],
+  [/(?<!\p{L})синус\p{L}*(?!\p{L})/iu, 'Синус'],
+  [/(?<!\p{L})тангенс\p{L}*(?!\p{L})/iu, 'Тангенс'],
+  [/(?<!\p{L})котангенс\p{L}*(?!\p{L})/iu, 'Котангенс'],
   [/(?<!\p{L})(?:градусн\p{L}+ мер\p{L}*|угол|угла)(?!\p{L})/iu, 'Угол'],
   [/(?<!\p{L})(?:сумм[ауы])(?!\p{L})/iu, 'Сумма'],
   [/(?<!\p{L})(?:произведени[еяю])(?!\p{L})/iu, 'Произведение'],
@@ -65,13 +71,78 @@ const NOUNS = [
   [/(?<!\p{L})(?:средне[ег]\p{L}* арифметическо\p{L}*)(?!\p{L})/iu, 'Среднее арифметическое']
 ];
 
-const ASK = /(?:найдите|найти|вычислите|определите|чему равн\w*|посчитайте|укажите)([^.?!]{0,90})/i;
+/* «Какова масса…», «Сколько евро…» — тот же вопрос, что и «Найдите…».
+   Без них русская сторона оставалась без подписи там, где латышская её
+   получала, и ученик видел разные поля в двух языках. */
+const ASK = /(найдите|найти|вычислите|определите|чему равн\w*|посчитайте|укажите|какова|каков|каково|сколько)([^.?!]{0,90})/i;
+
+// «Сколько часов», «сколько евро» — величина названа самой единицей.
+const ASK_UNITS = [
+  [/^\s*(?:часов|часа|час)\b/i, 'Время'],
+  [/^\s*(?:минут|мин)\b/i, 'Время'],
+  [/^\s*(?:евро|центов)\b/i, 'Стоимость'],
+  [/^\s*(?:километров|км|метров|сантиметров)\b/i, 'Расстояние'],
+  [/^\s*(?:литров|л)\b/i, 'Объём'],
+  [/^\s*(?:граммов|грамм|килограммов|кг)\b/i, 'Масса'],
+  [/^\s*(?:градусов)\b/i, 'Угол'],
+  [/^\s*(?:процентов)\b/i, 'Доля']
+];
+
+/* Латышская сторона: без неё ученик, читающий сайт по-латышски, видит
+   поле без подписи там, где русский видит «Периметр =». */
+const NOUNS_LV = [
+  [/(?<!\p{L})perimetr\p{L}*(?!\p{L})/iu, 'Perimetrs'],
+  [/(?<!\p{L})laukum\p{L}*(?!\p{L})/iu, 'Laukums'],
+  [/(?<!\p{L})tilpum\p{L}*(?!\p{L})/iu, 'Tilpums'],
+  [/(?<!\p{L})garum\p{L}*(?!\p{L})/iu, 'Garums'],
+  [/(?<!\p{L})platum\p{L}*(?!\p{L})/iu, 'Platums'],
+  [/(?<!\p{L})augstum\p{L}*(?!\p{L})/iu, 'Augstums'],
+  [/(?<!\p{L})rādius\p{L}*(?!\p{L})/iu, 'Rādiuss'],
+  [/(?<!\p{L})diametr\p{L}*(?!\p{L})/iu, 'Diametrs'],
+  [/(?<!\p{L})mas[au](?!\p{L})/iu, 'Masa'],
+  [/(?<!\p{L})ātrum\p{L}*(?!\p{L})/iu, 'Ātrums'],
+  [/(?<!\p{L})laik\p{L}*(?!\p{L})/iu, 'Laiks'],
+  [/(?<!\p{L})attālum\p{L}*(?!\p{L})/iu, 'Attālums'],
+  [/(?<!\p{L})mērogs?(?!\p{L})/iu, 'Mērogs'],
+  [/(?<!\p{L})cen[au](?!\p{L})/iu, 'Cena'],
+  [/(?<!\p{L})leņķ\p{L}*(?!\p{L})/iu, 'Leņķis'],
+  [/(?<!\p{L})summ[au](?!\p{L})/iu, 'Summa'],
+  [/(?<!\p{L})reizinājum\p{L}*(?!\p{L})/iu, 'Reizinājums'],
+  [/(?<!\p{L})starpīb[au](?!\p{L})/iu, 'Starpība'],
+  [/(?<!\p{L})varbūtīb[au](?!\p{L})/iu, 'Varbūtība'],
+  [/(?<!\p{L})skaits?(?!\p{L})/iu, 'Skaits']
+];
+
+const ASK_LV = /(?:aprēķin\p{L}*|atrod\p{L}*|nosaki\p{L}*|noteic\p{L}*|cik)([^.?!]{0,90})/iu;
+
+// Имя величины по-латышски — то же, что по-русски, только словом Skola2030.
+const LABEL_LV = {
+  'Периметр': 'Perimetrs', 'Площадь': 'Laukums', 'Объём': 'Tilpums',
+  'Длина': 'Garums', 'Ширина': 'Platums', 'Высота': 'Augstums',
+  'Радиус': 'Rādiuss', 'Диаметр': 'Diametrs', 'Масса': 'Masa',
+  'Скорость': 'Ātrums', 'Время': 'Laiks', 'Расстояние': 'Attālums',
+  'Масштаб': 'Mērogs', 'Стоимость': 'Izmaksas', 'Цена': 'Cena',
+  'Косинус': 'Kosinuss', 'Синус': 'Sinuss', 'Тангенс': 'Tangenss', 'Котангенс': 'Kotangenss',
+  'Угол': 'Leņķis', 'Сумма': 'Summa', 'Произведение': 'Reizinājums',
+  'Разность': 'Starpība', 'Частное': 'Dalījums', 'Вероятность': 'Varbūtība',
+  'Медиана': 'Mediāna', 'Размах': 'Amplitūda', 'Количество': 'Skaits',
+  'Среднее арифметическое': 'Vidējais aritmētiskais', 'Градусная мера': 'Leņķa lielums'
+};
 
 /* Что спрашивают. Сначала имя в формуле — «Найдите $AB$», потом слово. */
-function suggestLabel(condition) {
-  const ask = ASK.exec(String(condition || ''));
+function suggestLabel(condition, lang = 'ru') {
+  const nouns = lang === 'lv' ? NOUNS_LV : NOUNS;
+  const ask = (lang === 'lv' ? ASK_LV : ASK).exec(String(condition || ''));
   if (!ask) return null;
-  const tail = ask[1];
+  const verb = (lang === 'lv' ? '' : (ask[1] || '')).toLowerCase();
+  const tail = lang === 'lv' ? ask[1] : ask[2];
+
+  /* «Сколько …» спрашивает величину единицей сразу после себя. Общий
+     поиск слова здесь опасен: дальше в предложении стоят данные задачи. */
+  if (verb === 'сколько') {
+    const unit = ASK_UNITS.find(([re]) => re.test(tail));
+    return unit ? { label: unit[1], kind: 'слово' } : null;
+  }
 
   const formula = /\$([^$]{1,14})\$/.exec(tail);
   if (formula) {
@@ -86,8 +157,9 @@ function suggestLabel(condition) {
   /* Берём слово, которое стоит ближе к «Найдите»: в условии их бывает
      несколько («найдите объём и площадь поверхности»). */
   let best = null;
-  for (const [re, label] of NOUNS) {
-    const at = tail.search(re);
+  const head = tail.slice(0, 40);
+  for (const [re, label] of nouns) {
+    const at = head.search(re);
     if (at >= 0 && (!best || at < best.at)) best = { at, label };
   }
   return best ? { label: best.label, kind: 'слово' } : null;
@@ -100,46 +172,72 @@ function withLabel(answer, suggestion) {
   return `$${name} = ${inner}$`;
 }
 
+/* Подпись для одной языковой версии ответа. Возвращает null, если
+   подписывать нечего или предложение не проходит проверку на себе. */
+function planFor(task, lang) {
+  const answer = String((lang === 'lv' ? task.answer_latex_lv : task.answer_latex) || '').trim();
+  const condition = lang === 'lv' ? task.condition_latex_lv : task.condition_latex;
+  const variants = task.answer_check || '';
+  if (!answer) return { skip: 'несверяемые' };
+  if (!lib.isTaskAutoCheckable(answer, variants)) return { skip: 'несверяемые' };
+  if (lib.answerFields(answer, variants).length || lib.answerLabelMarkup(answer)) return { skip: 'естьПодпись' };
+
+  /* Неравенство, тождество и ответ с пояснением в скобках подписывать
+     нельзя: «$m = m > 4$» — бессмыслица. */
+  const bare = answer.replace(/\$/g, '').trim();
+  if (/[=<>≤≥∈]/.test(bare) || /\([^)]*[а-яёa-zāčēģīķļņšūž]{3}/i.test(bare)) return { skip: 'сложныйОтвет' };
+
+  /* Для латышской версии имя берём из русского условия и переводим:
+     отдельный разбор латышского текста ошибался на словах из данных. */
+  const ruSuggestion = suggestLabel(task.condition_latex, 'ru');
+  if (!ruSuggestion) return { skip: 'неНашлиИмя' };
+  const suggestion = lang === 'lv'
+    ? (ruSuggestion.kind === 'формула'
+      ? ruSuggestion
+      : (LABEL_LV[ruSuggestion.label] ? { label: LABEL_LV[ruSuggestion.label], kind: 'слово' } : null))
+    : ruSuggestion;
+  if (!suggestion) return { skip: 'неНашлиИмя' };
+
+  const next = withLabel(answer, suggestion);
+  /* Проверяем предложение на себе: подпись должна появиться, задача —
+     остаться проверяемой, значение — не измениться, а прежний ответ —
+     по-прежнему приниматься. */
+  const parts = lib.parseAnswerParts(next);
+  const ok = Boolean(lib.answerLabelMarkup(next))
+    && lib.isTaskAutoCheckable(next, variants)
+    && lib.checkTaskAnswer(answer, next, variants)
+    && parts.length === 1
+    && Boolean(parts[0].label)
+    && parts[0].pieceCount === 1
+    && lib.normalizeMathAnswer(parts[0].values[0]) === lib.normalizeMathAnswer(answer.replace(/\$/g, ''));
+  if (!ok) return { skip: 'подписьНеПрижилась' };
+  return { answer, next, suggestion };
+}
+
 async function main() {
   const env = loadEnv();
   const key = APPLY ? env.SUPABASE_SERVICE_ROLE_KEY : env.SUPABASE_ANON_KEY;
   const H = { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' };
-  const res = await fetch(env.SUPABASE_URL + '/rest/v1/tasks?select=id,title,condition_latex,answer_latex,answer_check,is_published&order=id', { headers: { ...H, Range: '0-999' } });
-  const tasks = await res.json();
-  if (!Array.isArray(tasks)) throw new Error('Supabase: ' + JSON.stringify(tasks).slice(0, 200));
+    /* Страницами по 1000: Supabase режет выдачу молча, и при росте базы
+     хвост задач просто не попал бы в отчёт. */
+  const tasks = [];
+  for (let from = 0; ; from += 1000) {
+    const res = await fetch(env.SUPABASE_URL + '/rest/v1/tasks?select=id,title,condition_latex,condition_latex_lv,answer_latex,answer_latex_lv,answer_check,is_published&order=id', { headers: { ...H, Range: `${from}-${from + 999}` } });
+    const chunk = await res.json();
+    if (!Array.isArray(chunk)) throw new Error('Supabase: ' + JSON.stringify(chunk).slice(0, 200));
+    tasks.push(...chunk);
+    if (chunk.length < 1000) break;
+  }
 
   const plan = [];
   const skipped = { естьПодпись: 0, несверяемые: 0, сложныйОтвет: 0, неНашлиИмя: 0, подписьНеПрижилась: 0 };
 
   for (const task of tasks) {
-    const answer = (task.answer_latex || '').trim();
-    const variants = task.answer_check || '';
-    if (!answer || !lib.isTaskAutoCheckable(answer, variants)) { skipped.несверяемые++; continue; }
-    if (lib.answerFields(answer, variants).length || lib.answerLabelMarkup(answer)) { skipped.естьПодпись++; continue; }
-
-    /* Неравенство, тождество и ответ с пояснением в скобках подписывать
-       нельзя: «$m = m > 4$» — бессмыслица. */
-    const bare = answer.replace(/\$/g, '').trim();
-    if (/[=<>≤≥∈]/.test(bare) || /\([^)]*[а-яёa-z]{3}/i.test(bare)) { skipped.сложныйОтвет++; continue; }
-
-    const suggestion = suggestLabel(task.condition_latex);
-    if (!suggestion) { skipped.неНашлиИмя++; continue; }
-
-    const next = withLabel(answer, suggestion);
-    /* Проверяем предложение на себе: подпись должна появиться, задача —
-       остаться проверяемой, а прежний ответ — по-прежнему приниматься. */
-    const parts = lib.parseAnswerParts(next);
-    const ok = Boolean(lib.answerLabelMarkup(next))
-      && lib.isTaskAutoCheckable(next, variants)
-      && lib.checkTaskAnswer(answer, next, variants)
-      && parts.length === 1
-      && Boolean(parts[0].label)
-      && parts[0].pieceCount === 1
-      // Значение должно остаться тем же — подпись только добавляется.
-      && lib.normalizeMathAnswer(parts[0].values[0]) === lib.normalizeMathAnswer(answer.replace(/\$/g, ''));
-    if (!ok) { skipped.подписьНеПрижилась++; continue; }
-
-    plan.push({ task, next, suggestion });
+    for (const lang of ['ru', 'lv']) {
+      const result = planFor(task, lang);
+      if (result.skip) { skipped[result.skip]++; continue; }
+      plan.push({ task, lang, ...result });
+    }
   }
 
   console.log(`\nзадач: ${tasks.length}`);
@@ -148,8 +246,8 @@ async function main() {
 
   console.log('\n── что получится ──');
   for (const item of plan.slice(0, LIMIT)) {
-    console.log(`  #${item.task.id} (${item.suggestion.kind})`);
-    console.log(`      было:  ${item.task.answer_latex}`);
+    console.log(`  #${item.task.id} ${item.lang.toUpperCase()} (${item.suggestion.kind})`);
+    console.log(`      было:  ${item.answer}`);
     console.log(`      стало: ${item.next}`);
   }
   if (plan.length > LIMIT) console.log(`  … и ещё ${plan.length - LIMIT}`);
@@ -164,7 +262,7 @@ async function main() {
     const response = await fetch(`${env.SUPABASE_URL}/rest/v1/tasks?id=eq.${item.task.id}`, {
       method: 'PATCH',
       headers: { ...H, Prefer: 'return=minimal' },
-      body: JSON.stringify({ answer_latex: item.next })
+      body: JSON.stringify(item.lang === 'lv' ? { answer_latex_lv: item.next } : { answer_latex: item.next })
     });
     if (!response.ok) {
       console.log(`  #${item.task.id}: ошибка ${response.status} ${(await response.text()).slice(0, 120)}`);
