@@ -645,3 +645,21 @@ describe('sitemap: даты последнего изменения', () => {
     expect(xml.match(/<lastmod>/g)).toHaveLength(3);
   });
 });
+
+/* Несуществующий файл в /assets/ отдавал оболочку приложения с кодом 200:
+   в папке сборки лежат только файлы, HTML там означает «файла нет». */
+describe('/assets/: файла нет', () => {
+  it('отвечает 404, а не HTML', async () => {
+    const env = {
+      ASSETS: {
+        fetch: vi.fn().mockImplementation(async () => new Response('<html><div id="view-home"></div></html>', {
+          status: 200,
+          headers: { 'content-type': 'text/html; charset=utf-8' }
+        }))
+      }
+    };
+    const response = await worker.fetch(new Request('https://mathtasks.lv/assets/nothing.txt'), env);
+    expect(response.status).toBe(404);
+    expect(response.headers.get('content-type')).not.toContain('text/html');
+  });
+});

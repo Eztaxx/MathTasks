@@ -396,8 +396,12 @@ const STALE_ASSET = /^\/assets\/([A-Za-z0-9]+)-[\w-]+\.(css|js)$/;
 async function serveAsset(request, env) {
   const response = await env.ASSETS.fetch(request);
   const url = new URL(request.url);
-  const stale = (response.headers.get('content-type') || '').includes('text/html') && url.pathname.match(STALE_ASSET);
-  if (!stale) return response;
+  const isHtml = (response.headers.get('content-type') || '').includes('text/html');
+  const stale = isHtml && url.pathname.match(STALE_ASSET);
+  /* Файла нет, и на устаревший хеш он не похож: Cloudflare подставляет
+     оболочку приложения, и /assets/nothing.txt отвечал HTML с кодом 200.
+     В папке сборки лежат только файлы — значит, это 404. */
+  if (!stale) return isHtml ? new Response('Not found', { status: 404 }) : response;
 
   const [, name, ext] = stale;
   const shell = await (await env.ASSETS.fetch(new Request(new URL('/', url)))).text();
