@@ -339,7 +339,11 @@
                 <!-- Справа от формы — как задача будет выглядеть на сайте (макет «Админка Skola2030») -->
                 <aside class="adm-preview-col" id="adm-preview-col" aria-label="Как увидит посетитель" aria-hidden="true">
                   <section class="adm-preview">
-                    <div class="adm-preview-head"><span>Как увидит посетитель</span><small id="adm-preview-lang">русский</small><button type="button" class="adm-preview-close" id="adm-preview-close" aria-label="Скрыть превью" title="Скрыть">✕</button></div>
+                    <div class="adm-preview-head"><span>Как увидит посетитель</span><span class="adm-preview-langs" role="group" aria-label="Язык предпросмотра">
+                      <button type="button" class="adm-preview-lang-btn" data-preview-lang="ru" aria-pressed="true">RU</button>
+                      <button type="button" class="adm-preview-lang-btn" data-preview-lang="lv" aria-pressed="false">LV</button>
+                      <button type="button" class="adm-preview-lang-btn" data-preview-lang="both" aria-pressed="false" title="Русский и латышский рядом">оба</button>
+                    </span><button type="button" class="adm-preview-close" id="adm-preview-close" aria-label="Скрыть превью" title="Скрыть">✕</button></div>
                     <div class="adm-preview-body">
                       <div class="adm-preview-path" id="adm-preview-path"></div>
                       <div class="adm-preview-block">

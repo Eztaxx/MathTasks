@@ -1415,6 +1415,12 @@
      задачами и визитами; одиночный язык при открытии задачи — русский. */
   const EDITOR_LANG_KEY = 'mt-admin-editor-lang';
   let currentEditorLang = 'ru';
+  // Пусто — предпросмотр идёт за языком формы, пока его не переключили руками.
+  let previewLang = '';
+  try {
+    const saved = localStorage.getItem('mt-admin-preview-lang');
+    if (['ru', 'lv', 'both'].includes(saved)) previewLang = saved;
+  } catch {}
   try { if (localStorage.getItem(EDITOR_LANG_KEY) === 'both') currentEditorLang = 'both'; } catch {}
 
   function setEditorLanguage(lang) {
@@ -2254,9 +2260,10 @@ ${JSON.stringify(texts)}`;
     topicSelect.value = pool.some(t => String(t.id) === wanted) ? wanted : '';
   }
 
-  /* Темы идут от выбранного класса: его темы первой группой, остальные —
-     второй. Прятать чужие классы нельзя: класс задачи бывает свой, не как
-     у темы, и такая тема всё равно нужна в списке. */
+  /* В списке 135 тем, поэтому при выбранном классе показываем только его
+     темы. Чужие классы не теряются: фильтр по классу всё равно отбирает
+     задачи по классу задачи (с откатом на класс темы), так что чужая тема
+     вместе с классом давала бы пустой список. */
   function updateFilterTopicDropdown() {
     if (!taskFilterTopic) return;
     const grade = parseFormGrade(taskFilterGrade?.value);
@@ -2274,7 +2281,6 @@ ${JSON.stringify(texts)}`;
     } else {
       const label = PLACE_GRADES.find(item => item.g === grade)?.label || gradeText(grade);
       html += `<optgroup label="${escapeHtml(label)}">${split.current.map(option).join('')}</optgroup>`;
-      if (split.rest.length) html += `<optgroup label="Остальные классы">${split.rest.map(option).join('')}</optgroup>`;
     }
     taskFilterTopic.innerHTML = html;
     /* Тема чужого класса сбрасывается: иначе после смены класса список
@@ -2673,8 +2679,11 @@ ${JSON.stringify(texts)}`;
   function renderVisitorPreview() {
     const cond = byId('adm-preview-cond');
     if (!cond) return;
-    const both = currentEditorLang === 'both';
-    const lv = currentEditorLang === 'lv';
+    /* У предпросмотра свой язык: в режиме «оба» карточка вдвое длиннее, и
+       чаще нужно посмотреть одну версию, не переключая язык всей формы. */
+    const lang = previewLang || currentEditorLang;
+    const both = lang === 'both';
+    const lv = lang === 'lv';
     // В режиме «RU + LV» основной текст русский, латышский — под ним.
     const value = (ruInput, lvInput) => ((lv ? lvInput : ruInput)?.value || '').trim();
     const put = (el, text, emptyText) => {
@@ -2697,8 +2706,11 @@ ${JSON.stringify(texts)}`;
       el.append(box);
       put(box.lastElementChild, (lvInput?.value || '').trim(), 'Перевода пока нет');
     };
-    const lang = byId('adm-preview-lang');
-    if (lang) lang.textContent = both ? 'RU + LV' : (lv ? 'latviešu' : 'русский');
+    document.querySelectorAll('[data-preview-lang]').forEach(btn => {
+      const active = btn.dataset.previewLang === (previewLang || currentEditorLang);
+      btn.classList.toggle('is-on', active);
+      btn.setAttribute('aria-pressed', String(active));
+    });
 
     const grade = parseFormGrade(taskGradeSelect?.value);
     const topic = topics.find(t => String(t.id) === topicSelect?.value);
@@ -2720,8 +2732,8 @@ ${JSON.stringify(texts)}`;
     const answer = value(answerInput, answerInputLv);
     const hintWrap = byId('adm-preview-hint-wrap');
     const answerWrap = byId('adm-preview-answer-wrap');
-    if (hintWrap) hintWrap.hidden = false;
-    if (answerWrap) answerWrap.hidden = false;
+    if (hintWrap) hintWrap.hidden = both && !hint && !(hintInputLv?.value || '').trim();
+    if (answerWrap) answerWrap.hidden = both && !answer && !(answerInputLv?.value || '').trim();
     const hintEl = byId('adm-preview-hint');
     const answerEl = byId('adm-preview-answer');
     put(hintEl, hint, 'Подсказки пока нет');
@@ -2994,6 +3006,14 @@ ${JSON.stringify(texts)}`;
   /* ── «Как увидит посетитель» выдвигается кнопкой в шапке редактора и
      помнит, открыта ли. По умолчанию закрыта — форма на всю ширину. ── */
   const PREVIEW_KEY = 'mt-admin-preview-open';
+  const PREVIEW_LANG_KEY = 'mt-admin-preview-lang';
+  document.querySelectorAll('[data-preview-lang]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      previewLang = btn.dataset.previewLang;
+      try { localStorage.setItem(PREVIEW_LANG_KEY, previewLang); } catch {}
+      renderVisitorPreview();
+    });
+  });
   function setPreviewOpen(open, remember = true) {
     const body = document.querySelector('.adm-editor-body');
     if (!body) return;
@@ -3210,7 +3230,7 @@ ${JSON.stringify(texts)}`;
 
   // Класс может быть числом или курсом старшей школы (gradeRank объявлен выше).
   const byText = (a, b) => String(a || '').localeCompare(String(b || ''), 'ru');
-  const DIFFICULTY_RANK = { 'Лёгкий': 1, 'Средний': 2, 'Сложный': 3 };
+  const difficultyRank = value => window.MathTasksLib?.getDifficultyWeight?.(value) ?? 2;
 
   function sortTasks(list) {
     const mode = taskFilterSort?.value || 'recent';
@@ -3242,12 +3262,12 @@ ${JSON.stringify(texts)}`;
       case 'diff_asc':
       case 'difficulty':
         return copy.sort((a, b) =>
-          (DIFFICULTY_RANK[a.difficulty] || 9) - (DIFFICULTY_RANK[b.difficulty] || 9)
+          difficultyRank(a.difficulty) - difficultyRank(b.difficulty)
           || (a.position ?? 0) - (b.position ?? 0)
           || byText(a.title, b.title));
       case 'diff_desc':
         return copy.sort((a, b) =>
-          (DIFFICULTY_RANK[b.difficulty] || 9) - (DIFFICULTY_RANK[a.difficulty] || 9)
+          difficultyRank(b.difficulty) - difficultyRank(a.difficulty)
           || (a.position ?? 0) - (b.position ?? 0)
           || byText(a.title, b.title));
       case 'status':
@@ -3367,6 +3387,11 @@ ${JSON.stringify(texts)}`;
     renderTaskList();
   }
 
+  function difficultyTone(value) {
+    const weight = window.MathTasksLib?.getDifficultyWeight?.(value) ?? 2;
+    return weight <= 1 ? 'ok' : (weight >= 3 ? 'bad' : 'warn');
+  }
+
   function renderTaskList() {
     // Список ещё не запрошен: на экране блок с кнопкой, рисовать нечего.
     if (!tasksLoaded) return;
@@ -3415,7 +3440,7 @@ ${JSON.stringify(texts)}`;
       const hasSolution = Boolean((task.solution_latex || '').trim() || task.solution_image);
       const image = task.condition_image || task.solution_image;
       const flags = [
-        task.difficulty ? `<span class="adm-tflag">${escapeHtml(task.difficulty)}</span>` : '',
+        task.difficulty ? `<span class="adm-chip ${difficultyTone(task.difficulty)}">${escapeHtml(task.difficulty)}</span>` : '',
         !task.topic_id ? '<span class="adm-tflag bad">без темы</span>' : '',
         !hasSolution ? '<span class="adm-tflag warn">без решения</span>' : '',
         image ? `<span class="adm-tflag" title="${escapeHtml(image)}">чертёж</span>` : ''
