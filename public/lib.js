@@ -364,15 +364,16 @@
      полями не разложить: кусков и скобок может быть сколько угодно, такой
      ответ остаётся строкой. */
   const RANGE_RE = /^([([])\s*([^;()\][]+)\s*;\s*([^;()\][]+)\s*([)\]])$/;
-  const rangeFields = (value, hasIn) => {
+  const rangeFields = (value, hasIn, name = 'x') => {
     if (!hasIn) return null;
     const match = String(value || '').trim().match(RANGE_RE);
     if (!match) return null;
     const [, open, from, to, close] = match;
     if (!isNumericValue(from) || !isNumericValue(to)) return null;
+    const who = String(name || 'x').trim() || 'x';
     return [
-      { label: open === '[' ? '$\\geq$' : '$>$', unit: '', value: from.trim() },
-      { label: close === ']' ? '$\\leq$' : '$<$', unit: '', value: to.trim() }
+      { label: '$' + who + (open === '[' ? ' \\geq' : ' >') + '$', unit: '', value: from.trim() },
+      { label: '$' + who + (close === ']' ? ' \\leq' : ' <') + '$', unit: '', value: to.trim() }
     ];
   };
 
@@ -404,7 +405,8 @@
     // Один кусок — это точка или промежуток.
     if (parts.length === 1 && parts[0].pieceCount === 1) {
       const single = parts[0].values[0];
-      return pointFields(single) || rangeFields(single, /\\in|∈/.test(text)) || [];
+      const hasIn = /\\in|∈/.test(text);
+      return rangeFields(single, hasIn, parts[0].label) || pointFields(single) || [];
     }
 
     if (parts.every(part => part.label && part.pieceCount === 1 && part.values.length)) {

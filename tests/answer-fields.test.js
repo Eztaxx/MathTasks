@@ -53,8 +53,8 @@ describe('поля ответа по величинам', () => {
     expect(answerFields('$B(3; 4)$').map(field => field.label)).toEqual(['$x_{B} =$', '$y_{B} =$']);
   });
 
-  it('промежуток — поля под границы, со знаком строгости', () => {
-    expect(answerFields('$x \\in (-3; 5]$').map(field => field.label)).toEqual(['$>$', '$\\leq$']);
+  it('промежуток — поля под границы, с именем переменной и знаком строгости', () => {
+    expect(answerFields('$x \\in (-3; 5]$').map(field => field.label)).toEqual(['$x >$', '$x \\leq$']);
   });
 
   it('объединение промежутков полями не раскладывается', () => {
