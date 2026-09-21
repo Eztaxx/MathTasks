@@ -23,7 +23,7 @@ const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '
    в globalThis. Импортировать его отсюда нельзя (тесты это делают через
    vitest), поэтому просто исполняем текст и берём то, что он положил. */
 new Function(readFileSync(ROOT + 'public/lib.js', 'utf8'))();
-const { answerFields, checkTaskAnswer, isTaskAutoCheckable, answerLabelMarkup } = globalThis.MathTasksLib;
+const { answerFields, checkAnswerFields, checkTaskAnswer, isTaskAutoCheckable, answerLabelMarkup } = globalThis.MathTasksLib;
 const argv = process.argv.slice(2);
 const VERBOSE = argv.includes('--verbose');
 const LIMIT = argv.includes('--limit') ? Number(argv[argv.indexOf('--limit') + 1]) : 12;
@@ -69,9 +69,9 @@ async function main() {
     const fields = answerFields(answer, variants);
     if (fields.length) {
       kinds.fields.push({ task, fields });
-      // Склейка значений через «;» — то, что уходит в проверку из полей.
-      const joined = fields.map(field => field.value).join('; ');
-      if (!checkTaskAnswer(joined, answer, variants)) {
+      /* Проверяем тем же путём, каким идёт ответ ученика: у точки и
+         промежутка значения собираются в «(x; y)», а не в список. */
+      if (!checkAnswerFields(fields.map(field => field.value), answer, variants).allCorrect) {
         broken.push({ ...task, why: 'разбор по полям не сходится с проверкой' });
       }
       continue;

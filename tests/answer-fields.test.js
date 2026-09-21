@@ -233,3 +233,22 @@ describe('подписи словами', () => {
     expect(checkAnswerFields(['1 : 2\\,000\\,000', '90'], NAMED).allCorrect).toBe(true);
   });
 });
+
+/* Границы промежутка сверяем по отдельности: пересборка строки круглыми
+   скобками не совпадала с «[1; 4)», и верный ответ отмечался ошибкой. */
+describe('границы промежутка со скобками', () => {
+  it('квадратная скобка не мешает засчитать ответ', () => {
+    expect(checkAnswerFields(['1', '4'], '$k \\in [1; 4)$').allCorrect).toBe(true);
+    expect(checkAnswerFields(['-2', '5'], '$x \\in [-2; 5]$').allCorrect).toBe(true);
+  });
+
+  it('неверная граница видна по своему полю', () => {
+    const result = checkAnswerFields(['1', '5'], '$k \\in [1; 4)$');
+    expect(result.correct).toEqual([true, false]);
+    expect(result.allCorrect).toBe(false);
+  });
+
+  it('бесконечную границу полем не вводят — ответ остаётся строкой', () => {
+    expect(answerFields('$x \\in [2; +\\infty)$')).toEqual([]);
+  });
+});

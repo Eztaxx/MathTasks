@@ -410,6 +410,8 @@
     if (!match) return null;
     const [, open, from, to, close] = match;
     if (!isNumericValue(from) || !isNumericValue(to)) return null;
+    // Бесконечную границу в поле не впишешь — такой ответ остаётся строкой.
+    if (/\\infty|∞/.test(from) || /\\infty|∞/.test(to)) return null;
     const who = String(name || 'x').trim() || 'x';
     return [
       { label: '$' + who + (open === '[' ? ' \\geq' : ' >') + '$', unit: '', value: from.trim() },
@@ -495,12 +497,16 @@
   const checkAnswerFields = (values, answer, variants = '') => {
     const list = Array.isArray(values) ? values.map(v => String(v ?? '').trim()) : [];
     const parts = parseAnswerParts(answer);
-    /* Точка и промежуток — один ответ из двух полей: собираем обратно
-       «(x; y)» и сверяем целиком, а не по кускам. */
+    /* Точка и промежуток — один ответ из двух полей. Сверяем каждое поле
+       со своей половиной эталона, а не пересобираем строку: у промежутка
+       «[1; 4)» скобки разные, и сборка круглыми не совпадала с ответом. */
     if (parts.length === 1 && list.length === 2) {
-      const filled = list.filter(Boolean).length;
-      const ok = filled === 2 && checkTaskAnswer('(' + list[0] + '; ' + list[1] + ')', answer, variants);
-      return { correct: list.map(() => ok), allCorrect: ok, filled };
+      const pair = answerFields(answer, variants);
+      if (pair.length === 2) {
+        const correct = list.map((value, i) => Boolean(value) && compareAnswers(value, pair[i].value));
+        const filled = list.filter(Boolean).length;
+        return { correct, allCorrect: filled === 2 && correct.every(Boolean), filled };
+      }
     }
     const correct = list.map((value, i) => {
       if (!value || !parts[i]) return false;
