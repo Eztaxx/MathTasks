@@ -168,13 +168,68 @@ describe('разные величины подряд', () => {
     expect(answerFields('$3; 5$').every(field => field.ordered === true)).toBe(true);
   });
 
-  it('единицу подписывает только у простого «число + единица»', () => {
-    expect(answerFields(SCALE_TIME)[1].unit).toBe('');
+  /* У составного времени подписываем поле минутами: ученик пишет одно
+     число, а сверка принимает и «1 ч 30 мин», и «1,5 ч». */
+  it('время подписано минутами, обычная величина — своей единицей', () => {
+    expect(answerFields(SCALE_TIME)[1].unit).toBe('мин');
     expect(answerFields('$12\\text{ см}$, $7\\text{ кг}$')[0].unit).toBe('см');
+  });
+
+  it('одно число в поле времени принимается как минуты', () => {
+    expect(checkAnswerFields(['1 : 2\\,000\\,000', '90'], SCALE_TIME).allCorrect).toBe(true);
   });
 
   it('значения принимаются по полям', () => {
     const result = checkAnswerFields(['1 : 2\\,000\\,000', '1\\text{ ч } 30\\text{ мин}'], SCALE_TIME);
     expect(result.allCorrect).toBe(true);
+  });
+});
+
+/* Время ученик записывает как привык. Все записи ниже — одно и то же,
+   и проверка обязана принимать любую: иначе верный ответ не засчитан
+   из-за формы. */
+describe('время в разных записях', () => {
+  const COMPOUND = '$1\\text{ ч } 30\\text{ мин}$';
+  const MINUTES = '$90\\text{ мин}$';
+
+  it('«1 ч 30 мин», «90 мин» и «1,5 ч» — одно и то же', () => {
+    expect(checkTaskAnswer('1 ч 30 мин', MINUTES)).toBe(true);
+    expect(checkTaskAnswer('1,5 ч', MINUTES)).toBe(true);
+    expect(checkTaskAnswer('90 мин', COMPOUND)).toBe(true);
+    expect(checkTaskAnswer('1,5 часа', COMPOUND)).toBe(true);
+  });
+
+  it('по-латышски тоже: stundas и minūtes', () => {
+    expect(checkTaskAnswer('1 st 30 min', MINUTES)).toBe(true);
+    expect(checkTaskAnswer('90 min', COMPOUND)).toBe(true);
+  });
+
+  it('одно число — это минуты, как подписано у поля', () => {
+    expect(checkTaskAnswer('90', COMPOUND)).toBe(true);
+    expect(checkTaskAnswer('90', MINUTES)).toBe(true);
+  });
+
+  it('неверное время не проходит', () => {
+    expect(checkTaskAnswer('1 ч 20 мин', MINUTES)).toBe(false);
+    expect(checkTaskAnswer('80', COMPOUND)).toBe(false);
+  });
+
+  it('не время трогать нельзя: «2 кг» и «120 мин» — разные ответы', () => {
+    expect(checkTaskAnswer('2 кг', MINUTES)).toBe(false);
+  });
+});
+
+/* Подпись словами — то, как автор называет величину в условии. Без неё
+   ученик гадает, что вписывать: «Масштаб карты» или «Время». */
+describe('подписи словами', () => {
+  const NAMED = 'Масштаб карты = 1 : 2\\,000\\,000; Время = 90 мин';
+
+  it('подпись из нескольких слов не ломает разбор', () => {
+    const fields = answerFields(NAMED);
+    expect(fields.map(field => field.label)).toEqual(['Масштаб карты =', 'Время =']);
+  });
+
+  it('значения при этом проверяются по полям', () => {
+    expect(checkAnswerFields(['1 : 2\\,000\\,000', '90'], NAMED).allCorrect).toBe(true);
   });
 });

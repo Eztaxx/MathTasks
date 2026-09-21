@@ -147,6 +147,35 @@
     .replace(/[\s;,]+$/, '')
     .trim();
 
+  /* Время ученик пишет как привык: «1 ч 30 мин», «90 мин», «1,5 часа».
+     Переводим любую запись в минуты и сверяем числа — иначе верный ответ
+     не проходил только из-за формы записи. */
+  const TIME_UNITS = [
+    [/^(?:ч|час(?:а|ов|у)?|h|st|stund(?:a|as|u))$/i, 60],
+    [/^(?:мин|минут(?:а|ы|у)?|min|minūt(?:e|es|i))$/i, 1],
+    [/^(?:с|сек|секунд(?:а|ы|у)?|sek|sekund(?:e|es)?)$/i, 1 / 60]
+  ];
+  const unitWeight = word => {
+    for (const [re, weight] of TIME_UNITS) if (re.test(word)) return weight;
+    return null;
+  };
+  const timeToMinutes = str => {
+    const text = String(str || '').trim();
+    if (!text) return null;
+    const chunks = [...text.matchAll(/(-?\d+(?:\.\d+)?)\s*([a-zа-яёāčēģīķļņšūž]+)?/gi)];
+    if (!chunks.length) return null;
+    let total = 0;
+    let seen = false;
+    for (const [, num, word] of chunks) {
+      if (!word) return null;
+      const weight = unitWeight(word);
+      if (weight === null) return null;
+      total += Number(num) * weight;
+      seen = true;
+    }
+    return seen ? total : null;
+  };
+
   const parseFractionOrNumber = str => {
     if (/^-?\d+(\.\d+)?$/.test(str)) return parseFloat(str);
     const frac = str.match(/^(-?\d+)\/(\d+)$/);
@@ -173,6 +202,13 @@
        верный ответ отмечался как ошибка. Сравниваем ещё раз, сняв единицы
        с обеих сторон; если после этого не осталось чисел, поблажка не
        применяется, чтобы «см» не совпало с «кг». */
+    const timeU = timeToMinutes(u);
+    const timeC = timeToMinutes(c);
+    if (timeU !== null && timeC !== null && Math.abs(timeU - timeC) < 1e-6) return true;
+    /* Ученик написал одно число, а эталон — время: поле подписано минутами,
+       значит число и есть минуты. */
+    if (timeC !== null && /^-?\d+(\.\d+)?$/.test(u) && Math.abs(Number(u) - timeC) < 1e-6) return true;
+
     const uBare = stripUnits(u);
     const cBare = stripUnits(c);
     /* Поблажка только тогда, когда ученик единицу вовсе не писал. Если
@@ -260,7 +296,11 @@
       .replace(/([a-zа-яё])\d+/gi, '$1');
     if (/[0-9+\-*/^=<>≤≥]/.test(text)) return false;
     const groups = text.match(new RegExp(`[${ANSWER_LETTER}]+`, 'gi')) || [];
-    return groups.length <= 1 || groups.every(group => group.length === 1);
+    if (groups.length <= 1 || groups.every(group => group.length === 1)) return true;
+    /* Подпись словами — «Масштаб карты», «Время в пути». Так автор
+       называет величину, которую спрашивают, и ученик видит её над полем.
+       Формулы сюда не попадают: цифры и знаки действий отсеяны выше. */
+    return groups.length <= 3 && /^[\s\p{L}.,-]+$/u.test(text.trim());
   };
 
   const normalizeAnswerLabel = label => String(label || '')
@@ -381,7 +421,15 @@
      единиц две, и подпись «мин» справа от поля врала бы: вписывать нужно всё. */
   const simpleUnitOf = value => {
     const groups = String(value || '').match(/\\(?:text|mathrm)\{[^{}]*\}/g) || [];
-    return groups.length === 1 ? answerUnitOf(value) : '';
+    if (groups.length === 1) return answerUnitOf(value);
+    /* «1 ч 30 мин» — две единицы. Поле подписываем самой мелкой из них
+       (минутами): ученик пишет одно число, а сверка принимает и
+       «1 ч 30 мин», и «1,5 ч». Слово берём из самого ответа — в латышской
+       версии там «min». */
+    if (groups.length > 1 && timeToMinutes(normalizeMathAnswer(value)) !== null) {
+      return groups[groups.length - 1].replace(/\\(?:text|mathrm)\{|\}/g, '').trim();
+    }
+    return '';
   };
 
   /* Значение поля: число, выражение или величина с единицей. Единицы в
