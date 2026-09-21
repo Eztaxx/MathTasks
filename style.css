@@ -1987,11 +1987,11 @@ body.dark .print-chip.is-active{border-color:#e9eefb;background:#e9eefb;color:#0
 .print-sheet[hidden]{display:none}
 
 /* ── Печать ──────────────────────────────────────────────────────── */
-@page{size:A4;margin:18mm 20mm 14mm}
+@page{size:A4;margin:12mm}
 @media print{
   /* Лист собран заранее — на бумагу уходит только он. */
   body.printing-sheet > *:not(#print-sheet){display:none!important}
-  body.printing-sheet #print-sheet{position:static;display:block;width:auto;margin:0;color:#000}
+  body.printing-sheet #print-sheet{position:static;display:block;width:auto;margin:0;padding:10mm 12mm 0;color:#000}
   body.printing-sheet{background:#fff}
   .print-variant{break-after:page;page-break-after:always}
   .print-variant:last-child{break-after:auto;page-break-after:auto}
