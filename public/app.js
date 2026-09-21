@@ -1432,6 +1432,9 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
     `<div class="task-actions">${shareBtn}${favBtn}${reportBtn}</div>`
   ].filter(Boolean).join('');
   const unit = answerUnit(task);
+  /* Заготовка ответа: «AC =» перед полем и единица после него. Ученику
+     остаётся вписать значение, а не переписывать ответ целиком. */
+  const answerLabel = answerLabelOf(task);
 
   const reveal = taskRevealState(task);
   const selfCheck = reveal.checkable ? `
@@ -1442,6 +1445,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
       </ul>
       <div class="quick-math-bar" hidden aria-label="Quick Math Bar"></div>
       <form class="self-check-form" data-check-id="${task.id}">
+        ${answerLabel ? '<span class="answer-label math" data-answer-label></span>' : ''}
         <input type="text" class="self-check-input" placeholder="${escapeHtml(tr('self_check_placeholder'))}" aria-label="${escapeHtml(tr('self_check_placeholder'))}" autocomplete="off" ${solved ? `disabled value="${escapeHtml(tr('solved_badge'))}"` : ''} />
         ${unit ? `<span class="answer-unit">${escapeHtml(unit)}</span>` : ''}
         <button type="submit" class="self-check-btn" ${solved ? 'hidden' : ''}>${escapeHtml(tr('self_check_btn'))}</button>
@@ -1580,6 +1584,10 @@ window.addEventListener('beforeprint', () => renderPendingMath(document));
 function fillTaskMath(container, tasks) {
   container.querySelectorAll('[data-condition]').forEach((element, index) => {
     renderMath(element, loc(tasks[index], 'condition_latex'));
+  });
+  const labelSource = tasks.filter(task => answerLabelOf(task));
+  container.querySelectorAll('[data-answer-label]').forEach((element, index) => {
+    renderMath(element, answerLabelOf(labelSource[index]));
   });
   const answerSource = tasks.filter(task => loc(task, 'answer_latex'));
   container.querySelectorAll('[data-answer]').forEach((element, index) => {
@@ -1726,6 +1734,13 @@ function singleTaskView(tasks, index, cardOptions) {
 
 /* Единица ответа («см», «м²», «кг») — подпись у поля, как в образце. Берём
    из хвоста ответа (\text{ см}); значение ответа этим не раскрывается. */
+/* Подпись ответа задачи («$AC =$») — пусто, если ответ без имени величины
+   или состоит из нескольких частей. */
+function answerLabelOf(task) {
+  const markup = window.MathTasksLib?.answerLabelMarkup;
+  return markup ? markup(loc(task, 'answer_latex')) : '';
+}
+
 function answerUnit(task) {
   const match = String(loc(task, 'answer_latex') || '').match(/\\(?:text|mathrm)\{\s*([^{}]{1,8}?)\s*\}(\^\{?[23]\}?)?\s*\$*\s*$/);
   if (!match || !/\p{L}/u.test(match[1])) return '';
@@ -1797,6 +1812,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
             <div class="compact-drill-expr math" data-drill-condition="${task.id}"></div>
             <div class="compact-drill-answer-wrap">
               ${hasAnswer ? `
+                ${answerLabelOf(task) ? `<span class="answer-label math" data-drill-label="${task.id}"></span>` : ''}
                 <input type="text" 
                        class="compact-drill-input${solved ? ' success' : ''}" 
                        data-drill-id="${task.id}" 
@@ -1831,6 +1847,11 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     `;
 
     container.innerHTML = `<div class="task-compact-container">${bannerHtml}<div class="task-compact-grid">${itemsHtml}</div>${moreButton(tasks.length)}</div>`;
+
+    container.querySelectorAll('[data-drill-label]').forEach(el => {
+      const task = currentTasksMap.get(Number(el.dataset.drillLabel));
+      if (task) renderMath(el, answerLabelOf(task));
+    });
 
     // Рендерим формулы в примерах через KaTeX
     container.querySelectorAll('[data-drill-condition]').forEach(el => {
@@ -2830,6 +2851,13 @@ function printTaskHtml(task, index, options) {
   const solutionBlock = solution
     ? `<div class="print-solution math" data-print-latex="${escapeHtml(solution)}"></div>`
     : '';
+  const label = answerLabelOf(task);
+  const unit = answerUnit(task);
+  /* Заготовка ответа на бумаге: подпись, черта и единица. Ученик дописывает
+     только значение — как и в поле ввода на сайте. */
+  const answerLine = (options.content !== 'full' && (label || unit))
+    ? `<div class="print-answer-line">${label ? `<span class="math" data-print-latex="${escapeHtml(label)}"></span>` : ''}<span class="print-blank"></span>${unit ? `<span class="print-unit">${escapeHtml(unit)}</span>` : ''}</div>`
+    : '';
   const spaceBlock = (options.content !== 'full' && options.space !== 'none')
     ? `<div class="print-space print-space-${options.space}"></div>`
     : '';
@@ -2841,6 +2869,7 @@ function printTaskHtml(task, index, options) {
         ${figure}
         ${solutionBlock}
         ${spaceBlock}
+        ${answerLine}
       </div>
     </li>`;
 }

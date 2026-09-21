@@ -294,6 +294,23 @@
     }).filter(part => part.values.length);
   };
 
+  /* Заготовка ответа: подпись слева от «=» — «$AC = 11$ см» → «$AC =$».
+     Ученик вписывает только значение, а не переписывает всю строку. У ответа
+     из нескольких частей («x = 2; y = 3») подписи нет: одно поле ввода не
+     покажет её честно. */
+  const answerLabelMarkup = raw => {
+    const text = String(raw || '');
+    const parts = parseAnswerParts(text);
+    if (parts.length !== 1 || !parts[0].label) return '';
+    const eq = text.indexOf('=');
+    if (eq < 1 || text.indexOf('=', eq + 1) > 0) return '';
+    const left = text.slice(0, eq).trim();
+    if (!left || !/[^$\\\s]/.test(left)) return '';
+    // Нечётное число «$» значит, что формула осталась открытой — закрываем её.
+    const open = (left.match(/\$/g) || []).length % 2 === 1;
+    return open ? `${left} =$` : `${left} =`;
+  };
+
   const answerPartMatches = (userPart, correctPart) => {
     if (userPart.label && correctPart.label
       && normalizeAnswerLabel(userPart.label) !== normalizeAnswerLabel(correctPart.label)
@@ -2801,6 +2818,7 @@
     isTaskAutoCheckable,
     checkTaskAnswer,
     parseAnswerParts,
+    answerLabelMarkup,
     localDateKey,
     computeStreak,
     buildActivityWeeks,

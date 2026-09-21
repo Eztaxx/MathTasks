@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPrintVariants, orderTopicsByGrade, sliceTaskRange } from '../public/lib.js';
+import { answerLabelMarkup, buildPrintVariants, orderTopicsByGrade, sliceTaskRange } from '../public/lib.js';
 
 // Предсказуемый «случай»: одна и та же подборка при каждом прогоне.
 const seeded = (seed = 1) => () => {
@@ -122,6 +122,30 @@ describe('диапазон «с какой по какую»', () => {
     const [sheet] = buildPrintVariants(range, { count: 4, order: 'topic', random: seeded() });
     expect(sheet).toHaveLength(4);
     expect(ids(sheet).every(id => id >= 11 && id <= 20)).toBe(true);
+  });
+});
+
+describe('заготовка ответа', () => {
+  it('подпись величины остаётся формулой, а не голым текстом', () => {
+    expect(answerLabelMarkup('$AC = 11\\text{ см}$')).toBe('$AC =$');
+    expect(answerLabelMarkup('$x = 5$')).toBe('$x =$');
+    expect(answerLabelMarkup('$a_{20} = 61$')).toBe('$a_{20} =$');
+  });
+
+  it('ответ без имени величины подписи не получает', () => {
+    expect(answerLabelMarkup('$15\\text{ €}$')).toBe('');
+    expect(answerLabelMarkup('$\\frac{2}{3}$')).toBe('');
+    expect(answerLabelMarkup('')).toBe('');
+  });
+
+  it('несколько частей — подписи нет: одно поле ввода не покажет её честно', () => {
+    expect(answerLabelMarkup('$x = 2;\\; y = 3$')).toBe('');
+    expect(answerLabelMarkup('$x_1 = 3$, $x_2 = -1$')).toBe('');
+  });
+
+  it('тождество и сравнение подписью не считаются', () => {
+    expect(answerLabelMarkup('$\\frac{5}{6} > \\frac{7}{9}$')).toBe('');
+    expect(answerLabelMarkup('$-12x + 10$')).toBe('');
   });
 });
 

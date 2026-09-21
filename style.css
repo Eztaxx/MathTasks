@@ -743,6 +743,7 @@ body.dark .task .task-self-check{background:none}
 .task .self-check-input:focus{border-color:#1764ff;box-shadow:0 0 0 3px #1764ff1f}
 body.dark .task .self-check-input{background:#0a0d14;border-color:#232b3b;color:#edf2ff}
 body.dark .task .self-check-input:focus{border-color:#5a92ff}
+.answer-label{flex:none;color:var(--muted);font-size:14px;white-space:nowrap}
 .answer-unit{flex:none;font-size:14px;color:var(--muted)}
 .task .self-check-btn{height:40px;padding:0 18px;border-radius:10px;font:700 13px Manrope,sans-serif}
 
@@ -2017,6 +2018,9 @@ body.dark .print-chip.is-active{border-color:#e9eefb;background:#e9eefb;color:#0
   .print-task-body .katex-display{margin:4px 0;max-width:100%;overflow:hidden}
   .print-figure{display:block;max-width:52mm;max-height:45mm;object-fit:contain;margin:4px 0}
   .print-solution{margin-top:5px;padding-left:8px;border-left:2px solid #999;font-size:9.5pt;line-height:1.35}
+  .print-answer-line{display:flex;align-items:baseline;gap:6px;margin-top:3px;font-size:10.5pt}
+  .print-blank{flex:0 1 42mm;border-bottom:1px solid #000;height:1em}
+  .print-unit{flex:none}
   .print-space-lines{height:11mm}
   .print-space-half{height:85mm}
   .print-key{break-before:page;page-break-before:always;padding-top:4px}
