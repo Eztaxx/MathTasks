@@ -2735,15 +2735,25 @@
   /* Подборка на печать: сколько задач в листе и сколько разных вариантов.
      Вариантов больше одного — каждому своя выборка, чтобы соседи по парте
      решали разное; задач в теме меньше запрошенного — берём сколько есть. */
-  const buildPrintVariants = (tasks = [], { count = 0, variants = 1, shuffle = true, random = Math.random } = {}) => {
+  const PRINT_ORDERS = ['topic', 'shuffle', 'diff_asc', 'subtopic'];
+  const buildPrintVariants = (tasks = [], { count = 0, variants = 1, order = 'topic', random = Math.random, subtopics = [] } = {}) => {
     const pool = Array.isArray(tasks) ? tasks.filter(Boolean) : [];
     const sheets = Math.max(1, Math.min(9, Math.floor(variants) || 1));
     const size = count > 0 ? Math.min(Math.floor(count), pool.length) : pool.length;
     if (!pool.length) return Array.from({ length: sheets }, () => []);
+    const mode = PRINT_ORDERS.includes(order) ? order : 'topic';
+    const place = new Map(pool.map((task, index) => [task, index]));
+
     return Array.from({ length: sheets }, (unused, index) => {
-      // Один вариант без перемешивания — порядок темы: учителю привычнее.
-      const ordered = (shuffle || sheets > 1 || index > 0) ? shuffleArray(pool, random) : pool;
-      return ordered.slice(0, size);
+      /* Один лист «как в теме» — первые задачи по порядку: учителю привычнее.
+         Во всех остальных случаях выборка случайная, иначе второй вариант
+         повторил бы первый. */
+      const sample = (mode === 'topic' && sheets === 1 && index === 0)
+        ? pool.slice(0, size)
+        : shuffleArray(pool, random).slice(0, size);
+      if (mode === 'shuffle') return sample;
+      if (mode === 'topic') return [...sample].sort((a, b) => place.get(a) - place.get(b));
+      return sortTasks(sample, mode, { subtopics });
     });
   };
 

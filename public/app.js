@@ -2732,7 +2732,8 @@ const PRINT_COUNTS = [0, 5, 10, 20, 30];
 const PRINT_CONTENTS = ['blank', 'key', 'full'];
 const PRINT_SPACES = ['none', 'lines', 'half'];
 const PRINT_VARIANTS = [1, 2, 4];
-let printOptions = { count: 0, content: 'blank', space: 'none', variants: 1, fields: true };
+const PRINT_ORDERS = ['topic', 'shuffle', 'diff_asc', 'subtopic'];
+let printOptions = { count: 0, content: 'blank', space: 'none', variants: 1, order: 'topic', fields: true };
 let printableTasks = [];
 
 function chipHtml(name, value, active, label) {
@@ -2754,6 +2755,12 @@ function renderPrintDialog() {
   if (contents) {
     contents.innerHTML = PRINT_CONTENTS
       .map(mode => chipHtml('content', mode, printOptions.content === mode, tr(`print_content_${mode}`)))
+      .join('');
+  }
+  const orders = document.querySelector('#print-order-chips');
+  if (orders) {
+    orders.innerHTML = PRINT_ORDERS
+      .map(mode => chipHtml('order', mode, printOptions.order === mode, tr(`print_order_${mode}`)))
       .join('');
   }
   const spaces = document.querySelector('#print-space-chips');
@@ -2856,7 +2863,12 @@ function buildPrintSheet(options) {
   if (!sheet) return false;
   const build = window.MathTasksLib?.buildPrintVariants;
   const variants = build
-    ? build(printableTasks, { count: options.count, variants: options.variants, shuffle: options.variants > 1 || options.count > 0 })
+    ? build(printableTasks, {
+      count: options.count,
+      variants: options.variants,
+      order: options.order,
+      subtopics: allSubtopics
+    })
     : [printableTasks];
   if (!variants.some(list => list.length)) return false;
 
@@ -2887,11 +2899,12 @@ function cleanupPrintSheet() {
 document.addEventListener('click', event => {
   const chip = event.target.closest?.('.print-chip');
   if (chip) {
-    const { printCount, printContent, printSpace, printVariants } = chip.dataset;
+    const { printCount, printContent, printSpace, printVariants, printOrder } = chip.dataset;
     if (printCount !== undefined) printOptions.count = Number(printCount);
     if (printContent !== undefined) printOptions.content = printContent;
     if (printSpace !== undefined) printOptions.space = printSpace;
     if (printVariants !== undefined) printOptions.variants = Number(printVariants);
+    if (printOrder !== undefined) printOptions.order = printOrder;
     renderPrintDialog();
     return;
   }

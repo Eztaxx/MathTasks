@@ -52,6 +52,45 @@ describe('подборка задач на печать', () => {
   });
 });
 
+describe('порядок задач в листе', () => {
+  const mixed = [
+    { id: 1, difficulty: 'Сложный', subtopic_id: 2, position: 1 },
+    { id: 2, difficulty: 'Базовый', subtopic_id: 1, position: 2 },
+    { id: 3, difficulty: 'Средний', subtopic_id: 2, position: 3 },
+    { id: 4, difficulty: 'Базовый', subtopic_id: 1, position: 4 }
+  ];
+  const subtopics = [{ id: 1, position: 1 }, { id: 2, position: 2 }];
+
+  it('«как в теме» — порядок списка, без перестановок', () => {
+    const [sheet] = buildPrintVariants(mixed, { order: 'topic', random: seeded() });
+    expect(ids(sheet)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('«как в теме» с выборкой — задачи всё равно идут по порядку темы', () => {
+    const [first, second] = buildPrintVariants(tasks, { count: 6, variants: 2, order: 'topic', random: seeded() });
+    expect(ids(first)).toEqual([...ids(first)].sort((a, b) => a - b));
+    expect(ids(second)).toEqual([...ids(second)].sort((a, b) => a - b));
+    expect(ids(first)).not.toEqual(ids(second));
+  });
+
+  it('«от простых к сложным» — сложность не убывает', () => {
+    const [sheet] = buildPrintVariants(mixed, { order: 'diff_asc', random: seeded() });
+    const weight = { 'Базовый': 1, 'Средний': 2, 'Сложный': 3 };
+    const weights = sheet.map(task => weight[task.difficulty]);
+    expect(weights).toEqual([...weights].sort((a, b) => a - b));
+  });
+
+  it('«по подтемам» — задачи одной подтемы идут подряд', () => {
+    const [sheet] = buildPrintVariants(mixed, { order: 'subtopic', random: seeded(), subtopics });
+    expect(sheet.map(task => task.subtopic_id)).toEqual([1, 1, 2, 2]);
+  });
+
+  it('неизвестный порядок — как в теме, а не пустой лист', () => {
+    const [sheet] = buildPrintVariants(mixed, { order: 'неведомо', random: seeded() });
+    expect(ids(sheet)).toEqual([1, 2, 3, 4]);
+  });
+});
+
 describe('темы в админке идут от выбранного класса', () => {
   const topics = [
     { id: 1, grade: 7 }, { id: 2, grade: 9 }, { id: 3, grade: 9 },
