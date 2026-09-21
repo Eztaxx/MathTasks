@@ -1987,7 +1987,7 @@ body.dark .print-chip.is-active{border-color:#e9eefb;background:#e9eefb;color:#0
 .print-sheet[hidden]{display:none}
 
 /* ── Печать ──────────────────────────────────────────────────────── */
-@page{size:A4;margin:14mm 16mm}
+@page{size:A4;margin:18mm 20mm 14mm}
 @media print{
   /* Лист собран заранее — на бумагу уходит только он. */
   body.printing-sheet > *:not(#print-sheet){display:none!important}
@@ -2011,7 +2011,7 @@ body.dark .print-chip.is-active{border-color:#e9eefb;background:#e9eefb;color:#0
   .print-task-body .katex-display{margin:4px 0;max-width:100%;overflow:hidden}
   .print-figure{display:block;max-width:52mm;max-height:45mm;object-fit:contain;margin:4px 0}
   .print-solution{margin-top:5px;padding-left:8px;border-left:2px solid #999;font-size:9.5pt;line-height:1.35}
-  .print-space-lines{height:16mm}
+  .print-space-lines{height:11mm}
   .print-space-half{height:85mm}
   .print-key{break-before:page;page-break-before:always;padding-top:4px}
   .print-key h3{margin:0 0 6px;padding-inline:2mm;font-size:12pt;border-bottom:1px solid #000;padding-bottom:4px}
