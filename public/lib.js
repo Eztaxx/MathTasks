@@ -294,23 +294,6 @@
     }).filter(part => part.values.length);
   };
 
-  /* Заготовка ответа: подпись слева от «=» — «$AC = 11$ см» → «$AC =$».
-     Ученик вписывает только значение, а не переписывает всю строку. У ответа
-     из нескольких частей («x = 2; y = 3») подписи нет: одно поле ввода не
-     покажет её честно. */
-  const answerLabelMarkup = raw => {
-    const text = String(raw || '');
-    const parts = parseAnswerParts(text);
-    if (parts.length !== 1 || !parts[0].label) return '';
-    const eq = text.indexOf('=');
-    if (eq < 1 || text.indexOf('=', eq + 1) > 0) return '';
-    const left = text.slice(0, eq).trim();
-    if (!left || !/[^$\\\s]/.test(left)) return '';
-    // Нечётное число «$» значит, что формула осталась открытой — закрываем её.
-    const open = (left.match(/\$/g) || []).length % 2 === 1;
-    return open ? `${left} =$` : `${left} =`;
-  };
-
   const answerPartMatches = (userPart, correctPart) => {
     if (userPart.label && correctPart.label
       && normalizeAnswerLabel(userPart.label) !== normalizeAnswerLabel(correctPart.label)
@@ -318,6 +301,71 @@
       return false;
     }
     return userPart.values.some(u => correctPart.values.some(c => compareSingleAnswer(u, c)));
+  };
+
+  /* Единица измерения в конце ответа: «4\\sqrt{3}\\text{ см}» → «см»,
+     «60\\text{ см}^2» → «см²». Нужна, чтобы подписать поле ввода и не
+     заставлять ученика набирать единицу руками. */
+  const ANSWER_UNIT_RE = /\\(?:text|mathrm)\{\s*([^{}]{1,8}?)\s*\}(\^\{?[23]\}?)?\s*\$*\s*$/;
+  const answerUnitOf = raw => {
+    const match = String(raw || '').match(ANSWER_UNIT_RE);
+    if (!match || !/\p{L}/u.test(match[1])) return '';
+    const power = match[2] ? (match[2].includes('2') ? '²' : '³') : '';
+    return match[1] + power;
+  };
+
+  /* Подпись величины для поля ввода. Слово («Медиана») оставляем текстом:
+     в формуле KaTeX нарисовал бы его вразрядку курсивом. */
+  const answerLabelText = label => {
+    const text = String(label || '').trim();
+    if (!text) return '';
+    const wordy = !text.includes('\\') && /^[\p{L}][\p{L}\s.]{2,}$/u.test(text);
+    return wordy ? `${text} =` : `$${text} =$`;
+  };
+
+  /* Заготовка ответа: подпись слева от «=» — «$AC = 11$ см» → «$AC =$».
+     Ученик вписывает только значение, а не переписывает всю строку. */
+  const answerLabelMarkup = raw => {
+    const parts = parseAnswerParts(raw);
+    if (parts.length !== 1 || !parts[0].label || parts[0].pieceCount > 1) return '';
+    return answerLabelText(parts[0].label);
+  };
+
+  /* Несколько величин в ответе — несколько полей ввода: «AD = [ ] см»,
+     «BC = [ ] см». Даём поля только там, где разбор надёжен: подпись есть у
+     каждой части, частей от двух до четырёх, альтернатив («или») нет и
+     задача вообще проверяется автоматически. Иначе поле остаётся одно. */
+  const answerFields = (raw, variants = '') => {
+    const text = String(raw || '');
+    if (!text.trim() || !isTaskAutoCheckable(text, variants)) return [];
+    if (answerAlternatives(text).length > 1) return [];
+    const parts = parseAnswerParts(text);
+    if (parts.length < 2 || parts.length > 4) return [];
+    if (!parts.every(part => part.label && part.pieceCount === 1 && part.values.length)) return [];
+    return parts.map(part => ({
+      label: answerLabelText(part.label),
+      unit: answerUnitOf(part.values[0]),
+      value: part.values[0]
+    }));
+  };
+
+  /* Проверка по полям: какое значение верное, какое нет. Итог подстрахован
+     обычной сверкой склеенной строки — если наш разбор почему-то не сошёлся,
+     а общая проверка принимает, задача засчитывается. */
+  const checkAnswerFields = (values, answer, variants = '') => {
+    const list = Array.isArray(values) ? values.map(v => String(v ?? '').trim()) : [];
+    const parts = parseAnswerParts(answer);
+    const correct = list.map((value, i) => {
+      if (!value || !parts[i]) return false;
+      const userParts = parseAnswerParts(value);
+      if (!userParts.length) return false;
+      return userParts.some(userPart => answerPartMatches(userPart, parts[i]));
+    });
+    const filled = list.filter(Boolean);
+    const joined = filled.join('; ');
+    const allCorrect = (correct.length > 0 && correct.every(Boolean) && filled.length === list.length)
+      || (filled.length === list.length && checkTaskAnswer(joined, answer, variants));
+    return { correct, allCorrect, filled: filled.length };
   };
 
   const matchAnswerParts = (userParts, correctParts) => {
@@ -2819,6 +2867,9 @@
     checkTaskAnswer,
     parseAnswerParts,
     answerLabelMarkup,
+    answerFields,
+    checkAnswerFields,
+    answerUnitOf,
     localDateKey,
     computeStreak,
     buildActivityWeeks,

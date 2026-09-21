@@ -1435,6 +1435,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   /* Заготовка ответа: «AC =» перед полем и единица после него. Ученику
      остаётся вписать значение, а не переписывать ответ целиком. */
   const answerLabel = answerLabelOf(task);
+  const answerParts = answerFieldsOf(task);
 
   const reveal = taskRevealState(task);
   const selfCheck = reveal.checkable ? `
@@ -1444,10 +1445,18 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
         <li class="self-check-tip tip-full">${escapeHtml(tr('self_check_tip_full'))}</li>
       </ul>
       <div class="quick-math-bar" hidden aria-label="Quick Math Bar"></div>
-      <form class="self-check-form" data-check-id="${task.id}">
-        ${answerLabel ? '<span class="answer-label math" data-answer-label></span>' : ''}
+      <form class="self-check-form${answerParts.length ? ' has-fields' : ''}" data-check-id="${task.id}">
+        ${answerParts.length
+          ? answerParts.map((field, i) => `
+            <span class="answer-field">
+              <span class="answer-label math" data-answer-label="${task.id}:${i}"></span>
+              <input type="text" class="self-check-input" data-field-index="${i}" placeholder="${escapeHtml(tr('self_check_placeholder'))}" aria-label="${escapeHtml(stripLatex(field.label))} ${escapeHtml(tr('self_check_placeholder'))}" autocomplete="off" ${solved ? 'disabled' : ''} />
+              ${field.unit ? `<span class="answer-unit">${escapeHtml(field.unit)}</span>` : ''}
+            </span>`).join('')
+          : `
+        ${answerLabel ? `<span class="answer-label math" data-answer-label="${task.id}:0"></span>` : ''}
         <input type="text" class="self-check-input" placeholder="${escapeHtml(tr('self_check_placeholder'))}" aria-label="${escapeHtml(tr('self_check_placeholder'))}" autocomplete="off" ${solved ? `disabled value="${escapeHtml(tr('solved_badge'))}"` : ''} />
-        ${unit ? `<span class="answer-unit">${escapeHtml(unit)}</span>` : ''}
+        ${unit ? `<span class="answer-unit">${escapeHtml(unit)}</span>` : ''}`}
         <button type="submit" class="self-check-btn" ${solved ? 'hidden' : ''}>${escapeHtml(tr('self_check_btn'))}</button>
       </form>
       <div class="self-check-result${solved ? ' success' : ''}" ${solved ? '' : 'hidden'}>
@@ -1585,9 +1594,12 @@ function fillTaskMath(container, tasks) {
   container.querySelectorAll('[data-condition]').forEach((element, index) => {
     renderMath(element, loc(tasks[index], 'condition_latex'));
   });
-  const labelSource = tasks.filter(task => answerLabelOf(task));
-  container.querySelectorAll('[data-answer-label]').forEach((element, index) => {
-    renderMath(element, answerLabelOf(labelSource[index]));
+  container.querySelectorAll('[data-answer-label]').forEach(element => {
+    const [id, index] = String(element.dataset.answerLabel || '').split(':');
+    const task = tasks.find(item => String(item.id) === id);
+    if (!task) return;
+    const fields = answerFieldsOf(task);
+    renderMath(element, fields.length ? (fields[Number(index)]?.label || '') : answerLabelOf(task));
   });
   const answerSource = tasks.filter(task => loc(task, 'answer_latex'));
   container.querySelectorAll('[data-answer]').forEach((element, index) => {
@@ -1736,6 +1748,18 @@ function singleTaskView(tasks, index, cardOptions) {
    из хвоста ответа (\text{ см}); значение ответа этим не раскрывается. */
 /* Подпись ответа задачи («$AC =$») — пусто, если ответ без имени величины
    или состоит из нескольких частей. */
+/* Поля ответа по величинам: «AD = [ ] см», «BC = [ ] см». Пустой список —
+   значит поле остаётся одно, со строкой ответа целиком. */
+function answerFieldsOf(task) {
+  const fields = window.MathTasksLib?.answerFields;
+  return fields ? fields(loc(task, 'answer_latex'), loc(task, 'answer_check')) : [];
+}
+
+// Подпись для aria-label: экранному диктору формула в долларах не нужна.
+function stripLatex(text) {
+  return String(text || '').replace(/[$\\]/g, '').replace(/[{}]/g, '').trim();
+}
+
 function answerLabelOf(task) {
   const markup = window.MathTasksLib?.answerLabelMarkup;
   return markup ? markup(loc(task, 'answer_latex')) : '';
@@ -2851,12 +2875,18 @@ function printTaskHtml(task, index, options) {
   const solutionBlock = solution
     ? `<div class="print-solution math" data-print-latex="${escapeHtml(solution)}"></div>`
     : '';
-  const label = answerLabelOf(task);
-  const unit = answerUnit(task);
+  const fields = answerFieldsOf(task);
+  // Несколько величин — несколько строк ответа, как и полей на сайте.
+  const lines = fields.length
+    ? fields.map(field => ({ label: field.label, unit: field.unit }))
+    : [{ label: answerLabelOf(task), unit: answerUnit(task) }];
   /* Заготовка ответа на бумаге: подпись, черта и единица. Ученик дописывает
      только значение — как и в поле ввода на сайте. */
-  const answerLine = (options.content !== 'full' && (label || unit))
-    ? `<div class="print-answer-line">${label ? `<span class="math" data-print-latex="${escapeHtml(label)}"></span>` : ''}<span class="print-blank"></span>${unit ? `<span class="print-unit">${escapeHtml(unit)}</span>` : ''}</div>`
+  const answerLine = options.content !== 'full'
+    ? lines
+      .filter(line => line.label || line.unit)
+      .map(line => `<div class="print-answer-line">${line.label ? `<span class="math" data-print-latex="${escapeHtml(line.label)}"></span>` : ''}<span class="print-blank"></span>${line.unit ? `<span class="print-unit">${escapeHtml(line.unit)}</span>` : ''}</div>`)
+      .join('')
     : '';
   const spaceBlock = (options.content !== 'full' && options.space !== 'none')
     ? `<div class="print-space print-space-${options.space}"></div>`
@@ -5377,14 +5407,14 @@ function markSelfCheckSolved(form, taskId, messageKey) {
   const tr = window.MathTasks.t || (k => k);
   const block = form.closest('.task-self-check');
   const resultDiv = block?.querySelector('.self-check-result');
-  const input = form.querySelector('.self-check-input');
+  const inputs = form.querySelectorAll('.self-check-input');
   setTaskSolved(taskId, true);
   if (resultDiv) {
     resultDiv.className = 'self-check-result success';
     resultDiv.innerHTML = `${escapeHtml(tr(messageKey))} <button type="button" class="self-check-reset" data-reset-id="${taskId}">${escapeHtml(tr('self_check_reset'))}</button>`;
     resultDiv.hidden = false;
   }
-  if (input) input.disabled = true;
+  inputs.forEach(field => { field.disabled = true; field.classList.remove('is-wrong'); });
   const submitBtn = form.querySelector('.self-check-btn');
   if (submitBtn) submitBtn.hidden = true;
   const tips = block?.querySelector('.self-check-tips');
@@ -5410,11 +5440,24 @@ document.addEventListener('submit', event => {
   const taskId = form.dataset.checkId;
   const task = currentTasksMap.get(Number(taskId));
   if (!task) return;
-  const input = form.querySelector('.self-check-input');
-  const userAns = input ? input.value.trim() : '';
-  if (!userAns) return;
+  const inputs = [...form.querySelectorAll('.self-check-input')];
+  const values = inputs.map(field => field.value.trim());
+  if (!values.some(Boolean)) return;
   const resultDiv = form.nextElementSibling;
-  const isCorrect = checkTaskAnswer(userAns, loc(task, 'answer_latex'), loc(task, 'answer_check'));
+  const multi = inputs.length > 1;
+  /* При нескольких полях считаем каждое отдельно — ученику видно, где
+     ошибка, а не просто «неверно». */
+  const fieldCheck = multi
+    ? window.MathTasksLib.checkAnswerFields(values, loc(task, 'answer_latex'), loc(task, 'answer_check'))
+    : null;
+  inputs.forEach((field, i) => {
+    field.classList.toggle('is-wrong', Boolean(multi && values[i] && !fieldCheck.correct[i]));
+    field.classList.toggle('is-right', Boolean(multi && fieldCheck.correct[i]));
+  });
+  const userAns = values.join('; ');
+  const isCorrect = multi
+    ? fieldCheck.allCorrect
+    : checkTaskAnswer(values[0], loc(task, 'answer_latex'), loc(task, 'answer_check'));
   recordSolveEntry(taskId, isCorrect);
   if (isCorrect) {
     markSelfCheckSolved(form, taskId, 'self_check_success');
@@ -5426,7 +5469,10 @@ document.addEventListener('submit', event => {
        ученик отмечает совпадение сам, как в задачах без автопроверки.
        Но не отсюда: кнопка появляется, когда открыт ответ или решение
        (syncAcceptVisibility), — до этого сверять не с чем. */
-    resultDiv.textContent = tr(messageKey);
+    const done = multi ? fieldCheck.correct.filter(Boolean).length : 0;
+    resultDiv.textContent = multi && done
+      ? `${tr('self_check_fields_partial', { done, total: inputs.length })} ${tr(messageKey)}`
+      : tr(messageKey);
     resultDiv.hidden = false;
     const card = form.closest('.task');
     if (card) {
@@ -5759,10 +5805,15 @@ document.addEventListener('click', event => {
     setTaskSolved(taskId, false);
     const checkBlock = resetBtn.closest('.task-self-check');
     if (checkBlock) {
-      const input = checkBlock.querySelector('.self-check-input');
+      const inputs = [...checkBlock.querySelectorAll('.self-check-input')];
       const form = checkBlock.querySelector('.self-check-form');
       const resultDiv = checkBlock.querySelector('.self-check-result');
-      if (input) { input.disabled = false; input.value = ''; input.focus(); }
+      inputs.forEach(field => {
+        field.disabled = false;
+        field.value = '';
+        field.classList.remove('is-wrong', 'is-right');
+      });
+      inputs[0]?.focus();
       if (form) form.querySelector('.self-check-btn').hidden = false;
       if (resultDiv) resultDiv.hidden = true;
       const tips = checkBlock.querySelector('.self-check-tips');

@@ -750,6 +750,13 @@ body.dark .task .task-self-check{background:none}
 .task .self-check-input:focus{border-color:#1764ff;box-shadow:0 0 0 3px #1764ff1f}
 body.dark .task .self-check-input{background:#0a0d14;border-color:#232b3b;color:#edf2ff}
 body.dark .task .self-check-input:focus{border-color:#5a92ff}
+.self-check-form.has-fields{flex-wrap:wrap;gap:10px 14px}
+.answer-field{display:inline-flex;align-items:center;gap:6px}
+.self-check-form.has-fields .self-check-input{flex:0 1 128px;width:128px}
+.self-check-input.is-wrong{border-color:#dc2626;background:#fef2f2}
+.self-check-input.is-right{border-color:#16a34a;background:#f0fdf4}
+body.dark .self-check-input.is-wrong{background:#2a1416;border-color:#7f1d1d}
+body.dark .self-check-input.is-right{background:#0f2418;border-color:#166534}
 .answer-label{flex:none;color:var(--muted);font-size:14px;white-space:nowrap}
 .answer-unit{flex:none;font-size:14px;color:var(--muted)}
 .task .self-check-btn{height:40px;padding:0 18px;border-radius:10px;font:700 13px Manrope,sans-serif}
