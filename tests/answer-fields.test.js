@@ -29,8 +29,36 @@ describe('поля ответа по величинам', () => {
     expect(answerFields('$15\\text{ €}$')).toEqual([]);
   });
 
-  it('части без подписей полей не получают: подписать их нечем', () => {
-    expect(answerFields('$3; 5$')).toEqual([]);
+  /* Значения без имён — тоже поля: ученик видит, сколько чисел ждут от него,
+     и пишет их от меньшего к большему. Проверка при этом любой порядок
+     принимает — подсказка про порядок нужна, чтобы не гадать. */
+  it('значения без подписей дают столько полей, сколько значений', () => {
+    const fields = answerFields('$3; 5$');
+    expect(fields).toHaveLength(2);
+    expect(fields.every(field => field.ordered && field.label === '')).toBe(true);
+  });
+
+  it('пять корней — пять полей', () => {
+    expect(answerFields('$-9; -2; 0; 4; 7$')).toHaveLength(5);
+  });
+
+  it('точка на плоскости — поля по координатам', () => {
+    expect(answerFields('$(3; 8)$')).toEqual([
+      { label: '$x =$', unit: '', value: '3' },
+      { label: '$y =$', unit: '', value: '8' }
+    ]);
+  });
+
+  it('у названной точки в подписи её имя', () => {
+    expect(answerFields('$B(3; 4)$').map(field => field.label)).toEqual(['$x_{B} =$', '$y_{B} =$']);
+  });
+
+  it('промежуток — поля под границы, со знаком строгости', () => {
+    expect(answerFields('$x \\in (-3; 5]$').map(field => field.label)).toEqual(['$>$', '$\\leq$']);
+  });
+
+  it('объединение промежутков полями не раскладывается', () => {
+    expect(answerFields('$x \\in (-\\infty; -3] \\cup [4; +\\infty)$')).toEqual([]);
   });
 
   it('ответ с «или» — полей нет: какое значение в какое поле, неизвестно', () => {

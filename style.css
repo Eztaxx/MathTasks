@@ -751,6 +751,7 @@ body.dark .task .task-self-check{background:none}
 body.dark .task .self-check-input{background:#0a0d14;border-color:#232b3b;color:#edf2ff}
 body.dark .task .self-check-input:focus{border-color:#5a92ff}
 .self-check-form.has-fields{flex-wrap:wrap;gap:10px 14px}
+.compact-drill-order{margin:0 0 10px;font-size:12.5px;color:var(--muted)}
 .answer-field{display:inline-flex;align-items:center;gap:6px}
 .self-check-form.has-fields .self-check-input{flex:0 1 128px;width:128px}
 .self-check-input.is-wrong{border-color:#dc2626;background:#fef2f2}

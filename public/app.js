@@ -1442,7 +1442,9 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
     <div class="task-self-check" data-self-check="${task.id}">
       <ul class="self-check-tips"${solved ? ' hidden' : ''}>
         <li class="self-check-tip tip-keyboard">${escapeHtml(tr('self_check_tip_keyboard'))}</li>
-        <li class="self-check-tip tip-full">${escapeHtml(tr('self_check_tip_full'))}</li>
+        ${answerParts.some(field => field.ordered)
+          ? `<li class="self-check-tip tip-order">${escapeHtml(tr('answer_fields_order'))}</li>`
+          : `<li class="self-check-tip tip-full">${escapeHtml(tr('self_check_tip_full'))}</li>`}
       </ul>
       <div class="quick-math-bar" hidden aria-label="Quick Math Bar"></div>
       <form class="self-check-form${answerParts.length ? ' has-fields' : ''}" data-check-id="${task.id}">
@@ -1750,6 +1752,14 @@ function singleTaskView(tasks, index, cardOptions) {
    или состоит из нескольких частей. */
 /* Поля ответа по величинам: «AD = [ ] см», «BC = [ ] см». Пустой список —
    значит поле остаётся одно, со строкой ответа целиком. */
+/* Ячейки тренажёра: сколько значений в ответе, столько и клеток. Одно
+   значение — одна клетка с подписью, как было. */
+function drillFields(task) {
+  const fields = answerFieldsOf(task);
+  if (fields.length) return fields;
+  return [{ label: answerLabelOf(task), unit: answerUnit(task), value: '' }];
+}
+
 function answerFieldsOf(task) {
   const fields = window.MathTasksLib?.answerFields;
   return fields ? fields(loc(task, 'answer_latex'), loc(task, 'answer_check')) : [];
@@ -1836,15 +1846,19 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
             <div class="compact-drill-expr math" data-drill-condition="${task.id}"></div>
             <div class="compact-drill-answer-wrap">
               ${hasAnswer ? `
-                ${answerLabelOf(task) ? `<span class="answer-label math" data-drill-label="${task.id}"></span>` : ''}
-                <input type="text" 
-                       class="compact-drill-input${solved ? ' success' : ''}" 
-                       data-drill-id="${task.id}" 
-                       data-drill-index="${index}"
-                       placeholder="${escapeHtml(tr('drill_placeholder'))}" 
-                       aria-label="Ответ к примеру ${index + 1}"
-                       autocomplete="off" 
-                       ${solved ? `disabled value="${escapeHtml(cleanAnswer) || '✓'}"` : ''} />
+                ${drillFields(task).map((field, slot) => `
+                  ${field.label ? `<span class="answer-label math" data-drill-label="${task.id}:${slot}"></span>` : ''}
+                  <input type="text"
+                         class="compact-drill-input${solved ? ' success' : ''}"
+                         data-drill-id="${task.id}"
+                         data-drill-index="${index}"
+                         data-drill-slot="${slot}"
+                         placeholder="${escapeHtml(tr('drill_placeholder'))}"
+                         aria-label="${escapeHtml(tr('drill_placeholder'))} ${slot + 1}"
+                         autocomplete="off"
+                         ${solved ? `disabled value="${slot === 0 ? (escapeHtml(cleanAnswer) || '✓') : '✓'}"` : ''} />
+                  ${field.unit ? `<span class="answer-unit">${escapeHtml(field.unit)}</span>` : ''}
+                `).join('')}
                 <span class="compact-drill-status${solved ? ' success' : ''}">${solved ? '✓' : ''}</span>
               ` : `
                 <span class="compact-drill-no-ans">—</span>
@@ -1870,11 +1884,17 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
       </div>
     `;
 
-    container.innerHTML = `<div class="task-compact-container">${bannerHtml}<div class="task-compact-grid">${itemsHtml}</div>${moreButton(tasks.length)}</div>`;
+    /* Если хотя бы у одной задачи значения идут набором, порядок называем
+       один раз сверху: подписывать каждую строку — шум. */
+    const orderNote = shown.some(task => answerFieldsOf(task).some(field => field.ordered))
+      ? `<p class="compact-drill-order">${escapeHtml(tr('answer_fields_order'))}</p>`
+      : '';
+    container.innerHTML = `<div class="task-compact-container">${bannerHtml}${orderNote}<div class="task-compact-grid">${itemsHtml}</div>${moreButton(tasks.length)}</div>`;
 
     container.querySelectorAll('[data-drill-label]').forEach(el => {
-      const task = currentTasksMap.get(Number(el.dataset.drillLabel));
-      if (task) renderMath(el, answerLabelOf(task));
+      const [id, slot] = String(el.dataset.drillLabel || '').split(':');
+      const task = currentTasksMap.get(Number(id));
+      if (task) renderMath(el, drillFields(task)[Number(slot)]?.label || '');
     });
 
     // Рендерим формулы в примерах через KaTeX
@@ -5609,7 +5629,8 @@ function markDrillItemSolved(input, taskId) {
   }
 
   // Автоматический переход к следующему нерешённому примеру
-  const allInputs = Array.from(document.querySelectorAll('.compact-drill-input:not([disabled])'));
+  const allInputs = Array.from(document.querySelectorAll('.compact-drill-input:not([disabled])'))
+    .filter(cell => cell.dataset.drillId !== input.dataset.drillId || cell === input);
   if (allInputs.length > 0) {
     const curIdx = Number(input.dataset.drillIndex);
     const nextInput = allInputs.find(inp => Number(inp.dataset.drillIndex) > curIdx) || allInputs[0];
@@ -5633,12 +5654,29 @@ document.addEventListener('keydown', event => {
     const task = currentTasksMap.get(taskId);
     if (!task) return;
 
-    const userAns = input.value.trim();
-    if (!userAns) return;
-
-    const isCorrect = checkTaskAnswer(userAns, loc(task, 'answer_latex'), loc(task, 'answer_check'));
-    recordSolveEntry(taskId, isCorrect);
     const item = input.closest('.compact-drill-item');
+    const cells = [...(item?.querySelectorAll('.compact-drill-input') || [input])];
+    const values = cells.map(cell => cell.value.trim());
+    if (!values.some(Boolean)) return;
+    /* Значения — части одного ответа, по отдельности их сверять нечем:
+       пока не заполнены все ячейки, Enter просто переводит в пустую. */
+    if (cells.length > 1 && !values.every(Boolean)) {
+      cells.find(cell => !cell.value.trim())?.focus();
+      return;
+    }
+
+    const fieldCheck = cells.length > 1
+      ? window.MathTasksLib.checkAnswerFields(values, loc(task, 'answer_latex'), loc(task, 'answer_check'))
+      : null;
+    const isCorrect = fieldCheck
+      ? fieldCheck.allCorrect
+      : checkTaskAnswer(values[0], loc(task, 'answer_latex'), loc(task, 'answer_check'));
+    recordSolveEntry(taskId, isCorrect);
+    if (fieldCheck) {
+      cells.forEach((cell, i) => {
+        cell.classList.toggle('error', !fieldCheck.correct[i]);
+      });
+    }
     const statusEl = item?.querySelector('.compact-drill-status');
 
     if (isCorrect) {

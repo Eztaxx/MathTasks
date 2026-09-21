@@ -85,10 +85,20 @@ describe('сайт: самопроверка и сверка с варианта
   const app = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
   const i18n = readFileSync(new URL('../public/i18n.js', import.meta.url), 'utf8');
 
+  /* Сверка везде идёт через checkTaskAnswer с дополнительными записями
+     ответа: compareAnswers напрямую их не видит, и задача с вариантами
+     отмечала бы верный ответ ошибкой. Имя переменной со значением разное —
+     в поле ответа и тренажёре значений может быть несколько. */
   it('поле ответа, экспресс-режим и контрольная сверяют с вариантами', () => {
-    expect(app).toContain("checkTaskAnswer(userAns, loc(task, 'answer_latex'), loc(task, 'answer_check'))");
+    const calls = app.match(/checkTaskAnswer\([^;]*?answer_check'\)\)/g) || [];
+    expect(calls.length).toBeGreaterThanOrEqual(3);
     expect(app).toContain("checkTaskAnswer(userAns, correctAns, loc(task, 'answer_check'))");
     expect(app).not.toMatch(/compareAnswers\(userAns, loc\(task, 'answer_latex'\)\)/);
+  });
+
+  // Несколько значений сверяются тем же путём, но по полям.
+  it('поля ответа проверяются с вариантами', () => {
+    expect(app).toContain("checkAnswerFields(values, loc(task, 'answer_latex'), loc(task, 'answer_check'))");
   });
 
   it('у задачи без автопроверки — блок самопроверки с тремя кнопками', () => {

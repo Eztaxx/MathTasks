@@ -337,22 +337,86 @@
     return answerLabelText(parts[0].label);
   };
 
+  const NUMERIC_VALUE_RE = /^[-+]?[\d.,{}()\\a-zA-Z^/\s|°√π∞;:+*-]*$/;
+  const isNumericValue = value => {
+    const text = String(value || '').trim();
+    if (!text) return false;
+    if (!NUMERIC_VALUE_RE.test(text)) return false;
+    return /[\d\\√π∞]/.test(text);
+  };
+
+  /* Точка на плоскости: «(3; 8)», «B(3; 4)». Ученику даём два поля — по
+     координате: иначе он угадывает, какие скобки и разделитель набирать. */
+  const POINT_RE = /^([A-ZА-Я](?:_\{?[0-9A-Za-z]+\}?)?)?\s*\(\s*([^;()]+)\s*;\s*([^;()]+)\s*\)$/;
+  const pointFields = value => {
+    const match = String(value || '').trim().match(POINT_RE);
+    if (!match) return null;
+    const [, name, x, y] = match;
+    if (!isNumericValue(x) || !isNumericValue(y)) return null;
+    const sub = name ? '_{' + name.replace(/[_{}]/g, '') + '}' : '';
+    return [
+      { label: '$x' + sub + ' =$', unit: '', value: x.trim() },
+      { label: '$y' + sub + ' =$', unit: '', value: y.trim() }
+    ];
+  };
+
+  /* Промежуток: «x ∈ (-3; 5]» — поля под границы. Объединение промежутков
+     полями не разложить: кусков и скобок может быть сколько угодно, такой
+     ответ остаётся строкой. */
+  const RANGE_RE = /^([([])\s*([^;()\][]+)\s*;\s*([^;()\][]+)\s*([)\]])$/;
+  const rangeFields = (value, hasIn) => {
+    if (!hasIn) return null;
+    const match = String(value || '').trim().match(RANGE_RE);
+    if (!match) return null;
+    const [, open, from, to, close] = match;
+    if (!isNumericValue(from) || !isNumericValue(to)) return null;
+    return [
+      { label: open === '[' ? '$\\geq$' : '$>$', unit: '', value: from.trim() },
+      { label: close === ']' ? '$\\leq$' : '$<$', unit: '', value: to.trim() }
+    ];
+  };
+
+  /* Несколько значений без имён: корни «−9; −2; 0; 4; 7», стороны «6; 6√3».
+     Полей столько же, сколько значений; порядок подсказываем от меньшего к
+     большему, но проверка принимает любой — это подсказка, а не правило. */
+  const orderedFields = parts => {
+    if (parts.length < 2 || parts.length > 5) return null;
+    if (!parts.every(part => !part.label && part.pieceCount === 1 && isNumericValue(part.values[0]))) return null;
+    return parts.map(part => ({
+      label: '',
+      unit: answerUnitOf(part.values[0]),
+      value: part.values[0],
+      ordered: true
+    }));
+  };
+
   /* Несколько величин в ответе — несколько полей ввода: «AD = [ ] см»,
-     «BC = [ ] см». Даём поля только там, где разбор надёжен: подпись есть у
-     каждой части, частей от двух до четырёх, альтернатив («или») нет и
-     задача вообще проверяется автоматически. Иначе поле остаётся одно. */
+     «BC = [ ] см». Поля даём там, где разбор надёжен: альтернатив («или»)
+     нет и задача вообще проверяется автоматически. Иначе поле остаётся
+     одно, со строкой ответа целиком. */
   const answerFields = (raw, variants = '') => {
     const text = String(raw || '');
     if (!text.trim() || !isTaskAutoCheckable(text, variants)) return [];
     if (answerAlternatives(text).length > 1) return [];
     const parts = parseAnswerParts(text);
-    if (parts.length < 2 || parts.length > 4) return [];
-    if (!parts.every(part => part.label && part.pieceCount === 1 && part.values.length)) return [];
-    return parts.map(part => ({
-      label: answerLabelText(part.label),
-      unit: answerUnitOf(part.values[0]),
-      value: part.values[0]
-    }));
+    if (!parts.length) return [];
+
+    // Один кусок — это точка или промежуток.
+    if (parts.length === 1 && parts[0].pieceCount === 1) {
+      const single = parts[0].values[0];
+      return pointFields(single) || rangeFields(single, /\\in|∈/.test(text)) || [];
+    }
+
+    if (parts.every(part => part.label && part.pieceCount === 1 && part.values.length)) {
+      if (parts.length > 4) return [];
+      return parts.map(part => ({
+        label: answerLabelText(part.label),
+        unit: answerUnitOf(part.values[0]),
+        value: part.values[0]
+      }));
+    }
+
+    return orderedFields(parts) || [];
   };
 
   /* Проверка по полям: какое значение верное, какое нет. Итог подстрахован
@@ -361,6 +425,13 @@
   const checkAnswerFields = (values, answer, variants = '') => {
     const list = Array.isArray(values) ? values.map(v => String(v ?? '').trim()) : [];
     const parts = parseAnswerParts(answer);
+    /* Точка и промежуток — один ответ из двух полей: собираем обратно
+       «(x; y)» и сверяем целиком, а не по кускам. */
+    if (parts.length === 1 && list.length === 2) {
+      const filled = list.filter(Boolean).length;
+      const ok = filled === 2 && checkTaskAnswer('(' + list[0] + '; ' + list[1] + ')', answer, variants);
+      return { correct: list.map(() => ok), allCorrect: ok, filled };
+    }
     const correct = list.map((value, i) => {
       if (!value || !parts[i]) return false;
       const userParts = parseAnswerParts(value);
