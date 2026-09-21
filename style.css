@@ -6486,9 +6486,10 @@ body .adm-shell #section-tasks-database{padding:0;border:0;background:none}
 .adm-view-body.adm-editor-body{display:flex;flex-direction:row;align-items:flex-start;gap:0}
 .adm-editor-body > #section-task-form{flex:1 1 auto;min-width:0}
 .adm-preview-col{order:2;flex:0 0 auto;width:0;margin-left:0;visibility:hidden;position:sticky;top:calc(var(--adm-top-h, 61px) + 64px);display:flex;flex-direction:column;gap:11px;max-height:calc(100vh - var(--adm-top-h, 61px) - 76px);overflow-x:hidden;overflow-y:auto;transition:width .28s ease,margin-left .28s ease,visibility 0s linear .28s}
-.adm-preview-col > *{min-width:400px}
-.adm-editor-body.preview-open .adm-preview-col{width:min(45%, 640px);margin-left:16px;visibility:visible;transition:width .28s ease,margin-left .28s ease,visibility 0s}
+.adm-preview-col > *{min-width:0}
+.adm-editor-body.preview-open .adm-preview-col{width:clamp(330px, 42%, 620px);margin-left:16px;visibility:visible;transition:width .28s ease,margin-left .28s ease,visibility 0s}
 @media (prefers-reduced-motion:reduce){.adm-preview-col,.adm-editor-body.preview-open .adm-preview-col{transition:none}}
+
 .adm-shell .adm-preview-toggle.is-on{background:var(--adm-acc);border-color:var(--adm-acc);color:#fff}
 .adm-preview-close{margin-left:8px;padding:2px 8px;border:1px solid var(--adm-line);border-radius:6px;background:transparent;color:var(--adm-mute);font-family:inherit;font-size:12px;line-height:1.5;cursor:pointer}
 .adm-preview-close:hover{color:var(--adm-ink);background:var(--adm-hover)}
@@ -6518,7 +6519,10 @@ body .adm-shell #section-tasks-database{padding:0;border:0;background:none}
 /* Широкий экран — превью в карточке справа, под полями его не дублируем.
    Узкий — карточки нет, превью остаются под полями. */
 @media (min-width:1281px){.adm-shell #task-form .math-preview{display:none}}
-@media (max-width:1280px){.adm-view-body.adm-editor-body{display:flex;flex-direction:column;align-items:stretch}.adm-preview-col,.adm-shell .adm-preview-toggle{display:none}}
+@media (max-width:1280px){
+  .adm-view-body.adm-editor-body{display:flex;flex-direction:column;align-items:stretch}
+  .adm-editor-body.preview-open .adm-preview-col{position:static;order:3;width:100%;max-height:none;margin:16px 0 0}
+}
 /* Шапка всегда поверх: строка «Место» и карточка прилипают ровно под неё
    (высоту шапки меряет скрипт — она растёт, когда кнопки переносятся).
    Раньше «Место» стояло на 56px при шапке в 61px и с z-index выше —

@@ -227,7 +227,7 @@
   let topics = [];
   let subtopics = [];
   let tasks = [];
-  /* Задачу открыли кнопкой «Править» на экране проверки — после сохранения
+  /* Задачу открыли кнопкой «Редактировать» на экране проверки — после сохранения
      или отмены возвращаемся туда. Помним id: если админ ушёл и открыл
      другую задачу, возврат не сработает. */
   let editorReturnView = null;
@@ -2718,17 +2718,15 @@ ${JSON.stringify(texts)}`;
     putLv(solEl, solutionInputLv);
     const hint = value(hintInput, hintInputLv);
     const answer = value(answerInput, answerInputLv);
-    const lvHint = both && Boolean((hintInputLv?.value || '').trim());
-    const lvAnswer = both && Boolean((answerInputLv?.value || '').trim());
     const hintWrap = byId('adm-preview-hint-wrap');
     const answerWrap = byId('adm-preview-answer-wrap');
-    if (hintWrap) hintWrap.hidden = !hint && !lvHint;
-    if (answerWrap) answerWrap.hidden = !answer && !lvAnswer;
+    if (hintWrap) hintWrap.hidden = false;
+    if (answerWrap) answerWrap.hidden = false;
     const hintEl = byId('adm-preview-hint');
     const answerEl = byId('adm-preview-answer');
-    put(hintEl, hint, both ? 'Подсказки пока нет' : '');
+    put(hintEl, hint, 'Подсказки пока нет');
     putLv(hintEl, hintInputLv);
-    put(answerEl, answer, both ? 'Ответа пока нет' : '');
+    put(answerEl, answer, 'Ответа пока нет');
     putLv(answerEl, answerInputLv);
 
     // Чертёж: сначала то, что сейчас в поле SVG-кода, иначе сохранённый файл.
@@ -5617,7 +5615,7 @@ ${JSON.stringify(texts)}`;
           throw new Error(why);
         }
 
-        // Всё сгенерированное — в колонку «Результат»: там «Править» или «В очередь проверки».
+        // Всё сгенерированное — в колонку «Результат»: там «Редактировать» или «В очередь проверки».
         showAiResults(generatedResults, { g, topicTitle, topicItem, subtopicCode, count, failures, easyCount, medCount, hardCount });
       } catch (err) {
         // Часть задач уже готова — показываем их, а не теряем вместе с ошибкой.
@@ -5637,7 +5635,7 @@ ${JSON.stringify(texts)}`;
 
   /* ── Генератор: колонка «Результат» (макет «Админка Skola2030») ─────
      Сгенерированное сначала показывается здесь, а не уходит сразу в форму
-     или в окно импорта. «Править» открывает задачу в редакторе (вместе
+     или в окно импорта. «Редактировать» открывает задачу в редакторе (вместе
      с чертежом), «В очередь проверки» сохраняет оставшиеся черновиками —
      той же функцией, что и мастер импорта. */
   let aiResultItems = [];
@@ -5733,7 +5731,7 @@ ${JSON.stringify(texts)}`;
           ${topic ? '' : '<span class="adm-chip bad" title="Задача ляжет без темы — поправьте её в редакторе">тема не найдена</span>'}
         </div>
         <div class="ai-result-actions">
-          <button type="button" class="adm-btn soft" data-ai-edit="${item.key}">Править</button>
+          <button type="button" class="adm-btn soft" data-ai-edit="${item.key}">Редактировать</button>
           <button type="button" class="adm-btn text" data-ai-drop="${item.key}" title="Убрать из результата — задача нигде не сохранится">Убрать</button>
         </div>
       </article>`;
@@ -5745,7 +5743,7 @@ ${JSON.stringify(texts)}`;
     });
   }
 
-  // «Править»: задача генератора — в форму редактора, чертёж — в поле рисунка.
+  // «Редактировать»: задача генератора — в форму редактора, чертёж — в поле рисунка.
   async function openAiItemInEditor(item) {
     await discardPendingImages();
     taskForm.reset();
@@ -7153,7 +7151,7 @@ ${JSON.stringify(texts)}`;
   /* ── Экран проверки по одной задаче (макет «Админка Skola2030») ───
      Показывает черновики по одному: условие и решение в KaTeX,
      автопроверки (формулы, ответ, перевод на латышский, чертёж),
-     кнопки «Опубликовать», «Править», «Отклонить», «Пропустить» и
+     кнопки «Опубликовать», «Редактировать», «Отклонить», «Пропустить» и
      горячие клавиши Enter и →. */
   let reviewAll = [];       // все черновики
   let reviewQueue = [];     // то, что сейчас проверяем, — с учётом фильтров
