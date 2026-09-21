@@ -351,6 +351,40 @@
     <button data-i18n="account_signout" data-sign-out class="text-button" type="button">Выйти из аккаунта</button>
   </dialog>
 
+  <!-- Лист для печати: подборка задач, варианты и место для решения.
+       Сам лист собирается в #print-sheet и виден только на бумаге. -->
+  <dialog class="auth-dialog print-dialog" id="print-dialog" aria-labelledby="print-dialog-title">
+    <button class="dialog-close" id="print-dialog-close" type="button" aria-label="Закрыть" data-i18n-aria="dialog_close">×</button>
+    <h2 data-i18n="print_sheet_title" id="print-dialog-title">Лист для печати</h2>
+    <p class="print-dialog-lead" data-i18n="print_sheet_lead">Соберите лист для класса: сколько задач, сколько вариантов и что на листе видно.</p>
+    <form class="print-form" id="print-form" method="dialog">
+      <fieldset class="print-field">
+        <legend data-i18n="print_count_label">Сколько задач</legend>
+        <div class="print-chips" id="print-count-chips"></div>
+      </fieldset>
+      <fieldset class="print-field">
+        <legend data-i18n="print_content_label">Что на листе</legend>
+        <div class="print-chips" id="print-content-chips"></div>
+      </fieldset>
+      <fieldset class="print-field" id="print-space-field">
+        <legend data-i18n="print_space_label">Место для решения</legend>
+        <div class="print-chips" id="print-space-chips"></div>
+      </fieldset>
+      <fieldset class="print-field">
+        <legend data-i18n="print_variants_label">Вариантов</legend>
+        <div class="print-chips" id="print-variant-chips"></div>
+        <p class="print-field-hint" data-i18n="print_variants_hint">У каждого варианта своя выборка — соседям по парте достаются разные задачи.</p>
+      </fieldset>
+      <label class="print-check"><input type="checkbox" id="print-fields" checked /><span data-i18n="print_fields_label">Поля для имени и даты</span></label>
+      <div class="print-form-actions">
+        <button type="button" class="text-button" id="print-cancel" data-i18n="print_cancel">Отмена</button>
+        <button type="submit" class="primary-button" id="print-submit" data-i18n="print_submit">Печать</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="print-sheet" id="print-sheet" hidden></div>
+
   <dialog class="lightbox-dialog" id="lightbox-dialog" aria-label="Просмотр чертежа" data-i18n-aria="lightbox_label">
     <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Закрыть" data-i18n-aria="dialog_close" title="Закрыть" data-i18n-title="dialog_close"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="lightbox-content">

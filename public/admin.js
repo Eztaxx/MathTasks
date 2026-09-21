@@ -738,7 +738,7 @@
       return;
     }
 
-    const filtered = sortTopics(getFilteredTopics());
+    const filtered = sortTopicsByFilter(getFilteredTopics());
     const isFiltered = Boolean((topicSearchInput?.value || '').trim() || topicFilterGrade?.value || topicFilterSubject?.value);
 
     if (topicFilterCount) {
@@ -2254,16 +2254,35 @@ ${JSON.stringify(texts)}`;
     topicSelect.value = pool.some(t => String(t.id) === wanted) ? wanted : '';
   }
 
+  /* Темы идут от выбранного класса: его темы первой группой, остальные —
+     второй. Прятать чужие классы нельзя: класс задачи бывает свой, не как
+     у темы, и такая тема всё равно нужна в списке. */
   function updateFilterTopicDropdown() {
     if (!taskFilterTopic) return;
     const grade = parseFormGrade(taskFilterGrade?.value);
     const keep = taskFilterTopic.value;
-    const pool = grade === null ? topics : topics.filter(t => parseFormGrade(t.grade) === grade);
     const codes = topicCodeMap();
-    taskFilterTopic.innerHTML = '<option value="">Все темы</option>' + sortTopics(pool, codes).map(t =>
-      `<option value="${t.id}">${escapeHtml(topicOptionText(t, codes))} (${gradeText(t.grade)})</option>`
-    ).join('');
-    taskFilterTopic.value = pool.some(t => String(t.id) === keep) ? keep : '';
+    const option = t => `<option value="${t.id}">${escapeHtml(topicOptionText(t, codes))} (${gradeText(t.grade)})</option>`;
+    const sorted = sortTopics(topics, codes);
+    const split = window.MathTasksLib?.orderTopicsByGrade
+      ? window.MathTasksLib.orderTopicsByGrade(sorted, grade, t => parseFormGrade(t.grade))
+      : { current: [], rest: sorted };
+
+    let html = '<option value="">Все темы</option>';
+    if (!split.current.length) {
+      html += sorted.map(option).join('');
+    } else {
+      const label = PLACE_GRADES.find(item => item.g === grade)?.label || gradeText(grade);
+      html += `<optgroup label="${escapeHtml(label)}">${split.current.map(option).join('')}</optgroup>`;
+      if (split.rest.length) html += `<optgroup label="Остальные классы">${split.rest.map(option).join('')}</optgroup>`;
+    }
+    taskFilterTopic.innerHTML = html;
+    /* Тема чужого класса сбрасывается: иначе после смены класса список
+       задач молча оказался бы пустым. */
+    const keepable = split.current.length
+      ? split.current.some(t => String(t.id) === keep)
+      : topics.some(t => String(t.id) === keep);
+    taskFilterTopic.value = keepable ? keep : '';
   }
 
   /* Подтемы принадлежат теме, поэтому список пересобирается при каждой
@@ -3241,7 +3260,10 @@ ${JSON.stringify(texts)}`;
     }
   }
 
-  function sortTopics(list) {
+  /* Имя другое не для красоты: рядом живёт sortTopics(list, codes) для
+     выпадающих списков, и одноимённое объявление молча перебивало его —
+     списки тем сортировались режимом с экрана «Темы». */
+  function sortTopicsByFilter(list) {
     const mode = topicFilterSort?.value || 'grade';
     const taskCount = topic => taskIndex.filter(t => t.topic_id === topic.id).length;
     const copy = [...list];
@@ -3783,9 +3805,16 @@ ${JSON.stringify(texts)}`;
     setTasksShown(true);
     renderTaskList();
   };
-  [taskSearchInput, taskFilterGrade, taskFilterTopic, taskFilterStatus, taskFilterSort].forEach(el => {
+  [taskSearchInput, taskFilterTopic, taskFilterStatus, taskFilterSort].forEach(el => {
     el?.addEventListener('input', showTasksThenRender);
     el?.addEventListener('change', showTasksThenRender);
+  });
+  /* Класс отдельно: сначала пересобираем список тем от него, и только
+     потом строим список задач — иначе в фильтре осталась бы тема чужого
+     класса, а список вышел бы пустым. */
+  taskFilterGrade?.addEventListener('change', () => {
+    updateFilterTopicDropdown();
+    showTasksThenRender();
   });
   taskFilterReset?.addEventListener('click', resetTaskFilters);
 

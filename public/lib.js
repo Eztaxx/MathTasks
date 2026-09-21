@@ -2722,7 +2722,34 @@
     return toLangPath(path, lang) + rest;
   };
 
+  /* Список тем для выпадающего списка в админке: сначала выбранный класс,
+     потом остальные. Чужие классы не выбрасываем — у задачи класс бывает
+     свой, отличный от класса темы, и такую тему всё равно надо найти. */
+  const orderTopicsByGrade = (topics = [], grade = null, gradeOf = topic => topic.grade) => {
+    const list = Array.isArray(topics) ? topics : [];
+    if (grade === null || grade === undefined || grade === '') return { current: [], rest: [...list] };
+    const mine = topic => String(gradeOf(topic) ?? '') === String(grade);
+    return { current: list.filter(mine), rest: list.filter(topic => !mine(topic)) };
+  };
+
+  /* Подборка на печать: сколько задач в листе и сколько разных вариантов.
+     Вариантов больше одного — каждому своя выборка, чтобы соседи по парте
+     решали разное; задач в теме меньше запрошенного — берём сколько есть. */
+  const buildPrintVariants = (tasks = [], { count = 0, variants = 1, shuffle = true, random = Math.random } = {}) => {
+    const pool = Array.isArray(tasks) ? tasks.filter(Boolean) : [];
+    const sheets = Math.max(1, Math.min(9, Math.floor(variants) || 1));
+    const size = count > 0 ? Math.min(Math.floor(count), pool.length) : pool.length;
+    if (!pool.length) return Array.from({ length: sheets }, () => []);
+    return Array.from({ length: sheets }, (unused, index) => {
+      // Один вариант без перемешивания — порядок темы: учителю привычнее.
+      const ordered = (shuffle || sheets > 1 || index > 0) ? shuffleArray(pool, random) : pool;
+      return ordered.slice(0, size);
+    });
+  };
+
   const api = {
+    orderTopicsByGrade,
+    buildPrintVariants,
     makeSlug,
     isLvPath,
     stripLangPath,

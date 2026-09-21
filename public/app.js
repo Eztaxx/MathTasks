@@ -2722,34 +2722,213 @@ function renderTopicAnchors() {
   listAnchors.innerHTML = '';
 }
 
-function cleanupPrint() {
-  document.body.classList.remove('printing', 'print-solutions');
+/* ── Лист для печати ──────────────────────────────────────────────
+   Раньше печаталось ровно то, что на экране. Учителю этого мало: нужна
+   выборка из темы, разные варианты для соседей по парте, место для
+   решения и ключ с ответами отдельно от листа ученика. Поэтому лист
+   собирается в отдельный контейнер #print-sheet, а на бумагу уходит
+   только он. */
+const PRINT_COUNTS = [0, 10, 20, 30];
+const PRINT_CONTENTS = ['blank', 'key', 'full'];
+const PRINT_SPACES = ['none', 'lines', 'half'];
+const PRINT_VARIANTS = [1, 2, 4];
+let printOptions = { count: 0, content: 'blank', space: 'none', variants: 1, fields: true };
+let printableTasks = [];
+
+function chipHtml(name, value, active, label) {
+  return `<button type="button" class="print-chip${active ? ' is-active' : ''}" data-print-${name}="${value}" aria-pressed="${active}">${escapeHtml(label)}</button>`;
 }
 
-function printTasks(withSolutions) {
-  document.body.classList.add('printing');
-  document.body.classList.toggle('print-solutions', withSolutions);
+function renderPrintDialog() {
+  const tr = window.MathTasks.t || (k => k);
+  const total = printableTasks.length;
+  const counts = document.querySelector('#print-count-chips');
+  if (counts) {
+    // Показываем только те размеры, которые в теме наберутся.
+    counts.innerHTML = PRINT_COUNTS
+      .filter(n => n === 0 || n < total)
+      .map(n => chipHtml('count', n, printOptions.count === n, n === 0 ? `${tr('print_count_all')} (${total})` : String(n)))
+      .join('');
+  }
+  const contents = document.querySelector('#print-content-chips');
+  if (contents) {
+    contents.innerHTML = PRINT_CONTENTS
+      .map(mode => chipHtml('content', mode, printOptions.content === mode, tr(`print_content_${mode}`)))
+      .join('');
+  }
+  const spaces = document.querySelector('#print-space-chips');
+  if (spaces) {
+    spaces.innerHTML = PRINT_SPACES
+      .map(mode => chipHtml('space', mode, printOptions.space === mode, tr(`print_space_${mode}`)))
+      .join('');
+  }
+  // С решениями на листе место для решения не нужно — поле прячем.
+  const spaceField = document.querySelector('#print-space-field');
+  if (spaceField) spaceField.hidden = printOptions.content === 'full';
+
+  const variants = document.querySelector('#print-variant-chips');
+  if (variants) {
+    variants.innerHTML = PRINT_VARIANTS
+      .map(n => chipHtml('variants', n, printOptions.variants === n, String(n)))
+      .join('');
+  }
+  const fields = document.querySelector('#print-fields');
+  if (fields) fields.checked = printOptions.fields;
+}
+
+function openPrintDialog(tasks) {
+  printableTasks = Array.isArray(tasks) ? tasks : [];
+  if (printOptions.count >= printableTasks.length) printOptions.count = 0;
+  renderPrintDialog();
+  document.querySelector('#print-dialog')?.showModal();
+}
+
+function printSheetTitle() {
+  const tr = window.MathTasks.t || (k => k);
+  if (currentSubtopic) return `${topicTitleOf(currentActiveTopic)} · ${loc(currentSubtopic, 'title')}`;
+  if (currentActiveTopic) return topicTitleOf(currentActiveTopic);
+  return tr('meta_all_tasks_title') || 'MathTasks';
+}
+
+function printTaskHtml(task, index, options) {
+  const taskTitle = loc(task, 'title');
+  const figure = task.condition_image
+    ? `<img class="print-figure" src="${imageUrl(task.condition_image)}" alt="${escapeHtml(taskTitle)}" />`
+    : '';
+  const solution = options.content === 'full' ? loc(task, 'solution_latex') : '';
+  const solutionBlock = solution
+    ? `<div class="print-solution math" data-print-latex="${escapeHtml(solution)}"></div>`
+    : '';
+  const spaceBlock = (options.content !== 'full' && options.space !== 'none')
+    ? `<div class="print-space print-space-${options.space}"></div>`
+    : '';
+  return `
+    <li class="print-task">
+      <span class="print-task-num">${index + 1}.</span>
+      <div class="print-task-body">
+        <div class="print-condition math" data-print-latex="${escapeHtml(loc(task, 'condition_latex'))}"></div>
+        ${figure}
+        ${solutionBlock}
+        ${spaceBlock}
+      </div>
+    </li>`;
+}
+
+function printVariantHtml(tasks, index, total, options) {
+  const tr = window.MathTasks.t || (k => k);
+  const variantLabel = total > 1
+    ? `<span class="print-variant-label">${escapeHtml(tr('print_variant_label', { n: index + 1 }))}</span>`
+    : '';
+  const nameLine = options.fields ? `
+    <div class="print-fields">
+      <span>${escapeHtml(tr('print_name_field'))} <i></i></span>
+      <span>${escapeHtml(tr('print_class_field'))} <i class="short"></i></span>
+      <span>${escapeHtml(tr('print_date_field'))} <i class="short"></i></span>
+    </div>` : '';
+
+  /* Ключ с ответами — на своей странице: лист ученика от него отрезается
+     или просто не печатается второй страницей. */
+  const answers = tasks
+    .map((task, i) => [i + 1, loc(task, 'answer_latex')])
+    .filter(([, answer]) => answer);
+  const key = (options.content === 'key' && answers.length) ? `
+    <section class="print-key">
+      <h3>${escapeHtml(tr('print_answer_key'))}${total > 1 ? ` · ${escapeHtml(tr('print_variant_label', { n: index + 1 }))}` : ''}</h3>
+      <ol class="print-key-list">
+        ${answers.map(([num, answer]) => `<li><b>${num}.</b> <span class="math" data-print-latex="${escapeHtml(answer)}"></span></li>`).join('')}
+      </ol>
+    </section>` : '';
+
+  return `
+    <section class="print-variant">
+      <header class="print-head">
+        <h2>${escapeHtml(printSheetTitle())}</h2>
+        ${variantLabel}
+      </header>
+      ${nameLine}
+      <ol class="print-tasks">${tasks.map((task, i) => printTaskHtml(task, i, options)).join('')}</ol>
+      ${key}
+    </section>`;
+}
+
+function buildPrintSheet(options) {
+  const sheet = document.querySelector('#print-sheet');
+  if (!sheet) return false;
+  const build = window.MathTasksLib?.buildPrintVariants;
+  const variants = build
+    ? build(printableTasks, { count: options.count, variants: options.variants, shuffle: options.variants > 1 || options.count > 0 })
+    : [printableTasks];
+  if (!variants.some(list => list.length)) return false;
+
+  sheet.innerHTML = variants.map((list, i) => printVariantHtml(list, i, variants.length, options)).join('');
+  sheet.hidden = false;
+  // Формулы: renderMath сам кладёт текст в элемент и набирает его KaTeX.
+  sheet.querySelectorAll('[data-print-latex]').forEach(el => {
+    renderMath(el, el.dataset.printLatex || '');
+  });
+  return true;
+}
+
+function printSheet(options) {
+  if (!buildPrintSheet(options)) return;
+  document.body.classList.add('printing-sheet');
   window.print();
 }
 
-window.addEventListener('afterprint', cleanupPrint);
+function cleanupPrintSheet() {
+  document.body.classList.remove('printing-sheet');
+  const sheet = document.querySelector('#print-sheet');
+  if (sheet) {
+    sheet.hidden = true;
+    sheet.innerHTML = '';
+  }
+}
+
+document.addEventListener('click', event => {
+  const chip = event.target.closest?.('.print-chip');
+  if (chip) {
+    const { printCount, printContent, printSpace, printVariants } = chip.dataset;
+    if (printCount !== undefined) printOptions.count = Number(printCount);
+    if (printContent !== undefined) printOptions.content = printContent;
+    if (printSpace !== undefined) printOptions.space = printSpace;
+    if (printVariants !== undefined) printOptions.variants = Number(printVariants);
+    renderPrintDialog();
+    return;
+  }
+  if (event.target.closest?.('#print-cancel, #print-dialog-close')) {
+    document.querySelector('#print-dialog')?.close();
+  }
+});
+
+document.querySelector('#print-form')?.addEventListener('submit', () => {
+  printOptions.fields = Boolean(document.querySelector('#print-fields')?.checked);
+  const options = { ...printOptions };
+  // Диалог закрывается сам (method="dialog"); печать — следующим кадром,
+  // иначе окно печати снимет с него снимок вместе с диалогом.
+  setTimeout(() => printSheet(options), 50);
+});
+
+window.addEventListener('afterprint', cleanupPrintSheet);
 
 if (window.matchMedia) {
   try {
     const printMedia = window.matchMedia('print');
     printMedia.addEventListener('change', mql => {
-      if (!mql.matches) cleanupPrint();
+      if (!mql.matches) cleanupPrintSheet();
     });
   } catch {}
 }
 
+// Отмена печати в некоторых браузерах не шлёт afterprint — ловим возврат в окно.
 window.addEventListener('focus', () => {
-  if (document.body.classList.contains('printing')) {
-    setTimeout(cleanupPrint, 300);
+  if (document.body.classList.contains('printing-sheet')) {
+    setTimeout(cleanupPrintSheet, 300);
   }
 });
 
 let currentTopicTasks = [];
+// Список как он на экране: с ним же работает лист для печати.
+let currentVisibleTasks = [];
 let filterOnlyUnsolved = false;
 let currentTasksSort = 'default';
 let shuffledTopicTasks = null;
@@ -2779,6 +2958,7 @@ function renderCurrentTopicTasks() {
     : currentListEmptyText;
 
   const showTopicLink = !currentActiveTopic;
+  currentVisibleTasks = tasksToRender;
   renderTaskList(listTasks, tasksToRender, emptyText, { showTopicLink, showGrade: true });
   if (currentActiveTopic) {
     renderTopicAnchors(tasksToRender);
@@ -2838,27 +3018,9 @@ function renderPrintActions(tasks) {
     ${viewToggle}
     ${sortControl}
     ${unsolvedFilterBtn}
-    <div class="print-menu-wrap">
-      <button class="list-tool-btn print-toggle-btn" type="button" id="print-toggle-btn" aria-haspopup="true" aria-expanded="false">
-        <span aria-hidden="true">🖨</span>${escapeHtml(tr('print') || 'Печать')}
-      </button>
-      <div class="print-dropdown-menu" id="print-dropdown-menu" hidden>
-        <button class="print-dropdown-item" type="button" data-print-mode="blank">
-          <span class="print-item-icon">📄</span>
-          <div class="print-item-text">
-            <strong>${escapeHtml(tr('print_no_solutions') || 'Без решений')}</strong>
-            <small>${escapeHtml(tr('print_no_solutions_hint') || 'Только условия для учеников')}</small>
-          </div>
-        </button>
-        <button class="print-dropdown-item" type="button" data-print-mode="full">
-          <span class="print-item-icon">📝</span>
-          <div class="print-item-text">
-            <strong>${escapeHtml(tr('print_with_solutions') || 'С решениями')}</strong>
-            <small>${escapeHtml(tr('print_with_solutions_hint') || 'С ответами и разбором для учителя')}</small>
-          </div>
-        </button>
-      </div>
-    </div>
+    <button class="list-tool-btn print-toggle-btn" type="button" id="print-toggle-btn">
+      <span aria-hidden="true">🖨</span>${escapeHtml(tr('print') || 'Печать')}
+    </button>
   `;
 }
 
@@ -2879,25 +3041,9 @@ listActions.addEventListener('change', event => {
 
 listActions.addEventListener('click', async event => {
 
-  const printToggle = event.target.closest('#print-toggle-btn');
-  if (printToggle) {
-    const menu = document.querySelector('#print-dropdown-menu');
-    if (menu) {
-      const isHidden = menu.hidden;
-      menu.hidden = !isHidden;
-      printToggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
-    }
-    return;
-  }
-
-  const printItem = event.target.closest('[data-print-mode]');
-  if (printItem) {
-    const mode = printItem.dataset.printMode;
-    const menu = document.querySelector('#print-dropdown-menu');
-    if (menu) menu.hidden = true;
-    const btn = document.querySelector('#print-toggle-btn');
-    if (btn) btn.setAttribute('aria-expanded', 'false');
-    printTasks(mode === 'full');
+  // Печатается то, что сейчас в списке: фильтр и сортировка уже применены.
+  if (event.target.closest('#print-toggle-btn')) {
+    openPrintDialog(currentVisibleTasks);
     return;
   }
 
@@ -2916,26 +3062,6 @@ listActions.addEventListener('click', async event => {
     singleTaskIndex = 0;
     renderCurrentTopicTasks();
     return;
-  }
-});
-
-document.addEventListener('click', event => {
-  if (!event.target.closest('.print-menu-wrap')) {
-    const menu = document.querySelector('#print-dropdown-menu');
-    if (menu && !menu.hidden) {
-      menu.hidden = true;
-      document.querySelector('#print-toggle-btn')?.setAttribute('aria-expanded', 'false');
-    }
-  }
-});
-
-document.addEventListener('keydown', event => {
-  if (event.key === 'Escape') {
-    const menu = document.querySelector('#print-dropdown-menu');
-    if (menu && !menu.hidden) {
-      menu.hidden = true;
-      document.querySelector('#print-toggle-btn')?.setAttribute('aria-expanded', 'false');
-    }
   }
 });
 

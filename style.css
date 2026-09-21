@@ -679,8 +679,6 @@ body.dark #list-actions .list-tool-btn,body.dark #list-actions .tasks-sort-wrap{
 body.dark #list-actions .list-tool-btn:hover,body.dark #list-actions .tasks-sort-wrap:hover,body.dark #list-actions .tasks-sort-wrap:focus-within{border-color:#2c3547}
 body.dark #list-actions .list-tool-btn.active{border-color:#5a92ff;color:#93b8ff}
 body.dark #list-actions .tasks-sort-select option{background:#0f141f;color:#e9eefb}
-body.dark .print-dropdown-menu{background:#0f141f;border-color:#1c2331}
-body.dark .print-dropdown-item:hover{background:#161c28}
 
 #list-meta .topic-header-meta-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0}
 #list-meta .topic-header-progress{display:inline-flex;align-items:center;gap:12px;padding:0;border:0;border-radius:0;background:none;color:var(--muted);font:600 13px Manrope,sans-serif}
@@ -1306,23 +1304,10 @@ body.dark .grade-action{color:#5a92ff}
 .tasks-sort-select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(29,97,230,0.2)}
 .tasks-reshuffle-btn{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-size:13px;cursor:pointer;transition:all .15s ease}
 .tasks-reshuffle-btn:hover{background:#edf4ff;border-color:var(--accent);transform:rotate(15deg)}
-.print-menu-wrap{position:relative;display:inline-flex}
 .print-toggle-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:5px 12px;font:600 12px Manrope,sans-serif;color:var(--ink);cursor:pointer;transition:all .15s ease}
 .print-toggle-btn:hover{border-color:var(--accent);color:var(--ink);background:#f8fafc}
-.print-dropdown-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:230px;background:#ffffff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 25px -5px rgba(0,0,0,0.1),0 8px 10px -6px rgba(0,0,0,0.05);padding:6px;z-index:100;display:flex;flex-direction:column;gap:4px}
-.print-dropdown-menu[hidden]{display:none}
-.print-dropdown-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border:none;background:transparent;border-radius:7px;text-align:left;cursor:pointer;font-family:inherit;color:var(--ink);transition:background .15s ease}
-.print-dropdown-item:hover{background:#edf4ff}
-.print-item-icon{font-size:16px;flex-shrink:0;margin-top:1px}
-.print-item-text{display:flex;flex-direction:column;gap:2px}
-.print-item-text strong{font-size:12px;font-weight:700;color:var(--ink)}
-.print-item-text small{font-size:10px;color:var(--muted);line-height:1.25}
 body.dark .print-toggle-btn{background:#121824;border-color:#1f2839;color:#c4cce0}
 body.dark .print-toggle-btn:hover{background:#203152;border-color:#5a92ff;color:#edf2ff}
-body.dark .print-dropdown-menu{background:#111a2c;border-color:#233452;box-shadow:0 10px 25px rgba(0,0,0,0.5)}
-body.dark .print-dropdown-item:hover{background:#1d2c46}
-body.dark .print-item-text strong{color:#f1f5f9}
-body.dark .print-item-text small{color:#94a3b8}
 
 .ghost-button{border:1px solid var(--line);border-radius:8px;background:transparent;color:#455471;font:600 12px Manrope;padding:7px 13px;cursor:pointer}
 .ghost-button:hover{border-color:#c3d2ea;background:#f2f6fd}
@@ -1975,8 +1960,58 @@ body.dark .plot-readout{background:rgba(21,33,55,.94);border-color:#2a3a55;color
 .toast-icon{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#10b981;color:#fff;font-size:13px;font-weight:800;flex:none}
 body.dark .toast-notice{background:rgba(21,33,55,.95);border-color:rgba(255,255,255,.12)}
 
+/* ── Лист для печати ─────────────────────────────────────────────
+   Диалог собирает подборку: сколько задач, сколько вариантов, что на
+   листе видно. Сам лист живёт в #print-sheet и на экране скрыт. */
+.print-dialog{max-width:520px}
+.print-dialog-lead{margin:0 0 18px;font-size:13px;line-height:1.5;color:var(--muted)}
+.print-form{display:flex;flex-direction:column;gap:16px}
+.print-field{margin:0;padding:0;border:0}
+.print-field[hidden]{display:none}
+.print-field legend{padding:0 0 7px;font:800 10.5px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.print-field-hint{margin:8px 0 0;font-size:12px;line-height:1.45;color:var(--muted)}
+.print-chips{display:flex;flex-wrap:wrap;gap:7px}
+.print-chip{padding:7px 13px;border:1px solid var(--line);border-radius:9px;background:transparent;color:var(--ink);font:600 12.5px Manrope,sans-serif;cursor:pointer;transition:border-color .15s,background .15s}
+.print-chip:hover{border-color:#b9c6dc}
+.print-chip.is-active{border-color:#111827;background:#111827;color:#fff}
+.print-chip:focus-visible{outline:2px solid #5a92ff;outline-offset:1px}
+/* .auth-dialog ставит своим label колонку по центру — для галочки нужна строка. */
+.print-dialog .print-check{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:9px;width:auto;font-size:13.5px;color:var(--ink);cursor:pointer}
+.print-dialog .print-check input{flex:none;width:16px;height:16px;margin:0}
+.print-form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:4px}
+body.dark .print-chip{border-color:#1c2331;color:#e9eefb}
+body.dark .print-chip:hover{border-color:#2c3547}
+body.dark .print-chip.is-active{border-color:#e9eefb;background:#e9eefb;color:#0a0d14}
+/* На экране лист уведён за край: при сборке страница иначе прыгает вниз. */
+.print-sheet{position:fixed;top:0;left:-10000px;width:190mm}
+.print-sheet[hidden]{display:none}
+
 /* ── Печать ──────────────────────────────────────────────────────── */
 @media print{
+  /* Лист собран заранее — на бумагу уходит только он. */
+  body.printing-sheet > *:not(#print-sheet){display:none!important}
+  body.printing-sheet #print-sheet{position:static;display:block;width:auto;margin:0;color:#000}
+  body.printing-sheet{background:#fff}
+  .print-variant{break-after:page;page-break-after:always}
+  .print-variant:last-child{break-after:auto;page-break-after:auto}
+  .print-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:10px}
+  .print-head h2{margin:0;font-size:15pt}
+  .print-variant-label{font-size:12pt;font-weight:700;white-space:nowrap}
+  .print-fields{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:14px;font-size:10.5pt}
+  .print-fields i{display:inline-block;width:150px;border-bottom:1px solid #000}
+  .print-fields i.short{width:60px}
+  .print-tasks{margin:0;padding:0;list-style:none;counter-reset:none}
+  .print-task{display:flex;gap:10px;break-inside:avoid;page-break-inside:avoid;padding:9px 0;border-bottom:1px solid #d4d4d4}
+  .print-task-num{font-weight:700;font-size:11pt;min-width:22px}
+  .print-task-body{flex:1;min-width:0;font-size:11.5pt;line-height:1.5}
+  .print-figure{display:block;max-width:260px;margin:7px 0}
+  .print-solution{margin-top:7px;padding-left:10px;border-left:2px solid #999;font-size:10.5pt}
+  .print-space-lines{height:64px}
+  .print-space-half{height:330px}
+  .print-key{break-before:page;page-break-before:always;padding-top:4px}
+  .print-key h3{margin:0 0 8px;font-size:13pt;border-bottom:1px solid #000;padding-bottom:5px}
+  .print-key-list{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:6px 24px;font-size:11pt}
+
   /* На бумаге нужны только условия: меню, поиск и кнопки — экранные элементы. */
   .sidebar,.sidebar-scrim,.topbar,.breadcrumb,.topic-anchors,.subtopic-nav,.grade-actions,.list-actions,
   .topic-header-cw-btn,.topic-header-progress,.topic-control-work-slot,
@@ -1989,7 +2024,6 @@ body.dark .toast-notice{background:rgba(21,33,55,.95);border-color:rgba(255,255,
   .task-figure{max-width:280px}
   /* Панели решений скрыты атрибутом hidden; на печати ими управляет режим. */
   .reveal{display:none!important}
-  body.print-solutions .reveal{display:flex!important}
   .task-actions,.task-tags-row,.task-self-check{display:none!important}
   .task-condition-wrap{gap:8px}
   .task-number{background:transparent!important;color:#000!important;padding:0!important;font-weight:700!important;font-size:11pt!important}
