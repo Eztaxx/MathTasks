@@ -377,17 +377,37 @@
     ];
   };
 
-  /* Несколько значений без имён: корни «−9; −2; 0; 4; 7», стороны «6; 6√3».
-     Полей столько же, сколько значений; порядок подсказываем от меньшего к
-     большему, но проверка принимает любой — это подсказка, а не правило. */
-  const orderedFields = parts => {
+  /* Единицу подписываем только у простого «число + единица». У «1 ч 30 мин»
+     единиц две, и подпись «мин» справа от поля врала бы: вписывать нужно всё. */
+  const simpleUnitOf = value => {
+    const groups = String(value || '').match(/\\(?:text|mathrm)\{[^{}]*\}/g) || [];
+    return groups.length === 1 ? answerUnitOf(value) : '';
+  };
+
+  /* Значение поля: число, выражение или величина с единицей. Единицы в
+     \text{} снимаем перед проверкой — «1 ч 30 мин» это время, а не текст. */
+
+  const isFieldValue = value => {
+    const bare = String(value || '').replace(/\\(?:text|mathrm)\{[^{}]*\}/g, ' ').trim();
+    if (!bare || answerHasWords(bare)) return false;
+    return /[\d\\√π∞]/.test(bare);
+  };
+
+  /* Несколько значений без имён: корни «−9; −2; 0; 4; 7», стороны «6; 6√3»,
+     но и разные величины подряд — «1 : 2 000 000; 1 ч 30 мин». Полей
+     столько же, сколько значений.
+     Порядок «от меньшего к большему» подсказываем только там, где значения
+     однородны — голые числа. Если величины разные, порядок задаёт условие,
+     и подсказка будет другой. */
+  const plainFields = parts => {
     if (parts.length < 2 || parts.length > 5) return null;
-    if (!parts.every(part => !part.label && part.pieceCount === 1 && isNumericValue(part.values[0]))) return null;
+    if (!parts.every(part => !part.label && part.pieceCount === 1 && isFieldValue(part.values[0]))) return null;
+    const sameKind = parts.every(part => isNumericValue(part.values[0]) && !/[:]/.test(part.values[0]));
     return parts.map(part => ({
       label: '',
-      unit: answerUnitOf(part.values[0]),
+      unit: simpleUnitOf(part.values[0]),
       value: part.values[0],
-      ordered: true
+      ordered: sameKind
     }));
   };
 
@@ -413,12 +433,12 @@
       if (parts.length > 4) return [];
       return parts.map(part => ({
         label: answerLabelText(part.label),
-        unit: answerUnitOf(part.values[0]),
+        unit: simpleUnitOf(part.values[0]),
         value: part.values[0]
       }));
     }
 
-    return orderedFields(parts) || [];
+    return plainFields(parts) || [];
   };
 
   /* Проверка по полям: какое значение верное, какое нет. Итог подстрахован

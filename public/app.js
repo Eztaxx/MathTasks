@@ -1442,8 +1442,8 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
     <div class="task-self-check" data-self-check="${task.id}">
       <ul class="self-check-tips"${solved ? ' hidden' : ''}>
         <li class="self-check-tip tip-keyboard">${escapeHtml(tr('self_check_tip_keyboard'))}</li>
-        ${answerParts.some(field => field.ordered)
-          ? `<li class="self-check-tip tip-order">${escapeHtml(tr('answer_fields_order'))}</li>`
+        ${answerParts.length > 1 && answerParts.every(field => !field.label)
+          ? `<li class="self-check-tip tip-order">${escapeHtml(tr(answerParts.some(field => field.ordered) ? 'answer_fields_order' : 'answer_fields_ask_order'))}</li>`
           : `<li class="self-check-tip tip-full">${escapeHtml(tr('self_check_tip_full'))}</li>`}
       </ul>
       <div class="quick-math-bar" hidden aria-label="Quick Math Bar"></div>
@@ -1886,8 +1886,12 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
 
     /* Если хотя бы у одной задачи значения идут набором, порядок называем
        один раз сверху: подписывать каждую строку — шум. */
-    const orderNote = shown.some(task => answerFieldsOf(task).some(field => field.ordered))
-      ? `<p class="compact-drill-order">${escapeHtml(tr('answer_fields_order'))}</p>`
+    const unnamed = shown.filter(task => {
+      const fields = answerFieldsOf(task);
+      return fields.length > 1 && fields.every(field => !field.label);
+    });
+    const orderNote = unnamed.length
+      ? `<p class="compact-drill-order">${escapeHtml(tr(unnamed.some(task => answerFieldsOf(task).some(field => field.ordered)) ? 'answer_fields_order' : 'answer_fields_ask_order'))}</p>`
       : '';
     container.innerHTML = `<div class="task-compact-container">${bannerHtml}${orderNote}<div class="task-compact-grid">${itemsHtml}</div>${moreButton(tasks.length)}</div>`;
 

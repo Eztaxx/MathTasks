@@ -152,3 +152,29 @@ describe('промпт для ИИ про ответы', () => {
     expect(buildTaskPrompt({ grade: 8, count: 1 })).toContain('c = 10');
   });
 });
+
+/* Задача 848: в ответе две разные величины без имён — масштаб и время.
+   Поля нужны, а подсказка про возрастание тут была бы неверной: порядок
+   задаёт условие. */
+describe('разные величины подряд', () => {
+  const SCALE_TIME = '$1 : 2\\,000\\,000$; $1\\text{ ч } 30\\text{ мин}$';
+
+  it('даёт поле на каждую величину', () => {
+    expect(answerFields(SCALE_TIME)).toHaveLength(2);
+  });
+
+  it('порядок «по возрастанию» не обещает: величины разные', () => {
+    expect(answerFields(SCALE_TIME).every(field => field.ordered === false)).toBe(true);
+    expect(answerFields('$3; 5$').every(field => field.ordered === true)).toBe(true);
+  });
+
+  it('единицу подписывает только у простого «число + единица»', () => {
+    expect(answerFields(SCALE_TIME)[1].unit).toBe('');
+    expect(answerFields('$12\\text{ см}$, $7\\text{ кг}$')[0].unit).toBe('см');
+  });
+
+  it('значения принимаются по полям', () => {
+    const result = checkAnswerFields(['1 : 2\\,000\\,000', '1\\text{ ч } 30\\text{ мин}'], SCALE_TIME);
+    expect(result.allCorrect).toBe(true);
+  });
+});
