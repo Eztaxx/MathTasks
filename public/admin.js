@@ -21,6 +21,8 @@
   const taskFilterTopic = document.querySelector('#task-filter-topic');
   const taskFilterStatus = document.querySelector('#task-filter-status');
   const taskFilterSort = document.querySelector('#task-filter-sort');
+  const taskFilterSubtopic = document.querySelector('#task-filter-subtopic');
+  const taskFilterSubtopicField = document.querySelector('#task-filter-subtopic-field');
   const topicSearchInput = document.querySelector('#topic-search-input');
   const topicFilterGrade = document.querySelector('#topic-filter-grade');
   const topicFilterSubject = document.querySelector('#topic-filter-subject');
@@ -2295,6 +2297,33 @@ ${JSON.stringify(texts)}`;
     taskFilterTopic.value = keepable ? keep : '';
   }
 
+  /* Подтем на сайте под пятьсот, одним списком их не выбрать, поэтому
+     фильтр появляется только при выбранной теме и показывает её подтемы.
+     «Без подтемы» — чтобы находить задачи, которые ещё не разложены. */
+  function updateFilterSubtopicDropdown() {
+    if (!taskFilterSubtopic || !taskFilterSubtopicField) return;
+    const topicId = taskFilterTopic?.value || '';
+    const keep = taskFilterSubtopic.value;
+    const mine = topicId ? subtopics.filter(s => String(s.topic_id) === topicId) : [];
+    mine.sort((a, b) =>
+      (a.code ? 0 : 1) - (b.code ? 0 : 1)
+      || naturalCompare(a.code || '', b.code || '')
+      || positionOf(a) - positionOf(b)
+      || titleCompare(a, b));
+    taskFilterSubtopicField.hidden = !mine.length;
+    if (!mine.length) {
+      taskFilterSubtopic.innerHTML = '<option value="">Все подтемы</option>';
+      taskFilterSubtopic.value = '';
+      return;
+    }
+    const counts = countPlaces();
+    taskFilterSubtopic.innerHTML = '<option value="">Все подтемы</option>'
+      + mine.map(s => `<option value="${s.id}">${escapeHtml(`${s.code ? s.code + ' ' : ''}${s.title}`)} (${getSubtopicTaskCount(s.id, counts)})</option>`).join('')
+      + '<option value="none">Без подтемы</option>';
+    const keepable = keep === 'none' || mine.some(s => String(s.id) === keep);
+    taskFilterSubtopic.value = keepable ? keep : '';
+  }
+
   /* Подтемы принадлежат теме, поэтому список пересобирается при каждой
      смене темы. Пустой список — не ошибка: у темы может не быть подтем. */
   function updateSubtopicDropdown(preferredSubtopicId = null) {
@@ -3408,6 +3437,7 @@ ${JSON.stringify(texts)}`;
     const query = (taskSearchInput?.value || '').trim().toLowerCase();
     const gradeVal = parseFormGrade(taskFilterGrade?.value);
     const topicVal = taskFilterTopic?.value ? Number(taskFilterTopic.value) : null;
+    const subtopicVal = taskFilterSubtopic?.value || '';
     const statusVal = taskFilterStatus?.value || '';
 
     /* Условие хранится в LaTeX: «$480\text{ книг}$» не содержит строки
@@ -3439,6 +3469,8 @@ ${JSON.stringify(texts)}`;
         if (taskGrade !== gradeVal) return false;
       }
       if (topicVal !== null && task.topic_id !== topicVal) return false;
+      if (subtopicVal === 'none' && task.subtopic_id) return false;
+      if (subtopicVal && subtopicVal !== 'none' && String(task.subtopic_id) !== subtopicVal) return false;
       if (statusVal === 'published' && !task.is_published) return false;
       if (statusVal === 'draft' && task.is_published) return false;
       const hasSolution = Boolean((task.solution_latex && task.solution_latex.trim()) || (task.solution_image && task.solution_image.trim()));
@@ -3471,6 +3503,8 @@ ${JSON.stringify(texts)}`;
     if (globalSearch) globalSearch.value = '';
     if (taskFilterGrade) taskFilterGrade.value = '';
     if (taskFilterTopic) taskFilterTopic.value = '';
+    if (taskFilterSubtopic) taskFilterSubtopic.value = '';
+    updateFilterSubtopicDropdown();
     if (taskFilterStatus) taskFilterStatus.value = '';
     renderTaskList();
   }
@@ -3491,7 +3525,7 @@ ${JSON.stringify(texts)}`;
     }
 
     const filtered = sortTasks(getFilteredTasks());
-    const isFiltered = Boolean((taskSearchInput?.value || '').trim() || taskFilterGrade?.value || taskFilterTopic?.value || taskFilterStatus?.value);
+    const isFiltered = Boolean((taskSearchInput?.value || '').trim() || taskFilterGrade?.value || taskFilterTopic?.value || taskFilterSubtopic?.value || taskFilterStatus?.value);
 
     if (taskFilterCount) {
       taskFilterCount.textContent = isFiltered
@@ -3918,7 +3952,7 @@ ${JSON.stringify(texts)}`;
     setTasksShown(true);
     renderTaskList();
   };
-  [taskSearchInput, taskFilterTopic, taskFilterStatus, taskFilterSort].forEach(el => {
+  [taskSearchInput, taskFilterSubtopic, taskFilterStatus, taskFilterSort].forEach(el => {
     el?.addEventListener('input', showTasksThenRender);
     el?.addEventListener('change', showTasksThenRender);
   });
@@ -3927,6 +3961,13 @@ ${JSON.stringify(texts)}`;
      класса, а список вышел бы пустым. */
   taskFilterGrade?.addEventListener('change', () => {
     updateFilterTopicDropdown();
+    updateFilterSubtopicDropdown();
+    showTasksThenRender();
+  });
+  /* Смена темы меняет набор подтем: старая подтема из другой темы дала бы
+     пустой список. */
+  taskFilterTopic?.addEventListener('change', () => {
+    updateFilterSubtopicDropdown();
     showTasksThenRender();
   });
   taskFilterReset?.addEventListener('click', resetTaskFilters);
@@ -6021,6 +6062,7 @@ ${JSON.stringify(texts)}`;
     updateTaskTopicDropdown();
     updateSubtopicDropdown();
     updateFilterTopicDropdown();
+    updateFilterSubtopicDropdown();
 
     if (subtopicFormGrade && subtopicFormGrade.children.length <= 1) {
       fillGradeSelect(subtopicFormGrade, 'Все классы и курсы', { numeric: true });
