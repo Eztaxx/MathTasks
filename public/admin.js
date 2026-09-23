@@ -2624,12 +2624,24 @@ ${JSON.stringify(texts)}`;
         }
       }
     }
-    if (lib.hintRevealsAnswer) {
+    if (lib.hintStepsRevealAnswer) {
       const reveals = [[ansRu, hintRu, 'focus-hint', ''], [ansLv || ansRu, hintLv, 'focus-hint-lv', ' (LV)']]
-        .find(([answer, hint]) => answer && hint && lib.hintRevealsAnswer(answer, hint));
+        .map(([answer, hint, action, suffix]) => [answer && hint ? lib.hintStepsRevealAnswer(answer, hint) : [], action, suffix])
+        .find(([steps]) => steps.length);
       if (reveals) {
-        chips.push({ level: 'warn', text: `Подсказка выдаёт ответ${reveals[3]}`, action: reveals[2],
-          title: 'В подсказке уже записан результат («= …»). Подсказка даёт направление, а ответ открывается позже' });
+        const [steps, action, suffix] = reveals;
+        const where = lib.splitHintSteps(action === 'focus-hint' ? hintRu : hintLv).length > 1
+          ? ` (шаг ${steps.map(index => index + 1).join(', ')})` : '';
+        chips.push({ level: 'warn', text: `Подсказка выдаёт ответ${suffix}${where}`, action,
+          title: 'В подсказке уже записан результат («= …»). Подсказка даёт направление, а ответ открывается позже; подвести к ответу может только последний шаг' });
+      }
+    }
+    if (lib.splitHintSteps && hintRu && hintLv) {
+      const ruSteps = lib.splitHintSteps(hintRu).length;
+      const lvSteps = lib.splitHintSteps(hintLv).length;
+      if (ruSteps !== lvSteps) {
+        chips.push({ level: 'warn', text: `Шагов подсказки: RU ${ruSteps}, LV ${lvSteps}`, action: 'focus-hint-lv',
+          title: 'Латышская подсказка разбита на другое число шагов — ученики на двух языках получат разную помощь' });
       }
     }
     const latvianInRu = [[condRu, 'focus-cond-ru'], [ansRu, 'focus-ans'], [solRu, 'focus-sol'], [hintRu, 'focus-hint'], [checkRu, 'focus-check']]
@@ -2787,6 +2799,26 @@ ${JSON.stringify(texts)}`;
     result.className = 'adm-answer-try-result ' + (ok ? 'ok' : 'bad');
   });
 
+  /* «+ шаг» у подсказки: вставляет разделитель шагов туда, где курсор,
+     сам добавляя переводы строк, — руками «---» легко приклеить к тексту. */
+  document.addEventListener('click', event => {
+    const button = event.target.closest?.('[data-hint-step-add]');
+    if (!button) return;
+    event.preventDefault();
+    const input = document.getElementById(button.dataset.hintStepAdd);
+    if (!input) return;
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? start;
+    const before = input.value.slice(0, start).replace(/\s+$/, '');
+    const after = input.value.slice(end).replace(/^\s+/, '');
+    const glue = '\n---\n';
+    input.value = before + glue + after;
+    const caret = (before + glue).length;
+    input.focus();
+    input.setSelectionRange(caret, caret);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
   function renderVisitorPreview() {
     const cond = byId('adm-preview-cond');
     if (!cond) return;
@@ -2847,8 +2879,26 @@ ${JSON.stringify(texts)}`;
     if (answerWrap) answerWrap.hidden = both && !answer && !(answerInputLv?.value || '').trim();
     const hintEl = byId('adm-preview-hint');
     const answerEl = byId('adm-preview-answer');
-    put(hintEl, hint, 'Подсказки пока нет');
-    putLv(hintEl, hintInputLv);
+    const putHint = (el, text, emptyText) => {
+      const steps = window.MathTasksLib?.splitHintSteps ? window.MathTasksLib.splitHintSteps(text) : [];
+      if (steps.length <= 1) { put(el, text, emptyText); return; }
+      el.innerHTML = '';
+      steps.forEach((step, index) => {
+        const row = document.createElement('div');
+        row.className = 'adm-preview-hint-step';
+        row.innerHTML = `<span class="adm-preview-hint-num">${index + 1}</span><div></div>`;
+        el.append(row);
+        put(row.lastElementChild, step, '');
+      });
+    };
+    putHint(hintEl, hint, 'Подсказки пока нет');
+    if (hintEl && both) {
+      const box = document.createElement('div');
+      box.className = 'adm-preview-lv';
+      box.innerHTML = '<span class="adm-preview-lv-tag">LV</span><div class="adm-preview-lv-text"></div>';
+      hintEl.append(box);
+      putHint(box.lastElementChild, (hintInputLv?.value || '').trim(), 'Перевода пока нет');
+    }
     put(answerEl, answer, 'Ответа пока нет');
     putLv(answerEl, answerInputLv);
 

@@ -1578,7 +1578,7 @@ function deferMath(element, latex) {
 }
 
 function renderPendingMath(root) {
-  root.querySelectorAll('[data-answer], [data-hint], [data-solution]').forEach(element => {
+  root.querySelectorAll('[data-answer], [data-hint], [data-hint-step-math], [data-solution]').forEach(element => {
     if (!pendingMath.has(element)) return;
     renderMath(element, pendingMath.get(element));
     pendingMath.delete(element);
@@ -1613,13 +1613,67 @@ function fillTaskMath(container, tasks) {
   });
   const hintSource = tasks.filter(task => loc(task, 'hint_latex'));
   container.querySelectorAll('[data-hint]').forEach((element, index) => {
-    deferMath(element, loc(hintSource[index], 'hint_latex'));
+    fillHintSteps(element, loc(hintSource[index], 'hint_latex'), deferMath);
   });
   const solutionSource = tasks.filter(task => loc(task, 'solution_latex'));
   container.querySelectorAll('[data-solution]').forEach((element, index) => {
     deferMath(element, loc(solutionSource[index], 'solution_latex'));
   });
 }
+
+/* Подсказка из шагов: первый открыт, остальные — по кнопке «Ещё
+   подсказка». Контейнер остаётся один на задачу: fillTaskMath сопоставляет
+   подсказки с задачами по порядку узлов [data-hint]. draw — как рисовать
+   формулу: в карточке отложенно (панель закрыта), в окне — сразу. */
+function fillHintSteps(element, latex, draw = renderMath) {
+  const steps = window.MathTasksLib?.splitHintSteps ? window.MathTasksLib.splitHintSteps(latex) : [];
+  if (steps.length <= 1) {
+    element.classList.remove('hint-steps');
+    draw(element, latex);
+    return;
+  }
+  const tr = window.MathTasks.t || (k => k);
+  // Отложенная формула контейнера затёрла бы шаги при открытии панели.
+  pendingMath.delete(element);
+  element.classList.add('hint-steps');
+  element.dataset.hintOpened = '1';
+  element.innerHTML = steps.map((_, index) => `
+    <div class="hint-step" data-hint-step="${index}"${index ? ' hidden' : ''}>
+      <span class="hint-step-num" aria-hidden="true">${index + 1}</span>
+      <div class="math hint-step-math" data-hint-step-math></div>
+    </div>`).join('')
+    + `<button class="hint-more" type="button" data-hint-more>
+      <span class="hint-more-text">${escapeHtml(tr('hint_next_step'))}</span>
+      <span class="hint-more-count">${escapeHtml(tr('hint_step_of', { n: 1, total: steps.length }))}</span>
+    </button>`;
+  element.querySelectorAll('[data-hint-step-math]').forEach((node, index) => draw(node, steps[index]));
+}
+
+function openNextHintStep(button) {
+  const box = button.closest('.hint-steps');
+  if (!box) return;
+  const tr = window.MathTasks.t || (k => k);
+  const steps = [...box.querySelectorAll('[data-hint-step]')];
+  const next = steps.find(step => step.hidden);
+  if (!next) return;
+  next.hidden = false;
+  renderPendingMath(next);
+  const opened = steps.filter(step => !step.hidden).length;
+  box.dataset.hintOpened = String(opened);
+  const count = button.querySelector('.hint-more-count');
+  if (count) count.textContent = tr('hint_step_of', { n: opened, total: steps.length });
+  if (opened >= steps.length) {
+    button.hidden = true;
+    box.insertAdjacentHTML('beforeend', `<p class="hint-steps-done">${escapeHtml(tr('hint_steps_done'))}</p>`);
+  }
+  const card = button.closest('.task');
+  if (card) markTaskHintOpened(card.dataset.taskId);
+}
+
+document.addEventListener('click', event => {
+  const more = event.target.closest?.('[data-hint-more]');
+  if (more) openNextHintStep(more);
+});
 
 let taskViewMode = 'list'; // 'list' | 'single' | 'compact'
 try {
@@ -5646,7 +5700,12 @@ function openDrillHintDialog(task) {
     target.innerHTML = '';
     if (!section.hidden) renderMath(target, text);
   };
-  showSection(hintSec, hintEl, loc(task, 'hint_latex'), reveal.hint);
+  if (hintSec && hintEl) {
+    const hint = loc(task, 'hint_latex');
+    hintSec.hidden = !(reveal.hint && hint);
+    hintEl.innerHTML = '';
+    if (!hintSec.hidden) fillHintSteps(hintEl, hint, renderMath);
+  }
   showSection(ansSec, ansEl, loc(task, 'answer_latex'), reveal.answer);
   showSection(solSec, solEl, loc(task, 'solution_latex'), reveal.solution);
   if (lockEl) {
