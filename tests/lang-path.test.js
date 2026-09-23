@@ -45,7 +45,7 @@ describe('язык в адресе', () => {
     /* Cloudflare отдаёт /trainer вместо /trainer.html; роутер и латышский
        префикс должны узнавать их и без «.html» — иначе клик по меню
        оставлял главную, а в латышской версии вёл на /lv/trainer. */
-    for (const path of ['/trainer', '/trainer?section=equations', '/exams', '/mock-exams', '/plotter', '/plotter?f=x']) {
+    for (const path of ['/trainer', '/trainer?section=equations', '/exams', '/mock-exams', '/plotter', '/plotter?f=x', '/duel']) {
       expect(localizeHref(path, 'lv'), path).toBe(path);
       expect(isLocalizablePath(path.split('?')[0]), path).toBe(false);
     }

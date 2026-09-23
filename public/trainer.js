@@ -27,12 +27,46 @@
     return a || 1;
   }
 
+  /* Источник случайности один на весь тренажёр. Обычно это Math.random,
+     а для дуэли по ссылке — генератор с зерном: у двух друзей на разных
+     устройствах одно зерно даёт одни и те же примеры в том же порядке.
+     Поэтому Math.random нигде, кроме этой строки, вызывать нельзя — тест
+     это проверяет. */
+  let random = Math.random;
+
+  // Mulberry32: маленький и быстрый, одинаковый во всех браузерах.
+  function seededRandom(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function withSeed(seed, run) {
+    const previous = random;
+    random = seededRandom(seed);
+    try {
+      return run();
+    } finally {
+      random = previous;
+    }
+  }
+
+  /* Версия генераторов. Поменяли любой генератор счёта — поднимите число:
+     иначе старая ссылка на дуэль даст другу не те примеры, что решал
+     вызвавший, и оба об этом не узнают. */
+  const GENERATOR_VERSION = 1;
+
   function randInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor(random() * (max - min + 1)) + min;
   }
 
   function pick(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
+    return arr[Math.floor(random() * arr.length)];
   }
 
   /* Число не кратное десяти: на сложных уровнях круглые десятки считаются
@@ -264,7 +298,7 @@
     // 1. Двузначные числа: сложение и вычитание
     addsub2: (diff = 'normal') => {
       if (diff === 'expert') {
-        const isTri = Math.random() < 0.65;
+        const isTri = random() < 0.65;
         if (isTri) {
           const a = randInt(25, 68);
           const b = randInt(18, 55);
@@ -292,7 +326,7 @@
         }
       } else if (diff === 'hard') {
         // Продвинутый: обязательный переход через десяток в каждом примере (единицы 6..9)
-        const isAdd = Math.random() < 0.5;
+        const isAdd = random() < 0.5;
         if (isAdd) {
           const u1 = randInt(6, 9);
           const u2 = randInt(6, 9);
@@ -322,7 +356,7 @@
         }
       } else {
         // Базовый: простые числа до 50 без сложного перехода
-        const isAdd = Math.random() < 0.55;
+        const isAdd = random() < 0.55;
         if (isAdd) {
           const a = randInt(12, 45);
           const b = randInt(11, 35);
@@ -356,7 +390,7 @@
            десятков здесь быть не должно — раньше все примеры кончались на
            ноль и считались легче, чем на «продвинутом»), переносы в разрядах
            и переход через 1000. */
-        const kind = Math.random();
+        const kind = random();
         if (kind < 0.4) {
           // Три числа: сложить и сразу вычесть, с переносом и занятием
           const a = notRound(147, 698);
@@ -397,7 +431,7 @@
         }
       } else if (diff === 'hard') {
         // Продвинутый: полные трёхзначные числа с переносами
-        const isAdd = Math.random() < 0.5;
+        const isAdd = random() < 0.5;
         if (isAdd) {
           const a = randInt(245, 689);
           const b = randInt(145, 489);
@@ -423,7 +457,7 @@
         }
       } else {
         // Базовый: круглые десятки, комфортный счёт
-        const isAdd = Math.random() < 0.5;
+        const isAdd = random() < 0.5;
         if (isAdd) {
           const a = randInt(12, 45) * 10;
           const b = randInt(11, 35) * 10;
@@ -454,7 +488,7 @@
     multdiv: (diff = 'normal') => {
       if (diff === 'expert') {
         // Эксперт: двузначное x двузначное или деление 3-значного на 2-значное
-        const isMult = Math.random() < 0.6;
+        const isMult = random() < 0.6;
         if (isMult) {
           const a = randInt(12, 28);
           const b = randInt(11, 25);
@@ -520,7 +554,7 @@
         }
       } else {
         // Базовый: таблица умножения и деления (1..10)
-        const isMult = Math.random() < 0.6;
+        const isMult = random() < 0.6;
         if (isMult) {
           const a = randInt(3, 9);
           const b = randInt(3, 9);
@@ -550,10 +584,10 @@
     fractions: (diff = 'normal') => {
       if (diff === 'normal') {
         // Базовый: одинаковые знаменатели или простые половины/четверти
-        const isSame = Math.random() < 0.75;
+        const isSame = random() < 0.75;
         if (isSame) {
           const d = pick([3, 4, 5, 6, 7, 8, 9, 10]);
-          const isAdd = Math.random() < 0.55;
+          const isAdd = random() < 0.55;
           if (isAdd) {
             const n1 = randInt(1, Math.max(1, d - 2));
             const n2 = randInt(1, Math.max(1, d - n1));
@@ -1144,7 +1178,7 @@
             category: 'powers'
           };
         } else {
-          const isZero = Math.random() < 0.5;
+          const isZero = random() < 0.5;
           const a = randInt(2, 50);
           if (isZero) {
             return {
@@ -1355,7 +1389,7 @@
             category: 'algebra_powers'
           };
         } else if (mode === 'coeff_pow') {
-          const isCube = Math.random() < 0.35;
+          const isCube = random() < 0.35;
           const c = isCube ? 2 : randInt(2, 3);
           const b = isCube ? 3 : 2;
           const a = randInt(2, 4);
@@ -1824,7 +1858,10 @@
     } catch (e) {}
   }
 
-  function generateBatch(cat = 'addsub2', count = 20, diff = 'normal', school = 'high') {
+  function generateBatch(cat = 'addsub2', count = 20, diff = 'normal', school = 'high', { seed = null } = {}) {
+    if (seed !== null && seed !== undefined) {
+      return withSeed(seed, () => generateBatch(cat, count, diff, school));
+    }
     const list = [];
     const seen = new Set();
     const maxAttempts = count * 6;
@@ -1868,7 +1905,7 @@
   function shuffle(arr) {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(random() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
@@ -1888,6 +1925,10 @@
       return gen(diff, school);
     },
     generateBatch,
+    GENERATOR_VERSION,
+    random: () => random(),
+    seededRandom,
+    withSeed,
     checkAnswer,
     register,
     rememberMistake,

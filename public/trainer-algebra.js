@@ -11,8 +11,11 @@
  *    с приведёнными подобными, 'factored' — только произведение.
  */
 (() => {
-  const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  /* Случайность берём у trainer.js: с зерном дуэли уравнения тоже
+     получаются одинаковыми у обоих игроков. */
+  const random = () => (globalThis.MathTasksTrainer?.random || Math.random)();
+  const randInt = (min, max) => Math.floor(random() * (max - min + 1)) + min;
+  const pick = arr => arr[Math.floor(random() * arr.length)];
   const randNZ = (min, max) => {
     let v = 0;
     while (v === 0) v = randInt(min, max);
@@ -888,7 +891,7 @@
       normal: [() => {
         // a^(kx + m) = a^n
         const a = pick([2, 3, 5]);
-        const n = Math.random() < 0.25 ? -randInt(1, 3) : randInt(0, POW_LIMIT[a]);
+        const n = random() < 0.25 ? -randInt(1, 3) : randInt(0, POW_LIMIT[a]);
         const k = randInt(1, 3);
         const x = randInt(-3, 4);
         const m = n - k * x;
@@ -928,7 +931,7 @@
         // a^(x+1) + a^x = C или a^(x+2) - a^x = C
         const a = pick([2, 3, 5]);
         const x = randInt(0, 3);
-        const plus = Math.random() < 0.5;
+        const plus = random() < 0.5;
         const factor = plus ? a + 1 : a * a - 1;
         return rootsQuestion({
           latex: plus ? `${a}^{x + 1} + ${a}^{x} = ${factor * a ** x}` : `${a}^{x + 2} - ${a}^{x} = ${factor * a ** x}`,
@@ -944,7 +947,7 @@
         const t1 = a ** r1;
         let r2 = null;
         let t2;
-        if (Math.random() < 0.5) {
+        if (random() < 0.5) {
           r2 = randInt(0, 3);
           while (r2 === r1) r2 = randInt(0, 3);
           t2 = a ** r2;
@@ -1060,7 +1063,7 @@
       normal: [() => {
         const P1 = randQuadratic();
         const P2 = randQuadratic();
-        const minus = Math.random() < 0.5;
+        const minus = random() < 0.5;
         const R = polyAdd(P1, minus ? polyScale(P2, -1) : P2);
         return Object.keys(R).length ? q(`${wrapTex(P1)} ${minus ? '-' : '+'} ${wrapTex(P2)}`, R) : q(`${wrapTex(P1)} + ${wrapTex(P2)}`, polyAdd(P1, P2));
       }, () => {
@@ -1387,7 +1390,7 @@
     return byDiff(diff, {
       normal: [() => make(FIRST, false)],
       hard: [() => make(FIRST, true), () => make(ALL, false)],
-      expert: [() => make(ALL, true), () => make(FIRST.slice(1), Math.random() < 0.5, true)]
+      expert: [() => make(ALL, true), () => make(FIRST.slice(1), random() < 0.5, true)]
     });
   }
 
@@ -1399,7 +1402,7 @@
     };
     const deg = pick(LEVEL[diff] || LEVEL.normal);
     const r = radParts(deg);
-    if (Math.random() < 0.5) {
+    if (random() < 0.5) {
       return valueQ(`${deg}^\\circ`, (deg * Math.PI) / 180, r.text, `${deg}^\\circ = ${deg} \\cdot \\frac{\\pi}{180} = ${r.tex}`, 'angles', 'to_rad');
     }
     return valueQ(r.tex, deg, `${deg}°`, `${r.tex} \\cdot \\frac{180^\\circ}{\\pi} = ${deg}^\\circ`, 'angles', 'to_deg');

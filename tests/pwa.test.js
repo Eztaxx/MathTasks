@@ -191,7 +191,7 @@ describe('service worker без сети', () => {
 /* Отдельные страницы воркер не переписывает: превью и canonical должны
    лежать прямо в файле, иначе ссылка на тренажёр приходит голой строкой. */
 describe('отдельные страницы: превью ссылки', () => {
-  const PAGES = ['exams.html', 'mock-exams.html', 'trainer.html', 'plotter.html'];
+  const PAGES = ['exams.html', 'mock-exams.html', 'trainer.html', 'plotter.html', 'duel.html'];
 
   it.each(PAGES)('%s — карточка 1200×630 и canonical', file => {
     const html = read(file);

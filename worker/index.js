@@ -80,10 +80,10 @@ const CROSS_TAG_SLUGS = [
    адрес с .html. В карту идёт то, что отдаётся, а не то, что редиректит.
    Латышской версии у этих страниц нет: /lv/exams вернул бы оболочку
    приложения, то есть копию главной. */
-const SINGLE_LANGUAGE_PAGES = new Set(['/exams', '/mock-exams', '/trainer', '/plotter']);
+const SINGLE_LANGUAGE_PAGES = new Set(['/exams', '/mock-exams', '/trainer', '/plotter', '/duel']);
 const BASE_SITEMAP_PATHS = [
   '/', '/tasks', '/tags', '/about', '/control-works', '/exams',
-  '/mock-exams', '/trainer', '/plotter', '/grade/visparigais',
+  '/mock-exams', '/trainer', '/plotter', '/duel', '/grade/visparigais',
   '/grade/matematika-1', '/grade/matematika-2'
 ];
 
@@ -459,7 +459,7 @@ export default {
 
     /* Отдельных страниц под /lv не существует: /lv/trainer отдавал оболочку
        главной с кодом 200. Уводим на сам адрес — старые ссылки живут. */
-    const langPage = url.pathname.match(/^\/lv\/(trainer|exams|mock-exams|plotter)\/?$/);
+    const langPage = url.pathname.match(/^\/lv\/(trainer|exams|mock-exams|plotter|duel)\/?$/);
     if (langPage) return Response.redirect(new URL(`/${langPage[1]}`, url).toString(), 301);
 
     // Уровни средней школы живут по словам: /grade/10 → /grade/visparigais.

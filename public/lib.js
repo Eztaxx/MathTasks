@@ -3031,7 +3031,7 @@
   const isLvPath = pathname => pathname === '/lv' || String(pathname || '').startsWith('/lv/');
   const stripLangPath = pathname => (isLvPath(pathname) ? (String(pathname).slice(3) || '/') : (pathname || '/'));
   const langOfPath = pathname => (isLvPath(pathname) ? 'lv' : 'ru');
-  const PAGE_FILES = /^\/(?:api|admin|assets|formulas|trainer|exams|mock-exams|plotter)(?:\/|$)/;
+  const PAGE_FILES = /^\/(?:api|admin|assets|formulas|trainer|exams|mock-exams|plotter|duel)(?:\/|$)/;
   const isLocalizablePath = pathname => typeof pathname === 'string'
     && pathname.startsWith('/') && !pathname.startsWith('//')
     && !/\.[a-z0-9]+$/i.test(pathname)

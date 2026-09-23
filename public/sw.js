@@ -18,14 +18,14 @@ const DATA = 'mt-data';           // ответы Supabase: задачи, тем
 const LIMITS = { [RUNTIME]: 200, [DATA]: 500 };
 
 // Открываются без сети сразу после установки, даже если посетитель на них ещё не заходил.
-const PAGES = ['/', '/trainer.html', '/exams.html', '/mock-exams.html'];
+const PAGES = ['/', '/trainer.html', '/exams.html', '/mock-exams.html', '/duel.html'];
 
 // Внешние файлы страниц: KaTeX и supabase-js с jsDelivr, шрифты Google.
 const CDN_HOSTS = ['cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
 /* Отдельные HTML-страницы. Остальные адреса без расширения — маршруты
    каталога: без сети им подходит оболочка главной, дальше разберётся app.js. */
-const FILE_PAGES = ['/trainer', '/exams', '/mock-exams', '/admin'];
+const FILE_PAGES = ['/trainer', '/exams', '/mock-exams', '/admin', '/duel'];
 
 /* Ключ страницы в кэше. Сервер переводит /trainer.html на /trainer, а
    ссылки на сайте ведут на .html — без приведения к одному виду страница,

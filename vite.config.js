@@ -12,7 +12,8 @@ export default defineConfig({
         trainer: resolve(__dirname, 'trainer.html'),
         exams: resolve(__dirname, 'exams.html'),
         mockExams: resolve(__dirname, 'mock-exams.html'),
-        plotter: resolve(__dirname, 'plotter.html')
+        plotter: resolve(__dirname, 'plotter.html'),
+        duel: resolve(__dirname, 'duel.html')
       }
     }
   },

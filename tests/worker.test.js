@@ -396,6 +396,13 @@ describe('Cloudflare Worker: чистые функции', () => {
       expect(env.ASSETS.fetch).not.toHaveBeenCalled();
     });
 
+    it('дуэль тоже одноязычная: /lv/duel → /duel', async () => {
+      const env = shellEnv();
+      const response = await worker.fetch(new Request('https://mathtasks.lv/lv/duel'), env);
+      expect(response.status).toBe(301);
+      expect(response.headers.get('location')).toBe('https://mathtasks.lv/duel');
+    });
+
     it('отдельная страница отдаётся как есть: воркер не трогает trainer.html', async () => {
       const page = '<!doctype html><html lang="ru"><head><title>Тренажёр — MathTasks</title></head><body><div id="trainer"></div></body></html>';
       const env = {
