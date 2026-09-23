@@ -1,0 +1,135 @@
+{
+  "slug": "linear-function-k-b",
+  "grade": 7,
+  "topic_slug": "skola2030-g7-4-zapisyvayut-i-issleduyut-funktsii",
+  "subtopic_codes": ["7.4.2", "7.4.3", "7.4.4"],
+  "title": {
+    "ru": "Линейная функция y = kx + b: что делают k и b",
+    "lv": "Lineāra funkcija y = kx + b: ko dara k un b"
+  },
+  "intro": {
+    "ru": "За семь шагов разберёмся, как числа $k$ и $b$ меняют график линейной функции. В каждом шаге — один вопрос: следующий шаг откроется после ответа.",
+    "lv": "Septiņos soļos noskaidrosim, kā skaitļi $k$ un $b$ maina lineāras funkcijas grafiku. Katrā solī ir viens jautājums: nākamais solis atvērsies pēc atbildes."
+  },
+  "steps": [
+    {
+      "id": "taxi",
+      "text": {
+        "ru": "Такси берёт 2 € за посадку и 1 € за каждый километр. Стоимость поездки $y = 1\\cdot x + 2$, где $x$ — километры. Это линейная функция — функция вида $y = kx + b$. Здесь $k = 1$, $b = 2$.",
+        "lv": "Taksometrs ņem 2 € par iekāpšanu un 1 € par katru kilometru. Brauciena cena ir $y = 1\\cdot x + 2$, kur $x$ — kilometri. Tā ir lineāra funkcija — funkcija formā $y = kx + b$. Šeit $k = 1$, $b = 2$."
+      },
+      "graph": { "expr": "x+2", "params": [], "view": { "cx": 3, "cy": 4, "scale": 30 } },
+      "question": {
+        "kind": "number",
+        "prompt": { "ru": "Сколько стоит поездка на 5 км (в евро)?", "lv": "Cik maksā 5 km brauciens (eiro)?" },
+        "answer": "7",
+        "check": ["7 €", "7€", "7 евро", "7 eiro"],
+        "explain": { "ru": "$y = 1\\cdot 5 + 2 = 7$ €.", "lv": "$y = 1\\cdot 5 + 2 = 7$ €." }
+      }
+    },
+    {
+      "id": "shift-b",
+      "text": {
+        "ru": "График линейной функции — прямая. Подвигайте ползунок $b$: прямая поднимается и опускается, не меняя наклона. Там, где она пересекает ось $y$, её точка — $(0;\\,b)$.",
+        "lv": "Lineāras funkcijas grafiks ir taisne. Pabīdiet slīdni $b$: taisne paceļas un nolaižas, nemainot slīpumu. Tur, kur tā krusto $y$ asi, tās punkts ir $(0;\\,b)$."
+      },
+      "graph": { "expr": "x+b", "params": [{ "name": "b", "min": -5, "max": 5, "step": 1, "value": 2 }] },
+      "question": {
+        "kind": "number",
+        "prompt": { "ru": "При каком $b$ прямая $y = x + b$ проходит через точку $(0;\\,-3)$?", "lv": "Kādam $b$ taisne $y = x + b$ iet caur punktu $(0;\\,-3)$?" },
+        "answer": "-3",
+        "check": ["b=-3", "b = -3"],
+        "explain": { "ru": "При $x = 0$ получается $y = b$, значит $b = -3$.", "lv": "Ja $x = 0$, tad $y = b$, tātad $b = -3$." }
+      }
+    },
+    {
+      "id": "slope-k",
+      "text": {
+        "ru": "Теперь подвигайте $k$. Чем больше $k$, тем круче прямая: $k$ показывает, на сколько растёт $y$, когда $x$ увеличивается на 1. Число $k$ называют угловым коэффициентом.",
+        "lv": "Tagad pabīdiet $k$. Jo lielāks $k$, jo stāvāka taisne: $k$ rāda, par cik pieaug $y$, kad $x$ palielinās par 1. Skaitli $k$ sauc par virziena koeficientu."
+      },
+      "graph": { "expr": "k*x", "params": [{ "name": "k", "min": -3, "max": 3, "step": 0.5, "value": 1 }] },
+      "question": {
+        "kind": "number",
+        "prompt": { "ru": "Прямая $y = kx$ проходит через точку $(2;\\,6)$. Чему равно $k$?", "lv": "Taisne $y = kx$ iet caur punktu $(2;\\,6)$. Cik liels ir $k$?" },
+        "answer": "3",
+        "check": ["k=3", "k = 3"],
+        "explain": { "ru": "$6 = k\\cdot 2$, значит $k = 3$.", "lv": "$6 = k\\cdot 2$, tātad $k = 3$." }
+      }
+    },
+    {
+      "id": "sign-k",
+      "text": {
+        "ru": "Если $k < 0$, прямая идёт вниз слева направо — функция убывает. Если $k > 0$ — возрастает. Поставьте $k = -2$ и посмотрите.",
+        "lv": "Ja $k < 0$, taisne no kreisās uz labo iet uz leju — funkcija dilst. Ja $k > 0$ — aug. Uzstādiet $k = -2$ un paskatieties."
+      },
+      "graph": {
+        "expr": "k*x+b",
+        "params": [
+          { "name": "k", "min": -3, "max": 3, "step": 0.5, "value": 1 },
+          { "name": "b", "min": -5, "max": 5, "step": 1, "value": 1 }
+        ]
+      },
+      "question": {
+        "kind": "choice",
+        "prompt": { "ru": "Функция $y = -2x + 1$…", "lv": "Funkcija $y = -2x + 1$…" },
+        "choices": [
+          { "ru": "возрастает", "lv": "aug" },
+          { "ru": "убывает", "lv": "dilst" },
+          { "ru": "не меняется", "lv": "nemainās" }
+        ],
+        "correct": 1,
+        "explain": { "ru": "$k = -2 < 0$: чем больше $x$, тем меньше $y$.", "lv": "$k = -2 < 0$: jo lielāks $x$, jo mazāks $y$." }
+      }
+    },
+    {
+      "id": "zero",
+      "text": {
+        "ru": "Точка, где прямая пересекает ось $x$, называется нулём функции: в ней $y = 0$. Чтобы найти нуль, решают уравнение $kx + b = 0$.",
+        "lv": "Punktu, kurā taisne krusto $x$ asi, sauc par funkcijas nulli: tajā $y = 0$. Lai atrastu nulli, atrisina vienādojumu $kx + b = 0$."
+      },
+      "graph": { "expr": "2*x-4", "params": [] },
+      "question": {
+        "kind": "number",
+        "prompt": { "ru": "Найдите нуль функции $y = 2x - 4$: $x = ?$", "lv": "Atrodiet funkcijas $y = 2x - 4$ nulli: $x = ?$" },
+        "answer": "2",
+        "check": ["x=2", "x = 2"],
+        "explain": { "ru": "$2x - 4 = 0$, $2x = 4$, $x = 2$.", "lv": "$2x - 4 = 0$, $2x = 4$, $x = 2$." }
+      }
+    },
+    {
+      "id": "parallel",
+      "text": {
+        "ru": "У параллельных прямых одинаковый $k$: наклон тот же, отличается только $b$.",
+        "lv": "Paralēlām taisnēm ir vienāds $k$: slīpums tas pats, atšķiras tikai $b$."
+      },
+      "graph": { "expr": "3*x+1; 3*x-5", "params": [] },
+      "question": {
+        "kind": "choice",
+        "prompt": { "ru": "Какая прямая параллельна прямой $y = 3x + 1$?", "lv": "Kura taisne ir paralēla taisnei $y = 3x + 1$?" },
+        "choices": [
+          { "ru": "$y = 3x - 5$", "lv": "$y = 3x - 5$" },
+          { "ru": "$y = -3x + 1$", "lv": "$y = -3x + 1$" },
+          { "ru": "$y = x + 1$", "lv": "$y = x + 1$" }
+        ],
+        "correct": 0,
+        "explain": { "ru": "У $y = 3x - 5$ тот же $k = 3$.", "lv": "Taisnei $y = 3x - 5$ ir tas pats $k = 3$." }
+      }
+    },
+    {
+      "id": "pool",
+      "text": {
+        "ru": "Линейная функция описывает процессы с постоянной скоростью. В бассейне уже 20 литров, и каждую минуту доливают 5 литров: объём $y = 5x + 20$, где $x$ — минуты.",
+        "lv": "Lineāra funkcija apraksta procesus ar nemainīgu ātrumu. Baseinā jau ir 20 litri, un katru minūti pielej 5 litrus: tilpums $y = 5x + 20$, kur $x$ — minūtes."
+      },
+      "graph": { "expr": "5*x+20", "params": [], "view": { "cx": 6, "cy": 40, "scale": 5 } },
+      "question": {
+        "kind": "number",
+        "prompt": { "ru": "Через сколько минут в бассейне будет 60 литров?", "lv": "Pēc cik minūtēm baseinā būs 60 litri?" },
+        "answer": "8",
+        "check": ["8 мин", "8 минут", "8 min", "8 minūtes", "x=8"],
+        "explain": { "ru": "$5x + 20 = 60$, $5x = 40$, $x = 8$.", "lv": "$5x + 20 = 60$, $5x = 40$, $x = 8$." }
+      }
+    }
+  ]
+}

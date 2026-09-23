@@ -283,6 +283,20 @@
       <div class="progress-page" id="progress-root"></div>
     </div>
 
+    <div id="view-lessons" hidden>
+      <nav class="breadcrumb" aria-label="Хлебные крошки" data-i18n-aria="breadcrumbs"><a href="/" data-i18n="nav_home">Главная</a><span class="crumb-sep">/</span><span data-i18n="lessons_title">Уроки</span></nav>
+      <header class="list-header">
+        <h1 data-i18n="lessons_title">Уроки</h1>
+        <p data-i18n="lessons_lead">Короткие уроки с графиками: следующий шаг открывается после ответа на вопрос.</p>
+      </header>
+      <div class="lessons-list" id="lessons-list"></div>
+    </div>
+
+    <div id="view-lesson" hidden>
+      <nav class="breadcrumb" id="lesson-breadcrumb" aria-label="Хлебные крошки" data-i18n-aria="breadcrumbs"></nav>
+      <div class="lesson" id="lesson-root"></div>
+    </div>
+
     <div id="view-about" hidden>
       <nav class="breadcrumb" aria-label="Хлебные крошки" data-i18n-aria="breadcrumbs"><a href="/" data-i18n="nav_home">Главная</a><span class="crumb-sep">/</span><span data-i18n="nav_about">О сайте</span></nav>
       <section class="hero">
@@ -612,6 +626,7 @@
   <script src="/math-keyboard.js?v=20260917-2"></script>
   <script src="/ui.js"></script>
   <script src="/plotter.js?v=20260916-2"></script>
+  <script src="/lessons.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>
