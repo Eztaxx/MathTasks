@@ -280,6 +280,8 @@
         <h1 data-i18n="progress_title">Мой прогресс</h1>
         <p data-i18n="progress_lead">Всё, что вы решили на сайте: по дням, разделам и темам.</p>
       </header>
+      <!-- Профиль ученика: показывается, только когда применена миграция 027. -->
+      <section class="profile-card" id="profile-card" hidden></section>
       <div class="progress-page" id="progress-root"></div>
     </div>
 
@@ -627,6 +629,8 @@
   <script src="/ui.js"></script>
   <script src="/plotter.js?v=20260916-2"></script>
   <script src="/lessons.js"></script>
+  <script src="/duel.js"></script>
   <script src="/app.js"></script>
+  <script src="/profile.js"></script>
 </body>
 </html>

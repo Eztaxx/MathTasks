@@ -4039,6 +4039,7 @@ document.addEventListener('click', event => {
 
 function showProgress() {
   showView('progress');
+  window.MathTasksProfile?.renderCard();
   const tr = window.MathTasks.t || (k => k);
   setMeta(tr('progress_title'), tr('progress_meta'));
   const root = document.querySelector('#progress-root');
@@ -6835,7 +6836,12 @@ async function loadSubtopics() {
 }
 
 async function refreshSession() {
-  const { user, isAdmin } = await loadViewer();
+  const viewer = await loadViewer();
+  /* Профиль ученика — анонимный вход без почты. Для шапки это не
+     «аккаунт»: кнопка остаётся «Войти», а текста про права
+     администратора ученик не видит. */
+  const user = viewer.user?.is_anonymous ? null : viewer.user;
+  const isAdmin = Boolean(user && viewer.isAdmin);
   currentUser = user;
   isCurrentUserAdmin = Boolean(isAdmin);
   /* Регистрации для учеников нет, и делать им в аккаунте пока нечего,
@@ -6872,6 +6878,12 @@ async function refreshSession() {
   }
 }
 window.addEventListener('math-tasks:authenticated', refreshSession);
+window.addEventListener('math-tasks:progress-synced', () => {
+  updateProgressCounter();
+  if (currentView === 'home') refreshHomeSide();
+  else if (currentView === 'progress') showProgress();
+  else if (currentView === 'lessons') showLessons();
+});
 window.MathTasks.openAccount = () => {
   if (!currentUser) { window.MathTasks.openLogin(); return; }
   accountDialog.showModal();

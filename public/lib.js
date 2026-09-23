@@ -3019,6 +3019,123 @@
       .filter(index => index >= 0);
   };
 
+  /* ── Прогресс ученика для профиля ──────────────────────────────────
+     Весь прогресс лежит в браузере. Профиль переносит его между
+     устройствами: снимок нужных ключей уходит на сервер, а при встрече
+     двух снимков — телефон и ноутбук — они сливаются по правилам ключа:
+     решённое складывается, счётчики берутся по максимуму, журнал
+     объединяется по записям. Тема, язык, открытая сессия экзамена и
+     блокировка контрольной — не прогресс и не синхронизируются. */
+  const PROGRESS_KEYS = [
+    'math-tasks:solved', 'math-tasks:favorites', 'math-tasks:activity', 'math-tasks:journal',
+    'math-tasks:wrong-attempts', 'math-tasks:last-place', 'math-tasks:control-works',
+    'math-tasks:exam-results', 'math-tasks:lessons', 'math-tasks:duel-history'
+  ];
+  const PROGRESS_PREFIXES = ['math-tasks:trainer-record:'];
+  const isProgressKey = key => PROGRESS_KEYS.includes(key) || PROGRESS_PREFIXES.some(prefix => String(key).startsWith(prefix));
+
+  const collectProgress = storage => {
+    const data = {};
+    if (!storage) return data;
+    for (let i = 0; i < storage.length; i++) {
+      const key = storage.key(i);
+      if (!isProgressKey(key)) continue;
+      try { data[key] = JSON.parse(storage.getItem(key)); } catch {}
+    }
+    return data;
+  };
+
+  const applyProgress = (storage, data) => {
+    if (!storage || !data || typeof data !== 'object') return;
+    for (const [key, value] of Object.entries(data)) {
+      if (!isProgressKey(key) || value === undefined) continue;
+      try { storage.setItem(key, JSON.stringify(value)); } catch {}
+    }
+  };
+
+  const isPlainObject = value => value && typeof value === 'object' && !Array.isArray(value);
+  const unionBy = (a, b, keyOf) => {
+    const seen = new Set();
+    const out = [];
+    for (const item of [...a, ...b]) {
+      const key = keyOf(item);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(item);
+    }
+    return out;
+  };
+  const maxPerKey = (a, b) => {
+    const out = { ...a };
+    for (const [key, value] of Object.entries(b)) {
+      out[key] = Math.max(Number(out[key]) || 0, Number(value) || 0);
+    }
+    return out;
+  };
+
+  const mergeProgressValue = (key, local, remote) => {
+    if (remote === undefined || remote === null) return local;
+    if (local === undefined || local === null) return remote;
+    switch (key) {
+      case 'math-tasks:solved':
+      case 'math-tasks:favorites':
+        return Array.isArray(local) && Array.isArray(remote) ? unionBy(local, remote, item => String(item)) : local;
+      case 'math-tasks:activity':
+      case 'math-tasks:wrong-attempts':
+        return isPlainObject(local) && isPlainObject(remote) ? maxPerKey(local, remote) : local;
+      case 'math-tasks:journal':
+        return Array.isArray(local) && Array.isArray(remote)
+          ? unionBy(local, remote, item => `${item?.id}:${item?.at}`)
+            .sort((x, y) => (Number(x?.at) || 0) - (Number(y?.at) || 0))
+            .slice(-300)
+          : local;
+      case 'math-tasks:last-place':
+        return (Number(remote?.at) || 0) > (Number(local?.at) || 0) ? remote : local;
+      case 'math-tasks:lessons': {
+        if (!isPlainObject(local) || !isPlainObject(remote)) return local;
+        const out = { ...local };
+        for (const [slug, state] of Object.entries(remote)) {
+          const mine = out[slug];
+          out[slug] = !mine ? state : {
+            step: Math.max(Number(mine.step) || 1, Number(state?.step) || 1),
+            done: Boolean(mine.done || state?.done),
+            at: Math.max(Number(mine.at) || 0, Number(state?.at) || 0)
+          };
+        }
+        return out;
+      }
+      case 'math-tasks:duel-history':
+        return Array.isArray(local) && Array.isArray(remote)
+          ? unionBy(local, remote, item => `${item?.seed}:${item?.role}`)
+            .sort((x, y) => (Number(y?.at) || 0) - (Number(x?.at) || 0))
+            .slice(0, 20)
+          : local;
+      default:
+        if (String(key).startsWith('math-tasks:trainer-record:')) {
+          return Math.max(Number(local) || 0, Number(remote) || 0);
+        }
+        // Результаты контрольных и экзаменов: объединяем, при споре — это устройство.
+        if (isPlainObject(local) && isPlainObject(remote)) return { ...remote, ...local };
+        if (Array.isArray(local) && Array.isArray(remote)) return unionBy(local, remote, item => JSON.stringify(item)).slice(0, 60);
+        return local;
+    }
+  };
+
+  const mergeProgress = (local = {}, remote = {}) => {
+    const out = {};
+    for (const key of new Set([...Object.keys(local || {}), ...Object.keys(remote || {})])) {
+      if (!isProgressKey(key)) continue;
+      out[key] = mergeProgressValue(key, local?.[key], remote?.[key]);
+    }
+    return out;
+  };
+
+  // Стабильная подпись снимка: отправляем на сервер, только если что-то поменялось.
+  const progressSignature = data => {
+    const keys = Object.keys(data || {}).sort();
+    return JSON.stringify(keys.map(key => [key, data[key]]));
+  };
+
   /* ── Язык в адресе ─────────────────────────────────────────────────
      Русская версия — на адресах без префикса (/topic/…), латышская — на
      /lv/… (/lv/topic/…, главная — /lv/). У каждой страницы два адреса, и
@@ -3124,6 +3241,12 @@
     gradeSlug,
     hintStepsRevealAnswer,
     splitHintSteps,
+    PROGRESS_KEYS,
+    isProgressKey,
+    collectProgress,
+    applyProgress,
+    mergeProgress,
+    progressSignature,
     importDupKey,
     sanitizeSearch,
     KATEX_DELIMITERS,

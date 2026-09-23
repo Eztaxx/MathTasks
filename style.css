@@ -6972,3 +6972,28 @@ body.dark .topic-header-lesson-btn{background:#241a44;color:#d8c9ff}
   .lesson-step-num{width:28px;height:28px;font-size:12px}
   .lesson-param{grid-template-columns:minmax(0,1fr)}
 }
+
+/* ── Профиль ученика на странице прогресса ──────────────────────── */
+.profile-card[hidden],.profile-join[hidden],.profile-code-box[hidden],.profile-error[hidden]{display:none}
+.profile-card{margin:0 0 20px;padding:18px 20px;border:1px solid #d9e4ff;border-radius:16px;background:linear-gradient(135deg,#f5f8ff,#f8f5ff)}
+.profile-card h2{margin:0 0 6px;font-size:17px}
+.profile-card p{margin:0 0 10px;font-size:14px;line-height:1.55}
+.profile-name{color:#6d28d9}
+.profile-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.profile-nick{display:flex;flex-direction:column;gap:4px;font:700 12.5px Manrope,sans-serif;color:var(--muted)}
+.profile-nick input,.profile-join input{height:40px;min-width:0;width:min(320px,100%);padding:0 12px;border:1px solid var(--line);border-radius:10px;font:700 15px Manrope,sans-serif;color:var(--ink);background:#fff}
+.profile-consent{display:flex;align-items:flex-start;gap:8px;margin:4px 0 12px;font-size:13.5px}
+.profile-consent input{margin-top:3px}
+.profile-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.profile-join{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px}
+.profile-join label{display:flex;flex-direction:column;gap:4px;font:700 12.5px Manrope,sans-serif;color:var(--muted)}
+.profile-code-box{margin-top:12px;padding:12px 14px;border-radius:12px;background:#fff;border:1px dashed #b9a4ff}
+.profile-code{display:block;font:800 26px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;color:#4c1d95}
+.profile-status{color:#15803d;font-weight:700}
+.profile-note{font-size:12.5px!important;color:var(--muted)}
+.profile-error{color:#b91c1c;font-weight:700}
+.is-busy{opacity:.6;cursor:progress}
+body.dark .profile-card{background:linear-gradient(135deg,#101a33,#171230);border-color:#27365a}
+body.dark .profile-nick input,body.dark .profile-join input,body.dark .profile-code-box{background:#0f1520;color:var(--ink)}
+body.dark .profile-name,body.dark .profile-code{color:#c4b5fd}
+body.dark .profile-status{color:#86efac}
