@@ -375,18 +375,28 @@
      выражение — оно и становится подписью: ученик видит
      «(2x−3)² − (2x+1)(2x−1) =» и вписывает результат. В ответ это не
      пишется: там выражение превратилось бы в тождество и сломало сверку. */
-  const ASK_EXPRESSION = /(?<!\p{L})(вычислит\p{L}*|упростит\p{L}*|разложит\p{L}*|представьте|сократит\p{L}*|преобразуйте|раскройте|aprēķin\p{L}*|vienkāršo\p{L}*|sadali\p{L}*|pārveido\p{L}*)(?!\p{L})/iu;
+  const ASK_EXPRESSION = /(?<!\p{L})(вычислит\p{L}*|упростит\p{L}*|разложит\p{L}*|представьте|сократит\p{L}*|преобразуйте|раскройте|освободите|найдите значение (?:числового |алгебраического )?выражения|aprēķin\p{L}*|vienkāršo\p{L}*|sadali\p{L}*|pārveido\p{L}*|atbrīvo\p{L}*)(?!\p{L})/iu;
   const conditionPrompt = condition => {
     const text = String(condition || '');
     if (!ASK_EXPRESSION.test(text)) return '';
     // Формула в условии должна быть одна: иначе непонятно, какую спрашивают.
-    const formulas = [...text.matchAll(/\$\$([^$]+)\$\$|\$([^$]+)\$/g)].map(m => (m[1] || m[2]).trim());
+    const RELATION = /[=<>≤≥∈≠]|\\(?:ne|neq|le|leq|ge|geq|in)(?![a-zA-Z])/;
+    /* «Упростите … и найдите значение при x = −1» просит число, а не
+       выражение: подпись «(2x − 3)² =» сбила бы ученика, и он вписал бы
+       упрощённый вид. Подстановку узнаём по формуле «буква = …». */
+    if (/\$\s*[a-zA-Z]\s*=\s*[^$]+\$/.test(text) && /значени|vērtīb/i.test(text)) return '';
+    const formulas = [...text.matchAll(/\$\$([^$]+)\$\$|\$([^$]+)\$/g)]
+      .map(m => (m[1] || m[2]).trim())
+      .filter(formula => !RELATION.test(formula))
+      /* Одиночная буква или число («$a$», «$15$», «$0{,}6$») — не выражение,
+         а данные. Считаем по виду, а не по длине: у «√(x·√x)» после снятия
+         команд остаётся «xx», и оно выбрасывалось вместе с данными. */
+      .filter(formula => !/^(?:[a-zA-Z]|[-+]?\d+(?:(?:[.,]|\{,\})\d+)?)$/.test(formula.replace(/\s+/g, '')));
     if (formulas.length !== 1) return '';
     const formula = formulas[0];
-    if (/[=<>≤≥∈]/.test(formula)) return '';
     if (/\\text\{|[а-яёāčēģīķļņšūž]{2}/i.test(formula)) return '';
     // Длинную формулу подписью не делаем: она и так стоит выше, в условии.
-    if (formula.length > 42) return '';
+    if (formula.length > 64) return '';
     return '$' + formula + ' =$';
   };
   const answerLabelText = label => {
