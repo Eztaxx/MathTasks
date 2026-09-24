@@ -47,12 +47,36 @@ console.log(`Копия от ${dump.takenAt}`);
 console.log(APPLY ? 'РЕЖИМ ЗАПИСИ\n' : 'вхолостую, ничего не записывается\n');
 
 const H = { apikey: KEY, Authorization: `Bearer ${KEY}` };
-const ORDER = ['subjects', 'topics', 'tasks', 'tags', 'task_tags'];
+// Подтемы — между темами и задачами: на них ссылается tasks.subtopic_id.
+const ORDER = ['subjects', 'topics', 'subtopics', 'tasks', 'tags', 'task_tags'];
 
 /* Сравниваем только те поля, что есть в копии: колонки могли добавиться
    миграциями после её снятия, и затирать их пустотой нельзя. */
 const differs = (fresh, saved) =>
   Object.keys(saved).some(k => JSON.stringify(fresh?.[k]) !== JSON.stringify(saved[k]));
+
+/* Supabase отдаёт не больше 1000 строк за запрос и режет молча. Одним
+   запросом task_tags (1420 строк) читалась как 1000, прогон вхолостую
+   звал «вернуть» 420 связок, которые в базе есть, а --apply слал бы их
+   заново. Поэтому читаем страницами. Порядок однозначный — по ключу, у
+   связки по паре (task_id, tag_id): без него страницы на стыках теряют и
+   повторяют строки. */
+const PAGE = 1000;
+async function fetchAll(table) {
+  const order = table === 'task_tags' ? 'task_id,tag_id' : 'id';
+  const rows = [];
+  for (let from = 0; ; from += PAGE) {
+    const r = await fetch(`${URL_}/rest/v1/${table}?select=*&order=${order}`, {
+      headers: { ...H, Range: `${from}-${from + PAGE - 1}` }
+    });
+    // Ошибка на любой странице — вся таблица не прочитана: неполный список
+    // выдал бы уже имеющиеся строки за потерянные.
+    if (!r.ok) return { error: r.status };
+    const chunk = await r.json();
+    rows.push(...chunk);
+    if (chunk.length < PAGE) return { rows };
+  }
+}
 
 let totalNew = 0, totalChanged = 0;
 
@@ -61,9 +85,8 @@ for (const table of ORDER) {
   const saved = dump.tables[table];
   if (!saved?.length) continue;
 
-  const r = await fetch(`${URL_}/rest/v1/${table}?select=*`, { headers: H });
-  if (!r.ok) { console.log(`✗ ${table}: ${r.status}`); continue; }
-  const current = await r.json();
+  const { rows: current, error } = await fetchAll(table);
+  if (error) { console.log(`✗ ${table}: ${error}`); continue; }
 
   /* У связки task_tags своего идентификатора нет — сравниваем по паре. */
   const idOf = row => table === 'task_tags' ? `${row.task_id}:${row.tag_id}` : String(row.id);

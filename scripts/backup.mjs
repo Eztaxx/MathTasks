@@ -38,6 +38,9 @@ const say = (...a) => { if (!QUIET) console.log(...a); };
 const TABLES = [
   { name: 'subjects',  key: 'id' },
   { name: 'topics',    key: 'id' },
+  /* Подтемы (миграция 020) долго не попадали в копию: восстановленная база
+     теряла все номера подтем, а задачи — ссылки на них. */
+  { name: 'subtopics', key: 'id' },
   { name: 'tasks',     key: 'id' },
   { name: 'tags',      key: 'id' },
   { name: 'task_tags', key: null },   // связка, своего идентификатора нет
