@@ -84,7 +84,7 @@ const CROSS_TAG_SLUGS = [
    приложения, то есть копию главной. */
 const SINGLE_LANGUAGE_PAGES = new Set(['/exams', '/mock-exams', '/trainer', '/plotter', '/duel']);
 const BASE_SITEMAP_PATHS = [
-  '/', '/tasks', '/tags', '/about', '/control-works', '/lessons', '/exams',
+  '/', '/tasks', '/tags', '/about', '/control-works', '/exams',
   '/mock-exams', '/trainer', '/plotter', '/duel', '/grade/visparigais',
   '/grade/matematika-1', '/grade/matematika-2'
 ];

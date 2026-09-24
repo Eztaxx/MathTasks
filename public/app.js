@@ -490,13 +490,6 @@ function renderHubSidebar() {
       <span class="track-header-title">${escapeHtml(tr('tools_heading'))}</span>
     </div>
     <div class="sidebar-track-subgroup">
-      <a class="sidebar-action-card${/^\/lessons?(\/|$)/.test(appPath()) ? ' active' : ''}" href="/lessons" title="${escapeHtml(tr('nav_lessons'))}">
-        <div class="action-card-icon">📖</div>
-        <div class="action-card-body">
-          <strong>${escapeHtml(tr('nav_lessons'))}</strong>
-          <span>${escapeHtml(tr('nav_lessons_desc'))}</span>
-        </div>
-      </a>
       <button class="sidebar-action-card" id="open-formulas-btn" type="button" title="${escapeHtml(tr('tool_formulas'))}">
         <div class="action-card-icon formula-icon">📐</div>
         <div class="action-card-body">
@@ -2550,10 +2543,6 @@ function showView(name) {
   if (viewControlWork) viewControlWork.hidden = name !== 'control-work';
   if (viewControlWorks) viewControlWorks.hidden = name !== 'control-works';
   if (viewProgress) viewProgress.hidden = name !== 'progress';
-  const lessonsView = document.querySelector('#view-lessons');
-  const lessonView = document.querySelector('#view-lesson');
-  if (lessonsView) lessonsView.hidden = name !== 'lessons';
-  if (lessonView) lessonView.hidden = name !== 'lesson';
   // Прокручиваем только при смене вида: иначе поиск дёргал бы страницу на каждой букве.
   if (currentView !== name) window.scrollTo(0, 0);
   currentView = name;
@@ -3401,339 +3390,7 @@ function renderTopicHeaderMeta(topic, tasks) {
   ` : '';
 
   metaEl.innerHTML = `<div class="topic-header-meta-row">${progHtml}${skolaChip}${cwBtnHtml}</div>`;
-  void appendTopicLessonLink(topic, metaEl);
 }
-
-/* ── Уроки: шаг открывается ответом (Mathigon), график с ползунками (Desmos)
-   Уроки лежат файлами в /data/lessons/. Прогресс — в браузере, как и
-   остальной прогресс ученика: сколько шагов открыто и пройден ли урок. */
-const LESSONS_BASE = '/data/lessons/';
-let lessonsIndexPromise = null;
-const lessonCache = new Map();
-let currentLesson = null;
-// Сколько раз ученик ошибся на шаге — после двух ошибок показываем разбор.
-const lessonAttempts = new Map();
-
-const lessonLang = () => (getLang() === 'lv' ? 'lv' : 'ru');
-const lessonText = value => window.MathTasksLessons?.textOf(value, lessonLang()) || '';
-// Десятичная запятая — и в русской, и в латышской записи.
-const lessonNumber = value => String(value).replace('.', ',');
-
-function loadLessonsIndex() {
-  if (!lessonsIndexPromise) {
-    lessonsIndexPromise = fetch(`${LESSONS_BASE}index.json`)
-      .then(response => (response.ok ? response.json() : []))
-      .then(list => (Array.isArray(list) ? list : []))
-      .catch(() => []);
-  }
-  return lessonsIndexPromise;
-}
-
-function loadLesson(slug) {
-  if (!/^[a-z0-9-]+$/.test(slug || '')) return Promise.resolve(null);
-  if (!lessonCache.has(slug)) {
-    lessonCache.set(slug, fetch(`${LESSONS_BASE}${slug}.json`)
-      .then(response => (response.ok ? response.json() : null))
-      .catch(() => null));
-  }
-  return lessonCache.get(slug);
-}
-
-function lessonCrumbs(title) {
-  const tr = window.MathTasks.t || (k => k);
-  const nav = document.querySelector('#lesson-breadcrumb');
-  if (!nav) return;
-  nav.innerHTML = `<a href="/">${escapeHtml(tr('nav_home'))}</a><span class="crumb-sep">/</span>`
-    + (title
-      ? `<a href="/lessons">${escapeHtml(tr('lessons_title'))}</a><span class="crumb-sep">/</span><span>${escapeHtml(title)}</span>`
-      : `<span>${escapeHtml(tr('lessons_title'))}</span>`);
-}
-
-async function showLessons() {
-  showView('lessons');
-  const tr = window.MathTasks.t || (k => k);
-  setMeta(tr('lessons_title'), tr('meta_lessons_desc'));
-  const list = document.querySelector('#lessons-list');
-  if (!list) return;
-  const index = await loadLessonsIndex();
-  const progress = window.MathTasksLessons?.readProgress() || {};
-  if (!index.length) {
-    list.innerHTML = `<p class="empty-state">${escapeHtml(tr('lessons_empty'))}</p>`;
-    return;
-  }
-  list.innerHTML = index.map(entry => {
-    const state = progress[entry.slug];
-    const status = state?.done
-      ? tr('lesson_done_badge')
-      : state ? tr('lesson_step_of', { n: Math.min(state.step, entry.steps), total: entry.steps }) : tr('lesson_steps_count', { n: entry.steps });
-    return `<a class="lesson-card${state?.done ? ' is-done' : ''}" href="/lesson/${encodeURIComponent(entry.slug)}">
-      <span class="lesson-card-grade">${escapeHtml(gradeLabel(entry.grade))}</span>
-      <strong class="lesson-card-title">${escapeHtml(lessonText(entry.title))}</strong>
-      <span class="lesson-card-desc">${escapeHtml(lessonText(entry.description))}</span>
-      <span class="lesson-card-state">${escapeHtml(status)}</span>
-    </a>`;
-  }).join('');
-}
-
-async function showLesson(slug) {
-  showView('lesson');
-  const tr = window.MathTasks.t || (k => k);
-  const root = document.querySelector('#lesson-root');
-  if (!root) return;
-  lessonCrumbs('');
-  root.innerHTML = `<p class="empty-state">${escapeHtml(tr('lesson_loading'))}</p>`;
-  const lesson = await loadLesson(slug);
-  if (!lesson) {
-    currentLesson = null;
-    root.innerHTML = `<p class="empty-state">${escapeHtml(tr('lesson_not_found'))}</p>`;
-    setMeta(tr('lesson_not_found'));
-    return;
-  }
-  currentLesson = lesson;
-  lessonAttempts.clear();
-  renderLesson();
-}
-
-function lessonStepHtml(step, index, done) {
-  const tr = window.MathTasks.t || (k => k);
-  const q = step.question;
-  const graph = step.graph
-    ? `<div class="lesson-graph">
-        <div class="lesson-canvas-box"><canvas></canvas></div>
-        ${(step.graph.params || []).map(param => `
-          <label class="lesson-param">
-            <span class="lesson-param-name"><var>${escapeHtml(param.name)}</var> = <output data-param-out="${escapeHtml(param.name)}">${escapeHtml(lessonNumber(param.value))}</output></span>
-            <input type="range" min="${param.min}" max="${param.max}" step="${param.step || 1}" value="${param.value}" data-param="${escapeHtml(param.name)}" aria-label="${escapeHtml(param.name)}" />
-          </label>`).join('')}
-      </div>`
-    : '';
-  const answer = q.kind === 'choice'
-    ? `<div class="lesson-choices">${q.choices.map((_, i) => `<button type="button" class="lesson-choice${done && i === q.correct ? ' is-right' : ''}" data-choice="${i}"${done ? ' disabled' : ''}></button>`).join('')}</div>`
-    : `<form class="lesson-answer" data-lesson-form>
-        <input type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(tr('lesson_answer_label'))}" placeholder="${escapeHtml(tr('lesson_answer_label'))}"${done ? ` disabled value="${escapeHtml(q.answer)}"` : ''} />
-        <button type="submit" class="primary-button"${done ? ' disabled' : ''}>${escapeHtml(tr('lesson_check'))}</button>
-      </form>`;
-  return `<li class="lesson-step${done ? ' is-done' : ''}" data-step="${index}">
-    <span class="lesson-step-num" aria-hidden="true">${done ? '✓' : index + 1}</span>
-    <div class="lesson-step-body">
-      <div class="lesson-text" data-step-text></div>
-      ${graph}
-      <div class="lesson-question">
-        <p class="lesson-prompt" data-step-prompt></p>
-        ${answer}
-        <p class="lesson-feedback${done ? ' is-right' : ''}" data-step-feedback${done ? '' : ' hidden'}>${done ? escapeHtml(tr('lesson_correct')) : ''}</p>
-        <div class="lesson-explain" data-step-explain${done && q.explain ? '' : ' hidden'}></div>
-        <button type="button" class="secondary-button lesson-continue" data-lesson-continue hidden>${escapeHtml(tr('lesson_continue'))}</button>
-      </div>
-    </div>
-  </li>`;
-}
-
-// Тексты, формулы и график шага — после вставки разметки.
-function fillLessonStep(li, step) {
-  renderMath(li.querySelector('[data-step-text]'), lessonText(step.text));
-  renderMath(li.querySelector('[data-step-prompt]'), lessonText(step.question.prompt));
-  const explain = li.querySelector('[data-step-explain]');
-  if (explain && step.question.explain) renderMath(explain, lessonText(step.question.explain));
-  li.querySelectorAll('[data-choice]').forEach(button => {
-    renderMath(button, lessonText(step.question.choices[Number(button.dataset.choice)]));
-  });
-  const canvas = li.querySelector('canvas');
-  const engine = window.MathPlotter;
-  const L = window.MathTasksLessons;
-  if (!canvas || !engine || !L || !step.graph) return;
-  const plot = engine.createPlotter(canvas, { minHeight: 220 });
-  const values = L.paramDefaults(step.graph);
-  const draw = () => plot.setExpressions(L.substituteParams(step.graph.expr, values));
-  if (step.graph.view) plot.setView(step.graph.view);
-  draw();
-  li.querySelectorAll('[data-param]').forEach(input => {
-    input.addEventListener('input', () => {
-      values[input.dataset.param] = Number(input.value);
-      const out = li.querySelector(`[data-param-out="${input.dataset.param}"]`);
-      if (out) out.textContent = lessonNumber(input.value);
-      draw();
-    });
-  });
-}
-
-function renderLessonProgress() {
-  const lesson = currentLesson;
-  const tr = window.MathTasks.t || (k => k);
-  const box = document.querySelector('#lesson-root .lesson-progress');
-  if (!lesson || !box) return;
-  const state = window.MathTasksLessons.readProgress()[lesson.slug] || { step: 1, done: false };
-  const total = lesson.steps.length;
-  const passed = state.done ? total : Math.max(0, Math.min(total, state.step) - 1);
-  box.querySelector('.lesson-progress-fill').style.width = `${Math.round((passed / total) * 100)}%`;
-  box.querySelector('.lesson-progress-text').textContent = state.done
-    ? tr('lesson_done_badge')
-    : tr('lesson_step_of', { n: Math.min(state.step, total), total });
-}
-
-function renderLesson() {
-  const lesson = currentLesson;
-  const root = document.querySelector('#lesson-root');
-  if (!lesson || !root) return;
-  const tr = window.MathTasks.t || (k => k);
-  const L = window.MathTasksLessons;
-  const state = L.readProgress()[lesson.slug] || { step: 1, done: false };
-  const opened = Math.min(lesson.steps.length, Math.max(1, state.step));
-  const title = lessonText(lesson.title);
-  lessonCrumbs(title);
-  setMeta(title, lessonText(lesson.intro).replace(/\$/g, ''));
-  root.innerHTML = `
-    <header class="list-header lesson-header">
-      <span class="lesson-grade">${escapeHtml(gradeLabel(lesson.grade))}</span>
-      <h1>${escapeHtml(title)}</h1>
-      <p data-lesson-intro></p>
-      <div class="lesson-progress">
-        <span class="lesson-progress-bar" aria-hidden="true"><span class="lesson-progress-fill"></span></span>
-        <span class="lesson-progress-text"></span>
-      </div>
-    </header>
-    <ol class="lesson-steps">${lesson.steps.slice(0, opened).map((step, index) => lessonStepHtml(step, index, state.done || index < opened - 1)).join('')}</ol>
-    <section class="lesson-done" data-lesson-done${state.done ? '' : ' hidden'}>
-      <h2>${escapeHtml(tr('lesson_done_title'))}</h2>
-      <p>${escapeHtml(tr('lesson_done_text'))}</p>
-      <div class="lesson-done-actions">
-        ${lesson.topic_slug ? `<a class="primary-button" href="/topic/${encodeURIComponent(lesson.topic_slug)}">${escapeHtml(tr('lesson_go_tasks'))}</a>` : ''}
-        <button type="button" class="secondary-button" data-lesson-restart>${escapeHtml(tr('lesson_restart'))}</button>
-        <a class="text-button" href="/lessons">${escapeHtml(tr('lessons_title'))}</a>
-      </div>
-    </section>`;
-  renderMath(root.querySelector('[data-lesson-intro]'), lessonText(lesson.intro));
-  root.querySelectorAll('.lesson-step').forEach(li => fillLessonStep(li, lesson.steps[Number(li.dataset.step)]));
-  renderLessonProgress();
-}
-
-/* Шаг пройден: закрываем его, открываем следующий на месте, без
-   перерисовки урока — иначе сбросились бы ползунки и прокрутка. */
-function completeLessonStep(li, { showExplain = true } = {}) {
-  const lesson = currentLesson;
-  if (!lesson || !li || li.classList.contains('is-done')) return;
-  const tr = window.MathTasks.t || (k => k);
-  const L = window.MathTasksLessons;
-  const index = Number(li.dataset.step);
-  li.classList.add('is-done');
-  li.querySelector('.lesson-step-num').textContent = '✓';
-  li.querySelectorAll('input:not([type="range"]), button:not([data-lesson-continue])').forEach(el => { el.disabled = true; });
-  li.querySelector('[data-lesson-continue]').hidden = true;
-  const explain = li.querySelector('[data-step-explain]');
-  if (explain && showExplain && lesson.steps[index].question.explain) explain.hidden = false;
-
-  const progress = L.readProgress();
-  const state = progress[lesson.slug] || { step: 1, done: false };
-  if (index + 1 >= Math.max(1, state.step)) {
-    L.writeProgress(L.advanceProgress(progress, lesson.slug, lesson.steps.length));
-  }
-  renderLessonProgress();
-
-  const next = lesson.steps[index + 1];
-  if (!next) {
-    const done = document.querySelector('#lesson-root [data-lesson-done]');
-    if (done) {
-      done.hidden = false;
-      done.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    return;
-  }
-  if (li.parentElement.querySelector(`[data-step="${index + 1}"]`)) return;
-  li.insertAdjacentHTML('afterend', lessonStepHtml(next, index + 1, false));
-  const nextLi = li.nextElementSibling;
-  fillLessonStep(nextLi, next);
-  nextLi.classList.add('is-new');
-  setTimeout(() => nextLi.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
-  void tr;
-}
-
-function wrongLessonAnswer(li) {
-  const tr = window.MathTasks.t || (k => k);
-  const index = Number(li.dataset.step);
-  const attempts = (lessonAttempts.get(index) || 0) + 1;
-  lessonAttempts.set(index, attempts);
-  const feedback = li.querySelector('[data-step-feedback]');
-  feedback.hidden = false;
-  feedback.classList.remove('is-right');
-  feedback.classList.add('is-wrong');
-  /* Две ошибки — показываем разбор и пускаем дальше: урок не должен
-     становиться стеной, об которую ученик бьётся. */
-  if (attempts >= 2) {
-    feedback.textContent = tr('lesson_wrong_final');
-    const explain = li.querySelector('[data-step-explain]');
-    if (explain && currentLesson.steps[index].question.explain) explain.hidden = false;
-    li.querySelector('[data-lesson-continue]').hidden = false;
-  } else {
-    feedback.textContent = tr('lesson_wrong');
-  }
-}
-
-function rightLessonAnswer(li) {
-  const tr = window.MathTasks.t || (k => k);
-  const feedback = li.querySelector('[data-step-feedback]');
-  feedback.hidden = false;
-  feedback.classList.remove('is-wrong');
-  feedback.classList.add('is-right');
-  feedback.textContent = tr('lesson_correct');
-  completeLessonStep(li);
-}
-
-document.addEventListener('submit', event => {
-  const form = event.target.closest?.('[data-lesson-form]');
-  if (!form || !currentLesson) return;
-  event.preventDefault();
-  const li = form.closest('.lesson-step');
-  const input = form.querySelector('input');
-  const value = (input?.value || '').trim();
-  if (!li || !value) return;
-  const q = currentLesson.steps[Number(li.dataset.step)].question;
-  const ok = window.MathTasksLib.checkTaskAnswer(value, q.answer, (q.check || []).join('\n'));
-  if (ok) rightLessonAnswer(li);
-  else wrongLessonAnswer(li);
-});
-
-document.addEventListener('click', event => {
-  if (!currentLesson) return;
-  const choice = event.target.closest?.('#lesson-root [data-choice]');
-  if (choice && !choice.disabled) {
-    const li = choice.closest('.lesson-step');
-    const q = currentLesson.steps[Number(li.dataset.step)].question;
-    if (Number(choice.dataset.choice) === q.correct) {
-      choice.classList.add('is-right');
-      rightLessonAnswer(li);
-    } else {
-      choice.classList.add('is-wrong');
-      choice.disabled = true;
-      wrongLessonAnswer(li);
-    }
-    return;
-  }
-  const next = event.target.closest?.('#lesson-root [data-lesson-continue]');
-  if (next) {
-    completeLessonStep(next.closest('.lesson-step'));
-    return;
-  }
-  if (event.target.closest?.('#lesson-root [data-lesson-restart]')) {
-    const L = window.MathTasksLessons;
-    L.writeProgress(L.resetProgress(L.readProgress(), currentLesson.slug));
-    lessonAttempts.clear();
-    renderLesson();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-});
-
-/* Кнопка «Урок» в шапке темы — если по теме есть урок. Список уроков
-   маленький и берётся один раз за визит. */
-async function appendTopicLessonLink(topic, metaEl) {
-  const index = await loadLessonsIndex();
-  const entry = index.find(item => item.topic_slug === topic.slug);
-  const row = metaEl?.querySelector('.topic-header-meta-row');
-  if (!entry || !row || row.querySelector('.topic-header-lesson-btn')) return;
-  const tr = window.MathTasks.t || (k => k);
-  const done = window.MathTasksLessons?.readProgress()[entry.slug]?.done;
-  row.insertAdjacentHTML('beforeend', `<a class="topic-header-lesson-btn${done ? ' is-done' : ''}" href="/lesson/${encodeURIComponent(entry.slug)}" title="${escapeHtml(lessonText(entry.title))}"><span aria-hidden="true">📖</span> ${escapeHtml(tr('topic_lesson_btn'))}</a>`);
-}
-
 
 /* ── Все задачи ───────────────────────────────────────────────────── */
 
@@ -5737,9 +5394,6 @@ async function route({ force = false } = {}) {
   const tagMatch = path.match(/^\/tag\/([^\/]+)/);
   if (tagMatch) { await showTag(decodeURIComponent(tagMatch[1])); return; }
 
-  if (path === '/lessons') { await showLessons(); return; }
-  const lessonMatch = path.match(/^\/lesson\/([a-z0-9-]+)$/);
-  if (lessonMatch) { await showLesson(lessonMatch[1]); return; }
   if (path === '/tags') { await showTagsList(); return; }
 
   if (path === '/tasks') { await showAllTasks(); return; }
@@ -6879,7 +6533,6 @@ window.addEventListener('math-tasks:progress-synced', () => {
   updateProgressCounter();
   if (currentView === 'home') refreshHomeSide();
   else if (currentView === 'progress') showProgress();
-  else if (currentView === 'lessons') showLessons();
 });
 window.MathTasks.openAccount = () => {
   if (!currentUser) { window.MathTasks.openLogin(); return; }
@@ -6986,10 +6639,6 @@ window.addEventListener('languagechange', async () => {
   } else if (currentView === 'progress') {
     // Страница прогресса собрана строками на старом языке — собираем заново.
     showProgress();
-  } else if (currentView === 'lessons') {
-    await showLessons();
-  } else if (currentView === 'lesson') {
-    renderLesson();
   } else if (onTopicPage) {
     /* Тему пересобираем на месте, а не через route(): тот заново грузит
        задачи и сбрасывает сортировку и фильтр «нерешённые». Шапку, панель

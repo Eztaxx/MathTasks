@@ -69,7 +69,6 @@ const STATIC_PAGES = {
   '/tags': { title: 'tags_label', description: 'meta_tags_desc' },
   '/about': { title: 'meta_about_title', description: 'meta_about_desc' },
   '/control-works': { title: 'cw_catalog_title', description: 'cw_catalog_desc' },
-  '/lessons': { title: 'lessons_title', description: 'meta_lessons_desc' },
   '/progress': { title: 'progress_title', description: 'progress_meta', robots: 'noindex, follow' },
   '/favorites': { title: 'meta_favorites_title', description: 'meta_favorites_desc', robots: 'noindex, follow' },
   '/search': { title: 'meta_search_page_title', description: 'meta_search_page_desc', robots: 'noindex, follow' }
@@ -91,7 +90,6 @@ export function routeOf(pathname) {
   if ((m = path.match(/^\/tag\/([^/]+)$/))) return { kind: 'tag', slug: decode(m[1]) };
   if ((m = path.match(/^\/control-work\/([^/]+)$/))) return { kind: 'controlWork', slug: decode(m[1]) };
   if ((m = path.match(/^\/exam\/([^/]+)$/))) return { kind: 'exam', slug: decode(m[1]) };
-  if ((m = path.match(/^\/lesson\/([a-z0-9-]+)$/))) return { kind: 'lesson', slug: m[1] };
   return null;
 }
 
@@ -334,30 +332,6 @@ export async function buildPage(route, env, lang = 'ru') {
     /* Экзамен идёт по собственному адресу, но в поиске ему делать нечего:
        это рабочий экран с таймером, а не страница с содержимым. Без этой
        ветки он попал бы под правило «адрес неизвестен — 404». */
-    /* Урок — файл в статике, не строка в базе: список уроков берём у
-       ASSETS. Неизвестный урок — честная 404, как у задачи. */
-    case 'lesson': {
-      let list = [];
-      try {
-        const response = await env.ASSETS.fetch(new Request('https://assets.local/data/lessons/index.json'));
-        if (response.ok) list = await response.json();
-      } catch {
-        list = [];
-      }
-      const entry = Array.isArray(list) ? list.find(item => item && item.slug === route.slug) : null;
-      if (!entry) return notFound('lesson_not_found');
-      const pick = value => (value && typeof value === 'object' ? (value[lang] || value.ru || '') : String(value || ''));
-      const title = pick(entry.title);
-      return {
-        title: withGrade(title, entry.grade),
-        description: pick(entry.description),
-        canonicalPath: `/lesson/${entry.slug}`,
-        heading: title,
-        intro: pick(entry.description),
-        crumbs: [home(), [tr('lessons_title'), '/lessons']]
-      };
-    }
-
     case 'exam':
       return {
         title: tr('nav_exams'),
