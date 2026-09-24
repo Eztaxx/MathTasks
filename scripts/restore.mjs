@@ -19,6 +19,7 @@
  */
 
 import { readFileSync } from 'node:fs';
+import { fetchAll, PAGE } from './lib/fetch-all.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 const argv = process.argv.slice(2);
@@ -48,35 +49,21 @@ console.log(APPLY ? 'РЕЖИМ ЗАПИСИ\n' : 'вхолостую, ниче�
 
 const H = { apikey: KEY, Authorization: `Bearer ${KEY}` };
 // Подтемы — между темами и задачами: на них ссылается tasks.subtopic_id.
-const ORDER = ['subjects', 'topics', 'subtopics', 'tasks', 'tags', 'task_tags'];
+// Варианты работ и сообщения об ошибках — после задач: они ссылаются на
+// задачи и темы, а вариант должен появиться раньше своих тем и пунктов.
+const ORDER = ['subjects', 'topics', 'subtopics', 'tasks', 'tags', 'task_tags',
+  'exam_papers', 'exam_paper_topics', 'exam_paper_items', 'task_reports'];
+
+/* Первичный ключ таблицы: по нему читаем страницами в однозначном
+   порядке, сверяем строки с копией и правим их. У связок своего id нет —
+   ключ из пары колонок. */
+const KEYS = { task_tags: ['task_id', 'tag_id'], exam_paper_topics: ['paper_id', 'topic_id'] };
+const keyOf = table => KEYS[table] || ['id'];
 
 /* Сравниваем только те поля, что есть в копии: колонки могли добавиться
    миграциями после её снятия, и затирать их пустотой нельзя. */
 const differs = (fresh, saved) =>
   Object.keys(saved).some(k => JSON.stringify(fresh?.[k]) !== JSON.stringify(saved[k]));
-
-/* Supabase отдаёт не больше 1000 строк за запрос и режет молча. Одним
-   запросом task_tags (1420 строк) читалась как 1000, прогон вхолостую
-   звал «вернуть» 420 связок, которые в базе есть, а --apply слал бы их
-   заново. Поэтому читаем страницами. Порядок однозначный — по ключу, у
-   связки по паре (task_id, tag_id): без него страницы на стыках теряют и
-   повторяют строки. */
-const PAGE = 1000;
-async function fetchAll(table) {
-  const order = table === 'task_tags' ? 'task_id,tag_id' : 'id';
-  const rows = [];
-  for (let from = 0; ; from += PAGE) {
-    const r = await fetch(`${URL_}/rest/v1/${table}?select=*&order=${order}`, {
-      headers: { ...H, Range: `${from}-${from + PAGE - 1}` }
-    });
-    // Ошибка на любой странице — вся таблица не прочитана: неполный список
-    // выдал бы уже имеющиеся строки за потерянные.
-    if (!r.ok) return { error: r.status };
-    const chunk = await r.json();
-    rows.push(...chunk);
-    if (chunk.length < PAGE) return { rows };
-  }
-}
 
 let totalNew = 0, totalChanged = 0;
 
@@ -85,11 +72,19 @@ for (const table of ORDER) {
   const saved = dump.tables[table];
   if (!saved?.length) continue;
 
-  const { rows: current, error } = await fetchAll(table);
-  if (error) { console.log(`✗ ${table}: ${error}`); continue; }
+  const key = keyOf(table);
+  /* Одним запросом task_tags (1420 строк) читалась как 1000: прогон
+     вхолостую звал «вернуть» 420 связок, которые в базе есть, а --apply
+     слал бы их заново. Отсюда чтение страницами — см. lib/fetch-all.mjs. */
+  let current;
+  try {
+    current = await fetchAll(`${URL_}/rest/v1/${table}?select=*&order=${key.join(',')}`, H);
+  } catch (e) {
+    console.log(`✗ ${table}: ${e.message.replace(/^.*? → /, '')}`);
+    continue;
+  }
 
-  /* У связки task_tags своего идентификатора нет — сравниваем по паре. */
-  const idOf = row => table === 'task_tags' ? `${row.task_id}:${row.tag_id}` : String(row.id);
+  const idOf = row => key.map(k => row[k]).join(':');
   const now = new Map(current.map(x => [idOf(x), x]));
 
   const toInsert = [], toUpdate = [];
@@ -100,7 +95,7 @@ for (const table of ORDER) {
   }
   const extra = current.length - (saved.length - toInsert.length);
 
-  console.log(`${table.padEnd(10)} в базе ${String(current.length).padStart(4)} · в копии ${String(saved.length).padStart(4)} · вернуть ${toInsert.length} · поправить ${toUpdate.length}${extra > 0 ? ` · новее копии ${extra} (не трогаем)` : ''}`);
+  console.log(`${table.padEnd(17)} в базе ${String(current.length).padStart(4)} · в копии ${String(saved.length).padStart(4)} · вернуть ${toInsert.length} · поправить ${toUpdate.length}${extra > 0 ? ` · новее копии ${extra} (не трогаем)` : ''}`);
   totalNew += toInsert.length; totalChanged += toUpdate.length;
 
   if (!APPLY) continue;
@@ -115,20 +110,22 @@ for (const table of ORDER) {
     });
     if (!res.ok) {
       const text = await res.text();
+      /* Миграция 019 перевела на BY DEFAULT только subjects, topics, tasks
+         и tags; у task_reports (023) id по-прежнему GENERATED ALWAYS.
+         Поэтому подсказка называет таблицу, а не отсылает к 019. */
       if (text.includes('428C9')) {
         console.log(`   ✗ вставка ${table}: база не разрешает вернуть строку с прежним номером.`);
-        console.log(`      Выполните supabase/migrations/019_identity_by_default.sql — без неё`);
-        console.log(`      удалённая строка восстановится под новым номером, и ссылки на неё`);
-        console.log(`      (кросс-теги, адреса /task/<id>, закладки посетителей) не сойдутся.`);
+        console.log(`      Выполните в SQL Editor Supabase:`);
+        console.log(`        alter table public.${table} alter column id set generated by default;`);
+        console.log(`      Без этого удалённая строка восстановится только под новым номером,`);
+        console.log(`      и ссылки на неё (кросс-теги, адреса /task/<id>, закладки) не сойдутся.`);
       } else {
         console.log(`   ✗ вставка ${table}: ${res.status} ${text.slice(0, 120)}`);
       }
     }
   }
   for (const row of toUpdate) {
-    const filter = table === 'task_tags'
-      ? `task_id=eq.${row.task_id}&tag_id=eq.${row.tag_id}`
-      : `id=eq.${row.id}`;
+    const filter = key.map(k => `${k}=eq.${row[k]}`).join('&');
     /* Номер и служебные отметки времени в теле слать нельзя: id объявлен
        GENERATED ALWAYS, и весь запрос отвергается с кодом 428C9. */
     const { id, created_at, updated_at, ...fields } = row;
@@ -152,20 +149,31 @@ if (!only || only === 'storage') {
     for (const f of files) (byBucket[f.bucket] ||= []).push(f);
 
     for (const [bucket, list] of Object.entries(byBucket)) {
-      /* Что уже лежит в бакете — узнаём запросом, а не гадаем. */
+      /* Что уже лежит в бакете — узнаём запросом, а не гадаем. Список
+         читаем страницами, как и таблицы: одним запросом с limit 1000
+         папка побольше читалась бы с обрывом, и лежащие в ней файлы
+         числились бы пропавшими. По той же причине папку, которую не
+         удалось прочитать, не пропускаем молча, а бросаем весь бакет. */
       const present = new Set();
+      let unread = null;
       for (const prefix of [...new Set(list.map(f => f.path.includes('/') ? f.path.split('/')[0] : ''))]) {
-        const r = await fetch(`${URL_}/storage/v1/object/list/${bucket}`, {
-          method: 'POST',
-          headers: { ...H, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prefix, limit: 1000 })
-        });
-        if (!r.ok) continue;
-        for (const e of await r.json()) if (e.metadata) present.add(prefix ? `${prefix}/${e.name}` : e.name);
+        for (let offset = 0; !unread; offset += PAGE) {
+          const r = await fetch(`${URL_}/storage/v1/object/list/${bucket}`, {
+            method: 'POST',
+            headers: { ...H, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prefix, limit: PAGE, offset, sortBy: { column: 'name', order: 'asc' } })
+          });
+          if (!r.ok) { unread = `${r.status} ${(await r.text()).slice(0, 100)}`; break; }
+          const page = await r.json();
+          for (const e of page) if (e.metadata) present.add(prefix ? `${prefix}/${e.name}` : e.name);
+          if (page.length < PAGE) break;
+        }
+        if (unread) break;
       }
+      if (unread) { console.log(`✗ файлы ${bucket}: ${unread}`); continue; }
 
       const missing = list.filter(f => !present.has(f.path));
-      console.log(`${('файлы ' + bucket).padEnd(10)} в бакете ${String(present.size).padStart(4)} · в копии ${String(list.length).padStart(4)} · вернуть ${missing.length}`);
+      console.log(`${('файлы ' + bucket).padEnd(17)} в бакете ${String(present.size).padStart(4)} · в копии ${String(list.length).padStart(4)} · вернуть ${missing.length}`);
       totalNew += missing.length;
 
       if (!APPLY || !missing.length) continue;

@@ -21,6 +21,7 @@
  */
 
 import { exitSafely } from './lib/exit-safely.mjs';
+import { fetchAll } from './lib/fetch-all.mjs';
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -34,7 +35,8 @@ const QUIET = argv.includes('--quiet');
 const say = (...a) => { if (!QUIET) console.log(...a); };
 
 /* Таблицы каталога. Порядок важен при восстановлении: сначала то, на что
-   ссылаются, потом ссылающееся. */
+   ссылаются, потом ссылающееся. key — первичный ключ: по нему таблица
+   читается страницами в однозначном порядке. */
 const TABLES = [
   { name: 'subjects',  key: 'id' },
   { name: 'topics',    key: 'id' },
@@ -43,7 +45,14 @@ const TABLES = [
   { name: 'subtopics', key: 'id' },
   { name: 'tasks',     key: 'id' },
   { name: 'tags',      key: 'id' },
-  { name: 'task_tags', key: null },   // связка, своего идентификатора нет
+  { name: 'task_tags', key: 'task_id,tag_id' },   // связка, своего id нет
+  /* Варианты экзаменов и контрольных (миграции 025–026) и сообщения об
+     ошибках в задачах (023) в копию не попадали — та же история, что с
+     подтемами. Сообщения присылают ученики, заново их не получить. */
+  { name: 'exam_papers',       key: 'id' },
+  { name: 'exam_paper_topics', key: 'paper_id,topic_id' },
+  { name: 'exam_paper_items',  key: 'id' },
+  { name: 'task_reports',      key: 'id' },
   { name: 'profiles',  key: 'id', optional: true }
 ];
 
@@ -59,7 +68,7 @@ if (argv.includes('--check')) {
     const declared = dump.counts[name];
     const ok = rows.length === declared;
     if (!ok) bad++;
-    console.log(`  ${ok ? '✓' : '✗'} ${name.padEnd(10)} ${rows.length} строк${ok ? '' : ` (заявлено ${declared})`}`);
+    console.log(`  ${ok ? '✓' : '✗'} ${name.padEnd(17)} ${rows.length} строк${ok ? '' : ` (заявлено ${declared})`}`);
   }
   const tasks = dump.tables.tasks || [];
   const noCond = tasks.filter(t => !t.condition_latex).length;
@@ -95,27 +104,6 @@ const KEY = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
 if (!URL_ || !KEY) { console.error('Нет SUPABASE_URL или ключа — проверьте .env'); process.exit(1); }
 if (!env.SUPABASE_SERVICE_ROLE_KEY) say('⚠ Сервисного ключа нет: черновики в копию не попадут.');
 
-const PAGE = 1000;   // PostgREST отдаёт не больше тысячи строк за раз
-
-/* Порядок нужен однозначный: без него страницы на стыках теряют и
-   повторяют строки, и копия выходит неполной, хотя число строк сходится.
-   У связки task_tags колонки id нет — упорядочиваем по её ключу,
-   паре (task_id, tag_id). */
-async function fetchAll(table) {
-  const order = table === 'task_tags' ? 'task_id,tag_id' : 'id';
-  const rows = [];
-  for (let from = 0; ; from += PAGE) {
-    const r = await fetch(`${URL_}/rest/v1/${table}?select=*&order=${order}`, {
-      headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, Range: `${from}-${from + PAGE - 1}` }
-    });
-    if (!r.ok) throw new Error(`${table}: ${r.status} ${(await r.text()).slice(0, 120)}`);
-    const chunk = await r.json();
-    rows.push(...chunk);
-    if (chunk.length < PAGE) break;
-  }
-  return rows;
-}
-
 const dir = arg('--dir', join(ROOT, 'docs/backup/snapshots'));
 const keep = Number(arg('--keep', 30));
 mkdirSync(dir, { recursive: true });
@@ -124,12 +112,14 @@ const tables = {};
 const counts = {};
 for (const t of TABLES) {
   try {
-    const rows = await fetchAll(t.name);
+    const rows = await fetchAll(`${URL_}/rest/v1/${t.name}?select=*&order=${t.key}`,
+      { apikey: KEY, Authorization: `Bearer ${KEY}` });
     tables[t.name] = rows;
     counts[t.name] = rows.length;
-    say(`  ${t.name.padEnd(10)} ${rows.length}`);
+    say(`  ${t.name.padEnd(17)} ${rows.length}`);
   } catch (e) {
-    if (t.optional) { say(`  ${t.name.padEnd(10)} пропущена (${e.message.slice(0, 40)})`); continue; }
+    // В сообщении сначала адрес запроса, причина — после стрелки.
+    if (t.optional) { say(`  ${t.name.padEnd(17)} пропущена (${e.message.replace(/^.*? → /, '').slice(0, 40)})`); continue; }
     console.error(`✗ ${e.message}`);
     await exitSafely(1);
   }
@@ -188,7 +178,7 @@ try {
       const buf = Buffer.from(await r.arrayBuffer());
       storage.files.push({ bucket: b.name, path: f.path, type: f.type, size: buf.length, base64: buf.toString('base64') });
     }
-    say(`  ${('файлы ' + b.name).padEnd(10)} ${files.length}`);
+    say(`  ${('файлы ' + b.name).padEnd(17)} ${files.length}`);
   }
 } catch (e) {
   console.error(`✗ файлы не выгрузились: ${e.message}`);
