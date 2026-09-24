@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect } from 'vitest';
 import duel from '../public/duel.js';
 
@@ -140,5 +141,69 @@ describe('дуэль: кто победил', () => {
   it('находит примеры, где ошиблись оба', () => {
     const result = compareResults(player('A', [true, false, false, true]), player('B', [false, false, true]));
     expect(result.bothWrong).toEqual([1]);
+  });
+});
+
+describe('дуэль: случайный соперник', () => {
+  const players = [{ id: 'c', at: 30 }, { id: 'a', at: 10 }, { id: 'b', at: 20 }, { id: 'd', at: 20 }];
+
+  it('пары одинаковы на любом устройстве: по времени входа, при равенстве — по id', () => {
+    expect(duel.pairWaiting(players)).toEqual([['a', 'b'], ['d', 'c']]);
+    expect(duel.pairWaiting([...players].reverse())).toEqual([['a', 'b'], ['d', 'c']]);
+  });
+
+  it('роль: первый в паре ведёт, второй подтверждает, лишний ждёт', () => {
+    expect(duel.matchRole(players, 'a')).toEqual({ role: 'host', partner: 'b' });
+    expect(duel.matchRole(players, 'c')).toEqual({ role: 'guest', partner: 'd' });
+    expect(duel.matchRole([{ id: 'x', at: 1 }], 'x')).toBeNull();
+    expect(duel.matchRole(players, 'zzz')).toBeNull();
+  });
+
+  it('запись проверяется до показа', () => {
+    expect(duel.validateRun(['12', '3/4'], [1500, 4200])).toBe(true);
+    expect(duel.validateRun(['12'], [1500, 4200])).toBe(false);
+    expect(duel.validateRun(['12', '5'], [4200, 1500])).toBe(false);
+    expect(duel.validateRun(['1'.repeat(17)], [100])).toBe(false);
+    expect(duel.validateRun(Array(81).fill('1'), Array(81).fill(100))).toBe(false);
+    expect(duel.validateRun(['1'], [70000])).toBe(false);
+  });
+
+  it('счёт записи растёт по её собственному времени', () => {
+    const bits = [true, false, true, true];
+    const times = [2000, 4000, 7000, 12000];
+    expect(duel.ghostProgressAt(bits, times, 1000)).toBe(0);
+    expect(duel.ghostProgressAt(bits, times, 5000)).toBe(1);
+    expect(duel.ghostProgressAt(bits, times, 60000)).toBe(3);
+  });
+
+  it('итог записи считается только в пределах минуты', () => {
+    const result = duel.ghostResult([true, true, false, true], [1000, 30000, 59000, 60500]);
+    expect(result).toMatchObject({ r: 2, q: 3 });
+    expect(duel.unpackMask(result.m, result.q)).toEqual([true, true, false]);
+  });
+});
+
+describe('миграция записей дуэлей', () => {
+  const sql = readFileSync(new URL('../supabase/migrations/028_duel_runs.sql', import.meta.url), 'utf8');
+
+  it('таблица закрыта: RLS включён, писать можно только через функции', () => {
+    expect(sql).toMatch(/alter table public\.duel_runs enable row level security/);
+    expect(sql).not.toMatch(/create policy/i);
+  });
+
+  it('функции security definer — с пустым search_path', () => {
+    const definers = sql.match(/security definer[^\n]*/gi) || [];
+    expect(definers).toHaveLength(3);
+    for (const line of definers) expect(line).toMatch(/set search_path = ''/);
+  });
+
+  it('конец попытки проверяет время и объём', () => {
+    expect(sql).toMatch(/interval '50 seconds'/);
+    expect(sql).toMatch(/n > 80/);
+  });
+
+  it('ни почты, ни устройства — только ник, ответы и время', () => {
+    const table = sql.match(/create table[\s\S]*?\);/i)[0].toLowerCase();
+    for (const word of ['email', 'device', 'ip ', 'user_id']) expect(table).not.toContain(word);
   });
 });

@@ -206,6 +206,55 @@
     return { winner, aErrors, bErrors, bothWrong };
   };
 
+  // ── Случайный соперник ──────────────────────────────────────────────
+  /* Живой подбор. Все ждущие игроки видят один и тот же список присутствия
+     в канале; пары составляются одинаково на каждом устройстве: по времени
+     входа, первый со вторым, третий с четвёртым. Первый в паре — ведущий:
+     он выбирает зерно и присылает приглашение, второй подтверждает. Так
+     двое не выберут одного и того же третьего. */
+  const pairWaiting = players => {
+    const sorted = [...(players || [])]
+      .filter(player => player && player.id)
+      .sort((a, b) => (Number(a.at) || 0) - (Number(b.at) || 0) || String(a.id).localeCompare(String(b.id)));
+    const pairs = [];
+    for (let i = 0; i + 1 < sorted.length; i += 2) pairs.push([sorted[i].id, sorted[i + 1].id]);
+    return pairs;
+  };
+
+  const matchRole = (players, myId) => {
+    for (const [host, guest] of pairWaiting(players)) {
+      if (host === myId) return { role: 'host', partner: guest };
+      if (guest === myId) return { role: 'guest', partner: host };
+    }
+    return null;
+  };
+
+  /* Запись соперника: ответы и время каждого ответа в мс от старта. Счёт
+     не берём из базы на веру — считаем сами по тем же примерам. */
+  const MAX_RUN_ANSWERS = 80;
+  const validateRun = (answers, times) => Array.isArray(answers) && Array.isArray(times)
+    && answers.length === times.length && answers.length <= MAX_RUN_ANSWERS
+    && answers.every(answer => typeof answer === 'string' && answer.length <= 16)
+    && times.every((time, i) => Number.isFinite(time) && time >= 0 && time <= 61000 && (i === 0 || time >= times[i - 1]));
+
+  const ghostProgressAt = (bits, times, ms) => {
+    let score = 0;
+    for (let i = 0; i < bits.length && i < times.length; i++) {
+      if (times[i] > ms) break;
+      if (bits[i]) score++;
+    }
+    return score;
+  };
+
+  const ghostResult = (bits, times, limitMs = DURATION_SEC * 1000) => {
+    const counted = [];
+    for (let i = 0; i < bits.length && i < times.length; i++) {
+      if (times[i] > limitMs) break;
+      counted.push(Boolean(bits[i]));
+    }
+    return { r: counted.filter(Boolean).length, q: counted.length, m: packMask(counted) };
+  };
+
   const newSeed = (random = Math.random) => {
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
       return crypto.getRandomValues(new Uint32Array(1))[0];
@@ -227,6 +276,12 @@
     encodeChallenge,
     decodeChallenge,
     compareResults,
+    pairWaiting,
+    matchRole,
+    validateRun,
+    ghostProgressAt,
+    ghostResult,
+    MAX_RUN_ANSWERS,
     newSeed
   };
 

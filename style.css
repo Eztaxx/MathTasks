@@ -7000,3 +7000,22 @@ body.dark .profile-card{background:linear-gradient(135deg,#101a33,#171230);borde
 body.dark .profile-nick input,body.dark .profile-join input,body.dark .profile-code-box{background:#0f1520;color:var(--ink)}
 body.dark .profile-name,body.dark .profile-code{color:#c4b5fd}
 body.dark .profile-status{color:#86efac}
+
+/* Дуэль: случайный соперник. */
+.duel-start-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.duel-start-row .duel-start{margin-top:0}
+.duel-random-note{margin:8px 0 0;font-size:12.5px;color:var(--muted)}
+.duel-random-note[hidden],.duel-bar-opp[hidden],#duel-nobody[hidden],#duel-search-waiting[hidden]{display:none}
+.duel-search{display:flex;flex-direction:column;align-items:center;gap:8px;padding:40px 16px;text-align:center}
+.duel-search h2{margin:6px 0 0;font-size:22px}
+.duel-search p{margin:0;max-width:440px;color:var(--muted);font-size:14px}
+.duel-search-time{font:800 40px/1 Manrope,sans-serif;color:#6d28d9;font-variant-numeric:tabular-nums}
+.duel-search-pulse{display:grid;place-items:center;width:72px;height:72px;border-radius:50%;background:#ede9fe;font-size:32px;animation:duel-pulse 1.4s ease-in-out infinite}
+@keyframes duel-pulse{0%,100%{box-shadow:0 0 0 0 #7c3aed55}50%{box-shadow:0 0 0 16px #7c3aed00}}
+@media(prefers-reduced-motion:reduce){.duel-search-pulse{animation:none}}
+.duel-search-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:10px}
+.duel-bar-opp{color:#6d28d9}
+.duel-bar-opp strong{color:#6d28d9}
+.duel-ghost-note{margin:12px 0 0;font-size:13px;color:var(--muted)}
+body.dark .duel-search-pulse{background:#241a44}
+body.dark .duel-search-time,body.dark .duel-bar-opp,body.dark .duel-bar-opp strong{color:#b69cff}

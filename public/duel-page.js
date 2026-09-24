@@ -57,10 +57,17 @@
     bits: [],
     endsAt: 0,
     timer: null,
-    me: null
+    me: null,
+    mode: 'link',         // 'link' — вызов по ссылке, 'random' — случайный соперник
+    opponent: null,       // { kind: 'live' | 'ghost', nick, r, q, … }
+    answers: [],          // что ученик вписал — запись для будущих соперников
+    times: [],            // когда: мс от начала минуты
+    startedAt: 0,
+    runId: null,          // номер записи в базе (миграция 028)
+    waitingFinal: null
   };
 
-  const screens = ['#duel-setup', '#duel-countdown', '#duel-play', '#duel-result'];
+  const screens = ['#duel-setup', '#duel-search', '#duel-countdown', '#duel-play', '#duel-result'];
   const show = id => {
     screens.forEach(sel => { const el = $(sel); if (el) el.hidden = sel !== id; });
     // Во время игры заголовок не нужен: на телефоне он выталкивал клавиши за край.
@@ -154,11 +161,23 @@
       const text = $('#duel-invite-text');
       if (text) text.textContent = tr('duel_invite', { name: nickOf(a), cat: catName(c), diff: diffName(d) });
       if (choice) choice.hidden = true;
-      if (start) { start.dataset.i18n = 'duel_accept'; start.textContent = tr('duel_accept'); }
+      if (start) {
+        start.dataset.i18n = 'duel_accept';
+        start.textContent = tr('duel_accept');
+        start.classList.replace('secondary-button', 'primary-button');
+      }
+      $('#duel-random').hidden = true;
+      $('#duel-random-note').hidden = true;
     } else {
       if (invite) invite.hidden = true;
       if (choice) choice.hidden = false;
-      if (start) { start.dataset.i18n = 'duel_start'; start.textContent = tr('duel_start'); }
+      if (start) {
+        start.dataset.i18n = 'duel_link_friend';
+        start.textContent = tr('duel_link_friend');
+        start.classList.replace('primary-button', 'secondary-button');
+      }
+      $('#duel-random').hidden = false;
+      $('#duel-random-note').hidden = false;
       renderChoice();
     }
     renderHistory();
@@ -199,7 +218,15 @@
     const q = state.questions[state.index];
     const ok = Boolean(T.checkAnswer(q, value)?.isCorrect);
     state.bits.push(ok);
-    if (scoreEl) scoreEl.textContent = String(state.bits.filter(Boolean).length);
+    state.answers.push(value.slice(0, 16));
+    state.times.push(Math.min(60999, Math.max(0, Date.now() - state.startedAt)));
+    const score = state.bits.filter(Boolean).length;
+    if (scoreEl) scoreEl.textContent = String(score);
+    if (state.opponent?.kind === 'live' && match) {
+      match.channel.send({ type: 'broadcast', event: 'progress', payload: { r: score, q: state.bits.length } }).catch(() => {});
+    }
+    // Больше 80 ответов запись не принимает — такой темп уже не устный счёт.
+    if (state.bits.length >= D.MAX_RUN_ANSWERS) { finish(); return; }
     flash(ok);
     sound(ok ? 'correct' : 'wrong');
     state.index++;
@@ -224,6 +251,7 @@
   const tick = () => {
     const left = Math.max(0, Math.ceil((state.endsAt - Date.now()) / 1000));
     if (timeEl) timeEl.textContent = String(left);
+    if (state.opponent?.kind === 'ghost') renderOpponent();
     if (left <= 0) finish();
   };
 
@@ -231,10 +259,16 @@
     state.questions = T.generateBatch(state.cat, BATCH, state.diff, 'basic', { seed: state.seed });
     state.index = 0;
     state.bits = [];
+    state.answers = [];
+    state.times = [];
+    state.runId = null;
     if (scoreEl) scoreEl.textContent = '0';
     renderQuestion();
     show('#duel-play');
-    state.endsAt = Date.now() + D.DURATION_SEC * 1000;
+    state.startedAt = Date.now();
+    state.endsAt = state.startedAt + D.DURATION_SEC * 1000;
+    renderOpponent();
+    if (state.mode === 'random') beginRun();
     tick();
     clearInterval(state.timer);
     state.timer = setInterval(tick, 200);
@@ -255,6 +289,8 @@
 
   $('#duel-start')?.addEventListener('click', () => {
     notice('');
+    state.mode = 'link';
+    state.opponent = null;
     state.nick = takeNick();
     if (state.role === 'b' && state.challenge) {
       state.seed = state.challenge.s;
@@ -282,25 +318,28 @@
   /* Сравнение одинаково для обоих: кто бы ни открыл ссылку с двумя
      результатами, «Ты» — тот, чей ник совпадает с сохранённым. */
   const renderComparison = (challenge, meRole) => {
-    const { a, b } = challenge;
-    const result = D.compareResults(a, b);
-    const me = meRole === 'b' ? b : a;
-    const them = meRole === 'b' ? a : b;
-    const myWin = result.winner === meRole;
-    const title = result.winner === 'tie' ? tr('duel_tie') : myWin ? tr('duel_win_me') : tr('duel_win_them', { name: nickOf(them) });
-    const questions = T.generateBatch(challenge.c, BATCH, challenge.d, 'basic', { seed: challenge.s });
+    const me = meRole === 'b' ? challenge.b : challenge.a;
+    const them = meRole === 'b' ? challenge.a : challenge.b;
+    renderVersus({ cat: challenge.c, diff: challenge.d, seed: challenge.s, me, them });
+  };
+
+  const renderVersus = ({ cat, diff, seed, me, them, note = '' }) => {
+    const result = D.compareResults(me, them);
+    const title = result.winner === 'tie' ? tr('duel_tie') : result.winner === 'a' ? tr('duel_win_me') : tr('duel_win_them', { name: nickOf(them) });
+    const questions = T.generateBatch(cat, BATCH, diff, 'basic', { seed });
     const both = result.bothWrong.slice(0, 6).map(index => questions[index]).filter(Boolean);
     const body = $('#duel-result-body');
     if (!body) return;
     body.innerHTML = `
       <h2 class="duel-result-title">${escapeHtml(title)}</h2>
-      <p class="duel-result-sub">${escapeHtml(catName(challenge.c))} · ${escapeHtml(diffName(challenge.d))}</p>
+      <p class="duel-result-sub">${escapeHtml(catName(cat))} · ${escapeHtml(diffName(diff))}</p>
       <div class="duel-versus">
         ${statsHtml(me, `${tr('duel_you')} · ${me.n || ''}`)}
         <span class="duel-versus-mark" aria-hidden="true">⚔️</span>
         ${statsHtml(them, nickOf(them))}
       </div>
-      ${both.length ? `<div class="duel-both-wrong"><p>${escapeHtml(tr('duel_both_wrong'))}</p><ul>${both.map(q => `<li data-latex="${escapeHtml(q.latex)}" data-answer="${escapeHtml(q.answer)}"></li>`).join('')}</ul></div>` : ''}`;
+      ${both.length ? `<div class="duel-both-wrong"><p>${escapeHtml(tr('duel_both_wrong'))}</p><ul>${both.map(q => `<li data-latex="${escapeHtml(q.latex)}" data-answer="${escapeHtml(q.answer)}"></li>`).join('')}</ul></div>` : ''}
+      ${note ? `<p class="duel-ghost-note">${escapeHtml(note)}</p>` : ''}`;
     body.querySelectorAll('[data-latex]').forEach(li => {
       try {
         window.katex.render(`${li.dataset.latex} = ${li.dataset.answer.replace('.', '{,}')}`, li, { throwOnError: false });
@@ -347,6 +386,11 @@
     const base = { g: T.GENERATOR_VERSION, s: state.seed, c: state.cat, d: state.diff };
     $('#duel-share').hidden = true;
     $('#duel-rematch').hidden = true;
+    $('#duel-again').hidden = state.mode !== 'random';
+    if (state.mode === 'random') {
+      finishRandom(me);
+      return;
+    }
 
     if (state.role === 'b' && state.challenge) {
       const full = { ...base, a: state.challenge.a, b: me };
@@ -379,6 +423,8 @@
 
   // Реванш: те же категория и сложность, новые примеры, вызывает уже этот игрок.
   $('#duel-rematch')?.addEventListener('click', () => {
+    state.mode = 'link';
+    state.opponent = null;
     const source = state.challenge;
     state.role = 'a';
     state.challenge = null;
@@ -387,6 +433,319 @@
     state.seed = D.newSeed();
     state.nick = takeNick();
     countdown();
+  });
+
+  // ── Случайный соперник ──────────────────────────────────────────────
+  /* Сначала ищем живого соперника в канале Realtime: присутствие видно
+     всем ждущим, пары составляются одинаково на каждом устройстве
+     (duel.js: matchRole). Ведущий присылает зерно, второй подтверждает, и
+     дальше они играют в своём канале, видя счёт друг друга. Никого за 15
+     секунд — берём запись другого игрока из базы (миграция 028). Нет и
+     записей — предлагаем сыграть на рекорд или позвать друга ссылкой. */
+  const SEARCH_SEC = 15;
+  const FINAL_WAIT_MS = 6000;
+  let rtClient = null;
+  let search = null;
+  let match = null;
+
+  // Свой клиент без сохранения входа: дуэль не трогает вход администратора.
+  const realtime = () => {
+    if (rtClient) return rtClient;
+    const cfg = window.SUPABASE_CONFIG;
+    if (!cfg?.url || !cfg?.publishableKey || !window.supabase?.createClient) return null;
+    rtClient = window.supabase.createClient(cfg.url, cfg.publishableKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+    });
+    return rtClient;
+  };
+
+  const randomId = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+
+  // Уровень игрока — лучший счёт в этой категории: по нему подбирается запись.
+  const personalBest = () => Math.max(0, ...duelHistory()
+    .filter(item => item.cat === state.cat && item.diff === state.diff)
+    .map(item => Number(item.me?.r) || 0)) || 10;
+
+  const formatDate = value => {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString(lang() === 'lv' ? 'lv-LV' : 'ru-RU', { day: 'numeric', month: 'long' });
+  };
+
+  function renderOpponent() {
+    const box = $('#duel-opp');
+    if (!box) return;
+    const opponent = state.opponent;
+    box.hidden = !opponent;
+    if (!opponent) return;
+    $('#duel-opp-name').textContent = opponent.nick;
+    const score = opponent.kind === 'ghost' && state.startedAt
+      ? D.ghostProgressAt(opponent.bits, opponent.times, Date.now() - state.startedAt)
+      : opponent.r;
+    $('#duel-opp-score').textContent = String(score);
+  }
+
+  const stopSearch = () => {
+    if (!search) return;
+    const { lobby, clock } = search;
+    search.settled = true;
+    search = null;
+    clearInterval(clock);
+    if (lobby) {
+      lobby.untrack().catch(() => {});
+      realtime()?.removeChannel(lobby);
+    }
+  };
+
+  const leaveMatch = () => {
+    if (!match) return;
+    realtime()?.removeChannel(match.channel);
+    match = null;
+  };
+
+  const setSearchView = nobody => {
+    $('#duel-search-waiting').hidden = nobody;
+    $('#duel-nobody').hidden = !nobody;
+    $('#duel-search-time').hidden = nobody;
+    const title = $('#duel-search-title');
+    const text = $('#duel-search-text');
+    title.dataset.i18n = nobody ? 'duel_nobody_title' : 'duel_search_title';
+    text.dataset.i18n = nobody ? 'duel_nobody_text' : 'duel_search_text';
+    title.textContent = tr(title.dataset.i18n);
+    text.textContent = tr(text.dataset.i18n);
+  };
+
+  function startLive({ host, guest, seed, partnerNick }) {
+    const client = realtime();
+    const opponent = { kind: 'live', nick: D.sanitizeNick(partnerNick) || tr('duel_opponent'), r: 0, q: 0, final: null };
+    const channel = client.channel(`duel-match-g${T.GENERATOR_VERSION}:${host}:${guest}`, { config: { broadcast: { self: false } } });
+    state.opponent = opponent;
+    match = { channel };
+    channel
+      .on('broadcast', { event: 'progress' }, ({ payload }) => {
+        if (state.opponent !== opponent) return;
+        const { r, q } = payload || {};
+        if (!Number.isInteger(r) || !Number.isInteger(q) || r < 0 || r > q || q > D.MAX_RUN_ANSWERS) return;
+        opponent.r = r;
+        opponent.q = q;
+        renderOpponent();
+      })
+      .on('broadcast', { event: 'final' }, ({ payload }) => {
+        if (state.opponent !== opponent) return;
+        const { r, q, m } = payload || {};
+        const bits = D.unpackMask(m, q);
+        if (!bits || q > D.MAX_RUN_ANSWERS || bits.filter(Boolean).length !== r) return;
+        opponent.final = { r, q, m };
+        opponent.r = r;
+        opponent.q = q;
+        state.waitingFinal?.();
+      })
+      .subscribe();
+    state.seed = seed;
+    notice(tr('duel_found_live', { name: opponent.nick }));
+    countdown();
+  }
+
+  async function fallbackGhost() {
+    const client = realtime();
+    const exclude = duelHistory().map(item => item.ghostId).filter(Number.isInteger).slice(0, 30);
+    let candidates = [];
+    if (client) {
+      try {
+        const { data, error } = await client.rpc('duel_ghost', {
+          p_cat: state.cat, p_diff: state.diff, p_gen: T.GENERATOR_VERSION, p_target: personalBest(), p_exclude: exclude
+        });
+        if (!error && Array.isArray(data)) candidates = data;
+      } catch {}
+    }
+    // Пока искали, ученик мог нажать «Отмена».
+    if (state.mode !== 'random' || $('#duel-search').hidden) return;
+    const valid = candidates.filter(row => Number.isInteger(Number(row.seed)) && D.validateRun(row.answers, row.times));
+    if (!valid.length) {
+      setSearchView(true);
+      return;
+    }
+    const row = valid[Math.floor(Math.random() * valid.length)];
+    const seed = Number(row.seed);
+    // Счёт записи считаем сами: из того же зерна — те же примеры.
+    const questions = T.generateBatch(state.cat, BATCH, state.diff, 'basic', { seed });
+    const bits = row.answers.map((answer, i) => Boolean(questions[i] && T.checkAnswer(questions[i], answer)?.isCorrect));
+    state.opponent = {
+      kind: 'ghost', id: Number(row.id), nick: D.sanitizeNick(row.nick) || tr('duel_opponent'),
+      bits, times: row.times.map(Number), at: row.finished_at
+    };
+    state.seed = seed;
+    notice(tr('duel_found_ghost', { name: state.opponent.nick }));
+    countdown();
+  }
+
+  function findOpponent() {
+    notice('');
+    stopSearch();
+    leaveMatch();
+    state.mode = 'random';
+    state.role = 'a';
+    state.challenge = null;
+    state.opponent = null;
+    state.nick = takeNick();
+    window.history.replaceState(null, '', '/duel');
+    setSearchView(false);
+    show('#duel-search');
+
+    const client = realtime();
+    if (!client) { fallbackGhost(); return; }
+    const myId = randomId();
+    const current = { lobby: null, settled: false, invite: null, clock: 0 };
+    search = current;
+    let left = SEARCH_SEC;
+    $('#duel-search-time').textContent = String(left);
+    current.clock = setInterval(() => {
+      left--;
+      const time = $('#duel-search-time');
+      if (time) time.textContent = String(Math.max(0, left));
+      if (left <= 0 && search === current) {
+        stopSearch();
+        fallbackGhost();
+      }
+    }, 1000);
+
+    const lobby = client.channel(`duel-lobby-g${T.GENERATOR_VERSION}:${state.cat}:${state.diff}`, {
+      config: { presence: { key: myId }, broadcast: { self: false } }
+    });
+    current.lobby = lobby;
+    const waiting = () => Object.entries(lobby.presenceState()).map(([id, metas]) => ({ id, at: Number(metas?.[0]?.at) || 0 }));
+    const evaluate = () => {
+      if (current.settled || current.invite) return;
+      const role = D.matchRole(waiting(), myId);
+      if (role?.role !== 'host') return;
+      const seed = D.newSeed();
+      current.invite = { guest: role.partner, seed };
+      lobby.send({ type: 'broadcast', event: 'invite', payload: { host: myId, guest: role.partner, seed, nick: state.nick } }).catch(() => {});
+      // Ответа нет — приглашение потерялось или второй уже занят: пересчитываем пары.
+      setTimeout(() => {
+        if (!current.settled && current.invite?.seed === seed) {
+          current.invite = null;
+          evaluate();
+        }
+      }, 3000);
+    };
+    lobby
+      .on('presence', { event: 'sync' }, evaluate)
+      .on('broadcast', { event: 'invite' }, async ({ payload }) => {
+        const seed = payload?.seed;
+        if (current.settled || payload?.guest !== myId || !Number.isInteger(seed) || seed < 0 || seed > 0xFFFFFFFF) return;
+        current.settled = true;
+        clearInterval(current.clock);
+        await lobby.send({ type: 'broadcast', event: 'accept', payload: { host: payload.host, guest: myId, nick: state.nick } }).catch(() => {});
+        search = current;
+        stopSearch();
+        startLive({ host: payload.host, guest: myId, seed, partnerNick: payload.nick });
+      })
+      .on('broadcast', { event: 'accept' }, ({ payload }) => {
+        if (current.settled || payload?.host !== myId || !current.invite || payload?.guest !== current.invite.guest) return;
+        const { guest, seed } = current.invite;
+        stopSearch();
+        startLive({ host: myId, guest, seed, partnerNick: payload.nick });
+      })
+      .subscribe(status => {
+        if (status === 'SUBSCRIBED') lobby.track({ at: Date.now() }).catch(() => {});
+        else if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && search === current) {
+          stopSearch();
+          fallbackGhost();
+        }
+      });
+  }
+
+  // Номер записи берём у базы в начале минуты: по нему база проверит время.
+  async function beginRun() {
+    const client = realtime();
+    if (!client) return;
+    try {
+      const { data, error } = await client.rpc('duel_begin', { p_cat: state.cat, p_diff: state.diff, p_gen: T.GENERATOR_VERSION, p_seed: state.seed });
+      if (!error && data) state.runId = Number(data);
+    } catch {}
+  }
+
+  async function saveRun(me) {
+    const client = realtime();
+    if (!client || !state.runId) return false;
+    try {
+      const { data } = await client.rpc('duel_finish', {
+        p_run: state.runId, p_nick: state.nick, p_answers: state.answers, p_times: state.times, p_correct: me.r
+      });
+      return data === true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function finishRandom(me) {
+    notice('');
+    show('#duel-result');
+    const body = $('#duel-result-body');
+    const saving = saveRun(me);
+    const opponent = state.opponent;
+    if (!opponent) {
+      const saved = await saving;
+      body.innerHTML = `<h2 class="duel-result-title">${escapeHtml(tr('duel_done_title'))}</h2>
+        <p class="duel-result-sub">${escapeHtml(catName(state.cat))} · ${escapeHtml(diffName(state.diff))}</p>
+        <div class="duel-versus duel-versus-solo">${statsHtml(me, `${tr('duel_you')} · ${me.n}`)}</div>
+        ${saved ? `<p class="duel-ghost-note">${escapeHtml(tr('duel_solo_saved'))}</p>` : ''}`;
+      remember({ at: Date.now(), seed: state.seed, cat: state.cat, diff: state.diff, role: 'r', me: { r: me.r, q: me.q }, them: null });
+      return;
+    }
+    let them;
+    let note = '';
+    if (opponent.kind === 'ghost') {
+      them = { n: opponent.nick, ...D.ghostResult(opponent.bits, opponent.times) };
+      note = tr('duel_ghost_note', { date: formatDate(opponent.at) });
+    } else {
+      match?.channel.send({ type: 'broadcast', event: 'final', payload: { r: me.r, q: me.q, m: me.m } }).catch(() => {});
+      if (!opponent.final) {
+        body.innerHTML = `<p class="duel-ghost-note">${escapeHtml(tr('duel_waiting_final'))}</p>`;
+        await new Promise(resolve => {
+          const timer = setTimeout(resolve, FINAL_WAIT_MS);
+          state.waitingFinal = () => { clearTimeout(timer); resolve(); };
+        });
+        state.waitingFinal = null;
+      }
+      if (opponent.final) {
+        them = { n: opponent.nick, ...opponent.final };
+      } else {
+        // Ушёл до конца: считаем по последнему счёту, без разбора общих ошибок.
+        them = { n: opponent.nick, r: opponent.r, q: opponent.q, m: D.packMask(Array(opponent.q).fill(true)) };
+        note = tr('duel_opponent_left');
+      }
+      leaveMatch();
+    }
+    renderVersus({ cat: state.cat, diff: state.diff, seed: state.seed, me, them, note });
+    remember({
+      at: Date.now(), seed: state.seed, cat: state.cat, diff: state.diff, role: 'r',
+      ghostId: opponent.kind === 'ghost' ? opponent.id : undefined,
+      me: { r: me.r, q: me.q }, them: { n: them.n, r: them.r, q: them.q }
+    });
+  }
+
+  $('#duel-random')?.addEventListener('click', findOpponent);
+  $('#duel-again')?.addEventListener('click', findOpponent);
+  $('#duel-search-cancel')?.addEventListener('click', () => {
+    stopSearch();
+    state.mode = 'link';
+    openSetup();
+  });
+  $('#duel-solo')?.addEventListener('click', () => {
+    state.mode = 'random';
+    state.opponent = null;
+    state.seed = D.newSeed();
+    notice('');
+    countdown();
+  });
+  $('#duel-to-link')?.addEventListener('click', () => {
+    state.mode = 'link';
+    openSetup();
+  });
+  window.addEventListener('pagehide', () => {
+    stopSearch();
+    leaveMatch();
   });
 
   // ── Старт страницы ──────────────────────────────────────────────────

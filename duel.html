@@ -98,7 +98,7 @@
   <main class="trainer-container duel">
     <div class="trainer-header">
       <h1 data-i18n="duel_title">⚔️ Дуэль на устный счёт</h1>
-      <p data-i18n="duel_sub">Минута на примеры — потом отправь ссылку другу: он решит те же примеры, и вы сравните счёт. Без регистрации.</p>
+      <p data-i18n="duel_sub">Минута устного счёта против живого соперника, записи другого игрока или друга по ссылке. Без регистрации.</p>
     </div>
 
     <p class="duel-notice" id="duel-notice" role="status" hidden></p>
@@ -130,11 +130,30 @@
         </div>
       </div>
 
-      <button type="button" class="primary-button duel-start" id="duel-start" data-i18n="duel_start">⚔️ Начать дуэль</button>
+      <div class="duel-start-row">
+        <button type="button" class="primary-button duel-start" id="duel-random" data-i18n="duel_random">🎲 Случайный соперник</button>
+        <button type="button" class="secondary-button duel-start" id="duel-start" data-i18n="duel_link_friend">🔗 Вызвать друга по ссылке</button>
+      </div>
+      <p class="duel-random-note" id="duel-random-note" data-i18n="duel_random_note">Ищем живого соперника онлайн, а если никого нет — ты сыграешь против записи другого игрока на тех же примерах.</p>
 
       <div class="duel-history" id="duel-history" hidden>
         <h2 data-i18n="duel_history">Мои дуэли</h2>
         <ol class="duel-history-list" id="duel-history-list"></ol>
+      </div>
+    </section>
+
+    <!-- Поиск случайного соперника: живой онлайн, иначе — запись. -->
+    <section class="duel-screen duel-search" id="duel-search" hidden>
+      <div class="duel-search-pulse" aria-hidden="true">⚔️</div>
+      <h2 id="duel-search-title" data-i18n="duel_search_title">Ищем соперника…</h2>
+      <p id="duel-search-text" data-i18n="duel_search_text">Если за 15 секунд никого не будет, сыграешь против записи другого игрока на тех же примерах.</p>
+      <strong class="duel-search-time" id="duel-search-time" aria-live="polite">15</strong>
+      <div class="duel-search-actions" id="duel-search-waiting">
+        <button type="button" class="secondary-button" id="duel-search-cancel" data-i18n="duel_search_cancel">Отмена</button>
+      </div>
+      <div class="duel-search-actions" id="duel-nobody" hidden>
+        <button type="button" class="primary-button" id="duel-solo" data-i18n="duel_play_solo">🏁 Сыграть на рекорд</button>
+        <button type="button" class="secondary-button" id="duel-to-link" data-i18n="duel_link_friend">🔗 Вызвать друга по ссылке</button>
       </div>
     </section>
 
@@ -147,6 +166,7 @@
     <section class="duel-screen duel-play" id="duel-play" hidden>
       <div class="duel-bar">
         <span class="duel-bar-item"><span data-i18n="duel_time">Время</span> <strong id="duel-time">60</strong></span>
+        <span class="duel-bar-item duel-bar-opp" id="duel-opp" hidden><span id="duel-opp-name"></span> <strong id="duel-opp-score">0</strong></span>
         <span class="duel-bar-item"><span data-i18n="duel_score">Верно</span> <strong id="duel-score">0</strong></span>
       </div>
       <div class="duel-card" id="duel-card">
@@ -176,6 +196,7 @@
         </div>
       </div>
       <div class="duel-result-actions">
+        <button type="button" class="primary-button" id="duel-again" data-i18n="duel_again" hidden>🎲 Ещё соперник</button>
         <button type="button" class="secondary-button" id="duel-rematch" data-i18n="duel_rematch" hidden>🔁 Реванш</button>
         <button type="button" class="secondary-button" id="duel-new" data-i18n="duel_new">Новая дуэль</button>
         <a class="text-button" href="/trainer" data-i18n="duel_to_trainer">К тренажёру</a>
@@ -186,6 +207,8 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="/trainer.js?v=20260924-1"></script>
   <script src="/trainer-algebra.js?v=20260924-1"></script>
+  <script src="/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="/duel.js"></script>
   <script src="/duel-page.js"></script>
 </body>
