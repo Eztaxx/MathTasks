@@ -164,6 +164,9 @@ const gradeLabelShort = grade => {
   return translated && translated !== key ? translated : gradeLabel(grade);
 };
 
+// Адрес класса: уровни средней школы — словами, /grade/10 ведёт на 301.
+const gradeHref = grade => `/grade/${encodeURIComponent(window.MathTasksLib?.gradeSlug ? window.MathTasksLib.gradeSlug(grade) : grade)}`;
+
 const gradeLabel = grade => {
   const tr = window.MathTasks.t || (k => k);
   const isLv = (window.MathTasksI18n?.getLang?.() === 'lv');
@@ -1051,7 +1054,7 @@ function renderSidebarGrade() {
 async function onGradeSelectChange(event) {
   const raw = event.target.value || null;
   const parsed = parseGradeValue(raw);
-  const target = parsed ? `/grade/${parsed}` : '/';
+  const target = parsed ? gradeHref(parsed) : '/';
   if (currentView !== 'home') {
     navigate(target);
     return;
@@ -2108,7 +2111,7 @@ function renderGradeActions() {
   const total = topics.reduce((sum, t) => sum + (taskCounts.get(t.id) || 0), 0);
   /* Пустому классу предлагать «решать всё» незачем — вести некуда. */
   if (!total) { box.hidden = true; box.innerHTML = ''; return; }
-  box.innerHTML = `<a class="grade-action" href="/grade/${encodeURIComponent(selectedGrade)}/tasks"
+  box.innerHTML = `<a class="grade-action" href="${gradeHref(selectedGrade)}/tasks"
       title="${escapeHtml(tr('grade_solve_all_hint', { count: total, topics: topics.length }))}">
       ${escapeHtml(tr('grade_solve_all_short', { count: total }))} →
     </a>`;
@@ -2491,7 +2494,7 @@ function fillTopicHeader(topic, sub = null) {
   const title = sub ? subtopicTitle(sub, topic) : topicTitle;
 
   const crumbs = [[tr('nav_home'), '/']];
-  if (topic.grade) crumbs.push([gradeLabel(topic.grade), `/grade/${topic.grade}`]);
+  if (topic.grade) crumbs.push([gradeLabel(topic.grade), gradeHref(topic.grade)]);
   if (subject) crumbs.push([loc(subject, 'title'), `/subject/${encodeURIComponent(subject.slug)}`]);
   if (sub) {
     crumbs.push([topicTitle, `/topic/${encodeURIComponent(topic.slug)}`]);
@@ -2531,7 +2534,7 @@ function resetListBlocks() {
   document.querySelector('#task-nav')?.remove();
 }
 
-const gradeCrumb = () => (selectedGrade ? [gradeLabel(selectedGrade), `/grade/${selectedGrade}`] : [(window.MathTasks?.t ? window.MathTasks.t('all_grades') : 'Все классы'), '/']);
+const gradeCrumb = () => (selectedGrade ? [gradeLabel(selectedGrade), gradeHref(selectedGrade)] : [(window.MathTasks?.t ? window.MathTasks.t('all_grades') : 'Все классы'), '/']);
 
 /* ── Страница класса ──────────────────────────────────────────────── */
 
@@ -3644,7 +3647,7 @@ function showProgress() {
   const section = (title, body, extra = '') => `<section class="progress-block"><h2>${escapeHtml(title)}${extra}</h2>${body}</section>`;
 
 
-  const startHref = selectedGrade ? `/grade/${encodeURIComponent(selectedGrade)}` : '/';
+  const startHref = selectedGrade ? gradeHref(selectedGrade) : '/';
   const empty = s.solved || s.controlWorks.count
     ? ''
     : `<p class="progress-empty">${escapeHtml(tr('progress_empty'))} <a href="${startHref}">${escapeHtml(tr('progress_empty_link'))}</a></p>`;
@@ -4343,7 +4346,7 @@ async function startControlWork(slug) {
   const subjectTitle = loc(subject, 'title');
 
   const crumbs = [[tr('nav_home') || 'Главная', '/']];
-  if (topic.grade) crumbs.push([gradeLabel(topic.grade), `/grade/${topic.grade}`]);
+  if (topic.grade) crumbs.push([gradeLabel(topic.grade), gradeHref(topic.grade)]);
   if (subject) crumbs.push([subjectTitle, `/subject/${encodeURIComponent(subject.slug)}`]);
   crumbs.push([topicTitle, `/topic/${encodeURIComponent(topic.slug)}`]);
   crumbs.push([tr('nav_control_works') || 'Контрольная работа', null]);
@@ -5000,7 +5003,7 @@ async function showTask(rawId) {
   const subjectTitle = loc(subject, 'title');
 
   const crumbs = [[tr('nav_home'), '/']];
-  if (grade) crumbs.push([gradeLabel(grade), `/grade/${grade}`]);
+  if (grade) crumbs.push([gradeLabel(grade), gradeHref(grade)]);
   if (subject) crumbs.push([subjectTitle, `/subject/${encodeURIComponent(subject.slug)}`]);
   if (topic) crumbs.push([topicTitle, `/topic/${encodeURIComponent(topic.slug)}`]);
   crumbs.push([crumbsTaskTitle, null]);

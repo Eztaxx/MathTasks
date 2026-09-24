@@ -13,6 +13,7 @@ export const {
   formatSubtopicCode,
   formatTopicTitle,
   getCrossTag,
+  gradeSlug,
   getDifficultyWeight,
   getLocalizedText,
   isLocalizablePath,

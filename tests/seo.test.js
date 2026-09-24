@@ -402,3 +402,21 @@ describe('HEAD на несуществующий адрес', () => {
     expect(response.status).toBe(200);
   });
 });
+
+describe('seo: пустые темы и уровни средней школы', () => {
+  it('тема без задач — noindex, follow; с задачами — в индексе', async () => {
+    vi.stubGlobal('fetch', supabase([['topics?slug=eq.', [TOPIC]], ['tasks?topic_id=eq.107', []]]));
+    const empty = await (await page('/topic/skola2030-g6-1-x', makeEnv())).text();
+    expect(empty).toContain('<meta name="robots" content="noindex, follow" />');
+    vi.stubGlobal('fetch', supabase([['topics?slug=eq.', [TOPIC]], ['tasks?topic_id=eq.107', [TASK]]]));
+    const full = await (await page('/topic/skola2030-g6-1-x', makeEnv())).text();
+    expect(full).not.toContain('name="robots"');
+  });
+
+  it('крошки темы уровня ведут на адрес словами', async () => {
+    vi.stubGlobal('fetch', supabase([['topics?slug=eq.', [{ ...TOPIC, grade: 11 }]], ['tasks?topic_id=eq.107', [TASK]]]));
+    const html = await (await page('/topic/skola2030-g6-1-x', makeEnv())).text();
+    expect(html).toContain('href="/grade/matematika-1"');
+    expect(html).not.toContain('href="/grade/11"');
+  });
+});

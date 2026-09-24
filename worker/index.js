@@ -13,7 +13,9 @@
      npx wrangler secret put SUPABASE_KEY
      npx wrangler secret put GEMINI_API_KEY   (без него генератор только встроенный) */
 
-import { isLocalizablePath, latexToPlainText, toLangPath } from './lib.js';
+import { isLocalizablePath, latexToPlainText, toLangPath,
+  gradeSlug
+} from './lib.js';
 import { CANONICAL_ORIGIN, renderPage } from './seo.js';
 
 const TRANSLIT = {
@@ -88,7 +90,14 @@ const BASE_SITEMAP_PATHS = [
 function buildSitemapPaths({ subjects = [], topics = [], tasks = [], tags = [], subtopics = [] } = {}) {
   let paths = BASE_SITEMAP_PATHS.concat(CROSS_TAG_SLUGS.map(slug => `/tag/${slug}`));
 
-  const grades = [...new Set(topics.map(t => t.grade).filter(Boolean))].sort((a, b) => a - b);
+  const grades = [...new Set(topics.map(t => t.grade).filter(Boolean))].sort((a, b) => a - b).map(gradeSlug);
+  /* Тема или подтема без задач — пустая страница: в карту её не даём, а
+     сама страница помечена noindex (seo.js). Появятся задачи — вернётся. */
+  const topicsWithTasks = new Set(tasks.map(t => t.topic_id).filter(Boolean));
+  const subtopicsWithTasks = new Set(tasks.map(t => t.subtopic_id).filter(Boolean));
+  const known = tasks.length > 0;
+  topics = topics.filter(t => !known || t.id === undefined || topicsWithTasks.has(t.id));
+  subtopics = (subtopics || []).filter(s => !known || s.id === undefined || subtopicsWithTasks.has(s.id));
   const tagSlugs = (tags && tags.length > 0) ? tags.map(t => t.slug) : CROSS_TAG_SLUGS;
   paths = paths
     .concat(grades.map(g => `/grade/${g}`))
@@ -129,8 +138,8 @@ function buildSitemapDates({ subjects = [], topics = [], tasks = [], subtopics =
     if (topic) {
       bump(`/topic/${topic.slug}`, day);
       if (topic.grade) {
-        bump(`/grade/${topic.grade}`, day);
-        bump(`/grade/${topic.grade}/tasks`, day);
+        bump(`/grade/${gradeSlug(topic.grade)}`, day);
+        bump(`/grade/${gradeSlug(topic.grade)}/tasks`, day);
       }
       const subject = subjectById.get(topic.subject_id);
       if (subject) bump(`/subject/${subject.slug}`, day);
@@ -452,6 +461,13 @@ export default {
        главной с кодом 200. Уводим на сам адрес — старые ссылки живут. */
     const langPage = url.pathname.match(/^\/lv\/(trainer|exams|mock-exams|plotter)\/?$/);
     if (langPage) return Response.redirect(new URL(`/${langPage[1]}`, url).toString(), 301);
+
+    // Уровни средней школы живут по словам: /grade/10 → /grade/visparigais.
+    const numericLevel = url.pathname.match(/^(\/lv)?\/grade\/(10|11|12)(\/tasks)?\/?$/);
+    if (numericLevel) {
+      const target = new URL(`${numericLevel[1] || ''}/grade/${gradeSlug(numericLevel[2])}${numericLevel[3] || ''}${url.search}`, url);
+      return Response.redirect(target.toString(), 301);
+    }
 
     /* Через renderPage идёт всё: для известного адреса он подставляет
        заголовок, описание и canonical; файл (картинку, скрипт, отдельную

@@ -1103,6 +1103,13 @@
     return Number.isFinite(num) ? num : null;
   };
 
+  /* Адрес класса или уровня. У тем средней школы класс записан числом
+     10–12, а страницы уровней живут по словам: /grade/10 отвечал 404, и
+     Google собирал эти адреса по ссылкам в «хлебных крошках» и в карте
+     сайта. */
+  const GRADE_SLUGS = { 10: 'visparigais', 11: 'matematika-1', 12: 'matematika-2' };
+  const gradeSlug = grade => GRADE_SLUGS[Number(grade)] || String(grade ?? '');
+
   const resolveDifficultyMix = (requestedDiff, index, total) => {
     if (requestedDiff !== 'mix') return requestedDiff;
     if (total <= 1) {
@@ -3091,6 +3098,7 @@
     answersDisagree,
     missingAnswerNumbers,
     hintRevealsAnswer,
+    gradeSlug,
     importDupKey,
     sanitizeSearch,
     KATEX_DELIMITERS,

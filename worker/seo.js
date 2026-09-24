@@ -21,6 +21,7 @@ import {
   formatTopicTitle,
   getCrossTag,
   getDifficultyWeight,
+  gradeSlug,
   getLocalizedText,
   langOfPath,
   latexToPlainText,
@@ -225,7 +226,7 @@ export async function buildPage(route, env, lang = 'ru') {
       if (!topic) return notFound('meta_not_found_topic');
       const topicTitle = topicTitleOf(topic);
       const crumbs = [home()];
-      if (topic.grade) crumbs.push([gradeLabelOf(topic.grade, lang), `/grade/${topic.grade}`]);
+      if (topic.grade) crumbs.push([gradeLabelOf(topic.grade, lang), `/grade/${gradeSlug(topic.grade)}`]);
       if (topic.subjects?.slug) crumbs.push([text(topic.subjects, 'title'), `/subject/${topic.subjects.slug}`]);
 
       if (route.kind === 'controlWork') {
@@ -247,6 +248,8 @@ export async function buildPage(route, env, lang = 'ru') {
         title: withGrade(topicTitle, topic.grade),
         description: description || tr('meta_topic_desc', { topic: topicTitle }),
         canonicalPath: `/topic/${topic.slug}`,
+        // Тема без задач — пустая страница: в индекс её не отдаём, пока задачи не появятся.
+        robots: tasks.length ? undefined : 'noindex, follow',
         heading: topicTitle,
         intro: description,
         crumbs,
@@ -266,12 +269,13 @@ export async function buildPage(route, env, lang = 'ru') {
       const tasks = await query(env,
         `tasks?subtopic_id=eq.${eq(sub.id)}&is_published=eq.true&select=id,title,position,condition_latex,condition_latex_lv&order=position.asc,id.asc&limit=${LIST_LIMIT}`);
       const crumbs = [home()];
-      if (topic.grade) crumbs.push([gradeLabelOf(topic.grade, lang), `/grade/${topic.grade}`]);
+      if (topic.grade) crumbs.push([gradeLabelOf(topic.grade, lang), `/grade/${gradeSlug(topic.grade)}`]);
       if (topic.slug) crumbs.push([topicTitleOf(topic), `/topic/${topic.slug}`]);
       return {
         title: withGrade(title, topic.grade),
         description: tr('meta_subtopic_desc', { subtopic: subTitle }),
         canonicalPath: `/subtopic/${sub.slug}`,
+        robots: tasks.length ? undefined : 'noindex, follow',
         heading: title,
         crumbs,
         items: taskItems(tasks),
@@ -289,7 +293,7 @@ export async function buildPage(route, env, lang = 'ru') {
       const condition = text(task, 'condition_latex');
       const conditionText = latexToPlainText(condition, 2000);
       const crumbs = [home()];
-      if (topic?.grade) crumbs.push([gradeLabelOf(topic.grade, lang), `/grade/${topic.grade}`]);
+      if (topic?.grade) crumbs.push([gradeLabelOf(topic.grade, lang), `/grade/${gradeSlug(topic.grade)}`]);
       if (topic?.slug) crumbs.push([topicTitle, `/topic/${topic.slug}`]);
 
       /* Страница задачи была самой пустой на сайте: заголовок «Задача №N»,

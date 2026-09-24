@@ -663,3 +663,49 @@ describe('/assets/: файла нет', () => {
     expect(response.headers.get('content-type')).not.toContain('text/html');
   });
 });
+
+/* Уровни средней школы: /grade/10 отвечал 404, а ссылки на него стояли в
+   карте сайта и в «хлебных крошках» — Google собрал их в отчёт об ошибках. */
+describe('адреса уровней средней школы', () => {
+  it('в карте — слова, а не числа', () => {
+    const paths = buildSitemapPaths({
+      topics: [{ id: 1, slug: 'a', grade: 10 }, { id: 2, slug: 'b', grade: 11 }, { id: 3, slug: 'c', grade: 12 }, { id: 4, slug: 'd', grade: 7 }],
+      tasks: [{ id: 9, title: 't', topic_id: 1 }, { id: 10, title: 'u', topic_id: 2 }, { id: 11, title: 'v', topic_id: 3 }, { id: 12, title: 'w', topic_id: 4 }]
+    });
+    for (const bad of ['/grade/10', '/grade/11', '/grade/12', '/grade/10/tasks']) expect(paths, bad).not.toContain(bad);
+    for (const good of ['/grade/visparigais', '/grade/matematika-1/tasks', '/grade/matematika-2', '/grade/7']) expect(paths, good).toContain(good);
+  });
+
+  it('старые адреса уводятся постоянным перенаправлением', async () => {
+    const env = { ASSETS: { fetch: vi.fn() } };
+    for (const [from, to] of [
+      ['/grade/10', '/grade/visparigais'],
+      ['/lv/grade/11/tasks', '/lv/grade/matematika-1/tasks'],
+      ['/grade/12/?x=1', '/grade/matematika-2?x=1']
+    ]) {
+      const response = await worker.fetch(new Request(`https://mathtasks.lv${from}`), env);
+      expect(response.status, from).toBe(301);
+      expect(response.headers.get('location'), from).toBe(`https://mathtasks.lv${to}`);
+    }
+  });
+});
+
+/* Пустая тема — пустая страница. В карту сайта её не даём. */
+describe('карта сайта: темы и подтемы без задач', () => {
+  it('тема и подтема без задач не попадают в карту', () => {
+    const paths = buildSitemapPaths({
+      topics: [{ id: 1, slug: 'full', grade: 7 }, { id: 2, slug: 'empty', grade: 7 }],
+      subtopics: [{ id: 5, slug: 'sub-full' }, { id: 6, slug: 'sub-empty' }],
+      tasks: [{ id: 9, title: 'Задача', topic_id: 1, subtopic_id: 5 }]
+    });
+    expect(paths).toContain('/topic/full');
+    expect(paths).toContain('/subtopic/sub-full');
+    expect(paths).not.toContain('/topic/empty');
+    expect(paths).not.toContain('/subtopic/sub-empty');
+  });
+
+  it('если задачи не прочитались, темы не выбрасываются', () => {
+    const paths = buildSitemapPaths({ topics: [{ id: 1, slug: 'a', grade: 7 }], tasks: [] });
+    expect(paths).toContain('/topic/a');
+  });
+});
