@@ -1771,8 +1771,12 @@ function stripLatex(text) {
 }
 
 function answerLabelOf(task) {
-  const markup = window.MathTasksLib?.answerLabelMarkup;
-  return markup ? markup(loc(task, 'answer_latex')) : '';
+  const lib = window.MathTasksLib;
+  const fromAnswer = lib?.answerLabelMarkup ? lib.answerLabelMarkup(loc(task, 'answer_latex')) : '';
+  if (fromAnswer) return fromAnswer;
+  /* Имени величины в ответе нет — берём выражение из условия: у задач
+     «вычислите» и «упростите» спрашивают именно его значение. */
+  return lib?.conditionPrompt ? lib.conditionPrompt(loc(task, 'condition_latex')) : '';
 }
 
 function answerUnit(task) {

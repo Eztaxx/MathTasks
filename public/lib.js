@@ -370,6 +370,25 @@
 
   /* Подпись величины для поля ввода. Слово («Медиана») оставляем текстом:
      в формуле KaTeX нарисовал бы его вразрядку курсивом. */
+  /* Подпись из условия для задач вида «Вычислите», «Упростите»,
+     «Разложите на множители». Величины в вопросе нет, зато есть само
+     выражение — оно и становится подписью: ученик видит
+     «(2x−3)² − (2x+1)(2x−1) =» и вписывает результат. В ответ это не
+     пишется: там выражение превратилось бы в тождество и сломало сверку. */
+  const ASK_EXPRESSION = /(?<!\p{L})(вычислит\p{L}*|упростит\p{L}*|разложит\p{L}*|представьте|сократит\p{L}*|преобразуйте|раскройте|aprēķin\p{L}*|vienkāršo\p{L}*|sadali\p{L}*|pārveido\p{L}*)(?!\p{L})/iu;
+  const conditionPrompt = condition => {
+    const text = String(condition || '');
+    if (!ASK_EXPRESSION.test(text)) return '';
+    // Формула в условии должна быть одна: иначе непонятно, какую спрашивают.
+    const formulas = [...text.matchAll(/\$\$([^$]+)\$\$|\$([^$]+)\$/g)].map(m => (m[1] || m[2]).trim());
+    if (formulas.length !== 1) return '';
+    const formula = formulas[0];
+    if (/[=<>≤≥∈]/.test(formula)) return '';
+    if (/\\text\{|[а-яёāčēģīķļņšūž]{2}/i.test(formula)) return '';
+    // Длинную формулу подписью не делаем: она и так стоит выше, в условии.
+    if (formula.length > 42) return '';
+    return '$' + formula + ' =$';
+  };
   const answerLabelText = label => {
     const text = String(label || '').trim();
     if (!text) return '';
@@ -3062,6 +3081,7 @@
     checkTaskAnswer,
     parseAnswerParts,
     answerLabelMarkup,
+    conditionPrompt,
     answerFields,
     checkAnswerFields,
     answerUnitOf,

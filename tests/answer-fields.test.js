@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { answerFields, buildTaskPrompt, checkAnswerFields, checkTaskAnswer } from '../public/lib.js';
+import { answerFields, buildTaskPrompt, checkAnswerFields, checkTaskAnswer, conditionPrompt } from '../public/lib.js';
 
 /* Строки ответов взяты из базы как есть: разбор должен держать именно их,
    а не причёсанные примеры. */
@@ -275,5 +275,31 @@ describe('единицы, которые ученик не набирает', ()
 
   it('другая единица ответом не считается', () => {
     expect(checkTaskAnswer('10 кг', "$10\\text{ км/ч}$")).toBe(false);
+  });
+});
+
+/* Подпись из условия для задач «вычислите» и «упростите»: имени величины в
+   ответе нет, зато есть само выражение — оно и стоит перед полем. В ответ
+   это не пишется: там выражение стало бы тождеством и сломало сверку. */
+describe('подпись из условия', () => {
+  it('одно выражение в условии становится подписью', () => {
+    expect(conditionPrompt("Разложите на множители многочлен $x^3 - 3x^2 - 4x + 12$.")).toBe("$x^3 - 3x^2 - 4x + 12 =$");
+    expect(conditionPrompt("Упростите выражение $(4x - 3y)^2$.")).toBe("$(4x - 3y)^2 =$");
+  });
+
+  it('две формулы — подписи нет: неясно, какую спрашивают', () => {
+    expect(conditionPrompt("Упростите выражение $(2x - 3)^2$ и найдите его значение при $x = -1$.")).toBe('');
+  });
+
+  it('вопрос не про выражение — подписи нет', () => {
+    expect(conditionPrompt("Найдите периметр треугольника со сторонами $3$ см.")).toBe('');
+  });
+
+  it('уравнение подписью не становится: в нём уже есть «=»', () => {
+    expect(conditionPrompt("Вычислите значение $x^2 = 16$.")).toBe('');
+  });
+
+  it('латышское условие тоже понимается', () => {
+    expect(conditionPrompt("Vienkāršojiet izteiksmi $(4x - 3y)^2$.")).toBe("$(4x - 3y)^2 =$");
   });
 });
