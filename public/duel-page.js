@@ -15,6 +15,8 @@
   const NICK_KEY = 'math-tasks:duel-nick';
   const HISTORY_KEY = 'math-tasks:duel-history';
   const SETUP_KEY = 'math-tasks:duel-setup';
+  const PLAYER_KEY = 'math-tasks:duel-player';
+  const RUNS_KEY = 'math-tasks:duel-runs';
   const BATCH = 150; // за минуту решают 15–40 примеров; запас на самых быстрых
   const HISTORY_MAX = 20;
 
@@ -63,13 +65,17 @@
     answers: [],          // что ученик вписал — запись для будущих соперников
     times: [],            // когда: мс от начала минуты
     startedAt: 0,
-    runId: null,          // номер записи в базе (миграция 028)
+    run: null,            // обещание номера попытки на сервере (worker/duel-api.js)
     waitingFinal: null
   };
+
+  // Какая таблица лидеров открыта: по умолчанию — выбранные для игры категория и сложность.
+  const board = { cat: state.cat, diff: state.diff, period: 'week', cache: new Map() };
 
   const screens = ['#duel-setup', '#duel-search', '#duel-countdown', '#duel-play', '#duel-result'];
   const show = id => {
     screens.forEach(sel => { const el = $(sel); if (el) el.hidden = sel !== id; });
+    if (id !== '#duel-result') { const rank = $('#duel-rank'); if (rank) rank.hidden = true; }
     // Во время игры заголовок не нужен: на телефоне он выталкивал клавиши за край.
     document.querySelector('main.duel')?.classList.toggle('is-playing', id === '#duel-play' || id === '#duel-countdown');
   };
@@ -118,11 +124,17 @@
       diffs.innerHTML = D.DIFFS.map(diff => `<button type="button" class="trainer-diff-chip${diff === state.diff ? ' active' : ''}" data-duel-diff="${diff}" aria-pressed="${diff === state.diff}">${escapeHtml(tr(`trainer_diff_${diff}`))}</button>`).join('');
     }
   };
+  // Таблица лидеров под выбором показывает ту же категорию, что выбрана для игры.
+  const followChoice = () => {
+    board.cat = state.cat;
+    board.diff = state.diff;
+    renderBoard();
+  };
   document.addEventListener('click', event => {
     const cat = event.target.closest?.('[data-duel-cat]');
-    if (cat) { state.cat = cat.dataset.duelCat; writeJson(SETUP_KEY, { cat: state.cat, diff: state.diff }); renderChoice(); return; }
+    if (cat) { state.cat = cat.dataset.duelCat; writeJson(SETUP_KEY, { cat: state.cat, diff: state.diff }); renderChoice(); followChoice(); return; }
     const diff = event.target.closest?.('[data-duel-diff]');
-    if (diff) { state.diff = diff.dataset.duelDiff; writeJson(SETUP_KEY, { cat: state.cat, diff: state.diff }); renderChoice(); }
+    if (diff) { state.diff = diff.dataset.duelDiff; writeJson(SETUP_KEY, { cat: state.cat, diff: state.diff }); renderChoice(); followChoice(); }
   });
 
   // ── История ─────────────────────────────────────────────────────────
@@ -182,6 +194,7 @@
     }
     renderHistory();
     show('#duel-setup');
+    renderBoard();
   };
 
   // ── Игра ────────────────────────────────────────────────────────────
@@ -261,14 +274,14 @@
     state.bits = [];
     state.answers = [];
     state.times = [];
-    state.runId = null;
+    state.run = null;
     if (scoreEl) scoreEl.textContent = '0';
     renderQuestion();
     show('#duel-play');
     state.startedAt = Date.now();
     state.endsAt = state.startedAt + D.DURATION_SEC * 1000;
     renderOpponent();
-    if (state.mode === 'random') beginRun();
+    state.run = beginRun();
     tick();
     clearInterval(state.timer);
     state.timer = setInterval(tick, 200);
@@ -387,10 +400,13 @@
     $('#duel-share').hidden = true;
     $('#duel-rematch').hidden = true;
     $('#duel-again').hidden = state.mode !== 'random';
+    const rank = $('#duel-rank');
+    if (rank) rank.hidden = true;
     if (state.mode === 'random') {
       finishRandom(me);
       return;
     }
+    reportRun();
 
     if (state.role === 'b' && state.challenge) {
       const full = { ...base, a: state.challenge.a, b: me };
@@ -655,41 +671,236 @@
       });
   }
 
-  // Номер записи берём у базы в начале минуты: по нему база проверит время.
-  async function beginRun() {
-    const client = realtime();
-    if (!client) return;
-    try {
-      const { data, error } = await client.rpc('duel_begin', { p_cat: state.cat, p_diff: state.diff, p_gen: T.GENERATOR_VERSION, p_seed: state.seed });
-      if (!error && data) state.runId = Number(data);
-    } catch {}
-  }
+  // ── Запись попытки и таблица лидеров ────────────────────────────────
+  /* В базу браузер не пишет. Воркер отмечает начало минуты по своим
+     часам, а в конце сам пересчитывает ответы по тем же примерам и
+     решает, попадает ли попытка в таблицу (worker/duel-api.js). Пока на
+     сервере нет ключей, /api/duel/config отвечает «выключено» — и
+     страница играет как раньше, ничего не записывая. */
+  const postJson = async (path, body) => {
+    const response = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    return response.ok ? response.json() : null;
+  };
 
-  async function saveRun(me) {
-    const client = realtime();
-    if (!client || !state.runId) return false;
+  const serverConfig = fetch('/api/duel/config')
+    .then(response => (response.ok ? response.json() : null))
+    .then(data => (data && typeof data.record === 'boolean' && data.gen === T.GENERATOR_VERSION ? data : null))
+    .catch(() => null);
+
+  // Случайный номер игрока: в таблице у него одна лучшая строка. О человеке он ничего не говорит.
+  const playerId = () => {
     try {
-      const { data } = await client.rpc('duel_finish', {
-        p_run: state.runId, p_nick: state.nick, p_answers: state.answers, p_times: state.times, p_correct: me.r
-      });
-      return data === true;
+      const stored = localStorage.getItem(PLAYER_KEY);
+      if (stored && D.PLAYER_PATTERN.test(stored)) return stored;
+      const fresh = D.newPlayerId();
+      localStorage.setItem(PLAYER_KEY, fresh);
+      return fresh;
     } catch {
-      return false;
+      return null;
+    }
+  };
+
+  const myRuns = () => readJson(RUNS_KEY, []).filter(Number.isInteger);
+  const rememberRun = id => writeJson(RUNS_KEY, [id, ...myRuns().filter(item => item !== id)].slice(0, 50));
+
+  // Номер попытки берём у сервера в начале минуты: по нему он проверит время.
+  async function beginRun() {
+    const config = await serverConfig;
+    if (!config?.record) return null;
+    try {
+      const data = await postJson('/api/duel/start', { cat: state.cat, diff: state.diff, gen: T.GENERATOR_VERSION, seed: state.seed });
+      return Number.isInteger(data?.run) ? data.run : null;
+    } catch {
+      return null;
     }
   }
+
+  // Cloudflare Turnstile: скрипт грузим, только когда таблица включена.
+  let turnstileScript = null;
+  let turnstileWidget = null;
+  let turnstileDone = null;
+  const loadTurnstile = () => {
+    if (window.turnstile) return Promise.resolve(window.turnstile);
+    turnstileScript ||= new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.onload = () => (window.turnstile ? resolve(window.turnstile) : reject(new Error('turnstile')));
+      script.onerror = () => { turnstileScript = null; reject(new Error('turnstile')); };
+      document.head.append(script);
+    });
+    return turnstileScript;
+  };
+
+  async function humanToken(siteKey) {
+    const box = $('#duel-turnstile');
+    if (!siteKey || !box) return '';
+    try {
+      const turnstile = await loadTurnstile();
+      return await new Promise(resolve => {
+        const timer = setTimeout(() => resolve(''), 30000);
+        turnstileDone = token => { clearTimeout(timer); turnstileDone = null; resolve(token || ''); };
+        if (turnstileWidget === null) {
+          turnstileWidget = turnstile.render(box, {
+            sitekey: siteKey,
+            execution: 'execute',
+            appearance: 'interaction-only',
+            language: lang() === 'lv' ? 'lv' : 'ru',
+            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+            callback: token => turnstileDone?.(token),
+            'error-callback': () => { turnstileDone?.(''); return true; },
+            'expired-callback': () => turnstileDone?.('')
+          });
+        } else {
+          turnstile.reset(turnstileWidget);
+        }
+        turnstile.execute(turnstileWidget);
+      });
+    } catch {
+      return '';
+    }
+  }
+
+  // Итог попытки от сервера: { correct, attempted, verified, ranked, place, reason } или null.
+  async function saveRun() {
+    const config = await serverConfig;
+    const run = await state.run;
+    if (!config?.record || !run) return null;
+    const answers = state.answers.slice();
+    const times = state.times.slice();
+    const token = config.ranked ? await humanToken(config.turnstile) : '';
+    try {
+      const result = await postJson('/api/duel/finish', {
+        run, nick: state.nick, player: playerId(), answers, times, token
+      });
+      if (result?.ranked) rememberRun(run);
+      return result;
+    } catch {
+      return null;
+    }
+  }
+
+  const renderRank = (result, cat, diff) => {
+    const box = $('#duel-rank');
+    if (!box || !result) return;
+    let text = '';
+    let action = false;
+    if (result.ranked && result.place) {
+      text = tr('duel_rank_place', { place: result.place, cat: catName(cat), diff: diffName(diff) });
+      action = true;
+    } else if (result.ranked) {
+      text = tr('duel_rank_listed');
+      action = true;
+    } else if (['ceiling', 'fast', 'steady'].includes(result.reason)) {
+      text = tr('duel_rank_pace');
+    } else if (result.reason === 'captcha') {
+      text = tr('duel_rank_captcha');
+    } else if (result.reason === 'clock' || result.reason === 'late') {
+      text = tr('duel_rank_clock');
+    }
+    if (!text) return;
+    box.innerHTML = `<p>${escapeHtml(text)}</p>${action ? `<button type="button" class="secondary-button" data-board-open="${escapeHtml(cat)}:${escapeHtml(diff)}">${escapeHtml(tr('duel_board_open'))}</button>` : ''}`;
+    box.classList.toggle('is-ranked', Boolean(result.ranked));
+    box.hidden = false;
+  };
+
+  async function reportRun() {
+    const { cat, diff } = state;
+    const result = await saveRun();
+    // Пока ждали сервер, ученик мог уйти с экрана итога.
+    if (!$('#duel-result').hidden) renderRank(result, cat, diff);
+    return result;
+  }
+
+  const boardRow = (row, mine) => {
+    const place = Number(row.place);
+    const errors = Math.max(0, Number(row.attempted) - Number(row.correct));
+    return `<li class="${mine ? 'is-mine' : ''}">
+      <span class="duel-board-place">${place <= 3 ? ['🥇', '🥈', '🥉'][place - 1] : escapeHtml(place)}</span>
+      <span class="duel-board-nick">${escapeHtml(D.sanitizeNick(row.nick) || tr('duel_opponent'))}${mine ? ` <em>${escapeHtml(tr('duel_board_you'))}</em>` : ''}</span>
+      <span class="duel-board-score"><strong>${escapeHtml(row.correct)}</strong> <small>${escapeHtml(tr('duel_errors'))}: ${errors}</small></span>
+    </li>`;
+  };
+
+  async function renderBoard() {
+    const box = $('#duel-board');
+    const config = await serverConfig;
+    if (!box || !config?.ranked) return;
+    box.hidden = state.role === 'b' && Boolean(state.challenge);
+    const chips = (items, current, attr, label) => items.map(item => `<button type="button" class="trainer-cat-chip${item === current ? ' active' : ''}" data-${attr}="${item}" aria-pressed="${item === current}">${escapeHtml(label(item))}</button>`).join('');
+    $('#duel-board-cats').innerHTML = chips(D.CATEGORIES, board.cat, 'board-cat', catName);
+    $('#duel-board-diffs').innerHTML = chips(D.DIFFS, board.diff, 'board-diff', diffName);
+    box.querySelectorAll('[data-board-period]').forEach(button => {
+      const active = button.dataset.boardPeriod === board.period;
+      button.setAttribute('aria-pressed', String(active));
+      button.classList.toggle('active', active);
+    });
+    const list = $('#duel-board-list');
+    const key = `${board.cat}:${board.diff}:${board.period}`;
+    let cached = board.cache.get(key);
+    if (!cached || Date.now() - cached.at > 30000) {
+      list.innerHTML = `<li class="duel-board-empty">${escapeHtml(tr('duel_board_loading'))}</li>`;
+      let rows = null;
+      try {
+        const { data, error } = await realtime().rpc('duel_leaderboard', { p_cat: board.cat, p_diff: board.diff, p_period: board.period });
+        if (!error && Array.isArray(data)) rows = data;
+      } catch {}
+      if (key !== `${board.cat}:${board.diff}:${board.period}`) return;
+      if (!rows) {
+        list.innerHTML = `<li class="duel-board-empty">${escapeHtml(tr('duel_board_error'))}</li>`;
+        return;
+      }
+      cached = { at: Date.now(), rows };
+      board.cache.set(key, cached);
+    }
+    const mine = new Set(myRuns());
+    list.innerHTML = cached.rows.length
+      ? cached.rows.map(row => boardRow(row, mine.has(Number(row.id)))).join('')
+      : `<li class="duel-board-empty">${escapeHtml(tr('duel_board_empty'))}</li>`;
+  }
+
+  document.addEventListener('click', event => {
+    const cat = event.target.closest?.('[data-board-cat]');
+    const diff = event.target.closest?.('[data-board-diff]');
+    const period = event.target.closest?.('[data-board-period]');
+    const open = event.target.closest?.('[data-board-open]');
+    if (cat) board.cat = cat.dataset.boardCat;
+    else if (diff) board.diff = diff.dataset.boardDiff;
+    else if (period) board.period = period.dataset.boardPeriod;
+    else if (open) {
+      [board.cat, board.diff] = open.dataset.boardOpen.split(':');
+      board.period = 'week';
+      board.cache.clear();
+      state.role = 'a';
+      state.challenge = null;
+      state.mode = 'link';
+      window.history.replaceState(null, '', '/duel');
+      notice('');
+      openSetup();
+      $('#duel-board')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    } else return;
+    renderBoard();
+  });
 
   async function finishRandom(me) {
     notice('');
     show('#duel-result');
     const body = $('#duel-result-body');
-    const saving = saveRun(me);
+    const saving = reportRun();
     const opponent = state.opponent;
     if (!opponent) {
-      const saved = await saving;
       body.innerHTML = `<h2 class="duel-result-title">${escapeHtml(tr('duel_done_title'))}</h2>
         <p class="duel-result-sub">${escapeHtml(catName(state.cat))} · ${escapeHtml(diffName(state.diff))}</p>
-        <div class="duel-versus duel-versus-solo">${statsHtml(me, `${tr('duel_you')} · ${me.n}`)}</div>
-        ${saved ? `<p class="duel-ghost-note">${escapeHtml(tr('duel_solo_saved'))}</p>` : ''}`;
+        <div class="duel-versus duel-versus-solo">${statsHtml(me, `${tr('duel_you')} · ${me.n}`)}</div>`;
+      // Соперником для других становится только проверенная попытка.
+      saving.then(saved => {
+        if (saved?.verified && !$('#duel-result').hidden) body.insertAdjacentHTML('beforeend', `<p class="duel-ghost-note">${escapeHtml(tr('duel_solo_saved'))}</p>`);
+      });
       remember({ at: Date.now(), seed: state.seed, cat: state.cat, diff: state.diff, role: 'r', me: { r: me.r, q: me.q }, them: null });
       return;
     }

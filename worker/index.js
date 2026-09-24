@@ -1,7 +1,8 @@
-/* Воркер обслуживает три вещи, всё остальное отдаёт статика:
+/* Воркер обслуживает четыре вещи, всё остальное отдаёт статика:
      /sitemap.xml      — карта сайта из каталога Supabase
      /task/<id>-<slug> — мета-теги Open Graph для ботов мессенджеров
      /api/gemini       — прокси к Google Gemini для админки, только администратору
+     /api/duel/*       — попытки дуэлей и таблица лидеров (worker/duel-api.js)
 
    Раньше это лежало в папке functions/ — соглашение Cloudflare Pages.
    Проект живёт на Workers, где эта папка не выполняется вовсе, поэтому
@@ -17,6 +18,7 @@ import { isLocalizablePath, latexToPlainText, toLangPath,
   gradeSlug
 } from './lib.js';
 import { CANONICAL_ORIGIN, renderPage } from './seo.js';
+import { duelApi } from './duel-api.js';
 
 const TRANSLIT = {
   а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i',
@@ -448,6 +450,7 @@ export default {
 
     if (url.pathname === '/sitemap.xml') return sitemap(request, env);
     if (url.pathname === '/api/gemini') return geminiProxy(request, env);
+    if (url.pathname.startsWith('/api/duel/')) return duelApi(request, env);
     if (url.pathname.startsWith('/assets/')) return serveAsset(request, env);
 
     // Страница задачи: ботам отдаём мета-теги, людям — обычное приложение.

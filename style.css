@@ -7034,3 +7034,38 @@ body.dark .home-duel-icon{background:#241a44}
   .home-duel-actions{grid-column:1/-1;justify-content:stretch}
   .home-duel-actions a{flex:1;text-align:center}
 }
+
+/* Дуэль: таблица лидеров и место после попытки. */
+.duel-board[hidden],.duel-rank[hidden],.duel-turnstile:empty{display:none}
+.duel-board{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+.duel-board-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.duel-board-head h2{margin:0;font-size:16px;text-wrap:balance}
+.duel-board-period{display:inline-flex;padding:3px;border:1px solid var(--line);border-radius:10px;gap:2px}
+.duel-board-period button{border:0;border-radius:7px;background:transparent;color:var(--muted);font:600 12.5px Manrope,sans-serif;padding:5px 11px;cursor:pointer}
+.duel-board-period button.active{background:#ede9fe;color:#5b21b6}
+.duel-board-period button:focus-visible,.duel-board-chips button:focus-visible{outline:2px solid #7c3aed;outline-offset:2px}
+.duel-board-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.duel-board-chips .trainer-cat-chip{font-size:12px;padding:5px 10px}
+.duel-board-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;counter-reset:none}
+.duel-board-list li{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 12px;border:1px solid var(--line);border-radius:10px;font-size:13.5px}
+.duel-board-list li.is-mine{border-color:#c4b5fd;background:#f5f3ff}
+.duel-board-list li.duel-board-empty{display:block;color:var(--muted);text-align:center;border-style:dashed}
+.duel-board-place{font:800 14px Manrope,sans-serif;font-variant-numeric:tabular-nums;text-align:center;color:var(--muted)}
+.duel-board-nick{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.duel-board-nick em{font-style:normal;font-weight:600;font-size:11.5px;color:#6d28d9}
+.duel-board-score{display:flex;align-items:baseline;gap:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.duel-board-score strong{font:800 16px Manrope,sans-serif;color:#6d28d9}
+.duel-board-score small{font-size:11.5px;color:var(--muted)}
+.duel-board-note{margin:10px 0 0;font-size:12px;color:var(--muted)}
+.duel-rank{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 0;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:14px}
+.duel-rank p{margin:0}
+.duel-rank.is-ranked{border-color:#fcd34d;background:#fffbeb;font-weight:600}
+.duel-turnstile{display:flex;justify-content:center;margin-top:12px}
+body.dark .duel-board-period button.active{background:#2a1f4d;color:#d8c9ff}
+body.dark .duel-board-list li.is-mine{border-color:#4c3a8a;background:#1a1433}
+body.dark .duel-board-nick em,body.dark .duel-board-score strong{color:#b69cff}
+body.dark .duel-rank.is-ranked{border-color:#6b5310;background:#221a06}
+@media(max-width:720px){
+  .duel-board-list li{grid-template-columns:28px minmax(0,1fr) auto;gap:8px;padding:7px 10px}
+  .duel-board-score small{display:none}
+}

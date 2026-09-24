@@ -110,7 +110,7 @@
           <input id="duel-nick" type="text" maxlength="24" autocomplete="off" spellcheck="false" />
           <button type="button" class="secondary-button" id="duel-nick-new" data-i18n-title="duel_nick_new" title="Другой ник" aria-label="Другой ник" data-i18n-aria="duel_nick_new">🎲</button>
         </div>
-        <p class="duel-nick-note" data-i18n="duel_nick_note">Не пиши настоящее имя, телефон или почту — ник увидит друг.</p>
+        <p class="duel-nick-note" data-i18n="duel_nick_note">Не пиши настоящее имя, телефон или почту — ник увидят другие игроки.</p>
       </div>
 
       <div class="duel-choice" id="duel-choice">
@@ -134,6 +134,21 @@
         <h2 data-i18n="duel_history">Мои дуэли</h2>
         <ol class="duel-history-list" id="duel-history-list"></ol>
       </div>
+
+      <!-- Таблица лидеров: счёт в неё пишет только воркер (worker/duel-api.js). -->
+      <section class="duel-board" id="duel-board" hidden aria-labelledby="duel-board-title">
+        <div class="duel-board-head">
+          <h2 id="duel-board-title" data-i18n="duel_board_title">🏆 Таблица лидеров</h2>
+          <div class="duel-board-period" role="group" data-i18n-aria="duel_board_period" aria-label="Период">
+            <button type="button" data-board-period="week" aria-pressed="true" data-i18n="duel_board_week">Эта неделя</button>
+            <button type="button" data-board-period="all" aria-pressed="false" data-i18n="duel_board_all">Всё время</button>
+          </div>
+        </div>
+        <div class="duel-board-chips" id="duel-board-cats" role="group"></div>
+        <div class="duel-board-chips" id="duel-board-diffs" role="group"></div>
+        <ol class="duel-board-list" id="duel-board-list" aria-live="polite"></ol>
+        <p class="duel-board-note" data-i18n="duel_board_note">Счёт считает сервер по тем же примерам, у каждого игрока — лучшая попытка. Неделя начинается в понедельник.</p>
+      </section>
     </section>
 
     <!-- Поиск случайного соперника: живой онлайн, иначе — запись. -->
@@ -180,6 +195,9 @@
 
     <section class="duel-screen duel-result" id="duel-result" hidden>
       <div id="duel-result-body"></div>
+      <div class="duel-rank" id="duel-rank" role="status" hidden></div>
+      <!-- Проверка «не робот»: обычно невидима, окно появляется, только если Cloudflare сомневается. -->
+      <div class="duel-turnstile" id="duel-turnstile"></div>
       <div class="duel-share" id="duel-share" hidden>
         <h2 id="duel-share-title"></h2>
         <p id="duel-share-text"></p>

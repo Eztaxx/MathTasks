@@ -9,8 +9,8 @@
 
    Подделать счёт в ссылке можно. Для дружеской дуэли это не важно:
    выигрыш ничего не даёт за пределами пары друзей. Контрольная сумма
-   здесь только отсекает ссылки, побитые при копировании. Понадобится
-   общая таблица результатов — понадобится и подпись на сервере. */
+   здесь только отсекает ссылки, побитые при копировании. В общую таблицу
+   лидеров счёт из ссылки не идёт: её счёт считает воркер (worker/duel-api.js). */
 (() => {
   const VERSION = 1;
   const CATEGORIES = ['addsub2', 'addsub3', 'multdiv', 'fractions', 'decimals', 'negatives', 'mix'];
@@ -255,6 +255,75 @@
     return { r: counted.filter(Boolean).length, q: counted.length, m: packMask(counted) };
   };
 
+  // ── Таблица лидеров: правдоподобие попытки ──────────────────────────
+  /* Счёт попытки считает сервер сам, по тем же примерам из зерна, — но
+     ответы и время всё равно присылает браузер, и скрипт может прислать
+     идеальную минуту. Полностью это не закрыть ничем, поэтому отсекаем
+     то, что человеку не по силам:
+       • потолок верных ответов за минуту — около уровня лучших взрослых
+         вычислителей: робот, подогнанный под человека, в лучшем случае
+         сравняется с чемпионом, но не уйдёт вперёд на недосягаемые 80;
+       • между ответами хотя бы 0,25 с: прочитать пример и набрать ответ
+         быстрее нельзя;
+       • ровный, как метроном, темп: у людей время на пример «гуляет»
+         (коэффициент вариации 0,3–0,6), у простого скрипта — нет.
+     Попытка, не прошедшая проверку, сохраняется, но не попадает ни в
+     таблицу, ни в соперники-записи. Потолки подобраны по оценке, а не по
+     статистике: когда накопятся настоящие попытки, их стоит уточнить. */
+  const MAX_CORRECT = {
+    addsub2: { normal: 45, hard: 38, expert: 30 },
+    addsub3: { normal: 40, hard: 28, expert: 22 },
+    multdiv: { normal: 60, hard: 32, expert: 25 },
+    fractions: { normal: 35, hard: 25, expert: 20 },
+    decimals: { normal: 40, hard: 32, expert: 25 },
+    negatives: { normal: 50, hard: 36, expert: 28 },
+    mix: { normal: 45, hard: 32, expert: 25 }
+  };
+  const MIN_GAP_MS = 250;
+  const MAX_FAST_GAPS = 2;
+  const MIN_CV = 0.12;
+  const CV_MIN_ANSWERS = 12;
+  // Сколько сервер ждёт конца попытки: минута, отсчёт, медленная сеть.
+  const RUN_MAX_ELAPSED_MS = 180000;
+  const CLOCK_SLACK_MS = 5000;
+
+  const maxCorrect = (cat, diff) => MAX_CORRECT[cat]?.[diff] ?? 0;
+
+  /* bits — какие ответы верны (посчитано сервером), times — мс от начала
+     минуты для каждого ответа, elapsedMs — сколько прошло между началом и
+     концом попытки по часам сервера. Ответ: { ok, reason }. */
+  const assessRun = ({ cat, diff, bits, times, elapsedMs }) => {
+    if (!CATEGORIES.includes(cat) || !DIFFS.includes(diff)) return { ok: false, reason: 'category' };
+    if (!Array.isArray(bits) || !Array.isArray(times) || bits.length !== times.length) return { ok: false, reason: 'shape' };
+    if (!Number.isFinite(elapsedMs) || elapsedMs > RUN_MAX_ELAPSED_MS) return { ok: false, reason: 'late' };
+    // Последний ответ не может прийти позже, чем закончилась попытка по часам сервера.
+    if (times.length && times[times.length - 1] > elapsedMs + CLOCK_SLACK_MS) return { ok: false, reason: 'clock' };
+    const correct = bits.filter(Boolean).length;
+    if (correct > maxCorrect(cat, diff)) return { ok: false, reason: 'ceiling' };
+    const gaps = times.map((time, i) => time - (i ? times[i - 1] : 0));
+    if (gaps.filter(gap => gap < MIN_GAP_MS).length > MAX_FAST_GAPS) return { ok: false, reason: 'fast' };
+    if (gaps.length >= CV_MIN_ANSWERS) {
+      // Первый промежуток включает реакцию на старт — его не считаем.
+      const rest = gaps.slice(1);
+      const mean = rest.reduce((sum, gap) => sum + gap, 0) / rest.length;
+      const variance = rest.reduce((sum, gap) => sum + (gap - mean) ** 2, 0) / rest.length;
+      if (mean > 0 && Math.sqrt(variance) / mean < MIN_CV) return { ok: false, reason: 'steady' };
+    }
+    return { ok: true, reason: '' };
+  };
+
+  // Номер игрока для таблицы: случайный, в браузере, ничего о человеке не говорит.
+  const PLAYER_PATTERN = /^[a-z0-9]{8,32}$/;
+  const newPlayerId = (random = Math.random) => {
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    const values = typeof crypto !== 'undefined' && crypto.getRandomValues
+      ? Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      : Array.from({ length: 16 }, () => Math.floor(random() * 256));
+    return values.map(value => alphabet[value % alphabet.length]).join('');
+  };
+
+  const PERIODS = ['week', 'all'];
+
   const newSeed = (random = Math.random) => {
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
       return crypto.getRandomValues(new Uint32Array(1))[0];
@@ -282,6 +351,12 @@
     ghostProgressAt,
     ghostResult,
     MAX_RUN_ANSWERS,
+    MAX_CORRECT,
+    maxCorrect,
+    assessRun,
+    PLAYER_PATTERN,
+    newPlayerId,
+    PERIODS,
     newSeed
   };
 

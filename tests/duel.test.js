@@ -183,8 +183,72 @@ describe('дуэль: случайный соперник', () => {
   });
 });
 
+describe('дуэль: правдоподобие попытки для таблицы лидеров', () => {
+  // Человеческий темп: промежутки 1,2–3,2 с, «гуляют» от примера к примеру.
+  const humanTimes = count => {
+    const times = [];
+    let at = 900;
+    for (let i = 0; i < count; i++) {
+      at += 1200 + ((i * 7919) % 11) * 200;
+      times.push(at);
+    }
+    return times;
+  };
+  const run = (bits, times, extra = {}) => duel.assessRun({ cat: 'multdiv', diff: 'normal', bits, times, elapsedMs: 61500, ...extra });
+
+  it('обычная минута проходит', () => {
+    const times = humanTimes(24);
+    expect(run(times.map((_, i) => i % 7 !== 3), times)).toEqual({ ok: true, reason: '' });
+  });
+
+  it('больше верных, чем под силу человеку, — нет', () => {
+    const times = Array.from({ length: 61 }, (_, i) => 600 + i * 950 + (i % 3) * 180);
+    expect(run(Array(61).fill(true), times)).toMatchObject({ ok: false, reason: 'ceiling' });
+    expect(duel.maxCorrect('fractions', 'expert')).toBeLessThan(duel.maxCorrect('fractions', 'normal'));
+  });
+
+  it('потолок задан для каждой категории и сложности', () => {
+    for (const cat of duel.CATEGORIES) {
+      for (const diff of duel.DIFFS) {
+        expect(duel.maxCorrect(cat, diff)).toBeGreaterThan(10);
+        expect(duel.maxCorrect(cat, diff)).toBeLessThan(duel.MAX_RUN_ANSWERS);
+      }
+    }
+  });
+
+  it('ответы чаще, чем раз в четверть секунды, — нет', () => {
+    const times = humanTimes(20);
+    for (const i of [5, 9, 14]) times[i] = times[i - 1] + 120;
+    for (let i = 1; i < times.length; i++) times[i] = Math.max(times[i], times[i - 1]);
+    expect(run(Array(20).fill(true), times)).toMatchObject({ ok: false, reason: 'fast' });
+  });
+
+  it('ровный, как метроном, темп — нет', () => {
+    const times = Array.from({ length: 30 }, (_, i) => 1000 + i * 1800);
+    expect(run(Array(30).fill(true), times)).toMatchObject({ ok: false, reason: 'steady' });
+  });
+
+  it('ответ позже конца попытки по часам сервера — нет', () => {
+    const times = humanTimes(20);
+    expect(run(Array(20).fill(true), times, { elapsedMs: times.at(-1) - 6000 })).toMatchObject({ ok: false, reason: 'clock' });
+    expect(run(Array(20).fill(true), times, { elapsedMs: times.at(-1) - 2000 }).ok).toBe(true);
+  });
+
+  it('попытка, законченная через три минуты, — нет', () => {
+    const times = humanTimes(10);
+    expect(run(Array(10).fill(true), times, { elapsedMs: 200000 })).toMatchObject({ ok: false, reason: 'late' });
+  });
+
+  it('номер игрока — случайные латинские буквы и цифры', () => {
+    const id = duel.newPlayerId();
+    expect(id).toMatch(duel.PLAYER_PATTERN);
+    expect(duel.newPlayerId()).not.toBe(id);
+  });
+});
+
 describe('миграция записей дуэлей', () => {
   const sql = readFileSync(new URL('../supabase/migrations/028_duel_runs.sql', import.meta.url), 'utf8');
+  const grants = sql.slice(sql.indexOf('revoke all on function'));
 
   it('таблица закрыта: RLS включён, писать можно только через функции', () => {
     expect(sql).toMatch(/alter table public\.duel_runs enable row level security/);
@@ -193,17 +257,43 @@ describe('миграция записей дуэлей', () => {
 
   it('функции security definer — с пустым search_path', () => {
     const definers = sql.match(/security definer[^\n]*/gi) || [];
-    expect(definers).toHaveLength(3);
+    expect(definers.length).toBeGreaterThanOrEqual(7);
     for (const line of definers) expect(line).toMatch(/set search_path = ''/);
   });
 
-  it('конец попытки проверяет время и объём', () => {
-    expect(sql).toMatch(/interval '50 seconds'/);
-    expect(sql).toMatch(/n > 80/);
+  it('записывать попытки может только служебная роль воркера, а не браузер', () => {
+    const writers = ['duel_run_start', 'duel_run_load', 'duel_run_save', 'duel_run_place'];
+    const statements = grants.split(';').map(text => text.trim());
+    const revoke = statements.find(text => text.startsWith('revoke all'));
+    const toPublic = statements.filter(text => text.startsWith('grant') && /\bto anon\b|\bto authenticated\b/.test(text)).join('\n');
+    const toService = statements.find(text => text.startsWith('grant') && /to service_role$/.test(text));
+    for (const name of writers) {
+      expect(revoke).toContain(name);
+      expect(toPublic).not.toContain(name);
+      expect(toService).toContain(name);
+    }
   });
 
-  it('ни почты, ни устройства — только ник, ответы и время', () => {
+  it('таблицу и соперников-записи видят все, скрыть запись может только администратор', () => {
+    expect(grants).toMatch(/duel_ghost\(text, text, int, int, bigint\[\]\), public\.duel_leaderboard\(text, text, text\)\s+to anon, authenticated/);
+    expect(sql).toMatch(/if not public\.is_admin\(\) then raise exception/);
+  });
+
+  it('в таблице — лучшая попытка каждого игрока, двадцать мест, скрытые не показываются', () => {
+    const board = sql.slice(sql.indexOf('create or replace function public.duel_leaderboard'), sql.indexOf('create or replace function public.duel_run_place'));
+    expect(board).toMatch(/distinct on \(coalesce\(r\.player, r\.id::text\)\)/);
+    expect(board).toMatch(/r\.ranked and not r\.hidden/);
+    expect(board).toMatch(/limit 20/);
+    expect(board).toMatch(/Europe\/Riga/);
+  });
+
+  it('соперником-записью становится только проверенная попытка', () => {
+    const ghost = sql.slice(sql.indexOf('create or replace function public.duel_ghost'), sql.indexOf('create or replace function public.duel_leaderboard'));
+    expect(ghost).toMatch(/verified and not hidden/);
+  });
+
+  it('ни почты, ни адреса, ни устройства — только ник, номер игрока, ответы и время', () => {
     const table = sql.match(/create table[\s\S]*?\);/i)[0].toLowerCase();
-    for (const word of ['email', 'device', 'ip ', 'user_id']) expect(table).not.toContain(word);
+    for (const word of ['email', 'device', 'ip ', 'ip_', 'user_id', 'user_agent']) expect(table).not.toContain(word);
   });
 });
