@@ -16,6 +16,7 @@
     "verify:parity": "node scripts/verify-formula-parity.mjs",
     "verify": "npm run verify:answers && npm run verify:consistency && npm run verify:pairing && npm run verify:parity",
     "verify:pairing": "node scripts/verify-language-pairing.mjs",
+    "verify:access": "node scripts/check-visitor-access.mjs",
     "backup": "node scripts/backup.mjs",
     "backup:check": "node scripts/backup.mjs --check",
     "restore": "node scripts/restore.mjs",
