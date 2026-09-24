@@ -10,8 +10,13 @@
 npm run backup
 ```
 
-Выгружает `subjects`, `topics`, `tasks`, `tags`, `task_tags`, `profiles`
-в один JSON (около 1 МБ) и удаляет старые, оставляя последние 30.
+Выгружает `subjects`, `topics`, `subtopics`, `tasks`, `tags`, `task_tags`,
+варианты работ (`exam_papers`, `exam_paper_topics`, `exam_paper_items`),
+сообщения об ошибках в задачах (`task_reports`), `profiles` и чертежи из
+Storage в один JSON (около 2 МБ) и удаляет старые, оставляя последние 30.
+Новую таблицу в копию надо добавить руками — в `TABLES` в
+`scripts/backup.mjs` и в `ORDER` в `scripts/restore.mjs`, иначе её данные
+в копию молча не попадут.
 
 Полезные ключи:
 
@@ -90,6 +95,12 @@ git commit -m "Копия каталога за сентябрь"
 Снимает ограничение миграция `supabase/migrations/019_identity_by_default.sql`:
 номера по-прежнему выдаёт база, но указать их явно становится можно.
 Выполните её один раз — до того, как копия понадобится всерьёз.
+
+019 касается только `subjects`, `topics`, `tasks` и `tags`. Для сообщений
+об ошибках (`task_reports`) то же делает
+`supabase/migrations/029_task_reports_identity_by_default.sql`. Если
+`restore.mjs --apply` упрётся в код 428C9 на другой таблице, он сам
+напечатает нужную строку SQL.
 
 Правка существующих строк работает и без миграции: это проверено на живой
 базе — задача была испорчена намеренно и восстановлена из копии.

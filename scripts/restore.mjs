@@ -111,8 +111,9 @@ for (const table of ORDER) {
     if (!res.ok) {
       const text = await res.text();
       /* Миграция 019 перевела на BY DEFAULT только subjects, topics, tasks
-         и tags; у task_reports (023) id по-прежнему GENERATED ALWAYS.
-         Поэтому подсказка называет таблицу, а не отсылает к 019. */
+         и tags, у task_reports (023) это делает 029, а таблица, заведённая
+         позже, может снова оказаться GENERATED ALWAYS. Поэтому подсказка
+         называет таблицу, а не отсылает к одной миграции. */
       if (text.includes('428C9')) {
         console.log(`   ✗ вставка ${table}: база не разрешает вернуть строку с прежним номером.`);
         console.log(`      Выполните в SQL Editor Supabase:`);
