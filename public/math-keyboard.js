@@ -188,6 +188,10 @@
   };
 
   function setToggle(input, on) {
+    document.querySelectorAll('[data-math-kb-standalone]').forEach(btn => {
+      btn.classList.toggle('is-on', Boolean(field));
+      btn.setAttribute('aria-pressed', String(Boolean(field)));
+    });
     const toggle = toggleOf(input);
     if (!toggle) return;
     toggle.setAttribute('aria-pressed', String(on));
@@ -195,6 +199,19 @@
     toggle.title = on
       ? (isTouch() ? tr('mkb_abc', 'Обычная клавиатура') : tr('mkb_hide', 'Скрыть клавиатуру'))
       : tr('mkb_open', 'Открыть математическую клавиатуру');
+  }
+
+  /* Поле для кнопки. Приклеенная к полю знает своё поле соседом; отдельная
+     берёт то, в котором стоит курсор, иначе первое незаполненное. */
+  function fieldForToggle(toggle) {
+    const glued = toggle.previousElementSibling;
+    if (glued?.matches?.(FIELDS)) return glued;
+    const scope = toggle.closest('[data-math-kb-scope]') || document;
+    const fields = [...scope.querySelectorAll(FIELDS)].filter(el => !el.disabled && !el.readOnly);
+    if (!fields.length) return null;
+    const active = document.activeElement;
+    if (active && fields.includes(active)) return active;
+    return fields.find(el => !el.value) || fields[0];
   }
 
   function ensureToggles() {
@@ -272,6 +289,11 @@
       if (panel.parentElement !== document.body) document.body.appendChild(panel);
     }
     document.body.classList.remove('math-kb-open');
+    // Отдельная кнопка гаснет вместе с панелью: поля, от которого её гасить, уже нет.
+    document.querySelectorAll('[data-math-kb-standalone]').forEach(btn => {
+      btn.classList.remove('is-on');
+      btn.setAttribute('aria-pressed', 'false');
+    });
   }
 
   // Поле не должно оказаться под панелью.
@@ -426,7 +448,7 @@
   document.addEventListener('click', event => {
     const toggle = event.target.closest?.('[data-math-kb-open]');
     if (!toggle) return;
-    const input = toggle.previousElementSibling;
+    const input = fieldForToggle(toggle);
     if (!input?.matches?.(FIELDS) || input.disabled) return;
     // Открыта у этого поля — закрыть: на телефоне вернётся системная клавиатура.
     if (field === input) {
@@ -439,6 +461,9 @@
     input.blur();
     if (isTouch()) silence(input);
     input.focus();
+    /* Открываем сами, а не ждём события фокуса: если поле уже было в фокусе,
+       focus() ничего не сообщает, и панель не выезжала. */
+    if (field !== input) open(input);
   });
 
   document.addEventListener('keydown', event => {

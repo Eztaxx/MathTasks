@@ -1893,7 +1893,11 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     const orderNote = unnamed.length
       ? `<p class="compact-drill-order">${escapeHtml(tr(unnamed.some(task => answerFieldsOf(task).some(field => field.ordered)) ? 'answer_fields_order' : 'answer_fields_ask_order'))}</p>`
       : '';
-    container.innerHTML = `<div class="task-compact-container">${bannerHtml}${orderNote}<div class="task-compact-grid">${itemsHtml}</div>${moreButton(tasks.length)}</div>`;
+    /* Клавиатура сама открывается только на сенсорном экране, а кнопки в
+       самих ячейках нет — они узкие и заняты отметкой ✓/✕. Поэтому одна
+       кнопка на весь список. */
+    const keyboardBtn = `<button type="button" class="list-tool-btn math-kb-btn" data-math-kb-open data-math-kb-standalone aria-pressed="false" title="${escapeHtml(tr('mkb_open'))}"><span aria-hidden="true">⌨</span>${escapeHtml(tr('mkb_button'))}</button>`;
+    container.innerHTML = `<div class="task-compact-container" data-math-kb-scope>${bannerHtml}${orderNote}<div class="compact-drill-tools">${keyboardBtn}</div><div class="task-compact-grid">${itemsHtml}</div>${moreButton(tasks.length)}</div>`;
 
     container.querySelectorAll('[data-drill-label]').forEach(el => {
       const [id, slot] = String(el.dataset.drillLabel || '').split(':');

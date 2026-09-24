@@ -198,6 +198,8 @@
 
       // reviewList — примеры для работы над ошибками; без него лист генерируется заново
       function renderSheet(reviewList = null) {
+        // Кнопка клавиатуры ищет поле в пределах листа, а не по всей странице.
+        document.querySelector('#trainer-sheet-grid')?.setAttribute('data-math-kb-scope', '');
         if (!window.MathTasksTrainer || !trainerSheetGrid) return;
         const solvedCountEl = document.querySelector('#sheet-solved-count');
         const totalCountEl = document.querySelector('#sheet-total-count');
