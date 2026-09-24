@@ -844,9 +844,10 @@
             category: 'decimals'
           };
         } else {
+          // Частное — десятые (0,2…0,8), значит и делимое — десятые: 0,8 ÷ 2 = 0,4.
           const q = randInt(2, 8);
           const b = randInt(2, 5);
-          const a = Math.round(q * b * 10) / 10;
+          const a = Math.round(q * b) / 10;
           return {
             latex: `${String(a).replace('.', '{,}')} \\div ${b}`,
             answer: String(q / 10),
