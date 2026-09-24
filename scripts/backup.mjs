@@ -97,10 +97,15 @@ if (!env.SUPABASE_SERVICE_ROLE_KEY) say('⚠ Сервисного ключа н�
 
 const PAGE = 1000;   // PostgREST отдаёт не больше тысячи строк за раз
 
+/* Порядок нужен однозначный: без него страницы на стыках теряют и
+   повторяют строки, и копия выходит неполной, хотя число строк сходится.
+   У связки task_tags колонки id нет — упорядочиваем по её ключу,
+   паре (task_id, tag_id). */
 async function fetchAll(table) {
+  const order = table === 'task_tags' ? 'task_id,tag_id' : 'id';
   const rows = [];
   for (let from = 0; ; from += PAGE) {
-    const r = await fetch(`${URL_}/rest/v1/${table}?select=*&order=id.asc`.replace('&order=id.asc', table === 'task_tags' ? '' : '&order=id.asc'), {
+    const r = await fetch(`${URL_}/rest/v1/${table}?select=*&order=${order}`, {
       headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, Range: `${from}-${from + PAGE - 1}` }
     });
     if (!r.ok) throw new Error(`${table}: ${r.status} ${(await r.text()).slice(0, 120)}`);
