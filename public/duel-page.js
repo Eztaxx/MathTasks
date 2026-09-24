@@ -751,6 +751,12 @@
   // ── Старт страницы ──────────────────────────────────────────────────
   const start = () => {
     const hash = location.hash.slice(1);
+    // «Сыграть» на главной: сразу ищем соперника в последней выбранной категории.
+    if (!hash && new URLSearchParams(location.search).get('play') === 'random') {
+      window.history.replaceState(null, '', '/duel');
+      findOpponent();
+      return;
+    }
     if (!hash) { openSetup(); return; }
     const challenge = D.decodeChallenge(hash);
     if (!challenge) { notice(tr('duel_broken')); openSetup(); return; }

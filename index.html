@@ -85,6 +85,20 @@
       </div>
 
       <div class="sidebar-track-header">
+        <span class="track-header-icon">⚔️</span>
+        <span class="track-header-title" data-i18n="track_heading_duels">Дуэли</span>
+      </div>
+      <div class="sidebar-track-subgroup">
+        <a class="sidebar-track-card" href="/duel" title="Дуэль на устный счёт" data-i18n-title="nav_duel">
+          <div class="track-card-badge purple">⚔️</div>
+          <div class="track-card-body">
+            <strong data-i18n="nav_duel">Дуэль на устный счёт</strong>
+            <span data-i18n="nav_duel_desc">Соперник онлайн или друг по ссылке</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="sidebar-track-header">
         <span class="track-header-icon">🎓</span>
         <span class="track-header-title" data-i18n="track_heading_exams">Экзамены и контрольные</span>
       </div>
@@ -206,6 +220,18 @@
       <section class="home-today" id="home-today" aria-label="Задача дня и прогресс" data-i18n-aria="home_today_aria" hidden></section>
 
 
+      <!-- Дуэль — отдельная возможность сайта, а не режим тренажёра. -->
+      <section class="home-duel" aria-labelledby="home-duel-title">
+        <span class="home-duel-icon" aria-hidden="true">⚔️</span>
+        <div class="home-duel-body">
+          <h2 id="home-duel-title" data-i18n="home_duel_title">Дуэль на устный счёт</h2>
+          <p data-i18n="home_duel_text">Минута примеров против соперника онлайн, а если сейчас никого нет — против записи другого игрока. Без регистрации.</p>
+        </div>
+        <div class="home-duel-actions">
+          <a class="primary-button" href="/duel?play=random" data-i18n="home_duel_play">🎲 Сыграть</a>
+          <a class="secondary-button" href="/duel" data-i18n="home_duel_friend">🔗 С другом</a>
+        </div>
+      </section>
       <section class="topics"><div class="section-heading"><h2 id="topics-heading">Популярные темы</h2><span class="grade-actions" id="grade-actions" hidden></span></div><div class="topic-grid" id="topics"></div></section>
       <!-- Слабые места, контрольные, экзамен — в самом низу главной, под темами. -->
       <section class="home-insights" id="home-insights" aria-label="Слабые места, контрольные и экзамен" data-i18n-aria="home_insights_aria" hidden></section>

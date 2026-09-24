@@ -7019,3 +7019,18 @@ body.dark .profile-status{color:#86efac}
 .duel-ghost-note{margin:12px 0 0;font-size:13px;color:var(--muted)}
 body.dark .duel-search-pulse{background:#241a44}
 body.dark .duel-search-time,body.dark .duel-bar-opp,body.dark .duel-bar-opp strong{color:#b69cff}
+
+/* Дуэль на главной — своя полоса между «Сегодня» и темами. */
+.home-duel{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:16px;margin:18px 0 6px;padding:16px 18px;border:1px solid #ddd6fe;border-radius:16px;background:linear-gradient(120deg,#f5f3ff,#eef4ff)}
+.home-duel-icon{display:grid;place-items:center;width:52px;height:52px;border-radius:14px;background:#ede9fe;font-size:26px}
+.home-duel-body h2{margin:0 0 4px;font-size:17px}
+.home-duel-body p{margin:0;font-size:13.5px;line-height:1.5;color:var(--muted)}
+.home-duel-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.home-duel-actions a{text-decoration:none;white-space:nowrap}
+body.dark .home-duel{background:linear-gradient(120deg,#171230,#101a33);border-color:#2e2553}
+body.dark .home-duel-icon{background:#241a44}
+@media(max-width:720px){
+  .home-duel{grid-template-columns:auto minmax(0,1fr)}
+  .home-duel-actions{grid-column:1/-1;justify-content:stretch}
+  .home-duel-actions a{flex:1;text-align:center}
+}

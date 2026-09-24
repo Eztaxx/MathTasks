@@ -433,7 +433,14 @@ function renderHubSidebar() {
           <span>${escapeHtml(tr('nav_trainer_expr_desc'))}</span>
         </div>
       </a>
-      <a class="sidebar-track-card" href="/duel" title="${escapeHtml(tr('nav_duel'))}">
+    </div>
+
+    <div class="sidebar-track-header">
+      <span class="track-header-icon">⚔️</span>
+      <span class="track-header-title">${escapeHtml(tr('track_heading_duels'))}</span>
+    </div>
+    <div class="sidebar-track-subgroup">
+      <a class="sidebar-track-card${appPath() === '/duel' ? ' active' : ''}" href="/duel" title="${escapeHtml(tr('nav_duel'))}">
         <div class="track-card-badge purple">⚔️</div>
         <div class="track-card-body">
           <strong>${escapeHtml(tr('nav_duel'))}</strong>
