@@ -6929,8 +6929,11 @@ body.dark .duel-keypad .duel-key-ok,.duel-keypad .duel-key-ok{background:#6d28d9
 .lesson-step.is-done .lesson-step-num{background:#dcfce7;color:#15803d}
 .lesson-text{font-size:15.5px;line-height:1.65}
 .lesson-graph{margin:14px 0 4px;display:flex;flex-direction:column;gap:10px}
-.lesson-canvas-box{border:1px solid var(--line);border-radius:12px;overflow:hidden;touch-action:none}
-.lesson-canvas-box canvas{display:block}
+.lesson-canvas-box{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+/* В уроке график управляется ползунками. Без этого колесо мыши над ним
+   масштабировало график вместо прокрутки страницы, а на телефоне свайп
+   по графику во весь экран двигал сам график, и урок не листался. */
+.lesson-canvas-box canvas{display:block;pointer-events:none}
 .lesson-param{display:grid;grid-template-columns:110px minmax(0,1fr);align-items:center;gap:12px}
 .lesson-param-name{font:700 15px Manrope,sans-serif}
 .lesson-param-name var{font-style:italic;font-family:'KaTeX_Math',Georgia,serif}
