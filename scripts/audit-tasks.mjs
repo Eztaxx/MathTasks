@@ -133,7 +133,9 @@ async function main() {
 
     // 2. Подпись перед полем.
     if (answer && lib.isTaskAutoCheckable(answer, variants)
-      && !lib.answerFields(answer, variants).length && !lib.answerLabelMarkup(answer)) {
+      && !lib.answerFields(answer, variants).length && !lib.answerLabelMarkup(answer)
+      // Подпись из условия тоже подпись: «x³ − 3x² − 4x + 12 = [ ]».
+      && !lib.conditionPrompt(task.condition_latex)) {
       bad.подпись.push({ task, note: answer });
     }
 
