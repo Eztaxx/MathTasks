@@ -201,6 +201,8 @@ function isTopicInGrade(topic, grade) {
 
 // В контексте класса показываем только его темы; тема без класса живёт лишь в режиме «Все классы».
 const topicsForGrade = list => (selectedGrade ? list.filter(topic => isTopicInGrade(topic, selectedGrade)) : list);
+// То же для запроса задач: у уровня в колонке grade число, а не слово из selectedGrade.
+const scopeToGrade = query => (selectedGrade ? query.eq('grade', window.MathTasksLib.gradeNumber(selectedGrade)) : query);
 const taskCount = topicId => taskCounts.get(topicId) || 0;
 
 /* ── Контекст класса ──────────────────────────────────────────────── */
@@ -818,8 +820,7 @@ function toggleFavorite(taskId) {
 async function openRandomTask() {
   /* Сначала число задач, потом одна строка по случайному смещению. Список
      целиком обрезался бы на тысяче, и часть задач не выпадала бы никогда. */
-  const scoped = query => (selectedGrade ? query.eq('grade', selectedGrade) : query);
-  const { count, error: countError } = await scoped(
+  const { count, error: countError } = await scopeToGrade(
     db.from('tasks').select('id', { count: 'exact', head: true }).eq('is_published', true));
   if (countError || !count) {
     const tr = window.MathTasks.t || (k => k);
@@ -827,7 +828,7 @@ async function openRandomTask() {
     return;
   }
   const offset = Math.floor(Math.random() * count);
-  const { data } = await scoped(db.from('tasks').select('id, title, topic_id, grade').eq('is_published', true))
+  const { data } = await scopeToGrade(db.from('tasks').select('id, title, topic_id, grade').eq('is_published', true))
     .order('id').range(offset, offset);
   if (data && data[0]) navigate(taskPath(data[0]));
 }
@@ -3750,11 +3751,6 @@ async function showAllTasks() {
   listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('state_loading_tasks')}</p>`;
   /* Постранично, а не одним запросом с limit(500): класс рано или поздно
      перевалит за 500 задач, и хвост молча пропал бы из списка. */
-  const scopeToGrade = query => {
-    if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) return query.in('grade', [10, 11]);
-    if (selectedGrade === 'matematika-2' || selectedGrade === 12) return query.eq('grade', 12);
-    return selectedGrade ? query.eq('grade', Number(selectedGrade)) : query;
-  };
   const { data, error } = await window.MathTasksLib.fetchAllRows(
     () => scopeToGrade(db.from('tasks').select(TASK_SELECT).eq('is_published', true)).order('id'));
   if (error) { listTasks.innerHTML = `<p class="empty-state">${(window.MathTasks.t || (k => k))('err_load_tasks')}</p>`; return; }
@@ -5262,7 +5258,7 @@ async function showSearch(rawQuery, acrossGrades) {
   // Ищем на обоих языках: латышский посетитель набирает латышские слова.
   const matchesText = topic => [topic.title, topic.title_lv, topic.description, topic.description_lv]
     .some(text => (text || '').toLowerCase().includes(needle));
-  const foundTopics = allTopics.filter(topic => matchesText(topic) && (!scoped || topic.grade === selectedGrade));
+  const foundTopics = allTopics.filter(topic => matchesText(topic) && (!scoped || isTopicInGrade(topic, selectedGrade)));
 
   fillListHeader({ crumbs, title: metaText('search_title_query', { query }) });
   setMeta(metaText('meta_search_title', { query }), metaText('meta_search_desc', { query }));
@@ -5295,7 +5291,7 @@ async function showSearch(rawQuery, acrossGrades) {
 
   const safe = sanitize(query);
   let request = db.from('tasks').select(TASK_SELECT).eq('is_published', true);
-  if (scoped) request = request.eq('grade', selectedGrade);
+  if (scoped) request = scopeToGrade(request);
 
   const orClauses = [];
   if (safe) {
@@ -5322,7 +5318,7 @@ async function showSearch(rawQuery, acrossGrades) {
     foundTopics.length ? metaText('search_count_topics', { count: foundTopics.length }) : '',
     metaText('search_count_tasks', { count: tasks.length })
   ].filter(Boolean).join(', ');
-  const where = scoped ? (window.MathTasks.t || (k => k))('search_scope_grade', { grade: selectedGrade }) : (window.MathTasks.t || (k => k))('search_scope_all');
+  const where = scoped ? (window.MathTasks.t || (k => k))('search_scope_grade', { grade: gradeLabel(selectedGrade) }) : (window.MathTasks.t || (k => k))('search_scope_all');
   // Из класса всегда есть выход: иначе человек решит, что задачи просто нет.
   const escape = scoped
     ? `<a class="search-escape" href="/search?q=${encodeURIComponent(query)}&all=1">${escapeHtml((window.MathTasks.t || (k => k))('search_all_grades'))}</a>`
@@ -5611,13 +5607,7 @@ async function showTag(slug) {
      задачи выбранного класса. Ссылка «во всех классах» снимает сужение —
      так же, как это уже сделано в поиске. */
   const showAllGrades = new URLSearchParams(location.search).get('all') === '1';
-  const inSelectedGrade = task => {
-    if (!selectedGrade) return true;
-    if (selectedGrade === 'matematika-1') return task.grade === 10 || task.grade === 11;
-    if (selectedGrade === 'matematika-2') return task.grade === 12;
-    if (selectedGrade === 'visparigais') return task.grade === 10;
-    return task.grade === Number(selectedGrade);
-  };
+  const inSelectedGrade = task => !selectedGrade || task.grade === window.MathTasksLib.gradeNumber(selectedGrade);
 
   let tasks = [];
   let tagTaskTotal = 0;
