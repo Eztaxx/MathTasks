@@ -15,5 +15,13 @@ export default defineConfig({
         plotter: resolve(__dirname, 'plotter.html')
       }
     }
+  },
+  test: {
+    /* Соседние сессии держат рабочие деревья в .claude/worktrees, и vitest
+       прогонял их копии тестов вместе с нашими: 87 файлов вместо 23 и чужие
+       красные тесты из незаконченной работы. Первые два пункта — умолчания
+       vitest; configDefaults не импортируем, чтобы сборка сайта не тянула
+       vitest/config. */
+    exclude: ['**/node_modules/**', '**/.git/**', '.claude/**']
   }
 });
