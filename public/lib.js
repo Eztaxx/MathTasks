@@ -49,6 +49,8 @@
     if (val == null) return '';
     let s = String(val).trim();
     s = s.replace(/\$+/g, ' ').trim();
+    // Типографский минус «−» из скопированного текста — тот же знак, что дефис.
+    s = s.replace(/\u2212/g, '-');
     s = s.replace(/\\left|\\right/g, '');
     /* Смешанное число: 2\frac{4}{7} в эталоне и «2 4/7» у ученика — это 18/7,
        а не 24/7, как выходило при простом снятии \frac. */
@@ -136,7 +138,7 @@
   /* Единица снимается только целым словом: без этого «s» и «t» выедались
      из «sqrt», и «2√3» не совпадало с «2\sqrt{3} см». */
   const COMPOSITE_UNITS = '(?:км|km)\\s*\\/\\s*(?:ч|h)|(?:м|m)\\s*\\/\\s*(?:с|s)|(?:кВт|kWh?|квт)\\s*[·*]?\\s*ч?|(?:л|l)\\s*\\/\\s*(?:100\\s*)?(?:км|km)';
-  const SIMPLE_UNITS = 'см|мм|дм|км|м|га|кг|мг|г|тонн[аы]?|л|мл|ч|мин|сек|с|руб|евро|долл|доллар[аов]*|гц|квт|вт|cm|mm|dm|km|m|l|ha|kg|mg|g|t|ml|min|sec|h|s|hz|eur|usd';
+  const SIMPLE_UNITS = 'см|мм|дм|км|м|га|кг|мг|г|тонн[аы]?|л|мл|ч|мин|сек|с|руб|евро|eiro|долл|доллар[аов]*|гц|квт|вт|cm|mm|dm|km|m|l|ha|kg|mg|g|t|ml|min|sec|h|s|hz|eur|usd';
   const UNIT_WORDS = new RegExp(
     `(?<![a-zа-яёāčēģīķļņšūž])(?:${COMPOSITE_UNITS})(?![a-zа-яёāčēģīķļņšūž])`
     + `|(?<![a-zа-яёāčēģīķļņšūž])(?:${SIMPLE_UNITS})(?:\\^\\d)?(?![a-zа-яёāčēģīķļņšūž])`
@@ -167,21 +169,25 @@
     for (const [re, weight] of TIME_UNITS) if (re.test(word)) return weight;
     return null;
   };
-  const timeToMinutes = str => {
+  const timeChunks = str => {
     const text = String(str || '').trim();
     if (!text) return null;
-    const chunks = [...text.matchAll(/(-?\d+(?:\.\d+)?)\s*([a-zа-яёāčēģīķļņšūž]+)?/gi)];
-    if (!chunks.length) return null;
-    let total = 0;
-    let seen = false;
-    for (const [, num, word] of chunks) {
-      if (!word) return null;
-      const weight = unitWeight(word);
+    const matches = [...text.matchAll(/(-?\d+(?:\.\d+)?)\s*([a-zа-яёāčēģīķļņšūž]+)?/gi)];
+    if (!matches.length) return null;
+    const chunks = [];
+    for (const [i, [, num, word]] of matches.entries()) {
+      /* «1 ч 30» — число без единицы сразу после часов: это минуты. */
+      const weight = word
+        ? unitWeight(word)
+        : (i > 0 && i === matches.length - 1 && chunks[i - 1].weight === 60 ? 1 : null);
       if (weight === null) return null;
-      total += Number(num) * weight;
-      seen = true;
+      chunks.push({ num: Number(num), weight });
     }
-    return seen ? total : null;
+    return chunks;
+  };
+  const timeToMinutes = str => {
+    const chunks = timeChunks(str);
+    return chunks ? chunks.reduce((sum, chunk) => sum + chunk.num * chunk.weight, 0) : null;
   };
 
   const parseFractionOrNumber = str => {
@@ -213,9 +219,16 @@
     const timeU = timeToMinutes(u);
     const timeC = timeToMinutes(c);
     if (timeU !== null && timeC !== null && Math.abs(timeU - timeC) < 1e-6) return true;
-    /* Ученик написал одно число, а эталон — время: поле подписано минутами,
-       значит число и есть минуты. */
-    if (timeC !== null && /^-?\d+(\.\d+)?$/.test(u) && Math.abs(Number(u) - timeC) < 1e-6) return true;
+    /* Эталон — время из нескольких единиц («1 ч 30 мин»). Поле подписано
+       самой мелкой из них, значит одно число ученика — в этой единице.
+       Снимать единицы дальше нельзя: «1ч30мин» склеивалось в «130», и
+       неверные 130 минут засчитывались. */
+    const chunksC = timeC !== null ? timeChunks(c) : null;
+    if (chunksC && chunksC.length > 1) {
+      if (!/^-?\d+(\.\d+)?$/.test(u)) return false;
+      const smallest = Math.min(...chunksC.map(chunk => chunk.weight));
+      return Math.abs(Number(u) * smallest - timeC) < 1e-6;
+    }
 
     const uBare = stripUnits(u);
     const cBare = stripUnits(c);
@@ -248,7 +261,7 @@
   /* Слова, которые не мешают сверять ответ: единицы и имена функций. */
   const ANSWER_NON_WORDS = new Set([
     'см', 'мм', 'дм', 'км', 'га', 'кг', 'мг', 'мл', 'мин', 'сек', 'руб', 'евро', 'гц', 'квт', 'вт', 'тонн', 'тонна', 'тонны',
-    'cm', 'mm', 'dm', 'km', 'ha', 'kg', 'mg', 'ml', 'min', 'sec', 'hz', 'eur',
+    'cm', 'mm', 'dm', 'km', 'ha', 'kg', 'mg', 'ml', 'min', 'sec', 'hz', 'eur', 'eiro',
     'sqrt', 'pi', 'inf', 'sin', 'cos', 'tg', 'tan', 'ctg', 'cot', 'log', 'lg', 'ln', 'arcsin', 'arccos', 'arctg', 'arctan', 'max', 'min'
   ]);
 

@@ -214,6 +214,31 @@ describe('время в разных записях', () => {
     expect(checkTaskAnswer('80', COMPOUND)).toBe(false);
   });
 
+  /* Единицы снимались подряд, и «1 ч 30 мин» склеивалось в «130»:
+     неверные 130 минут засчитывались. */
+  it('«130» и «1 30» — не полтора часа', () => {
+    expect(checkTaskAnswer('130', COMPOUND)).toBe(false);
+    expect(checkTaskAnswer('1 30', COMPOUND)).toBe(false);
+  });
+
+  it('«1 ч 30» без слова «мин» — это полтора часа', () => {
+    expect(checkTaskAnswer('1 ч 30', COMPOUND)).toBe(true);
+    expect(checkTaskAnswer('1 h 30', COMPOUND)).toBe(true);
+    expect(checkTaskAnswer('1 ч 30', MINUTES)).toBe(true);
+  });
+
+  it('одно число — в самой мелкой единице составного времени', () => {
+    expect(checkTaskAnswer('150', '$2\\text{ мин } 30\\text{ с}$')).toBe(true);
+  });
+
+  // Поле подписано часами — одно число в нём тоже часы, а не минуты.
+  it('у времени в одной единице число читается в этой единице', () => {
+    const HOURS = '$\\text{Время} = 3\\text{ ч}$';
+    expect(checkTaskAnswer('3', HOURS)).toBe(true);
+    expect(checkTaskAnswer('180 мин', HOURS)).toBe(true);
+    expect(checkTaskAnswer('180', HOURS)).toBe(false);
+  });
+
   it('не время трогать нельзя: «2 кг» и «120 мин» — разные ответы', () => {
     expect(checkTaskAnswer('2 кг', MINUTES)).toBe(false);
   });

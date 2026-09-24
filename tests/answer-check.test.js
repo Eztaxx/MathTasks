@@ -54,6 +54,19 @@ describe('checkTaskAnswer', () => {
     expect(checkTaskAnswer('4', '$x = 4$')).toBe(true);
     expect(checkTaskAnswer('', '$x = 4$', '4')).toBe(false);
   });
+
+  // В латышской версии валюта — «eiro»: голое число в поле тоже ответ.
+  it('«eiro» снимается, как «евро»', () => {
+    expect(checkTaskAnswer('12', '$12\\text{ eiro}$')).toBe(true);
+    expect(checkTaskAnswer('12 eiro', '$12\\text{ eiro}$')).toBe(true);
+    expect(checkTaskAnswer('13', '$12\\text{ eiro}$')).toBe(false);
+  });
+
+  it('типографский минус «−» — тот же знак', () => {
+    expect(checkTaskAnswer('−22', '$-22$')).toBe(true);
+    expect(checkTaskAnswer('−3; −18', '$k = -3;\\; y = -18$')).toBe(true);
+    expect(checkTaskAnswer('22', '$-22$')).toBe(false);
+  });
 });
 
 describe('контрольная и импорт', () => {
