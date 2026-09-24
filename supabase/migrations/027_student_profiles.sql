@@ -16,8 +16,12 @@
 -- Профили без активности дольше года стоит удалять (см. конец файла).
 --
 -- Перед запуском в панели Supabase: Authentication → Sign In / Providers →
--- «Allow anonymous sign-ins» — включить. Рекомендуется CAPTCHA (Turnstile)
--- для анонимного входа, иначе его можно заспамить.
+-- «Allow anonymous sign-ins» — включить. CAPTCHA в Supabase (Authentication
+-- → Attack Protection) НЕ включать, пока код не передаёт captchaToken:
+-- она требует токен на любом входе, и перестанут работать и вход
+-- администратора (signInWithPassword), и создание профиля. От заспамливания
+-- анонимного входа пока защищает лимит Supabase на один адрес
+-- (Authentication → Rate Limits).
 --
 -- Запускать в Supabase: SQL Editor → New query → Run (после 026).
 -- Пока миграция не применена, сайт работает как раньше: интерфейс
