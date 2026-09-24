@@ -252,3 +252,28 @@ describe('границы промежутка со скобками', () => {
     expect(answerFields('$x \\in [2; +\\infty)$')).toEqual([]);
   });
 });
+
+/* Единицу ученик обычно не пишет: поле ею подписано. Эти записи ломались —
+   составную единицу список снимал по частям, процент приходил из LaTeX с
+   обратным слэшем, а доллара в списке не было вовсе. */
+describe('единицы, которые ученик не набирает', () => {
+  it('составная единица: «10» к эталону «10 км/ч»', () => {
+    expect(checkTaskAnswer('10', "$10\\text{ км/ч}$")).toBe(true);
+    expect(checkTaskAnswer('10', "$10\\text{ km/h}$")).toBe(true);
+    expect(checkTaskAnswer('12', "$12\\text{ м/с}$")).toBe(true);
+  });
+
+  it('процент: «75» к эталону «75 %»', () => {
+    expect(checkTaskAnswer('75', "$75\\%$")).toBe(true);
+    expect(checkTaskAnswer('75 %', "$75\\%$")).toBe(true);
+  });
+
+  it('доллары наравне с евро', () => {
+    expect(checkTaskAnswer('132', "$132\\text{ USD}$")).toBe(true);
+    expect(checkTaskAnswer('22', "$22\\text{ EUR}$")).toBe(true);
+  });
+
+  it('другая единица ответом не считается', () => {
+    expect(checkTaskAnswer('10 кг', "$10\\text{ км/ч}$")).toBe(false);
+  });
+});

@@ -24,7 +24,8 @@
     "renumber:topics": "node scripts/renumber-topics.mjs",
     "renumber:topics:apply": "node scripts/renumber-topics.mjs --apply",
     "report:answers": "node scripts/answer-input-report.mjs",
-    "labels:suggest": "node scripts/suggest-answer-labels.mjs"
+    "labels:suggest": "node scripts/suggest-answer-labels.mjs",
+    "audit:tasks": "node scripts/audit-tasks.mjs"
   },
   "devDependencies": {
     "vite": "^7.1.3",
