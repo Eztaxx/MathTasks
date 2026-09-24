@@ -10,6 +10,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fetchAll } from './lib/fetch-all.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const env = Object.fromEntries(
@@ -17,25 +18,17 @@ const env = Object.fromEntries(
     .map(l => { const i = l.indexOf('='); return [l.slice(0, i), l.slice(i + 1)]; })
 );
 const H = { apikey: env.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + env.SUPABASE_ANON_KEY };
-const getAll = async (path) => {
-  const out = [];
-  for (let f = 0; ; f += 1000) {
-    const res = await fetch(env.SUPABASE_URL + '/rest/v1/' + path, { headers: { ...H, Range: `${f}-${f + 999}` } });
-    const part = await res.json();
-    out.push(...part);
-    if (part.length < 1000) break;
-  }
-  return out;
-};
+// Страницами, в однозначном порядке — см. lib/fetch-all.mjs.
+const getAll = path => fetchAll(env.SUPABASE_URL + '/rest/v1/' + path, H);
 
 const ИМЯ_КЛАССА = {
   10: 'Vispārīgais līmenis', 11: 'Matemātika I', 12: 'Matemātika II',
 };
 
 const [topics, subs, subjects] = await Promise.all([
-  getAll('topics?select=id,title,title_lv,description,description_lv,slug,grade,position,subject_id&order=grade,position'),
-  getAll('subtopics?select=id,topic_id,code,title,title_lv,position'),
-  getAll('subjects?select=id,slug'),
+  getAll('topics?select=id,title,title_lv,description,description_lv,slug,grade,position,subject_id&order=grade,position,id'),
+  getAll('subtopics?select=id,topic_id,code,title,title_lv,position&order=id'),
+  getAll('subjects?select=id,slug&order=id'),
 ]);
 const слагРаздела = Object.fromEntries(subjects.map(s => [s.id, s.slug]));
 

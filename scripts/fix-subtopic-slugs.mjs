@@ -11,6 +11,7 @@ import { exitSafely } from './lib/exit-safely.mjs';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fetchAll } from './lib/fetch-all.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const APPLY = process.argv.includes('--apply');
@@ -23,16 +24,8 @@ const KEY = env.SUPABASE_SERVICE_ROLE_KEY;
 if (!KEY) { console.error('нет SUPABASE_SERVICE_ROLE_KEY в .env'); process.exit(1); }
 const H = { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' };
 
-const getAll = async (path) => {
-  const out = [];
-  for (let f = 0; ; f += 1000) {
-    const res = await fetch(env.SUPABASE_URL + '/rest/v1/' + path, { headers: { ...H, Range: `${f}-${f + 999}` } });
-    const part = await res.json();
-    out.push(...part);
-    if (part.length < 1000) break;
-  }
-  return out;
-};
+// Страницами, в однозначном порядке — см. lib/fetch-all.mjs.
+const getAll = path => fetchAll(env.SUPABASE_URL + '/rest/v1/' + path, H);
 
 /* Транслитерация кириллицы нужна для подтем, у которых нет латышского
    названия: иначе они снова остались бы без слага. */
@@ -52,7 +45,7 @@ const слаг = s => String(s || '')
   .slice(0, 50)
   .replace(/-$/, '');
 
-const subs = await getAll('subtopics?select=id,code,slug,title,title_lv&limit=2000');
+const subs = await getAll('subtopics?select=id,code,slug,title,title_lv&order=id');
 const занятые = new Set(subs.map(s => s.slug));
 
 /* Чинить надо те, у кого от названия в слаге ничего не осталось: слаг

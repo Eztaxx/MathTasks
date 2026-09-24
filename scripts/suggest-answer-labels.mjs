@@ -19,6 +19,7 @@
  */
 
 import { readFileSync } from 'node:fs';
+import { fetchAll } from './lib/fetch-all.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 const argv = process.argv.slice(2);
@@ -220,14 +221,7 @@ async function main() {
   const H = { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' };
     /* Страницами по 1000: Supabase режет выдачу молча, и при росте базы
      хвост задач просто не попал бы в отчёт. */
-  const tasks = [];
-  for (let from = 0; ; from += 1000) {
-    const res = await fetch(env.SUPABASE_URL + '/rest/v1/tasks?select=id,title,condition_latex,condition_latex_lv,answer_latex,answer_latex_lv,answer_check,is_published&order=id', { headers: { ...H, Range: `${from}-${from + 999}` } });
-    const chunk = await res.json();
-    if (!Array.isArray(chunk)) throw new Error('Supabase: ' + JSON.stringify(chunk).slice(0, 200));
-    tasks.push(...chunk);
-    if (chunk.length < 1000) break;
-  }
+  const tasks = await fetchAll(env.SUPABASE_URL + '/rest/v1/tasks?select=id,title,condition_latex,condition_latex_lv,answer_latex,answer_latex_lv,answer_check,is_published&order=id', H);
 
   const plan = [];
   const skipped = { естьПодпись: 0, несверяемые: 0, сложныйОтвет: 0, неНашлиИмя: 0, подписьНеПрижилась: 0 };

@@ -15,6 +15,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fetchAll } from './lib/fetch-all.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const APPLY = process.argv.includes('--apply');
@@ -44,28 +45,15 @@ const H = {
   Prefer: 'return=minimal',
 };
 
-const getAll = async (path) => {
-  const out = [];
-  for (let f = 0; ; f += 1000) {
-    const res = await fetch(env.SUPABASE_URL + '/rest/v1/' + path, {
-      headers: { ...H, Range: `${f}-${f + 999}` }
-    });
-    if (!res.ok) {
-      throw new Error(`Ошибка запроса к ${path}: ${res.status} ${await res.text()}`);
-    }
-    const part = await res.json();
-    out.push(...part);
-    if (part.length < 1000) break;
-  }
-  return out;
-};
+// Страницами, в однозначном порядке — см. lib/fetch-all.mjs.
+const getAll = path => fetchAll(env.SUPABASE_URL + '/rest/v1/' + path, H);
 
 const чисто = s => String(s || '').replace(/^\s*\d+(\.\d+)*\.?\s*/, '').trim();
 
 console.log('Загрузка тем и подтем из Supabase...');
 const [topics, subtopics] = await Promise.all([
-  getAll('topics?select=id,title,title_lv,grade,position,slug&order=grade,position,id&limit=2000'),
-  getAll('subtopics?select=id,topic_id,title,title_lv,code,position,slug&order=topic_id,position,id&limit=5000'),
+  getAll('topics?select=id,title,title_lv,grade,position,slug&order=grade,position,id'),
+  getAll('subtopics?select=id,topic_id,title,title_lv,code,position,slug&order=topic_id,position,id'),
 ]);
 
 console.log(`Загружено: тем — ${topics.length}, подтем — ${subtopics.length}`);

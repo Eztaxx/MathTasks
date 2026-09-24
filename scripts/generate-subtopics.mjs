@@ -12,6 +12,7 @@ import { exitSafely } from './lib/exit-safely.mjs';
 import { readFileSync, writeFileSync, appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fetchAll } from './lib/fetch-all.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const APPLY = process.argv.includes('--apply');
@@ -34,16 +35,8 @@ const api = async (method, path, body) => {
   if (!res.ok) throw new Error(`${method} ${path} -> ${res.status} ${text.slice(0, 200)}`);
   return text ? JSON.parse(text) : null;
 };
-const getAll = async (path) => {
-  const out = [];
-  for (let f = 0; ; f += 1000) {
-    const res = await fetch(env.SUPABASE_URL + '/rest/v1/' + path, { headers: { ...H, Range: `${f}-${f + 999}` } });
-    const part = await res.json();
-    out.push(...part);
-    if (part.length < 1000) break;
-  }
-  return out;
-};
+// Страницами, в однозначном порядке — см. lib/fetch-all.mjs.
+const getAll = path => fetchAll(env.SUPABASE_URL + '/rest/v1/' + path, H);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const LOG = join(ROOT, 'docs/subtopic-generation.log');
@@ -99,8 +92,8 @@ const слаг = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '')
   .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50);
 
 const [topics, subs] = await Promise.all([
-  getAll('topics?select=id,title,title_lv,description,grade,position&order=grade,position'),
-  getAll('subtopics?select=id,topic_id,code'),
+  getAll('topics?select=id,title,title_lv,description,grade,position&order=grade,position,id'),
+  getAll('subtopics?select=id,topic_id,code&order=id'),
 ]);
 const естьПодтемы = new Set(subs.map(s => s.topic_id));
 

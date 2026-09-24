@@ -23,6 +23,7 @@
  */
 
 import { readFileSync } from 'node:fs';
+import { fetchAll } from './lib/fetch-all.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 const argv = process.argv.slice(2);
@@ -304,16 +305,7 @@ async function main() {
   const H = { apikey: env.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + env.SUPABASE_ANON_KEY };
   /* Страницами по 1000: Supabase режет выдачу молча, и проверка после
      тысячной задачи тихо перестала бы видеть остальные. */
-  const readAll = async path => {
-    const rows = [];
-    for (let from = 0; ; from += 1000) {
-      const res = await fetch(env.SUPABASE_URL + path, { headers: { ...H, Range: `${from}-${from + 999}` } });
-      const chunk = await res.json();
-      if (!Array.isArray(chunk)) throw new Error('Supabase: ' + JSON.stringify(chunk).slice(0, 200));
-      rows.push(...chunk);
-      if (chunk.length < 1000) return rows;
-    }
-  };
+  const readAll = path => fetchAll(env.SUPABASE_URL + path, H);
   const tasks = await readAll('/rest/v1/tasks?select=id,title,grade,condition_latex,answer_latex&order=id');
 
   const stat = { passed: [], failed: [], skipped: {} };

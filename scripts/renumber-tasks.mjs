@@ -15,6 +15,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fetchAll } from './lib/fetch-all.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const APPLY = process.argv.includes('--apply');
@@ -27,22 +28,14 @@ const KEY = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY;
 if (!KEY) { console.error('нет SUPABASE_SERVICE_ROLE_KEY в .env'); process.exit(1); }
 const H = { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' };
 
-const getAll = async (path) => {
-  const out = [];
-  for (let f = 0; ; f += 1000) {
-    const res = await fetch(env.SUPABASE_URL + '/rest/v1/' + path, { headers: { ...H, Range: `${f}-${f + 999}` } });
-    const part = await res.json();
-    out.push(...part);
-    if (part.length < 1000) break;
-  }
-  return out;
-};
+// Страницами, в однозначном порядке — см. lib/fetch-all.mjs.
+const getAll = path => fetchAll(env.SUPABASE_URL + '/rest/v1/' + path, H);
 
 console.log('Загрузка данных из Supabase...');
 const [topics, tasks, subs] = await Promise.all([
-  getAll('topics?select=id,title,grade,position&order=grade,position&limit=1000'),
-  getAll('tasks?select=id,topic_id,subtopic_id,grade,position,created_at&limit=5000'),
-  getAll('subtopics?select=id,topic_id,position,code&limit=2000'),
+  getAll('topics?select=id,title,grade,position&order=grade,position,id'),
+  getAll('tasks?select=id,topic_id,subtopic_id,grade,position,created_at&order=id'),
+  getAll('subtopics?select=id,topic_id,position,code&order=id'),
 ]);
 
 const topicMap = new Map(topics.map(t => [t.id, t]));

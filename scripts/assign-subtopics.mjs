@@ -13,6 +13,7 @@ import { exitSafely } from './lib/exit-safely.mjs';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fetchAll } from './lib/fetch-all.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const APPLY = process.argv.includes('--apply');
@@ -35,16 +36,8 @@ const api = async (method, path, body) => {
   if (!res.ok) throw new Error(`${method} ${path} -> ${res.status} ${text.slice(0, 200)}`);
   return text ? JSON.parse(text) : null;
 };
-const getAll = async (path) => {
-  const out = [];
-  for (let f = 0; ; f += 1000) {
-    const res = await fetch(env.SUPABASE_URL + '/rest/v1/' + path, { headers: { ...H, Range: `${f}-${f + 999}` } });
-    const part = await res.json();
-    out.push(...part);
-    if (part.length < 1000) break;
-  }
-  return out;
-};
+// Страницами, в однозначном порядке — см. lib/fetch-all.mjs.
+const getAll = path => fetchAll(env.SUPABASE_URL + '/rest/v1/' + path, H);
 
 /* ── Разбор текста ────────────────────────────────────────────────────── */
 
@@ -87,9 +80,9 @@ const оценка = (задача, подтема) => {
 /* ── Данные ───────────────────────────────────────────────────────────── */
 
 const [topics, subs, tasks] = await Promise.all([
-  getAll('topics?select=id,title,grade,position'),
-  getAll('subtopics?select=id,topic_id,code,title,title_lv,position'),
-  getAll('tasks?select=id,topic_id,subtopic_id,title,condition_latex,answer_latex'),
+  getAll('topics?select=id,title,grade,position&order=id'),
+  getAll('subtopics?select=id,topic_id,code,title,title_lv,position&order=id'),
+  getAll('tasks?select=id,topic_id,subtopic_id,title,condition_latex,answer_latex&order=id'),
 ]);
 const темаПоId = new Map(topics.map(t => [t.id, t]));
 const подтемыТемы = new Map();

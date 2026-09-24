@@ -8,6 +8,7 @@
  * задачи теме программы и лишь потом исчезает.
  */
 import { exitSafely } from './lib/exit-safely.mjs';
+import { fetchAll } from './lib/fetch-all.mjs';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -31,21 +32,10 @@ const api = async (method, path, body, extra = {}) => {
   if (!res.ok) throw new Error(`${method} ${path} -> ${res.status} ${text.slice(0, 300)}`);
   return text ? JSON.parse(text) : null;
 };
-const get = p => api('GET', p);
 
-/* Задачи и темы читаем страницами: PostgREST отдаёт не больше тысячи строк. */
-const getAll = async (path) => {
-  const out = [];
-  for (let from = 0; ; from += 1000) {
-    const res = await fetch(env.SUPABASE_URL + '/rest/v1/' + path, {
-      headers: { ...H, Range: `${from}-${from + 999}` },
-    });
-    const part = await res.json();
-    out.push(...part);
-    if (part.length < 1000) break;
-  }
-  return out;
-};
+/* Задачи и темы читаем страницами: PostgREST отдаёт не больше тысячи строк.
+   Порядок однозначный — см. lib/fetch-all.mjs. */
+const getAll = path => fetchAll(env.SUPABASE_URL + '/rest/v1/' + path, H);
 
 /* ── Ручная разводка старых тем по программе ──────────────────────────────
    Совпадение по словам здесь не работает: «Формулы сокращённого умножения»
@@ -90,9 +80,9 @@ const cat = JSON.parse(readFileSync(join(ROOT, 'public/data/skola2030_topics.jso
   .filter(c => c.grade >= 1 && c.grade <= 9);
 
 const [topics, tasks, subjects] = await Promise.all([
-  getAll('topics?select=id,title,title_lv,description,description_lv,grade,subject_id,slug,position'),
-  getAll('tasks?select=id,topic_id,grade'),
-  get('subjects?select=id,slug'),
+  getAll('topics?select=id,title,title_lv,description,description_lv,grade,subject_id,slug,position&order=id'),
+  getAll('tasks?select=id,topic_id,grade&order=id'),
+  getAll('subjects?select=id,slug&order=id'),
 ]);
 const subjectId = Object.fromEntries(subjects.map(s => [s.slug, s.id]));
 const задачТемы = id => tasks.filter(t => t.topic_id === id).length;
@@ -210,7 +200,7 @@ for (const { t } of действия.удалить) await api('DELETE', `topics
 console.log(`удалено пустых тем: ${действия.удалить.length}`);
 
 /* ── Подтемы ── */
-const было = await getAll('subtopics?select=id,topic_id,code,slug');
+const было = await getAll('subtopics?select=id,topic_id,code,slug&order=id');
 const поКоду = new Map(было.map(s => [s.code, s]));
 let новых = 0, правок = 0;
 for (const c of cat) {

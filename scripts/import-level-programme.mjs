@@ -13,6 +13,7 @@ import { exitSafely } from './lib/exit-safely.mjs';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fetchAll } from './lib/fetch-all.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const APPLY = process.argv.includes('--apply');
@@ -34,16 +35,8 @@ const api = async (method, path, body, extra = {}) => {
   if (!res.ok) throw new Error(`${method} ${path} -> ${res.status} ${text.slice(0, 250)}`);
   return text ? JSON.parse(text) : null;
 };
-const getAll = async (path) => {
-  const out = [];
-  for (let f = 0; ; f += 1000) {
-    const res = await fetch(env.SUPABASE_URL + '/rest/v1/' + path, { headers: { ...H, Range: `${f}-${f + 999}` } });
-    const part = await res.json();
-    out.push(...part);
-    if (part.length < 1000) break;
-  }
-  return out;
-};
+// Страницами, в однозначном порядке — см. lib/fetch-all.mjs.
+const getAll = path => fetchAll(env.SUPABASE_URL + '/rest/v1/' + path, H);
 
 const слаг = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
   .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 46);
@@ -209,10 +202,10 @@ const курс = КУРСЫ[GRADE];
 if (!курс) { console.error('укажите --grade=11 или --grade=12'); await exitSafely(1); }
 
 const [subjects, topics, subs, tasks] = await Promise.all([
-  getAll('subjects?select=id,slug'),
-  getAll('topics?select=id,title,title_lv,grade,position,slug&limit=1000'),
-  getAll('subtopics?select=id,topic_id&limit=3000'),
-  getAll('tasks?select=id,topic_id&limit=2000'),
+  getAll('subjects?select=id,slug&order=id'),
+  getAll('topics?select=id,title,title_lv,grade,position,slug&order=id'),
+  getAll('subtopics?select=id,topic_id&order=id'),
+  getAll('tasks?select=id,topic_id&order=id'),
 ]);
 const разделId = Object.fromEntries(subjects.map(s => [s.slug, s.id]));
 const старые = topics.filter(t => t.grade === GRADE).sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
