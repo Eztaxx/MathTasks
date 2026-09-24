@@ -10,6 +10,7 @@
   };
   window.MathTasks = window.MathTasks || {};
   window.MathTasks.openLogin = openDialog;
+  const tr = (key, params) => (window.MathTasks.t || (k => k))(key, params);
 
   /* Сворачивание боковой панели: на десктопе — узкая полоса с иконками,
      на узких экранах — выдвижная панель поверх контента. */
@@ -24,7 +25,7 @@
     const isCollapsed = collapsed === '1';
     document.body.classList.toggle('sidebar-collapsed', isCollapsed);
     toggleButton.setAttribute('aria-expanded', String(!isCollapsed));
-    toggleButton.setAttribute('aria-label', isCollapsed ? 'Развернуть меню' : 'Свернуть меню');
+    toggleButton.setAttribute('aria-label', tr(isCollapsed ? 'menu_expand' : 'menu_collapse'));
   };
   const setSidebar = value => {
     collapsed = value ? '1' : '0';
@@ -32,6 +33,8 @@
     applySidebar();
   };
   applySidebar();
+  // Смена языка ставит кнопке общее «Меню» из data-i18n-aria — возвращаем точную подпись.
+  window.addEventListener('languagechange', applySidebar);
 
   toggleButton.addEventListener('click', () => setSidebar(collapsed !== '1'));
   scrim.addEventListener('click', () => setSidebar(true));
@@ -69,12 +72,12 @@
 
     errorElement.textContent = '';
     if (!client) {
-      errorElement.textContent = 'Сервис входа недоступен. Проверьте подключение к интернету и обновите страницу.';
+      errorElement.textContent = tr('login_unavailable');
       return;
     }
 
     submitButton.disabled = true;
-    submitButton.textContent = 'Входим…';
+    submitButton.textContent = tr('login_progress');
     try {
       const loginResult = await Promise.race([
         client.auth.signInWithPassword({
@@ -85,18 +88,18 @@
       ]);
       const { error } = loginResult;
       if (error) {
-        errorElement.textContent = 'Не удалось войти: ' + error.message;
+        errorElement.textContent = tr('login_failed', { error: error.message });
         return;
       }
       closeDialog();
       window.dispatchEvent(new Event('math-tasks:authenticated'));
     } catch (error) {
       errorElement.textContent = error.message === 'timeout'
-        ? 'Сервис входа не ответил за 12 секунд. Проверьте подключение к интернету или настройки Supabase.'
-        : 'Не удалось связаться с сервисом входа. Проверьте подключение к интернету.';
+        ? tr('login_timeout')
+        : tr('login_network');
     } finally {
       submitButton.disabled = false;
-      submitButton.textContent = 'Войти';
+      submitButton.textContent = tr('auth_submit');
     }
   });
 })();

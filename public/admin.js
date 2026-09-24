@@ -223,6 +223,14 @@
     return clean;
   };
 
+  /* У служебного заголовка «Задача №N» латышский такой же служебный —
+     «Uzdevums №N». Без него латышский посетитель видел русский заголовок:
+     так без перевода остались 284 задачи. */
+  const defaultTitleLv = title => {
+    const match = /^Задача №(\d+)$/.exec(String(title || '').trim());
+    return match ? `Uzdevums №${match[1]}` : null;
+  };
+
   // Одна форма работает и на создание, и на правку: id заполнен — значит правим.
   let editingSubjectId = null;
   let editingTopicId = null;
@@ -3694,9 +3702,10 @@ ${JSON.stringify(texts)}`;
     const defaultTitle = editingTaskId
       ? (taskIndex.find(t => t.id === editingTaskId)?.title || `Задача №${taskPos}`)
       : `Задача №${taskPos}`;
+    const title = form.get('title')?.trim() || defaultTitle;
     const payload = sanitizeTaskPayload({
-      title: form.get('title')?.trim() || defaultTitle,
-      title_lv: form.get('title_lv')?.trim() || null,
+      title,
+      title_lv: form.get('title_lv')?.trim() || defaultTitleLv(title),
       condition_latex: conditionInput.value.trim(),
       condition_latex_lv: conditionInputLv?.value.trim() || null,
       answer_latex: answerInput.value.trim() || null,
@@ -4946,7 +4955,7 @@ ${JSON.stringify(texts)}`;
       const payload = sanitizeTaskPayload({
         subtopic_id: subtopicId,
         title: titleVal,
-        title_lv: item.title_lv ? String(item.title_lv).trim() : null,
+        title_lv: item.title_lv ? String(item.title_lv).trim() : defaultTitleLv(titleVal),
         condition_latex: String(item.condition_latex).trim(),
         condition_latex_lv: item.condition_latex_lv ? String(item.condition_latex_lv).trim() : null,
         answer_latex: item.answer_latex ? String(item.answer_latex).trim() : null,

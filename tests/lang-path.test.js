@@ -63,9 +63,33 @@ describe('словарь: заголовки страниц на обоих яз
     expect(keys.filter(key => !i18n.TRANSLATIONS.lv[key])).toEqual([]);
   });
 
+  /* Повтор ключа внутри языка молча перекрывает первый: так новая строка
+     «В этой теме задач пока нет» подменялась старой «Пока пусто». */
+  it('ни один ключ не повторяется внутри языка', () => {
+    const source = readFileSync(new URL('../public/i18n.js', import.meta.url), 'utf8');
+    const block = (from, to) => source.slice(source.indexOf(from), source.indexOf(to));
+    for (const text of [block('    lv: {', '    ru: {'), block('    ru: {', 'let currentLang')]) {
+      const found = [...text.matchAll(/^ {6}([a-z0-9_]+):/gm)].map(match => match[1]);
+      expect(found.length).toBeGreaterThan(900);
+      expect(found.filter((key, i) => found.indexOf(key) !== i)).toEqual([]);
+    }
+  });
+
+  // Формы множественного числа у языков свои: _few и _many у русского, _zero у латышского.
+  it('каждый ключ есть на обоих языках', () => {
+    const plural = /_(zero|few|many)$/;
+    const { ru, lv } = i18n.TRANSLATIONS;
+    expect(Object.keys(ru).filter(key => !plural.test(key) && !(key in lv))).toEqual([]);
+    expect(Object.keys(lv).filter(key => !plural.test(key) && !(key in ru))).toEqual([]);
+  });
+
   it('t() с явным языком — так тексты берёт воркер', () => {
     expect(i18n.t('meta_grade_title', { grade: '6. klase' }, 'lv')).toBe('Uzdevumi — 6. klase');
     expect(i18n.t('meta_grade_title', { grade: '6 класс' }, 'ru')).toBe('Задачи — 6 класс');
+  });
+
+  it('t() подставляет значение как есть, «$&» не шаблон замены', () => {
+    expect(i18n.t('search_title_query', { query: 'a$&b' }, 'ru')).toBe('Поиск: «a$&b»');
   });
 });
 

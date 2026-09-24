@@ -62,7 +62,7 @@ try {
    Если код выкатили раньше миграций, PostgREST отвечает 400 на весь запрос.
    Поэтому набор полей выбирается адаптивно: пробуем с тегами, при ошибке
    откатываемся на полный без тегов, а при отсутствии колонок языка — на базовый. */
-const TASK_SELECT_WITH_TAGS = '*, task_tags(tags(id, slug, title, title_lv, description)), topics(title, title_lv, slug, description, description_lv, subjects(title, title_lv, icon))';
+const TASK_SELECT_WITH_TAGS = '*, task_tags(tags(id, slug, title, title_lv, description, description_lv)), topics(title, title_lv, slug, description, description_lv, subjects(title, title_lv, icon))';
 const TASK_SELECT_FULL = '*, topics(title, title_lv, slug, description, description_lv, subjects(title, title_lv, icon))';
 const TASK_SELECT_BASE = '*, topics(title, slug, description, subjects(title, icon))';
 let TASK_SELECT = TASK_SELECT_FULL;
@@ -89,7 +89,7 @@ async function detectMultilingualColumns() {
 
   // Проверяем наличие таблицы tags и task_tags (миграция 010)
   try {
-    const { data, error } = await db.from('tags').select('id, slug, title, title_lv, description').order('position');
+    const { data, error } = await db.from('tags').select('id, slug, title, title_lv, description, description_lv').order('position');
     if (!error && data && data.length > 0) {
       hasTagsSupport = true;
       allTags = data;
@@ -574,13 +574,13 @@ const FORMULAS_DATA = {
     { title: 'Свойства логарифмов', title_lv: 'Logaritmu īpašības', math: '\\log_a(xy) = \\log_a x + \\log_a y, \\quad \\log_a\\left(\\frac{x}{y}\\right) = \\log_a x - \\log_a y, \\quad \\log_a(x^k) = k\\log_a x' }
   ],
   geometry: [
-    { title: 'Теорема Пифагора', title_lv: 'Pitagora teorēma', math: 'a^2 + b^2 = c^2 \\quad (\\text{для прямого угла})' },
+    { title: 'Теорема Пифагора', title_lv: 'Pitagora teorēma', math: 'a^2 + b^2 = c^2 \\quad (\\text{для прямого угла})', math_lv: 'a^2 + b^2 = c^2 \\quad (\\text{taisnleņķa trijstūrī})' },
     { title: 'Площадь треугольника', title_lv: 'Trijstūra laukums', math: 'S = \\frac{1}{2}ah = \\frac{1}{2}ab \\sin \\gamma = \\sqrt{p(p-a)(p-b)(p-c)}' },
     { title: 'Теорема косинусов', title_lv: 'Kosinusu teorēma', math: 'c^2 = a^2 + b^2 - 2ab \\cos \\gamma' },
     { title: 'Теорема синусов', title_lv: 'Sinusu teorēma', math: '\\frac{a}{\\sin \\alpha} = \\frac{b}{\\sin \\beta} = \\frac{c}{\\sin \\gamma} = 2R' },
-    { title: 'Площадь параллелограмма и ромба', title_lv: 'Paralelograma un romba laukums', math: 'S = ah = ab \\sin \\alpha, \\quad S_{\\text{ромба}} = \\frac{1}{2}d_1 d_2' },
+    { title: 'Площадь параллелограмма и ромба', title_lv: 'Paralelograma un romba laukums', math: 'S = ah = ab \\sin \\alpha, \\quad S_{\\text{ромба}} = \\frac{1}{2}d_1 d_2', math_lv: 'S = ah = ab \\sin \\alpha, \\quad S_{\\text{romba}} = \\frac{1}{2}d_1 d_2' },
     { title: 'Площадь трапеции', title_lv: 'Trapeces laukums', math: 'S = \\frac{a + b}{2} \\cdot h' },
-    { title: 'Окружность и круг', title_lv: 'Riņķa līnija un riņķis', math: 'C = 2\\pi r, \\quad S = \\pi r^2, \\quad l_{\\text{дуги}} = \\frac{\\pi r \\alpha}{180^\\circ}' }
+    { title: 'Окружность и круг', title_lv: 'Riņķa līnija un riņķis', math: 'C = 2\\pi r, \\quad S = \\pi r^2, \\quad l_{\\text{дуги}} = \\frac{\\pi r \\alpha}{180^\\circ}', math_lv: 'C = 2\\pi r, \\quad S = \\pi r^2, \\quad l_{\\text{loka}} = \\frac{\\pi r \\alpha}{180^\\circ}' }
   ],
   trig: [
     { title: 'Основное тригонометрическое тождество', title_lv: 'Trigonometriskā pamatidentitāte', math: '\\sin^2 \\alpha + \\cos^2 \\alpha = 1, \\quad \\tan \\alpha = \\frac{\\sin \\alpha}{\\cos \\alpha}' },
@@ -620,7 +620,7 @@ function renderFormulasTab(category = 'algebra') {
   container.innerHTML = items.map(item => `
     <div class="formula-card">
       <div class="formula-card-title">${escapeHtml(isLv && item.title_lv ? item.title_lv : item.title)}</div>
-      <div class="formula-card-math">$${item.math}$</div>
+      <div class="formula-card-math">$${isLv && item.math_lv ? item.math_lv : item.math}$</div>
     </div>
   `).join('');
   typesetMath(container);
@@ -684,7 +684,7 @@ function renderFormulasDrawerList() {
     if (!query && key !== category) continue;
     for (const item of items) {
       if (query && !`${item.title} ${item.title_lv || ''}`.toLowerCase().includes(query)) continue;
-      found.push({ key, title: isLv && item.title_lv ? item.title_lv : item.title, math: item.math });
+      found.push({ key, title: isLv && item.title_lv ? item.title_lv : item.title, math: isLv && item.math_lv ? item.math_lv : item.math });
     }
   }
 
@@ -783,7 +783,7 @@ function toggleFavorite(taskId) {
       btn.setAttribute('aria-pressed', String(active));
     } else {
       btn.textContent = active ? tr('fav_added') : tr('fav_add');
-      btn.title = active ? 'В закладках' : 'Добавить в закладки';
+      btn.title = tr(active ? 'favorite_active' : 'favorite');
     }
   });
 
@@ -801,7 +801,8 @@ async function openRandomTask() {
   const { count, error: countError } = await scoped(
     db.from('tasks').select('id', { count: 'exact', head: true }).eq('is_published', true));
   if (countError || !count) {
-    alert(selectedGrade ? `В ${selectedGrade} классе задач пока нет.` : 'Задач пока нет.');
+    const tr = window.MathTasks.t || (k => k);
+    alert(selectedGrade ? tr('empty_tasks_grade', { grade: gradeLabel(selectedGrade) }) : tr('empty_tasks'));
     return;
   }
   const offset = Math.floor(Math.random() * count);
@@ -2084,7 +2085,9 @@ function renderTopicGroups(container, groups) {
     </div>
     ${topics.length
       ? `<div class="topic-grid">${topics.map((topic, index) => topicCard(topic, index, false)).join('')}</div>`
-      : `<p class="empty-state">${selectedGrade ? `В ${selectedGrade} классе тем нет.` : 'Тем пока нет.'}</p>`}
+      : `<p class="empty-state">${escapeHtml(selectedGrade
+        ? (window.MathTasks.t || (k => k))('empty_topics_grade', { grade: gradeLabel(selectedGrade) })
+        : (window.MathTasks.t || (k => k))('empty_topics'))}</p>`}
   </section>`).join('');
 }
 
@@ -2381,7 +2384,9 @@ async function loadHome() {
   const topics = topicsForGrade(allTopics);
   topicsElement.innerHTML = topics.length
     ? (selectedGrade ? topics : popularTopics(topics)).map((topic, index) => topicCard(topic, index, !selectedGrade)).join('')
-    : `<p class="empty-state">${selectedGrade ? `Тем для ${gradeLabel(selectedGrade)} пока нет.` : 'Темы ещё не добавлены.'}</p>`;
+    : `<p class="empty-state">${escapeHtml(selectedGrade
+      ? (window.MathTasks.t || (k => k))('empty_topics_grade', { grade: gradeLabel(selectedGrade) })
+      : (window.MathTasks.t || (k => k))('empty_topics'))}</p>`;
 
   // «Новые задачи» убраны: их место заняли задача дня и карточки ниже.
   renderHomeInsights();
@@ -2621,7 +2626,7 @@ function showSubject(slug) {
   const subject = subjects.find(item => item.slug === slug);
   const tr = window.MathTasks.t || (k => k);
   if (!subject) {
-    fillListHeader({ crumbs: [[tr('nav_home'), '/']], title: 'Раздел не найден', description: 'Возможно, его удалили или ссылка устарела.' });
+    fillListHeader({ crumbs: [[tr('nav_home'), '/']], title: tr('meta_not_found_subject'), description: tr('not_found_subject_desc') });
     setMeta(metaText('meta_not_found_subject'));
     return;
   }
@@ -3110,7 +3115,8 @@ let currentVisibleTasks = [];
 let filterOnlyUnsolved = false;
 let currentTasksSort = 'default';
 let shuffledTopicTasks = null;
-let currentListEmptyText = 'В этой теме задач пока нет.';
+// Пусто — текст по умолчанию из словаря: язык к моменту показа мог смениться.
+let currentListEmptyText = '';
 
 function renderCurrentTopicTasks() {
   const tr = window.MathTasks.t || (k => k);
@@ -3133,7 +3139,7 @@ function renderCurrentTopicTasks() {
 
   const emptyText = filterOnlyUnsolved
     ? tr('all_tasks_solved')
-    : currentListEmptyText;
+    : currentListEmptyText || tr('topic_tasks_empty');
 
   const showTopicLink = !currentActiveTopic;
   currentVisibleTasks = tasksToRender;
@@ -3251,7 +3257,7 @@ async function showTopic(slug) {
   const topic = allTopics.find(item => item.slug === slug);
   if (!topic) {
     currentActiveTopic = null;
-    fillListHeader({ crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/']], title: 'Тема не найдена', description: 'Возможно, её удалили или ссылка устарела.' });
+    fillListHeader({ crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/']], title: metaText('meta_not_found_topic'), description: metaText('not_found_topic_desc') });
     setMeta(metaText('meta_not_found_topic'));
     renderSidebar();
     return;
@@ -3281,7 +3287,7 @@ async function showTopic(slug) {
   filterOnlyUnsolved = false;
   currentTasksSort = 'default';
   shuffledTopicTasks = null;
-  currentListEmptyText = 'В этой теме задач пока нет.';
+  currentListEmptyText = (window.MathTasks.t || (k => k))('topic_tasks_empty');
 
   renderTopicHeaderMeta(topic, tasks);
 
@@ -3323,8 +3329,8 @@ async function showAllTasks() {
   showView('list');
   resetListBlocks();
   fillListHeader({
-    crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/'], gradeCrumb(), ['Все задачи', null]],
-    title: selectedGrade ? `Все задачи — ${gradeLabel(selectedGrade)}` : 'Все задачи'
+    crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/'], gradeCrumb(), [metaText('meta_all_tasks_title'), null]],
+    title: selectedGrade ? metaText('all_tasks_grade_title', { grade: gradeLabel(selectedGrade) }) : metaText('meta_all_tasks_title')
   });
   setMeta(selectedGrade ? metaText('meta_all_tasks_grade_title', { grade: gradeLabel(selectedGrade) }) : metaText('meta_all_tasks_title'),
     metaText('meta_all_tasks_desc'));
@@ -3353,7 +3359,9 @@ async function showAllTasks() {
   filterOnlyUnsolved = false;
   currentTasksSort = 'default';
   shuffledTopicTasks = null;
-  currentListEmptyText = selectedGrade ? `Задач для ${gradeLabel(selectedGrade)} пока нет.` : 'Задач пока нет.';
+  currentListEmptyText = selectedGrade
+    ? (window.MathTasks.t || (k => k))('empty_tasks_grade', { grade: gradeLabel(selectedGrade) })
+    : (window.MathTasks.t || (k => k))('empty_tasks');
   renderCurrentTopicTasks();
 }
 
@@ -3362,10 +3370,10 @@ async function showFavorites() {
   resetListBlocks();
   const favIds = getFavorites();
   fillListHeader({
-    crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/'], ['Мои закладки', null]],
-    title: 'Мои закладки',
-    description: 'Задачи, которые вы сохранили для повторения или разбора.',
-    meta: `<span class="search-count">Сохранено: ${favIds.length}</span>`
+    crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/'], [metaText('meta_favorites_title'), null]],
+    title: metaText('meta_favorites_title'),
+    description: metaText('favorites_desc'),
+    meta: `<span class="search-count">${escapeHtml(metaText('favorites_saved', { count: favIds.length }))}</span>`
   });
   setMeta(metaText('meta_favorites_title'), metaText('meta_favorites_desc'));
 
@@ -4611,7 +4619,7 @@ function renderCwOutcome(firstRun) {
     resCard.hidden = false;
     const mins = Math.floor(elapsedSec / 60);
     const secs = elapsedSec % 60;
-    const timeFormatted = `${mins} мин ${secs < 10 ? '0' : ''}${secs} сек`;
+    const timeFormatted = (window.MathTasks.t || (k => k))('cw_time_spent', { min: mins, sec: String(secs).padStart(2, '0') });
 
     resCard.innerHTML = `
       <div class="cw-result-inner">
@@ -4814,7 +4822,7 @@ async function showControlWorksCatalog() {
     `;
   }).filter(Boolean).join('');
 
-  container.innerHTML = html || `<p class="empty-state">Тем пока нет.</p>`;
+  container.innerHTML = html || `<p class="empty-state">${escapeHtml(tr('empty_topics'))}</p>`;
 }
 
 /* ── Поиск ────────────────────────────────────────────────────────── */
@@ -4831,18 +4839,20 @@ async function showSearch(rawQuery, acrossGrades) {
   if (searchInput.value !== query) searchInput.value = query;
 
   const scoped = selectedGrade && !acrossGrades;
-  const crumbs = [[(window.MathTasks.t || (k => k))('nav_home'), '/'], ['Поиск', null]];
+  const crumbs = [[(window.MathTasks.t || (k => k))('nav_home'), '/'], [metaText('meta_search_page_title'), null]];
 
   if (query.length < 2) {
-    fillListHeader({ crumbs, title: 'Поиск', description: 'Введите хотя бы два символа.' });
+    fillListHeader({ crumbs, title: metaText('meta_search_page_title'), description: metaText('search_min_chars') });
     return;
   }
 
   const needle = query.toLowerCase();
-  const matchesText = topic => topic.title.toLowerCase().includes(needle) || (topic.description || '').toLowerCase().includes(needle);
+  // Ищем на обоих языках: латышский посетитель набирает латышские слова.
+  const matchesText = topic => [topic.title, topic.title_lv, topic.description, topic.description_lv]
+    .some(text => (text || '').toLowerCase().includes(needle));
   const foundTopics = allTopics.filter(topic => matchesText(topic) && (!scoped || topic.grade === selectedGrade));
 
-  fillListHeader({ crumbs, title: `Поиск: «${query}»` });
+  fillListHeader({ crumbs, title: metaText('search_title_query', { query }) });
   setMeta(metaText('meta_search_title', { query }), metaText('meta_search_desc', { query }));
   // Ищем во всех классах — значит, у каждого результата видно, к какому классу он относится.
   renderTopicCards(listTopics, foundTopics, !scoped);
@@ -4877,7 +4887,8 @@ async function showSearch(rawQuery, acrossGrades) {
 
   const orClauses = [];
   if (safe) {
-    orClauses.push(`title.ilike.*${safe}*,condition_latex.ilike.*${safe}*,answer_latex.ilike.*${safe}*,answer_latex_lv.ilike.*${safe}*,solution_latex.ilike.*${safe}*`);
+    orClauses.push(['title', 'title_lv', 'condition_latex', 'condition_latex_lv', 'answer_latex', 'answer_latex_lv', 'solution_latex', 'solution_latex_lv']
+      .map(col => `${col}.ilike.*${safe}*`).join(','));
   }
   if (taggedTaskIds.length > 0) {
     orClauses.push(`id.in.(${taggedTaskIds.slice(0, 100).join(',')})`);
@@ -4895,9 +4906,9 @@ async function showSearch(rawQuery, acrossGrades) {
 
   const tasks = data || [];
   const counts = [
-    matchedTags.length ? `тегов: ${matchedTags.length}` : '',
-    foundTopics.length ? `тем: ${foundTopics.length}` : '',
-    `задач: ${tasks.length}`
+    matchedTags.length ? metaText('search_count_tags', { count: matchedTags.length }) : '',
+    foundTopics.length ? metaText('search_count_topics', { count: foundTopics.length }) : '',
+    metaText('search_count_tasks', { count: tasks.length })
   ].filter(Boolean).join(', ');
   const where = scoped ? (window.MathTasks.t || (k => k))('search_scope_grade', { grade: selectedGrade }) : (window.MathTasks.t || (k => k))('search_scope_all');
   // Из класса всегда есть выход: иначе человек решит, что задачи просто нет.
@@ -4918,8 +4929,8 @@ async function showSearch(rawQuery, acrossGrades) {
   `;
 
   renderTaskList(listTasks, tasks, (foundTopics.length || matchedTags.length)
-    ? 'Задач с таким текстом нет, но есть подходящие темы или теги выше.'
-    : 'Ничего не нашлось. Попробуйте другое слово.', { showGrade: !scoped, highlightQuery: query });
+    ? metaText('search_empty_but_topics')
+    : metaText('search_empty'), { showGrade: !scoped, highlightQuery: query });
 }
 
 /* Историю не засоряем: во время набора адрес заменяем, а не добавляем запись,
@@ -4973,8 +4984,8 @@ async function showTask(rawId) {
   const id = Number.parseInt(rawId, 10);
   const notFound = () => fillListHeader({
     crumbs: [[(window.MathTasks.t || (k => k))('nav_home'), '/']],
-    title: 'Задача не найдена',
-    description: 'Возможно, её удалили или ссылка устарела.'
+    title: metaText('meta_not_found_task'),
+    description: metaText('not_found_task_desc')
   });
   if (!Number.isFinite(id)) { notFound(); setMeta(metaText('meta_not_found_task')); return; }
 
@@ -5059,7 +5070,7 @@ async function renderSimilarTasks(task) {
     <ul class="similar-list">${picked.map(t => `<li>
       <a href="${taskPath(t)}">
         <span class="similar-name">${escapeHtml(loc(t, 'title'))}</span>
-        ${t.difficulty ? `<span class="similar-diff">${escapeHtml(t.difficulty)}</span>` : ''}
+        ${t.difficulty ? `<span class="similar-diff">${escapeHtml(difficultyText(t.difficulty))}</span>` : ''}
       </a></li>`).join('')}</ul>`;
   (document.querySelector('#task-nav') || listTasks).after(box);
 }
@@ -5080,7 +5091,7 @@ async function renderTaskNeighbours(task) {
   const nav = document.createElement('nav');
   nav.id = 'task-nav';
   nav.className = 'task-nav';
-  nav.setAttribute('aria-label', 'Соседние задачи темы');
+  nav.setAttribute('aria-label', (window.MathTasks.t || (k => k))('task_nav_aria'));
   nav.innerHTML = link(siblings[index - 1], (window.MathTasks.t || (k => k))('nav_prev_task'), 'prev') + link(siblings[index + 1], (window.MathTasks.t || (k => k))('nav_next_task'), 'next');
   if (nav.innerHTML) listTasks.after(nav);
 }
@@ -5149,9 +5160,9 @@ async function showTag(slug) {
 
   if (!tag) {
     fillListHeader({
-      crumbs: [[tr('nav_home'), '/'], [tagsListLabel, '/tags'], ['Тег не найден', null]],
-      title: 'Тег не найден',
-      description: 'Возможно, ссылка устарела или тег не существует.'
+      crumbs: [[tr('nav_home'), '/'], [tagsListLabel, '/tags'], [tr('meta_not_found_tag'), null]],
+      title: tr('meta_not_found_tag'),
+      description: tr('not_found_tag_desc')
     });
     setMeta(metaText('meta_not_found_tag'));
     renderSidebar();
@@ -5928,7 +5939,7 @@ document.addEventListener('click', event => {
     const url = `${location.origin}${path}`;
     copyToClipboard(url).then(ok => {
       if (ok) {
-        showToast('Ссылка на задачу скопирована в буфер обмена!');
+        showToast((window.MathTasks.t || (k => k))('toast_link_copied'));
         const label = copyLinkBtn.querySelector('span');
         const origText = label ? label.textContent : '';
         copyLinkBtn.classList.add('copied');
@@ -5942,7 +5953,7 @@ document.addEventListener('click', event => {
            его блокируют, и тогда обещание падало необработанной ошибкой.
            Показываем адрес хотя бы уведомлением. */
         try {
-          window.prompt('Скопируйте ссылку вручную:', url);
+          window.prompt((window.MathTasks.t || (k => k))('copy_link_manual'), url);
         } catch {
           showToast(url);
         }
@@ -5960,8 +5971,8 @@ document.addEventListener('click', event => {
     let conditionText = '';
     let titleText = '';
     if (task) {
-      titleText = task.title || '';
-      conditionText = task.condition_latex || '';
+      titleText = loc(task, 'title');
+      conditionText = loc(task, 'condition_latex');
     } else {
       const card = copyTextBtn.closest('.task');
       titleText = card?.querySelector('.task-title')?.textContent || '';
@@ -5969,14 +5980,15 @@ document.addEventListener('click', event => {
     }
     const path = task ? taskPath(task) : `/task/${taskId}`;
     const url = `${location.origin}${path}`;
-    const formatted = `${titleText}\n\nУсловие:\n${conditionText}\n\nСсылка: ${url}\n— MathTasks`;
+    const tr = window.MathTasks.t || (k => k);
+    const formatted = `${titleText}\n\n${tr('label_condition')}\n${conditionText}\n\n${tr('label_link')} ${url}\n— MathTasks`;
     copyToClipboard(formatted).then(ok => {
       if (ok) {
-        showToast('Текст условия скопирован в буфер обмена!');
+        showToast(tr('toast_text_copied'));
         const label = copyTextBtn.querySelector('span');
         const origText = label ? label.textContent : '';
         copyTextBtn.classList.add('copied');
-        if (label) label.textContent = (window.MathTasks.t || (k => k))('copied');
+        if (label) label.textContent = tr('copied');
         setTimeout(() => {
           copyTextBtn.classList.remove('copied');
           if (label) label.textContent = origText;
@@ -6425,8 +6437,7 @@ async function refreshSession() {
   accountButton.textContent = (window.MathTasks.t || (k => k))(user ? 'account_plain' : 'account_signin');
   accountEmail.textContent = user?.email || '';
   accountStatus.textContent = !user ? ''
-    : isAdmin ? 'Вы вошли как администратор. Панель управления на отдельной странице.'
-    : 'У этого аккаунта нет прав администратора.';
+    : (window.MathTasks.t || (k => k))(isAdmin ? 'account_status_admin' : 'account_status_no_admin');
   /* Ссылку на админку не держим в разметке скрытой: убрать hidden в
      инструментах разработчика может кто угодно. Создаём её только после
      того, как роль подтверждена запросом к profiles.
