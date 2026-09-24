@@ -1110,6 +1110,19 @@
   const GRADE_SLUGS = { 10: 'visparigais', 11: 'matematika-1', 12: 'matematika-2' };
   const gradeSlug = grade => GRADE_SLUGS[Number(grade)] || String(grade ?? '');
 
+  /* Обратное к gradeSlug: число из колонки grade задач и тем. Выбранный
+     уровень — слово, а колонка — smallint: 'matematika-1' в запросе база
+     отвергала (22P02), и поиск на уровнях падал. Уровень — ровно один
+     класс: у Optimālais задачи с grade 11, у Vispārīgais — с grade 10. */
+  const GRADE_NUMBERS = { visparigais: 10, 'matematika-1': 11, 'matematika-2': 12 };
+  const gradeNumber = grade => {
+    if (grade == null || grade === '') return null;
+    const level = GRADE_NUMBERS[grade];
+    if (typeof level === 'number') return level;
+    const num = Number(grade);
+    return Number.isInteger(num) ? num : null;
+  };
+
   const resolveDifficultyMix = (requestedDiff, index, total) => {
     if (requestedDiff !== 'mix') return requestedDiff;
     if (total <= 1) {
@@ -3099,6 +3112,7 @@
     missingAnswerNumbers,
     hintRevealsAnswer,
     gradeSlug,
+    gradeNumber,
     importDupKey,
     sanitizeSearch,
     KATEX_DELIMITERS,
