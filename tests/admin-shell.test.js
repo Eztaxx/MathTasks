@@ -108,7 +108,7 @@ describe('каркас админки: меню и экраны', () => {
       expect(js, text).toContain(text);
     }
     // Функции, на которых стоят проверки, должны быть в lib.js.
-    for (const name of ['isTaskAutoCheckable', 'answersDisagree', 'missingAnswerNumbers', 'hintStepsRevealAnswer', 'splitHintSteps', 'importDupKey']) {
+    for (const name of ['isTaskAutoCheckable', 'answersDisagree', 'missingAnswerNumbers', 'hintRevealsAnswer', 'importDupKey']) {
       expect(js, name).toContain(`lib.${name}`);
     }
   });

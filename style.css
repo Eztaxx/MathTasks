@@ -6810,26 +6810,6 @@ body.admin-page #ai-prompt-dialog .text-button{color:var(--adm-mute)}
 .ai-prompt-warn[hidden]{display:none}
 @media (max-width:640px){body.admin-page #ai-prompt-dialog .ai-prompt-controls{grid-template-columns:1fr 1fr}}
 
-/* Подсказка по шагам: номер шага в кружке, следующий — по кнопке. */
-.hint-steps{display:flex;flex-direction:column;gap:10px}
-.hint-step{display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;align-items:start}
-.hint-step[hidden]{display:none}
-.hint-step-num{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#fff1da;color:#b45309;font:800 12px Manrope,sans-serif}
-.hint-more{align-self:flex-start;display:inline-flex;align-items:center;gap:10px;min-height:36px;padding:6px 14px;border:1px solid #f5d08a;border-radius:9px;background:#fffaf0;color:#92400e;font:700 13px Manrope,sans-serif;cursor:pointer}
-.hint-more:hover{background:#fff1da}
-.hint-more:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}
-.hint-more[hidden]{display:none}
-.hint-more-count{font-weight:600;color:#b45309;opacity:.8}
-.hint-steps-done{margin:0;font-size:12.5px;color:var(--muted)}
-body.dark .hint-step-num{background:#3b2a10;color:#fbbf24}
-body.dark .hint-more{background:#1f1a10;border-color:#5b4214;color:#fcd34d}
-body.dark .hint-more:hover{background:#2a2110}
-@media(max-width:720px){.hint-more{align-self:stretch;justify-content:center}}
-/* Админка: шаги подсказки в предпросмотре и кнопка «+ шаг». */
-.adm-hint-step-btn{float:right;margin:-2px 0 4px;padding:2px 10px;border:1px solid #f5d08a;border-radius:7px;background:#fffaf0;color:#92400e;font:700 12px Manrope,sans-serif;cursor:pointer}
-.adm-preview-hint-step{display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px;align-items:start;margin-bottom:6px}
-.adm-preview-hint-num{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff1da;color:#b45309;font:800 11px Manrope,sans-serif}
-
 /* ── Дуэль на устный счёт ───────────────────────────────────────── */
 .duel-screen[hidden],.duel-notice[hidden],.duel-invite[hidden],.duel-choice[hidden],.duel-history[hidden],.duel-share[hidden]{display:none}
 .duel-notice{margin:0 0 14px;padding:10px 14px;border-radius:10px;background:#eef4ff;color:#1e3a8a;font:600 13.5px Manrope,sans-serif}
