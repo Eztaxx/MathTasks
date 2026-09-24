@@ -4,19 +4,32 @@
  *   node scripts/import-visparigais-programme.mjs            — сухой прогон
  *   node scripts/import-visparigais-programme.mjs --apply    — запись
  *
- * Источник — «Matemātika — vispārīgais līmenis. Темы и подтемы по программе
- * Skola2030 (средняя ступень, общий уровень, 210 ч)»: названия тем и подтем
- * на обоих языках взяты оттуда дословно. Описаний тем в документе нет —
- * они собраны из его же подтем.
+ * Источники:
+ * - темы 1–3, 6, 7 — «Matemātika — vispārīgais līmenis. Темы и подтемы по
+ *   программе Skola2030»: названия тем и подтем на обоих языках оттуда
+ *   дословно;
+ * - темы 4 и 5 — «Ceļa karte skolotājam. Matemātika (vispārīgais līmenis
+ *   profesionālās izglītības iestādēm)» VISC: в документе выше их подтемы
+ *   были восстановлены косвенно и с программой разошлись — не было векторов,
+ *   уравнения прямой и дробно-линейной функции, зато была арифметическая
+ *   прогрессия. Подтемы собраны по разделам «Temata apguves norise» и
+ *   «Sasniedzamie rezultāti» этих карт, часы — «Ieteicamais laiks».
+ * Описаний тем в источниках нет — они собраны из их же подтем.
  *
- * В отличие от Matemātika I и II (scripts/import-level-programme.mjs) старые
- * темы здесь не становятся подтемами: у программы свой готовый список
- * подтем. Поэтому переносятся задачи — каждая в подтему по смыслу, по
- * таблице ЗАДАЧИ ниже. Скрипт останавливается, если в старых темах нашлась
- * задача, которой нет в таблице, или если на старую тему ссылается
- * экзаменационный вариант: удаление темы снесло бы его каскадом.
+ * Два режима, выбираются сами:
+ * - замена: у уровня ещё старые темы. Создаются 7 тем и их подтемы, задачи
+ *   переезжают по таблице ЗАДАЧИ, старые темы удаляются. В отличие от
+ *   Matemātika I и II (scripts/import-level-programme.mjs) старые темы не
+ *   становятся подтемами: у программы свой готовый список подтем;
+ * - сверка: 7 тем программы уже в базе. Названия, описания и подтемы
+ *   правятся на месте, номера тем и подтем сохраняются, задачи
+ *   досортировываются. Так исправления программы не пересоздают каталог.
+ * Скрипт останавливается, если нашлась задача, которой нет в таблице, если
+ * на удаляемую тему ссылается экзаменационный вариант (удаление снесло бы
+ * его каскадом) или если лишняя подтема ещё держит задачи.
  */
 import { exitSafely } from './lib/exit-safely.mjs';
+import { fetchAll } from './lib/fetch-all.mjs';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -42,26 +55,16 @@ const api = async (method, path, body, extra = {}) => {
   if (!res.ok) throw new Error(`${method} ${path} -> ${res.status} ${text.slice(0, 250)}`);
   return text ? JSON.parse(text) : null;
 };
-const getAll = async (path) => {
-  const out = [];
-  for (let f = 0; ; f += 1000) {
-    const res = await fetch(env.SUPABASE_URL + '/rest/v1/' + path, { headers: { ...H, Range: `${f}-${f + 999}` } });
-    if (!res.ok) throw new Error(`GET ${path} -> ${res.status} ${(await res.text()).slice(0, 250)}`);
-    const part = await res.json();
-    out.push(...part);
-    if (part.length < 1000) break;
-  }
-  return out;
-};
+// Постранично и с явным порядком — общий помощник scripts/lib/fetch-all.mjs.
+const getAll = path => fetchAll(env.SUPABASE_URL + '/rest/v1/' + path, H);
 
 const слаг = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
   .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 46);
 
 /* ── Программа ─────────────────────────────────────────────────────
-   h — часы по документу; у тем 4 и 5 их нет (вместе 64 ч, деление в
-   источниках не указано), поэтому null. Раздел сайта подобран по разделу
-   экзамена: геометрия разложена на планиметрию и стереометрию, функции —
-   в свой раздел, как у остальных уровней. */
+   h — часы. Раздел сайта подобран по разделу экзамена: геометрия
+   разложена на планиметрию и стереометрию, функции — в свой раздел, как
+   у остальных уровней. */
 const ТЕМЫ = [
   {
     n: 1, h: 28, s: 'statistics',
@@ -112,35 +115,40 @@ const ТЕМЫ = [
     ],
   },
   {
-    n: 4, h: null, s: 'planimetrija',
+    /* Ceļa karte: «Plaknes figūras» → «Vektori ģeometriskā formā» →
+       «Vektori koordinātu formā» → «Vektori telpā. Telpas koordinātas» →
+       «Taisnes vienādojums». */
+    n: 4, h: 40, s: 'planimetrija',
     lv: 'Plaknes figūras praktiskos kontekstos', ru: 'Фигуры на плоскости в практических задачах',
-    d_ru: 'Треугольники и четырёхугольники, теорема Пифагора, тригонометрия прямоугольного треугольника, круг, периметр и площадь, масштаб.',
-    d_lv: 'Trijstūri un četrstūri, Pitagora teorēma, trigonometrija taisnleņķa trijstūrī, riņķis, perimetrs un laukums, mērogs.',
+    d_ru: 'Свойства и движения плоских фигур, площадь, векторы на плоскости и в пространстве, координаты, уравнение прямой.',
+    d_lv: 'Plaknes figūru īpašības un pārvietojumi, laukums, vektori plaknē un telpā, koordinātas, taisnes vienādojums.',
     под: [
-      ['Trijstūru veidi, trijstūra elementi', 'Виды треугольников, элементы треугольника'],
-      ['Trijstūru vienādības un līdzības pazīmes', 'Признаки равенства и подобия треугольников'],
-      ['Pitagora teorēma', 'Теорема Пифагора'],
-      ['Trigonometriskās sakarības taisnleņķa trijstūrī (sin α, cos α, tg α)', 'Тригонометрия в прямоугольном треугольнике (sin, cos, tg)'],
-      ['Četrstūru klasifikācija un īpašības', 'Классификация и свойства четырёхугольников'],
-      ['Riņķis un riņķa līnija', 'Круг и окружность'],
-      ['Plaknes figūru perimetrs un laukums', 'Периметр и площадь плоских фигур'],
-      ['Mērogs, līdzīgas figūras praktiskos uzdevumos', 'Масштаб, подобные фигуры в практических задачах'],
+      ['Sakarības starp trijstūra, četrstūra malām, leņķiem un raksturīgo nogriežņu garumiem', 'Соотношения между сторонами, углами и характерными отрезками треугольника и четырёхугольника'],
+      ['Plaknes figūru vienādība un līdzība', 'Равенство и подобие плоских фигур'],
+      ['Figūru laukums: sadalīšana daļās un papildināšana līdz pazīstamai figūrai', 'Площадь фигур: разбиение на части и достраивание до известной фигуры'],
+      ['Pārvietojumi: paralēlā pārnese, aksiālā simetrija, pagrieziens', 'Движения плоскости: параллельный перенос, осевая симметрия, поворот'],
+      ['Vektors, skalāri un vektoriāli lielumi; darbības ar vektoriem ģeometriskā formā', 'Вектор, скалярные и векторные величины; действия с векторами в геометрической форме'],
+      ['Vektora koordinātas un garums, darbības koordinātu formā; attālums starp punktiem, nogriežņa viduspunkts', 'Координаты и длина вектора, действия в координатах; расстояние между точками, середина отрезка'],
+      ['Vektori telpā, telpas koordinātas', 'Векторы в пространстве, координаты в пространстве'],
+      ['Taisnes vienādojums, virziena koeficients, argumenta un funkcijas pieaugums', 'Уравнение прямой, угловой коэффициент, приращение аргумента и функции'],
     ],
   },
   {
-    n: 5, h: null, s: 'funkcijas',
+    /* Ceļa karte: «Virknes» → «Funkcija» → «Daļveida funkcija» →
+       «Eksponentfunkcija». Арифметической прогрессии в карте нет. */
+    n: 5, h: 26, s: 'funkcijas',
     lv: 'Funkcijas kā reālu situāciju matemātiskais modelis', ru: 'Функции как модели реальных ситуаций',
-    d_ru: 'Понятие и свойства функции, линейная, квадратичная и показательная функции, прогрессии, моделирование реальных процессов.',
-    d_lv: 'Funkcijas jēdziens un īpašības, lineārā funkcija, kvadrātfunkcija un eksponentfunkcija, progresijas, reālu procesu modelēšana.',
+    d_ru: 'Числовые последовательности и геометрическая прогрессия, дробно-линейная и показательная функции, моделирование реальных процессов.',
+    d_lv: 'Skaitļu virknes un ģeometriskā progresija, daļveida funkcija un eksponentfunkcija, reālu procesu modelēšana.',
     под: [
-      ['Funkcijas jēdziens, attēlošanas veidi (tabula, formula, grafiks, apraksts)', 'Понятие функции, способы задания (таблица, формула, график, описание)'],
-      ['Funkcijas īpašības: definīcijas un vērtību apgabals, nulles, monotonitāte, lielākā/mazākā vērtība', 'Свойства: область определения и значений, нули, монотонность, наиб./наим. значение'],
-      ['Lineārā funkcija', 'Линейная функция'],
-      ['Kvadrātfunkcija', 'Квадратичная функция'],
-      ['Eksponentfunkcija: augšana un dilšana (saliktie procenti, amortizācija)', 'Показательная функция: рост и убывание (сложные проценты, амортизация)'],
-      ['Virkne kā naturāla argumenta funkcija', 'Последовательность как функция натурального аргумента'],
-      ['Aritmētiskā un ģeometriskā progresija', 'Арифметическая и геометрическая прогрессия'],
-      ['Reālu procesu modelēšana ar funkcijām (Excel, Desmos)', 'Моделирование реальных процессов функциями (Excel, Desmos)'],
+      ['Skaitļu virkņu veidi: augošas, dilstošas, konstantas, galīgas, bezgalīgas un maiņzīmju virknes', 'Виды числовых последовательностей: возрастающие, убывающие, постоянные, конечные, бесконечные и знакочередующиеся'],
+      ['Ģeometriskā progresija, vispārīgā locekļa formula, saliktie procenti', 'Геометрическая прогрессия, формула общего члена, сложные проценты'],
+      ['Funkcijas formula, grafiks un īpašības; lineārā funkcija un kvadrātfunkcija', 'Формула, график и свойства функции; линейная и квадратичная функции'],
+      ['Argumenta un funkcijas pieaugums, augošas un dilstošas funkcijas', 'Приращение аргумента и функции, возрастающие и убывающие функции'],
+      ['Daļveida funkcija un tās grafiks — hiperbola', 'Дробно-линейная функция и её график — гипербола'],
+      ['Eksponentfunkcija un tās grafiks — eksponente; saistība ar ģeometrisko progresiju', 'Показательная функция и её график — экспонента; связь с геометрической прогрессией'],
+      ['Vienkāršākie eksponentvienādojumi: saknes noteikšana no grafika un ar logaritma definīciju', 'Простейшие показательные уравнения: корень по графику и через определение логарифма'],
+      ['Situāciju raksturošana pēc grafika: lineāra funkcija, kvadrātfunkcija, daļveida funkcija, eksponentfunkcija', 'Описание ситуаций по графику: линейная, квадратичная, дробно-линейная и показательная функции'],
     ],
   },
   {
@@ -177,30 +185,30 @@ const ТЕМЫ = [
   },
 ];
 
-/* ── Куда переезжает каждая задача ─────────────────────────────────
+/* ── Куда ложится каждая задача ────────────────────────────────────
    Номер подтемы — «тема.подтема» из программы. ВНЕ — задача по теме,
-   которой в программе общего уровня нет; она ложится в ближайшую
-   подтему, а в отчёте помечается, чтобы её можно было потом перенести
-   на Matemātika I. */
+   которой в программе общего уровня нет; она лежит в ближайшей подтеме,
+   а в отчёте помечается, чтобы её можно было потом перенести на
+   Matemātika I. */
 const ЗАДАЧИ = {
   83:  ['3.3', 'расход топлива — пропорция'],
   84:  ['3.2', 'цена с PVN — проценты'],
-  85:  ['5.5', 'вклад со сложными процентами — рост по показательному закону'],
+  85:  ['5.2', 'вклад со сложными процентами — геометрическая прогрессия'],
   86:  ['6.1', 'выразить основание из формулы площади трапеции'],
   87:  ['6.8', 'участок: уравнение по условию задачи'],
   11:  ['6.3', 'дробное неравенство методом интервалов', 'ВНЕ'],
   88:  ['6.1', 'линейное неравенство равносильными преобразованиями'],
-  89:  ['5.1', 'значение функции, заданной формулой'],
+  89:  ['5.3', 'значение функции, заданной формулой'],
   90:  ['5.3', 'пересечение прямой с осью Ox'],
-  91:  ['5.4', 'вершина параболы'],
+  91:  ['5.3', 'вершина параболы'],
   92:  ['3.1', 'плата за электричество по счётчику'],
-  93:  ['4.4', 'лестница у стены — косинус угла'],
-  12:  ['4.4', 'теорема косинусов', 'ВНЕ'],
-  94:  ['4.4', 'теорема косинусов', 'ВНЕ'],
+  93:  ['4.1', 'лестница у стены — косинус угла'],
+  12:  ['4.1', 'теорема косинусов', 'ВНЕ'],
+  94:  ['4.1', 'теорема косинусов', 'ВНЕ'],
   95:  ['3.8', 'площадь поля в гектарах — перевод единиц'],
-  96:  ['4.8', 'масштаб карты'],
-  97:  ['4.8', 'высота столба по тени — подобие'],
-  98:  ['4.6', 'площадь круглой клумбы'],
+  96:  ['4.2', 'масштаб карты — подобие'],
+  97:  ['4.2', 'высота столба по тени — подобие'],
+  98:  ['4.3', 'площадь круглой клумбы'],
   99:  ['7.7', 'объём бассейна'],
   100: ['7.7', 'объём кучи песка — конус'],
   101: ['7.7', 'площадь сферы'],
@@ -221,72 +229,183 @@ for (const [id, [код]] of Object.entries(ЗАДАЧИ)) {
 }
 
 const [subjects, topics, subs, tasks, papers, paperTopics] = await Promise.all([
-  getAll('subjects?select=id,slug'),
-  getAll('topics?select=id,title,title_lv,grade,position,slug'),
-  getAll('subtopics?select=id,topic_id,slug'),
-  getAll('tasks?select=id,topic_id,subtopic_id,is_published'),
-  getAll('exam_papers?select=id,topic_id'),
-  getAll('exam_paper_topics?select=paper_id,topic_id'),
+  getAll('subjects?select=id,slug&order=id'),
+  getAll('topics?select=id,title,title_lv,description,description_lv,grade,position,slug,subject_id&order=id'),
+  getAll('subtopics?select=id,topic_id,slug,code,title,title_lv,position&order=id'),
+  getAll('tasks?select=id,topic_id,subtopic_id,is_published&order=id'),
+  getAll('exam_papers?select=id,topic_id&order=id'),
+  getAll('exam_paper_topics?select=paper_id,topic_id&order=paper_id,topic_id'),
 ]);
 const разделId = Object.fromEntries(subjects.map(s => [s.slug, s.id]));
 for (const т of ТЕМЫ) {
   if (!разделId[т.s]) { console.error(`раздела «${т.s}» в базе нет`); await exitSafely(1); }
 }
 
-const старые = topics.filter(t => t.grade === GRADE).sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-const старыеId = new Set(старые.map(t => t.id));
-const задачиСтарых = tasks.filter(t => старыеId.has(t.topic_id));
-const подтемыСтарых = subs.filter(s => старыеId.has(s.topic_id));
-
-console.log(`Vispārīgais līmenis: в базе тем ${старые.length}, подтем ${подтемыСтарых.length}, задач ${задачиСтарых.length}`);
-console.log(`Программа: тем ${ТЕМЫ.length}, подтем ${коды.size}`);
+const темыУровня = topics.filter(t => t.grade === GRADE).sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+const idУровня = new Set(темыУровня.map(t => t.id));
+const задачиУровня = tasks.filter(t => idУровня.has(t.topic_id));
 
 // Ни одна задача не должна остаться без места.
-const безМеста = задачиСтарых.filter(t => !ЗАДАЧИ[t.id]);
-const лишние = Object.keys(ЗАДАЧИ).map(Number).filter(id => !задачиСтарых.some(t => t.id === id));
-// Удаление темы каскадом снесёт экзаменационные варианты, привязанные к ней.
-const варианты = [...papers.filter(p => старыеId.has(p.topic_id)), ...paperTopics.filter(p => старыеId.has(p.topic_id))];
-
-console.log('\n── План ──');
-for (const т of ТЕМЫ) {
-  console.log(`${т.n}. ${т.lv} / ${т.ru}  [${т.s}${т.h ? `, ${т.h} ч` : ''}]`);
-  т.под.forEach(([lv, ru], i) => {
-    const код = `${т.n}.${i + 1}`;
-    const сюда = Object.entries(ЗАДАЧИ).filter(([, [к]]) => к === код);
-    console.log(`   ${GRADE}.${код}  ${ru}`);
-    for (const [id, [, что, метка]] of сюда) console.log(`            ← #${id} ${что}${метка ? '  [вне программы]' : ''}`);
-  });
-}
-
+const безМеста = задачиУровня.filter(t => !ЗАДАЧИ[t.id]);
 if (безМеста.length) {
-  console.log('\n✗ Задачи без места в таблице ЗАДАЧИ:');
+  console.log('✗ Задачи без места в таблице ЗАДАЧИ:');
   безМеста.forEach(t => console.log(`   #${t.id}`));
+  await exitSafely(1);
 }
-if (лишние.length) console.log(`\n! В таблице есть задачи, которых нет в старых темах: ${лишние.map(id => '#' + id).join(', ')}`);
-if (варианты.length) {
-  console.log('\n✗ На старые темы ссылаются экзаменационные варианты — удаление снесёт их:');
-  варианты.forEach(v => console.log('   ', JSON.stringify(v)));
-}
-if (безМеста.length || варианты.length) await exitSafely(1);
+const лишние = Object.keys(ЗАДАЧИ).map(Number).filter(id => !задачиУровня.some(t => t.id === id));
+if (лишние.length) console.log(`! В таблице есть задачи, которых нет на уровне: ${лишние.map(id => '#' + id).join(', ')}`);
 
-// Слаги: у тем — с префиксом уровня (по нему сайт узнаёт ступень), у подтем — с номером.
-const слагТемЗанят = new Set(topics.filter(t => !старыеId.has(t.id)).map(t => t.slug));
+const слагТемы = т => `${ПРЕФИКС}-${слаг(т.lv)}`;
+/* Тема программы уже в базе — если на уровне ровно её тема с тем же
+   слагом (или со слагом, которому при создании пришлось дописать номер). */
+const наМесте = т => темыУровня.find(t => t.slug === слагТемы(т) || t.slug === `${слагТемы(т)}-${т.n}`);
+const режимСверки = темыУровня.length === ТЕМЫ.length && ТЕМЫ.every(наМесте);
+
 const слагПодтемЗанят = new Set(subs.map(s => s.slug));
-const слагиТем = new Map();
-for (const т of ТЕМЫ) {
-  let slug = `${ПРЕФИКС}-${слаг(т.lv)}`;
-  if (слагТемЗанят.has(slug) || topics.some(t => t.slug === slug)) slug = `${slug}-${т.n}`;
-  слагТемЗанят.add(slug);
-  слагиТем.set(т.n, slug);
-}
-const слагПодтемы = (lv, код) => {
+const новыйСлагПодтемы = (lv, код) => {
   let slug = `${слаг(lv) || 'apakstema'}-${код.replace(/\./g, '-')}`;
   for (let k = 2; слагПодтемЗанят.has(slug); k++) slug = `${слаг(lv)}-${код.replace(/\./g, '-')}-${k}`;
   слагПодтемЗанят.add(slug);
   return slug;
 };
 
-console.log(`\nВне программы общего уровня: ${Object.values(ЗАДАЧИ).filter(z => z[2]).length} задач — лягут в ближайшие подтемы.`);
+const печатьПлана = () => {
+  console.log('\n── Программа ──');
+  for (const т of ТЕМЫ) {
+    console.log(`${т.n}. ${т.lv} / ${т.ru}  [${т.s}, ${т.h} ч]`);
+    т.под.forEach(([, ru], i) => {
+      const код = `${т.n}.${i + 1}`;
+      console.log(`   ${GRADE}.${код}  ${ru}`);
+      for (const [id, [к, что, метка]] of Object.entries(ЗАДАЧИ)) {
+        if (к === код) console.log(`            ← #${id} ${что}${метка ? '  [вне программы]' : ''}`);
+      }
+    });
+  }
+  console.log(`\nВне программы общего уровня: ${Object.values(ЗАДАЧИ).filter(z => z[2]).length} задач — лежат в ближайших подтемах.`);
+};
+
+console.log(`Vispārīgais līmenis: в базе тем ${темыУровня.length}, задач ${задачиУровня.length}`);
+console.log(`Программа: тем ${ТЕМЫ.length}, подтем ${коды.size}, часов ${ТЕМЫ.reduce((a, т) => a + т.h, 0)}`);
+console.log(`Режим: ${режимСверки ? 'сверка — темы программы уже в базе, правка на месте' : 'замена старых тем'}`);
+
+if (режимСверки) {
+  /* ── Сверка: правим на месте, номера сохраняются ───────────────── */
+  const правки = [];
+  const подтемаПоКоду = new Map();
+  const нужныеКоды = new Set();
+
+  for (const т of ТЕМЫ) {
+    const тема = наМесте(т);
+    const нужно = {
+      title: т.ru, title_lv: т.lv, description: т.d_ru, description_lv: т.d_lv,
+      position: т.n, subject_id: разделId[т.s],
+    };
+    const разница = Object.fromEntries(Object.entries(нужно).filter(([k, v]) => тема[k] !== v));
+    if (Object.keys(разница).length) {
+      правки.push({ что: `тема ${т.n}: ${Object.keys(разница).join(', ')}`, запрос: ['PATCH', `topics?id=eq.${тема.id}`, разница] });
+    }
+
+    т.под.forEach(([lv, ru], i) => {
+      const код = `${GRADE}.${т.n}.${i + 1}`;
+      нужныеКоды.add(`${тема.id}|${код}`);
+      const есть = subs.find(s => s.topic_id === тема.id && s.code === код);
+      if (!есть) {
+        правки.push({
+          что: `подтема ${код} создать: ${ru}`,
+          запрос: ['POST', 'subtopics', { topic_id: тема.id, title: ru, title_lv: lv, code: код, position: i + 1, slug: новыйСлагПодтемы(lv, код) }],
+          код: `${т.n}.${i + 1}`, тема,
+        });
+        return;
+      }
+      подтемаПоКоду.set(`${т.n}.${i + 1}`, { sub: есть, тема });
+      const разн = {};
+      if (есть.title !== ru) разн.title = ru;
+      if (есть.title_lv !== lv) {
+        разн.title_lv = lv;
+        // Слаг идёт за латышским названием: адрес подтемы должен совпадать с ней.
+        слагПодтемЗанят.delete(есть.slug);
+        разн.slug = новыйСлагПодтемы(lv, код);
+      }
+      if (есть.position !== i + 1) разн.position = i + 1;
+      if (Object.keys(разн).length) {
+        правки.push({ что: `подтема ${код}: ${есть.title} → ${ru}`, запрос: ['PATCH', `subtopics?id=eq.${есть.id}`, разн] });
+      }
+    });
+  }
+
+  // Подтемы уровня, которых в программе нет, — к удалению, но только пустые.
+  const лишниеПодтемы = subs.filter(s => idУровня.has(s.topic_id) && !нужныеКоды.has(`${s.topic_id}|${s.code}`));
+
+  console.log('\n── Правки ──');
+  правки.forEach(п => console.log('  ' + п.что));
+  лишниеПодтемы.forEach(s => console.log(`  подтема ${s.code} удалить: ${s.title}`));
+
+  // Задачи — туда, куда велит таблица; сравнивать можно, только когда все подтемы уже есть.
+  const переезды = [];
+  for (const [id, [код]] of Object.entries(ЗАДАЧИ)) {
+    const задача = задачиУровня.find(t => t.id === Number(id));
+    if (!задача) continue;
+    const место = подтемаПоКоду.get(код);
+    if (!место || задача.topic_id !== место.тема.id || задача.subtopic_id !== место.sub.id) переезды.push([Number(id), код]);
+  }
+  переезды.forEach(([id, код]) => console.log(`  задача #${id} → ${GRADE}.${код}`));
+  if (!правки.length && !лишниеПодтемы.length && !переезды.length) console.log('  расхождений нет');
+
+  печатьПлана();
+  if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); await exitSafely(0); }
+
+  console.log('\n=== запись ===');
+  for (const п of правки) {
+    const [method, path, body] = п.запрос;
+    const ответ = await api(method, path, body, method === 'POST' ? { Prefer: 'return=representation' } : {});
+    if (method === 'POST') подтемаПоКоду.set(п.код, { sub: ответ[0], тема: п.тема });
+  }
+  console.log(`правок тем и подтем: ${правки.length}`);
+
+  let перенесено = 0;
+  for (const [id, код] of переезды) {
+    const { sub, тема } = подтемаПоКоду.get(код);
+    await api('PATCH', `tasks?id=eq.${id}`, { topic_id: тема.id, subtopic_id: sub.id, grade: GRADE });
+    перенесено++;
+  }
+  console.log(`перенесено задач: ${перенесено}`);
+
+  // Удаляем лишнюю подтему, только если в ней не осталось задач.
+  const задачиПосле = await getAll('tasks?select=id,subtopic_id&order=id');
+  for (const s of лишниеПодтемы) {
+    const держит = задачиПосле.filter(t => t.subtopic_id === s.id);
+    if (держит.length) { console.log(`✗ подтема ${s.code} держит задачи ${держит.map(t => '#' + t.id).join(', ')} — не удалена`); continue; }
+    await api('DELETE', `subtopics?id=eq.${s.id}`);
+  }
+  console.log(`удалено лишних подтем: ${лишниеПодтемы.length}`);
+  console.log('\nготово. Дальше: scripts/renumber-tasks.mjs --apply, scripts/sync-catalog-from-db.mjs и scripts/make-subtopics-doc.mjs');
+  await exitSafely(0);
+}
+
+/* ── Замена: старые темы уходят, темы программы создаются заново ──── */
+const старые = темыУровня;
+const старыеId = idУровня;
+const подтемыСтарых = subs.filter(s => старыеId.has(s.topic_id));
+
+// Удаление темы каскадом снесёт экзаменационные варианты, привязанные к ней.
+const варианты = [...papers.filter(p => старыеId.has(p.topic_id)), ...paperTopics.filter(p => старыеId.has(p.topic_id))];
+if (варианты.length) {
+  console.log('\n✗ На старые темы ссылаются экзаменационные варианты — удаление снесёт их:');
+  варианты.forEach(v => console.log('   ', JSON.stringify(v)));
+  await exitSafely(1);
+}
+
+// Слаги: у тем — с префиксом уровня (по нему сайт узнаёт ступень), у подтем — с номером.
+const слагТемЗанят = new Set(topics.filter(t => !старыеId.has(t.id)).map(t => t.slug));
+const слагиТем = new Map();
+for (const т of ТЕМЫ) {
+  let slug = слагТемы(т);
+  if (слагТемЗанят.has(slug) || topics.some(t => t.slug === slug)) slug = `${slug}-${т.n}`;
+  слагТемЗанят.add(slug);
+  слагиТем.set(т.n, slug);
+}
+
+печатьПлана();
 console.log(`Удалятся: ${старые.length} старых тем и с ними ${подтемыСтарых.length} подтем.`);
 
 if (!APPLY) { console.log('\nСухой прогон. Запись: --apply'); await exitSafely(0); }
@@ -314,7 +433,7 @@ for (const т of ТЕМЫ) {
     const код = `${GRADE}.${т.n}.${i + 1}`;
     const [sub] = await api('POST', 'subtopics', {
       topic_id: тема.id, title: ru, title_lv: lv,
-      code: код, position: i + 1, slug: слагПодтемы(lv, код),
+      code: код, position: i + 1, slug: новыйСлагПодтемы(lv, код),
     }, { Prefer: 'return=representation' });
     подтемаПоКоду.set(`${т.n}.${i + 1}`, { sub, тема });
   }
@@ -330,7 +449,7 @@ for (const [id, [код]] of Object.entries(ЗАДАЧИ)) {
 console.log(`перенесено задач: ${перенесено}`);
 
 // Старые темы удаляем, только когда в них не осталось ни одной задачи.
-const остались = (await getAll('tasks?select=id,topic_id')).filter(t => старыеId.has(t.topic_id));
+const остались = (await getAll('tasks?select=id,topic_id&order=id')).filter(t => старыеId.has(t.topic_id));
 if (остались.length) {
   console.log(`✗ В старых темах остались задачи (${остались.map(t => '#' + t.id).join(', ')}) — старые темы не удалены.`);
   await exitSafely(1);

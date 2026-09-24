@@ -673,227 +673,96 @@
 
 ## 10 класс
 
-### 10.1. Числовые расчеты в жизненных ситуациях
+### 10.1. Множества и вероятность
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `10.1.1` | Порядок действий и округление чисел | Darbību secība un skaitļu noapaļošana |
-| `10.1.2` | Отношения и пропорции в расчетах | Attiecības un proporcijas aprēķinos |
-| `10.1.3` | Измерение величин и погрешности | Lielumu mērījumi un kļūdas |
-| `10.1.4` | Практические расчеты по формулам | Praktiski aprēķini pēc formulām |
+| `10.1.1` | Множество, элемент, подмножество | Kopa, elements, apakškopa |
+| `10.1.2` | Конечные и бесконечные множества | Galīgas un bezgalīgas kopas |
+| `10.1.3` | Операции: пересечение, объединение, разность, дополнение | Darbības ar kopām: šķēlums, apvienojums, starpība, papildinājums |
+| `10.1.4` | Диаграммы Эйлера–Венна | Eilera–Venna diagrammas |
+| `10.1.5` | Случайное событие, элементарные исходы, пространство исходов | Nejaušs notikums, elementārnotikumi, notikumu telpa |
+| `10.1.6` | Абсолютная и относительная частота | Absolūtais un relatīvais biežums |
+| `10.1.7` | Статистическая вероятность | Statistiskā varbūtība |
+| `10.1.8` | Классическая вероятность, вычисление вероятности | Klasiskā varbūtība, varbūtības aprēķināšana |
 
-### 10.2. Проценты, кредиты и финансовые расчеты
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.2.1` | Понятие процента и базовые задачи | Procentu jēdziens un pamata uzdevumi |
-| `10.2.2` | Сложные проценты и изменение величин | Saliktie procenti un lielumu izmaiņas |
-| `10.2.3` | Кредиты, займы и выплаты | Kredīti, aizdevumi un atmaksa |
-| `10.2.4` | Семейный бюджет и финансовое планирование | Ģimenes budžets un finanšu plānošana |
-
-### 10.3. Преобразование выражений и работа с формулами
+### 10.2. Элементы статистики
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `10.3.1` | Арифметические операции с многочленами | Aritmētiskās darbības ar daudzdokļiem |
-| `10.3.2` | Формулы сокращенного умножения | Saīsinātās reizināšanas formulas |
-| `10.3.3` | Разложение выражений на множители | Izteiksmju sadalīšana reizinātājos |
-| `10.3.4` | Преобразование рациональных выражений | Racionālu izteiksmju pārveidošana |
-| `10.3.5` | Выражение переменной из формулы | Mainīgā izteikšana no formulas |
+| `10.2.1` | Генеральная совокупность и выборка | Ģenerālkopa un izlase |
+| `10.2.2` | Типы данных: количественные и категориальные | Datu veidi: kvantitatīvie un kategoriālie |
+| `10.2.3` | Сведение данных в таблицы | Datu apkopošana tabulās |
+| `10.2.4` | Диаграммы: столбчатые, линейные, круговые, гистограмма, «ящик с усами» | Datu attēlošana: stabiņu, līniju, sektoru diagrammas, histogramma, kastu diagramma |
+| `10.2.5` | Меры центра: среднее, медиана, мода | Centrālās tendences rādītāji: vidējais aritmētiskais, mediāna, moda |
+| `10.2.6` | Меры разброса: размах, квартили, межквартильный размах, стандартное отклонение | Izkliedes rādītāji: amplitūda, kvartiles, starpkvartiļu izkliede, standartnovirze |
+| `10.2.7` | Анализ связи двух переменных (диаграмма рассеяния) | Divu mainīgo sakarības analīze (izkliedes diagramma) |
+| `10.2.8` | Интерпретация данных и выводы | Datu interpretācija un secinājumi |
 
-### 10.4. Линейные и квадратные уравнения в практическом контексте
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.4.1` | Решение линейных уравнений | Lineāru vienādojumu risināšana |
-| `10.4.2` | Составление уравнений по тексту задачи | Vienādojumu sastādīšana pēc teksta uzdevuma |
-| `10.4.3` | Решение квадратных уравнений | Kvadrātvienādojumu risināšana |
-| `10.4.4` | Применение квадратных уравнений в геометрии и физике | Kvadrātvienādojumu lietojums ģeometrijā un fizikā |
-
-### 10.5. Неравенства и числовые промежутки
+### 10.3. Вычисления в жизненных ситуациях
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `10.5.1` | Числовые промежутки и их обозначения | Skaitļu intervāli un to apzīmējumi |
-| `10.5.2` | Решение линейных неравенств | Lineāru nevienādību risināšana |
-| `10.5.3` | Системы линейных неравенств | Lineāru nevienādību sistēmas |
-| `10.5.4` | Оценка погрешностей с помощью неравенств | Kļūdu novērtēšana, izmantojot nevienādības |
+| `10.3.1` | Действия с рациональными числами | Darbības ar racionāliem skaitļiem |
+| `10.3.2` | Проценты, процентные пункты | Procenti, procentu punkti |
+| `10.3.3` | Отношения и пропорции | Attiecības un proporcijas |
+| `10.3.4` | Степень с целым и рациональным показателем, свойства степеней | Pakāpe ar veselu un racionālu kāpinātāju, pakāpju īpašības |
+| `10.3.5` | Корень n-й степени, действия с корнями | n-tās pakāpes sakne, darbības ar saknēm |
+| `10.3.6` | Стандартный вид числа | Skaitļa standartforma (normālforma) |
+| `10.3.7` | Логарифм, определение логарифма | Logaritms, logaritma definīcija |
+| `10.3.8` | Приближённые вычисления, округление, перевод единиц | Tuvinātie aprēķini, noapaļošana, mērvienību pārveidošana |
 
-### 10.6. Функция как зависимость между величинами
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.6.1` | Понятие функции и способы ее задания | Funkcijas jēdziens un tās uzdošanas veidi |
-| `10.6.2` | График функции и его чтение | Funkcijas grafiks un tā nolasīšana |
-| `10.6.3` | Линейная функция и ее свойства | Lineāra funkcija un tās īpašības |
-| `10.6.4` | Квадратичная функция и ее свойства | Kvadrātfunkcija un tās īpašības |
-| `10.6.5` | Моделирование реальных процессов с помощью функций | Reālu procesu modelēšana, izmantojot funkcijas |
-
-### 10.7. Линейная функция и её применение
+### 10.4. Фигуры на плоскости в практических задачах
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `10.7.1` | Понятие линейной функции и её график | Lineāras funkcijas jēdziens un tās grafiks |
-| `10.7.2` | Угловой коэффициент и пересечение с осями | Virziena koeficients un krustpunkti ar asīm |
-| `10.7.3` | Составление уравнения прямой по заданным условиям | Taisnes vienādojuma sastādīšana pēc dotiem nosacījumie |
-| `10.7.4` | Решение текстовых задач с помощью линейной функции | Teksta uzdevumu risināšana, izmantojant lineāru funkciju |
+| `10.4.1` | Соотношения между сторонами, углами и характерными отрезками треугольника и четырёхугольника | Sakarības starp trijstūra, četrstūra malām, leņķiem un raksturīgo nogriežņu garumiem |
+| `10.4.2` | Равенство и подобие плоских фигур | Plaknes figūru vienādība un līdzība |
+| `10.4.3` | Площадь фигур: разбиение на части и достраивание до известной фигуры | Figūru laukums: sadalīšana daļās un papildināšana līdz pazīstamai figūrai |
+| `10.4.4` | Движения плоскости: параллельный перенос, осевая симметрия, поворот | Pārvietojumi: paralēlā pārnese, aksiālā simetrija, pagrieziens |
+| `10.4.5` | Вектор, скалярные и векторные величины; действия с векторами в геометрической форме | Vektors, skalāri un vektoriāli lielumi; darbības ar vektoriem ģeometriskā formā |
+| `10.4.6` | Координаты и длина вектора, действия в координатах; расстояние между точками, середина отрезка | Vektora koordinātas un garums, darbības koordinātu formā; attālums starp punktiem, nogriežņa viduspunkts |
+| `10.4.7` | Векторы в пространстве, координаты в пространстве | Vektori telpā, telpas koordinātas |
+| `10.4.8` | Уравнение прямой, угловой коэффициент, приращение аргумента и функции | Taisnes vienādojums, virziena koeficients, argumenta un funkcijas pieaugums |
 
-### 10.8. Квадратичная функция и её график
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.8.1` | Определение квадратичной функции и парабола | Kvadrātfunkcijas definīcija un parabola |
-| `10.8.2` | Вершина параболы и ось симметрии | Parabolas virsotne un simetrijas ass |
-| `10.8.3` | Построение графика квадратичной функции | Kvadrātfunkcijas grafika uzzīmēšana |
-| `10.8.4` | Нахождение нулей функции и экстремумов | Funkcijas nullpunktu un ekstrēmu atrašana |
-
-### 10.9. Чтение графиков и таблиц в реальных данных
+### 10.5. Функции как модели реальных ситуаций
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `10.9.1` | Извлечение информации из таблиц и диаграмм | Informācijas ieguve no tabulām un diagrammām |
-| `10.9.2` | Интерпретация графиков реальных процессов | Reālu procesu grafiku interpretācija |
-| `10.9.3` | Анализ динамики изменения величин | Lielumu izmaiņu dinamikas analīze |
-| `10.9.4` | Сравнение данных и формулировка выводов | Datu salīdzināšana un secinājumu formulēšana |
+| `10.5.1` | Виды числовых последовательностей: возрастающие, убывающие, постоянные, конечные, бесконечные и знакочередующиеся | Skaitļu virkņu veidi: augošas, dilstošas, konstantas, galīgas, bezgalīgas un maiņzīmju virknes |
+| `10.5.2` | Геометрическая прогрессия, формула общего члена, сложные проценты | Ģeometriskā progresija, vispārīgā locekļa formula, saliktie procenti |
+| `10.5.3` | Формула, график и свойства функции; линейная и квадратичная функции | Funkcijas formula, grafiks un īpašības; lineārā funkcija un kvadrātfunkcija |
+| `10.5.4` | Приращение аргумента и функции, возрастающие и убывающие функции | Argumenta un funkcijas pieaugums, augošas un dilstošas funkcijas |
+| `10.5.5` | Дробно-линейная функция и её график — гипербола | Daļveida funkcija un tās grafiks — hiperbola |
+| `10.5.6` | Показательная функция и её график — экспонента; связь с геометрической прогрессией | Eksponentfunkcija un tās grafiks — eksponente; saistība ar ģeometrisko progresiju |
+| `10.5.7` | Простейшие показательные уравнения: корень по графику и через определение логарифма | Vienkāršākie eksponentvienādojumi: saknes noteikšana no grafika un ar logaritma definīciju |
+| `10.5.8` | Описание ситуаций по графику: линейная, квадратичная, дробно-линейная и показательная функции | Situāciju raksturošana pēc grafika: lineāra funkcija, kvadrātfunkcija, daļveida funkcija, eksponentfunkcija |
 
-### 10.10. Тригонометрические соотношения в прямоугольном треугольнике
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.10.1` | Синус, косинус и тангенс острого угла | Šaura leņķa sinuss, kosinuss un tangenss |
-| `10.10.2` | Вычисление сторон и углов прямоугольного треугольника | Taisnleņķa trijstūra malu un leņķu aprēķināšana |
-| `10.10.3` | Основное тригонометрическое тождество | Pamata trigonometriskā identitāte |
-| `10.10.4` | Применение тригонометрии в практических задачах | Trigonometrijas lietojums praktiskos uzdevumos |
-
-### 10.11. Применение теорем синусов и косинусов
+### 10.6. Алгебраические модели в реальных ситуациях
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `10.11.1` | Теорема синусов и её применение | Sinusu teorēma un tās lietojums |
-| `10.11.2` | Теорема косинусов и её применение | Kosinusu teorēma un tās lietojums |
-| `10.11.3` | Вычисление площади треугольника через две стороны и угол | Trijstūra laukuma aprēķināšana, izmantojot divas malas un leņķi |
-| `10.11.4` | Решение произвольных треугольников | Patvaļīgu trijstūru risināšana |
+| `10.6.1` | Тождественные и равносильные преобразования | Identiski un ekvivalenti pārveidojumi |
+| `10.6.2` | Методы решения уравнений: разложение на множители, замена, графический метод | Vienādojumu risināšanas metodes: sadalīšana reizinātājos, substitūcija, grafiskā metode |
+| `10.6.3` | Алгебраические дроби, область определения рационального выражения | Algebriskās daļas, racionālas izteiksmes definīcijas apgabals |
+| `10.6.4` | Сокращение, умножение, сложение и вычитание алгебраических дробей | Algebrisko daļu saīsināšana, reizināšana, saskaitīšana un atņemšana |
+| `10.6.5` | Дробные уравнения | Daļveida vienādojumi |
+| `10.6.6` | Показательные уравнения (свойства степеней, определение логарифма) | Eksponentvienādojumi (pakāpju īpašības, logaritma definīcija) |
+| `10.6.7` | Системы уравнений с двумя неизвестными, решение как упорядоченная пара | Vienādojumu sistēmas ar diviem nezināmajiem, atrisinājums kā sakārtots skaitļu pāris |
+| `10.6.8` | Текстовые задачи: составление уравнений | Teksta uzdevumu modelēšana ar vienādojumiem |
 
-### 10.12. Периметр, площадь и единицы измерения
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.12.1` | Единицы измерения длины, площади и их перевод | Garuma un laukuma mērvienības un to pārveidošana |
-| `10.12.2` | Периметр и площадь многоугольников | Daudzstūru perimetrs un laukums |
-| `10.12.3` | Длина окружности и площадь круга | Riņķa līnijas garums un riņķa laukums |
-| `10.12.4` | Вычисление площади сложных составных фигур | Saliktu figūru laukuma aprēķināšana |
-
-### 10.13. Масштаб, планы и карты местности
+### 10.7. Пространственные тела в практических задачах
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `10.13.1` | Понятие масштаба и перевод величин | Mēroga jēdziens un lielumu pārrēķins |
-| `10.13.2` | Расстояние на карте и на местности | Attālums kartē un apvidū |
-| `10.13.3` | Чтение планов и карт местности | Plānu un karšu lasīšana |
-| `10.13.4` | Практические расчеты по картам | Praktiski aprēķini pēc kartēm |
-
-### 10.14. Подобие треугольников в практических задачах
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.14.1` | Признаки подобия треугольников | Trijstūru līdzības pazīmes |
-| `10.14.2` | Отношение площадей и периметров подобных фигур | Līdzīgu figūru laukumu un perimetru attiecība |
-| `10.14.3` | Измерение недоступных расстояний | Nezināmu attālumu mērīšana |
-| `10.14.4` | Применение подобия в прикладных задачах | Līdzības lietojums lietišķajos uzdevumos |
-
-### 10.15. Окружность и площадь круга
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.15.1` | Длина окружности и число пи | Riņķa līnijas garums un skaitlis pi |
-| `10.15.2` | Площадь круга и его частей | Riņķa un tā daļu laukums |
-| `10.15.3` | Длина дуги и площадь сектора | Loka garums un sektora laukums |
-| `10.15.4` | Практические расчеты с окружностями | Praktiski aprēķini ar riņķa līnijām |
-
-### 10.16. Объём и площадь поверхности призмы и цилиндра
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.16.1` | Элементы и развертки призмы и цилиндра | Prizmas un cilindra elementi un izklājumi |
-| `10.16.2` | Площадь поверхности призмы и цилиндра | Prizmas un cilindra virsmas laukums |
-| `10.16.3` | Объем призмы и цилиндра | Prizmas un cilindra tilpums |
-| `10.16.4` | Комбинированные геометрические тела | Kombinēti ģeometriskie ķermeņi |
-
-### 10.17. Объём пирамиды и конуса
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.17.1` | Элементы пирамиды и конуса | Piramīdas un konusa elementi |
-| `10.17.2` | Площадь поверхности пирамиды и конуса | Piramīdas un konusa virsmas laukums |
-| `10.17.3` | Объем пирамиды и конуса | Piramīdas un konusa tilpums |
-| `10.17.4` | Задачи с составными пространственными фигурами | Uzdevumi ar saliktām telpiskām figūrām |
-
-### 10.18. Объём и площадь поверхности шара и сферы
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.18.1` | Элементы шара и сферы | Lodes un sfēras elementi |
-| `10.18.2` | Площадь поверхности сферы | Sfēras virsmas laukums |
-| `10.18.3` | Объем шара | Lodes tilpums |
-| `10.18.4` | Применение формул шара в реальных условиях | Lodes formulas lietojums reālajās situācijās |
-
-### 10.19. Расчёт материалов и затрат на строительство/ремонт
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.19.1` | Расчёт площади и периметра поверхностей для ремонта | Virsmu laukuma un perimetra aprēķins remontam |
-| `10.19.2` | Определение запаса материалов и их количества | Materiālu daudzuma un rezerves noteikšana |
-| `10.19.3` | Расчёт стоимости материалов по прайс-листам | Materiālu izmaksu aprēķins pēc cenu lapām |
-| `10.19.4` | Итоговая сметная стоимость строительных работ | Būvdarbu kopējā tāmes vērtība |
-
-### 10.20. Сбор, группировка и представление данных
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.20.1` | Способы сбора данных и генеральная совокупность | Datu vākšanas veidi un ģenerālkopa |
-| `10.20.2` | Группировка данных и частотные таблицы | Datu grupēšana un biežumu tabulas |
-| `10.20.3` | Построение гистограмм и статистических таблиц | Histogrammu un statistisko tabulu veidošana |
-
-### 10.21. Средние величины и статистический размах
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.21.1` | Вычисление выборочного среднего значения | Izlases vidējās vērtības aprēķins |
-| `10.21.2` | Нахождение медианы и моды ряда данных | Datu rindas mediānas un modas atrašana |
-| `10.21.3` | Оценка размаха и вариации данных | Datu virziena un izkliedes novērtējums |
-
-### 10.22. Чтение и критический анализ диаграмм
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.22.1` | Чтение столбчатых и круговых диаграмм | Stabiņu un sektoru diagrammu lasīšana |
-| `10.22.2` | Анализ трендов по линейным графикам | Trendu analīze pēc līnijas diagrammām |
-| `10.22.3` | Критическая оценка манипуляций с данными | Kritisks datu manipulāciju novērtējums |
-
-### 10.23. Основные правила комбинаторики
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.23.1` | Правила суммы и произведения в комбинаторике | Saskaitīšanas un reizināšanas likumi kombinatorikā |
-| `10.23.2` | Перестановки и размещения элементов | Elementu permutācijas un izvietojumi |
-| `10.23.3` | Сочетания и их применение в задачах | Kombinācijas un to pielietojums uzdevumos |
-
-### 10.24. Вероятность в повседневных ситуациях
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.24.1` | Классическое определение вероятности | Klasiskā varbūtības definīcija |
-| `10.24.2` | Сумма и произведение вероятностей событий | Notikumu varbūtību summa un reizinājums |
-| `10.24.3` | Оценка рисков в жизненных ситуациях | Risku novērtējums dzīves situācijās |
-
-### 10.25. Независимые события и произведение вероятностей
-
-| Номер | Подтема | Apakštēma |
-| :--- | :--- | :--- |
-| `10.25.1` | Понятие независимых событий | Neatkarīgu notikumu jēdziens |
-| `10.25.2` | Правило умножения вероятностей | Varbūtību reizināšanas likums |
-| `10.25.3` | Вероятность появления хотя бы одного события | Vismaz viena notikuma iestāšanās varbūtība |
-| `10.25.4` | Решение прикладных вероятностных задач | Praktisku varbūtību uzdevumu risināšana |
+| `10.7.1` | Взаимное расположение прямых и плоскостей (пересекающиеся, параллельные, скрещивающиеся) | Taišņu un plakņu savstarpējais novietojums telpā (krustiskas, paralēlas, šķērsas taisnes) |
+| `10.7.2` | Изображение тел, параллельное проецирование | Telpisku ķermeņu attēlošana, paralēlā projicēšana |
+| `10.7.3` | Сечения многогранников | Daudzskaldņu šķēlumi |
+| `10.7.4` | Перпендикуляр к плоскости, наклонная и проекция, угол между наклонной и плоскостью | Taisnes un plaknes perpendikularitāte, slīpne un projekcija, leņķis starp slīpni un plakni |
+| `10.7.5` | Многогранники: призма, пирамида, усечённая пирамида | Daudzskaldņi: prizma, piramīda, nošķelta piramīda |
+| `10.7.6` | Тела вращения: цилиндр, конус, шар | Rotācijas ķermeņi: cilindrs, konuss, lode |
+| `10.7.7` | Площадь поверхности и объём | Virsmas laukuma un tilpuma aprēķini |
+| `10.7.8` | Комбинации тел | Ģeometrisko ķermeņu kombinācijas |
 
 
 ## 11 класс
@@ -979,8 +848,24 @@
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
 | `11.11.1` | Векторы на плоскости и действия с ними | Vektori plaknē un darbības ar tiem |
+| `11.11.1` | Понятие вектора, длина и равенство векторов | Vektora jēdziens, garums un vektoru vienādība |
+| `11.11.1` | Понятие вектора, длина и равенство векторов | Vektora jēdziens, tā garums un vektoru vienādība |
 | `11.11.2` | Координаты векторов и скалярное произведение | Vektoru koordinātas un skalārais reizinājums |
+| `11.11.2` | Сложение и вычитание векторов (правило треугольника и параллелограмма) | Vektoru saskaitīšana un atņemšana (trijstūra un paralelograma likums) |
 | `11.11.3` | Векторы в пространстве | Vektori telpā |
+| `11.11.3` | Умножение вектора на число, коллинеарность | Vektora reizināšana ar skaitli, kolinearitāte |
+| `11.11.3` | Умножение вектора на число и коллинеарность векторов | Vektora reizināšana ar skaitli un vektoru kolinearitāte |
+| `11.11.4` | Координаты вектора и модуль вектора на плоскости | Vektora koordinātas un modulis plaknē |
+| `11.11.4` | Разложение вектора по двум неколлинеарным векторам | Vektora sadalīšana divos nekolineāros vektoros |
+| `11.11.5` | Действия с векторами в координатной форме | Darbības ar vektoriem koordinātu formā |
+| `11.11.5` | Координаты вектора и модуль вектора на плоскости | Vektora koordinātas un vektora garums plaknē |
+| `11.11.6` | Действия с векторами в координатной форме | Darbības ar vektoriem koordinātu formā |
+| `11.11.7` | Скалярное произведение векторов | Vektoru skalārais reizinājums |
+| `11.11.7` | Угол между векторами и условие перпендикулярности | Leņķis starp vektoriem un perpendikularitāte |
+| `11.11.8` | Векторы в пространстве и прикладные задачи | Vektori telpā un lietojums uzdevumos |
+| `11.11.8` | Угол между векторами и условие перпендикулярности | Leņķis starp vektoriem un perpendikularitātes nosacījums |
+| `11.11.9` | Векторы в пространстве и их координаты | Vektori telpā un to koordinātas |
+| `11.11.10` | Применение векторного метода в геометрических и прикладных задачах | Vektoru lietojums ģeometrijā un praktiskos uzdevumos |
 
 ### 11.12. Уравнение линии, неравенства с двумя переменными
 
