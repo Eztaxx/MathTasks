@@ -5195,13 +5195,7 @@ async function showTag(slug) {
      задачи выбранного класса. Ссылка «во всех классах» снимает сужение —
      так же, как это уже сделано в поиске. */
   const showAllGrades = new URLSearchParams(location.search).get('all') === '1';
-  const inSelectedGrade = task => {
-    if (!selectedGrade) return true;
-    if (selectedGrade === 'matematika-1') return task.grade === 10 || task.grade === 11;
-    if (selectedGrade === 'matematika-2') return task.grade === 12;
-    if (selectedGrade === 'visparigais') return task.grade === 10;
-    return task.grade === Number(selectedGrade);
-  };
+  const inSelectedGrade = task => !selectedGrade || task.grade === window.MathTasksLib.gradeNumber(selectedGrade);
 
   let tasks = [];
   let tagTaskTotal = 0;

@@ -33,6 +33,11 @@ describe('приложение: сужение по классу', () => {
     expect(app).not.toMatch(/\.eq\('grade', Number\(selectedGrade\)\)/);
   });
 
+  it('страница тега сужает задачи тем же числом, без [10, 11] для Optimālais', () => {
+    expect(app).toContain('const inSelectedGrade = task => !selectedGrade || task.grade === window.MathTasksLib.gradeNumber(selectedGrade);');
+    expect(app).not.toMatch(/task\.grade === 10 \|\| task\.grade === 11/);
+  });
+
   it('поиск сужает задачи и темы так же, как страницы класса', () => {
     const search = app.match(/async function showSearch[\s\S]*?\n}\n/)[0];
     expect(search).toContain('request = scopeToGrade(request)');
