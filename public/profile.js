@@ -143,7 +143,8 @@
   };
   const errorText = error => {
     const message = String(error?.message || error || '');
-    if (/anonymous/i.test(message) && /disabled/i.test(message)) return tr('profile_err_disabled');
+    // Анонимный вход выключен или закрыта регистрация: Supabase не пускает анонимов и тогда.
+    if ((/anonymous/i.test(message) && /disabled/i.test(message)) || /signups? not allowed|signup_disabled/i.test(message)) return tr('profile_err_disabled');
     const key = Object.keys(ERRORS).find(code => message.includes(code));
     return tr(key ? ERRORS[key] : 'profile_err_generic');
   };
