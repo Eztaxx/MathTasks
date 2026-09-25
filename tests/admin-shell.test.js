@@ -231,3 +231,15 @@ describe('каркас админки: меню и экраны', () => {
     }
   });
 });
+
+/* Очередь проверки делится на кучки «без замечаний» и «с замечаниями»:
+   у каждой кнопки свой счётчик, и скрипт знает каждое её значение. */
+describe('кучки очереди проверки', () => {
+  it('у каждой кучки есть кнопка и счётчик', () => {
+    const states = [...html.matchAll(/data-review-state="(\w+)"/g)].map(m => m[1]);
+    const counts = [...html.matchAll(/data-review-count="(\w+)"/g)].map(m => m[1]);
+    expect(states).toEqual(['all', 'clean', 'issues']);
+    expect(counts).toEqual(states);
+    expect(js).toContain("reviewVerdict(task) === reviewState");
+  });
+});

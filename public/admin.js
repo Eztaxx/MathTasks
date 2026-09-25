@@ -7359,9 +7359,11 @@ ${JSON.stringify(texts)}`;
     }
   };
 
-  // Подходит ли задача под выбор целиком.
-  const reviewMatches = task => REVIEW_LEVELS.every(level =>
+  // Подходит ли задача под выбор класса, темы и подтемы.
+  const reviewInScope = task => REVIEW_LEVELS.every(level =>
     reviewPick[level] === 'all' || reviewKey[level](task) === reviewPick[level]);
+  // …и под выбор «без замечаний / с замечаниями» — очередь целиком.
+  const reviewMatches = task => reviewInScope(task) && reviewStateMatches(task);
 
   /* Подходит ли задача под уровни выше этого: тема смотрит на класс,
      подтема — на класс и тему. Свой уровень и те, что ниже, не учитываются —
@@ -7418,17 +7420,20 @@ ${JSON.stringify(texts)}`;
       if (reviewPick[level] === 'all') continue;
       if (!reviewAll.some(task => reviewKey[level](task) === reviewPick[level])) reviewPick[level] = 'all';
     }
-    // Уровни вложены: выбор ниже не должен противоречить выбору выше.
-    if (!reviewAll.some(task => reviewMatches(task))) {
+    /* Уровни вложены: выбор ниже не должен противоречить выбору выше.
+       Выбор «без замечаний» класс и тему не сбрасывает: пустая выборка
+       там — ответ, а не ошибка фильтра. */
+    if (!reviewAll.some(task => reviewInScope(task))) {
       for (const level of [...REVIEW_LEVELS].reverse()) {
         if (reviewPick[level] === 'all') continue;
         reviewPick[level] = 'all';
-        if (reviewAll.some(task => reviewMatches(task))) break;
+        if (reviewAll.some(task => reviewInScope(task))) break;
       }
     }
     reviewQueue = reviewAll.filter(task => reviewMatches(task));
     if (!preserveIndex || reviewIndex >= reviewQueue.length) reviewIndex = 0;
     renderReviewFilters();
+    renderReviewTriage();
   }
 
   // Подпись выбранного фильтра — для строки «N из M».
@@ -7442,6 +7447,283 @@ ${JSON.stringify(texts)}`;
     reviewAll = reviewAll.filter(item => String(item.id) !== String(taskId));
     applyReviewFilter(true);
   }
+
+  /* ── Проверка очереди роботом ──────────────────────────────────────
+     Каждый черновик прогоняется через lib.auditTask: засчитывается ли
+     правильный ответ, есть ли перевод, совпадают ли числа RU и LV, тот же
+     ли ответ в конце решения, подписано ли поле, нет ли лишнего на
+     чертеже. Формулы разбирает KaTeX — он есть только здесь, в админке.
+     «Без замечаний» значит, что робот ничего не нашёл. Верно ли задача
+     решена, он не знает: это решает тот, кто публикует. */
+  let reviewState = 'all';                 // all | clean | issues
+  let reviewNotice = '';                   // «Опубликовано 40 задач» — до следующего действия
+  const reviewDrawings = new Map();        // путь чертежа → что на нём лишнего (null — ничего)
+  let reviewDrawingsLoading = false;
+  const reviewCheckCache = new WeakMap();
+
+  const REVIEW_FORMULA_FIELDS = [
+    ['условии', 'condition_latex'], ['ответе', 'answer_latex'], ['решении', 'solution_latex'], ['подсказке', 'hint_latex'],
+    ['условии LV', 'condition_latex_lv'], ['ответе LV', 'answer_latex_lv'], ['решении LV', 'solution_latex_lv'], ['подсказке LV', 'hint_latex_lv']
+  ];
+
+  // Короткие причины для строки «Чаще всего: …» над очередью.
+  const REVIEW_REASONS = {
+    'formula:bad': 'формула не разбирается', 'answer:bad': 'нет ответа', 'answer:warn': 'нет решения',
+    'accept:bad': 'ответ не засчитывается', 'accept:warn': 'самопроверка вместо автопроверки',
+    'translation:bad': 'нет перевода', 'numbers:bad': 'числа RU и LV разные',
+    'ending:bad': 'другой ответ в конце решения', 'label:warn': 'нет подписи у поля',
+    'drawing:warn': 'лишнее на чертеже', 'young:warn': 'дроби в 5–6 классе'
+  };
+
+  // Чертёж ещё не прочитан — undefined: задача пока ни «без замечаний», ни «с ними».
+  function reviewDrawingOf(task) {
+    let found = null;
+    for (const path of [task.condition_image, task.solution_image]) {
+      if (!path) continue;
+      if (!reviewDrawings.has(path)) return undefined;
+      const issue = reviewDrawings.get(path);
+      if (issue) found = found ? `${found}; ${issue}` : issue;
+    }
+    return found;
+  }
+
+  function reviewChecks(task) {
+    const drawing = reviewDrawingOf(task);
+    const topic = reviewTopicOf(task);
+    // Тема нужна правилу про дроби в 5–6 классе: без неё итог устарел бы.
+    const cached = reviewCheckCache.get(task);
+    if (cached && cached.drawing === drawing && cached.topicTitle === topic?.title) return cached.checks;
+    const badFormula = REVIEW_FORMULA_FIELDS.find(([, field]) => !checkFormulaSyntax(task[field]).ok);
+    const checks = [
+      badFormula
+        ? { code: 'formula', level: 'bad', text: `Формула не разбирается в ${badFormula[0]}` }
+        : { code: 'formula', level: 'ok', text: 'Формулы KaTeX разбираются' },
+      ...window.MathTasksLib.auditTask(task, { grade: task.grade ?? topic?.grade, topicTitle: topic?.title, drawing })
+    ];
+    reviewCheckCache.set(task, { drawing, topicTitle: topic?.title, checks });
+    return checks;
+  }
+
+  // 'clean' — робот ничего не нашёл, 'issues' — есть замечания, 'pending' — чертёж ещё читается.
+  function reviewVerdict(task) {
+    const checks = reviewChecks(task);
+    if (checks.some(check => check.level === 'bad' || check.level === 'warn')) return 'issues';
+    if (checks.some(check => check.level === 'pending')) return 'pending';
+    return 'clean';
+  }
+
+  const reviewStateMatches = task => reviewState === 'all' || reviewVerdict(task) === reviewState;
+
+  async function readDrawingIssue(path) {
+    const raw = String(path || '').trim();
+    if (raw.startsWith('<svg')) return window.MathTasksLib.drawingIssues(raw);
+    // Растровый рисунок робот не читает — о нём судит человек.
+    if (!/\.svg(?:$|\?)/i.test(raw)) return null;
+    try {
+      const res = await fetch(getTaskImageUrl(raw), { cache: 'no-store' });
+      return res.ok ? window.MathTasksLib.drawingIssues(await res.text()) : 'файл чертежа не открывается';
+    } catch {
+      return 'файл чертежа не открывается';
+    }
+  }
+
+  /* Чертежи читаем сразу после загрузки очереди, по восемь за раз. Пока
+     чертёж не прочитан, задача не попадает ни в одну из двух кучек. */
+  async function loadReviewDrawings() {
+    if (reviewDrawingsLoading) return;
+    const paths = [...new Set(reviewAll.flatMap(task => [task.condition_image, task.solution_image]).filter(Boolean))]
+      .filter(path => !reviewDrawings.has(path));
+    if (!paths.length) return;
+    reviewDrawingsLoading = true;
+    try {
+      for (let i = 0; i < paths.length; i += 8) {
+        const batch = paths.slice(i, i + 8);
+        const results = await Promise.all(batch.map(readDrawingIssue));
+        batch.forEach((path, k) => reviewDrawings.set(path, results[k]));
+      }
+    } finally {
+      reviewDrawingsLoading = false;
+    }
+    applyReviewFilter(true);
+    await renderReviewCard();
+  }
+
+  function renderReviewTriage() {
+    const bar = byId('adm-review-triage');
+    if (!bar) return;
+    bar.hidden = !reviewAll.length;
+    if (!reviewAll.length) return;
+    const scope = reviewAll.filter(task => reviewInScope(task));
+    const count = { all: scope.length, clean: 0, issues: 0, pending: 0 };
+    const reasons = new Map();
+    for (const task of scope) {
+      const verdict = reviewVerdict(task);
+      count[verdict]++;
+      if (verdict !== 'issues') continue;
+      for (const check of reviewChecks(task)) {
+        const label = REVIEW_REASONS[`${check.code}:${check.level}`];
+        if (label) reasons.set(label, (reasons.get(label) || 0) + 1);
+      }
+    }
+    bar.querySelectorAll('[data-review-count]').forEach(el => { el.textContent = count[el.dataset.reviewCount] ?? ''; });
+    bar.querySelectorAll('[data-review-state]').forEach(btn => {
+      const on = btn.dataset.reviewState === reviewState;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', String(on));
+    });
+    const reasonsEl = byId('adm-review-reasons');
+    if (reasonsEl) {
+      const top = [...reasons].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([label, n]) => `${label} — ${n}`);
+      reasonsEl.textContent = [
+        reviewNotice,
+        top.length ? `Чаще всего: ${top.join(', ')}` : '',
+        count.pending ? `читаем чертежи: ${count.pending}` : ''
+      ].filter(Boolean).join(' · ');
+    }
+    const publish = byId('adm-review-publish-clean');
+    if (publish) {
+      publish.disabled = !count.clean;
+      publish.textContent = `Опубликовать без замечаний: ${count.clean}`;
+      const scopeLabel = reviewScopeLabel();
+      publish.title = `Черновики, в которых робот ничего не нашёл${scopeLabel ? ` — ${scopeLabel}` : ''}. Перед публикацией откроется список.`;
+    }
+  }
+
+  function renderReviewChecks(task) {
+    const checksEl = byId('adm-review-checks');
+    if (!checksEl || !task) return;
+    const checks = reviewChecks(task);
+    const hasDrawing = Boolean(task.condition_image || task.solution_image);
+    // Подсказка, а не замечание: чертёж нужен не каждой задаче про угол.
+    const note = !hasDrawing && /черт[её]ж|рисун|график|треугольн|окружност|угол|трапеци/i.test(task.condition_latex || '')
+      ? '<div class="adm-review-check info"><span class="adm-check-dot"></span><span>Чертежа нет — посмотрите, нужен ли он</span></div>'
+      : '';
+    checksEl.innerHTML = checks.map(check =>
+      `<div class="adm-review-check ${check.level}"><span class="adm-check-dot"></span><span>${escapeHtml(check.text)}</span></div>`
+    ).join('') + note;
+    const chip = byId('adm-review-verdict');
+    if (chip) {
+      const verdict = reviewVerdict(task);
+      const issues = checks.filter(check => check.level === 'bad' || check.level === 'warn').length;
+      chip.hidden = false;
+      chip.textContent = verdict === 'clean' ? 'Без замечаний' : (verdict === 'pending' ? 'Проверяется' : `Замечаний: ${issues}`);
+      chip.className = `adm-chip ${verdict === 'clean' ? 'ok' : (verdict === 'pending' ? 'muted' : 'warn')}`;
+    }
+  }
+
+  byId('adm-review-state')?.addEventListener('click', event => {
+    const btn = event.target.closest('[data-review-state]');
+    if (!btn) return;
+    reviewState = btn.dataset.reviewState;
+    reviewNotice = '';
+    applyReviewFilter();
+    renderReviewCard();
+  });
+
+  /* «Опубликовать без замечаний»: список того, что уйдёт на сайт, с
+     галочкой у каждой задачи. Публикуем только отмеченное и только после
+     второго нажатия. */
+  const publishDialog = byId('adm-publish-dialog');
+  let publishBusy = false;
+  const publishList = () => byId('adm-publish-list');
+  const publishBoxes = () => [...(publishList()?.querySelectorAll('input[type="checkbox"]') || [])];
+  const publishPicked = () => publishBoxes().filter(box => box.checked).map(box => Number(box.value));
+
+  function setPublishStatus(text, isError = false) {
+    const el = byId('adm-publish-status');
+    if (!el) return;
+    el.hidden = !text;
+    el.textContent = text;
+    el.classList.toggle('is-error', isError);
+  }
+
+  function paintPublishConfirm() {
+    const boxes = publishBoxes();
+    const n = publishPicked().length;
+    const btn = byId('adm-publish-confirm');
+    if (btn) {
+      btn.disabled = !n || publishBusy;
+      btn.textContent = n ? `Опубликовать ${n} ${tasksAcc(n)}` : 'Ничего не выбрано';
+    }
+    const all = byId('adm-publish-all');
+    if (all) {
+      all.checked = boxes.length > 0 && n === boxes.length;
+      all.indeterminate = n > 0 && n < boxes.length;
+    }
+  }
+
+  function openPublishDialog() {
+    if (!publishDialog) return;
+    const lib = window.MathTasksLib;
+    const clean = reviewAll.filter(task => reviewInScope(task) && reviewVerdict(task) === 'clean');
+    if (!clean.length) return;
+    publishList().innerHTML = clean.map(task => {
+      const topic = reviewTopicOf(task);
+      const grade = task.grade ?? topic?.grade;
+      const path = [grade ? gradeText(grade) : '', topic?.title || 'без темы'].filter(Boolean).join(' · ');
+      const text = lib.latexToPlainText ? lib.latexToPlainText(task.condition_latex || '', 140) : String(task.condition_latex || '');
+      return `<label class="adm-publish-row">
+        <input type="checkbox" value="${escapeHtml(String(task.id))}" checked />
+        <span class="adm-publish-id">#${escapeHtml(String(task.id))}</span>
+        <span class="adm-publish-text">${escapeHtml(text || task.title || '')}</span>
+        <span class="adm-publish-path">${escapeHtml(path)}</span>
+      </label>`;
+    }).join('');
+    setPublishStatus('');
+    paintPublishConfirm();
+    publishDialog.showModal();
+  }
+
+  async function publishPickedTasks() {
+    if (publishBusy) return;
+    const ids = publishPicked();
+    if (!ids.length) return;
+    publishBusy = true;
+    paintPublishConfirm();
+    setPublishStatus(`Публикуем ${ids.length} ${tasksAcc(ids.length)}…`);
+    const done = [];
+    let failure = '';
+    try {
+      // Кусками по сотне: список номеров уходит в адрес запроса.
+      for (let i = 0; i < ids.length; i += 100) {
+        const { data, error } = await db.from('tasks').update({ is_published: true }).in('id', ids.slice(i, i + 100)).select('id');
+        if (error) { failure = error.message; break; }
+        done.push(...(data || []).map(row => String(row.id)));
+      }
+    } catch (err) {
+      failure = err?.message || String(err);
+    } finally {
+      publishBusy = false;
+    }
+    const doneSet = new Set(done);
+    for (const list of [tasks, taskIndex]) {
+      for (const row of list) if (doneSet.has(String(row.id))) row.is_published = true;
+    }
+    reviewAll = reviewAll.filter(task => !doneSet.has(String(task.id)));
+    reviewNotice = done.length ? `Опубликовано ${done.length} ${tasksAcc(done.length)}` : '';
+    updateReviewChip();
+    applyReviewFilter(true);
+    await renderReviewCard();
+    if (failure || done.length < ids.length) {
+      // Вышедшие убираем из списка — повторное нажатие отправит только остальные.
+      publishBoxes().forEach(box => { if (doneSet.has(box.value)) box.closest('.adm-publish-row')?.remove(); });
+      setPublishStatus(`Опубликовано ${done.length} из ${ids.length}. Остальные не вышли${failure ? `: ${failure}` : ''}. Можно нажать ещё раз.`, true);
+      paintPublishConfirm();
+      return;
+    }
+    publishDialog.close();
+  }
+
+  byId('adm-review-publish-clean')?.addEventListener('click', openPublishDialog);
+  byId('adm-publish-confirm')?.addEventListener('click', publishPickedTasks);
+  byId('adm-publish-cancel')?.addEventListener('click', () => { if (!publishBusy) publishDialog?.close(); });
+  byId('adm-publish-list')?.addEventListener('change', paintPublishConfirm);
+  byId('adm-publish-all')?.addEventListener('change', event => {
+    publishBoxes().forEach(box => { box.checked = event.target.checked; });
+    paintPublishConfirm();
+  });
+  // Пока идёт публикация, Esc окно не закрывает: итог должен быть виден.
+  publishDialog?.addEventListener('cancel', event => { if (publishBusy) event.preventDefault(); });
 
   byId('adm-review-filters')?.addEventListener('change', event => {
     const select = event.target.closest('[data-review-level]');
@@ -7487,6 +7769,7 @@ ${JSON.stringify(texts)}`;
     } finally {
       reviewLoading = false;
     }
+    loadReviewDrawings();
   }
 
   function getTaskImageUrl(raw) {
@@ -7518,7 +7801,19 @@ ${JSON.stringify(texts)}`;
     if (!reviewQueue.length) {
       card.hidden = true;
       empty.hidden = false;
-      if (progress) progress.textContent = 'Очередь пуста';
+      /* Черновики в выборке есть, но не подходят под «без замечаний» или
+         «с замечаниями» — очередь не разобрана, пусто только в этой кучке. */
+      const inScope = reviewAll.filter(task => reviewInScope(task));
+      const [title, text] = !inScope.length || reviewState === 'all'
+        ? ['Очередь разобрана', 'Новые задачи появятся здесь после генератора или импорта.']
+        : reviewState === 'clean'
+          ? ['Задач без замечаний здесь нет', inScope.some(task => reviewVerdict(task) === 'pending')
+            ? 'Робот ещё читает чертежи — через пару секунд список обновится.'
+            : 'Откройте «С замечаниями»: у каждой задачи видно, что поправить.']
+          : ['Замечаний нет', 'Робот ничего не нашёл во всей выборке — задачи можно опубликовать кнопкой выше.'];
+      setShellText('#adm-review-empty-title', title);
+      setShellText('#adm-review-empty-text', text);
+      if (progress) progress.textContent = inScope.length ? `0 из ${inScope.length}` : 'Очередь пуста';
       return;
     }
 
@@ -7655,52 +7950,8 @@ ${JSON.stringify(texts)}`;
       } catch (_) {}
     }
 
-    // Автопроверки (формулы, ответ, перевод, чертёж)
-    const checksEl = byId('adm-review-checks');
-    if (checksEl) {
-      const checks = [];
-
-      // 1. Формулы: каждое поле отдельно — склеенные поля сдвигали пары $ друг другу.
-      const latexFields = [
-        ['условии', task.condition_latex], ['ответе', task.answer_latex],
-        ['решении', task.solution_latex], ['подсказке', task.hint_latex],
-        ['условии LV', task.condition_latex_lv], ['ответе LV', task.answer_latex_lv],
-        ['решении LV', task.solution_latex_lv], ['подсказке LV', task.hint_latex_lv]
-      ];
-      const badField = latexFields.find(([, text]) => !checkFormulaSyntax(text).ok);
-      checks.push(badField
-        ? { ok: false, text: `Формула не разбирается в ${badField[0]}` }
-        : { ok: true, text: 'Формулы KaTeX разбираются' });
-
-      // 2. Ответ и решение
-      const hasAns = Boolean((task.answer_latex || '').trim());
-      const hasSol = Boolean((task.solution_latex || '').trim());
-      if (hasAns && hasSol) checks.push({ ok: true, text: 'Есть ответ и решение' });
-      else if (hasAns || hasSol) checks.push({ ok: false, warn: true, text: hasAns ? 'Нет решения' : 'Нет ответа' });
-      else checks.push({ ok: false, text: 'Нет ни ответа, ни решения' });
-
-      // 3. Перевод LV
-      checks.push({
-        ok: hasLv,
-        text: hasLv ? 'Перевод LV готов' : 'Нет перевода на LV'
-      });
-
-      // 4. Чертёж
-      const hasDrawing = Boolean(task.condition_image || task.solution_image);
-      const textMentionsDrawing = /черт[её]ж|рисун|график|треугольн|окружност|угол|трапеци/i.test(task.condition_latex || '');
-      if (hasDrawing) {
-        checks.push({ ok: true, text: 'Чертёж прикреплён' });
-      } else if (textMentionsDrawing) {
-        checks.push({ ok: false, warn: true, text: 'Возможно, нужен чертёж' });
-      } else {
-        checks.push({ ok: true, text: 'Чертёж не требуется' });
-      }
-
-      checksEl.innerHTML = checks.map(c => {
-        const cls = c.ok ? 'ok' : (c.warn ? 'warn' : 'bad');
-        return `<div class="adm-review-check ${cls}"><span class="adm-check-dot"></span><span>${escapeHtml(c.text)}</span></div>`;
-      }).join('');
-    }
+    // Автопроверки: формулы, ответ, перевод, числа RU и LV, подпись, чертёж.
+    renderReviewChecks(task);
 
     // Откуда
     const originEl = byId('adm-review-origin');

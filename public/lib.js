@@ -147,9 +147,10 @@
   );
 
   /* Счётное слово в конце ответа — такая же единица: «19 дней», «5 книг»,
-     «12 рейсов». Снимаем только кириллицу и латышские слова с диакритикой:
-     латиница после числа — это переменные («3ab»), а не счёт. */
-  const COUNTING_WORD = /(?<=\d)\s*(?:[а-яё]{2,}|[a-zāčēģīķļņšūž]*[āčēģīķļņšūž][a-zāčēģīķļņšūž]*)\.?$/i;
+     «12 рейсов». Короткая латиница после числа — переменные («3ab»), а не
+     счёт. Но латышское слово бывает и без диакритики — «19 dienas»,
+     «4 gadi»: от четырёх латинских букв это слово. */
+  const COUNTING_WORD = /(?<=\d)\s*(?:[а-яё]{2,}|[a-zāčēģīķļņšūž]*[āčēģīķļņšūž][a-zāčēģīķļņšūž]*|[a-z]{4,})\.?$/i;
 
   const stripUnits = str => String(str)
     .replace(UNIT_WORDS, '')
@@ -967,6 +968,218 @@
     return answerCheckVariants(variants).some(variant => compareAnswers(userAns, variant))
       || compareAnswers(userAns, answer);
   };
+
+  /* ── Проверка задачи перед публикацией ───────────────────────────
+     То, что видно без человека: засчитывается ли правильный ответ, есть
+     ли перевод, одинаковы ли числа в русском и латышском тексте, тот же
+     ли ответ в конце решения, подписано ли поле, нет ли лишнего на
+     чертеже. Верно ли решена задача, робот не знает — это остаётся за
+     тем, кто публикует. Разбор общий для админки и scripts/audit-tasks.mjs. */
+
+  /* Числа текста: «2\,000\,000» — одно число, «4{,}5» и «4,5» — одно и то же. */
+  const textNumbers = text => String(text ?? '')
+    .replace(/(\d)\\[,; ](?=\d{3}(?!\d))/g, '$1')
+    .replace(/(\d)\{,\}(\d)/g, '$1.$2')
+    .replace(/(\d),(\d)/g, '$1.$2')
+    .match(/\d+(?:\.\d+)?/g) || [];
+
+  // Чего нет во втором списке (с повторами): [6, 4] и [4, 4.5] → [6].
+  const missingNumbers = (from, other) => {
+    const rest = [...other];
+    return from.filter(n => {
+      const i = rest.indexOf(n);
+      if (i < 0) return true;
+      rest.splice(i, 1);
+      return false;
+    });
+  };
+
+  /* Как ученик наберёт значение в поле: без единиц, «\frac{3}{4}» как
+     «3/4», у составного времени — одно число в самой мелкой единице
+     («1 ч 30 мин» → 90): так подписано поле. */
+  const typedAnswerValue = value => {
+    const chunks = timeChunks(normalizeMathAnswer(value));
+    if (chunks && chunks.length > 1) {
+      const smallest = Math.min(...chunks.map(chunk => chunk.weight));
+      const total = chunks.reduce((sum, chunk) => sum + chunk.num * chunk.weight, 0);
+      return String(Math.round(total / smallest * 1e6) / 1e6).replace('.', ',');
+    }
+    return String(value ?? '')
+      .replace(/\$/g, '')
+      .replace(/\\(?:text|mathrm)\{[^{}]*\}(\^\{?\d\}?)?/g, ' ')
+      .replace(/\^\{?\\circ\}?|°/g, '')
+      // Смешанное число ученик пишет через пробел: «1 1/2», а не «11/2».
+      .replace(/(\d)\s*\\[dt]?frac\{(\d+)\}\{(\d+)\}/g, '$1 $2/$3')
+      .replace(/\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}/g, (m, top, bottom) =>
+        [top, bottom].map(part => (/^-?[\w.,]+$/.test(part.trim()) ? part.trim() : `(${part.trim()})`)).join('/'))
+      .replace(/\\sqrt\{([^{}]*)\}/g, (m, inner) => (/^\w+$/.test(inner) ? `√${inner}` : `√(${inner})`))
+      .replace(/(\d)\\,(?=\d{3}(?!\d))/g, '$1')
+      .replace(/(\d)\{,\}(\d)/g, '$1,$2')
+      .replace(/\\[,;:! ]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  /* Правильный ответ, набранный так, как его набирают: все поля голыми
+     числами, одной строкой, а у дроби и десятичной — в другой записи.
+     Возвращает запись, которую сверка не приняла, или ''. */
+  const rejectedAnswerForm = (answer, variants = '') => {
+    const fields = answerFields(answer, variants);
+    if (fields.length) {
+      const values = fields.map(field => typedAnswerValue(field.value));
+      return checkAnswerFields(values, answer, variants).allCorrect ? '' : values.join('; ');
+    }
+    const forms = [String(answer).replace(/\$/g, ' ').trim()];
+    const parts = parseAnswerParts(answer);
+    if (parts.length === 1 && parts[0].pieceCount === 1) {
+      const value = parts[0].values[0];
+      forms.push(typedAnswerValue(value));
+      const bare = String(value).replace(/\s+/g, '');
+      const frac = bare.match(/^(-?)\\[dt]?frac\{(\d+)\}\{(\d+)\}$/);
+      if (frac && Number(frac[3])) forms.push(`${frac[1]}${String(Number(frac[2]) / Number(frac[3])).replace('.', ',')}`);
+      const decimal = bare.match(/^(-?\d+)\{,\}(\d+)$/);
+      if (decimal) forms.push(`${decimal[1]}.${decimal[2]}`);
+    }
+    return forms.find(form => form && !checkTaskAnswer(form, answer, variants)) || '';
+  };
+
+  // Последняя строка «Ответ: …» решения — с ней сверяем ответ задачи.
+  const finalAnswerLine = (solution, word) => String(solution ?? '')
+    .split('\n').map(line => line.trim())
+    .filter(line => new RegExp(`^${word}\\s*:`, 'i').test(line))
+    .pop() || '';
+
+  /* Геометрический чертёж подписывают только вершинами. Числа, единицы,
+     «?» и строчные подписи вроде «h» значат, что данные ушли из условия
+     на картинку. График и числовая прямая — исключение: там числа и есть
+     содержание. */
+  const GRAPH_MARKS = /<text[^>]*>\s*(?:[xyXY]|0|O)\s*<\/text>/;
+  const looksLikeChart = svg => /stroke-dasharray|marker-end|<path[^>]*d=['"][^'"]*[Cc]/.test(svg) === false
+    && (/(<line|<polyline)[^>]*\b(x1|points)=/.test(svg) && GRAPH_MARKS.test(svg));
+  const drawingIssues = svg => {
+    const texts = [...String(svg ?? '').matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map(m => m[1].trim()).filter(Boolean);
+    if (!texts.length || looksLikeChart(svg)) return null;
+    const withNumbers = texts.filter(t => /\d/.test(t));
+    const withUnits = texts.filter(t => /(?<!\p{L})(см|мм|дм|км|м|кг|г|cm|mm|km|kg)(?!\p{L})/iu.test(t));
+    const questions = texts.filter(t => t.includes('?'));
+    const lowercase = texts.filter(t => /^[a-zа-яё]/u.test(t) && t.length <= 3);
+    const found = [];
+    if (withNumbers.length) found.push('числа: ' + withNumbers.slice(0, 5).join(', '));
+    if (withUnits.length) found.push('единицы: ' + withUnits.slice(0, 5).join(', '));
+    if (questions.length) found.push('знак вопроса');
+    if (lowercase.length) found.push('строчные подписи: ' + lowercase.slice(0, 5).join(', '));
+    return found.length ? found.join('; ') : null;
+  };
+
+  /* В 5–6 классе дроби и десятичные проходят в своих темах. В остальных
+     темах этих классов числа целые — так решил автор программы. */
+  const FRACTION_TOPIC = /дроб|процент|смешанн|часть друго|daļ|procent/i;
+  const HAS_FRACTION = /\\[dt]?frac\{|\d\s*\/\s*\d|\d\{,\}\d|\d,\d/;
+
+  const TASK_TEXTS = [
+    ['condition_latex', 'условии'], ['answer_latex', 'ответе'],
+    ['solution_latex', 'решении'], ['hint_latex', 'подсказке']
+  ];
+  const filled = value => Boolean(String(value ?? '').trim());
+
+  /* Все проверки задачи: [{ code, level, text }], level — 'ok', 'warn'
+     (замечание) или 'bad' (ошибка). context: grade и topicTitle — для
+     правила про дроби; drawing — итог drawingIssues по чертежу: undefined,
+     пока чертёж не прочитан, null — лишнего нет, строка — что нашлось. */
+  const auditTask = (task, context = {}) => {
+    const t = task || {};
+    const checks = [];
+    const push = (code, ok, okText, failText, level = 'bad') =>
+      checks.push({ code, level: ok ? 'ok' : level, text: ok ? okText : failText });
+
+    const answer = String(t.answer_latex ?? '').trim();
+    const answerLv = String(t.answer_latex_lv ?? '').trim();
+    const variants = t.answer_check || '';
+    const variantsLv = t.answer_check_lv || variants;
+
+    if (!answer) checks.push({ code: 'answer', level: 'bad', text: 'Нет ответа' });
+    else if (!filled(t.solution_latex)) checks.push({ code: 'answer', level: 'warn', text: 'Нет решения' });
+    else checks.push({ code: 'answer', level: 'ok', text: 'Есть ответ и решение' });
+
+    // Засчитывается ли правильный ответ — в обоих языках.
+    if (answer) {
+      if (!isTaskAutoCheckable(answer, variants)) {
+        checks.push({ code: 'accept', level: 'warn', text: 'Ответ не сверить автоматически — у ученика будет самопроверка' });
+      } else {
+        const failed = [[answer, variants, ''], [answerLv, variantsLv, ' (LV)']]
+          .filter(([value]) => value)
+          .map(([value, check, lang]) => {
+            const form = rejectedAnswerForm(value, check);
+            return form ? `«${form}»${lang}` : '';
+          })
+          .filter(Boolean);
+        push('accept', !failed.length, 'Правильный ответ засчитывается',
+          `Правильный ответ не засчитывается: ${failed.join(', ')}`);
+      }
+    }
+
+    // Перевод: у каждого русского поля есть латышское.
+    const noLv = TASK_TEXTS.filter(([field]) => filled(t[field]) && !filled(t[field + '_lv'])).map(([, name]) => name);
+    push('translation', !noLv.length, 'Перевод на латышский полный',
+      `Нет перевода на латышский в ${noLv.join(', ')}`);
+
+    /* Числа в русском и латышском условии и ответе одни и те же. Правку
+       часто делают в одном языке, и во втором остаются старые данные.
+       Решения не сравниваем: латышское нередко короче, без промежуточных
+       шагов, и это не ошибка. Конец решения сверяется отдельно, ниже. */
+    const differ = [];
+    for (const [field, name] of TASK_TEXTS.slice(0, 2)) {
+      if (!filled(t[field]) || !filled(t[field + '_lv'])) continue;
+      const ru = textNumbers(t[field]);
+      const lv = textNumbers(t[field + '_lv']);
+      const onlyRu = missingNumbers(ru, lv);
+      const onlyLv = missingNumbers(lv, ru);
+      if (!onlyRu.length && !onlyLv.length) continue;
+      const show = list => list.slice(0, 4).map(n => n.replace('.', ',')).join(', ') || '—';
+      differ.push(`в ${name}: RU ${show(onlyRu)}, LV ${show(onlyLv)}`);
+    }
+    push('numbers', !differ.length, 'Числа в условии и ответе RU и LV совпадают',
+      `Числа в RU и LV разные — ${differ.join('; ')}`);
+
+    // Ответ в конце решения — тот же, что в поле «Ответ».
+    const endings = [];
+    for (const [value, solution, word, lang] of [[answer, t.solution_latex, 'Ответ', ''], [answerLv, t.solution_latex_lv, 'Atbilde', ' (LV)']]) {
+      if (!value || answerAlternatives(value).length > 1) continue;
+      const line = finalAnswerLine(solution, word);
+      if (!line) continue;
+      const expected = parseAnswerParts(value).flatMap(part => textNumbers(part.values[0]));
+      if (missingNumbers(expected, textNumbers(line)).length) endings.push(`«${line.slice(0, 60)}»${lang}`);
+    }
+    push('ending', !endings.length, 'Ответ в решении совпадает с ответом задачи',
+      `В конце решения другой ответ: ${endings.join(', ')}`);
+
+    // Подпись перед полем: «AB =», «Площадь =» или выражение из условия.
+    if (answer && isTaskAutoCheckable(answer, variants)) {
+      const labelled = answerFields(answer, variants).length || answerLabelMarkup(answer) || conditionPrompt(t.condition_latex);
+      push('label', Boolean(labelled), 'У поля ответа есть подпись',
+        'Нет подписи перед полем ответа — ученик не видит, что вписывать', 'warn');
+    }
+
+    // Лишнее на чертеже — если чертёж уже прочитан.
+    if (t.condition_image || t.solution_image) {
+      if (context.drawing === undefined) checks.push({ code: 'drawing', level: 'pending', text: 'Чертёж проверяется…' });
+      else push('drawing', !context.drawing, 'На чертеже только фигура и вершины',
+        `Лишнее на чертеже: ${context.drawing}`, 'warn');
+    }
+
+    // 5–6 класс, тема не про дроби — числа целые.
+    const grade = Number(context.grade ?? t.grade);
+    if (grade && grade <= 6 && !FRACTION_TOPIC.test(String(context.topicTitle || ''))) {
+      const withFraction = TASK_TEXTS.filter(([field]) => HAS_FRACTION.test(String(t[field] ?? ''))).map(([, name]) => name);
+      push('young', !withFraction.length, 'Числа целые, как положено в этой теме',
+        `Дроби в теме ${grade} класса, где их ещё не проходили: в ${withFraction.join(', ')}`, 'warn');
+    }
+
+    return checks;
+  };
+
+  // Замечания и ошибки — всё, что мешает опубликовать задачу без человека.
+  const taskIssues = (task, context) => auditTask(task, context).filter(check => check.level === 'warn' || check.level === 'bad');
 
   /* Подсчёт прогресса решения задач темы */
   const calcTopicProgress = (taskIds = [], solvedIds = []) => {
@@ -3247,6 +3460,9 @@
     answerCheckVariants,
     isTaskAutoCheckable,
     checkTaskAnswer,
+    auditTask,
+    taskIssues,
+    drawingIssues,
     parseAnswerParts,
     answerLabelMarkup,
     conditionPrompt,

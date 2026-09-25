@@ -111,6 +111,16 @@
                 <div class="adm-review-progress" id="adm-review-progress"></div>
               </div>
               <div class="adm-review-filters" id="adm-review-filters" role="group" aria-label="Фильтр очереди проверки" hidden></div>
+              <!-- Робот проверяет форму каждого черновика: ответ, перевод, числа RU и LV, подпись поля, чертёж. -->
+              <div class="adm-review-triage" id="adm-review-triage" hidden>
+                <div class="adm-seg" id="adm-review-state" role="group" aria-label="Какие черновики показывать">
+                  <button type="button" class="adm-seg-btn is-active" data-review-state="all" aria-pressed="true">Все <span class="adm-seg-n" data-review-count="all"></span></button>
+                  <button type="button" class="adm-seg-btn" data-review-state="clean" aria-pressed="false">Без замечаний <span class="adm-seg-n" data-review-count="clean"></span></button>
+                  <button type="button" class="adm-seg-btn" data-review-state="issues" aria-pressed="false">С замечаниями <span class="adm-seg-n" data-review-count="issues"></span></button>
+                </div>
+                <p class="adm-review-reasons" id="adm-review-reasons"></p>
+                <button type="button" class="adm-btn ok" id="adm-review-publish-clean" disabled>Опубликовать без замечаний</button>
+              </div>
               <div id="adm-review-container">
                 <section class="adm-panel adm-review-card" id="adm-review-card">
                   <div class="adm-review-card-head">
@@ -118,6 +128,7 @@
                     <span class="adm-review-title" id="adm-review-title">—</span>
                     <span class="adm-review-path" id="adm-review-path">—</span>
                     <div class="adm-review-badges">
+                      <span class="adm-chip" id="adm-review-verdict" hidden></span>
                       <span class="adm-chip" id="adm-review-diff">—</span>
                       <span class="adm-chip" id="adm-review-lv">—</span>
                     </div>
@@ -165,10 +176,21 @@
                   </div>
                 </section>
                 <div class="adm-panel adm-review-empty" id="adm-review-empty" hidden>
-                  <div class="adm-review-empty-title">Очередь разобрана</div>
-                  <p>Новые задачи появятся здесь после генератора или импорта.</p>
+                  <div class="adm-review-empty-title" id="adm-review-empty-title">Очередь разобрана</div>
+                  <p id="adm-review-empty-text">Новые задачи появятся здесь после генератора или импорта.</p>
                 </div>
               </div>
+              <dialog class="adm-publish-dialog" id="adm-publish-dialog" aria-labelledby="adm-publish-title">
+                <h2 id="adm-publish-title">Опубликовать задачи без замечаний</h2>
+                <p class="adm-publish-note">Робот проверил форму каждой задачи: правильный ответ засчитывается, перевод полный, числа в RU и LV совпадают, у поля есть подпись, на чертеже нет лишнего. Верно ли задача решена, он не знает. Снимите галочку с тех, в которых не уверены.</p>
+                <label class="adm-publish-all"><input type="checkbox" id="adm-publish-all" checked /> <span>Все</span></label>
+                <div class="adm-publish-list" id="adm-publish-list"></div>
+                <p class="adm-publish-status" id="adm-publish-status" role="status" hidden></p>
+                <div class="adm-publish-actions">
+                  <button type="button" class="adm-btn ok" id="adm-publish-confirm">Опубликовать</button>
+                  <button type="button" class="adm-btn text" id="adm-publish-cancel">Отмена</button>
+                </div>
+              </dialog>
             </section>
 
             <!-- Варианты: собранные вручную экзамены и контрольные. -->

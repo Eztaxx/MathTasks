@@ -1,17 +1,24 @@
 /*
- * Разбор задач: чертежи, подписи полей, варианты ответа, перевод.
+ * Разбор задач: то же, что показывает админка в очереди проверки.
  *
- * Четыре беды, которые видно только на большом числе задач:
- *   — на чертеже подписаны длины, углы и «?», хотя по правилу Skola2030
- *     числовые данные живут в тексте условия, а на рисунке только фигура
- *     и вершины (на графиках и диаграммах числа как раз обязательны);
+ * Правила живут в public/lib.js (auditTask) — один разбор на админку и
+ * терминал. Что он ловит на большом числе задач:
+ *   — верный ответ, записанный как пишет ученик (0,5 вместо 1/2, без
+ *     единицы, «1 1/2»), не принимается;
+ *   — нет латышской версии условия, ответа, решения или подсказки;
+ *   — числа в русском и латышском условии или ответе разные: правку
+ *     сделали в одном языке, а во втором остались старые данные;
+ *   — в конце решения другой ответ, чем в поле «Ответ»;
  *   — перед полем ответа нет подписи, и ученик не знает, что вписывать;
- *   — верный ответ, записанный иначе (0,5 вместо 1/2), не принимается;
- *   — нет латышской версии условия, решения, подсказки или ответа.
+ *   — на чертеже подписаны длины, углы и «?», хотя по правилу Skola2030
+ *     числовые данные живут в тексте условия (графики — исключение);
+ *   — дроби в теме 5–6 класса, где их ещё не проходили.
  *
- * Запуск:  node scripts/audit-tasks.mjs [--grade 7] [--limit 12] [--id 710]
+ * Запуск:  node scripts/audit-tasks.mjs [--grade 7] [--limit 12] [--id 710] [--drafts]
  *   --grade N  начиная с какого класса смотреть (по умолчанию 7)
  *   --limit N  сколько примеров показывать в каждом разделе
+ *   --drafts   черновики вместо опубликованных — нужен ключ service_role
+ *              из .env: анонимный ключ черновиков не видит
  *
  * Чертежи читаются из публичного бакета, поэтому прогон идёт дольше
  * остальных отчётов — это сетевые запросы, по одному на рисунок.
@@ -29,6 +36,7 @@ const numArg = (name, fallback) => {
 const FROM_GRADE = numArg('--grade', 7);
 const LIMIT = numArg('--limit', 12);
 const ONLY_ID = numArg('--id', null);
+const DRAFTS = argv.includes('--drafts');
 
 function loadEnv() {
   return Object.fromEntries(
@@ -40,137 +48,72 @@ function loadEnv() {
 new Function(readFileSync(ROOT + 'public/lib.js', 'utf8'))();
 const lib = globalThis.MathTasksLib;
 
-/* ── 1. Чертёж ────────────────────────────────────────────────────
-   Геометрический чертёж подписывают только вершинами: заглавными
-   латинскими буквами. Числа, единицы, «?» и строчные подписи вроде «h»
-   означают, что данные ушли из условия на картинку. График, диаграмма и
-   числовая прямая — исключение: там числа и есть содержание. */
-const GRAPH_MARKS = /<text[^>]*>\s*(?:[xyXY]|0|O)\s*<\/text>/;
-const looksLikeChart = svg => /stroke-dasharray|marker-end|<path[^>]*d=['"][^'"]*[Cc]/.test(svg) === false
-  && (/(<line|<polyline)[^>]*\b(x1|points)=/.test(svg) && GRAPH_MARKS.test(svg));
-
-function drawingIssues(svg) {
-  const texts = [...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map(m => m[1].trim()).filter(Boolean);
-  if (!texts.length) return null;
-  // На графиках и числовых прямых числа обязательны — их не трогаем.
-  if (looksLikeChart(svg)) return null;
-
-  const withNumbers = texts.filter(t => /\d/.test(t));
-  const withUnits = texts.filter(t => /(?<!\p{L})(см|мм|дм|км|м|кг|г|cm|mm|km|kg)(?!\p{L})/iu.test(t));
-  const questions = texts.filter(t => t.includes('?'));
-  const lowercase = texts.filter(t => /^[a-zа-яё]/u.test(t) && t.length <= 3);
-  const found = [];
-  if (withNumbers.length) found.push('числа: ' + withNumbers.slice(0, 5).join(', '));
-  if (withUnits.length) found.push('единицы: ' + withUnits.slice(0, 5).join(', '));
-  if (questions.length) found.push('знак вопроса');
-  if (lowercase.length) found.push('строчные подписи: ' + lowercase.slice(0, 5).join(', '));
-  return found.length ? found.join('; ') : null;
-}
-
-/* ── 3. Другие записи ответа ──────────────────────────────────────
-   Ученик пишет верный ответ иначе: 0,5 вместо 1/2, 1,5 вместо 1½,
-   без единицы. Проверяем, принимает ли сверка такие записи. */
-// Значение без единицы: «10 км/ч» → «10», «40 см» → «40».
-function bareValue(answer) {
-  const inner = String(answer).replace(/\$/g, '').trim();
-  const parts = lib.parseAnswerParts(inner);
-  if (parts.length !== 1 || parts[0].pieceCount !== 1) return null;
-  const value = parts[0].values[0];
-  const bare = String(value).replace(/\\(?:text|mathrm)\{[^{}]*\}(\^\d)?\s*$/, '').trim();
-  return bare && bare !== String(value).trim() ? bare : null;
-}
-
-function alternativeForms(answer) {
-  const bare = String(answer).replace(/\$/g, '').trim();
-  const forms = new Set();
-  const add = value => { const v = String(value).trim(); if (v && v !== bare) forms.add(v); };
-
-  // Дробь → десятичная и наоборот.
-  const frac = bare.match(/^\\d?frac\{(-?\d+)\}\{(\d+)\}$/);
-  if (frac) {
-    const value = Number(frac[1]) / Number(frac[2]);
-    if (Number.isFinite(value)) {
-      add(String(value).replace('.', ','));
-      add(`${frac[1]}/${frac[2]}`);
-    }
-  }
-  const decimal = bare.match(/^(-?\d+)\{,\}(\d+)$/);
-  if (decimal) {
-    add(`${decimal[1]}.${decimal[2]}`);
-    add(`${decimal[1]},${decimal[2]}`);
-  }
-  // Значение с единицей — ученик единицу часто не пишет.
-  const withUnit = bare.match(/^(.+?)\\text\{\s*[^{}]+\s*\}(\^\d)?$/);
-  if (withUnit) add(withUnit[1]);
-  // Процент как доля.
-  const percent = bare.match(/^(-?\d+(?:\{,\}\d+)?)\\?%$/);
-  if (percent) add(percent[1].replace('{,}', ','));
-  return [...forms];
-}
+// Разделы отчёта: код проверки из auditTask → заголовок.
+const SECTIONS = [
+  ['accept', 'не принимает запись ответа'],
+  ['selfcheck', 'самопроверка вместо автопроверки'],
+  ['translation', 'нет перевода'],
+  ['numbers', 'числа RU и LV разные'],
+  ['ending', 'другой ответ в конце решения'],
+  ['answer', 'нет ответа или решения'],
+  ['label', 'нет подписи у поля'],
+  ['drawing', 'лишнее на чертеже'],
+  ['young', 'дроби в 5–6 классе']
+];
 
 async function main() {
   const env = loadEnv();
-  const H = { apikey: env.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + env.SUPABASE_ANON_KEY };
+  const key = DRAFTS ? env.SUPABASE_SERVICE_ROLE_KEY : env.SUPABASE_ANON_KEY;
+  if (!key) throw new Error(DRAFTS ? 'Для --drafts нужен SUPABASE_SERVICE_ROLE_KEY в .env' : 'Нет SUPABASE_ANON_KEY в .env');
+  const H = { apikey: key, Authorization: 'Bearer ' + key };
   // Страницами, в однозначном порядке — см. lib/fetch-all.mjs.
-  const rows = await fetchAll(env.SUPABASE_URL + '/rest/v1/tasks?select=id,grade,title,is_published,condition_latex,condition_latex_lv,solution_latex,solution_latex_lv,hint_latex,hint_latex_lv,answer_latex,answer_latex_lv,answer_check,condition_image,solution_image&order=id', H);
+  const rows = await fetchAll(env.SUPABASE_URL + '/rest/v1/tasks?select=*&order=id', H);
+  const topics = await fetchAll(env.SUPABASE_URL + '/rest/v1/topics?select=id,title,grade&order=id', H);
 
   const tasks = rows.filter(task => {
     if (ONLY_ID) return task.id === ONLY_ID;
+    if (Boolean(task.is_published) === DRAFTS) return false;
     const grade = Number(task.grade);
     return Number.isFinite(grade) && grade >= FROM_GRADE;
   });
 
-  const bad = { чертёж: [], подпись: [], записи: [], перевод: [] };
-
-  for (const task of tasks) {
-    const answer = (task.answer_latex || '').trim();
-    const variants = task.answer_check || '';
-
-    // 2. Подпись перед полем.
-    if (answer && lib.isTaskAutoCheckable(answer, variants)
-      && !lib.answerFields(answer, variants).length && !lib.answerLabelMarkup(answer)
-      // Подпись из условия тоже подпись: «x³ − 3x² − 4x + 12 = [ ]».
-      && !lib.conditionPrompt(task.condition_latex)) {
-      bad.подпись.push({ task, note: answer });
-    }
-
-    // 3. Другие записи ответа.
-    if (answer) {
-      const forms = alternativeForms(answer);
-      const bare = bareValue(answer);
-      if (bare) forms.push(bare);
-      const rejected = forms.filter(form => !lib.checkTaskAnswer(form, answer, variants));
-      if (rejected.length) bad.записи.push({ task, note: `${answer} — не принимает: ${rejected.join(', ')}` });
-    }
-
-    // 4. Перевод.
-    const missing = [
-      ['условие', task.condition_latex, task.condition_latex_lv],
-      ['ответ', task.answer_latex, task.answer_latex_lv],
-      ['решение', task.solution_latex, task.solution_latex_lv],
-      ['подсказка', task.hint_latex, task.hint_latex_lv]
-    ].filter(([, ru, lv]) => String(ru || '').trim() && !String(lv || '').trim()).map(([name]) => name);
-    if (missing.length) bad.перевод.push({ task, note: 'нет по-латышски: ' + missing.join(', ') });
-
-    // 1. Чертёж.
+  const svgCache = new Map();
+  async function drawingOf(task) {
+    const found = [];
     for (const path of [task.condition_image, task.solution_image]) {
-      if (!path || !path.endsWith('.svg')) continue;
-      const res = await fetch(`${env.SUPABASE_URL}/storage/v1/object/public/task-images/${path}`);
-      if (!res.ok) { bad.чертёж.push({ task, note: `файл не открылся (${res.status}): ${path}` }); continue; }
-      const issue = drawingIssues(await res.text());
-      if (issue) bad.чертёж.push({ task, note: issue });
+      if (!path) continue;
+      const raw = String(path).trim();
+      if (raw.startsWith('<svg')) { found.push(lib.drawingIssues(raw)); continue; }
+      if (!raw.endsWith('.svg')) continue;
+      if (!svgCache.has(raw)) {
+        const res = await fetch(`${env.SUPABASE_URL}/storage/v1/object/public/task-images/${raw}`);
+        svgCache.set(raw, res.ok ? lib.drawingIssues(await res.text()) : `файл не открылся (${res.status}): ${raw}`);
+      }
+      found.push(svgCache.get(raw));
+    }
+    return found.filter(Boolean).join('; ') || null;
+  }
+
+  const bad = Object.fromEntries(SECTIONS.map(([code]) => [code, []]));
+  let clean = 0;
+  for (const task of tasks) {
+    const topic = topics.find(item => item.id === task.topic_id);
+    const issues = lib.taskIssues(task, { grade: task.grade ?? topic?.grade, topicTitle: topic?.title, drawing: await drawingOf(task) });
+    if (!issues.length) clean++;
+    for (const issue of issues) {
+      // Ответ, который не сверить автоматически, — не то же, что непринятый.
+      const section = issue.code === 'accept' && issue.level === 'warn' ? 'selfcheck' : issue.code;
+      bad[section]?.push({ task, note: issue.text });
     }
   }
 
-  const line = (name, list) => `  ${name.padEnd(28)} ${String(list.length).padStart(4)}`;
-  console.log(`\nЗадач с ${FROM_GRADE} класса: ${tasks.length} (опубликовано ${tasks.filter(t => t.is_published).length})\n`);
+  const line = (name, list) => `  ${name.padEnd(34)} ${String(list.length).padStart(4)}`;
+  console.log(`\n${DRAFTS ? 'Черновиков' : 'Задач'} с ${FROM_GRADE} класса: ${tasks.length}; без замечаний: ${clean}\n`);
   console.log('Что стоит поправить:');
-  console.log(line('лишнее на чертеже', bad.чертёж));
-  console.log(line('нет подписи у поля', bad.подпись));
-  console.log(line('не принимает запись ответа', bad.записи));
-  console.log(line('нет перевода', bad.перевод));
+  for (const [code, name] of SECTIONS) console.log(line(name, bad[code]));
 
-  for (const [name, list] of Object.entries(bad)) {
+  for (const [code, name] of SECTIONS) {
+    const list = bad[code];
     if (!list.length) continue;
     console.log(`\n── ${name} ──`);
     for (const item of list.slice(0, LIMIT)) {
