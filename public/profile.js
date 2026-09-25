@@ -68,6 +68,8 @@
     } catch {
       profile = null;
     }
+    // Ник профиля — общий для сайта: дуэль на этом устройстве покажет его же.
+    if (profile?.nick) storeNick(profile.nick);
     return profile;
   }
 
@@ -205,8 +207,20 @@
     el.hidden = !text;
   };
 
+  /* Ник один на весь сайт: его же показывает дуэль. Хранится в браузере
+     под общим ключом; профиль, когда он есть, — главный источник и
+     переносит ник на другое устройство. */
+  const NICK_KEY = 'math-tasks:nick';
+  const storedNick = () => {
+    try {
+      const raw = localStorage.getItem(NICK_KEY) || localStorage.getItem('math-tasks:duel-nick');
+      return nicks?.sanitizeNick ? nicks.sanitizeNick(raw) : String(raw || '').trim();
+    } catch { return ''; }
+  };
+  const storeNick = nick => { try { localStorage.setItem(NICK_KEY, nick); } catch {} };
+
   function renderNoProfile(box) {
-    const nick = nicks?.generateNick ? nicks.generateNick(lang()) : '';
+    const nick = storedNick() || (nicks?.generateNick ? nicks.generateNick(lang()) : '');
     box.innerHTML = `
       <h2>💾 ${escapeHtml(tr('profile_title_new'))}</h2>
       <p>${escapeHtml(tr('profile_lead'))}</p>

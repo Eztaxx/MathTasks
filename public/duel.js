@@ -69,20 +69,26 @@
   // ── Ники ────────────────────────────────────────────────────────────
   /* «Дружелюбные» ники, как у Kahoot: прилагательное + животное, род
      согласован. Ребёнок может поправить ник, но по умолчанию ему нечего
-     выдумывать — и нечего выдать о себе. */
+     выдумывать — и нечего выдать о себе. Ник у человека один на весь
+     сайт и не переводится: генератор даёт его на языке первого визита,
+     а дальше он хранится как есть — иначе в таблице лидеров один игрок
+     появлялся бы дважды, по-русски и по-латышски. Третий элемент —
+     значок для аватара. */
   const NICK_PARTS = {
     ru: {
-      animals: [['Лиса', 'f'], ['Кот', 'm'], ['Сова', 'f'], ['Ёж', 'm'], ['Барсук', 'm'], ['Выдра', 'f'], ['Белка', 'f'],
-        ['Волк', 'm'], ['Заяц', 'm'], ['Рысь', 'f'], ['Лось', 'm'], ['Пингвин', 'm'], ['Дельфин', 'm'], ['Черепаха', 'f'],
-        ['Панда', 'f'], ['Енот', 'm'], ['Бобр', 'm'], ['Орёл', 'm'], ['Чайка', 'f'], ['Кит', 'm']],
+      animals: [['Лиса', 'f', '🦊'], ['Кот', 'm', '🐱'], ['Сова', 'f', '🦉'], ['Ёж', 'm', '🦔'], ['Барсук', 'm', '🦡'],
+        ['Выдра', 'f', '🦦'], ['Белка', 'f', '🐿️'], ['Волк', 'm', '🐺'], ['Заяц', 'm', '🐰'], ['Рысь', 'f', '🐈'],
+        ['Лось', 'm', '🫎'], ['Пингвин', 'm', '🐧'], ['Дельфин', 'm', '🐬'], ['Черепаха', 'f', '🐢'], ['Панда', 'f', '🐼'],
+        ['Енот', 'm', '🦝'], ['Бобр', 'm', '🦫'], ['Орёл', 'm', '🦅'], ['Чайка', 'f', '🐦'], ['Кит', 'm', '🐳']],
       adjectives: [['Быстрый', 'Быстрая'], ['Хитрый', 'Хитрая'], ['Смелый', 'Смелая'], ['Весёлый', 'Весёлая'],
         ['Мудрый', 'Мудрая'], ['Ловкий', 'Ловкая'], ['Зоркий', 'Зоркая'], ['Шустрый', 'Шустрая'], ['Храбрый', 'Храбрая'],
         ['Точный', 'Точная'], ['Юркий', 'Юркая'], ['Упорный', 'Упорная']]
     },
     lv: {
-      animals: [['Lapsa', 'f'], ['Kaķis', 'm'], ['Pūce', 'f'], ['Ezis', 'm'], ['Āpsis', 'm'], ['Ūdrs', 'm'], ['Vāvere', 'f'],
-        ['Vilks', 'm'], ['Zaķis', 'm'], ['Lūsis', 'm'], ['Alnis', 'm'], ['Pingvīns', 'm'], ['Delfīns', 'm'], ['Panda', 'f'],
-        ['Jenots', 'm'], ['Bebrs', 'm'], ['Ērglis', 'm'], ['Kaija', 'f'], ['Zebiekste', 'f'], ['Valis', 'm']],
+      animals: [['Lapsa', 'f', '🦊'], ['Kaķis', 'm', '🐱'], ['Pūce', 'f', '🦉'], ['Ezis', 'm', '🦔'], ['Āpsis', 'm', '🦡'],
+        ['Ūdrs', 'm', '🦦'], ['Vāvere', 'f', '🐿️'], ['Vilks', 'm', '🐺'], ['Zaķis', 'm', '🐰'], ['Lūsis', 'm', '🐈'],
+        ['Alnis', 'm', '🫎'], ['Pingvīns', 'm', '🐧'], ['Delfīns', 'm', '🐬'], ['Panda', 'f', '🐼'], ['Jenots', 'm', '🦝'],
+        ['Bebrs', 'm', '🦫'], ['Ērglis', 'm', '🦅'], ['Kaija', 'f', '🐦'], ['Zebiekste', 'f', '🦡'], ['Valis', 'm', '🐳']],
       adjectives: [['Ātrais', 'Ātrā'], ['Viltīgais', 'Viltīgā'], ['Drosmīgais', 'Drosmīgā'], ['Jautrais', 'Jautrā'],
         ['Gudrais', 'Gudrā'], ['Veiklais', 'Veiklā'], ['Vērīgais', 'Vērīgā'], ['Žiglais', 'Žiglā'], ['Varonīgais', 'Varonīgā'],
         ['Precīzais', 'Precīzā'], ['Zibenīgais', 'Zibenīgā'], ['Neatlaidīgais', 'Neatlaidīgā']]
@@ -96,24 +102,50 @@
     return `${gender === 'f' ? feminine : masculine} ${animal}`;
   };
 
+  /* Аватар по нику: зверь из генератора — его значок, свой ник — первая
+     буква на цветном круге. Оттенок считается из ника, так что у одного
+     игрока он одинаков на любом устройстве. */
+  const ANIMAL_ICONS = new Map(
+    Object.values(NICK_PARTS).flatMap(parts => parts.animals.map(([animal, , icon]) => [animal.toLowerCase(), icon]))
+  );
+  const avatarFor = nick => {
+    const text = String(nick || '').trim();
+    let hash = 0;
+    for (const char of text) hash = (hash * 31 + char.codePointAt(0)) >>> 0;
+    const hue = hash % 360;
+    const words = text.toLowerCase().split(/\s+/);
+    const icon = ANIMAL_ICONS.get(words[words.length - 1]);
+    if (icon) return { text: icon, emoji: true, hue };
+    const first = [...text][0];
+    return { text: first ? first.toUpperCase() : '?', emoji: false, hue };
+  };
+
   /* Грубые слова ищем после приведения похожих латинских букв и цифр к
      кириллице и выбрасывания пробелов: «х у й», «xyй», «6ля» — всё одно. */
   const LOOKALIKES = { a: 'а', b: 'в', c: 'с', e: 'е', h: 'н', k: 'к', m: 'м', o: 'о', p: 'р', t: 'т', x: 'х', y: 'у', 3: 'з', 0: 'о', 6: 'б', 4: 'ч' };
-  const BLOCKED_CYRILLIC = ['хуй', 'хуе', 'хуё', 'хуя', 'пизд', 'ебал', 'ебан', 'ебат', 'еблан', 'бля', 'сука', 'суки', 'мудак',
-    'гандон', 'пидор', 'пидар', 'педик', 'шлюх', 'залуп', 'дроч', 'говн', 'срать', 'нацист', 'гитлер'];
-  const BLOCKED_LATIN = ['fuck', 'shit', 'bitch', 'cunt', 'nigg', 'porn', 'pimpis', 'pizda', 'dirsa',
+  const BLOCKED_CYRILLIC = ['хуй', 'хуе', 'хуё', 'хуя', 'пизд', 'ебал', 'ебан', 'ебат', 'еблан', 'ёбан', 'ебуч', 'бля', 'сука', 'суки',
+    'мудак', 'мудил', 'гандон', 'пидор', 'пидар', 'педик', 'шлюх', 'залуп', 'дроч', 'говн', 'срать', 'ублюд', 'сволоч', 'мразь',
+    'нацист', 'гитлер'];
+  const BLOCKED_LATIN = ['fuck', 'shit', 'bitch', 'cunt', 'nigg', 'porn', 'whore', 'slut', 'penis', 'pimpis', 'pizda', 'dirsa',
     'mauka', 'pedik', 'pidar', 'hitler', 'nazi'];
   /* Короткие корни встречаются внутри безобидных ников («Viltīgais Ūdrs»
-     без пробела даёт «…aisūdrs»), поэтому их ищем только в начале слова. */
-  const BLOCKED_WORD_START = ['sūd', 'sud', 'sex', 'kill', 'fag', 'dick', 'ёб', 'жоп'];
+     без пробела даёт «…aisūdrs»), поэтому их ищем только в начале слова —
+     в исходной записи и в приведённой к кириллице. */
+  const BLOCKED_WORD_START = ['sūd', 'sud', 'sex', 'kill', 'fag', 'dick', 'cock', 'pimp', 'kuce', 'maita', 'pist', 'dirs', 'mēsl',
+    'idiot', 'idiōt', 'debil', 'debīl', 'daun', 'kretīn', 'kretin',
+    'ёб', 'жоп', 'хер', 'сись', 'трах', 'дебил', 'даун', 'идиот', 'урод', 'тварь', 'подонок', 'чмо'];
 
   const looksBlocked = text => {
     const lower = text.toLowerCase();
     const plain = lower.replace(/[\s\-_.]/g, '');
     if (BLOCKED_LATIN.some(word => plain.includes(word))) return true;
-    const cyr = [...plain].map(char => LOOKALIKES[char] || char).join('');
+    const toCyrillic = value => [...value].map(char => LOOKALIKES[char] || char).join('');
+    const cyr = toCyrillic(plain);
     if (BLOCKED_CYRILLIC.some(word => cyr.includes(word) || plain.includes(word))) return true;
-    return lower.split(/[\s\-_.]+/).some(word => BLOCKED_WORD_START.some(root => word.startsWith(root)));
+    return lower.split(/[\s\-_.]+/).some(word => {
+      const mapped = toCyrillic(word);
+      return BLOCKED_WORD_START.some(root => word.startsWith(root) || mapped.startsWith(root));
+    });
   };
 
   /* Ник — пользовательский ввод, который увидит другой ребёнок. Пустая
@@ -139,15 +171,26 @@
   // ── Вызов ───────────────────────────────────────────────────────────
   const isCount = (value, max = MAX_ATTEMPTS) => Number.isInteger(value) && value >= 0 && value <= max;
 
+  /* Игрок в ссылке — либо результат (r верных из q, маска m), либо только
+     ник: вызвавший получает ссылку сразу, до своей минуты, и может сыграть
+     её позже. Такой игрок — «ожидающий»: у него нет r, q и m. */
+  const hasResult = player => Boolean(player) && !player.pending;
+
   const normalizePlayer = player => {
     if (!player || typeof player !== 'object') return null;
     const { r, q, m } = player;
+    // Ник из чужой ссылки проверяем заново: ссылку могли собрать руками.
+    const n = sanitizeNick(player.n);
+    if (r === undefined && q === undefined && m === undefined) return { n, pending: true };
     if (!isCount(q) || !isCount(r) || r > q) return null;
     const bits = unpackMask(m, q);
     if (!bits || bits.filter(Boolean).length !== r) return null;
-    // Ник из чужой ссылки проверяем заново: ссылку могли собрать руками.
-    return { n: sanitizeNick(player.n), r, q, m: String(m) };
+    return { n, r, q, m: String(m) };
   };
+
+  const packPlayer = player => (player.pending
+    ? { n: player.n }
+    : { n: player.n, r: player.r, q: player.q, m: player.m });
 
   const encodeChallenge = challenge => {
     const payload = {
@@ -156,9 +199,9 @@
       s: challenge.s >>> 0,
       c: challenge.c,
       d: challenge.d,
-      a: challenge.a
+      a: packPlayer(challenge.a)
     };
-    if (challenge.b) payload.b = challenge.b;
+    if (challenge.b) payload.b = packPlayer(challenge.b);
     const json = JSON.stringify(payload);
     return `${toBase64Url(json)}.${checksum(json)}`;
   };
@@ -341,7 +384,9 @@
     packMask,
     unpackMask,
     generateNick,
+    avatarFor,
     sanitizeNick,
+    hasResult,
     encodeChallenge,
     decodeChallenge,
     compareResults,

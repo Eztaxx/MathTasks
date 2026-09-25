@@ -56,6 +56,48 @@ describe('дуэль: ссылка', () => {
   });
 });
 
+/* Ссылка появляется до своей минуты: вызвавший в ней — только ник, без
+   счёта. Друг может сыграть первым, и тогда его результат едет обратно
+   к ещё не сыгравшему вызвавшему. */
+describe('дуэль: вызов до своей минуты', () => {
+  it('ожидающий игрок едет в ссылке без счёта и возвращается ожидающим', () => {
+    const back = decodeChallenge(encodeChallenge({ ...CHALLENGE, a: { n: 'Быстрая Лиса', pending: true } }));
+    expect(back.a).toEqual({ n: 'Быстрая Лиса', pending: true });
+    expect(duel.hasResult(back.a)).toBe(false);
+    expect(duel.hasResult(CHALLENGE.a)).toBe(true);
+    expect(duel.hasResult(null)).toBe(false);
+  });
+
+  it('ответ друга на ожидающий вызов сохраняет оба состояния', () => {
+    const b = player('Ātrā Lapsa', [true, true, false]);
+    const back = decodeChallenge(encodeChallenge({ ...CHALLENGE, a: { n: 'Кот', pending: true }, b }));
+    expect(back.a.pending).toBe(true);
+    expect(back.b).toEqual(b);
+  });
+
+  it('в ссылке ожидающего игрока нет ни счёта, ни маски', () => {
+    const token = encodeChallenge({ ...CHALLENGE, a: { n: 'Кот', pending: true, r: 5, q: 5, m: 'zzz' } });
+    const json = Buffer.from(token.split('.')[0], 'base64url').toString();
+    expect(JSON.parse(json).a).toEqual({ n: 'Кот' });
+  });
+});
+
+describe('дуэль: аватар', () => {
+  it('зверь из генератора получает свой значок, свой ник — первую букву', () => {
+    expect(duel.avatarFor('Быстрая Лиса')).toMatchObject({ text: '🦊', emoji: true });
+    expect(duel.avatarFor('Ātrā Lapsa')).toMatchObject({ text: '🦊', emoji: true });
+    expect(duel.avatarFor('māris k')).toMatchObject({ text: 'M', emoji: false });
+    expect(duel.avatarFor('')).toMatchObject({ text: '?' });
+  });
+
+  it('оттенок одинаков для одного ника и лежит в круге', () => {
+    const first = duel.avatarFor('Kaķis 2012');
+    expect(first.hue).toBe(duel.avatarFor('Kaķis 2012').hue);
+    expect(first.hue).toBeGreaterThanOrEqual(0);
+    expect(first.hue).toBeLessThan(360);
+  });
+});
+
 describe('дуэль: маска верных ответов', () => {
   it('упаковка обратима при любой длине', () => {
     for (const length of [0, 1, 5, 6, 7, 40, 121]) {
@@ -115,8 +157,12 @@ describe('дуэль: ники', () => {
   });
 
   it('грубые слова ловятся и в маскировке', () => {
-    for (const nick of ['Сука', 'х у й', 'xyй', 'Fuck you', 'Pimpis', 'Гитлер']) {
+    for (const nick of ['Сука', 'х у й', 'xyй', 'Fuck you', 'Pimpis', 'Гитлер', 'Debils Ezis', 'Kuce', 'Дебил', 'xep', 'Maita Lapsa', 'Cock', 'Урод 7']) {
       expect(sanitizeNick(nick), nick).toBe('');
+    }
+    // Похожие безобидные слова остаются: корни ловятся только в начале слова.
+    for (const nick of ['Лохматый Кот', 'Analītiķis', 'Viltīgais Ūdrs', 'Passat 2']) {
+      expect(sanitizeNick(nick), nick).toBe(nick);
     }
   });
 

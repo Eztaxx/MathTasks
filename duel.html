@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="/style.css" />
   <script src="/theme-init.js"></script>
-  <script src="/i18n.js?v=20260925-3"></script>
+  <script src="/i18n.js?v=20260925-4"></script>
 </head>
 <body class="trainer-page duel-page">
   <header class="admin-topbar">
@@ -90,70 +90,122 @@
   </header>
 
   <main class="trainer-container duel">
-    <div class="trainer-header">
+    <div class="trainer-header duel-header">
       <h1 data-i18n="duel_title">⚔️ Дуэль на устный счёт</h1>
       <p data-i18n="duel_sub">Минута устного счёта против живого соперника, записи другого игрока или друга по ссылке. Без регистрации.</p>
     </div>
 
     <p class="duel-notice" id="duel-notice" role="status" hidden></p>
 
-    <!-- Настройка: свой вызов или ответ на чужой. -->
-    <section class="duel-screen trainer-panel" id="duel-setup">
-      <div class="duel-invite" id="duel-invite" hidden>
-        <p class="duel-invite-text" id="duel-invite-text"></p>
-        <p class="duel-invite-note" data-i18n="duel_invite_score">Счёт соперника откроется после твоей попытки.</p>
-      </div>
-
-      <div class="duel-nick-row">
-        <label class="trainer-label" for="duel-nick" data-i18n="duel_nick_label">Твой ник</label>
-        <div class="duel-nick-field">
-          <input id="duel-nick" type="text" maxlength="24" autocomplete="off" spellcheck="false" />
-          <button type="button" class="secondary-button" id="duel-nick-new" data-i18n-title="duel_nick_new" title="Другой ник" aria-label="Другой ник" data-i18n-aria="duel_nick_new">🎲</button>
+    <!-- Настройка: игрок, режим, категория — и таблица лидеров рядом. -->
+    <section class="duel-screen duel-setup" id="duel-setup">
+      <div class="duel-main">
+        <!-- Ник один на весь сайт: тот же, что в профиле ученика. -->
+        <div class="duel-player">
+          <span class="duel-avatar duel-avatar-lg" id="duel-avatar" aria-hidden="true"></span>
+          <div class="duel-player-body">
+            <label class="trainer-label" for="duel-nick" data-i18n="duel_nick_label">Твой ник</label>
+            <div class="duel-nick-field">
+              <input id="duel-nick" type="text" maxlength="24" autocomplete="off" spellcheck="false" />
+              <button type="button" class="duel-nick-new" id="duel-nick-new" data-i18n-title="duel_nick_new" title="Другой ник" aria-label="Другой ник" data-i18n-aria="duel_nick_new">🎲</button>
+            </div>
+            <p class="duel-nick-note" data-i18n="duel_nick_note">Не пиши настоящее имя, телефон или почту — ник увидят другие игроки.</p>
+          </div>
+          <span class="duel-best" id="duel-best"></span>
         </div>
-        <p class="duel-nick-note" data-i18n="duel_nick_note">Не пиши настоящее имя, телефон или почту — ник увидят другие игроки.</p>
-      </div>
 
-      <div class="duel-choice" id="duel-choice">
-        <div class="trainer-categories-row">
-          <span class="trainer-label" data-i18n="duel_cat_label">Что считаем</span>
-          <div class="trainer-chip-group" id="duel-cats" role="group"></div>
+        <!-- Чужой вызов из ссылки: вместо режимов — принять или отказаться. -->
+        <div class="duel-invite" id="duel-invite" hidden>
+          <span class="duel-avatar duel-avatar-lg" id="duel-invite-avatar" aria-hidden="true"></span>
+          <div class="duel-invite-body">
+            <h2 class="duel-invite-title" id="duel-invite-title"></h2>
+            <p class="duel-invite-text" id="duel-invite-text"></p>
+            <p class="duel-invite-meta" id="duel-invite-meta"></p>
+          </div>
+          <div class="duel-invite-actions">
+            <button type="button" class="primary-button duel-big-btn" id="duel-accept" data-i18n="duel_accept">⚔️ Принять вызов</button>
+            <button type="button" class="text-button" id="duel-decline" data-i18n="duel_decline">Не сейчас</button>
+          </div>
         </div>
-        <div class="trainer-categories-row">
-          <span class="trainer-label" data-i18n="duel_diff_label">Сложность</span>
-          <div class="trainer-chip-group" id="duel-diffs" role="group"></div>
+
+        <div class="duel-modes" id="duel-modes" role="group" aria-label="Режим" data-i18n-aria="duel_mode_label">
+          <button type="button" class="duel-mode is-primary" id="duel-random">
+            <span class="duel-mode-icon" aria-hidden="true">🎲</span>
+            <span class="duel-mode-title" data-i18n="duel_mode_random_title">Случайный соперник</span>
+            <span class="duel-mode-desc" data-i18n="duel_mode_random_desc">Живой игрок онлайн — или запись другого игрока на тех же примерах</span>
+          </button>
+          <button type="button" class="duel-mode" id="duel-friend">
+            <span class="duel-mode-icon" aria-hidden="true">🔗</span>
+            <span class="duel-mode-title" data-i18n="duel_mode_friend_title">Вызвать друга</span>
+            <span class="duel-mode-desc" data-i18n="duel_mode_friend_desc">Ссылка сразу: друг решает те же примеры, когда удобно</span>
+          </button>
+          <button type="button" class="duel-mode" id="duel-solo-start">
+            <span class="duel-mode-icon" aria-hidden="true">🏁</span>
+            <span class="duel-mode-title" data-i18n="duel_mode_solo_title">На рекорд</span>
+            <span class="duel-mode-desc" data-i18n="duel_mode_solo_desc">Минута в одиночку — результат идёт в таблицу лидеров</span>
+          </button>
         </div>
-      </div>
 
-      <div class="duel-start-row">
-        <button type="button" class="primary-button duel-start" id="duel-random" data-i18n="duel_random">🎲 Случайный соперник</button>
-        <button type="button" class="secondary-button duel-start" id="duel-start" data-i18n="duel_link_friend">🔗 Вызвать друга по ссылке</button>
-      </div>
-      <p class="duel-random-note" id="duel-random-note" data-i18n="duel_random_note">Ищем живого соперника онлайн, а если никого нет — ты сыграешь против записи другого игрока на тех же примерах.</p>
+        <div class="duel-choice trainer-panel" id="duel-choice">
+          <div class="trainer-categories-row">
+            <span class="trainer-label" data-i18n="duel_cat_label">Что считаем</span>
+            <div class="trainer-chip-group" id="duel-cats" role="group"></div>
+          </div>
+          <div class="trainer-categories-row">
+            <span class="trainer-label" data-i18n="duel_diff_label">Сложность</span>
+            <div class="trainer-chip-group" id="duel-diffs" role="group"></div>
+          </div>
+        </div>
 
-      <div class="duel-history" id="duel-history" hidden>
-        <h2 data-i18n="duel_history">Мои дуэли</h2>
-        <ol class="duel-history-list" id="duel-history-list"></ol>
+        <div class="duel-history" id="duel-history" hidden>
+          <h2 data-i18n="duel_history">Мои дуэли</h2>
+          <ol class="duel-history-list" id="duel-history-list"></ol>
+        </div>
       </div>
 
       <!-- Таблица лидеров: счёт в неё пишет только воркер (worker/duel-api.js). -->
-      <section class="duel-board" id="duel-board" hidden aria-labelledby="duel-board-title">
-        <div class="duel-board-head">
-          <h2 id="duel-board-title" data-i18n="duel_board_title">🏆 Таблица лидеров</h2>
-          <div class="duel-board-period" role="group" data-i18n-aria="duel_board_period" aria-label="Период">
-            <button type="button" data-board-period="week" aria-pressed="true" data-i18n="duel_board_week">Эта неделя</button>
-            <button type="button" data-board-period="all" aria-pressed="false" data-i18n="duel_board_all">Всё время</button>
+      <aside class="duel-aside">
+        <section class="duel-board" id="duel-board" hidden aria-labelledby="duel-board-title">
+          <div class="duel-board-head">
+            <h2 id="duel-board-title" data-i18n="duel_board_title">🏆 Таблица лидеров</h2>
+            <div class="duel-board-period" role="group" data-i18n-aria="duel_board_period" aria-label="Период">
+              <button type="button" data-board-period="week" aria-pressed="true" data-i18n="duel_board_week">Эта неделя</button>
+              <button type="button" data-board-period="all" aria-pressed="false" data-i18n="duel_board_all">Всё время</button>
+            </div>
           </div>
+          <div class="duel-board-filters">
+            <select id="duel-board-cat" aria-label="Что считаем" data-i18n-aria="duel_cat_label"></select>
+            <select id="duel-board-diff" aria-label="Сложность" data-i18n-aria="duel_diff_label"></select>
+          </div>
+          <div class="duel-podium" id="duel-podium" aria-hidden="true"></div>
+          <ol class="duel-board-list" id="duel-board-list" aria-live="polite"></ol>
+          <p class="duel-board-note" data-i18n="duel_board_note">Счёт считает сервер по тем же примерам, у каждого игрока — лучшая попытка. Неделя начинается в понедельник.</p>
+        </section>
+      </aside>
+    </section>
+
+    <!-- Вызов друга: ссылка готова сразу, свою минуту можно сыграть и позже. -->
+    <section class="duel-screen duel-link" id="duel-link" hidden>
+      <div class="duel-link-card">
+        <h2 data-i18n="duel_link_ready_title">🔗 Ссылка для друга готова</h2>
+        <p class="duel-link-summary" id="duel-link-summary"></p>
+        <p class="duel-link-text" data-i18n="duel_link_ready_text">Отправь её другу — у него будут те же примеры и та же минута. Свою минуту сыграй сейчас или позже: сравнение появится, когда сыграете оба.</p>
+        <div class="duel-share-row">
+          <input id="duel-link-url" type="text" readonly aria-label="Ссылка" data-i18n-aria="duel_link_aria" />
+          <button type="button" class="primary-button" id="duel-link-copy" data-i18n="duel_copy">Скопировать ссылку</button>
+          <button type="button" class="secondary-button" id="duel-link-share" data-i18n="duel_share" hidden>Поделиться</button>
         </div>
-        <div class="duel-board-chips" id="duel-board-cats" role="group"></div>
-        <div class="duel-board-chips" id="duel-board-diffs" role="group"></div>
-        <ol class="duel-board-list" id="duel-board-list" aria-live="polite"></ol>
-        <p class="duel-board-note" data-i18n="duel_board_note">Счёт считает сервер по тем же примерам, у каждого игрока — лучшая попытка. Неделя начинается в понедельник.</p>
-      </section>
+        <p class="duel-copied" id="duel-link-copied" role="status" hidden data-i18n="duel_copied">Ссылка скопирована — отправь её в переписку с другом.</p>
+        <div class="duel-link-actions">
+          <button type="button" class="primary-button duel-big-btn" id="duel-link-play" data-i18n="duel_play_mine">▶ Сыграть свою минуту</button>
+          <button type="button" class="text-button" id="duel-link-back" data-i18n="duel_back_setup">Настроить другую дуэль</button>
+        </div>
+      </div>
     </section>
 
     <!-- Поиск случайного соперника: живой онлайн, иначе — запись. -->
     <section class="duel-screen duel-search" id="duel-search" hidden>
-      <div class="duel-search-pulse" aria-hidden="true">⚔️</div>
+      <div class="duel-radar" aria-hidden="true"><span></span><span></span><span></span><em>⚔️</em></div>
       <h2 id="duel-search-title" data-i18n="duel_search_title">Ищем соперника…</h2>
       <p id="duel-search-text" data-i18n="duel_search_text">Если за 15 секунд никого не будет, сыграешь против записи другого игрока на тех же примерах.</p>
       <strong class="duel-search-time" id="duel-search-time" aria-live="polite">15</strong>
@@ -170,13 +222,28 @@
     <section class="duel-screen duel-countdown" id="duel-countdown" hidden>
       <span class="duel-countdown-label" data-i18n="duel_ready">Приготовься</span>
       <span class="duel-countdown-num" id="duel-countdown-num">3</span>
+      <span class="duel-countdown-vs" id="duel-countdown-vs"></span>
     </section>
 
     <section class="duel-screen duel-play" id="duel-play" hidden>
-      <div class="duel-bar">
-        <span class="duel-bar-item"><span data-i18n="duel_time">Время</span> <strong id="duel-time">60</strong></span>
-        <span class="duel-bar-item duel-bar-opp" id="duel-opp" hidden><span id="duel-opp-name"></span> <strong id="duel-opp-score">0</strong></span>
-        <span class="duel-bar-item"><span data-i18n="duel_score">Верно</span> <strong id="duel-score">0</strong></span>
+      <div class="duel-hud">
+        <div class="duel-ring" aria-hidden="true">
+          <svg viewBox="0 0 60 60"><circle class="duel-ring-track" cx="30" cy="30" r="26"/><circle class="duel-ring-fill" id="duel-ring" cx="30" cy="30" r="26"/></svg>
+          <strong id="duel-time">60</strong>
+        </div>
+        <div class="duel-hud-main">
+          <div class="duel-strip" id="duel-strip">
+            <span class="duel-avatar" id="duel-strip-me" aria-hidden="true"></span>
+            <span class="duel-strip-score" id="duel-score">0</span>
+            <span class="duel-strip-bars"><i id="duel-bar-me"></i><i id="duel-bar-opp"></i></span>
+            <span class="duel-strip-score duel-strip-opp" id="duel-opp-score">0</span>
+            <span class="duel-avatar duel-strip-opp" id="duel-strip-opp" aria-hidden="true"></span>
+          </div>
+          <div class="duel-hud-sub">
+            <span class="duel-streak" id="duel-streak" hidden></span>
+            <span class="duel-strip-name duel-strip-opp" id="duel-opp-name"></span>
+          </div>
+        </div>
       </div>
       <div class="duel-card" id="duel-card">
         <div class="duel-question" id="duel-question" aria-live="polite"></div>
@@ -194,6 +261,7 @@
     </section>
 
     <section class="duel-screen duel-result" id="duel-result" hidden>
+      <div class="duel-outcome" id="duel-outcome"></div>
       <div id="duel-result-body"></div>
       <div class="duel-rank" id="duel-rank" role="status" hidden></div>
       <!-- Проверка «не робот»: обычно невидима, окно появляется, только если Cloudflare сомневается. -->
@@ -202,10 +270,11 @@
         <h2 id="duel-share-title"></h2>
         <p id="duel-share-text"></p>
         <div class="duel-share-row">
-          <input id="duel-link" type="text" readonly aria-label="Ссылка" />
+          <input id="duel-link" type="text" readonly aria-label="Ссылка" data-i18n-aria="duel_link_aria" />
           <button type="button" class="primary-button" id="duel-copy" data-i18n="duel_copy">Скопировать ссылку</button>
           <button type="button" class="secondary-button" id="duel-native-share" data-i18n="duel_share" hidden>Поделиться</button>
         </div>
+        <p class="duel-copied" id="duel-copied" role="status" hidden data-i18n="duel_copied">Ссылка скопирована — отправь её в переписку с другом.</p>
       </div>
       <div class="duel-result-actions">
         <button type="button" class="primary-button" id="duel-again" data-i18n="duel_again" hidden>🎲 Ещё соперник</button>
@@ -221,7 +290,7 @@
   <script src="/trainer-algebra.js?v=20260924-1"></script>
   <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/duel.js"></script>
-  <script src="/duel-page.js"></script>
+  <script src="/duel.js?v=20260925-4"></script>
+  <script src="/duel-page.js?v=20260925-4"></script>
 </body>
 </html>
