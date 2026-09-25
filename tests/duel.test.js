@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 import { describe, it, expect } from 'vitest';
 import duel from '../public/duel.js';
+// Генераторы тренажёра — обычные скрипты браузера: подключаем ради globalThis.MathTasksTrainer.
+import '../public/trainer.js';
+import '../public/trainer-algebra.js';
 
 const { packMask, unpackMask, generateNick, sanitizeNick, encodeChallenge, decodeChallenge, compareResults } = duel;
 
@@ -289,6 +292,67 @@ describe('дуэль: правдоподобие попытки для табл�
     const id = duel.newPlayerId();
     expect(id).toMatch(duel.PLAYER_PATTERN);
     expect(duel.newPlayerId()).not.toBe(id);
+  });
+});
+
+/* Лесенка: сложность не выбирается, а растёт по номеру примера. У
+   соперников и у сервера одно зерно даёт одну последовательность. */
+describe('дуэль: лесенка', () => {
+  const T = globalThis.MathTasksTrainer;
+  const questions = duel.ladderQuestions(T, 'multdiv', 4242, 40);
+
+  it('ступени идут по номеру примера: базовые, продвинутые, экспертные', () => {
+    const [[first, a], [second, b], [third]] = duel.LADDER_TIERS;
+    expect(questions.slice(0, a).every(q => q.tier === first)).toBe(true);
+    expect(questions.slice(a, a + b).every(q => q.tier === second)).toBe(true);
+    expect(questions.slice(a + b).every(q => q.tier === third)).toBe(true);
+    expect(duel.tierAt(0)).toMatchObject({ diff: first, step: 1 });
+    expect(duel.tierAt(a)).toMatchObject({ diff: second, step: 2 });
+    expect(duel.tierAt(a + b + 50)).toMatchObject({ diff: third, step: 3 });
+    expect(duel.tierReached(0).step).toBe(1);
+    expect(duel.tierReached(a + b + 1).step).toBe(3);
+  });
+
+  it('одно зерно — одни примеры на любом устройстве, номера сквозные', () => {
+    const again = duel.ladderQuestions(T, 'multdiv', 4242, 40);
+    expect(again.map(q => q.latex)).toEqual(questions.map(q => q.latex));
+    expect(questions.map(q => q.index)).toEqual(questions.map((_, i) => i));
+    expect(questions).toHaveLength(40);
+    // Другое зерно — другие примеры.
+    expect(duel.ladderQuestions(T, 'multdiv', 4243, 40).map(q => q.latex)).not.toEqual(questions.map(q => q.latex));
+  });
+
+  it('примеры действительно усложняются: числа на верхней ступени крупнее', () => {
+    const biggest = list => Math.max(...list.flatMap(q => (q.latex.match(/\d+/g) || []).map(Number)));
+    expect(biggest(questions.slice(18))).toBeGreaterThan(biggest(questions.slice(0, 8)));
+  });
+
+  it('поколение попытки — генераторы тренажёра вместе с лесенкой', () => {
+    expect(duel.runGen(1)).toBe(11);
+    expect(duel.runGen(2)).toBe(21);
+    expect(duel.LADDER).toBe('ladder');
+  });
+
+  it('ссылка без сложности читается, старая со сложностью — тоже', () => {
+    const noDiff = { g: 11, s: 7, c: 'fractions', a: CHALLENGE.a };
+    expect(decodeChallenge(encodeChallenge(noDiff))).toMatchObject({ g: 11, s: 7, c: 'fractions', d: null });
+    expect(decodeChallenge(encodeChallenge(CHALLENGE)).d).toBe('hard');
+  });
+
+  it('потолок для лесенки задан в каждой категории, попытка лесенки проверяется', () => {
+    for (const cat of duel.CATEGORIES) {
+      expect(duel.maxCorrect(cat, duel.LADDER)).toBeGreaterThan(20);
+      expect(duel.maxCorrect(cat, duel.LADDER)).toBeLessThanOrEqual(duel.maxCorrect(cat, 'normal'));
+    }
+    const times = Array.from({ length: 20 }, (_, i) => 900 + i * 1500 + (i % 5) * 300);
+    expect(duel.assessRun({ cat: 'multdiv', diff: duel.LADDER, bits: Array(20).fill(true), times, elapsedMs: 61000 }).ok).toBe(true);
+    expect(duel.assessRun({ cat: 'multdiv', diff: 'stairs', bits: [], times: [], elapsedMs: 61000 })).toMatchObject({ ok: false, reason: 'category' });
+  });
+
+  it('миграция 030 разрешает записи лесенки', () => {
+    const sql = readFileSync(new URL('../supabase/migrations/030_duel_ladder.sql', import.meta.url), 'utf8');
+    expect(sql).toMatch(/drop constraint if exists duel_runs_diff_check/);
+    expect(sql).toMatch(/check \(diff in \('normal', 'hard', 'expert', 'ladder'\)\)/);
   });
 });
 

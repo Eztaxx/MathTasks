@@ -35,15 +35,20 @@ const json = (data, status = 200, extraHeaders = {}) => new Response(JSON.string
   headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...extraHeaders }
 });
 
+/* Поколение попытки — генераторы тренажёра вместе с лесенкой (duel.js:
+   runGen): страница из кеша другого поколения считала бы по другим
+   примерам, и счёт бы не сошёлся. */
+const RUN_GEN = D.runGen(T.GENERATOR_VERSION);
+
 const duelConfig = env => {
   const record = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
   const ranked = record && Boolean(env.TURNSTILE_SECRET_KEY && env.TURNSTILE_SITE_KEY);
-  return { record, ranked, turnstile: ranked ? env.TURNSTILE_SITE_KEY : null, gen: T.GENERATOR_VERSION };
+  return { record, ranked, turnstile: ranked ? env.TURNSTILE_SITE_KEY : null, gen: RUN_GEN };
 };
 
-// Какие ответы верны — по тем же примерам, что видел ученик.
-const scoreRun = ({ cat, diff, seed, answers }) => {
-  const questions = T.generateBatch(cat, BATCH, diff, 'basic', { seed: Number(seed) >>> 0 });
+// Какие ответы верны — по тем же примерам лесенки, что видел ученик.
+const scoreRun = ({ cat, seed, answers }) => {
+  const questions = D.ladderQuestions(T, cat, Number(seed) >>> 0, BATCH);
   return answers.map((answer, i) => Boolean(questions[i] && T.checkAnswer(questions[i], answer)?.isCorrect));
 };
 
@@ -108,10 +113,10 @@ const readBody = async request => {
 async function start(request, env) {
   const body = await readBody(request);
   const { cat, diff, gen, seed } = body || {};
-  if (!D.CATEGORIES.includes(cat) || !D.DIFFS.includes(diff)) return json({ error: 'category' }, 400);
+  // Сложность в дуэли одна — лесенка; минута одной сложности больше не записывается.
+  if (!D.CATEGORIES.includes(cat) || diff !== D.LADDER) return json({ error: 'category' }, 400);
   if (!Number.isInteger(seed) || seed < 0 || seed > 0xFFFFFFFF) return json({ error: 'seed' }, 400);
-  // Старая страница из кеша считала бы по другим генераторам — счёт бы не сошёлся.
-  if (gen !== T.GENERATOR_VERSION) return json({ error: 'version' }, 409);
+  if (gen !== RUN_GEN) return json({ error: 'version' }, 409);
   if (await tooOften(env, request, 'start')) return json({ error: 'rate' }, 429, { 'Retry-After': '60' });
   try {
     const run = await rpc(env, 'duel_run_start', { p_cat: cat, p_diff: diff, p_gen: gen, p_seed: seed });
@@ -136,9 +141,9 @@ async function finish(request, env, config) {
   }
   if (!row) return json({ error: 'run' }, 404);
   if (row.finished) return json({ error: 'finished' }, 409);
-  if (Number(row.gen) !== T.GENERATOR_VERSION) return json({ error: 'version' }, 409);
+  if (Number(row.gen) !== RUN_GEN || row.diff !== D.LADDER) return json({ error: 'version' }, 409);
 
-  const bits = scoreRun({ cat: row.cat, diff: row.diff, seed: row.seed, answers });
+  const bits = scoreRun({ cat: row.cat, seed: row.seed, answers });
   const correct = bits.filter(Boolean).length;
   const assessment = D.assessRun({ cat: row.cat, diff: row.diff, bits, times, elapsedMs: Number(row.elapsed_ms) });
   const human = config.ranked && assessment.ok

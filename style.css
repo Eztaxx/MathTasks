@@ -6908,7 +6908,7 @@ body.admin-page #ai-prompt-dialog .text-button{color:var(--adm-mute)}
 .duel-board-period{display:inline-flex;padding:3px;border-radius:10px;background:#f1f4fb;align-self:flex-start}
 .duel-board-period button{padding:6px 12px;border:0;border-radius:8px;background:none;color:var(--muted);font:700 12.5px Manrope,sans-serif;cursor:pointer}
 .duel-board-period button.active{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(11,25,53,.12)}
-.duel-board-filters{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:8px;margin-bottom:14px}
+.duel-board-filters{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-bottom:14px}
 .duel-board-filters select{min-width:0;height:36px;padding:0 10px;border:1.5px solid var(--line);border-radius:10px;background:#f8fafc;color:var(--ink);font:600 12.5px Manrope,sans-serif}
 .duel-podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:end;margin-bottom:12px}
 .duel-podium-step{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px 8px;border-radius:12px;background:#f5f7fc;text-align:center;min-width:0}
@@ -6989,6 +6989,14 @@ body.admin-page #ai-prompt-dialog .text-button{color:var(--adm-mute)}
 #duel-bar-opp{margin-left:auto;background:#f59e0b;border-radius:0 999px 999px 0}
 .duel-strip-name{margin-left:auto;font:600 12px Manrope,sans-serif;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .duel-streak{padding:3px 10px;border-radius:999px;background:#fff1da;color:#b45309;font:800 12px Manrope,sans-serif;animation:duel-pop .3s ease}
+/* Ступень лесенки: базовая — зелёная, продвинутая — жёлтая, экспертная — красная. */
+.duel-tier{padding:3px 10px;border-radius:999px;background:#dcfce7;color:#166534;font:800 12px Manrope,sans-serif;white-space:nowrap}
+.duel-tier[data-step="2"]{background:#fef3c7;color:#92400e}
+.duel-tier[data-step="3"]{background:#fee2e2;color:#991b1b}
+.duel-tier.is-up{animation:duel-tier-up .6s ease}
+@keyframes duel-tier-up{0%{transform:scale(1)}30%{transform:scale(1.25)}100%{transform:scale(1)}}
+.duel-hud-sub .duel-streak{margin-left:8px}
+.duel-ladder-note{margin:0;font-size:12.5px;line-height:1.45;color:var(--muted)}
 @keyframes duel-pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
 .duel-card{padding:26px 20px;border:1px solid var(--line);border-radius:18px;background:#fff;text-align:center;box-shadow:0 4px 20px rgba(11,25,53,.04)}
 .duel-card.is-ok{animation:duel-ok .35s ease}
@@ -7061,6 +7069,9 @@ body.dark .duel-link-summary{background:#0f1520}
 body.dark .duel-ring-track{stroke:#253554}
 body.dark .duel-strip-bars{background:#1c2331}
 body.dark .duel-streak{background:#3b2a10;color:#fbbf24}
+body.dark .duel-tier{background:#12301f;color:#86efac}
+body.dark .duel-tier[data-step="2"]{background:#3b2a10;color:#fbbf24}
+body.dark .duel-tier[data-step="3"]{background:#3a1518;color:#fca5a5}
 body.dark .duel-side.is-me{background:#1a1633;border-color:#4c3d85}
 body.dark .duel-outcome{background:#1c2331}
 body.dark .duel-outcome.is-win{background:linear-gradient(135deg,#12301f,#0f2e2a);color:#bbf7d0}

@@ -168,6 +168,53 @@
     return text;
   };
 
+  // ── Лесенка ─────────────────────────────────────────────────────────
+  /* Сложность в дуэли не выбирается: первые примеры базовые, дальше
+     продвинутые, потом экспертные. Все стартуют одинаково, а разница
+     видна по тому, как далеко ученик забрался за минуту, — и таблица
+     лидеров одна на категорию, а не три. Ступень считается по номеру
+     примера, а не по верным ответам: у соперников и у сервера
+     последовательность одна и та же. */
+  const LADDER = 'ladder';
+  const LADDER_VERSION = 1;
+  const LADDER_TIERS = [['normal', 8], ['hard', 10], ['expert', Infinity]];
+
+  /* Поколение попытки: версия генераторов тренажёра вместе с версией
+     лесенки. Сервер пересчитывает ответы по тем же примерам, поэтому
+     записи другого поколения ни в соперники, ни в сравнение не идут. */
+  const runGen = trainerVersion => Number(trainerVersion) * 10 + LADDER_VERSION;
+
+  const tierAt = index => {
+    let from = 0;
+    for (let i = 0; i < LADDER_TIERS.length; i++) {
+      const [diff, size] = LADDER_TIERS[i];
+      if (index < from + size) return { diff, step: i + 1, from };
+      from += size;
+    }
+    const last = LADDER_TIERS[LADDER_TIERS.length - 1];
+    return { diff: last[0], step: LADDER_TIERS.length, from };
+  };
+  const tierReached = attempts => tierAt(Math.max(0, Number(attempts) - 1));
+
+  /* Примеры минуты: по ступеням, каждая со своим зерном — с одним зерном
+     ступени шли бы по одной дорожке случайности. trainer — генераторы
+     тренажёра (MathTasksTrainer): duel.js сам от них не зависит. */
+  const ladderQuestions = (trainer, cat, seed, count) => {
+    const out = [];
+    LADDER_TIERS.forEach(([diff, size], i) => {
+      const need = Math.min(size, count - out.length);
+      if (need <= 0) return;
+      const tierSeed = ((Number(seed) >>> 0) + i * 0x9E3779B1) >>> 0;
+      for (const q of trainer.generateBatch(cat, need, diff, 'basic', { seed: tierSeed })) {
+        q.index = out.length;
+        q.id = out.length + 1;
+        q.tier = diff;
+        out.push(q);
+      }
+    });
+    return out;
+  };
+
   // ── Вызов ───────────────────────────────────────────────────────────
   const isCount = (value, max = MAX_ATTEMPTS) => Number.isInteger(value) && value >= 0 && value <= max;
 
@@ -192,21 +239,23 @@
     ? { n: player.n }
     : { n: player.n, r: player.r, q: player.q, m: player.m });
 
+  /* Сложности в ссылке больше нет — лесенка у всех одна. Поле d осталось
+     для старых ссылок: их отсеет поколение g. */
   const encodeChallenge = challenge => {
     const payload = {
       v: VERSION,
       g: challenge.g,
       s: challenge.s >>> 0,
       c: challenge.c,
-      d: challenge.d,
       a: packPlayer(challenge.a)
     };
+    if (challenge.d) payload.d = challenge.d;
     if (challenge.b) payload.b = packPlayer(challenge.b);
     const json = JSON.stringify(payload);
     return `${toBase64Url(json)}.${checksum(json)}`;
   };
 
-  /* null — ссылка побита или собрана с ошибкой. Версию генератора сверяет
+  /* null — ссылка побита или собрана с ошибкой. Поколение g сверяет
      страница: при несовпадении у друзей были бы разные примеры. */
   const decodeChallenge = token => {
     try {
@@ -219,12 +268,13 @@
       if (!data || data.v !== VERSION) return null;
       if (!Number.isInteger(data.g) || data.g < 1) return null;
       if (!Number.isInteger(data.s) || data.s < 0 || data.s > 0xFFFFFFFF) return null;
-      if (!CATEGORIES.includes(data.c) || !DIFFS.includes(data.d)) return null;
+      if (!CATEGORIES.includes(data.c)) return null;
+      if (data.d !== undefined && !DIFFS.includes(data.d)) return null;
       const a = normalizePlayer(data.a);
       if (!a) return null;
       const b = data.b === undefined ? null : normalizePlayer(data.b);
       if (data.b !== undefined && !b) return null;
-      return { v: data.v, g: data.g, s: data.s, c: data.c, d: data.d, a, b };
+      return { v: data.v, g: data.g, s: data.s, c: data.c, d: data.d ?? null, a, b };
     } catch {
       return null;
     }
@@ -313,14 +363,17 @@
      Попытка, не прошедшая проверку, сохраняется, но не попадает ни в
      таблицу, ни в соперники-записи. Потолки подобраны по оценке, а не по
      статистике: когда накопятся настоящие попытки, их стоит уточнить. */
+  /* Лесенка: восемь базовых, десять продвинутых, дальше экспертные —
+     чемпион при секунде на базовый, двух на продвинутый и трёх с
+     половиной на экспертный набирает около 28. */
   const MAX_CORRECT = {
-    addsub2: { normal: 45, hard: 38, expert: 30 },
-    addsub3: { normal: 40, hard: 28, expert: 22 },
-    multdiv: { normal: 60, hard: 32, expert: 25 },
-    fractions: { normal: 35, hard: 25, expert: 20 },
-    decimals: { normal: 40, hard: 32, expert: 25 },
-    negatives: { normal: 50, hard: 36, expert: 28 },
-    mix: { normal: 45, hard: 32, expert: 25 }
+    addsub2: { normal: 45, hard: 38, expert: 30, ladder: 36 },
+    addsub3: { normal: 40, hard: 28, expert: 22, ladder: 30 },
+    multdiv: { normal: 60, hard: 32, expert: 25, ladder: 40 },
+    fractions: { normal: 35, hard: 25, expert: 20, ladder: 28 },
+    decimals: { normal: 40, hard: 32, expert: 25, ladder: 32 },
+    negatives: { normal: 50, hard: 36, expert: 28, ladder: 38 },
+    mix: { normal: 45, hard: 32, expert: 25, ladder: 34 }
   };
   const MIN_GAP_MS = 250;
   const MAX_FAST_GAPS = 2;
@@ -336,7 +389,7 @@
      минуты для каждого ответа, elapsedMs — сколько прошло между началом и
      концом попытки по часам сервера. Ответ: { ok, reason }. */
   const assessRun = ({ cat, diff, bits, times, elapsedMs }) => {
-    if (!CATEGORIES.includes(cat) || !DIFFS.includes(diff)) return { ok: false, reason: 'category' };
+    if (!CATEGORIES.includes(cat) || !(DIFFS.includes(diff) || diff === LADDER)) return { ok: false, reason: 'category' };
     if (!Array.isArray(bits) || !Array.isArray(times) || bits.length !== times.length) return { ok: false, reason: 'shape' };
     if (!Number.isFinite(elapsedMs) || elapsedMs > RUN_MAX_ELAPSED_MS) return { ok: false, reason: 'late' };
     // Последний ответ не может прийти позже, чем закончилась попытка по часам сервера.
@@ -378,6 +431,13 @@
     VERSION,
     CATEGORIES,
     DIFFS,
+    LADDER,
+    LADDER_VERSION,
+    LADDER_TIERS,
+    runGen,
+    tierAt,
+    tierReached,
+    ladderQuestions,
     DURATION_SEC,
     NICK_MAX,
     NICK_PARTS,

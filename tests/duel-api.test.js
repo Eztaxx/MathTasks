@@ -3,6 +3,8 @@ import { duelApi, duelConfig, scoreRun, BATCH } from '../worker/duel-api.js';
 import worker from '../worker/index.js';
 
 const T = globalThis.MathTasksTrainer;
+const D = globalThis.MathTasksDuel;
+const GEN = D.runGen(T.GENERATOR_VERSION); // поколение попытки: генераторы плюс лесенка
 
 const ENV = {
   SUPABASE_URL: 'https://example.supabase.co',
@@ -40,7 +42,7 @@ const mockBackend = ({ row = {}, human = true, saved = true, place = 3 } = {}) =
     if (String(url).includes('turnstile')) return reply({ success: human });
     if (String(url).endsWith('/rpc/duel_run_start')) return reply(77);
     if (String(url).endsWith('/rpc/duel_run_load')) {
-      return reply([{ id: 77, cat: 'multdiv', diff: 'normal', gen: T.GENERATOR_VERSION, seed: SEED, elapsed_ms: 61800, finished: false, ...row }]);
+      return reply([{ id: 77, cat: 'multdiv', diff: 'ladder', gen: GEN, seed: SEED, elapsed_ms: 61800, finished: false, ...row }]);
     }
     if (String(url).endsWith('/rpc/duel_run_save')) return reply(saved);
     if (String(url).endsWith('/rpc/duel_run_place')) return reply(place);
@@ -52,7 +54,7 @@ const mockBackend = ({ row = {}, human = true, saved = true, place = 3 } = {}) =
 
 // Верные ответы на первые n примеров минуты с этим зерном, плюс одна ошибка.
 const answersFor = (count, { wrongAt = 4 } = {}) => {
-  const questions = T.generateBatch('multdiv', BATCH, 'normal', 'basic', { seed: SEED });
+  const questions = D.ladderQuestions(T, 'multdiv', SEED, BATCH);
   return questions.slice(0, count).map((q, i) => (i === wrongAt ? `${q.answer}9` : String(q.answer)));
 };
 
@@ -62,7 +64,7 @@ describe('дуэли на сервере: настройка', () => {
   it('без ключей ничего не пишется, без Turnstile — нет таблицы', () => {
     expect(duelConfig({})).toMatchObject({ record: false, ranked: false, turnstile: null });
     expect(duelConfig({ SUPABASE_URL: 'x', SUPABASE_SERVICE_ROLE_KEY: 'y' })).toMatchObject({ record: true, ranked: false, turnstile: null });
-    expect(duelConfig(ENV)).toMatchObject({ record: true, ranked: true, turnstile: ENV.TURNSTILE_SITE_KEY, gen: T.GENERATOR_VERSION });
+    expect(duelConfig(ENV)).toMatchObject({ record: true, ranked: true, turnstile: ENV.TURNSTILE_SITE_KEY, gen: GEN });
   });
 
   it('страница получает только открытый ключ Turnstile, секретов в ответе нет', async () => {
@@ -75,7 +77,7 @@ describe('дуэли на сервере: настройка', () => {
   });
 
   it('пока ключей нет — «выключено», а не ошибка базы', async () => {
-    const response = await duelApi(post('/api/duel/start', { cat: 'multdiv', diff: 'normal', gen: 1, seed: 1 }), {});
+    const response = await duelApi(post('/api/duel/start', { cat: 'multdiv', diff: 'ladder', gen: GEN, seed: 1 }), {});
     expect(response.status).toBe(503);
   });
 });
@@ -83,20 +85,21 @@ describe('дуэли на сервере: настройка', () => {
 describe('дуэли на сервере: начало попытки', () => {
   it('записывает старт служебным ключом', async () => {
     const calls = mockBackend();
-    const response = await duelApi(post('/api/duel/start', { cat: 'multdiv', diff: 'normal', gen: T.GENERATOR_VERSION, seed: SEED }), ENV);
+    const response = await duelApi(post('/api/duel/start', { cat: 'multdiv', diff: 'ladder', gen: GEN, seed: SEED }), ENV);
     expect(await response.json()).toEqual({ run: 77 });
     expect(calls[0].url).toBe(`${ENV.SUPABASE_URL}/rest/v1/rpc/duel_run_start`);
     expect(calls[0].headers.Authorization).toBe(`Bearer ${ENV.SUPABASE_SERVICE_ROLE_KEY}`);
-    expect(calls[0].body).toEqual({ p_cat: 'multdiv', p_diff: 'normal', p_gen: T.GENERATOR_VERSION, p_seed: SEED });
+    expect(calls[0].body).toEqual({ p_cat: 'multdiv', p_diff: 'ladder', p_gen: GEN, p_seed: SEED });
   });
 
   it('чужая категория, зерно или старая версия генераторов — отказ до базы', async () => {
     const calls = mockBackend();
     const bad = [
-      [{ cat: 'algebra', diff: 'normal', gen: 1, seed: 1 }, 400],
-      [{ cat: 'multdiv', diff: 'normal', gen: 1, seed: -1 }, 400],
-      [{ cat: 'multdiv', diff: 'normal', gen: 1, seed: 2 ** 33 }, 400],
-      [{ cat: 'multdiv', diff: 'normal', gen: T.GENERATOR_VERSION + 1, seed: 1 }, 409]
+      [{ cat: 'algebra', diff: 'ladder', gen: GEN, seed: 1 }, 400],
+      [{ cat: 'multdiv', diff: 'normal', gen: GEN, seed: 1 }, 400],
+      [{ cat: 'multdiv', diff: 'ladder', gen: GEN, seed: -1 }, 400],
+      [{ cat: 'multdiv', diff: 'ladder', gen: GEN, seed: 2 ** 33 }, 400],
+      [{ cat: 'multdiv', diff: 'ladder', gen: GEN + 1, seed: 1 }, 409]
     ];
     for (const [body, status] of bad) {
       expect((await duelApi(post('/api/duel/start', body), ENV)).status).toBe(status);
@@ -106,7 +109,7 @@ describe('дуэли на сервере: начало попытки', () => {
 
   it('запрос с чужого сайта отклоняется', async () => {
     const calls = mockBackend();
-    const request = post('/api/duel/start', { cat: 'multdiv', diff: 'normal', gen: 1, seed: 1 }, { Origin: 'https://evil.example' });
+    const request = post('/api/duel/start', { cat: 'multdiv', diff: 'ladder', gen: GEN, seed: 1 }, { Origin: 'https://evil.example' });
     expect((await duelApi(request, ENV)).status).toBe(403);
     expect(calls).toHaveLength(0);
   });
@@ -114,7 +117,7 @@ describe('дуэли на сервере: начало попытки', () => {
   it('частые запросы с одного адреса упираются в счётчик', async () => {
     mockBackend();
     const env = { ...ENV, DUEL_LIMIT: { limit: vi.fn(async () => ({ success: false })) } };
-    const response = await duelApi(post('/api/duel/start', { cat: 'multdiv', diff: 'normal', gen: 1, seed: 1 }, { 'CF-Connecting-IP': '203.0.113.5' }), env);
+    const response = await duelApi(post('/api/duel/start', { cat: 'multdiv', diff: 'ladder', gen: GEN, seed: 1 }, { 'CF-Connecting-IP': '203.0.113.5' }), env);
     expect(response.status).toBe(429);
     expect(env.DUEL_LIMIT.limit).toHaveBeenCalledWith({ key: 'start:203.0.113.5' });
   });
@@ -127,7 +130,7 @@ describe('дуэли на сервере: начало попытки', () => {
 describe('дуэли на сервере: конец попытки', () => {
   it('счёт считает сервер сам — по тем же примерам, что видел ученик', () => {
     const answers = answersFor(12);
-    expect(scoreRun({ cat: 'multdiv', diff: 'normal', seed: SEED, answers }).filter(Boolean)).toHaveLength(11);
+    expect(scoreRun({ cat: 'multdiv', seed: SEED, answers }).filter(Boolean)).toHaveLength(11);
   });
 
   it('честная минута попадает в таблицу, место приходит сразу', async () => {

@@ -28,6 +28,8 @@
   const PLAYER_KEY = 'math-tasks:duel-player';
   const RUNS_KEY = 'math-tasks:duel-runs';
   const BATCH = 150; // за минуту решают 15–40 примеров; запас на самых быстрых
+  // Поколение попытки: генераторы тренажёра плюс лесенка (duel.js: runGen).
+  const RUN_GEN = D.runGen(T.GENERATOR_VERSION);
   const HISTORY_MAX = 20;
   const RING_LENGTH = 2 * Math.PI * 26; // длина кольца таймера (r=26 в разметке)
 
@@ -63,7 +65,7 @@
     challenge: null,      // вызов из ссылки (чужой — или свой, ещё не сыгранный)
     role: 'a',            // 'a' — вызываю сам, 'b' — отвечаю на вызов
     cat: D.CATEGORIES.includes(saved.cat) ? saved.cat : 'multdiv',
-    diff: D.DIFFS.includes(saved.diff) ? saved.diff : 'normal',
+    diff: D.LADDER,       // сложность не выбирается: лесенка (duel.js)
     seed: 0,
     questions: [],
     index: 0,
@@ -83,7 +85,7 @@
   };
 
   // Какая таблица лидеров открыта: по умолчанию — выбранные для игры категория и сложность.
-  const board = { cat: state.cat, diff: state.diff, period: 'week', cache: new Map() };
+  const board = { cat: state.cat, period: 'week', cache: new Map() };
 
   const screens = ['#duel-setup', '#duel-link', '#duel-search', '#duel-countdown', '#duel-play', '#duel-result'];
   const show = id => {
@@ -105,7 +107,9 @@
   const diffName = diff => String(tr(`trainer_diff_${diff}`)).replace(/^\S+\s/, '');
   const catIcon = cat => String(tr(`cat_${cat}`)).split(' ')[0];
   const nickOf = player => player?.n || tr('duel_friend');
-  const setupLabel = (cat, diff) => `${catName(cat)} · ${diffName(diff)}`;
+  const setupLabel = cat => catName(cat);
+  // Подпись итога: категория и ступень, до которой ученик добрался.
+  const resultSub = (cat, attempts) => `${catName(cat)} · ${tr('duel_reached', { tier: diffName(D.tierReached(attempts).diff) })}`;
 
   const avatarHtml = (nick, extra = '') => {
     const avatar = D.avatarFor(nick);
@@ -167,26 +171,19 @@
   // ── Выбор категории и сложности ─────────────────────────────────────
   const renderChoice = () => {
     const cats = $('#duel-cats');
-    const diffs = $('#duel-diffs');
     if (cats) {
       cats.innerHTML = D.CATEGORIES.map(cat => `<button type="button" class="trainer-cat-chip${cat === state.cat ? ' active' : ''}" data-duel-cat="${cat}" aria-pressed="${cat === state.cat}">${escapeHtml(tr(`cat_${cat}`))}</button>`).join('');
     }
-    if (diffs) {
-      diffs.innerHTML = D.DIFFS.map(diff => `<button type="button" class="trainer-diff-chip${diff === state.diff ? ' active' : ''}" data-duel-diff="${diff}" aria-pressed="${diff === state.diff}">${escapeHtml(tr(`trainer_diff_${diff}`))}</button>`).join('');
-    }
     renderBest();
   };
-  // Таблица лидеров под выбором показывает ту же категорию, что выбрана для игры.
+  // Таблица лидеров рядом показывает ту же категорию, что выбрана для игры.
   const followChoice = () => {
     board.cat = state.cat;
-    board.diff = state.diff;
     renderBoard();
   };
   document.addEventListener('click', event => {
     const cat = event.target.closest?.('[data-duel-cat]');
-    if (cat) { state.cat = cat.dataset.duelCat; writeJson(SETUP_KEY, { cat: state.cat, diff: state.diff }); renderChoice(); followChoice(); return; }
-    const diff = event.target.closest?.('[data-duel-diff]');
-    if (diff) { state.diff = diff.dataset.duelDiff; writeJson(SETUP_KEY, { cat: state.cat, diff: state.diff }); renderChoice(); followChoice(); }
+    if (cat) { state.cat = cat.dataset.duelCat; writeJson(SETUP_KEY, { cat: state.cat }); renderChoice(); followChoice(); }
   });
 
   // ── История ─────────────────────────────────────────────────────────
@@ -202,7 +199,7 @@
   // Лучший счёт в выбранной категории — для подписи и для подбора записи-соперника.
   const bestScore = () => {
     const scores = duelHistory()
-      .filter(item => item.cat === state.cat && item.diff === state.diff && item.me)
+      .filter(item => item.cat === state.cat && item.diff === D.LADDER && item.me)
       .map(item => Number(item.me.r) || 0);
     return scores.length ? Math.max(...scores) : null;
   };
@@ -275,7 +272,7 @@
       title.textContent = tr('duel_invite_pending_title', { name });
       text.textContent = tr('duel_invite_pending_text');
     }
-    meta.textContent = setupLabel(challenge.c, challenge.d);
+    meta.textContent = setupLabel(challenge.c);
   };
 
   // ── Игра ────────────────────────────────────────────────────────────
@@ -285,6 +282,23 @@
   const ringEl = $('#duel-ring');
   const scoreEl = $('#duel-score');
   const card = $('#duel-card');
+
+  /* Ступень лесенки — по номеру примера; переход на следующую отмечаем
+     вспышкой значка, чтобы ученик понимал, почему примеры стали труднее. */
+  let shownTier = 0;
+  const renderTier = () => {
+    const el = $('#duel-tier');
+    if (!el) return;
+    const tier = D.tierAt(state.index);
+    el.textContent = tr(`trainer_diff_${tier.diff}`);
+    el.dataset.step = String(tier.step);
+    if (tier.step !== shownTier) {
+      el.classList.remove('is-up');
+      void el.offsetWidth;
+      if (shownTier) el.classList.add('is-up');
+      shownTier = tier.step;
+    }
+  };
 
   const renderQuestion = () => {
     const q = state.questions[state.index];
@@ -296,6 +310,7 @@
       questionEl.textContent = q.latex;
     }
     if (answerInput) answerInput.value = '';
+    renderTier();
   };
 
   const flash = ok => {
@@ -387,13 +402,14 @@
   };
 
   const play = () => {
-    state.questions = T.generateBatch(state.cat, BATCH, state.diff, 'basic', { seed: state.seed });
+    state.questions = D.ladderQuestions(T, state.cat, state.seed, BATCH);
     state.index = 0;
     state.bits = [];
     state.answers = [];
     state.times = [];
     state.streak = 0;
     state.run = null;
+    shownTier = 0;
     fillAvatar($('#duel-strip-me'), state.nick);
     fillAvatar($('#duel-strip-opp'), state.opponent?.nick || '');
     if (ringEl) { ringEl.style.strokeDasharray = String(RING_LENGTH); ringEl.style.strokeDashoffset = '0'; }
@@ -413,7 +429,7 @@
   const countdown = () => {
     show('#duel-countdown');
     const vs = $('#duel-countdown-vs');
-    if (vs) vs.textContent = state.opponent ? tr('duel_ready_vs', { name: state.opponent.nick }) : setupLabel(state.cat, state.diff);
+    if (vs) vs.textContent = state.opponent ? tr('duel_ready_vs', { name: state.opponent.nick }) : setupLabel(state.cat);
     const num = $('#duel-countdown-num');
     let n = 3;
     if (num) { num.textContent = String(n); num.classList.remove('is-tick'); void num.offsetWidth; num.classList.add('is-tick'); }
@@ -439,7 +455,7 @@
     state.opponent = null;
     state.seed = D.newSeed();
     const nick = takeNick();
-    state.challenge = { g: T.GENERATOR_VERSION, s: state.seed, c: state.cat, d: state.diff, a: { n: nick, pending: true }, b: null };
+    state.challenge = { g: RUN_GEN, s: state.seed, c: state.cat, a: { n: nick, pending: true }, b: null };
     remember({ at: Date.now(), seed: state.seed, cat: state.cat, diff: state.diff, role: 'a', me: null, them: null });
     window.history.replaceState(null, '', '/duel');
     showLinkScreen();
@@ -448,7 +464,7 @@
   const showLinkScreen = () => {
     const { challenge } = state;
     if (!challenge) { openSetup(); return; }
-    $('#duel-link-summary').innerHTML = `${escapeHtml(catIcon(challenge.c))} ${escapeHtml(setupLabel(challenge.c, challenge.d))}`;
+    $('#duel-link-summary').innerHTML = `${escapeHtml(catIcon(challenge.c))} ${escapeHtml(setupLabel(challenge.c))}`;
     const link = linkFor(challenge);
     $('#duel-link-url').value = link;
     $('#duel-link-copied').hidden = true;
@@ -469,7 +485,6 @@
     state.opponent = null;
     state.seed = state.challenge.s;
     state.cat = state.challenge.c;
-    state.diff = state.challenge.d;
     state.nick = state.challenge.a.n || takeNick();
     countdown();
   });
@@ -513,7 +528,6 @@
     state.opponent = null;
     state.seed = state.challenge.s;
     state.cat = state.challenge.c;
-    state.diff = state.challenge.d;
     takeNick();
     countdown();
   });
@@ -547,8 +561,8 @@
     const result = D.compareResults(me, them);
     const kind = result.winner === 'tie' ? 'tie' : result.winner === 'a' ? 'win' : 'lose';
     const title = kind === 'tie' ? tr('duel_tie') : kind === 'win' ? tr('duel_win_me') : tr('duel_win_them', { name: nickOf(them) });
-    renderOutcome(kind, title, setupLabel(cat, diff));
-    const questions = T.generateBatch(cat, BATCH, diff, 'basic', { seed });
+    renderOutcome(kind, title, resultSub(cat, me.q));
+    const questions = D.ladderQuestions(T, cat, seed, BATCH);
     const both = result.bothWrong.slice(0, 6).map(index => questions[index]).filter(Boolean);
     const body = $('#duel-result-body');
     if (!body) return;
@@ -570,8 +584,8 @@
     if (kind === 'win') sound('correct');
   };
 
-  const renderSolo = (me, title, cat, diff, kind = 'solo') => {
-    renderOutcome(kind, title, setupLabel(cat, diff));
+  const renderSolo = (me, title, cat, kind = 'solo') => {
+    renderOutcome(kind, title, resultSub(cat, me.q));
     const body = $('#duel-result-body');
     if (body) body.innerHTML = `<div class="duel-versus duel-versus-solo">${statsHtml(me, `${tr('duel_you')} · ${me.n || ''}`, true)}</div>`;
   };
@@ -599,7 +613,7 @@
     const bits = state.bits;
     const me = { n: state.nick, r: bits.filter(Boolean).length, q: bits.length, m: D.packMask(bits) };
     state.me = me;
-    const base = { g: T.GENERATOR_VERSION, s: state.seed, c: state.cat, d: state.diff };
+    const base = { g: RUN_GEN, s: state.seed, c: state.cat };
     $('#duel-share').hidden = true;
     $('#duel-rematch').hidden = true;
     $('#duel-again').hidden = state.mode !== 'random';
@@ -624,7 +638,7 @@
         remember({ at: Date.now(), seed: state.seed, cat: state.cat, diff: state.diff, role: 'b', me, them: { n: challenge.a.n, r: challenge.a.r, q: challenge.a.q, m: challenge.a.m } });
       } else {
         // Вызвавший свою минуту ещё не сыграл: свой результат — в ответную ссылку.
-        renderSolo(me, tr('duel_pending_title', { name: nickOf(challenge.a) }), state.cat, state.diff);
+        renderSolo(me, tr('duel_pending_title', { name: nickOf(challenge.a) }), state.cat);
         setShare({
           title: tr('duel_reply_title', { name: nickOf(challenge.a) }),
           text: tr('duel_pending_text', { name: nickOf(challenge.a) }),
@@ -649,7 +663,7 @@
     } else {
       // Своя минута сыграна, друг ещё нет: ссылка теперь с результатом.
       const own = { ...base, a: me };
-      renderSolo(me, tr('duel_done_title'), state.cat, state.diff);
+      renderSolo(me, tr('duel_done_title'), state.cat);
       setShare({
         title: tr('duel_send_title'),
         text: `${tr('duel_send_text')} ${tr('duel_sent_already')}`,
@@ -665,7 +679,7 @@
   // На рекорд: минута в одиночку, попытка идёт в таблицу и становится соперником-записью.
   function finishSolo(me) {
     notice('');
-    renderSolo(me, tr('duel_solo_title'), state.cat, state.diff);
+    renderSolo(me, tr('duel_solo_title'), state.cat);
     show('#duel-result');
     const body = $('#duel-result-body');
     reportRun().then(saved => {
@@ -776,7 +790,7 @@
   function startLive({ host, guest, seed, partnerNick }) {
     const client = realtime();
     const opponent = { kind: 'live', nick: D.sanitizeNick(partnerNick) || tr('duel_opponent'), r: 0, q: 0, final: null };
-    const channel = client.channel(`duel-match-g${T.GENERATOR_VERSION}:${host}:${guest}`, { config: { broadcast: { self: false } } });
+    const channel = client.channel(`duel-match-g${RUN_GEN}:${host}:${guest}`, { config: { broadcast: { self: false } } });
     state.opponent = opponent;
     match = { channel };
     channel
@@ -811,7 +825,7 @@
     if (client) {
       try {
         const { data, error } = await client.rpc('duel_ghost', {
-          p_cat: state.cat, p_diff: state.diff, p_gen: T.GENERATOR_VERSION, p_target: personalBest(), p_exclude: exclude
+          p_cat: state.cat, p_diff: D.LADDER, p_gen: RUN_GEN, p_target: personalBest(), p_exclude: exclude
         });
         if (!error && Array.isArray(data)) candidates = data;
       } catch {}
@@ -826,7 +840,7 @@
     const row = valid[Math.floor(Math.random() * valid.length)];
     const seed = Number(row.seed);
     // Счёт записи считаем сами: из того же зерна — те же примеры.
-    const questions = T.generateBatch(state.cat, BATCH, state.diff, 'basic', { seed });
+    const questions = D.ladderQuestions(T, state.cat, seed, BATCH);
     const bits = row.answers.map((answer, i) => Boolean(questions[i] && T.checkAnswer(questions[i], answer)?.isCorrect));
     state.opponent = {
       kind: 'ghost', id: Number(row.id), nick: D.sanitizeNick(row.nick) || tr('duel_opponent'),
@@ -867,7 +881,7 @@
       }
     }, 1000);
 
-    const lobby = client.channel(`duel-lobby-g${T.GENERATOR_VERSION}:${state.cat}:${state.diff}`, {
+    const lobby = client.channel(`duel-lobby-g${RUN_GEN}:${state.cat}`, {
       config: { presence: { key: myId }, broadcast: { self: false } }
     });
     current.lobby = lobby;
@@ -921,7 +935,7 @@
     const saving = reportRun();
     const opponent = state.opponent;
     if (!opponent) {
-      renderSolo(me, tr('duel_done_title'), state.cat, state.diff);
+      renderSolo(me, tr('duel_done_title'), state.cat);
       // Соперником для других становится только проверенная попытка.
       saving.then(saved => {
         if (saved?.verified && !$('#duel-result').hidden) body.insertAdjacentHTML('beforeend', `<p class="duel-ghost-note">${escapeHtml(tr('duel_solo_saved'))}</p>`);
@@ -937,7 +951,7 @@
     } else {
       match?.channel.send({ type: 'broadcast', event: 'final', payload: { r: me.r, q: me.q, m: me.m } }).catch(() => {});
       if (!opponent.final) {
-        renderOutcome('wait', tr('duel_waiting_final'), setupLabel(state.cat, state.diff));
+        renderOutcome('wait', tr('duel_waiting_final'), setupLabel(state.cat));
         body.innerHTML = '';
         await new Promise(resolve => {
           const timer = setTimeout(resolve, FINAL_WAIT_MS);
@@ -991,7 +1005,7 @@
 
   const serverConfig = fetch('/api/duel/config')
     .then(response => (response.ok ? response.json() : null))
-    .then(data => (data && typeof data.record === 'boolean' && data.gen === T.GENERATOR_VERSION ? data : null))
+    .then(data => (data && typeof data.record === 'boolean' && data.gen === RUN_GEN ? data : null))
     .catch(() => null);
 
   // Случайный номер игрока: в таблице у него одна лучшая строка. О человеке он ничего не говорит.
@@ -1015,7 +1029,7 @@
     const config = await serverConfig;
     if (!config?.record) return null;
     try {
-      const data = await postJson('/api/duel/start', { cat: state.cat, diff: state.diff, gen: T.GENERATOR_VERSION, seed: state.seed });
+      const data = await postJson('/api/duel/start', { cat: state.cat, diff: D.LADDER, gen: RUN_GEN, seed: state.seed });
       return Number.isInteger(data?.run) ? data.run : null;
     } catch {
       return null;
@@ -1093,7 +1107,7 @@
     let text = '';
     let action = false;
     if (result.ranked && result.place) {
-      text = tr('duel_rank_place', { place: result.place, cat: catName(cat), diff: diffName(diff) });
+      text = tr('duel_rank_place', { place: result.place, cat: catName(cat) });
       action = true;
     } else if (result.ranked) {
       text = tr('duel_rank_listed');
@@ -1106,7 +1120,7 @@
       text = tr('duel_rank_clock');
     }
     if (!text) return;
-    box.innerHTML = `<p>${escapeHtml(text)}</p>${action ? `<button type="button" class="secondary-button" data-board-open="${escapeHtml(cat)}:${escapeHtml(diff)}">${escapeHtml(tr('duel_board_open'))}</button>` : ''}`;
+    box.innerHTML = `<p>${escapeHtml(text)}</p>${action ? `<button type="button" class="secondary-button" data-board-open="${escapeHtml(cat)}">${escapeHtml(tr('duel_board_open'))}</button>` : ''}`;
     box.classList.toggle('is-ranked', Boolean(result.ranked));
     box.hidden = false;
   };
@@ -1151,9 +1165,7 @@
 
   const renderBoardFilters = () => {
     const cats = $('#duel-board-cat');
-    const diffs = $('#duel-board-diff');
     if (cats) cats.innerHTML = D.CATEGORIES.map(cat => `<option value="${cat}"${cat === board.cat ? ' selected' : ''}>${escapeHtml(tr(`cat_${cat}`))}</option>`).join('');
-    if (diffs) diffs.innerHTML = D.DIFFS.map(diff => `<option value="${diff}"${diff === board.diff ? ' selected' : ''}>${escapeHtml(tr(`trainer_diff_${diff}`))}</option>`).join('');
   };
 
   async function renderBoard() {
@@ -1169,17 +1181,17 @@
     });
     const list = $('#duel-board-list');
     const podium = $('#duel-podium');
-    const key = `${board.cat}:${board.diff}:${board.period}`;
+    const key = `${board.cat}:${board.period}`;
     let cached = board.cache.get(key);
     if (!cached || Date.now() - cached.at > 30000) {
       list.innerHTML = `<li class="duel-board-empty">${escapeHtml(tr('duel_board_loading'))}</li>`;
       podium.innerHTML = '';
       let rows = null;
       try {
-        const { data, error } = await realtime().rpc('duel_leaderboard', { p_cat: board.cat, p_diff: board.diff, p_period: board.period });
+        const { data, error } = await realtime().rpc('duel_leaderboard', { p_cat: board.cat, p_diff: D.LADDER, p_period: board.period });
         if (!error && Array.isArray(data)) rows = data;
       } catch {}
-      if (key !== `${board.cat}:${board.diff}:${board.period}`) return;
+      if (key !== `${board.cat}:${board.period}`) return;
       if (!rows) {
         list.innerHTML = `<li class="duel-board-empty">${escapeHtml(tr('duel_board_error'))}</li>`;
         return;
@@ -1196,13 +1208,12 @@
   }
 
   $('#duel-board-cat')?.addEventListener('change', event => { board.cat = event.target.value; renderBoard(); });
-  $('#duel-board-diff')?.addEventListener('change', event => { board.diff = event.target.value; renderBoard(); });
   document.addEventListener('click', event => {
     const period = event.target.closest?.('[data-board-period]');
     const open = event.target.closest?.('[data-board-open]');
     if (period) { board.period = period.dataset.boardPeriod; renderBoard(); return; }
     if (!open) return;
-    [board.cat, board.diff] = open.dataset.boardOpen.split(':');
+    board.cat = open.dataset.boardOpen;
     board.period = 'week';
     board.cache.clear();
     state.role = 'a';
@@ -1224,7 +1235,6 @@
   const openChallenge = challenge => {
     const own = ownEntry(challenge.s);
     state.cat = challenge.c;
-    state.diff = challenge.d;
     if (D.hasResult(challenge.b)) {
       if (own?.me && own.me.m !== undefined) {
         state.challenge = challenge;
@@ -1256,7 +1266,7 @@
       if (own.me) {
         // Свою же ссылку с результатом открыли повторно — играть против себя незачем.
         notice(tr('duel_own'));
-        renderSolo({ n: challenge.a.n, ...own.me }, tr('duel_done_title'), challenge.c, challenge.d);
+        renderSolo({ n: challenge.a.n, ...own.me }, tr('duel_done_title'), challenge.c);
         setShare({ title: tr('duel_send_title'), text: tr('duel_send_text'), link: linkFor(challenge), shareText: tr('duel_share_text', { r: own.me.r }) });
         $('#duel-rematch').hidden = true;
         $('#duel-again').hidden = true;
@@ -1287,7 +1297,7 @@
     if (!hash) { openSetup(); return; }
     const challenge = D.decodeChallenge(hash);
     if (!challenge) { notice(tr('duel_broken')); openSetup(); return; }
-    if (challenge.g !== T.GENERATOR_VERSION) { notice(tr('duel_old')); openSetup(); return; }
+    if (challenge.g !== RUN_GEN) { notice(tr('duel_old')); openSetup(); return; }
     openChallenge(challenge);
   };
 

@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="/style.css" />
   <script src="/theme-init.js"></script>
-  <script src="/i18n.js?v=20260925-4"></script>
+  <script src="/i18n.js?v=20260925-5"></script>
 </head>
 <body class="trainer-page duel-page">
   <header class="admin-topbar">
@@ -151,10 +151,8 @@
             <span class="trainer-label" data-i18n="duel_cat_label">Что считаем</span>
             <div class="trainer-chip-group" id="duel-cats" role="group"></div>
           </div>
-          <div class="trainer-categories-row">
-            <span class="trainer-label" data-i18n="duel_diff_label">Сложность</span>
-            <div class="trainer-chip-group" id="duel-diffs" role="group"></div>
-          </div>
+          <!-- Сложность не выбирается: лесенка (duel.js), одна таблица на категорию. -->
+          <p class="duel-ladder-note" data-i18n="duel_ladder_note">Сложность растёт по ходу минуты: базовые примеры → продвинутые → экспертные.</p>
         </div>
 
         <div class="duel-history" id="duel-history" hidden>
@@ -175,7 +173,6 @@
           </div>
           <div class="duel-board-filters">
             <select id="duel-board-cat" aria-label="Что считаем" data-i18n-aria="duel_cat_label"></select>
-            <select id="duel-board-diff" aria-label="Сложность" data-i18n-aria="duel_diff_label"></select>
           </div>
           <div class="duel-podium" id="duel-podium" aria-hidden="true"></div>
           <ol class="duel-board-list" id="duel-board-list" aria-live="polite"></ol>
@@ -240,6 +237,7 @@
             <span class="duel-avatar duel-strip-opp" id="duel-strip-opp" aria-hidden="true"></span>
           </div>
           <div class="duel-hud-sub">
+            <span class="duel-tier" id="duel-tier" data-step="1"></span>
             <span class="duel-streak" id="duel-streak" hidden></span>
             <span class="duel-strip-name duel-strip-opp" id="duel-opp-name"></span>
           </div>
@@ -290,7 +288,7 @@
   <script src="/trainer-algebra.js?v=20260924-1"></script>
   <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/duel.js?v=20260925-4"></script>
-  <script src="/duel-page.js?v=20260925-4"></script>
+  <script src="/duel.js?v=20260925-5"></script>
+  <script src="/duel-page.js?v=20260925-5"></script>
 </body>
 </html>
