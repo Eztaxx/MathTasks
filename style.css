@@ -914,7 +914,10 @@ body.dark .formulas-drawer-list .formula-card{border-color:#1c2331;background:#0
 .formulas-drawer-foot{padding-top:10px;border-top:1px solid var(--line)}
 body.dark .formulas-drawer-foot{border-top-color:#1c2331}
 @media (prefers-reduced-motion:reduce){.formulas-drawer{transition:none}}
-@media(max-width:640px){.formulas-drawer{width:100%;padding:14px}.formulas-drawer-tab{right:12px;bottom:12px;height:38px;padding:0 13px}}
+/* На телефоне плашка «Формулы» закрывала хвост условия: там она круглая,
+   одним значком (слово остаётся для экранного диктора), а под последней
+   задачей — место, чтобы её можно было докрутить выше кнопки. */
+@media(max-width:640px){.formulas-drawer{width:100%;padding:14px}.formulas-drawer-tab{right:12px;bottom:12px;width:44px;height:44px;padding:0;justify-content:center;font-size:19px}.formulas-drawer-tab [data-i18n="formulas_drawer_btn"]{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}body:has(.formulas-drawer-tab) main{padding-bottom:68px}}
 @media print{.formulas-drawer,.formulas-drawer-tab{display:none!important}}
 
 /* ── Контрольная и экзамен: строка времени, блокировка, начало экзамена ──
