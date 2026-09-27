@@ -75,6 +75,13 @@ npm run dev
 | `supabase/migrations/022_drop_legacy_tables.sql` | Удаление устаревших пустых таблиц `algebra` и `geometry` |
 | `supabase/migrations/023_task_reports.sql` | Таблица сообщений об ошибках в задачах (`task_reports`) для обратной связи |
 | `supabase/migrations/024_answer_check.sql` | Варианты ответа для автопроверки (`answer_check`, `answer_check_lv`): ответ со словами сверяется по ним |
+| `supabase/migrations/025_exam_papers.sql` | Собранные вручную варианты экзаменов и контрольных (`exam_papers`, `exam_paper_items`): задачи, порядок, время, части |
+| `supabase/migrations/026_paper_topics.sql` | Контрольная по нескольким темам (`exam_paper_topics`); задание только для работы остаётся черновиком, но видно внутри опубликованной работы |
+| `supabase/migrations/027_student_profiles.sql` | Анонимные профили учеников по нику (`student_profiles`, `profile_members`, `student_progress`) — перенос прогресса между устройствами |
+| `supabase/migrations/028_duel_runs.sql` | Дуэли: записи попыток (`duel_runs`) для «случайного соперника» и таблица лидеров |
+| `supabase/migrations/029_task_reports_identity_by_default.sql` | `task_reports.id` как `BY DEFAULT AS IDENTITY`, чтобы `restore.mjs` возвращал сообщения под прежним номером |
+| `supabase/migrations/030_duel_ladder.sql` | Дуэль-лесенка: сложность растёт по ходу минуты, одна таблица лидеров на категорию |
+| `supabase/migrations/031_profile_nick_avatar.sql` | Смена ника не чаще раза в 3 месяца (`rename_profile`), зверь в профиле и в попытках дуэли (`avatar`), индекс для «дуэли дня» |
 
 Базовый язык — русский, он лежит в основных колонках; латышский — в парных с суффиксом `_lv`. Английского на сайте нет.
 

@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 # Админка закрыта авторизацией, но в индексе ей делать нечего
-Disallow: /admin.html
+Disallow: /admin
 
 # Карту сайта отдаёт воркер, она собирается из базы на каждый запрос
 Sitemap: https://mathtasks.lv/sitemap.xml

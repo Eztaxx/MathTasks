@@ -77,11 +77,15 @@
       themeToggle.setAttribute('aria-checked', isDark ? 'true' : 'false');
     });
   }
+  // Выключенный звук помнится между визитами — общий ключ с тренажёром.
   let soundOn = true;
+  try { soundOn = localStorage.getItem('math-tasks:sound') !== 'off'; } catch {}
+  const showSound = () => { const icon = $('#sound-icon'); if (icon) icon.textContent = soundOn ? '🔊' : '🔇'; };
+  showSound();
   $('#btn-sound-toggle')?.addEventListener('click', () => {
     soundOn = !soundOn;
-    const icon = $('#sound-icon');
-    if (icon) icon.textContent = soundOn ? '🔊' : '🔇';
+    showSound();
+    try { localStorage.setItem('math-tasks:sound', soundOn ? 'on' : 'off'); } catch {}
   });
   const sound = type => { if (soundOn) { try { T.playSound(type); } catch {} } };
 

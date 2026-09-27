@@ -39,7 +39,8 @@
         maxStreak: 0,
         score: 0,
         errors: 0,
-        soundEnabled: true,
+        // Выключенный звук помнится между визитами — общий ключ с дуэлью.
+        soundEnabled: (() => { try { return localStorage.getItem('math-tasks:sound') !== 'off'; } catch { return true; } })(),
         timerSec: 60,
         totalSec: 60,
         timerInterval: null,
@@ -59,9 +60,11 @@
       // Звук
       const soundToggleBtn = document.querySelector('#btn-sound-toggle');
       const soundIcon = document.querySelector('#sound-icon');
+      if (soundIcon) soundIcon.textContent = state.soundEnabled ? '🔊' : '🔇';
       soundToggleBtn?.addEventListener('click', () => {
         state.soundEnabled = !state.soundEnabled;
         if (soundIcon) soundIcon.textContent = state.soundEnabled ? '🔊' : '🔇';
+        try { localStorage.setItem('math-tasks:sound', state.soundEnabled ? 'on' : 'off'); } catch {}
       });
 
       // Элементы UI для карточного режима

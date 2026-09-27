@@ -53,7 +53,15 @@ const TABLES = [
   { name: 'exam_paper_topics', key: 'paper_id,topic_id' },
   { name: 'exam_paper_items',  key: 'id' },
   { name: 'task_reports',      key: 'id' },
-  { name: 'profiles',  key: 'id', optional: true }
+  { name: 'profiles',  key: 'id', optional: true },
+  /* Профили учеников и дуэли (миграции 027–031): ночная копия воркера их
+     уже берёт (worker/backup.js), ручная отставала. restore.mjs их не
+     возвращает — участники ссылаются на пользователей auth, которых в
+     копии нет; файл нужен, чтобы данные учеников не пропали совсем. */
+  { name: 'student_profiles', key: 'id', optional: true },
+  { name: 'profile_members',  key: 'user_id', optional: true },
+  { name: 'student_progress', key: 'profile_id', optional: true },
+  { name: 'duel_runs',        key: 'id', optional: true }
 ];
 
 /* ── Проверка готового файла ──────────────────────────────────────── */

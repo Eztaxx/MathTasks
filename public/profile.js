@@ -179,8 +179,10 @@
 
   const formatDay = value => {
     const date = new Date(value);
+    /* «27 декабря 2026 г.» — точка сокращения слипалась с точкой в конце
+       фразы («… 2026 г..»): «г.» снимаем, год и так понятен. */
     return Number.isNaN(date.getTime()) ? String(value)
-      : date.toLocaleDateString(lang() === 'lv' ? 'lv-LV' : 'ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+      : date.toLocaleDateString(lang() === 'lv' ? 'lv-LV' : 'ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }).replace(/\s*г\.$/, '');
   };
 
   async function ensureSignedIn() {
