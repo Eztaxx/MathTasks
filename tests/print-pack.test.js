@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { answerLabelMarkup, buildPrintVariants, orderTopicsByGrade, sliceTaskRange } from '../public/lib.js';
+import { answerLabelMarkup, buildFixedPrintVariants, buildPrintVariants, groupByPaperPart, orderTopicsByGrade, sliceTaskRange } from '../public/lib.js';
 
 // Предсказуемый «случай»: одна и та же подборка при каждом прогоне.
 const seeded = (seed = 1) => () => {
@@ -176,5 +176,28 @@ describe('темы в админке идут от выбранного клас
     const { current, rest } = orderTopicsByGrade(topics, 3);
     expect(current).toEqual([]);
     expect(rest).toHaveLength(topics.length);
+  });
+});
+
+/* Н11: печать готового набора — контрольной, экзамена, собранной работы. */
+describe('печать готового набора', () => {
+  const paper = [
+    { id: 1, paperPart: 1 }, { id: 2, paperPart: 1 }, { id: 3, paperPart: 1 },
+    { id: 4, paperPart: 2 }, { id: 5, paperPart: 2 }
+  ];
+
+  it('части идут группами по порядку; без частей — одна группа', () => {
+    expect(groupByPaperPart(paper).map(group => [group.part, ids(group.tasks)])).toEqual([[1, [1, 2, 3]], [2, [4, 5]]]);
+    expect(groupByPaperPart(tasks.slice(0, 3))).toEqual([{ part: null, tasks: tasks.slice(0, 3) }]);
+  });
+
+  it('первый вариант — как в работе, остальные — те же задачи, перемешанные внутри частей', () => {
+    const sheets = buildFixedPrintVariants(paper, { variants: 3, random: seeded(7) });
+    expect(ids(sheets[0])).toEqual([1, 2, 3, 4, 5]);
+    for (const sheet of sheets.slice(1)) {
+      expect(ids(sheet.slice(0, 3)).sort()).toEqual([1, 2, 3]);
+      expect(ids(sheet.slice(3)).sort()).toEqual([4, 5]);
+    }
+    expect(buildFixedPrintVariants([], { variants: 2 })).toEqual([[], []]);
   });
 });

@@ -1998,6 +1998,19 @@ body.dark .toast-notice{background:rgba(21,33,55,.95);border-color:rgba(255,255,
 .print-form{display:flex;flex-direction:column;gap:16px}
 .print-field{margin:0;padding:0;border:0}
 .print-field[hidden]{display:none}
+/* Печать готового набора (Н11): кнопка на карточках и значок рядом со ссылкой на работу. */
+.print-set-btn{display:inline-flex;align-items:center;gap:6px}
+.print-set-btn:disabled,.print-set-icon:disabled{opacity:.55;cursor:progress}
+.print-set-icon{display:inline-grid;place-items:center;width:34px;height:34px;flex:none;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:16px;line-height:1;cursor:pointer}
+.print-set-icon:hover{background:#f1f5ff;border-color:#c7d7fe}
+.print-set-pair{display:inline-flex;align-items:center;gap:6px;max-width:100%}
+.cw-cat-actions{display:inline-flex;align-items:center;gap:8px}
+.cw-card-actions,.cw-result-footer{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.exam-intro-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.print-set-note{margin:8px 0 0;font-size:12.5px;color:var(--muted)}
+body.dark .print-set-icon{background:#121a2a;border-color:#1f2839}
+body.dark .print-set-icon:hover{background:#18233a}
+@media print{.print-part{margin:10px 0 4px;padding-bottom:2px;font-size:11pt;font-weight:800;border-bottom:1px solid #999}.print-subtitle{margin:2px 0 6px;font-size:10pt;color:#333}}
 .print-field legend{padding:0 0 7px;font:800 10.5px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .print-field-hint{margin:8px 0 0;font-size:12px;line-height:1.45;color:var(--muted)}
 .print-chips{display:flex;flex-wrap:wrap;gap:7px}

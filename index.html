@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="/style.css" />
   <script src="/theme-init.js?v=20260927-2"></script>
-  <script src="/i18n.js?v=20260927-6"></script>
+  <script src="/i18n.js?v=20260927-7"></script>
 </head>
 <body>
   <noscript>
@@ -387,7 +387,7 @@
     <h2 data-i18n="print_sheet_title" id="print-dialog-title">Лист для печати</h2>
     <p class="print-dialog-lead" data-i18n="print_sheet_lead">Соберите лист для класса: сколько задач, сколько вариантов и что на листе видно.</p>
     <form class="print-form" id="print-form" method="dialog">
-      <fieldset class="print-field">
+      <fieldset class="print-field" id="print-range-field">
         <legend data-i18n="print_range_label">С какой по какую задачу</legend>
         <div class="print-range">
           <label><span data-i18n="print_range_from">с</span><input type="number" id="print-from" min="1" inputmode="numeric" /></label>
@@ -396,7 +396,7 @@
         </div>
         <p class="print-field-hint" data-i18n="print_range_hint">Номера по порядку в списке. Пусто — с начала или до конца.</p>
       </fieldset>
-      <fieldset class="print-field">
+      <fieldset class="print-field" id="print-count-field">
         <legend data-i18n="print_count_label">Сколько задач</legend>
         <div class="print-chips" id="print-count-chips"></div>
       </fieldset>
@@ -404,7 +404,7 @@
         <legend data-i18n="print_content_label">Что на листе</legend>
         <div class="print-chips" id="print-content-chips"></div>
       </fieldset>
-      <fieldset class="print-field">
+      <fieldset class="print-field" id="print-order-field">
         <legend data-i18n="print_order_label">Порядок</legend>
         <div class="print-chips" id="print-order-chips"></div>
       </fieldset>
@@ -636,7 +636,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/lib.js?v=20260927-6"></script>
+  <script src="/lib.js?v=20260927-7"></script>
   <script src="/client.js"></script>
   <script src="/math-keyboard.js?v=20260917-2"></script>
   <script src="/ui.js"></script>

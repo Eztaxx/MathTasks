@@ -3862,6 +3862,31 @@
   };
 
   const PRINT_ORDERS = ['topic', 'shuffle', 'diff_asc', 'subtopic'];
+  /* Части варианта экзамена (orderPaperTasks кладёт в задачу paperPart):
+     [{ part, tasks }] в порядке следования. Без частей — одна группа. */
+  const groupByPaperPart = (tasks = []) => {
+    const groups = [];
+    for (const task of Array.isArray(tasks) ? tasks : []) {
+      if (!task) continue;
+      const part = Number(task.paperPart) || null;
+      const last = groups[groups.length - 1];
+      if (last && last.part === part) last.tasks.push(task);
+      else groups.push({ part, tasks: [task] });
+    }
+    return groups;
+  };
+
+  /* Печать готового набора (Н11): контрольная, экзамен, собранная работа.
+     Задачи те же, что в работе: первый вариант — как в работе, остальные —
+     перемешаны, но внутри своих частей, чтобы часть 1 оставалась частью 1. */
+  const buildFixedPrintVariants = (tasks = [], { variants = 1, random = Math.random } = {}) => {
+    const pool = Array.isArray(tasks) ? tasks.filter(Boolean) : [];
+    const sheets = Math.max(1, Math.min(9, Math.floor(variants) || 1));
+    return Array.from({ length: sheets }, (unused, index) => (index === 0
+      ? pool.slice()
+      : groupByPaperPart(pool).flatMap(group => shuffleArray(group.tasks, random))));
+  };
+
   const buildPrintVariants = (tasks = [], { count = 0, variants = 1, order = 'topic', random = Math.random, subtopics = [] } = {}) => {
     const pool = Array.isArray(tasks) ? tasks.filter(Boolean) : [];
     const sheets = Math.max(1, Math.min(9, Math.floor(variants) || 1));
@@ -3891,6 +3916,8 @@
   const api = {
     orderTopicsByGrade,
     buildPrintVariants,
+    groupByPaperPart,
+    buildFixedPrintVariants,
     sliceTaskRange,
     makeSlug,
     buildTitlePrompt,

@@ -2958,6 +2958,10 @@ const PRINT_VARIANTS = [1, 2, 4];
 const PRINT_ORDERS = ['topic', 'shuffle', 'diff_asc', 'subtopic'];
 let printOptions = { count: 0, content: 'blank', space: 'none', variants: 1, order: 'topic', from: null, to: null, fields: true };
 let printableTasks = [];
+/* Готовый набор (Н11): контрольная, экзамен, собранная работа. Задачи в
+   нём заданы — диапазона, количества и порядка в диалоге нет, остаются
+   «что на листе», место для решения, варианты и поля для имени. */
+let printContext = { title: '', subtitle: '', fixed: false };
 
 // Задачи с учётом диапазона «с какой по какую» — на них и считается лист.
 function printRangeTasks() {
@@ -3041,18 +3045,28 @@ function renderPrintDialog() {
   if (fields) fields.checked = printOptions.fields;
 }
 
-function openPrintDialog(tasks) {
+function openPrintDialog(tasks, context = {}) {
   printableTasks = Array.isArray(tasks) ? tasks : [];
+  printContext = { title: context.title || '', subtitle: context.subtitle || '', fixed: Boolean(context.fixed) };
   // Диапазон от прошлой темы к новой не относится.
   printOptions.from = null;
   printOptions.to = null;
+  if (printContext.fixed) {
+    printOptions.count = 0;
+    printOptions.order = 'topic';
+  }
   if (printOptions.count >= printableTasks.length) printOptions.count = 0;
+  for (const id of ['#print-range-field', '#print-count-field', '#print-order-field']) {
+    const field = document.querySelector(id);
+    if (field) field.hidden = printContext.fixed;
+  }
   renderPrintDialog();
   document.querySelector('#print-dialog')?.showModal();
 }
 
 function printSheetTitle() {
   const tr = window.MathTasks.t || (k => k);
+  if (printContext.title) return printContext.title;
   if (currentSubtopic) return `${topicTitleOf(currentActiveTopic)} · ${loc(currentSubtopic, 'title')}`;
   if (currentActiveTopic) return topicTitleOf(currentActiveTopic);
   return tr('meta_all_tasks_title') || 'MathTasks';
@@ -3121,14 +3135,26 @@ function printVariantHtml(tasks, index, total, options) {
       </ol>
     </section>` : '';
 
+  const groups = window.MathTasksLib?.groupByPaperPart ? window.MathTasksLib.groupByPaperPart(tasks) : [{ part: null, tasks }];
+  const withParts = groups.length > 1;
+  let offset = 0;
+  const lists = groups.map(group => {
+    const start = offset;
+    offset += group.tasks.length;
+    const head = withParts && group.part ? `<h3 class="print-part">${escapeHtml(tr('print_part', { n: group.part }))}</h3>` : '';
+    return `${head}<ol class="print-tasks">${group.tasks.map((task, i) => printTaskHtml(task, start + i, options)).join('')}</ol>`;
+  }).join('');
+  const subtitle = printContext.subtitle ? `<p class="print-subtitle">${escapeHtml(printContext.subtitle)}</p>` : '';
+
   return `
     <section class="print-variant">
       <header class="print-head">
         <h2>${escapeHtml(printSheetTitle())}</h2>
         ${variantLabel}
       </header>
+      ${subtitle}
       ${nameLine}
-      <ol class="print-tasks">${tasks.map((task, i) => printTaskHtml(task, i, options)).join('')}</ol>
+      ${lists}
       ${key}
     </section>`;
 }
@@ -3138,7 +3164,10 @@ function buildPrintSheet(options) {
   if (!sheet) return false;
   const build = window.MathTasksLib?.buildPrintVariants;
   const pool = printRangeTasks();
-  const variants = build
+  const fixedBuild = window.MathTasksLib?.buildFixedPrintVariants;
+  const variants = printContext.fixed && fixedBuild
+    ? fixedBuild(pool, { variants: options.variants })
+    : build
     ? build(pool, {
       count: options.count,
       variants: options.variants,
@@ -3158,10 +3187,92 @@ function buildPrintSheet(options) {
 }
 
 function printSheet(options) {
+  /* Во время контрольной или экзамена окно печати увело бы фокус со
+     страницы — а это блокировка на минуту. Печатают до или после работы. */
+  if (cwGuardActive) return;
   if (!buildPrintSheet(options)) return;
   document.body.classList.add('printing-sheet');
   window.print();
 }
+
+// Кнопка «Распечатать» готового набора. icon — узкая, для строки со ссылкой.
+function printSetButton(spec, icon = false) {
+  const tr = window.MathTasks.t || (k => k);
+  return icon
+    ? `<button type="button" class="print-set-icon" data-print-set="${escapeHtml(spec)}" title="${escapeHtml(tr('print_set_aria'))}" aria-label="${escapeHtml(tr('print_set_aria'))}">🖨</button>`
+    : `<button type="button" class="secondary-button print-set-btn" data-print-set="${escapeHtml(spec)}">${escapeHtml(tr('print_set'))}</button>`;
+}
+
+const printSetSubtitle = (minutes, count) => {
+  const tr = window.MathTasks.t || (k => k);
+  return minutes ? tr('print_set_sub', { minutes, count }) : countLabel('topic_tasks', count);
+};
+
+/* spec: topic:<id> — контрольная темы (собранная или автоматическая),
+   paper:<slug> — собранная работа или вариант экзамена, exam:<уровень> —
+   случайный вариант экзамена (свежий: на экране будет другой), current —
+   работа, которая сейчас на экране (после сдачи). */
+async function printSet(spec) {
+  const tr = window.MathTasks.t || (k => k);
+  const lib = window.MathTasksLib;
+  const [kind, ...rest] = String(spec).split(':');
+  const value = rest.join(':');
+  let tasks = [];
+  let title = '';
+  let minutes = 0;
+  if (kind === 'current') {
+    tasks = currentCwTasks.slice();
+    title = document.querySelector('#cw-title')?.textContent?.trim() || '';
+  } else if (kind === 'topic') {
+    const topic = allTopics.find(item => String(item.id) === value);
+    if (!topic || !db) return;
+    const paper = await fetchPaper(query => query.eq('kind', 'cw').eq('topic_id', topic.id));
+    const paperTasks = paper ? await fetchPaperTasks(paper) : [];
+    if (paperTasks.length) {
+      tasks = paperTasks;
+      title = paperTitle(paper);
+      minutes = lib.paperMinutes(paper);
+    } else {
+      const { data } = await db.from('tasks').select(TASK_SELECT)
+        .eq('is_published', true).eq('topic_id', topic.id)
+        .order('position').order('created_at', { ascending: true });
+      tasks = lib.selectControlWorkTasks ? lib.selectControlWorkTasks(data || []) : (data || []).slice(0, 5);
+      title = tr('cw_mode_title', { topic: topicTitleOf(topic) });
+      minutes = 40;
+    }
+  } else if (kind === 'paper') {
+    const paper = await fetchPaper(query => query.eq('slug', value));
+    if (!paper) return;
+    tasks = await fetchPaperTasks(paper);
+    title = paperTitle(paper);
+    minutes = lib.paperMinutes(paper);
+  } else if (kind === 'exam') {
+    const config = lib.EXAM_KINDS[value];
+    if (!config || !db) return;
+    const topicIds = allTopics.filter(topic => Number(topic.grade) === config.grade).map(topic => topic.id);
+    const { data } = topicIds.length
+      ? await lib.fetchAllRows(() => db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('topic_id', topicIds).order('id'))
+      : { data: [] };
+    tasks = lib.selectExamTasks(data || [], { count: config.tasks });
+    title = tr(`home_exam_title_${value}`);
+    minutes = config.minutes;
+  }
+  if (!tasks.length) {
+    showToast(tr('err_load_tasks'), '⚠️');
+    return;
+  }
+  openPrintDialog(tasks, { title, subtitle: printSetSubtitle(minutes, tasks.length), fixed: true });
+}
+
+// Списки перерисовываются — поэтому делегирование на документ.
+document.addEventListener('click', event => {
+  const button = event.target.closest?.('[data-print-set]');
+  if (!button) return;
+  event.preventDefault();
+  if (button.disabled) return;
+  button.disabled = true;
+  printSet(button.dataset.printSet).finally(() => { button.disabled = false; });
+});
 
 function cleanupPrintSheet() {
   document.body.classList.remove('printing-sheet');
@@ -3883,7 +3994,7 @@ async function appendTopicPapers(topicId, slot) {
   slot.insertAdjacentHTML('beforeend', `
     <div class="cw-paper-links">
       <span class="cw-paper-links-label">${escapeHtml(tr('cw_papers_title'))}</span>
-      ${papers.map(paper => `<a class="exam-paper-link" href="/control-work/${encodeURIComponent(paper.slug)}">${escapeHtml(paperTitle(paper))} · ${escapeHtml(countLabel('topic_tasks', (paper.exam_paper_items || []).length))}</a>`).join('')}
+      ${papers.map(paper => `<span class="print-set-pair"><a class="exam-paper-link" href="/control-work/${encodeURIComponent(paper.slug)}">${escapeHtml(paperTitle(paper))} · ${escapeHtml(countLabel('topic_tasks', (paper.exam_paper_items || []).length))}</a>${printSetButton(`paper:${paper.slug}`, true)}</span>`).join('')}
     </div>`);
 }
 
@@ -3902,7 +4013,7 @@ async function renderCatalogPapers() {
   block.innerHTML = `
     <h2 class="cw-papers-title">${escapeHtml(tr('cw_papers_catalog_title'))}</h2>
     <div class="cw-paper-links">
-      ${papers.map(paper => `<a class="exam-paper-link" href="/control-work/${encodeURIComponent(paper.slug)}">${escapeHtml(paperTitle(paper))} · ${escapeHtml(countLabel('topic_tasks', (paper.exam_paper_items || []).length))} · ${paper.minutes} ${escapeHtml(tr('cw_minutes_short'))}</a>`).join('')}
+      ${papers.map(paper => `<span class="print-set-pair"><a class="exam-paper-link" href="/control-work/${encodeURIComponent(paper.slug)}">${escapeHtml(paperTitle(paper))} · ${escapeHtml(countLabel('topic_tasks', (paper.exam_paper_items || []).length))} · ${paper.minutes} ${escapeHtml(tr('cw_minutes_short'))}</a>${printSetButton(`paper:${paper.slug}`, true)}</span>`).join('')}
     </div>`;
 }
 
@@ -3951,6 +4062,7 @@ function renderTopicControlWorkCard(topic, tasks) {
         <a href="/control-work/${encodeURIComponent(topic.slug)}" class="primary-button cw-start-btn">
           ${escapeHtml(prevResult ? tr('cw_retry_btn') : tr('btn_start_cw'))} · ${escapeHtml(tr('cw_tasks_count', { count: cwCount }))} →
         </a>
+        ${printSetButton(`topic:${topic.id}`)}
       </div>
     </div>
   `;
@@ -4358,7 +4470,7 @@ async function startExam(kindOrSlug, { fresh = false } = {}) {
   const papersHtml = papers.length ? `
     <div class="exam-papers">
       <span class="exam-papers-label">${escapeHtml(tr('exam_papers_title'))}</span>
-      ${papers.map(item => `<a class="exam-paper-link" href="/exam/${encodeURIComponent(item.slug)}">${escapeHtml(paperTitle(item))}</a>`).join('')}
+      ${papers.map(item => `<span class="print-set-pair"><a class="exam-paper-link" href="/exam/${encodeURIComponent(item.slug)}">${escapeHtml(paperTitle(item))}</a>${printSetButton(`paper:${item.slug}`, true)}</span>`).join('')}
     </div>` : '';
   if (list) {
     list.innerHTML = `
@@ -4370,7 +4482,11 @@ async function startExam(kindOrSlug, { fresh = false } = {}) {
           <li>${escapeHtml(tr('exam_rule_guard'))}</li>
           <li>${escapeHtml(tr('exam_rule_save'))}</li>
         </ul>
-        <button type="button" class="primary-button exam-start-btn" data-exam-start="${escapeHtml(kindOrSlug)}">${escapeHtml(tr('exam_start_btn'))}</button>
+        <div class="exam-intro-actions">
+          <button type="button" class="primary-button exam-start-btn" data-exam-start="${escapeHtml(kindOrSlug)}">${escapeHtml(tr('exam_start_btn'))}</button>
+          ${printSetButton(config ? `exam:${kindOrSlug}` : `paper:${kindOrSlug}`)}
+        </div>
+        ${config ? `<p class="print-set-note">${escapeHtml(tr('print_exam_random_note'))}</p>` : ''}
       </section>
       ${papersHtml}`;
   }
@@ -4783,6 +4899,7 @@ function renderCwOutcome(firstRun) {
       </div>
       <div class="cw-result-footer">
         <button type="button" class="primary-button" id="btn-cw-retry">${escapeHtml(tr('cw_retry_btn'))}</button>
+        ${printSetButton('current')}
         ${currentCwMode === 'exam'
           ? `<a href="/exams" class="secondary-button" id="btn-cw-back">${escapeHtml(tr('exam_back'))}</a>`
           : currentCwTopic
@@ -4941,9 +5058,12 @@ async function showControlWorksCatalog() {
           <p class="cw-cat-desc">${escapeHtml(loc(topic, 'description') || '')}</p>
           <div class="cw-cat-footer">
             <span class="cw-cat-count">${count} ${tr('tasks_word') || 'заданий в теме'}</span>
-            <a href="/control-work/${encodeURIComponent(topic.slug)}" class="secondary-button cw-cat-btn">
-              ${prevResult ? escapeHtml(tr('cw_retry_btn')) : escapeHtml(tr('btn_start_cw_short'))} →
-            </a>
+            <span class="cw-cat-actions">
+              ${printSetButton(`topic:${topic.id}`, true)}
+              <a href="/control-work/${encodeURIComponent(topic.slug)}" class="secondary-button cw-cat-btn">
+                ${prevResult ? escapeHtml(tr('cw_retry_btn')) : escapeHtml(tr('btn_start_cw_short'))} →
+              </a>
+            </span>
           </div>
         </div>
       `;
