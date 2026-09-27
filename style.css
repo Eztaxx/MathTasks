@@ -619,7 +619,14 @@ body.dark .home-insight.is-weak{background:#1d1426;border-color:#4a2340}
 body.dark .home-insight.is-weak .home-insight-label,body.dark .home-insight.is-weak .home-insight-go{color:#f472b6}
 body.dark .home-insight.is-cw .home-insight-go{color:#4ade80}
 body.dark .home-insight.is-exam .home-insight-go{color:#6a9bff}
-@media(max-width:900px){.home-insights{grid-template-columns:1fr}}
+.home-insight.is-trainer .home-insight-go{color:#b45309}
+body.dark .home-insight.is-trainer .home-insight-go{color:#fbbf24}
+.home-insights.is-two{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* Пустой класс: вместо задачи дня — что задачи появятся позже, и тренажёр. */
+.home-daily-empty{margin:0;font-size:14px;line-height:1.55;color:var(--muted);max-width:60ch}
+.home-daily-empty-go{align-self:flex-start;font-size:13px;font-weight:700;text-decoration:none}
+.home-daily-empty-go:hover{text-decoration:underline}
+@media(max-width:900px){.home-insights,.home-insights.is-two{grid-template-columns:1fr}}
 
 /* ── Карточки тем: номер, прогресс и фон — в цвете раздела ────────── */
 /* Цвета разделов — глубокие, не кричащие. На тёмном фоне номер и процент

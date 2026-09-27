@@ -62,6 +62,37 @@ describe('checkTaskAnswer', () => {
     expect(checkTaskAnswer('13', '$12\\text{ eiro}$')).toBe(false);
   });
 
+  it('€, евро и eiro — одна валюта', () => {
+    expect(checkTaskAnswer('30 евро', '$30\\text{ €}$')).toBe(true);
+    expect(checkTaskAnswer('30 €', '$30\\text{ евро}$')).toBe(true);
+    expect(checkTaskAnswer('30 eiro', '$30\\text{ €}$')).toBe(true);
+    expect(checkTaskAnswer('31 евро', '$30\\text{ €}$')).toBe(false);
+  });
+
+  // Счётное слово — не единица: «240 деталей» при ответе 240 верно, «6 кг» при «6 см» — нет.
+  it('счётное слово ученика не мешает, чужая единица — мешает', () => {
+    expect(checkTaskAnswer('240 деталей', '$240$')).toBe(true);
+    expect(checkTaskAnswer('6 кг', '$6\\text{ см}$')).toBe(false);
+  });
+
+  /* «2 м 5 см» после снятия единиц склеивалось бы в «25» — та же ошибка,
+     что была с «1 ч 30 мин». Длина и масса сверяются в одной единице. */
+  it('составная длина и масса: одно число — в мелкой единице, «25» не проходит', () => {
+    const LENGTH = '$2\\text{ м } 5\\text{ см}$';
+    expect(checkTaskAnswer('205', LENGTH)).toBe(true);
+    expect(checkTaskAnswer('2,05 м', LENGTH)).toBe(true);
+    expect(checkTaskAnswer('2 м 5 см', LENGTH)).toBe(true);
+    expect(checkTaskAnswer('25', LENGTH)).toBe(false);
+    expect(checkTaskAnswer('1200', '$1\\text{ кг } 200\\text{ г}$')).toBe(true);
+    expect(checkTaskAnswer('12', '$1\\text{ кг } 200\\text{ г}$')).toBe(false);
+  });
+
+  it('та же длина в других единицах — тот же ответ', () => {
+    expect(checkTaskAnswer('1,2 м', '$120\\text{ см}$')).toBe(true);
+    expect(checkTaskAnswer('60 мм', '$6\\text{ см}$')).toBe(true);
+    expect(checkTaskAnswer('120 мм', '$120\\text{ см}$')).toBe(false);
+  });
+
   it('типографский минус «−» — тот же знак', () => {
     expect(checkTaskAnswer('−22', '$-22$')).toBe(true);
     expect(checkTaskAnswer('−3; −18', '$k = -3;\\; y = -18$')).toBe(true);

@@ -25,6 +25,31 @@
     .replace(/\s+/g, ' ')
     .trim();
 
+  /* Основы слов запроса: «пропорция» находит и «пропорции», и «пропорцию».
+     Окончание срезаем, только если основа остаётся не короче четырёх букв —
+     иначе «сила» искала бы всё с «сил». Слова короче трёх букв и числа
+     из одной цифры в поиск не идут: они совпали бы почти с чем угодно.
+     Порядок окончаний — от длинных к коротким. */
+  const SEARCH_ENDINGS = [
+    'иями', 'ями', 'ами', 'ого', 'его', 'ому', 'ему', 'ыми', 'ими', 'ией',
+    'ия', 'ии', 'ию', 'ие', 'ье', 'ья', 'ей', 'ой', 'ий', 'ый', 'ая', 'яя', 'ое', 'ее', 'ые', 'ую', 'юю', 'ов', 'ев', 'ах', 'ях', 'ам', 'ям', 'ом', 'ем', 'ть',
+    'ām', 'ēm', 'īm', 'ūm', 'ās', 'ēs', 'ais', 'ies', 'ajā', 'ajās', 'iem', 'os', 'as', 'es', 'is', 'us', 'ai', 'ei', 'am', 'im', 'um',
+    'а', 'я', 'о', 'е', 'ы', 'и', 'у', 'ю', 'ь', 'й', 'a', 'e', 'i', 'u', 's', 'š', 'ā', 'ē', 'ī', 'ū'
+  ].sort((a, b) => b.length - a.length);
+  const searchStems = query => sanitizeSearch(query).toLowerCase().split(' ')
+    .filter(word => word.length >= 3 || /^\d{2,}$/.test(word))
+    .map(word => {
+      if (/\d/.test(word)) return word;
+      const ending = SEARCH_ENDINGS.find(end => word.endsWith(end) && word.length - end.length >= 4);
+      return ending ? word.slice(0, -ending.length) : word;
+    })
+    .filter((stem, i, all) => all.indexOf(stem) === i);
+
+  /* Заглушка вместо названия задачи: «Задача №12», «Uzdevums №12». Номер
+     в ней расходится с местом задачи в теме, поэтому сайт такое название
+     не показывает, а робот очереди отмечает. */
+  const isGenericTaskTitle = value => /^\s*(?:Задача|Uzdevums)\s*№?\s*\d+\s*$/i.test(String(value ?? ''));
+
   /* Условие задачи — текст с формулами, а не одна формула: KaTeX вызывается
      только внутри разделителей, поэтому пробелы в словах остаются на месте,
      а знак % не превращается в начало LaTeX-комментария. */
@@ -65,6 +90,8 @@
     s = s.replace(/\s*:\s*/g, ';');
     s = s.replace(/\\(text|mathbf|mathrm|operatorname|overline|bar|vec|hat)\s*\{([^{}]*)\}/g, '$2');
     s = s.replace(/\\(text|mathbf|mathrm|quad|qquad)/g, '');
+    // Валюта одна: «30 евро», «30 eiro» и «30 €» — один и тот же ответ.
+    s = s.replace(/(^|[^a-zа-яёāčēģīķļņšūž])(?:евро|eiro|euro|eur)(?![a-zа-яёāčēģīķļņšūž])/gi, '$1€');
     s = s.replace(/^[a-zA-Z](_\{?[0-9a-zA-Z]+\}?)?\s*=\s*/, '');
     s = s.replace(/\\(cdot|times)/g, '*');
     s = s.replace(/[·×]/g, '*');
@@ -191,6 +218,32 @@
     return chunks ? chunks.reduce((sum, chunk) => sum + chunk.num * chunk.weight, 0) : null;
   };
 
+  /* Длина и масса из нескольких единиц — «2 м 5 см», «1 кг 200 г» — так же,
+     как время: иначе после снятия единиц «2м5см» склеивалось в «25». Вес
+     единицы — в самой мелкой: миллиметрах и граммах. */
+  const LENGTH_UNITS = [
+    [/^(?:км|km)$/i, 1e6], [/^(?:м|m)$/i, 1e3], [/^(?:дм|dm)$/i, 100], [/^(?:см|cm)$/i, 10], [/^(?:мм|mm)$/i, 1]
+  ];
+  const MASS_UNITS = [
+    [/^(?:т|t|тонн[аы]?)$/i, 1e6], [/^(?:кг|kg)$/i, 1e3], [/^(?:г|g)$/i, 1], [/^(?:мг|mg)$/i, 1e-3]
+  ];
+  // Вся запись — числа с единицами одной величины, без посторонних знаков.
+  const measureChunks = (str, table) => {
+    const text = String(str || '').replace(/\s+/g, '');
+    if (!text) return null;
+    const matches = [...text.matchAll(/(-?\d+(?:\.\d+)?)([a-zа-яё]+)/gi)];
+    if (!matches.length || matches.map(m => m[0]).join('') !== text) return null;
+    const chunks = [];
+    for (const [, num, word] of matches) {
+      const row = table.find(([re]) => re.test(word));
+      if (!row) return null;
+      chunks.push({ num: Number(num), weight: row[1] });
+    }
+    return chunks;
+  };
+  const measureTotal = chunks => chunks.reduce((sum, chunk) => sum + chunk.num * chunk.weight, 0);
+  const isCompoundMeasure = str => [LENGTH_UNITS, MASS_UNITS].some(table => (measureChunks(str, table) || []).length > 1);
+
   const parseFractionOrNumber = str => {
     if (/^-?\d+(\.\d+)?$/.test(str)) return parseFloat(str);
     const frac = str.match(/^(-?\d+)\/(\d+)$/);
@@ -231,11 +284,27 @@
       return Math.abs(Number(u) * smallest - timeC) < 1e-6;
     }
 
+    for (const table of [LENGTH_UNITS, MASS_UNITS]) {
+      const partsC = measureChunks(c, table);
+      if (!partsC) continue;
+      const totalC = measureTotal(partsC);
+      const close = value => Math.abs(value - totalC) <= 1e-9 * Math.max(1, Math.abs(totalC));
+      // «120 см», «1,2 м» и «1 м 20 см» — одна и та же длина.
+      const partsU = measureChunks(u, table);
+      if (partsU) return close(measureTotal(partsU));
+      // Одно число в поле составной величины — в самой мелкой её единице.
+      if (partsC.length > 1) {
+        if (!/^-?\d+(\.\d+)?$/.test(u)) return false;
+        return close(Number(u) * Math.min(...partsC.map(chunk => chunk.weight)));
+      }
+    }
+
     const uBare = stripUnits(u);
     const cBare = stripUnits(c);
     /* Поблажка только тогда, когда ученик единицу вовсе не писал. Если
-       написал — она должна совпасть: «6 кг» не тот же ответ, что «6 см». */
-    const userWroteUnit = uBare !== u;
+       написал — она должна совпасть: «6 кг» не тот же ответ, что «6 см».
+       Счётное слово — не единица: «240 деталей» при ответе 240 верно. */
+    const userWroteUnit = u.replace(UNIT_WORDS, '') !== u;
     if (!userWroteUnit && uBare && cBare && /\d/.test(cBare)) {
       if (uBare === cBare) return true;
       const nU = parseFractionOrNumber(uBare);
@@ -478,8 +547,9 @@
     /* «1 ч 30 мин» — две единицы. Поле подписываем самой мелкой из них
        (минутами): ученик пишет одно число, а сверка принимает и
        «1 ч 30 мин», и «1,5 ч». Слово берём из самого ответа — в латышской
-       версии там «min». */
-    if (groups.length > 1 && timeToMinutes(normalizeMathAnswer(value)) !== null) {
+       версии там «min». Так же длина и масса: «1 м 20 см» — поле в сантиметрах. */
+    const norm = normalizeMathAnswer(value);
+    if (groups.length > 1 && (timeToMinutes(norm) !== null || isCompoundMeasure(norm))) {
       return groups[groups.length - 1].replace(/\\(?:text|mathrm)\{|\}/g, '').trim();
     }
     return '';
@@ -998,10 +1068,12 @@
      «3/4», у составного времени — одно число в самой мелкой единице
      («1 ч 30 мин» → 90): так подписано поле. */
   const typedAnswerValue = value => {
-    const chunks = timeChunks(normalizeMathAnswer(value));
-    if (chunks && chunks.length > 1) {
-      const smallest = Math.min(...chunks.map(chunk => chunk.weight));
-      const total = chunks.reduce((sum, chunk) => sum + chunk.num * chunk.weight, 0);
+    const norm = normalizeMathAnswer(value);
+    const compound = [timeChunks(norm), measureChunks(norm, LENGTH_UNITS), measureChunks(norm, MASS_UNITS)]
+      .find(chunks => chunks && chunks.length > 1);
+    if (compound) {
+      const smallest = Math.min(...compound.map(chunk => chunk.weight));
+      const total = compound.reduce((sum, chunk) => sum + chunk.num * chunk.weight, 0);
       return String(Math.round(total / smallest * 1e6) / 1e6).replace('.', ',');
     }
     return String(value ?? '')
@@ -1173,6 +1245,13 @@
       const withFraction = TASK_TEXTS.filter(([field]) => HAS_FRACTION.test(String(t[field] ?? ''))).map(([, name]) => name);
       push('young', !withFraction.length, 'Числа целые, как положено в этой теме',
         `Дроби в теме ${grade} класса, где их ещё не проходили: в ${withFraction.join(', ')}`, 'warn');
+    }
+
+    // Название — не заглушка «Задача №N»: по нему задачу находят в списках и поиске.
+    if (t.title !== undefined || t.title_lv !== undefined) {
+      const generic = [t.title, t.title_lv].some(isGenericTaskTitle);
+      push('title', !generic, 'У задачи настоящее название',
+        'Название — заглушка «Задача №N»: номер в нём расходится с местом в теме', 'warn');
     }
 
     return checks;
@@ -3460,6 +3539,8 @@
     answerCheckVariants,
     isTaskAutoCheckable,
     checkTaskAnswer,
+    searchStems,
+    isGenericTaskTitle,
     auditTask,
     taskIssues,
     drawingIssues,

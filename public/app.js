@@ -1308,6 +1308,17 @@ function taskNumber(task, index) {
   return Number.isFinite(pos) && pos > 0 ? pos : index + 1;
 }
 
+/* Название задачи для ссылок и подписей. Заглушку «Задача №N» не
+   показываем: номер в ней давно разошёлся с местом в теме, и рядом с
+   заголовком «Задача №152» ссылка «Задача №124» путала. Вместо неё —
+   тот же номер по порядку, что и в заголовке страницы. */
+function taskTitleText(task, index = 0) {
+  const title = String(loc(task, 'title') || '').trim();
+  if (title && !window.MathTasksLib?.isGenericTaskTitle?.(title)) return title;
+  const tr = window.MathTasks.t || (k => k);
+  return `${tr('task_prefix') || 'Задача'} №${taskNumber(task, index)}`;
+}
+
 /* ── Сообщить об ошибке ───────────────────────────────────────────────
    Задачи во многом составлены нейросетью, и ошибки в них раньше всех
    находят ученики. Сообщение ложится в task_reports (миграция 023), читает
@@ -1510,7 +1521,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   const hasAnswer = Boolean(loc(task, 'answer_latex'));
   const taskHint = loc(task, 'hint_latex');
   const taskSolution = loc(task, 'solution_latex');
-  const taskTitle = loc(task, 'title');
+  const taskTitle = taskTitleText(task);
 
   /* Ступени открываются попытками: первая ошибка — подсказка, вторая —
      ответ и решение. Без поля ответа и в решённой задаче открыто всё. */
@@ -1853,7 +1864,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     const itemsHtml = shown.map((task, i) => {
       const index = pageStart + i;
       const solved = isTaskSolved(task.id);
-      const taskTitle = loc(task, 'title');
+      const taskTitle = taskTitleText(task);
       const answerText = loc(task, 'answer_latex');
       // Ответ, который не сверить автоматически, в экспресс-режиме не вводится.
       const hasAnswer = Boolean(answerText) && taskAutoCheckable(answerText, loc(task, 'answer_check'));
@@ -2160,10 +2171,22 @@ function dailySeed(key) {
   return hash;
 }
 
+/* Задачи дня — только из выбранного класса. У пустого класса их нет:
+   раньше подставлялась задача из любого класса, и первокласснику
+   доставалась сложная задача 6 класса на дроби. */
 function dailyCandidates() {
   const topicIds = new Set(topicsForGrade(allTopics).map(topic => topic.id));
-  const rows = publishedTaskRows.filter(row => topicIds.has(row.topic_id));
-  return rows.length ? rows : publishedTaskRows;
+  return publishedTaskRows.filter(row => topicIds.has(row.topic_id));
+}
+
+// Класс выбран, а задач в нём ещё нет — вместо задачи дня честная заглушка.
+function dailyEmptyCard() {
+  const tr = window.MathTasks.t || (k => k);
+  return `<div class="home-daily-head">
+      <span class="home-daily-badge">${escapeHtml(tr('home_daily_badge'))}</span>
+    </div>
+    <p class="home-daily-empty">${escapeHtml(tr('home_daily_empty', { grade: gradeLabel(selectedGrade) }))}</p>
+    <a class="home-daily-empty-go" href="/trainer">${escapeHtml(tr('home_daily_empty_go'))}</a>`;
 }
 
 function difficultyText(diff) {
@@ -2194,7 +2217,7 @@ function dailyCard(task) {
   /* Чертёж на главной сам не грузится: только по кнопке, поверх страницы. */
   const figureUrl = task.condition_image ? imageUrl(task.condition_image) : '';
   const figureBtn = figureUrl
-    ? `<button type="button" class="home-daily-other home-daily-figure" data-daily-figure="${escapeHtml(figureUrl)}" data-figure-alt="${escapeHtml(loc(task, 'title') || tr('home_daily_badge'))}">📐 ${escapeHtml(tr('home_daily_figure'))}</button>`
+    ? `<button type="button" class="home-daily-other home-daily-figure" data-daily-figure="${escapeHtml(figureUrl)}" data-figure-alt="${escapeHtml(taskTitleText(task))}">📐 ${escapeHtml(tr('home_daily_figure'))}</button>`
     : '';
   return `<div class="home-daily-head">
       <span class="home-daily-badge">${escapeHtml(tr('home_daily_badge'))}</span>
@@ -2354,10 +2377,12 @@ async function renderHomeToday() {
   if (!box) return;
   const request = ++dailyRequest;
   const hasCandidates = dailyCandidates().length > 0;
-  box.innerHTML = `${hasCandidates ? '<div class="home-daily" id="home-daily"></div>' : ''}<div class="home-side"></div><div class="home-streak-row" id="home-streak-row"></div>`;
-  box.classList.toggle('no-daily', !hasCandidates);
+  const emptyGrade = !hasCandidates && Boolean(selectedGrade);
+  box.innerHTML = `${hasCandidates || emptyGrade ? '<div class="home-daily" id="home-daily"></div>' : ''}<div class="home-side"></div><div class="home-streak-row" id="home-streak-row"></div>`;
+  box.classList.toggle('no-daily', !hasCandidates && !emptyGrade);
   refreshHomeSide();
   box.hidden = false;
+  if (emptyGrade) box.querySelector('#home-daily').innerHTML = dailyEmptyCard();
   if (!hasCandidates) return;
   const slot = box.querySelector('#home-daily');
   const show = task => {
@@ -2470,12 +2495,21 @@ function renderHomeInsights() {
     : card('weak', tr('home_weak_title'), escapeHtml(tr('home_weak_empty')), '/tasks', tr('home_weak_empty_go'));
 
   const cwTopics = topicsForGrade(allTopics).filter(topic => (taskCounts.get(topic.id) || 0) >= MIN_CONTROL_WORK_TASKS).length;
-  const cwCard = card('cw', tr('home_cw_title'), escapeHtml(tr('home_cw_text', { count: cwTopics })), '/control-works', tr('home_cw_go'));
+  // «Готово тем: 0» ничего не даёт — у класса без контрольных карточки нет.
+  const cwCard = cwTopics || !selectedGrade
+    ? card('cw', tr('home_cw_title'), escapeHtml(tr('home_cw_text', { count: cwTopics })), '/control-works', tr('home_cw_go'))
+    : '';
 
+  /* Экзамен основной школы — забота 7–9 классов и старше. Младшим вместо
+     него тренажёр устного счёта: он работает и там, где задач ещё нет. */
+  const young = typeof selectedGrade === 'number' && selectedGrade < 7;
   const exam = homeExamKind();
-  const examCard = card('exam', tr(`home_exam_title_${exam}`), escapeHtml(tr(`home_exam_text_${exam}`)), `/exam/${exam}`, tr('home_exam_go'));
+  const examCard = young
+    ? card('trainer', tr('home_trainer_title'), escapeHtml(tr('home_trainer_text')), '/trainer', tr('home_trainer_go'))
+    : card('exam', tr(`home_exam_title_${exam}`), escapeHtml(tr(`home_exam_text_${exam}`)), `/exam/${exam}`, tr('home_exam_go'));
 
   box.innerHTML = weakCard + cwCard + examCard;
+  box.classList.toggle('is-two', !cwCard);
   box.hidden = false;
 }
 
@@ -2936,7 +2970,7 @@ function printSheetTitle() {
 }
 
 function printTaskHtml(task, index, options) {
-  const taskTitle = loc(task, 'title');
+  const taskTitle = taskTitleText(task);
   const figure = task.condition_image
     ? `<img class="print-figure" src="${imageUrl(task.condition_image)}" alt="${escapeHtml(taskTitle)}" />`
     : '';
@@ -4483,7 +4517,7 @@ function renderControlWorkCards() {
   const tr = window.MathTasks.t || (k => k);
 
   cwList.innerHTML = currentCwTasks.map((task, idx) => {
-    const taskTitle = loc(task, 'title');
+    const taskTitle = taskTitleText(task);
     const diff = task.difficulty;
     const val = currentCwUserAnswers[task.id] || '';
     const figure = task.condition_image ? `<img class="task-figure" src="${imageUrl(task.condition_image)}" alt="${escapeHtml(taskTitle)}" />` : '';
@@ -4842,7 +4876,7 @@ const sanitize = window.MathTasksLib.sanitizeSearch;
 
 let searchAcrossGrades = false;
 
-async function showSearch(rawQuery, acrossGrades) {
+async function showSearch(rawQuery, acrossGrades, fallbackFrom = null) {
   const query = rawQuery.trim();
   searchAcrossGrades = acrossGrades;
   showView('list');
@@ -4858,10 +4892,20 @@ async function showSearch(rawQuery, acrossGrades) {
   }
 
   const needle = query.toLowerCase();
-  // Ищем на обоих языках: латышский посетитель набирает латышские слова.
-  const matchesText = topic => [topic.title, topic.title_lv, topic.description, topic.description_lv]
-    .some(text => (text || '').toLowerCase().includes(needle));
-  const foundTopics = allTopics.filter(topic => matchesText(topic) && (!scoped || isTopicInGrade(topic, selectedGrade)));
+  /* Ищем по основам слов и по каждому слову отдельно: «пропорция» находит
+     и «пропорции», а «квадратное уравнение» — «уравнения квадратные».
+     На обоих языках: латышский посетитель набирает латышские слова. */
+  const stems = window.MathTasksLib.searchStems ? window.MathTasksLib.searchStems(query) : [];
+  const hasAllWords = (...texts) => {
+    const hay = texts.map(text => String(text || '')).join(' ').toLowerCase();
+    return stems.length ? stems.every(stem => hay.includes(stem)) : hay.includes(needle);
+  };
+  const matchesText = topic => hasAllWords(topic.title, topic.title_lv, topic.description, topic.description_lv);
+  // Подтема — самое точное название навыка: «Масштаб», «Обратная пропорциональность».
+  const foundSubtopics = allSubtopics.filter(sub => hasAllWords(sub.title, sub.title_lv));
+  const subtopicTopicIds = new Set(foundSubtopics.map(sub => sub.topic_id));
+  const foundTopics = allTopics.filter(topic => (matchesText(topic) || subtopicTopicIds.has(topic.id))
+    && (!scoped || isTopicInGrade(topic, selectedGrade)));
 
   fillListHeader({ crumbs, title: metaText('search_title_query', { query }) });
   setMeta(metaText('meta_search_title', { query }), metaText('meta_search_desc', { query }));
@@ -4896,13 +4940,21 @@ async function showSearch(rawQuery, acrossGrades) {
   let request = db.from('tasks').select(TASK_SELECT).eq('is_published', true);
   if (scoped) request = scopeToGrade(request);
 
+  /* Каждое слово ищется во всех полях, а слова — все сразу:
+     and(or(поля ~ слово1), or(поля ~ слово2)). Короткие слова и числа
+     основы не дают — тогда ищем всю фразу целиком, как раньше. */
+  const SEARCH_COLUMNS = ['title', 'title_lv', 'condition_latex', 'condition_latex_lv', 'answer_latex', 'answer_latex_lv', 'solution_latex', 'solution_latex_lv'];
+  const anyColumn = term => SEARCH_COLUMNS.map(col => `${col}.ilike.*${term}*`).join(',');
+  const terms = stems.length ? stems : (safe ? [safe] : []);
   const orClauses = [];
-  if (safe) {
-    orClauses.push(['title', 'title_lv', 'condition_latex', 'condition_latex_lv', 'answer_latex', 'answer_latex_lv', 'solution_latex', 'solution_latex_lv']
-      .map(col => `${col}.ilike.*${safe}*`).join(','));
-  }
+  if (terms.length === 1) orClauses.push(anyColumn(terms[0]));
+  else if (terms.length > 1) orClauses.push(`and(${terms.map(term => `or(${anyColumn(term)})`).join(',')})`);
   if (taggedTaskIds.length > 0) {
     orClauses.push(`id.in.(${taggedTaskIds.slice(0, 100).join(',')})`);
+  }
+  const subtopicIds = foundSubtopics.map(sub => sub.id).filter(Boolean).slice(0, 100);
+  if (subtopicIds.length > 0) {
+    orClauses.push(`subtopic_id.in.(${subtopicIds.join(',')})`);
   }
   if (orClauses.length > 0) {
     request = request.or(orClauses.join(','));
@@ -4916,12 +4968,20 @@ async function showSearch(rawQuery, acrossGrades) {
   }
 
   const tasks = data || [];
+  /* В выбранном классе пусто — сразу показываем все классы и говорим об
+     этом: иначе ученик 5 класса решил бы, что пропорций на сайте нет. */
+  if (scoped && !tasks.length && !foundTopics.length && !matchedTags.length) {
+    return showSearch(rawQuery, true, selectedGrade);
+  }
   const counts = [
     matchedTags.length ? metaText('search_count_tags', { count: matchedTags.length }) : '',
     foundTopics.length ? metaText('search_count_topics', { count: foundTopics.length }) : '',
     metaText('search_count_tasks', { count: tasks.length })
   ].filter(Boolean).join(', ');
-  const where = scoped ? (window.MathTasks.t || (k => k))('search_scope_grade', { grade: gradeLabel(selectedGrade) }) : (window.MathTasks.t || (k => k))('search_scope_all');
+  const tr = window.MathTasks.t || (k => k);
+  const where = scoped
+    ? tr('search_scope_grade', { grade: gradeLabel(selectedGrade) })
+    : (fallbackFrom ? tr('search_scope_fallback', { grade: gradeLabel(fallbackFrom) }) : tr('search_scope_all'));
   // Из класса всегда есть выход: иначе человек решит, что задачи просто нет.
   const escape = scoped
     ? `<a class="search-escape" href="/search?q=${encodeURIComponent(query)}&all=1">${escapeHtml((window.MathTasks.t || (k => k))('search_all_grades'))}</a>`
@@ -5080,7 +5140,7 @@ async function renderSimilarTasks(task) {
   box.innerHTML = `<h2 class="similar-title">${escapeHtml(tr('similar_tasks'))}</h2>
     <ul class="similar-list">${picked.map(t => `<li>
       <a href="${taskPath(t)}">
-        <span class="similar-name">${escapeHtml(loc(t, 'title'))}</span>
+        <span class="similar-name">${escapeHtml(taskTitleText(t))}</span>
         ${t.difficulty ? `<span class="similar-diff">${escapeHtml(difficultyText(t.difficulty))}</span>` : ''}
       </a></li>`).join('')}</ul>`;
   (document.querySelector('#task-nav') || listTasks).after(box);
@@ -5090,14 +5150,14 @@ async function renderSimilarTasks(task) {
 async function renderTaskNeighbours(task) {
   document.querySelector('#task-nav')?.remove();
   if (!task.topic_id) return;
-  const { data } = await db.from('tasks').select(multilingualColumns ? 'id, title, title_lv' : 'id, title')
+  const { data } = await db.from('tasks').select(multilingualColumns ? 'id, title, title_lv, position' : 'id, title, position')
     .eq('is_published', true).eq('topic_id', task.topic_id)
     .order('position').order('created_at', { ascending: true });
   const siblings = data || [];
   const index = siblings.findIndex(item => item.id === task.id);
   if (index === -1 || siblings.length < 2) return;
   const link = (item, label, css) => (item
-    ? `<a class="task-nav-link ${css}" href="${taskPath(item)}"><span>${label}</span><strong>${escapeHtml(loc(item, 'title'))}</strong></a>`
+    ? `<a class="task-nav-link ${css}" href="${taskPath(item)}"><span>${label}</span><strong>${escapeHtml(taskTitleText(item))}</strong></a>`
     : '');
   const nav = document.createElement('nav');
   nav.id = 'task-nav';
@@ -5134,7 +5194,8 @@ async function showTagsList() {
   const list = allTags.length ? allTags : (window.MathTasksLib?.CROSS_TAGS || []);
   const metaEl = document.querySelector('#list-meta');
   if (metaEl) {
-    metaEl.innerHTML = `<span class="search-count">${list.length} ${currentLang === 'lv' ? 'birkas' : 'тегов'}</span>`;
+    // «23 тега», «25 тегов», «21 birka» — форма по числу, как у задач и подтем.
+    metaEl.innerHTML = `<span class="search-count">${escapeHtml(countLabel('tags_count', list.length))}</span>`;
   }
 
   listTasks.innerHTML = `
@@ -5634,7 +5695,7 @@ function openDrillHintDialog(task) {
   const hintSec = dialog.querySelector('#drill-hint-hint-section');
   const lockEl = dialog.querySelector('#drill-hint-lock');
 
-  if (titleEl) titleEl.textContent = loc(task, 'title');
+  if (titleEl) titleEl.textContent = taskTitleText(task);
   if (condEl) {
     condEl.innerHTML = '';
     renderMath(condEl, loc(task, 'condition_latex'));
@@ -5976,7 +6037,7 @@ document.addEventListener('click', event => {
     let conditionText = '';
     let titleText = '';
     if (task) {
-      titleText = loc(task, 'title');
+      titleText = taskTitleText(task);
       conditionText = loc(task, 'condition_latex');
     } else {
       const card = copyTextBtn.closest('.task');
