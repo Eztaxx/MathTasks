@@ -5620,6 +5620,19 @@ async function route({ force = false } = {}) {
   if (path === '/progress') { showProgress(); return; }
   if (path === '/about') { showView('about'); setMeta(metaText('meta_about_title'), metaText('meta_about_desc')); return; }
 
+  /* Чужой адрес сервер отдаёт с кодом 404, а приложение рисовало под ним
+     главную: посетитель не понимал, что ссылка битая. */
+  if (path !== '/' && path !== '/index.html') {
+    const tr = window.MathTasks.t || (k => k);
+    showView('list');
+    resetListBlocks();
+    fillListHeader({ crumbs: [[tr('nav_home'), '/']], title: tr('meta_not_found_page'), description: tr('meta_not_found_desc') });
+    listActions.innerHTML = `<a class="list-tool-btn" href="/">← ${escapeHtml(tr('nav_home'))}</a>`;
+    listActions.hidden = false;
+    setMeta(metaText('meta_not_found_page'));
+    return;
+  }
+
   showView('home');
   setMeta('', metaText('meta_home_desc'));
   await loadHome();
