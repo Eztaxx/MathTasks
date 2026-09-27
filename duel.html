@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="/style.css" />
   <script src="/theme-init.js?v=20260927-2"></script>
-  <script src="/i18n.js?v=20260927-4"></script>
+  <script src="/i18n.js?v=20260927-5"></script>
 </head>
 <body class="trainer-page duel-page">
   <header class="admin-topbar">
@@ -273,6 +273,12 @@
       <div class="duel-outcome" id="duel-outcome"></div>
       <div id="duel-result-body"></div>
       <div class="duel-rank" id="duel-rank" role="status" hidden></div>
+      <!-- Картинка итога (Н4): её дети и пересылают друг другу. -->
+      <div class="duel-share-card" id="duel-share-card" hidden>
+        <img class="duel-share-preview" id="duel-share-preview" alt="" width="1080" height="1080" />
+        <button type="button" class="primary-button" id="duel-share-image" data-i18n="duel_share_image">🖼 Поделиться картинкой</button>
+        <p class="duel-copied" id="duel-image-status" role="status" hidden></p>
+      </div>
       <!-- Проверка «не робот»: обычно невидима, окно появляется, только если Cloudflare сомневается. -->
       <div class="duel-turnstile" id="duel-turnstile"></div>
       <div class="duel-share" id="duel-share" hidden>
@@ -299,7 +305,7 @@
   <script src="/trainer-algebra.js?v=20260924-1"></script>
   <script src="/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/duel.js?v=20260927-2"></script>
-  <script src="/duel-page.js?v=20260927-2"></script>
+  <script src="/duel.js?v=20260927-3"></script>
+  <script src="/duel-page.js?v=20260927-3"></script>
 </body>
 </html>

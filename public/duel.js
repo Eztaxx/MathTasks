@@ -498,6 +498,67 @@
   };
   const dailyPlaceOf = (board, runId) => (board || []).find(row => row.id === Number(runId))?.place ?? null;
 
+  // ── Картинка итога (Н4) ─────────────────────────────────────────────
+  /* «🏆 Победа! 18 : 12» — квадрат 1080×1080: одинаково ложится в
+     переписку и ленту. Здесь только данные и раскладка, рисует страница
+     на canvas (duel-page.js). Все тексты приходят переведёнными в labels. */
+  const SHARE_SIZE = 1080;
+  const SHARE_KINDS = ['win', 'lose', 'tie', 'solo', 'daily', 'pending'];
+  // Фон — как у итога на странице: зелёный, розовый, сиреневый, синий, янтарный.
+  const SHARE_COLORS = {
+    win: { from: '#dcfce7', to: '#a7f3d0', ink: '#14532d', accent: '#16a34a' },
+    lose: { from: '#fee2e2', to: '#fecdd3', ink: '#7f1d1d', accent: '#e11d48' },
+    tie: { from: '#e0e7ff', to: '#ddd6fe', ink: '#312e81', accent: '#6d28d9' },
+    solo: { from: '#dbeafe', to: '#ede9fe', ink: '#1e3a8a', accent: '#4f46e5' },
+    daily: { from: '#fef3c7', to: '#fed7aa', ink: '#78350f', accent: '#d97706' },
+    pending: { from: '#ede9fe', to: '#dbeafe', ink: '#3b0764', accent: '#7c3aed' }
+  };
+  const ellipsize = (text, max = 14) => {
+    const chars = [...String(text || '').trim()];
+    return chars.length > max ? `${chars.slice(0, max - 1).join('').trimEnd()}…` : chars.join('');
+  };
+  /* kind — исход; me и them — { n, v, r } (them для одиночной минуты нет).
+     labels: { brand, site, heading, correct, sub, footer } — строки страницы. */
+  const shareCard = ({ kind, me, them = null, labels = {} }) => {
+    const safeKind = SHARE_KINDS.includes(kind) ? kind : 'solo';
+    const versus = Boolean(them) && !['solo', 'daily'].includes(safeKind);
+    const players = versus ? [me, them] : [me];
+    return {
+      kind: safeKind,
+      brand: String(labels.brand || 'MathTasks'),
+      heading: String(labels.heading || ''),
+      score: versus ? `${Number(me?.r) || 0} : ${Number(them?.r) || 0}` : String(Number(me?.r) || 0),
+      correct: versus ? '' : String(labels.correct || ''),
+      sub: String(labels.sub || ''),
+      footer: String(labels.footer || labels.site || 'mathtasks.lv/duel'),
+      names: players.map(player => ellipsize(player?.n || '')),
+      avatars: players.map(player => avatarFor(player?.n || '', player?.v || ''))
+    };
+  };
+  // Раскладка в пикселях квадрата: фон, тексты, аватары. Ничего не выходит за край.
+  const shareLayout = card => {
+    const S = SHARE_SIZE;
+    const colors = SHARE_COLORS[card.kind] || SHARE_COLORS.solo;
+    const ops = [{ op: 'bg', from: colors.from, to: colors.to, accent: colors.accent }];
+    const text = (value, y, size, weight = 800, extra = {}) => {
+      if (value) ops.push({ op: 'text', text: value, x: S / 2, y, size, weight, align: 'center', color: colors.ink, ...extra });
+    };
+    text(card.brand, 110, 38, 700, { opacity: 0.75 });
+    text(ellipsize(card.heading, 26), 230, card.heading.length > 18 ? 70 : 88);
+    const two = card.avatars.length === 2;
+    const xs = two ? [310, 770] : [S / 2];
+    card.avatars.forEach((avatar, i) => {
+      ops.push({ op: 'avatar', x: xs[i], y: 450, r: 112, avatar });
+      text(card.names[i], 640, 44, 700, { x: xs[i] });
+    });
+    if (two) text('⚔️', 460, 72, 400);
+    text(card.score, 820, two ? 150 : 190);
+    text(card.correct, 900, 40, 700, { opacity: 0.8 });
+    text(ellipsize(card.sub, 44), two ? 915 : 960, 36, 600, { opacity: 0.85 });
+    text(card.footer, 1025, 32, 700, { color: colors.accent });
+    return ops;
+  };
+
   const newSeed = (random = Math.random) => {
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
       return crypto.getRandomValues(new Uint32Array(1))[0];
@@ -548,6 +609,11 @@
     dailySeedDay,
     dailyBoard,
     dailyPlaceOf,
+    SHARE_SIZE,
+    SHARE_COLORS,
+    ellipsize,
+    shareCard,
+    shareLayout,
     newSeed
   };
 

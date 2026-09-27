@@ -7064,6 +7064,10 @@ body.dark .profile-rename input{background:#0d121c;color:#edf2ff;border-color:#1
 .duel-outcome.is-solo{background:linear-gradient(135deg,#eef4ff,#f3edff);color:#1e3a8a}
 .duel-outcome.is-wait{background:#f1f4fb;color:var(--muted)}
 .duel-outcome.is-daily{background:linear-gradient(135deg,#fef3c7,#ffedd5);color:#78350f}
+/* Картинка итога (Н4): превью квадрата и кнопка «Поделиться картинкой». */
+.duel-share-card{display:flex;flex-direction:column;align-items:center;gap:12px;margin:18px 0 0}
+.duel-share-card[hidden],#duel-image-status[hidden]{display:none}
+.duel-share-preview{display:block;width:min(100%,300px);height:auto;border-radius:18px;box-shadow:0 10px 30px rgba(11,25,53,.18)}
 .duel-result-title{margin:0 0 4px;font:800 28px Manrope,sans-serif;text-wrap:balance}
 .duel-result-sub{margin:0;font:600 13.5px Manrope,sans-serif;opacity:.8}
 .duel-versus{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:14px;align-items:stretch}

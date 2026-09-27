@@ -635,6 +635,7 @@
     const kind = result.winner === 'tie' ? 'tie' : result.winner === 'a' ? 'win' : 'lose';
     const title = kind === 'tie' ? tr('duel_tie') : kind === 'win' ? tr('duel_win_me') : tr('duel_win_them', { name: nickOf(them) });
     renderOutcome(kind, title, resultSub(cat, me.q));
+    setShareCard({ kind, me, them: { ...them, n: nickOf(them) }, heading: title, cat });
     const questions = D.ladderQuestions(T, cat, seed, BATCH);
     const both = result.bothWrong.slice(0, 6).map(index => questions[index]).filter(Boolean);
     const body = $('#duel-result-body');
@@ -659,13 +660,148 @@
 
   const renderSolo = (me, title, cat, kind = 'solo') => {
     renderOutcome(kind, title, resultSub(cat, me.q));
+    setShareCard({ kind, me, heading: title, cat });
     const body = $('#duel-result-body');
     if (body) body.innerHTML = `<div class="duel-versus duel-versus-solo">${statsHtml(me, `${tr('duel_you')} · ${me.n || ''}`, true)}</div>`;
   };
 
+  // ── Картинка итога (Н4) ─────────────────────────────────────────────
+  /* Квадрат 1080×1080 рисуем на canvas по раскладке из duel.js
+     (shareLayout). «Поделиться картинкой» — системное меню телефона с
+     файлом; где его нет (компьютер), картинка скачивается, а ссылка
+     копируется в буфер. */
+  const shareState = { context: null, blob: null, url: '', link: '', text: '', drawn: 0 };
+  const EMOJI_FONTS = '"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji"';
+
+  async function drawShareCard(card) {
+    const size = D.SHARE_SIZE;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    // Шрифт сайта — Manrope; не успел загрузиться за полторы секунды — рисуем системным.
+    if (document.fonts?.load) {
+      await Promise.race([
+        Promise.allSettled([document.fonts.load('800 88px Manrope'), document.fonts.load('700 44px Manrope'), document.fonts.load('600 36px Manrope')]),
+        new Promise(resolve => setTimeout(resolve, 1500))
+      ]);
+    }
+    for (const op of D.shareLayout(card)) {
+      if (op.op === 'bg') {
+        const gradient = ctx.createLinearGradient(0, 0, size, size);
+        gradient.addColorStop(0, op.from);
+        gradient.addColorStop(1, op.to);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, size, size);
+        // Рамка-акцент по краю: картинка узнаётся в ленте переписки.
+        ctx.strokeStyle = op.accent;
+        ctx.globalAlpha = 0.35;
+        ctx.lineWidth = 18;
+        ctx.strokeRect(9, 9, size - 18, size - 18);
+        ctx.globalAlpha = 1;
+      } else if (op.op === 'avatar') {
+        const { avatar } = op;
+        ctx.beginPath();
+        ctx.arc(op.x, op.y, op.r, 0, Math.PI * 2);
+        ctx.fillStyle = avatar.emoji ? '#ffffff' : `hsl(${avatar.hue} 70% 92%)`;
+        ctx.fill();
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = 'rgba(255,255,255,.9)';
+        ctx.stroke();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = avatar.emoji ? '#000' : `hsl(${avatar.hue} 55% 36%)`;
+        ctx.font = avatar.emoji ? `${Math.round(op.r * 1.05)}px ${EMOJI_FONTS},sans-serif` : `800 ${Math.round(op.r * 0.9)}px Manrope,sans-serif`;
+        ctx.fillText(avatar.text, op.x, op.y + (avatar.emoji ? op.r * 0.06 : 0));
+      } else if (op.op === 'text') {
+        ctx.globalAlpha = op.opacity ?? 1;
+        ctx.fillStyle = op.color;
+        ctx.textAlign = op.align || 'center';
+        ctx.textBaseline = 'alphabetic';
+        ctx.font = `${op.weight} ${op.size}px Manrope,${EMOJI_FONTS},"Segoe UI",sans-serif`;
+        ctx.fillText(op.text, op.x, op.y, D.SHARE_SIZE - 80);
+        ctx.globalAlpha = 1;
+      }
+    }
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  }
+
+  const shareLabels = ({ heading, cat, me, place }) => ({
+    brand: tr('duel_card_brand'),
+    heading,
+    correct: tr('duel_card_correct'),
+    sub: [resultSub(cat, me.q), place ? tr('duel_card_place', { place }) : ''].filter(Boolean).join(' · '),
+    footer: `mathtasks.lv/duel · ${formatDate(Date.now())}`
+  });
+
+  async function renderShareCard() {
+    const box = $('#duel-share-card');
+    const context = shareState.context;
+    if (!box || !context) return;
+    const drawn = ++shareState.drawn;
+    const card = D.shareCard({ kind: context.kind, me: context.me, them: context.them, labels: shareLabels(context) });
+    let blob = null;
+    try { blob = await drawShareCard(card); } catch {}
+    // Пока рисовали, итог мог смениться — эта картинка уже не нужна.
+    if (drawn !== shareState.drawn || !blob) { if (!blob) box.hidden = true; return; }
+    if (shareState.url) URL.revokeObjectURL(shareState.url);
+    shareState.blob = blob;
+    shareState.url = URL.createObjectURL(blob);
+    const preview = $('#duel-share-preview');
+    if (preview) {
+      preview.src = shareState.url;
+      preview.alt = `${context.heading} ${card.score}`;
+    }
+    const status = $('#duel-image-status');
+    if (status) status.hidden = true;
+    box.hidden = false;
+  }
+
+  // kind: win | lose | tie | solo | daily; heading — заголовок итога; place — место в таблице.
+  function setShareCard({ kind, me, them = null, heading, cat, place = null }) {
+    shareState.context = { kind, me, them, heading, cat, place };
+    shareState.link = `${location.origin}/duel${kind === 'daily' ? '?play=daily' : ''}`;
+    shareState.text = tr('duel_share_text', { r: me.r });
+    renderShareCard();
+  }
+  // Место приходит от сервера позже итога — дорисовываем.
+  function setShareCardPlace(place) {
+    if (!shareState.context || !place || shareState.context.place === place) return;
+    shareState.context.place = place;
+    renderShareCard();
+  }
+
+  async function shareImage() {
+    const status = $('#duel-image-status');
+    const say = text => { if (status) { status.textContent = text; status.hidden = false; } };
+    if (!shareState.blob) { say(tr('duel_image_fail')); return; }
+    const file = new File([shareState.blob], 'mathtasks-duel.png', { type: 'image/png' });
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: tr('duel_title'), text: `${shareState.text}\n${shareState.link}` });
+        return;
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
+      }
+    }
+    const link = document.createElement('a');
+    link.href = shareState.url;
+    link.download = 'mathtasks-duel.png';
+    document.body.append(link);
+    link.click();
+    link.remove();
+    try { await navigator.clipboard.writeText(shareState.link); } catch {}
+    say(tr('duel_image_saved'));
+  }
+  $('#duel-share-image')?.addEventListener('click', shareImage);
+
   const setShare = ({ title, text, link, shareText }) => {
     const box = $('#duel-share');
     if (!box) return;
+    // У вызова по ссылке картинка ведёт туда же, что и ссылка.
+    shareState.link = link;
+    shareState.text = shareText;
     box.hidden = false;
     $('#duel-share-title').textContent = title;
     $('#duel-share-text').textContent = text;
@@ -688,6 +824,8 @@
     state.me = me;
     const base = { g: RUN_GEN, s: state.seed, c: state.cat };
     $('#duel-share').hidden = true;
+    $('#duel-share-card').hidden = true;
+    shareState.context = null;
     $('#duel-rematch').hidden = true;
     $('#duel-again').hidden = state.mode !== 'random';
     const rank = $('#duel-rank');
@@ -1277,6 +1415,8 @@
     } else if (result.reason === 'clock' || result.reason === 'late') {
       text = tr('duel_rank_clock');
     }
+    const placeOnCard = result.daily ? result.daily.place : result.place;
+    if (result.ranked && placeOnCard) setShareCardPlace(result.daily ? `⚡ ${placeOnCard}` : placeOnCard);
     if (!text) return;
     box.innerHTML = `<p>${escapeHtml(text)}</p>${action ? `<button type="button" class="secondary-button" data-board-open="${escapeHtml(cat)}" data-board-period-open="${period}">${escapeHtml(tr('duel_board_open'))}</button>` : ''}`;
     box.classList.toggle('is-ranked', Boolean(result.ranked));

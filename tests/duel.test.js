@@ -177,6 +177,42 @@ describe('дуэль дня', () => {
   });
 });
 
+/* Н4: картинка итога — квадрат 1080×1080; раскладка проверяется без canvas. */
+describe('дуэль: картинка итога', () => {
+  const labels = { brand: 'MathTasks · Duelis', heading: '🏆 Uzvara!', correct: 'pareizi minūtē', sub: 'Reizināšana · līmenis: padziļināts', footer: 'mathtasks.lv/duel · 27. sept.' };
+
+  it('дуэль двоих: два аватара, счёт «18 : 12», длинный ник обрезан', () => {
+    const card = duel.shareCard({ kind: 'win', me: { n: 'Ātrā Lapsa', v: 'tiger', r: 18 }, them: { n: 'Ļoti garš segvārds skolēnam', r: 12 }, labels });
+    expect(card.score).toBe('18 : 12');
+    expect(card.names).toEqual(['Ātrā Lapsa', 'Ļoti garš seg…']);
+    expect(card.avatars[0]).toMatchObject({ text: '🐯', emoji: true });
+    expect(card.correct).toBe('');
+  });
+
+  it('одиночная минута и дуэль дня: один аватар, счёт числом и подпись «верных»', () => {
+    const card = duel.shareCard({ kind: 'daily', me: { n: 'Gudrā Pūce', r: 21 }, them: { n: 'x', r: 1 }, labels });
+    expect(card.avatars).toHaveLength(1);
+    expect(card.score).toBe('21');
+    expect(card.correct).toBe('pareizi minūtē');
+    expect(duel.shareCard({ kind: 'nope', me: { n: 'A', r: 1 }, labels }).kind).toBe('solo');
+  });
+
+  it('всё нарисованное лежит внутри квадрата', () => {
+    for (const kind of ['win', 'lose', 'tie', 'solo', 'daily']) {
+      const them = ['solo', 'daily'].includes(kind) ? null : { n: 'B', r: 3 };
+      const ops = duel.shareLayout(duel.shareCard({ kind, me: { n: 'A', r: 5 }, them, labels }));
+      expect(ops[0]).toMatchObject({ op: 'bg' });
+      for (const op of ops.filter(item => item.op !== 'bg')) {
+        const r = op.r || 0;
+        expect(op.x - r, kind).toBeGreaterThanOrEqual(0);
+        expect(op.x + r, kind).toBeLessThanOrEqual(duel.SHARE_SIZE);
+        expect(op.y - r, kind).toBeGreaterThanOrEqual(0);
+        expect(op.y + r, kind).toBeLessThanOrEqual(duel.SHARE_SIZE);
+      }
+    }
+  });
+});
+
 describe('дуэль: маска верных ответов', () => {
   it('упаковка обратима при любой длине', () => {
     for (const length of [0, 1, 5, 6, 7, 40, 121]) {
