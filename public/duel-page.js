@@ -611,6 +611,54 @@
     openSetup();
   });
 
+  // ── Счётчик дуэлей и значки (Н5) ───────────────────────────────────
+  /* math-tasks:duel-stats — сколько сыграно, выиграно, дуэлей дня, мест в
+     тройке и первых мест таблицы недели; по нему считаются значки
+     (lib.js: PROGRESS_ACHIEVEMENTS). Полученные значки пишет в
+     math-tasks:achievements страница каталога; здесь только дописываем
+     дуэльные, если запись уже заведена, — иначе первая проверка в
+     каталоге не была бы тихой. */
+  const DUEL_STATS_KEY = 'math-tasks:duel-stats';
+  const ACHIEVEMENTS_KEY = 'math-tasks:achievements';
+  const showDuelToast = text => {
+    let toast = document.querySelector('#toast-notice');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'toast-notice';
+      toast.className = 'toast-notice';
+      toast.setAttribute('role', 'status');
+      document.body.append(toast);
+    }
+    toast.innerHTML = `<span class="toast-icon">🏅</span><span class="toast-msg">${escapeHtml(text)}</span>`;
+    toast.classList.add('show');
+    clearTimeout(toast.hideTimer);
+    toast.hideTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+  };
+  const announceAchievements = () => {
+    const lib = window.MathTasksLib;
+    if (!lib?.buildProgressSummary || !lib.newlyEarned) return;
+    const known = readJson(ACHIEVEMENTS_KEY, null);
+    if (!known || typeof known !== 'object' || Array.isArray(known)) return;
+    const summary = lib.buildProgressSummary({ duels: readJson(DUEL_STATS_KEY, {}) });
+    const fresh = lib.newlyEarned(summary.achievements, known).filter(id => id.startsWith('duel'));
+    if (!fresh.length) return;
+    writeJson(ACHIEVEMENTS_KEY, lib.markEarned(known, fresh, Date.now()));
+    fresh.forEach((id, i) => setTimeout(() => showDuelToast(tr('ach_toast', { name: tr(`ach_${id}`) })), 800 + i * 2600));
+  };
+  const bumpDuelStats = delta => {
+    const stats = readJson(DUEL_STATS_KEY, {});
+    const next = stats && typeof stats === 'object' && !Array.isArray(stats) ? { ...stats } : {};
+    for (const [key, value] of Object.entries(delta)) if (value) next[key] = (Number(next[key]) || 0) + value;
+    writeJson(DUEL_STATS_KEY, next);
+    announceAchievements();
+  };
+  // Сыграна минута: против соперника с результатом — ещё и победа ли.
+  const countDuel = (me, them = null, extra = {}) => bumpDuelStats({
+    played: 1,
+    wins: them && D.hasResult(them) && D.compareResults(me, them).winner === 'a' ? 1 : 0,
+    ...extra
+  });
+
   // ── Итог ────────────────────────────────────────────────────────────
   const statsHtml = (player, label, mine) => {
     const errors = player.q - player.r;
@@ -841,6 +889,7 @@
       if (D.hasResult(challenge.a)) {
         // Вызвавший уже сыграл: сравнение здесь, а ссылка с обоими результатами — ему.
         renderVersus({ cat: state.cat, diff: state.diff, seed: state.seed, me, them: challenge.a });
+        countDuel(me, challenge.a);
         setShare({
           title: tr('duel_reply_title', { name: nickOf(challenge.a) }),
           text: tr('duel_reply_text', { name: nickOf(challenge.a) }),
@@ -851,6 +900,7 @@
       } else {
         // Вызвавший свою минуту ещё не сыграл: свой результат — в ответную ссылку.
         renderSolo(me, tr('duel_pending_title', { name: nickOf(challenge.a) }), state.cat);
+        countDuel(me);
         setShare({
           title: tr('duel_reply_title', { name: nickOf(challenge.a) }),
           text: tr('duel_pending_text', { name: nickOf(challenge.a) }),
@@ -864,6 +914,7 @@
       // Друг сыграл первым по ссылке без результата: сравнение сразу.
       const full = { ...base, a: me, b: challenge.b };
       renderVersus({ cat: state.cat, diff: state.diff, seed: state.seed, me, them: challenge.b });
+      countDuel(me, challenge.b);
       setShare({
         title: tr('duel_send_result_title'),
         text: tr('duel_send_result_text', { name: nickOf(challenge.b) }),
@@ -876,6 +927,7 @@
       // Своя минута сыграна, друг ещё нет: ссылка теперь с результатом.
       const own = { ...base, a: me };
       renderSolo(me, tr('duel_done_title'), state.cat);
+      countDuel(me);
       setShare({
         title: tr('duel_send_title'),
         text: `${tr('duel_send_text')} ${tr('duel_sent_already')}`,
@@ -892,6 +944,7 @@
   function finishSolo(me) {
     notice('');
     renderSolo(me, tr('duel_solo_title'), state.cat);
+    countDuel(me);
     show('#duel-result');
     const body = $('#duel-result-body');
     reportRun().then(saved => {
@@ -962,6 +1015,7 @@
     notice('');
     const day = state.daily?.day || D.rigaDayKey();
     renderSolo(me, tr('duel_daily_title', { date: formatLongDate(`${day}T12:00:00Z`) }), state.cat, 'daily');
+    countDuel(me, null, { daily: 1 });
     show('#duel-result');
     reportRun();
     remember({ at: Date.now(), seed: state.seed, cat: state.cat, diff: state.diff, role: 'r', daily: day, me, them: null });
@@ -1221,6 +1275,7 @@
     const opponent = state.opponent;
     if (!opponent) {
       renderSolo(me, tr('duel_done_title'), state.cat);
+      countDuel(me);
       // Соперником для других становится только проверенная попытка.
       saving.then(saved => {
         if (saved?.verified && !$('#duel-result').hidden) body.insertAdjacentHTML('beforeend', `<p class="duel-ghost-note">${escapeHtml(tr('duel_solo_saved'))}</p>`);
@@ -1254,6 +1309,7 @@
       leaveMatch();
     }
     renderVersus({ cat: state.cat, diff: state.diff, seed: state.seed, me, them, note });
+    countDuel(me, them);
     remember({
       at: Date.now(), seed: state.seed, cat: state.cat, diff: state.diff, role: 'r',
       ghostId: opponent.kind === 'ghost' ? opponent.id : undefined,
@@ -1414,6 +1470,9 @@
       text = tr('duel_rank_captcha');
     } else if (result.reason === 'clock' || result.reason === 'late') {
       text = tr('duel_rank_clock');
+    }
+    if (result.ranked && Number(result.place) >= 1 && Number(result.place) <= 3) {
+      bumpDuelStats({ top3: 1, first: Number(result.place) === 1 ? 1 : 0 });
     }
     const placeOnCard = result.daily ? result.daily.place : result.place;
     if (result.ranked && placeOnCard) setShareCardPlace(result.daily ? `⚡ ${placeOnCard}` : placeOnCard);

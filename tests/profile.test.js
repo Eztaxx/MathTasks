@@ -190,3 +190,20 @@ describe('профиль: срок смены ника', () => {
     expect(nickChangeAvailableAt('2026-09-26T12:00:00Z', now).toISOString()).toBe('2026-12-26T12:00:00.000Z');
   });
 });
+
+// Н5: счётчик дуэлей и полученные значки переезжают с профилем.
+describe('профиль: дуэли и значки', () => {
+  it('ключи — прогресс', () => {
+    expect(isProgressKey('math-tasks:duel-stats')).toBe(true);
+    expect(isProgressKey('math-tasks:achievements')).toBe(true);
+    expect(isProgressKey('math-tasks:achievements-seen')).toBe(false);
+  });
+  it('счётчик — максимум по полю, значки — объединение с самой ранней датой', () => {
+    const merged = mergeProgress(
+      { 'math-tasks:duel-stats': { played: 5, wins: 1 }, 'math-tasks:achievements': { first_task: 300, duels_10: 900 } },
+      { 'math-tasks:duel-stats': { played: 3, wins: 2, daily: 1 }, 'math-tasks:achievements': { first_task: 100, solved_10: 500 } }
+    );
+    expect(merged['math-tasks:duel-stats']).toEqual({ played: 5, wins: 2, daily: 1 });
+    expect(merged['math-tasks:achievements']).toEqual({ first_task: 100, duels_10: 900, solved_10: 500 });
+  });
+});

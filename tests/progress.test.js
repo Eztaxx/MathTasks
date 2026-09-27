@@ -5,6 +5,9 @@ import {
   buildProgressSummary,
   buildSubjectBreakdown,
   buildWeakSpots,
+  markEarned,
+  newlyEarned,
+  normalizeDuelStats,
   computeStreak,
   latestPerTask,
   localDateKey,
@@ -279,6 +282,30 @@ describe('достижения', () => {
     const s = build({ solvedIds: many });
     expect(byId(s).solved_10.value).toBe(10);
     expect(byId(s).solved_250.value).toBe(30);
-    expect(s.achievements).toHaveLength(18);
+    expect(s.achievements).toHaveLength(24);
+  });
+
+  // Н5: значки за дуэли — по счётчику math-tasks:duel-stats.
+  it('дуэльные значки считаются по счётчику дуэлей, мусор — нули', () => {
+    const none = byId(build({}));
+    expect(none.duel_first_win.earned).toBe(false);
+    const s = byId(build({ duels: { played: 12, wins: 3, daily: 1, top3: 1, first: 0 } }));
+    expect(s.duel_first_win.earned).toBe(true);
+    expect(s.duels_10).toMatchObject({ earned: true, value: 10 });
+    expect(s.duel_daily.earned).toBe(true);
+    expect(s.duel_top3.earned).toBe(true);
+    expect(s.duel_week_first.earned).toBe(false);
+    expect(normalizeDuelStats({ played: -3, wins: 'x', daily: 2.7 })).toEqual({ played: 0, wins: 0, daily: 2, top3: 0, first: 0 });
+  });
+
+  it('новые значки — заработанные и ещё не записанные', () => {
+    const s = build({ solvedIds: many.slice(0, 12) });
+    const fresh = newlyEarned(s.achievements, {});
+    expect(fresh).toEqual(expect.arrayContaining(['first_task', 'solved_10']));
+    const earned = markEarned({}, fresh, 1000);
+    expect(earned.first_task).toBe(1000);
+    expect(newlyEarned(s.achievements, earned)).toEqual([]);
+    // Уже записанный значок дату не меняет.
+    expect(markEarned({ first_task: 5 }, ['first_task'], 9)).toEqual({ first_task: 5 });
   });
 });

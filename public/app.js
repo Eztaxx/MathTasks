@@ -920,6 +920,62 @@ function setTaskSolved(taskId, solved) {
   } catch {}
   updateProgressCounter();
   if (currentView === 'home') refreshHomeSide();
+  if (solved) checkAchievements();
+}
+
+/* ── Значки (Н5) ────────────────────────────────────────────────────
+   Полученные значки: math-tasks:achievements = { id: когда получен }
+   (переезжает с профилем). Новый значок — всплывающее уведомление и
+   отметка «Новое» на странице прогресса до первого её просмотра
+   (math-tasks:achievements-seen, только это устройство). Самая первая
+   проверка тихая: у старого ученика заработанное раньше не «звенит». */
+const ACHIEVEMENTS_KEY = 'math-tasks:achievements';
+const ACHIEVEMENTS_SEEN_KEY = 'math-tasks:achievements-seen';
+
+function getDuelStats() {
+  try { return JSON.parse(localStorage.getItem('math-tasks:duel-stats') || '{}') || {}; } catch { return {}; }
+}
+function getEarnedAchievements() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY));
+    return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+function progressSummary() {
+  return window.MathTasksLib.buildProgressSummary({
+    solvedIds: getSolvedTasks(),
+    topics: allTopics,
+    topicTaskIds: topicTasksMap,
+    wrongAttempts: getWrongAttemptCounts(),
+    activity: getActivity(),
+    controlWorks: getControlWorkStorage(),
+    journal: getJournal(),
+    duels: getDuelStats(),
+    subjects
+  });
+}
+
+// Записать заработанные значки; новые — вернуть (и показать, если toast).
+function recordAchievements(summary, { toast = true } = {}) {
+  const lib = window.MathTasksLib;
+  if (!lib?.newlyEarned || !summary) return [];
+  const known = getEarnedAchievements();
+  const fresh = lib.newlyEarned(summary.achievements, known || {});
+  if (!fresh.length) return [];
+  // Первая запись — «давно полученные» (время 0): без уведомлений и без «Новое».
+  const next = lib.markEarned(known || {}, fresh, known ? Date.now() : 0);
+  try { localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(next)); } catch {}
+  if (!known || !toast) return [];
+  const tr = window.MathTasks.t || (k => k);
+  fresh.forEach((id, i) => setTimeout(() => showToast(tr('ach_toast', { name: tr(`ach_${id}`) }), '🏅'), i * 2600));
+  return fresh;
+}
+
+function checkAchievements() {
+  try { recordAchievements(progressSummary()); } catch {}
 }
 
 /* Сколько задач решено в какой день: из этого — серия дней подряд и
@@ -3720,16 +3776,12 @@ function showProgress() {
   if (!root || !lib?.buildProgressSummary) return;
   if (progressSubjectScope === undefined) progressSubjectScope = selectedGrade;
 
-  const s = lib.buildProgressSummary({
-    solvedIds: getSolvedTasks(),
-    topics: allTopics,
-    topicTaskIds: topicTasksMap,
-    wrongAttempts: getWrongAttemptCounts(),
-    activity: getActivity(),
-    controlWorks: getControlWorkStorage(),
-    journal: getJournal(),
-    subjects
-  });
+  const s = progressSummary();
+  // Значки, заработанные вне страницы (с другого устройства, до обновления), — записать тихо.
+  recordAchievements(s, { toast: false });
+  const earnedAt = getEarnedAchievements() || {};
+  let seenAt = 0;
+  try { seenAt = Number(localStorage.getItem(ACHIEVEMENTS_SEEN_KEY)) || 0; } catch {}
   const section = (title, body, extra = '') => `<section class="progress-block"><h2>${escapeHtml(title)}${extra}</h2>${body}</section>`;
 
 
@@ -3744,13 +3796,19 @@ function showProgress() {
     : '';
 
   const earnedCount = s.achievements.filter(a => a.earned).length;
-  const badges = s.achievements.map(a => `
-    <li class="progress-badge${a.earned ? ' is-earned' : ''}">
+  const badges = s.achievements.map(a => {
+    const isNew = a.earned && Number(earnedAt[a.id]) > seenAt;
+    return `
+    <li class="progress-badge${a.earned ? ' is-earned' : ''}${isNew ? ' is-new' : ''}">
+      ${isNew ? `<span class="progress-badge-new">${escapeHtml(tr('progress_badge_new'))}</span>` : ''}
       <span class="progress-badge-icon" aria-hidden="true">${a.icon}</span>
       <strong>${escapeHtml(tr(`ach_${a.id}`))}</strong>
       <small>${escapeHtml(tr(`ach_${a.id}_desc`))}</small>
       ${!a.earned && a.counted ? `<span class="progress-badge-count">${a.value}/${a.goal}</span>` : ''}
-    </li>`).join('');
+    </li>`;
+  }).join('');
+  // Страницу увидели — «Новое» снимется при следующем показе.
+  try { localStorage.setItem(ACHIEVEMENTS_SEEN_KEY, String(Date.now())); } catch {}
   const achievements = section(tr('progress_achievements_title'), `<ul class="progress-badges">${badges}</ul>`,
     ` <small>${escapeHtml(tr('progress_achievements_count', { earned: earnedCount, total: s.achievements.length }))}</small>`);
 
@@ -3810,6 +3868,7 @@ function saveControlWorkResult(topicId, result) {
   } catch (err) {
     console.warn('Could not save control work result', err);
   }
+  checkAchievements();
 }
 
 /* Составленные работы, куда входит тема, — ссылками под карточкой
@@ -6566,7 +6625,8 @@ window.addEventListener('math-tasks:authenticated', refreshSession);
 window.addEventListener('math-tasks:progress-synced', () => {
   updateProgressCounter();
   if (currentView === 'home') refreshHomeSide();
-  else if (currentView === 'progress') showProgress();
+  if (currentView === 'progress') showProgress();
+  else checkAchievements();
 });
 window.MathTasks.openAccount = () => {
   if (!currentUser) { window.MathTasks.openLogin(); return; }

@@ -917,6 +917,7 @@
     { id: 'solved_50', icon: '📚', goal: 50, value: s => s.solved },
     { id: 'solved_100', icon: '🏅', goal: 100, value: s => s.solved },
     { id: 'solved_250', icon: '🎖', goal: 250, value: s => s.solved },
+    { id: 'solved_500', icon: '🎓', goal: 500, value: s => s.solved },
     { id: 'first_try_10', icon: '🎯', goal: 10, value: s => s.firstTry },
     { id: 'first_try_50', icon: '🏹', goal: 50, value: s => s.firstTry },
     /* Точность засчитываем только на заметной выборке: 100% с одной
@@ -933,8 +934,35 @@
        эта полоса начинается с нуля — как и плитка «Время». */
     { id: 'time_10h', icon: '⏳', goal: 10, value: s => Math.floor(s.time.totalMs / 3600000) },
     { id: 'cw_five', icon: '📋', goal: 5, value: s => s.controlWorks.count },
-    { id: 'cw_excellent', icon: '🏆', goal: 9, value: s => s.controlWorks.bestGrade, counted: false }
+    { id: 'cw_excellent', icon: '🏆', goal: 9, value: s => s.controlWorks.bestGrade, counted: false },
+    /* Дуэли (Н5): счётчик math-tasks:duel-stats ведёт страница дуэли.
+       Места в таблице недели — по ответу сервера, «из скольки» у них нет. */
+    { id: 'duel_first_win', icon: '⚔️', goal: 1, value: s => s.duels.wins },
+    { id: 'duels_10', icon: '🛡️', goal: 10, value: s => s.duels.played },
+    { id: 'duel_daily', icon: '🌅', goal: 1, value: s => s.duels.daily },
+    { id: 'duel_top3', icon: '🥉', goal: 1, value: s => s.duels.top3, counted: false },
+    { id: 'duel_week_first', icon: '🥇', goal: 1, value: s => s.duels.first, counted: false }
   ];
+
+  /* Счётчик дуэлей: сколько сыграно, выиграно, дуэлей дня, попаданий в
+     тройку и на первое место таблицы недели. Мусор из хранилища — нули. */
+  const DUEL_STAT_KEYS = ['played', 'wins', 'daily', 'top3', 'first'];
+  const normalizeDuelStats = raw => Object.fromEntries(DUEL_STAT_KEYS.map(key => {
+    const value = Math.floor(Number(raw?.[key]));
+    return [key, Number.isFinite(value) && value > 0 ? value : 0];
+  }));
+
+  /* Полученные значки: { id: когда получен }. Новый — заработан, но ещё
+     не записан. Первая проверка (записей ещё нет вовсе) — тихая: у
+     старого ученика уже заработанное не должно разом «звенеть». */
+  const newlyEarned = (achievements = [], earned = {}) => achievements
+    .filter(item => item.earned && !(earned && Object.prototype.hasOwnProperty.call(earned, item.id)))
+    .map(item => item.id);
+  const markEarned = (earned = {}, ids = [], now = Date.now()) => {
+    const out = { ...(earned || {}) };
+    for (const id of ids) if (!out[id]) out[id] = now;
+    return out;
+  };
 
   const buildProgressSummary = ({
     solvedIds = [],
@@ -946,7 +974,8 @@
     journal = [],
     subjects = [],
     today = localDateKey(),
-    now = Date.now()
+    now = Date.now(),
+    duels = {}
   } = {}) => {
     const taskIdsOf = id => (topicTaskIds instanceof Map ? topicTaskIds.get(id) : topicTaskIds[id]) || [];
     const solvedSet = new Set(solvedIds.map(Number));
@@ -1017,7 +1046,8 @@
         list: cwList,
         count: cwList.length,
         bestGrade: cwList.reduce((best, result) => Math.max(best, Number(result.grade) || 0), 0)
-      }
+      },
+      duels: normalizeDuelStats(duels)
     };
     summary.achievements = PROGRESS_ACHIEVEMENTS.map(item => {
       const value = Number(item.value(summary)) || 0;
@@ -3637,7 +3667,8 @@
   const PROGRESS_KEYS = [
     'math-tasks:solved', 'math-tasks:favorites', 'math-tasks:activity', 'math-tasks:journal',
     'math-tasks:wrong-attempts', 'math-tasks:last-place', 'math-tasks:control-works',
-    'math-tasks:exam-results', 'math-tasks:lessons', 'math-tasks:duel-history'
+    'math-tasks:exam-results', 'math-tasks:lessons', 'math-tasks:duel-history',
+    'math-tasks:duel-stats', 'math-tasks:achievements'
   ];
   const PROGRESS_PREFIXES = ['math-tasks:trainer-record:'];
   const isProgressKey = key => PROGRESS_KEYS.includes(key) || PROGRESS_PREFIXES.some(prefix => String(key).startsWith(prefix));
@@ -3690,7 +3721,17 @@
         return Array.isArray(local) && Array.isArray(remote) ? unionBy(local, remote, item => String(item)) : local;
       case 'math-tasks:activity':
       case 'math-tasks:wrong-attempts':
+      case 'math-tasks:duel-stats':
         return isPlainObject(local) && isPlainObject(remote) ? maxPerKey(local, remote) : local;
+      // Значок получен — навсегда; дата — самая ранняя из двух устройств.
+      case 'math-tasks:achievements': {
+        if (!isPlainObject(local) || !isPlainObject(remote)) return local;
+        const out = { ...remote, ...local };
+        for (const [id, at] of Object.entries(remote)) {
+          if (Number(at) && Number(local[id])) out[id] = Math.min(Number(at), Number(local[id]));
+        }
+        return out;
+      }
       case 'math-tasks:journal':
         return Array.isArray(local) && Array.isArray(remote)
           ? unionBy(local, remote, item => `${item?.id}:${item?.at}`)
@@ -3853,6 +3894,9 @@
     sliceTaskRange,
     makeSlug,
     buildTitlePrompt,
+    normalizeDuelStats,
+    newlyEarned,
+    markEarned,
     nickChangeAvailableAt,
     suggestAnswerLabel,
     withAnswerLabel,
