@@ -2427,6 +2427,243 @@
     }
   };
 
+  /* ── Подпись поля ответа по условию (А5) ────────────────────────────
+     Ученик вписывает только значение, а что именно — говорит подпись над
+     полем: «Периметр = [ ] см». Правило ищет в условии, какую величину
+     спрашивают, и переписывает ответ как «$\text{Периметр} = 48\text{ см}$».
+     Общее для кнопки «Предложить подпись» в редакторе и для
+     scripts/suggest-answer-labels.mjs. */
+  /* Величины, которые спрашивают в условии. Слева — как пишут в задаче
+     (винительный падеж и прочие формы), справа — как подписать поле. */
+  const LABEL_NOUNS = [
+    [/(?<!\p{L})(?:периметр\p{L}*)(?!\p{L})/iu, 'Периметр'],
+    [/(?<!\p{L})(?:площад[ьи]\p{L}*)(?!\p{L})/iu, 'Площадь'],
+    [/(?<!\p{L})(?:объ[её]м\p{L}*)(?!\p{L})/iu, 'Объём'],
+    [/(?<!\p{L})(?:длин[ауы])(?!\p{L})/iu, 'Длина'],
+    [/(?<!\p{L})(?:ширин[ауы])(?!\p{L})/iu, 'Ширина'],
+    [/(?<!\p{L})(?:высот[ауы])(?!\p{L})/iu, 'Высота'],
+    [/(?<!\p{L})(?:радиус\p{L}*)(?!\p{L})/iu, 'Радиус'],
+    [/(?<!\p{L})(?:диаметр\p{L}*)(?!\p{L})/iu, 'Диаметр'],
+    [/(?<!\p{L})(?:масс[ауы])(?!\p{L})/iu, 'Масса'],
+    [/(?<!\p{L})(?:скорост[ьи])(?!\p{L})/iu, 'Скорость'],
+    [/(?<!\p{L})(?:врем[яени]|времени)(?!\p{L})/iu, 'Время'],
+    [/(?<!\p{L})(?:расстояни[еяю])(?!\p{L})/iu, 'Расстояние'],
+    [/(?<!\p{L})(?:масштаб\p{L}*)(?!\p{L})/iu, 'Масштаб'],
+    [/(?<!\p{L})(?:стоимост[ьи])(?!\p{L})/iu, 'Стоимость'],
+    [/(?<!\p{L})(?:цен[ауы])(?!\p{L})/iu, 'Цена'],
+    /* Тригонометрия идёт раньше «угла»: в «найдите косинус угла» спрашивают
+       косинус, а не угол, и подпись «Угол» к дроби была бы враньём. */
+    [/(?<!\p{L})косинус\p{L}*(?!\p{L})/iu, 'Косинус'],
+    [/(?<!\p{L})синус\p{L}*(?!\p{L})/iu, 'Синус'],
+    [/(?<!\p{L})тангенс\p{L}*(?!\p{L})/iu, 'Тангенс'],
+    [/(?<!\p{L})котангенс\p{L}*(?!\p{L})/iu, 'Котангенс'],
+    [/(?<!\p{L})(?:градусн\p{L}+ мер\p{L}*|угол|угла)(?!\p{L})/iu, 'Угол'],
+    [/(?<!\p{L})(?:сумм[ауы])(?!\p{L})/iu, 'Сумма'],
+    [/(?<!\p{L})(?:произведени[еяю])(?!\p{L})/iu, 'Произведение'],
+    [/(?<!\p{L})(?:разност[ьи])(?!\p{L})/iu, 'Разность'],
+    [/(?<!\p{L})(?:частное)(?!\p{L})/iu, 'Частное'],
+    [/(?<!\p{L})(?:вероятност[ьи])(?!\p{L})/iu, 'Вероятность'],
+    [/(?<!\p{L})(?:медиан[ауы])(?!\p{L})/iu, 'Медиана'],
+    [/(?<!\p{L})(?:размах\p{L}*)(?!\p{L})/iu, 'Размах'],
+    [/(?<!\p{L})(?:количеств[оа])(?!\p{L})/iu, 'Количество'],
+    [/(?<!\p{L})(?:средне[ег]\p{L}* арифметическо\p{L}*)(?!\p{L})/iu, 'Среднее арифметическое']
+  ];
+
+  /* «Какова масса…», «Сколько евро…» — тот же вопрос, что и «Найдите…».
+     Без них русская сторона оставалась без подписи там, где латышская её
+     получала, и ученик видел разные поля в двух языках. */
+  const LABEL_ASK = /(найдите|найти|вычислите|определите|чему равн\w*|посчитайте|укажите|какова|каков|каково|сколько)([^.?!]{0,90})/i;
+
+  // «Сколько часов», «сколько евро» — величина названа самой единицей.
+  /* Конец слова — (?!\p{L}), а не \b: в JavaScript \b видит только
+     латиницу, и «сколько часов» раньше не узнавалось вовсе. */
+  const LABEL_ASK_UNITS = [
+    [/^\s*(?:часов|часа|час)(?!\p{L})/iu, 'Время'],
+    [/^\s*(?:минут|мин)(?!\p{L})/iu, 'Время'],
+    [/^\s*(?:евро|центов)(?!\p{L})/iu, 'Стоимость'],
+    [/^\s*(?:километров|км|метров|сантиметров)(?!\p{L})/iu, 'Расстояние'],
+    [/^\s*(?:литров|л)(?!\p{L})/iu, 'Объём'],
+    [/^\s*(?:граммов|грамм|килограммов|кг)(?!\p{L})/iu, 'Масса'],
+    [/^\s*(?:градусов)(?!\p{L})/iu, 'Угол'],
+    [/^\s*(?:процентов)(?!\p{L})/iu, 'Доля']
+  ];
+
+  /* Латышская сторона: без неё ученик, читающий сайт по-латышски, видит
+     поле без подписи там, где русский видит «Периметр =». */
+  const LABEL_NOUNS_LV = [
+    [/(?<!\p{L})perimetr\p{L}*(?!\p{L})/iu, 'Perimetrs'],
+    [/(?<!\p{L})laukum\p{L}*(?!\p{L})/iu, 'Laukums'],
+    [/(?<!\p{L})tilpum\p{L}*(?!\p{L})/iu, 'Tilpums'],
+    [/(?<!\p{L})garum\p{L}*(?!\p{L})/iu, 'Garums'],
+    [/(?<!\p{L})platum\p{L}*(?!\p{L})/iu, 'Platums'],
+    [/(?<!\p{L})augstum\p{L}*(?!\p{L})/iu, 'Augstums'],
+    [/(?<!\p{L})rādius\p{L}*(?!\p{L})/iu, 'Rādiuss'],
+    [/(?<!\p{L})diametr\p{L}*(?!\p{L})/iu, 'Diametrs'],
+    [/(?<!\p{L})mas[au](?!\p{L})/iu, 'Masa'],
+    [/(?<!\p{L})ātrum\p{L}*(?!\p{L})/iu, 'Ātrums'],
+    [/(?<!\p{L})laik\p{L}*(?!\p{L})/iu, 'Laiks'],
+    [/(?<!\p{L})attālum\p{L}*(?!\p{L})/iu, 'Attālums'],
+    [/(?<!\p{L})mērogs?(?!\p{L})/iu, 'Mērogs'],
+    [/(?<!\p{L})cen[au](?!\p{L})/iu, 'Cena'],
+    [/(?<!\p{L})leņķ\p{L}*(?!\p{L})/iu, 'Leņķis'],
+    [/(?<!\p{L})summ[au](?!\p{L})/iu, 'Summa'],
+    [/(?<!\p{L})reizinājum\p{L}*(?!\p{L})/iu, 'Reizinājums'],
+    [/(?<!\p{L})starpīb[au](?!\p{L})/iu, 'Starpība'],
+    [/(?<!\p{L})varbūtīb[au](?!\p{L})/iu, 'Varbūtība'],
+    [/(?<!\p{L})skaits?(?!\p{L})/iu, 'Skaits']
+  ];
+
+  const LABEL_ASK_LV = /(?:aprēķin\p{L}*|atrod\p{L}*|nosaki\p{L}*|noteic\p{L}*|cik)([^.?!]{0,90})/iu;
+
+  // Имя величины по-латышски — то же, что по-русски, только словом Skola2030.
+  const LABEL_LV = {
+    'Периметр': 'Perimetrs', 'Площадь': 'Laukums', 'Объём': 'Tilpums',
+    'Длина': 'Garums', 'Ширина': 'Platums', 'Высота': 'Augstums',
+    'Радиус': 'Rādiuss', 'Диаметр': 'Diametrs', 'Масса': 'Masa',
+    'Скорость': 'Ātrums', 'Время': 'Laiks', 'Расстояние': 'Attālums',
+    'Масштаб': 'Mērogs', 'Стоимость': 'Izmaksas', 'Цена': 'Cena',
+    'Косинус': 'Kosinuss', 'Синус': 'Sinuss', 'Тангенс': 'Tangenss', 'Котангенс': 'Kotangenss',
+    'Угол': 'Leņķis', 'Сумма': 'Summa', 'Произведение': 'Reizinājums',
+    'Разность': 'Starpība', 'Частное': 'Dalījums', 'Вероятность': 'Varbūtība',
+    'Медиана': 'Mediāna', 'Размах': 'Amplitūda', 'Количество': 'Skaits',
+    'Среднее арифметическое': 'Vidējais aritmētiskais', 'Градусная мера': 'Leņķa lielums'
+  };
+
+  /* Что спрашивают. Сначала имя в формуле — «Найдите $AB$», потом слово. */
+  const suggestAnswerLabel = (condition, lang = 'ru') => {
+    const nouns = lang === 'lv' ? LABEL_NOUNS_LV : LABEL_NOUNS;
+    const ask = (lang === 'lv' ? LABEL_ASK_LV : LABEL_ASK).exec(String(condition || ''));
+    if (!ask) return null;
+    const verb = (lang === 'lv' ? '' : (ask[1] || '')).toLowerCase();
+    const tail = lang === 'lv' ? ask[1] : ask[2];
+
+    /* «Сколько …» спрашивает величину единицей сразу после себя. Общий
+       поиск слова здесь опасен: дальше в предложении стоят данные задачи. */
+    if (verb === 'сколько') {
+      const unit = LABEL_ASK_UNITS.find(([re]) => re.test(tail));
+      return unit ? { label: unit[1], kind: 'слово' } : null;
+    }
+
+    const formula = /\$([^$]{1,14})\$/.exec(tail);
+    if (formula) {
+      const name = formula[1].trim();
+      /* Имя величины — латиница или команда LaTeX: «AB», «\angle A», «x_1».
+         Кириллица внутри долларов — это кусок текста, случайно попавший в
+         формулу («$на отрезке$»), и именем он быть не может. */
+      if (/^[\\{}A-Za-z_^\s0-9]+$/.test(name) && /[A-Za-z]/.test(name)) {
+        return { label: name, kind: 'формула' };
+      }
+    }
+    /* Берём слово, которое стоит ближе к «Найдите»: в условии их бывает
+       несколько («найдите объём и площадь поверхности»). */
+    let best = null;
+    const head = tail.slice(0, 40);
+    for (const [re, label] of nouns) {
+      const at = head.search(re);
+      if (at >= 0 && (!best || at < best.at)) best = { at, label };
+    }
+    return best ? { label: best.label, kind: 'слово' } : null;
+  };
+
+  // «48\text{ см}» + «Периметр» → «$\text{Периметр} = 48\text{ см}$».
+  const withAnswerLabel = (answer, suggestion) => {
+    const inner = String(answer).trim().replace(/^\$+|\$+$/g, '').trim();
+    const name = suggestion.kind === 'формула' ? suggestion.label : `\\text{${suggestion.label}}`;
+    return `$${name} = ${inner}$`;
+  };
+
+  /* Ответ ещё без подписи — тем же критерием, что у робота очереди
+     (auditTask, код label): подпись из ответа, поля с именами или
+     выражение из условия. */
+  const answerLabelMissing = (answer, variants = '', condition = '') =>
+    taskIssues({ answer_latex: answer, answer_check: variants, condition_latex: condition })
+      .some(issue => issue.code === 'label');
+
+  /* Проверка подписанного ответа на себе: частей столько же, у каждой
+     имя и одно значение, значения те же, прежний ответ по-прежнему
+     засчитывается, а робот больше не видит «нет подписи». */
+  const answerLabelOk = (answer, next, variants = '', condition = '') => {
+    if (!String(next || '').trim() || !isTaskAutoCheckable(next, variants)) return false;
+    const before = parseAnswerParts(answer);
+    const after = parseAnswerParts(next);
+    if (!after.length || after.length !== before.length) return false;
+    if (!after.every(part => part.label && part.pieceCount === 1)) return false;
+    const sameValues = after.every((part, i) => before[i].values.some(old => part.values.some(value =>
+      normalizeMathAnswer(value) === normalizeMathAnswer(old) || compareSingleAnswer(old, value) || compareSingleAnswer(value, old))));
+    if (!sameValues) return false;
+    if (!checkTaskAnswer(answer, next, variants)) return false;
+    return !answerLabelMissing(next, variants, condition);
+  };
+
+  /* Подпись для одной языковой версии ответа: { answer, next, suggestion }
+     или { skip: причина }. Для латышской версии имя берём из русского
+     условия и переводим: отдельный разбор латышского текста ошибался на
+     словах из данных. */
+  const answerLabelPlan = (task, lang = 'ru') => {
+    const lv = lang === 'lv';
+    const answer = String((lv ? task.answer_latex_lv : task.answer_latex) || '').trim();
+    const variants = (lv ? task.answer_check_lv : null) || task.answer_check || '';
+    const condition = (lv ? task.condition_latex_lv : task.condition_latex) || '';
+    if (!answer || !isTaskAutoCheckable(answer, variants)) return { skip: 'несверяемые' };
+    if (!answerLabelMissing(answer, variants, condition)) return { skip: 'естьПодпись' };
+
+    /* Неравенство, тождество и ответ с пояснением в скобках подписывать
+       нельзя: «$m = m > 4$» — бессмыслица. */
+    const bare = answer.replace(/\$/g, '').trim();
+    if (isStatementAnswer(answer) || /[=<>≤≥∈]/.test(bare) || /\([^)]*[а-яёa-zāčēģīķļņšūž]{3}/i.test(bare)) return { skip: 'сложныйОтвет' };
+    // Несколько величин без имён — правило их не различит: это к модели.
+    if (parseAnswerParts(answer).length > 1) return { skip: 'несколькоПолей' };
+
+    const ruSuggestion = suggestAnswerLabel(task.condition_latex, 'ru');
+    if (!ruSuggestion) return { skip: 'неНашлиИмя' };
+    const suggestion = lv
+      ? (ruSuggestion.kind === 'формула'
+        ? ruSuggestion
+        : (LABEL_LV[ruSuggestion.label] ? { label: LABEL_LV[ruSuggestion.label], kind: 'слово' } : null))
+      : ruSuggestion;
+    if (!suggestion) return { skip: 'неНашлиИмя' };
+
+    const next = withAnswerLabel(answer, suggestion);
+    if (!answerLabelOk(answer, next, variants, condition)) return { skip: 'подписьНеПрижилась' };
+    return { answer, next, suggestion };
+  };
+
+  /* Где правило не справилось, админка спрашивает Gemini. Модель
+     переписывает ответ с именами величин; результат проходит ту же
+     проверку answerLabelOk, иначе не подставляется. */
+  const buildAnswerLabelPrompt = task => [
+    'Ты редактор MathTasks — двуязычного (русский и латышский) сборника школьных задач по математике по стандарту Skola2030.',
+    'Перепиши ответ задачи так, чтобы у каждой величины было имя: сайт делает из имени подпись над полем ввода, и ученик вписывает только значение.',
+    '',
+    'ПРАВИЛА:',
+    '1. Каждая величина — «имя = значение»: словом в \\text{} («$\\text{Периметр} = 48\\text{ см}$») или обозначением из условия («$AB = 7\\text{ см}$»).',
+    '2. Имя — до трёх слов, без цифр, именительный падеж: что именно спрашивают в задаче («Длина», «Скорость», «Во сколько раз»).',
+    '3. Значения, единицы измерения и порядок частей не меняй. Части разделяй запятой.',
+    '4. «Во сколько раз» — без слова «раз» в значении: «$\\text{Во сколько раз} = 400$».',
+    '5. Латышский ответ — те же значения, имена на латышском по терминологии Skola2030 (Garums, Platums, Ātrums, Cik reizes).',
+    '6. Верни ТОЛЬКО JSON: {"answer":"…","answer_lv":"…"} — без пояснений и без блока кода. Обратные слэши LaTeX в JSON удваивай.',
+    '',
+    `Условие (RU): ${String(task.condition_latex || '').trim() || '—'}`,
+    `Ответ (RU): ${String(task.answer_latex || '').trim() || '—'}`,
+    `Условие (LV): ${String(task.condition_latex_lv || '').trim() || '—'}`,
+    `Ответ (LV): ${String(task.answer_latex_lv || '').trim() || '—'}`
+  ].join('\n');
+
+  // Ответ модели → { answer, answer_lv } или null.
+  const parseAnswerLabelSuggestion = raw => {
+    let parsed;
+    try {
+      parsed = typeof raw === 'string' ? safeParseJson(raw) : raw;
+    } catch {
+      return null;
+    }
+    if (Array.isArray(parsed)) parsed = parsed[0];
+    if (!parsed || typeof parsed !== 'object') return null;
+    const answer = String(parsed.answer ?? parsed.answer_ru ?? '').trim();
+    if (!answer) return null;
+    return { answer, answer_lv: String(parsed.answer_lv ?? '').trim() };
+  };
+
   /* ── Название задачи по условию (А7) ────────────────────────────────
      Админка просит Gemini короткое название на двух языках. Промпт и
      разбор ответа — здесь, чтобы их можно было проверить без сети. */
@@ -3604,6 +3841,12 @@
     sliceTaskRange,
     makeSlug,
     buildTitlePrompt,
+    suggestAnswerLabel,
+    withAnswerLabel,
+    answerLabelPlan,
+    answerLabelOk,
+    buildAnswerLabelPrompt,
+    parseAnswerLabelSuggestion,
     parseTitleSuggestion,
     isRuPath,
     stripLangPath,

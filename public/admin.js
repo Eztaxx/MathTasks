@@ -1707,10 +1707,85 @@ ${JSON.stringify(texts)}`;
       updateReadyBar();
       taskSuccess.textContent = 'Название предложено — проверьте оба языка перед сохранением.';
     } catch (error) {
-      taskSuccess.textContent = `Не удалось предложить название: ${error.message}. Впишите его вручную.`;
+      taskSuccess.textContent = `Не удалось предложить название: ${String(error.message).replace(/\.+$/, '')}. Впишите его вручную.`;
     } finally {
       btnSuggestTitle.disabled = false;
       btnSuggestTitle.textContent = label;
+    }
+  });
+
+  /* «Предложить подпись к ответу» (А5): «$48\text{ см}$» → «$\text{Периметр}
+     = 48\text{ см}$», и ученик видит над полем «Периметр =». Сначала
+     правило по условию (lib.answerLabelPlan — то же, что у
+     scripts/suggest-answer-labels.mjs), где оно не справилось — Gemini.
+     Ответ модели подставляется, только если прошёл ту же проверку:
+     значения те же, прежний ответ засчитывается, робот доволен. */
+  const LABEL_SKIP_TEXT = {
+    естьПодпись: 'У поля ответа уже есть подпись — или её даёт выражение в условии, или ответ пишется целиком (неравенство, набор точек).',
+    несверяемые: 'Ответ не сверяется автоматически — подписи у него не будет. Впишите варианты для проверки.',
+    сложныйОтвет: 'Ответ — утверждение или с пояснением в скобках: подпись к нему не нужна.'
+  };
+  const LABEL_TO_MODEL = new Set(['неНашлиИмя', 'подписьНеПрижилась', 'несколькоПолей']);
+  const btnSuggestLabel = document.querySelector('#btn-suggest-label');
+  btnSuggestLabel?.addEventListener('click', async () => {
+    const labelLib = window.MathTasksLib;
+    const task = {
+      condition_latex: conditionInput?.value.trim() || '',
+      condition_latex_lv: conditionInputLv?.value.trim() || '',
+      answer_latex: answerInput?.value.trim() || '',
+      answer_latex_lv: answerInputLv?.value.trim() || '',
+      answer_check: answerCheckInput?.value.trim() || '',
+      answer_check_lv: answerCheckInputLv?.value.trim() || ''
+    };
+    if (!task.answer_latex) {
+      ensureLangVisible('ru');
+      answerInput?.focus();
+      taskSuccess.textContent = 'Сначала впишите ответ — подпись ставится к нему.';
+      return;
+    }
+    const hasLv = Boolean(task.answer_latex_lv);
+    const sides = [['ru', answerInput, task.answer_latex, task.answer_check, task.condition_latex]];
+    if (hasLv) sides.push(['lv', answerInputLv, task.answer_latex_lv, task.answer_check_lv || task.answer_check, task.condition_latex_lv]);
+    const plans = sides.map(([lang]) => labelLib.answerLabelPlan(task, lang));
+
+    const label = btnSuggestLabel.textContent;
+    const done = [];
+    try {
+      // Правило справилось — подставляем сразу.
+      plans.forEach((plan, i) => {
+        if (plan.next) { sides[i][1].value = plan.next; done.push(sides[i][0].toUpperCase()); }
+      });
+      const needModel = plans.some(plan => LABEL_TO_MODEL.has(plan.skip));
+      if (needModel) {
+        btnSuggestLabel.disabled = true;
+        btnSuggestLabel.textContent = '✨ Gemini подбирает подпись…';
+        const suggestion = labelLib.parseAnswerLabelSuggestion(await askGeminiJson(labelLib.buildAnswerLabelPrompt(task), {
+          accept: parsed => Boolean(labelLib.parseAnswerLabelSuggestion(parsed))
+        }));
+        plans.forEach((plan, i) => {
+          if (!LABEL_TO_MODEL.has(plan.skip)) return;
+          const [lang, input, answer, variants, condition] = sides[i];
+          const next = lang === 'lv' ? suggestion?.answer_lv : suggestion?.answer;
+          if (next && labelLib.answerLabelOk(answer, next, variants, condition)) {
+            input.value = next;
+            done.push(lang.toUpperCase());
+          }
+        });
+      }
+      if (done.length) {
+        taskSuccess.textContent = `Подпись к ответу поставлена (${done.join(' и ')}) — проверьте, что имя величины верное.`;
+      } else if (needModel) {
+        taskSuccess.textContent = 'Модель не подобрала подпись, которая прошла бы проверку. Впишите вручную: $\\text{Имя} = значение$.';
+      } else {
+        taskSuccess.textContent = LABEL_SKIP_TEXT[plans[0].skip] || 'Подпись не нужна.';
+      }
+    } catch (error) {
+      taskSuccess.textContent = `${done.length ? `Подпись поставлена (${done.join(' и ')}), но для остального не удалось спросить Gemini` : 'Не удалось спросить Gemini'}: ${String(error.message).replace(/\.+$/, '')}. Впишите подпись вручную: $\\text{Имя} = значение$.`;
+    } finally {
+      btnSuggestLabel.disabled = false;
+      btnSuggestLabel.textContent = label;
+      updatePreviews();
+      updateReadyBar();
     }
   });
 

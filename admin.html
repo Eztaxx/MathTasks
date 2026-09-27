@@ -965,6 +965,8 @@
           </div>
           <label class="wide" data-lang-group="ru">Ответ <span>необязательно; короткий математический ответ без разбора</span><textarea name="answer_latex" id="answer-input" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
           <label class="wide" data-lang-group="lv" hidden>Atbilde (LV) <span>neobligāti; īsa matemātiska atbilde bez risinājuma</span><textarea name="answer_latex_lv" id="answer-input-lv" rows="2" placeholder="$x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
+          <!-- Подпись поля ответа (А5): «Периметр = [ ] см» — правилом по условию, при нужде через Gemini; сразу оба языка. -->
+          <div class="wide adm-answer-tools"><button type="button" class="text-button" id="btn-suggest-label" title="Подпись поля ответа: «Периметр = [ ] см» — по условию, при нужде через Gemini. Заполняет русский и латышский ответ">✨ Предложить подпись к ответу</button></div>
           <label class="wide" data-lang-group="ru">Варианты для проверки <span>необязательно; если ответ со словами — что принимать от ученика. <strong>Каждый вариант — с новой строки</strong>, и каждый считается верным ответом: не пишите сюда неверные числа. Несколько значений одного ответа — через «;» в одной строке: «да; 3». Без вариантов у такой задачи будет самопроверка</span><textarea name="answer_check" id="answer-check-input" rows="2" placeholder="120"></textarea><small class="adm-variants-preview" id="answer-check-preview" aria-live="polite"></small></label>
           <label class="wide" data-lang-group="lv" hidden>Pārbaudes varianti (LV) <span>neobligāti; ko pieņemt no skolēna. <strong>Katrs variants — jaunā rindā</strong>, un katrs tiek uzskatīts par pareizu atbildi. Vairākas vienas atbildes vērtības — ar «;» vienā rindā: «jā; 3». Tukšs — derīgi krievu varianti</span><textarea name="answer_check_lv" id="answer-check-input-lv" rows="2" placeholder="120"></textarea><small class="adm-variants-preview" id="answer-check-preview-lv" aria-live="polite"></small></label>
           <label class="wide" data-lang-group="ru">Подсказка <span>необязательно; направление решения без готового ответа</span><textarea name="hint_latex" id="hint-input" rows="2" placeholder="Вынесите общий множитель за скобки и примените формулу разности квадратов."></textarea></label>
@@ -1292,9 +1294,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/lib.js?v=20260927-3"></script>
+  <script src="/lib.js?v=20260927-4"></script>
   <script src="/client.js?v=20260913-8"></script>
   <script src="/ai-generator.js?v=20260913-8"></script>
-  <script src="/admin.js?v=20260927-3"></script>
+  <script src="/admin.js?v=20260927-4"></script>
 </body>
 </html>
