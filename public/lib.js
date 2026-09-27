@@ -482,6 +482,17 @@
     if (formula.length > 64) return '';
     return '$' + formula + ' =$';
   };
+  /* Ответ-утверждение подписи не просит: неравенство «$3^4 > 4^3$» или
+     «$m > 4$», набор точек «(4; 3), (8; -1)», объединение промежутков.
+     Ученик пишет его целиком, а форму задаёт условие («запишите верное
+     неравенство», «укажите пары $(x; y)$»). */
+  const isStatementAnswer = raw => {
+    const text = cleanAnswerRaw(raw);
+    if (/[<>≤≥]|\\(?:lt|gt|le|leq|ge|geq)(?![a-zA-Z])/.test(text)) return true;
+    const parts = splitAnswerTopLevel(text.replace(/\\cup\b|∪/g, ',').replace(/\s+(?:и|un|and)\s+/gi, ','), [',', ';']);
+    return parts.length > 1 && parts.every(part => /^[([]/.test(part));
+  };
+
   const answerLabelText = label => {
     const text = String(label || '').trim();
     if (!text) return '';
@@ -1238,10 +1249,16 @@
       `В конце решения другой ответ: ${endings.join(', ')}`);
 
     // Подпись перед полем: «AB =», «Площадь =» или выражение из условия.
-    if (answer && isTaskAutoCheckable(answer, variants)) {
-      const labelled = answerFields(answer, variants).length || answerLabelMarkup(answer) || conditionPrompt(t.condition_latex);
+    if (answer && isTaskAutoCheckable(answer, variants) && !isStatementAnswer(answer)) {
+      /* Несколько полей без имён годятся, только если значения однородные
+         (корни, углы — пишутся по возрастанию). «[ ] мм, [ ] мм, [ ] раз»
+         без подписей — ученик гадает, что в какое поле вписывать. */
+      const fields = answerFields(answer, variants);
+      const unnamed = fields.length > 1 && fields.some(field => !field.label && !field.ordered);
+      const labelled = (fields.length && !unnamed) || answerLabelMarkup(answer) || conditionPrompt(t.condition_latex);
       push('label', Boolean(labelled), 'У поля ответа есть подпись',
-        'Нет подписи перед полем ответа — ученик не видит, что вписывать', 'warn');
+        unnamed ? 'У полей ответа нет имён — ученик не знает, что в какое поле вписывать'
+          : 'Нет подписи перед полем ответа — ученик не видит, что вписывать', 'warn');
     }
 
     // Лишнее на чертеже — если чертёж уже прочитан.

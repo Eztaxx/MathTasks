@@ -71,6 +71,25 @@ describe('проверка задачи перед публикацией', () =
     expect(taskIssues(task).find(i => i.code === 'label').level).toBe('warn');
   });
 
+  // Неравенство и набор точек ученик пишет целиком: форму задаёт условие.
+  it('ответ-утверждение подписи не просит', () => {
+    for (const answer of ['$3^4 > 4^3$', '$m > 4$', '$(4; 3), (8; -1)$', '$(1; 0),\\; (4; 3)$', '$(-\\infty; -3] \\cup [4; +\\infty)$']) {
+      const task = { ...TASK, answer_latex: answer, answer_latex_lv: answer, solution_latex: '', solution_latex_lv: '' };
+      expect(codes(task), answer).not.toContain('label');
+    }
+    const point = { ...TASK, answer_latex: '$(3; 0)$ и $5$', answer_latex_lv: '$(3; 0)$ un $5$', solution_latex: '', solution_latex_lv: '' };
+    expect(codes(point)).toContain('label');
+  });
+
+  // #850: «[ ] мм, [ ] мм, [ ] раз» — что в какое поле, не понять.
+  it('поля разных величин без имён — замечание, однородные корни — нет', () => {
+    const task = answer => ({ ...TASK, answer_latex: answer, answer_latex_lv: answer, solution_latex: '', solution_latex_lv: '' });
+    const unnamed = taskIssues(task('$4\\text{ мм}$ и $3\\text{ мм}$; в $400\\text{ раз}$')).find(i => i.code === 'label');
+    expect(unnamed.text).toContain('нет имён');
+    expect(codes(task('$\\text{Длина} = 4\\text{ мм}$, $\\text{Ширина} = 3\\text{ мм}$'))).not.toContain('label');
+    expect(codes(task('$-9; -2; 0; 4; 7$'))).not.toContain('label');
+  });
+
   it('ответ со словами — самопроверка, это замечание', () => {
     const task = { ...TASK, answer_latex: '$\\text{Доказано}$', answer_latex_lv: '$\\text{Pierādīts}$' };
     expect(taskIssues(task).find(i => i.code === 'accept').level).toBe('warn');
