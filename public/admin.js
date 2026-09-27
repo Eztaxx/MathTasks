@@ -223,14 +223,6 @@
     return clean;
   };
 
-  /* У служебного заголовка «Задача №N» латышский такой же служебный —
-     «Uzdevums №N». Без него латышский посетитель видел русский заголовок:
-     так без перевода остались 284 задачи. */
-  const defaultTitleLv = title => {
-    const match = /^Задача №(\d+)$/.exec(String(title || '').trim());
-    return match ? `Uzdevums №${match[1]}` : null;
-  };
-
   // Одна форма работает и на создание, и на правку: id заполнен — значит правим.
   let editingSubjectId = null;
   let editingTopicId = null;
@@ -1385,6 +1377,8 @@
 
   /* ── Задачи ───────────────────────────────────────────────────────── */
 
+  const titleInput = document.querySelector('#task-title-input');
+  const titleInputLv = document.querySelector('#task-title-input-lv');
   const conditionInput = document.querySelector('#condition-input');
   const answerInput = document.querySelector('#answer-input');
   const hintInput = document.querySelector('#hint-input');
@@ -1412,7 +1406,7 @@
     if (conditionPreviewLv && conditionInputLv) renderMath(conditionPreviewLv, conditionInputLv.value);
     if (solutionPreviewLv && solutionInputLv) renderMath(solutionPreviewLv, solutionInputLv.value);
   };
-  [conditionInput, answerInput, answerInputLv, solutionInput, conditionInputLv, solutionInputLv, hintInput, hintInputLv, answerCheckInput, answerCheckInputLv]
+  [titleInput, titleInputLv, conditionInput, answerInput, answerInputLv, solutionInput, conditionInputLv, solutionInputLv, hintInput, hintInputLv, answerCheckInput, answerCheckInputLv]
     .filter(Boolean)
     .forEach(input => input.addEventListener('input', () => {
       updatePreviews();
@@ -1626,6 +1620,42 @@
     }
   }
 
+  /* Запрос к Gemini через воркер (/api/gemini, вход администратора) с
+     ответом JSON. accept решает, годится ли разобранный ответ; нет —
+     пробуем следующую модель. Без входа, прав или ключа на сервере
+     (401/403/501) другие модели не помогут — сразу ошибка. */
+  const GEMINI_TEXT_MODELS = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest'];
+  async function askGeminiJson(prompt, { temperature = 0.2, accept = parsed => parsed != null } = {}) {
+    const generator = window.MathTasks.aiGenerator;
+    if (!generator?.geminiRequest) throw new Error('Модуль ai-generator.js не загружен');
+    const requestBody = JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json', temperature }
+    });
+    let lastError = null;
+    for (const model of GEMINI_TEXT_MODELS) {
+      try {
+        const r = await generator.geminiRequest(model, requestBody);
+        if ([401, 403, 501].includes(r.status)) {
+          let reason = '';
+          try { reason = (await r.json())?.error || ''; } catch {}
+          throw Object.assign(new Error(reason || `Gemini недоступен (${r.status})`), { fatal: true });
+        }
+        if (!r.ok) { lastError = new Error(`Gemini ответил ${r.status}`); continue; }
+        const data = await r.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) continue;
+        const parsed = (window.MathTasksLib?.safeParseJson || safeParseJson)(text);
+        if (accept(parsed)) return parsed;
+        lastError = new Error('Ответ модели не подошёл');
+      } catch (e) {
+        if (e.fatal) throw e;
+        lastError = e;
+      }
+    }
+    throw lastError || new Error('Gemini не ответил');
+  }
+
   async function translateWithGemini(texts, direction) {
     const toLv = direction === 'ru2lv';
     const prompt = `Ты эксперт по латвийской школьной математике и стандартам Skola2030.
@@ -1639,45 +1669,50 @@
 Тексты:
 ${JSON.stringify(texts)}`;
 
-    const requestBody = JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        temperature: 0.1
-      }
+    /* Без входа, прав или ключа askGeminiJson сразу бросает ошибку —
+       вызывающий переходит к запасному переводчику. */
+    return askGeminiJson(prompt, {
+      temperature: 0.1,
+      accept: parsed => Array.isArray(parsed) && parsed.length === texts.length
     });
-
-    const candidateModels = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest'];
-    let lastError = null;
-    for (const model of candidateModels) {
-      try {
-        const r = await window.MathTasks.aiGenerator.geminiRequest(model, requestBody);
-        /* Без входа, без прав или без ключа на сервере другие модели не
-           помогут — сразу к запасному переводчику. */
-        if ([401, 403, 501].includes(r.status)) {
-          lastError = new Error(`Gemini недоступен (${r.status})`);
-          break;
-        }
-        if (r.ok) {
-          const data = await r.json();
-          const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (candidateText) {
-            try {
-              const parsed = (window.MathTasksLib?.safeParseJson || safeParseJson)(candidateText);
-              if (Array.isArray(parsed) && parsed.length === texts.length) {
-                return parsed;
-              }
-            } catch (err) {
-              console.warn('Ошибка парсинга перевода:', err);
-            }
-          }
-        }
-      } catch (e) {
-        lastError = e;
-      }
-    }
-    throw lastError || new Error('Не удалось получить перевод от Gemini AI');
   }
+
+  /* «Предложить название» — короткое название на двух языках по условию.
+     Промпт и проверка ответа — в lib.js (buildTitlePrompt,
+     parseTitleSuggestion): ответ без названия, с номером или заглушкой
+     «Задача №N» не подставляется. */
+  const btnSuggestTitle = document.querySelector('#btn-suggest-title');
+  btnSuggestTitle?.addEventListener('click', async () => {
+    const condition = conditionInput?.value.trim() || '';
+    const conditionLv = conditionInputLv?.value.trim() || '';
+    if (!condition && !conditionLv) {
+      taskSuccess.textContent = 'Сначала впишите условие — название подбирается по нему.';
+      conditionInput?.focus();
+      return;
+    }
+    const topic = topics.find(item => String(item.id) === topicSelect?.value);
+    const gradeValue = parseFormGrade(taskGradeSelect?.value ?? topic?.grade);
+    const label = btnSuggestTitle.textContent;
+    btnSuggestTitle.disabled = true;
+    btnSuggestTitle.textContent = '✨ Gemini подбирает…';
+    try {
+      const titleLib = window.MathTasksLib;
+      const prompt = titleLib.buildTitlePrompt({
+        condition, conditionLv, topicTitle: topic?.title || '', gradeLabel: gradeValue ? gradeText(gradeValue) : ''
+      });
+      const suggestion = titleLib.parseTitleSuggestion(await askGeminiJson(prompt, { accept: parsed => Boolean(titleLib.parseTitleSuggestion(parsed)) }));
+      if (!suggestion) throw new Error('модель не дала подходящего названия');
+      if (titleInput) titleInput.value = suggestion.title;
+      if (titleInputLv) titleInputLv.value = suggestion.title_lv;
+      updateReadyBar();
+      taskSuccess.textContent = 'Название предложено — проверьте оба языка перед сохранением.';
+    } catch (error) {
+      taskSuccess.textContent = `Не удалось предложить название: ${error.message}. Впишите его вручную.`;
+    } finally {
+      btnSuggestTitle.disabled = false;
+      btnSuggestTitle.textContent = label;
+    }
+  });
 
   /* Одна процедура на оба направления: раньше перевод был только RU → LV,
      и заполнить русские поля по латышским было нечем. */
@@ -2520,6 +2555,18 @@ ${JSON.stringify(texts)}`;
 
     const chips = [];
 
+    // 0. Название: без него задача не сохраняется (А7).
+    const titleRu = titleInput?.value.trim() || '';
+    const titleLv = titleInputLv?.value.trim() || '';
+    if (!titleRu) {
+      chips.push({ level: 'bad', text: 'Нет названия', action: 'focus-title', title: 'Впишите короткое название или нажмите «Предложить название»' });
+    } else if (window.MathTasksLib?.isGenericTaskTitle?.(titleRu)) {
+      chips.push({ level: 'warn', text: 'Название-заглушка «Задача №N»', action: 'focus-title' });
+    }
+    if (condLv && titleRu && !titleLv) {
+      chips.push({ level: 'info', text: 'Нет названия на LV', action: 'focus-title-lv' });
+    }
+
     // 1. Условие (RU)
     if (!condRu) {
       chips.push({ level: 'bad', text: 'Нет условия (RU)', action: 'focus-cond-ru' });
@@ -3172,6 +3219,16 @@ ${JSON.stringify(texts)}`;
     if (!btn) return;
     const action = btn.dataset.missingAction;
     switch (action) {
+      case 'focus-title':
+        ensureLangVisible('ru');
+        titleInput?.focus();
+        titleInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      case 'focus-title-lv':
+        ensureLangVisible('lv');
+        titleInputLv?.focus();
+        titleInputLv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
       case 'focus-cond-ru':
         ensureLangVisible('ru');
         conditionInput?.focus();
@@ -3729,14 +3786,19 @@ ${JSON.stringify(texts)}`;
     }
     const form = new FormData(taskForm);
     const topicId = form.get('topic_id') ? Number(form.get('topic_id')) : null;
+    /* Без названия не сохраняем: раньше подставлялось «Задача №N», и
+       так в базе оказались 284 заглушки. */
+    const title = form.get('title')?.trim() || '';
+    if (!title) {
+      ensureLangVisible('ru');
+      titleInput?.focus();
+      taskSuccess.textContent = 'У задачи нет названия — впишите его или нажмите «✨ Предложить название».';
+      return;
+    }
     const taskPos = nextPosition(topicId, form.get('position'));
-    const defaultTitle = editingTaskId
-      ? (taskIndex.find(t => t.id === editingTaskId)?.title || `Задача №${taskPos}`)
-      : `Задача №${taskPos}`;
-    const title = form.get('title')?.trim() || defaultTitle;
     const payload = sanitizeTaskPayload({
       title,
-      title_lv: form.get('title_lv')?.trim() || defaultTitleLv(title),
+      title_lv: form.get('title_lv')?.trim() || null,
       condition_latex: conditionInput.value.trim(),
       condition_latex_lv: conditionInputLv?.value.trim() || null,
       answer_latex: answerInput.value.trim() || null,
@@ -4937,6 +4999,10 @@ ${JSON.stringify(texts)}`;
         errors.push(`${labelOf(i)}: отсутствует condition_latex`);
         continue;
       }
+      if (!String(item.title || '').trim() || window.MathTasksLib?.isGenericTaskTitle?.(item.title)) {
+        errors.push(`${labelOf(i)}: нет названия (столбец title) — задача не добавлена`);
+        continue;
+      }
       let topicId = item.topic_id || null;
       if (!topicId && (item.topic_title || item.topic_title_lv)) {
         const needle = String(item.topic_title || '').trim().toLowerCase();
@@ -4968,7 +5034,7 @@ ${JSON.stringify(texts)}`;
 
       if (!topicId) withoutTopic++;
       const taskPos = nextPosition(topicId, null);
-      const titleVal = item.title ? String(item.title).trim() : `Задача №${taskPos}`;
+      const titleVal = String(item.title).trim();
 
       /* Чертёж разметкой (condition_svg / solution_svg) сохраняем файлом в
          хранилище и подставляем путь, как при загрузке через форму. Не
@@ -4986,7 +5052,7 @@ ${JSON.stringify(texts)}`;
       const payload = sanitizeTaskPayload({
         subtopic_id: subtopicId,
         title: titleVal,
-        title_lv: item.title_lv ? String(item.title_lv).trim() : defaultTitleLv(titleVal),
+        title_lv: item.title_lv ? String(item.title_lv).trim() : null,
         condition_latex: String(item.condition_latex).trim(),
         condition_latex_lv: item.condition_latex_lv ? String(item.condition_latex_lv).trim() : null,
         answer_latex: item.answer_latex ? String(item.answer_latex).trim() : null,

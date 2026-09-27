@@ -1750,6 +1750,9 @@
     subtopic_code: ['subtopic_code', 'code', 'код', 'kods', 'код подтемы', 'номер подтемы', 'apakštēmas kods', 'apakstēmas kods', 'apakštēmas numurs', 'subtopic code'],
     subtopic_title: ['subtopic_title', 'subtopic', 'подтема', 'apakštēma', 'apakstema', 'название подтемы', 'subtopic title'],
     subtopic_title_lv: ['subtopic_title_lv', 'подтема lv', 'apakštēma lv', 'apakstema lv', 'subtopic lv'],
+    // Название задачи: без него админка подставляла «Задача №N» (А7).
+    title: ['title', 'название', 'название задачи', 'nosaukums', 'uzdevuma nosaukums'],
+    title_lv: ['title_lv', 'название lv', 'nosaukums lv', 'title lv'],
     condition_latex: ['condition_latex', 'condition', 'условие', 'uzdevums', 'nosacījums', 'nosacijums', 'текст', 'текст задачи', 'задача', 'question'],
     condition_latex_lv: ['condition_latex_lv', 'условие lv', 'uzdevums lv', 'nosacījums lv', 'condition lv'],
     answer_latex: ['answer_latex', 'answer', 'ответ', 'atbilde'],
@@ -1923,6 +1926,8 @@
       }
 
       tasks.push({
+        title: getVal('title') || null,
+        title_lv: getVal('title_lv') || null,
         grade: gradeVal,
         topic_title: topicTitle,
         topic_title_lv: topicTitleLv,
@@ -1961,7 +1966,7 @@
      С общим промптом модель выдумывала номера и теги, и импорт отвечал
      предупреждениями. Столбцы — ровно те, что узнаёт parseCsvToTasks. */
   const TASK_PROMPT_COLUMNS = [
-    'grade', 'topic_title', 'topic_title_lv', 'subtopic_code',
+    'grade', 'topic_title', 'topic_title_lv', 'subtopic_code', 'title', 'title_lv',
     'condition_latex', 'condition_latex_lv', 'answer_latex', 'answer_latex_lv',
     'hint_latex', 'hint_latex_lv', 'solution_latex', 'solution_latex_lv',
     'difficulty', 'tags', 'condition_svg'
@@ -2011,10 +2016,11 @@
        вокруг ячейки с переносом, и десятичную запятую, и единицы в
        \text{}, и однострочный SVG. Словесных правил моделям не хватало. */
     push('', 'ОБРАЗЕЦ ОДНОЙ ЗАПОЛНЕННОЙ СТРОКИ (после строки заголовков; решение в нём занимает две строки — так и должно быть, ячейка с переносом обёрнута в кавычки):');
-    push("8\tТеорема Пифагора\tPitagora teorēma\t8.8.3\tКатеты прямоугольного треугольника $ABC$ равны $6\\text{ см}$ и $8\\text{ см}$. Найдите гипотенузу.\tTaisnleņķa trijstūra $ABC$ katetes ir $6\\text{ cm}$ un $8\\text{ cm}$. Aprēķiniet hipotenūzu.\t$c = 10\\text{ см}$\t$c = 10\\text{ cm}$\tКвадрат гипотенузы равен сумме квадратов катетов.\tHipotenūzas kvadrāts ir vienāds ar katešu kvadrātu summu.\t\"1. По теореме Пифагора \"\"c^2=a^2+b^2\"\": $c^2=6^2+8^2$.\n2. $c^2=100$, значит $c=10\\text{ см}$.\"\t\"1. Pēc Pitagora teorēmas \"\"c^2=a^2+b^2\"\": $c^2=6^2+8^2$.\n2. $c^2=100$, tātad $c=10\\text{ cm}$.\"\tЛёгкий\tplanimetrija; merijumi\t<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><g stroke='#000' stroke-width='2' fill='none'><polygon points='80,240 320,240 80,60'/><polyline points='80,218 102,218 102,240'/></g><text x='66' y='54' fill='#000' font-family='system-ui, sans-serif' font-size='15'>B</text><text x='62' y='258' fill='#000' font-family='system-ui, sans-serif' font-size='15'>A</text><text x='330' y='258' fill='#000' font-family='system-ui, sans-serif' font-size='15'>C</text></svg>", '');
+    push("8\tТеорема Пифагора\tPitagora teorēma\t8.8.3\tГипотенуза по двум катетам\tHipotenūza pēc divām katetēm\tКатеты прямоугольного треугольника $ABC$ равны $6\\text{ см}$ и $8\\text{ см}$. Найдите гипотенузу.\tTaisnleņķa trijstūra $ABC$ katetes ir $6\\text{ cm}$ un $8\\text{ cm}$. Aprēķiniet hipotenūzu.\t$c = 10\\text{ см}$\t$c = 10\\text{ cm}$\tКвадрат гипотенузы равен сумме квадратов катетов.\tHipotenūzas kvadrāts ir vienāds ar katešu kvadrātu summu.\t\"1. По теореме Пифагора \"\"c^2=a^2+b^2\"\": $c^2=6^2+8^2$.\n2. $c^2=100$, значит $c=10\\text{ см}$.\"\t\"1. Pēc Pitagora teorēmas \"\"c^2=a^2+b^2\"\": $c^2=6^2+8^2$.\n2. $c^2=100$, tātad $c=10\\text{ cm}$.\"\tЛёгкий\tplanimetrija; merijumi\t<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'><g stroke='#000' stroke-width='2' fill='none'><polygon points='80,240 320,240 80,60'/><polyline points='80,218 102,218 102,240'/></g><text x='66' y='54' fill='#000' font-family='system-ui, sans-serif' font-size='15'>B</text><text x='62' y='258' fill='#000' font-family='system-ui, sans-serif' font-size='15'>A</text><text x='330' y='258' fill='#000' font-family='system-ui, sans-serif' font-size='15'>C</text></svg>", '');
     push('Вне блока кода — ничего: ни вступления, ни заключения. Если задачи не помещаются в один ответ, остановись на конце целой строки, закрой блок кода и напиши под ним: ПРОДОЛЖЕНИЕ СЛЕДУЕТ. Когда я напишу «дальше», продолжи со следующей задачи новым блоком кода и снова начни его со строки заголовков.', '');
 
     push('СТОЛБЦЫ');
+    push('- title / title_lv — короткое название задачи, до 60 знаков, без номера и без слова «Задача»: по сути, что в ней ищут или считают («Гипотенуза по двум катетам»). Латышское совпадает по смыслу. Без названия строка не импортируется.');
     push('- condition_latex / condition_latex_lv — условие на русском и то же условие на латышском.');
     push('- answer_latex / answer_latex_lv — короткий ответ без разбора. Если в ответе нет слов, обе ячейки одинаковые: $x = 4$.');
     push('  Называй величину, которую спрашивают: не «$7$», а «$AB = 7\\text{ см}$», не «$0{,}6$», а «$\\sin\\alpha = 0{,}6$». По этому имени сайт подписывает поле ввода, и ученику остаётся вписать значение.');
@@ -2419,6 +2425,52 @@
         }
       }
     }
+  };
+
+  /* ── Название задачи по условию (А7) ────────────────────────────────
+     Админка просит Gemini короткое название на двух языках. Промпт и
+     разбор ответа — здесь, чтобы их можно было проверить без сети. */
+  const TITLE_MAX = 60;
+  const buildTitlePrompt = ({ condition = '', conditionLv = '', topicTitle = '', gradeLabel = '' } = {}) => [
+    'Ты редактор MathTasks — двуязычного (русский и латышский) сборника школьных задач по математике по стандарту Skola2030.',
+    'Придумай задаче короткое название на русском и на латышском.',
+    '',
+    'ПРАВИЛА:',
+    `1. Не длиннее ${TITLE_MAX} знаков, именительный падеж, без точки в конце.`,
+    '2. Без номера, без слов «Задача», «Uzdevums», без кавычек.',
+    '3. Название говорит, что в задаче ищут или считают: «Гипотенуза по двум катетам», «Скидка на рюкзак в процентах». Не пересказывай условие и не пиши ответ.',
+    '4. Латышское название совпадает по смыслу, терминология Skola2030 (trijstūris, laukums, vienādojums).',
+    '5. Формулы можно, но коротко: «Уравнение 8 · a = 12 · 6».',
+    '6. Верни ТОЛЬКО JSON: {"title":"…","title_lv":"…"} — без пояснений и без блока кода.',
+    '',
+    topicTitle ? `Тема: ${topicTitle}${gradeLabel ? `, ${gradeLabel}` : ''}` : '',
+    `Условие (RU): ${String(condition || '').trim() || '—'}`,
+    `Условие (LV): ${String(conditionLv || '').trim() || '—'}`
+  ].filter(line => line !== null).join('\n');
+
+  const cleanSuggestedTitle = value => String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^["«»“”'„]+|["«»“”'„]+$/g, '')
+    .replace(/^(?:Задача|Uzdevums)\s*[:.—-]\s*/i, '')
+    .replace(/[.。]+$/, '')
+    .trim();
+
+  // Ответ модели → { title, title_lv } или null, если он не годится.
+  const parseTitleSuggestion = raw => {
+    let parsed;
+    try {
+      parsed = typeof raw === 'string' ? safeParseJson(raw) : raw;
+    } catch {
+      return null;
+    }
+    if (Array.isArray(parsed)) parsed = parsed[0];
+    if (!parsed || typeof parsed !== 'object') return null;
+    const title = cleanSuggestedTitle(parsed.title ?? parsed.title_ru);
+    const titleLv = cleanSuggestedTitle(parsed.title_lv);
+    const bad = text => !text || text.length > TITLE_MAX + 10 || isGenericTaskTitle(text) || text.includes('№');
+    if (bad(title) || bad(titleLv)) return null;
+    return { title, title_lv: titleLv };
   };
 
   /* Вес сложности задачи для упорядочивания */
@@ -3116,6 +3168,11 @@
       const notes = [];
       const cond = String(item.condition_latex || '').trim();
       if (!cond) problems.push({ level: 'bad', text: 'нет условия' });
+      /* Без названия админка раньше подставляла «Задача №N» — так в базе
+         оказались 284 заглушки. Теперь такую строку не пускаем. */
+      const itemTitle = String(item.title || '').trim();
+      if (!itemTitle) problems.push({ level: 'bad', text: 'нет названия (title)' });
+      else if (isGenericTaskTitle(itemTitle)) problems.push({ level: 'bad', text: `название-заглушка «${itemTitle}»` });
 
       const needle = low(item.topic_title);
       const needleLv = low(item.topic_title_lv);
@@ -3546,6 +3603,8 @@
     buildPrintVariants,
     sliceTaskRange,
     makeSlug,
+    buildTitlePrompt,
+    parseTitleSuggestion,
     isRuPath,
     stripLangPath,
     langOfPath,

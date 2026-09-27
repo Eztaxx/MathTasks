@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { buildTaskPrompt as buildTaskPromptForTest, TASK_PROMPT_COLUMNS as PROMPT_COLUMNS_FOR_TEST, parseCsvToTasks as parseCsvForPromptTest } from '../public/lib.js';
 import { fetchAllRows as fetchAllRowsForTest, fetchByIdChunks as fetchByIdChunksForTest } from '../public/lib.js';
 import { sanitizeSvg as sanitizeSvgForTest, parseCsvRows as parseCsvRowsForSvg, parseCsvToTasks as parseCsvToTasksForSvg } from '../public/lib.js';
-import { analyzeImportRows as analyzeImportRowsForTest } from '../public/lib.js';
+import { analyzeImportRows as analyzeImportRowsRaw } from '../public/lib.js';
+
+/* Строки в тестах разбора — с названием: без него строка теперь ошибка
+   (А7), а проверяются здесь другие правила. Нет названия — ключ title: ''. */
+const analyzeImportRowsForTest = (items, ctx) =>
+  analyzeImportRowsRaw(items.map(item => (item && !('title' in item) ? { title: 'Название', ...item } : item)), ctx);
 import { unwrapModelAnswer as unwrapModelAnswerForTest } from '../public/lib.js';
 import i18n from '../public/i18n.js';
 import {
@@ -1804,13 +1809,14 @@ describe('buildTaskPrompt: промпт под тему', () => {
     const header = p.split('\n').find(line => line.startsWith('grade\t'));
     expect(header.split('\t')).toEqual(PROMPT_COLUMNS_FOR_TEST);
     const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'></svg>";
-    const row = ['8', 'Теорема Пифагора', 'Pitagora teorēma', '8.8.3', 'Найдите $c$.', 'Atrodiet $c$.', '$5$', '$5$',
+    const row = ['8', 'Теорема Пифагора', 'Pitagora teorēma', '8.8.3', 'Гипотенуза по катетам', 'Hipotenūza pēc katetēm', 'Найдите $c$.', 'Atrodiet $c$.', '$5$', '$5$',
       'Примените теорему.', 'Izmantojiet teorēmu.', '"1. Шаг.\n2. Ответ."', '"1. Solis.\n2. Atbilde."',
       'Средний', 'planimetrija; merijumi', svg].join('\t');
     const { tasks, warnings } = parseCsvForPromptTest(`${header}\n${row}`);
     expect(warnings).toEqual([]);
     expect(tasks[0]).toMatchObject({
       topic_title: 'Теорема Пифагора', topic_title_lv: 'Pitagora teorēma', subtopic_code: '8.8.3',
+      title: 'Гипотенуза по катетам', title_lv: 'Hipotenūza pēc katetēm',
       condition_latex: 'Найдите $c$.', condition_latex_lv: 'Atrodiet $c$.',
       answer_latex: '$5$', answer_latex_lv: '$5$',
       hint_latex: 'Примените теорему.', hint_latex_lv: 'Izmantojiet teorēmu.',
@@ -1832,6 +1838,18 @@ describe('analyzeImportRows: разбор импорта до записи в б
     existingConditions: [{ id: 77, condition_latex: 'Решите  $x^2=9$.' }],
     checkFormula: text => ({ ok: !text.includes('BROKEN') }),
     ...extra
+  });
+
+  // А7: без названия админка подставляла «Задача №N» — теперь строка не пройдёт.
+  it('строка без названия или с заглушкой «Задача №N» — ошибка', () => {
+    const { rows, counts } = analyzeImportRowsForTest([
+      { condition_latex: 'A', topic_title: 'Проценты', title: '' },
+      { condition_latex: 'B', topic_title: 'Проценты', title: 'Задача №5' },
+      { condition_latex: 'C', topic_title: 'Проценты', title: 'Скидка на рюкзак' }
+    ], ctx());
+    expect(rows[0].problems.map(p => p.text)).toContain('нет названия (title)');
+    expect(rows[1].problems.map(p => p.text)).toContain('название-заглушка «Задача №5»');
+    expect(counts).toEqual({ ok: 1, bad: 2, dup: 0 });
   });
 
   it('находит тему по названию на любом языке и подтему по номеру', () => {
