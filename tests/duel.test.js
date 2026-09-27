@@ -101,6 +101,31 @@ describe('дуэль: аватар', () => {
   });
 });
 
+/* Н3: зверя можно выбрать самому — из набора, без своих картинок. */
+describe('дуэль: зверь на выбор', () => {
+  it('в наборе 48 зверей, ключи латиницей и не повторяются', () => {
+    expect(duel.AVATARS).toHaveLength(48);
+    const ids = duel.AVATARS.map(([id]) => id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const id of ids) expect(id).toMatch(/^[a-z0-9_-]{1,24}$/);
+  });
+
+  it('выбранный зверь главнее ника, чужой ключ — как не выбран', () => {
+    expect(duel.avatarFor('Māris', 'tiger')).toMatchObject({ text: '🐯', emoji: true, id: 'tiger' });
+    expect(duel.avatarFor('Māris', 'nope')).toMatchObject({ text: 'M', emoji: false });
+    expect(duel.avatarFor('Māris', 'tiger').hue).toBe(duel.avatarFor('Māris').hue);
+    expect(duel.sanitizeAvatar('<img src=x>')).toBe('');
+    expect(duel.sanitizeAvatar('fox')).toBe('fox');
+  });
+
+  it('зверь едет в ссылке на вызов; подложенный руками ключ отбрасывается', () => {
+    const link = duel.encodeChallenge({ g: 11, s: 5, c: 'multdiv', a: { n: 'Ātrā Lapsa', pending: true, v: 'owl' } });
+    expect(duel.decodeChallenge(link).a).toEqual({ n: 'Ātrā Lapsa', pending: true, v: 'owl' });
+    const bad = duel.encodeChallenge({ g: 11, s: 5, c: 'multdiv', a: { n: 'Ātrā Lapsa', pending: true, v: 'hacker' } });
+    expect(duel.decodeChallenge(bad).a).toEqual({ n: 'Ātrā Lapsa', pending: true });
+  });
+});
+
 describe('дуэль: маска верных ответов', () => {
   it('упаковка обратима при любой длине', () => {
     for (const length of [0, 1, 5, 6, 7, 40, 121]) {

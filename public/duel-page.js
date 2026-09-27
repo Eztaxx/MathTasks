@@ -27,6 +27,8 @@
   const SETUP_KEY = 'math-tasks:duel-setup';
   const PLAYER_KEY = 'math-tasks:duel-player';
   const RUNS_KEY = 'math-tasks:duel-runs';
+  const AVATAR_KEY = 'math-tasks:avatar';
+  const PROFILE_KEY = 'math-tasks:profile';
   const BATCH = 150; // за минуту решают 15–40 примеров; запас на самых быстрых
   // Поколение попытки: генераторы тренажёра плюс лесенка (duel.js: runGen).
   const RUN_GEN = D.runGen(T.GENERATOR_VERSION);
@@ -38,6 +40,28 @@
   };
   const writeJson = (key, value) => {
     try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+  };
+
+  /* Профиль ученика (profile.js на страницах каталога) оставляет маркер
+     { nick, avatar, managed }. Есть маркер — ник меняется только в
+     профиле, а здесь показывается как есть: иначе профиль при следующем
+     заходе вернул бы старый ник. managed — профиль умеет хранить зверя
+     (миграция 031): тогда и зверь выбирается в профиле. Без профиля зверь
+     хранится в браузере. */
+  const profileMarker = () => {
+    const marker = readJson(PROFILE_KEY, null);
+    return marker && typeof marker === 'object' && D.sanitizeNick(marker.nick) ? marker : null;
+  };
+  const myAvatar = () => {
+    const marker = profileMarker();
+    if (marker?.managed) return D.sanitizeAvatar(marker.avatar);
+    try { return D.sanitizeAvatar(localStorage.getItem(AVATAR_KEY)); } catch { return ''; }
+  };
+  const storeAvatar = id => {
+    try {
+      if (id) localStorage.setItem(AVATAR_KEY, id);
+      else localStorage.removeItem(AVATAR_KEY);
+    } catch {}
   };
 
   // ── Тема и звук — как на странице тренажёра ─────────────────────────
@@ -111,13 +135,14 @@
   // Подпись итога: категория и ступень, до которой ученик добрался.
   const resultSub = (cat, attempts) => `${catName(cat)} · ${tr('duel_reached', { tier: diffName(D.tierReached(attempts).diff) })}`;
 
-  const avatarHtml = (nick, extra = '') => {
-    const avatar = D.avatarFor(nick);
+  // avatar — выбранный зверь (duel.js: AVATARS); пусто — по нику, как раньше.
+  const avatarHtml = (nick, extra = '', avatarId = '') => {
+    const avatar = D.avatarFor(nick, avatarId);
     return `<span class="duel-avatar${avatar.emoji ? ' is-emoji' : ''}${extra ? ` ${extra}` : ''}" style="--h:${avatar.hue}" aria-hidden="true">${escapeHtml(avatar.text)}</span>`;
   };
-  const fillAvatar = (el, nick) => {
+  const fillAvatar = (el, nick, avatarId = '') => {
     if (!el) return;
-    const avatar = D.avatarFor(nick);
+    const avatar = D.avatarFor(nick, avatarId);
     el.textContent = avatar.text;
     el.classList.toggle('is-emoji', avatar.emoji);
     el.style.setProperty('--h', avatar.hue);
@@ -132,15 +157,29 @@
   /* Ник придумывается один раз — на языке первого визита — и дальше не
      меняется сам: у игрока он один, на обоих языках сайта. */
   const currentNick = () => {
+    const fromProfile = D.sanitizeNick(profileMarker()?.nick);
+    if (fromProfile) { storeNick(fromProfile); return fromProfile; }
     const stored = readStoredNick();
     if (stored) return stored;
     const fresh = D.generateNick(lang());
     storeNick(fresh);
     return fresh;
   };
+  // С профилем ник и зверь меняются в нём, а не здесь.
+  const applyProfileLock = () => {
+    const marker = profileMarker();
+    if (nickInput) nickInput.readOnly = Boolean(marker);
+    const renew = $('#duel-nick-new');
+    if (renew) renew.hidden = Boolean(marker);
+    const note = $('#duel-nick-profile-note');
+    if (note) note.hidden = !marker;
+    const avatarButton = $('#duel-avatar');
+    if (avatarButton) avatarButton.disabled = Boolean(marker?.managed);
+  };
   if (nickInput) {
     nickInput.value = currentNick();
-    nickInput.addEventListener('input', () => fillAvatar($('#duel-avatar'), nickInput.value));
+    applyProfileLock();
+    nickInput.addEventListener('input', () => fillAvatar($('#duel-avatar'), nickInput.value, myAvatar()));
     nickInput.addEventListener('change', () => {
       const clean = D.sanitizeNick(nickInput.value);
       if (clean) { storeNick(clean); nickInput.value = clean; }
@@ -148,15 +187,43 @@
   }
   $('#duel-nick-new')?.addEventListener('click', () => {
     if (!nickInput) return;
+    if (profileMarker()) return;
     nickInput.value = D.generateNick(lang());
     storeNick(nickInput.value);
-    fillAvatar($('#duel-avatar'), nickInput.value);
+    fillAvatar($('#duel-avatar'), nickInput.value, myAvatar());
+  });
+
+  // ── Зверь на выбор ──────────────────────────────────────────────────
+  const avatarPicker = $('#duel-avatar-picker');
+  const renderPicker = () => {
+    if (!avatarPicker) return;
+    const mine = myAvatar();
+    avatarPicker.innerHTML = `<p class="duel-avatar-picker-title">${escapeHtml(tr('duel_avatar_pick'))}</p>
+      <div class="duel-avatar-grid">${D.AVATARS.map(([id, icon]) => `<button type="button" data-avatar="${id}" aria-pressed="${id === mine}" aria-label="${escapeHtml(icon)}">${icon}</button>`).join('')}</div>
+      <button type="button" class="text-button duel-avatar-auto" data-avatar="" aria-pressed="${!mine}">${escapeHtml(tr('duel_avatar_auto'))}</button>`;
+  };
+  $('#duel-avatar')?.addEventListener('click', () => {
+    if (!avatarPicker || profileMarker()?.managed) return;
+    const open = avatarPicker.hidden;
+    if (open) renderPicker();
+    avatarPicker.hidden = !open;
+    $('#duel-avatar').setAttribute('aria-expanded', String(open));
+  });
+  avatarPicker?.addEventListener('click', event => {
+    const choice = event.target.closest?.('[data-avatar]');
+    if (!choice) return;
+    storeAvatar(D.sanitizeAvatar(choice.dataset.avatar));
+    fillAvatar($('#duel-avatar'), nickInput?.value || currentNick(), myAvatar());
+    avatarPicker.hidden = true;
+    $('#duel-avatar')?.setAttribute('aria-expanded', 'false');
   });
 
   /* Ник проверяем на старте, а не при каждом символе: ребёнку не нужно
      видеть, как его ввод вычищается по буквам. Не подошёл — берём из
      генератора и честно говорим об этом. */
   const takeNick = () => {
+    const fromProfile = D.sanitizeNick(profileMarker()?.nick);
+    if (fromProfile) { storeNick(fromProfile); state.nick = fromProfile; return fromProfile; }
     const clean = D.sanitizeNick(nickInput?.value);
     const nick = clean || readStoredNick() || D.generateNick(lang());
     if (!clean) {
@@ -240,7 +307,9 @@
 
   // ── Экран настройки ─────────────────────────────────────────────────
   const openSetup = () => {
-    fillAvatar($('#duel-avatar'), nickInput?.value || currentNick());
+    if (nickInput && profileMarker()) nickInput.value = currentNick();
+    applyProfileLock();
+    fillAvatar($('#duel-avatar'), nickInput?.value || currentNick(), myAvatar());
     const invite = $('#duel-invite');
     const modes = $('#duel-modes');
     const choice = $('#duel-choice');
@@ -261,7 +330,7 @@
     const { challenge, role } = state;
     const them = role === 'b' ? challenge.a : challenge.b;
     const name = nickOf(them);
-    fillAvatar($('#duel-invite-avatar'), them?.n || '');
+    fillAvatar($('#duel-invite-avatar'), them?.n || '', them?.v);
     const title = $('#duel-invite-title');
     const text = $('#duel-invite-text');
     const meta = $('#duel-invite-meta');
@@ -410,8 +479,8 @@
     state.streak = 0;
     state.run = null;
     shownTier = 0;
-    fillAvatar($('#duel-strip-me'), state.nick);
-    fillAvatar($('#duel-strip-opp'), state.opponent?.nick || '');
+    fillAvatar($('#duel-strip-me'), state.nick, myAvatar());
+    fillAvatar($('#duel-strip-opp'), state.opponent?.nick || '', state.opponent?.avatar);
     if (ringEl) { ringEl.style.strokeDasharray = String(RING_LENGTH); ringEl.style.strokeDashoffset = '0'; }
     renderQuestion();
     renderStreak();
@@ -455,7 +524,7 @@
     state.opponent = null;
     state.seed = D.newSeed();
     const nick = takeNick();
-    state.challenge = { g: RUN_GEN, s: state.seed, c: state.cat, a: { n: nick, pending: true }, b: null };
+    state.challenge = { g: RUN_GEN, s: state.seed, c: state.cat, a: { n: nick, pending: true, v: myAvatar() }, b: null };
     remember({ at: Date.now(), seed: state.seed, cat: state.cat, diff: state.diff, role: 'a', me: null, them: null });
     window.history.replaceState(null, '', '/duel');
     showLinkScreen();
@@ -543,7 +612,7 @@
     const errors = player.q - player.r;
     const accuracy = player.q ? Math.round((player.r / player.q) * 100) : 0;
     return `<div class="duel-side${mine ? ' is-me' : ''}">
-      ${avatarHtml(player.n || '')}
+      ${avatarHtml(player.n || '', '', player.v)}
       <span class="duel-side-name">${escapeHtml(label)}</span>
       <strong class="duel-side-score">${player.r}</strong>
       <span class="duel-side-meta">${escapeHtml(tr('duel_correct'))} · ${escapeHtml(tr('duel_errors'))}: ${errors} · ${escapeHtml(tr('duel_accuracy'))} ${accuracy}%</span>
@@ -611,7 +680,7 @@
     state.endsAt = 0;
     clearInterval(state.timer);
     const bits = state.bits;
-    const me = { n: state.nick, r: bits.filter(Boolean).length, q: bits.length, m: D.packMask(bits) };
+    const me = { n: state.nick, v: myAvatar(), r: bits.filter(Boolean).length, q: bits.length, m: D.packMask(bits) };
     state.me = me;
     const base = { g: RUN_GEN, s: state.seed, c: state.cat };
     $('#duel-share').hidden = true;
@@ -787,9 +856,9 @@
     text.textContent = tr(text.dataset.i18n);
   };
 
-  function startLive({ host, guest, seed, partnerNick }) {
+  function startLive({ host, guest, seed, partnerNick, partnerAvatar }) {
     const client = realtime();
-    const opponent = { kind: 'live', nick: D.sanitizeNick(partnerNick) || tr('duel_opponent'), r: 0, q: 0, final: null };
+    const opponent = { kind: 'live', nick: D.sanitizeNick(partnerNick) || tr('duel_opponent'), avatar: D.sanitizeAvatar(partnerAvatar), r: 0, q: 0, final: null };
     const channel = client.channel(`duel-match-g${RUN_GEN}:${host}:${guest}`, { config: { broadcast: { self: false } } });
     state.opponent = opponent;
     match = { channel };
@@ -843,7 +912,7 @@
     const questions = D.ladderQuestions(T, state.cat, seed, BATCH);
     const bits = row.answers.map((answer, i) => Boolean(questions[i] && T.checkAnswer(questions[i], answer)?.isCorrect));
     state.opponent = {
-      kind: 'ghost', id: Number(row.id), nick: D.sanitizeNick(row.nick) || tr('duel_opponent'),
+      kind: 'ghost', id: Number(row.id), nick: D.sanitizeNick(row.nick) || tr('duel_opponent'), avatar: D.sanitizeAvatar(row.avatar),
       bits, times: row.times.map(Number), at: row.finished_at
     };
     state.seed = seed;
@@ -892,7 +961,7 @@
       if (role?.role !== 'host') return;
       const seed = D.newSeed();
       current.invite = { guest: role.partner, seed };
-      lobby.send({ type: 'broadcast', event: 'invite', payload: { host: myId, guest: role.partner, seed, nick: state.nick } }).catch(() => {});
+      lobby.send({ type: 'broadcast', event: 'invite', payload: { host: myId, guest: role.partner, seed, nick: state.nick, avatar: myAvatar() } }).catch(() => {});
       // Ответа нет — приглашение потерялось или второй уже занят: пересчитываем пары.
       setTimeout(() => {
         if (!current.settled && current.invite?.seed === seed) {
@@ -908,16 +977,16 @@
         if (current.settled || payload?.guest !== myId || !Number.isInteger(seed) || seed < 0 || seed > 0xFFFFFFFF) return;
         current.settled = true;
         clearInterval(current.clock);
-        await lobby.send({ type: 'broadcast', event: 'accept', payload: { host: payload.host, guest: myId, nick: state.nick } }).catch(() => {});
+        await lobby.send({ type: 'broadcast', event: 'accept', payload: { host: payload.host, guest: myId, nick: state.nick, avatar: myAvatar() } }).catch(() => {});
         search = current;
         stopSearch();
-        startLive({ host: payload.host, guest: myId, seed, partnerNick: payload.nick });
+        startLive({ host: payload.host, guest: myId, seed, partnerNick: payload.nick, partnerAvatar: payload.avatar });
       })
       .on('broadcast', { event: 'accept' }, ({ payload }) => {
         if (current.settled || payload?.host !== myId || !current.invite || payload?.guest !== current.invite.guest) return;
         const { guest, seed } = current.invite;
         stopSearch();
-        startLive({ host: myId, guest, seed, partnerNick: payload.nick });
+        startLive({ host: myId, guest, seed, partnerNick: payload.nick, partnerAvatar: payload.avatar });
       })
       .subscribe(status => {
         if (status === 'SUBSCRIBED') lobby.track({ at: Date.now() }).catch(() => {});
@@ -946,7 +1015,7 @@
     let them;
     let note = '';
     if (opponent.kind === 'ghost') {
-      them = { n: opponent.nick, ...D.ghostResult(opponent.bits, opponent.times) };
+      them = { n: opponent.nick, v: opponent.avatar, ...D.ghostResult(opponent.bits, opponent.times) };
       note = tr('duel_ghost_note', { date: formatLongDate(opponent.at) });
     } else {
       match?.channel.send({ type: 'broadcast', event: 'final', payload: { r: me.r, q: me.q, m: me.m } }).catch(() => {});
@@ -960,10 +1029,10 @@
         state.waitingFinal = null;
       }
       if (opponent.final) {
-        them = { n: opponent.nick, ...opponent.final };
+        them = { n: opponent.nick, v: opponent.avatar, ...opponent.final };
       } else {
         // Ушёл до конца: считаем по последнему счёту, без разбора общих ошибок.
-        them = { n: opponent.nick, r: opponent.r, q: opponent.q, m: D.packMask(Array(opponent.q).fill(true)) };
+        them = { n: opponent.nick, v: opponent.avatar, r: opponent.r, q: opponent.q, m: D.packMask(Array(opponent.q).fill(true)) };
         note = tr('duel_opponent_left');
       }
       leaveMatch();
@@ -1092,7 +1161,7 @@
     const token = config.ranked ? await humanToken(config.turnstile) : '';
     try {
       const result = await postJson('/api/duel/finish', {
-        run, nick: state.nick, player: playerId(), answers, times, token
+        run, nick: state.nick, avatar: myAvatar(), player: playerId(), answers, times, token
       });
       if (result?.ranked) rememberRun(run);
       return result;
@@ -1141,7 +1210,7 @@
     const nick = D.sanitizeNick(row.nick) || tr('duel_opponent');
     return `<li class="${mine ? 'is-mine' : ''}">
       <span class="duel-board-place">${escapeHtml(place)}</span>
-      ${avatarHtml(nick, 'duel-avatar-sm')}
+      ${avatarHtml(nick, 'duel-avatar-sm', D.sanitizeAvatar(row.avatar))}
       <span class="duel-board-nick">${escapeHtml(nick)}${mine ? ` <em>${escapeHtml(tr('duel_board_you'))}</em>` : ''}</span>
       <span class="duel-board-score"><strong>${escapeHtml(row.correct)}</strong> <small>${escapeHtml(tr('duel_errors'))}: ${errors}</small></span>
     </li>`;
@@ -1155,7 +1224,7 @@
       if (!row) return `<div class="duel-podium-step is-${place} is-empty"><span class="duel-podium-place">${place}</span></div>`;
       const nick = D.sanitizeNick(row.nick) || tr('duel_opponent');
       return `<div class="duel-podium-step is-${place}${mine.has(Number(row.id)) ? ' is-mine' : ''}">
-        ${avatarHtml(nick)}
+        ${avatarHtml(nick, '', D.sanitizeAvatar(row.avatar))}
         <span class="duel-podium-nick">${escapeHtml(nick)}</span>
         <strong class="duel-podium-score">${escapeHtml(row.correct)}</strong>
         <span class="duel-podium-place">${['🥇', '🥈', '🥉'][place - 1]}</span>

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import lib from '../public/lib.js';
 
-const { mergeProgress, collectProgress, applyProgress, isProgressKey, progressSignature } = lib;
+const { mergeProgress, collectProgress, applyProgress, isProgressKey, progressSignature, nickChangeAvailableAt } = lib;
 
 // Хранилище в памяти с тем же интерфейсом, что у localStorage.
 const memoryStorage = (initial = {}) => {
@@ -175,5 +175,18 @@ describe('миграция 031: ник раз в 3 месяца и аватар'
     expect(sql).toMatch(/returns table \(place bigint, id bigint, nick text, avatar text,/);
     // Место попытки пересоздано после таблицы, на которую ссылается.
     expect(sql.indexOf('create function public.duel_run_place')).toBeGreaterThan(sql.indexOf('create function public.duel_leaderboard'));
+  });
+});
+
+// Подпись в карточке профиля: когда ник можно сменить снова.
+describe('профиль: срок смены ника', () => {
+  const now = Date.parse('2026-09-27T12:00:00Z');
+  it('ник не меняли или смена давно — можно сейчас', () => {
+    expect(nickChangeAvailableAt(null, now)).toBeNull();
+    expect(nickChangeAvailableAt('2026-05-01T10:00:00Z', now)).toBeNull();
+    expect(nickChangeAvailableAt('не дата', now)).toBeNull();
+  });
+  it('меняли вчера — через три месяца', () => {
+    expect(nickChangeAvailableAt('2026-09-26T12:00:00Z', now).toISOString()).toBe('2026-12-26T12:00:00.000Z');
   });
 });

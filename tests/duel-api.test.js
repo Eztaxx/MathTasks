@@ -178,6 +178,20 @@ describe('дуэли на сервере: конец попытки', () => {
     expect(calls.find(call => call.url.endsWith('/rpc/duel_run_save')).body).toMatchObject({ p_nick: null, p_player: null });
   });
 
+  // Н3: выбранный зверь пишется отдельной функцией (миграция 031); без неё попытка всё равно сохраняется.
+  it('зверь игрока пишется к попытке, а без миграции 031 это не мешает', async () => {
+    const calls = mockBackend();
+    const response = await duelApi(post('/api/duel/finish', {
+      run: 77, nick: 'Быстрая Лиса', avatar: 'tiger', player: 'abcdef0123456789', answers: answersFor(24), times: humanTimes(24), token: 'ok-token'
+    }), ENV);
+    expect(response.status).toBe(200);
+    expect(calls.find(call => call.url.endsWith('/rpc/duel_run_set_avatar')).body).toEqual({ p_run: 77, p_avatar: 'tiger' });
+    // Чужой ключ зверя не пишется вовсе.
+    const calls2 = mockBackend();
+    await duelApi(post('/api/duel/finish', { run: 77, avatar: '<img>', answers: answersFor(5), times: humanTimes(5), token: 't' }), ENV);
+    expect(calls2.some(call => call.url.endsWith('/rpc/duel_run_set_avatar'))).toBe(false);
+  });
+
   it('законченную попытку второй раз не закончить', async () => {
     mockBackend({ row: { finished: true } });
     const response = await duelApi(post('/api/duel/finish', { run: 77, answers: answersFor(5), times: humanTimes(5) }), ENV);

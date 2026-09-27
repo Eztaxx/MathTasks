@@ -3738,6 +3738,18 @@
     return out;
   };
 
+  /* Когда ник профиля можно сменить снова (миграция 031: не чаще раза в
+     3 месяца). null — можно сейчас: ник ещё не меняли или срок прошёл.
+     Решает сервер (rename_profile); здесь — только подпись в карточке. */
+  const nickChangeAvailableAt = (changedAt, now = Date.now(), months = 3) => {
+    if (!changedAt) return null;
+    const changed = new Date(changedAt);
+    if (Number.isNaN(changed.getTime())) return null;
+    const next = new Date(changed.getTime());
+    next.setUTCMonth(next.getUTCMonth() + months); // как interval в базе — по UTC, без перехода на зимнее время
+    return next.getTime() > now ? next : null;
+  };
+
   // Стабильная подпись снимка: отправляем на сервер, только если что-то поменялось.
   const progressSignature = data => {
     const keys = Object.keys(data || {}).sort();
@@ -3841,6 +3853,7 @@
     sliceTaskRange,
     makeSlug,
     buildTitlePrompt,
+    nickChangeAvailableAt,
     suggestAnswerLabel,
     withAnswerLabel,
     answerLabelPlan,

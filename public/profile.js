@@ -24,7 +24,11 @@
   const TOUCH_KEY = 'math-tasks:profile-touched';
 
   let ready = null;        // есть ли таблицы: null — ещё не проверяли
-  let profile = null;      // { id, nick }
+  let profile = null;      // { id, nick, nick_changed_at?, avatar? }
+  /* rename — применена миграция 031: ник меняется функцией rename_profile
+     (не чаще раза в 3 месяца), а зверь хранится в профиле. До неё в
+     карточке нет ни смены ника, ни выбора зверя. */
+  const features = { rename: false };
   let lastSignature = null;
   let lastSyncAt = 0;
   let syncing = false;
@@ -63,14 +67,31 @@
 
   async function loadProfile() {
     try {
-      const { data, error } = await db.from('student_profiles').select('id,nick').maybeSingle();
+      let { data, error } = await db.from('student_profiles').select('id,nick,nick_changed_at,avatar').maybeSingle();
+      features.rename = !error;
+      // Без миграции 031 новых столбцов нет — читаем как раньше.
+      if (error) ({ data, error } = await db.from('student_profiles').select('id,nick').maybeSingle());
       profile = error ? null : data;
     } catch {
       profile = null;
     }
-    // Ник профиля — общий для сайта: дуэль на этом устройстве покажет его же.
-    if (profile?.nick) storeNick(profile.nick);
+    rememberProfile();
     return profile;
+  }
+
+  /* Ник и зверь профиля — общие для сайта. Страница дуэли не грузит
+     profile.js и узнаёт о профиле по маркеру: с ним ник там только для
+     чтения, а зверь — из профиля (managed). */
+  const PROFILE_KEY = 'math-tasks:profile';
+  const AVATAR_KEY = 'math-tasks:avatar';
+  function rememberProfile() {
+    try {
+      if (!profile?.nick) { localStorage.removeItem(PROFILE_KEY); return; }
+      storeNick(profile.nick);
+      const avatar = nicks?.sanitizeAvatar ? nicks.sanitizeAvatar(profile.avatar) : '';
+      if (features.rename && avatar) localStorage.setItem(AVATAR_KEY, avatar);
+      localStorage.setItem(PROFILE_KEY, JSON.stringify({ nick: profile.nick, avatar: avatar || '', managed: features.rename }));
+    } catch {}
   }
 
   /* Прочитать снимок с сервера, слить с местным, записать и то и другое.
@@ -139,6 +160,7 @@
 
   // ── Действия ────────────────────────────────────────────────────────
   const ERRORS = {
+    nick_invalid: 'profile_err_nick_invalid',
     code_invalid: 'profile_err_code',
     not_signed_in: 'profile_err_generic',
     no_profile: 'profile_err_generic'
@@ -147,8 +169,18 @@
     const message = String(error?.message || error || '');
     // Анонимный вход выключен или закрыта регистрация: Supabase не пускает анонимов и тогда.
     if ((/anonymous/i.test(message) && /disabled/i.test(message)) || /signups? not allowed|signup_disabled/i.test(message)) return tr('profile_err_disabled');
+    // Ник меняли недавно: сервер присылает дату, когда можно снова.
+    const soon = /nick_too_soon:(\d{4}-\d{2}-\d{2})/.exec(message);
+    if (soon) return tr('profile_err_nick_soon', { date: formatDay(soon[1]) });
+    if (/PGRST202|42883|rename_profile|set_profile_avatar/.test(message) && /not find|does not exist|function/i.test(message)) return tr('profile_err_unavailable');
     const key = Object.keys(ERRORS).find(code => message.includes(code));
     return tr(key ? ERRORS[key] : 'profile_err_generic');
+  };
+
+  const formatDay = value => {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? String(value)
+      : date.toLocaleDateString(lang() === 'lv' ? 'lv-LV' : 'ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
   };
 
   async function ensureSignedIn() {
@@ -162,6 +194,15 @@
     const { error } = await db.rpc('ensure_profile', { p_nick: nick });
     if (error) throw error;
     await loadProfile();
+    // Зверь, выбранный до профиля в дуэли, переезжает в профиль.
+    if (features.rename && profile && !profile.avatar) {
+      let local = '';
+      try { local = nicks?.sanitizeAvatar ? nicks.sanitizeAvatar(localStorage.getItem(AVATAR_KEY)) : ''; } catch {}
+      if (local && !(await db.rpc('set_profile_avatar', { p_avatar: local })).error) {
+        profile.avatar = local;
+        rememberProfile();
+      }
+    }
     lastSignature = null;
     await sync();
     startSyncing();
@@ -184,6 +225,7 @@
     const { error } = await db.rpc('delete_my_profile');
     if (error) throw error;
     profile = null;
+    rememberProfile();
     lastSignature = null;
     started = false;
     clearInterval(timer);
@@ -240,10 +282,35 @@
       <p class="profile-error" data-profile-error hidden></p>`;
   }
 
+  const avatarSpan = () => {
+    if (!nicks?.avatarFor) return '';
+    const avatar = nicks.avatarFor(profile.nick, profile.avatar);
+    return `<span class="duel-avatar profile-avatar${avatar.emoji ? ' is-emoji' : ''}" style="--h:${avatar.hue}" aria-hidden="true">${escapeHtml(avatar.text)}</span>`;
+  };
+
+  // Смена ника (не чаще раза в 3 месяца) и выбор зверя — после миграции 031.
+  function identityControls() {
+    if (!features.rename) return '';
+    const waitUntil = lib.nickChangeAvailableAt ? lib.nickChangeAvailableAt(profile.nick_changed_at) : null;
+    const mine = nicks?.sanitizeAvatar ? nicks.sanitizeAvatar(profile.avatar) : '';
+    const grid = (nicks?.AVATARS || []).map(([id, icon]) => `<button type="button" data-profile-avatar="${id}" aria-pressed="${id === mine}" aria-label="${escapeHtml(icon)}">${icon}</button>`).join('');
+    return `
+      <div class="profile-actions">
+        <button type="button" class="secondary-button" data-profile-rename-open${waitUntil ? ' disabled' : ''}>${escapeHtml(tr('profile_rename'))}</button>
+        <button type="button" class="secondary-button" data-profile-avatar-open>${escapeHtml(tr('profile_avatar'))}</button>
+      </div>
+      <p class="profile-note">${escapeHtml(waitUntil ? tr('profile_rename_wait', { date: formatDay(waitUntil) }) : tr('profile_rename_hint'))}</p>
+      <form class="profile-rename" data-profile-rename hidden>
+        <label><span>${escapeHtml(tr('profile_nick'))}</span><input type="text" maxlength="24" autocomplete="off" spellcheck="false" value="${escapeHtml(profile.nick)}" /></label>
+        <button type="submit" class="primary-button">${escapeHtml(tr('profile_rename_save'))}</button>
+      </form>
+      <div class="profile-avatar-grid duel-avatar-grid" data-profile-avatar-grid hidden>${grid}</div>`;
+  }
+
   function renderWithProfile(box) {
     box.innerHTML = `
-      <h2>💾 ${escapeHtml(tr('profile_title'))}: <span class="profile-name">${escapeHtml(profile.nick)}</span></h2>
-      <p class="profile-status" data-profile-status>${escapeHtml(tr('profile_syncing'))}</p>
+      <h2>💾 ${escapeHtml(tr('profile_title'))}: ${avatarSpan()}<span class="profile-name">${escapeHtml(profile.nick)}</span></h2>
+      <p class="profile-status" data-profile-status>${escapeHtml(tr('profile_syncing'))}</p>${identityControls()}
       <div class="profile-actions">
         <button type="button" class="secondary-button" data-profile-code>${escapeHtml(tr('profile_move'))}</button>
         <button type="button" class="secondary-button" data-profile-recovery>${escapeHtml(tr('profile_recovery'))}</button>
@@ -290,6 +357,35 @@
     const box = card();
     if (!box || !box.contains(event.target)) return;
     const target = event.target;
+
+    if (target.closest('[data-profile-rename-open]')) {
+      const form = box.querySelector('[data-profile-rename]');
+      if (form) { form.hidden = !form.hidden; if (!form.hidden) form.querySelector('input')?.focus(); }
+      return;
+    }
+    if (target.closest('[data-profile-avatar-open]')) {
+      const grid = box.querySelector('[data-profile-avatar-grid]');
+      if (grid) grid.hidden = !grid.hidden;
+      return;
+    }
+    const avatarChoice = target.closest('[data-profile-avatar]');
+    if (avatarChoice) {
+      showError('');
+      const id = nicks?.sanitizeAvatar ? nicks.sanitizeAvatar(avatarChoice.dataset.profileAvatar) : '';
+      if (!id) return;
+      busy(avatarChoice, true);
+      try {
+        const { error } = await db.rpc('set_profile_avatar', { p_avatar: id });
+        if (error) throw error;
+        profile.avatar = id;
+        rememberProfile();
+        await renderCard();
+      } catch (error) {
+        showError(errorText(error));
+        busy(avatarChoice, false);
+      }
+      return;
+    }
 
     if (target.closest('[data-profile-join-open]')) {
       const form = box.querySelector('[data-profile-join]');
@@ -361,6 +457,30 @@
         showError(errorText(error));
         busy(remove, false);
       }
+    }
+  });
+
+  // Смена ника: срок проверяет сервер (rename_profile), здесь — только чистка ника.
+  document.addEventListener('submit', async event => {
+    const form = event.target.closest?.('#profile-card [data-profile-rename]');
+    if (!form) return;
+    event.preventDefault();
+    showError('');
+    const raw = form.querySelector('input')?.value;
+    const nick = nicks?.sanitizeNick ? nicks.sanitizeNick(raw) : String(raw || '').trim();
+    if (!nick) { showError(tr('profile_err_nick_invalid')); return; }
+    const button = form.querySelector('button');
+    busy(button, true);
+    try {
+      const { data, error } = await db.rpc('rename_profile', { p_nick: nick });
+      if (error) throw error;
+      profile.nick = nick;
+      profile.nick_changed_at = data || profile.nick_changed_at;
+      rememberProfile();
+      await renderCard();
+    } catch (error) {
+      showError(errorText(error));
+      busy(button, false);
     }
   });
 

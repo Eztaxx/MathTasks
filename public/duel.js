@@ -108,11 +108,31 @@
   const ANIMAL_ICONS = new Map(
     Object.values(NICK_PARTS).flatMap(parts => parts.animals.map(([animal, , icon]) => [animal.toLowerCase(), icon]))
   );
-  const avatarFor = nick => {
+  /* Звери на выбор (Н3): игрок может сам выбрать аватар из этого набора.
+     Своих картинок нет — только ключ, латиницей: его хранят профиль,
+     ссылка на вызов и попытка в базе (миграция 031). Первые двадцать —
+     те же, что в генераторе ников. */
+  const AVATARS = [
+    ['fox', '🦊'], ['cat', '🐱'], ['owl', '🦉'], ['hedgehog', '🦔'], ['badger', '🦡'], ['otter', '🦦'],
+    ['squirrel', '🐿️'], ['wolf', '🐺'], ['rabbit', '🐰'], ['lynx', '🐈'], ['moose', '🫎'], ['penguin', '🐧'],
+    ['dolphin', '🐬'], ['turtle', '🐢'], ['panda', '🐼'], ['raccoon', '🦝'], ['beaver', '🦫'], ['eagle', '🦅'],
+    ['gull', '🐦'], ['whale', '🐳'], ['tiger', '🐯'], ['lion', '🦁'], ['bear', '🐻'], ['koala', '🐨'],
+    ['frog', '🐸'], ['octopus', '🐙'], ['shark', '🦈'], ['bee', '🐝'], ['butterfly', '🦋'], ['ladybug', '🐞'],
+    ['parrot', '🦜'], ['flamingo', '🦩'], ['peacock', '🦚'], ['dragon', '🐲'], ['trex', '🦖'], ['unicorn', '🦄'],
+    ['horse', '🐴'], ['zebra', '🦓'], ['giraffe', '🦒'], ['elephant', '🐘'], ['hamster', '🐹'], ['mouse', '🐭'],
+    ['dog', '🐶'], ['monkey', '🐵'], ['crab', '🦀'], ['snail', '🐌'], ['robot', '🤖'], ['ghost', '👻']
+  ];
+  const AVATAR_ICONS = new Map(AVATARS);
+  // Чужой ключ (из ссылки, из базы) — только из набора, иначе пусто.
+  const sanitizeAvatar = id => (AVATAR_ICONS.has(String(id ?? '')) ? String(id) : '');
+
+  // avatar — выбранный зверь; не выбран — как раньше, по нику.
+  const avatarFor = (nick, avatar = '') => {
     const text = String(nick || '').trim();
     let hash = 0;
     for (const char of text) hash = (hash * 31 + char.codePointAt(0)) >>> 0;
     const hue = hash % 360;
+    if (AVATAR_ICONS.has(avatar)) return { text: AVATAR_ICONS.get(avatar), emoji: true, hue, id: avatar };
     const words = text.toLowerCase().split(/\s+/);
     const icon = ANIMAL_ICONS.get(words[words.length - 1]);
     if (icon) return { text: icon, emoji: true, hue };
@@ -228,16 +248,20 @@
     const { r, q, m } = player;
     // Ник из чужой ссылки проверяем заново: ссылку могли собрать руками.
     const n = sanitizeNick(player.n);
-    if (r === undefined && q === undefined && m === undefined) return { n, pending: true };
+    const v = sanitizeAvatar(player.v);
+    const withAvatar = data => (v ? { ...data, v } : data);
+    if (r === undefined && q === undefined && m === undefined) return withAvatar({ n, pending: true });
     if (!isCount(q) || !isCount(r) || r > q) return null;
     const bits = unpackMask(m, q);
     if (!bits || bits.filter(Boolean).length !== r) return null;
-    return { n, r, q, m: String(m) };
+    return withAvatar({ n, r, q, m: String(m) });
   };
 
-  const packPlayer = player => (player.pending
-    ? { n: player.n }
-    : { n: player.n, r: player.r, q: player.q, m: player.m });
+  const packPlayer = player => {
+    const packed = player.pending ? { n: player.n } : { n: player.n, r: player.r, q: player.q, m: player.m };
+    const v = sanitizeAvatar(player.v);
+    return v ? { ...packed, v } : packed;
+  };
 
   /* Сложности в ссылке больше нет — лесенка у всех одна. Поле d осталось
      для старых ссылок: их отсеет поколение g. */
@@ -445,6 +469,8 @@
     unpackMask,
     generateNick,
     avatarFor,
+    AVATARS,
+    sanitizeAvatar,
     sanitizeNick,
     hasResult,
     encodeChallenge,

@@ -6872,6 +6872,27 @@ body.admin-page #ai-prompt-dialog .text-button{color:var(--adm-mute)}
 .duel-avatar-lg.is-emoji{font-size:30px}
 .duel-avatar-sm{width:26px;height:26px;font-size:11px}
 .duel-avatar-sm.is-emoji{font-size:15px}
+/* Зверь на выбор (Н3): аватар — кнопка, под ним сетка зверей. С профилем выбирают в профиле. */
+.duel-avatar.is-button{border:0;padding:0;cursor:pointer;box-shadow:0 0 0 2px transparent;transition:box-shadow .15s}
+.duel-avatar.is-button:hover:not(:disabled),.duel-avatar.is-button:focus-visible{box-shadow:0 0 0 3px #c4b5fd}
+.duel-avatar.is-button:disabled{cursor:default}
+.duel-avatar-picker{margin:10px 0 0;padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.duel-avatar-picker[hidden],.profile-rename[hidden],.profile-avatar-grid[hidden],.duel-nick-profile[hidden]{display:none}
+.duel-avatar-picker-title{margin:0 0 8px;font:800 13px Manrope,sans-serif;color:var(--ink)}
+.duel-avatar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px}
+.duel-avatar-grid button{display:grid;place-items:center;height:44px;border:1px solid var(--line);border-radius:12px;background:#f8fafc;font-size:24px;line-height:1;cursor:pointer}
+.duel-avatar-grid button:hover{background:#f1f0ff}
+.duel-avatar-grid button[aria-pressed="true"]{border-color:#7c3aed;box-shadow:0 0 0 2px #7c3aed inset;background:#f5f3ff}
+.duel-avatar-auto{margin-top:8px}
+.profile-avatar{margin:0 8px 0 4px;vertical-align:middle}
+.profile-rename{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px}
+.profile-rename input{height:40px;min-width:0;width:min(320px,100%);padding:0 12px;border:1px solid var(--line);border-radius:10px;font:700 15px Manrope,sans-serif;color:var(--ink);background:#fff}
+.profile-avatar-grid{margin-top:12px}
+body.dark .duel-avatar-picker{background:#0f1420;border-color:#1f2839}
+body.dark .duel-avatar-grid button{background:#121a2a;border-color:#1f2839}
+body.dark .duel-avatar-grid button:hover{background:#1c1838}
+body.dark .duel-avatar-grid button[aria-pressed="true"]{background:#231d45}
+body.dark .profile-rename input{background:#0d121c;color:#edf2ff;border-color:#1f2839}
 
 .duel-player{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 4px 20px rgba(11,25,53,.03)}
 .duel-player-body{display:flex;flex-direction:column;gap:4px;min-width:0}

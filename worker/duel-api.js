@@ -164,6 +164,9 @@ async function finish(request, env, config) {
       p_ranked: ranked
     });
     if (saved !== true) return json({ error: 'finished' }, 409);
+    // Зверь игрока (миграция 031). До неё функции нет — попытка сохраняется и без него.
+    const avatar = D.sanitizeAvatar(body.avatar);
+    if (avatar) await rpc(env, 'duel_run_set_avatar', { p_run: run, p_avatar: avatar }).catch(() => null);
     const place = ranked ? await rpc(env, 'duel_run_place', { p_run: run }).catch(() => null) : null;
     let reason = assessment.reason;
     if (!reason && config.ranked && !human) reason = 'captcha';
