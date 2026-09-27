@@ -34,14 +34,15 @@
   };
 
   // FNV-1a: хватает, чтобы заметить обрезанную или испорченную ссылку.
-  const checksum = text => {
+  const fnv1a = text => {
     let hash = 0x811c9dc5;
     for (const byte of new TextEncoder().encode(text)) {
       hash ^= byte;
       hash = Math.imul(hash, 0x01000193) >>> 0;
     }
-    return hash.toString(36);
+    return hash;
   };
+  const checksum = text => fnv1a(text).toString(36);
 
   // Какие примеры решены верно: по биту на пример, шесть бит на символ.
   const MASK_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
@@ -444,6 +445,59 @@
 
   const PERIODS = ['week', 'all'];
 
+  // ── Дуэль дня ───────────────────────────────────────────────────────
+  /* Одни и те же примеры для всех на сутки в каждой категории (Н2). Зерно
+     дня не хранится нигде: его одинаково считают браузер и воркер из
+     категории и даты по рижскому времени. В базе попытка дня отличается от
+     обычной только этим зерном — случайное зерно с ним практически не
+     совпадёт (одно на четыре миллиарда). */
+  const DAY_ZONE = 'Europe/Riga';
+  const rigaDayKey = (date = new Date()) => {
+    const parts = new Intl.DateTimeFormat('en-GB', { timeZone: DAY_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' })
+      .formatToParts(date)
+      .reduce((out, part) => ({ ...out, [part.type]: part.value }), {});
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  };
+  // «2026-09-28» на days дней вперёд или назад — арифметика по UTC, без часовых поясов.
+  const shiftDayKey = (dayKey, days) => {
+    const [y, m, d] = String(dayKey).split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+  };
+  const daySeed = (cat, dayKey) => fnv1a(`daily:${LADDER_VERSION}:${cat}:${dayKey}`);
+  /* День попытки по её зерну: сегодня или вчера (минута, начатая в 23:59,
+     заканчивается уже завтра). null — обычная попытка. */
+  const dailySeedDay = (cat, seed, now = new Date()) => {
+    const today = rigaDayKey(now);
+    for (const day of [today, shiftDayKey(today, -1)]) {
+      if (daySeed(cat, day) === (Number(seed) >>> 0)) return day;
+    }
+    return null;
+  };
+  /* Таблица дня: одна строка на игрока, лучше — больше верных, при равенстве
+     меньше примеров, потом кто раньше. Строки без номера игрока не
+     склеиваются между собой. */
+  const dailyBoard = (rows, limit = 20) => {
+    const best = new Map();
+    const better = (a, b) => (Number(b.correct) - Number(a.correct))
+      || (Number(a.attempted) - Number(b.attempted))
+      || String(a.finished_at || '').localeCompare(String(b.finished_at || ''));
+    for (const row of rows || []) {
+      if (!row || !Number.isFinite(Number(row.correct))) continue;
+      const key = row.player ? `p:${row.player}` : `r:${row.id}`;
+      const known = best.get(key);
+      if (!known || better(row, known) < 0) best.set(key, row);
+    }
+    return [...best.values()].sort(better).slice(0, limit).map((row, i) => ({
+      place: i + 1,
+      id: Number(row.id),
+      nick: row.nick ?? null,
+      avatar: sanitizeAvatar(row.avatar),
+      correct: Number(row.correct),
+      attempted: Number(row.attempted)
+    }));
+  };
+  const dailyPlaceOf = (board, runId) => (board || []).find(row => row.id === Number(runId))?.place ?? null;
+
   const newSeed = (random = Math.random) => {
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
       return crypto.getRandomValues(new Uint32Array(1))[0];
@@ -488,6 +542,12 @@
     PLAYER_PATTERN,
     newPlayerId,
     PERIODS,
+    rigaDayKey,
+    shiftDayKey,
+    daySeed,
+    dailySeedDay,
+    dailyBoard,
+    dailyPlaceOf,
     newSeed
   };
 

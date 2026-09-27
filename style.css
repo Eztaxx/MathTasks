@@ -6906,7 +6906,12 @@ body.dark .profile-rename input{background:#0d121c;color:#edf2ff;border-color:#1
 .duel-best.is-empty{background:#f1f4fb;color:var(--muted)}
 
 /* Режимы — три карточки; случайный соперник выделен. */
-.duel-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.duel-modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+/* Дуэль дня (Н2): карточка с янтарным акцентом и строкой «сегодня сыграли». */
+.duel-mode.is-daily{border-color:#fcd34d;background:linear-gradient(135deg,#fffbeb,#fff7ed)}
+.duel-mode.is-daily .duel-mode-icon{background:#fef3c7}
+.duel-daily-status{margin-top:2px;padding:3px 9px;border-radius:999px;background:#fde68a;color:#78350f;font:800 11.5px Manrope,sans-serif}
+.duel-daily-status[hidden]{display:none}
 .duel-mode{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:16px;border:1.5px solid var(--line);border-radius:16px;background:#fff;color:var(--ink);text-align:left;cursor:pointer;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
 .duel-mode:hover{transform:translateY(-2px);border-color:#93b4f5;box-shadow:0 8px 24px rgba(23,100,255,.12)}
 .duel-mode:focus-visible{outline:2px solid #1764ff;outline-offset:2px}
@@ -7058,6 +7063,7 @@ body.dark .profile-rename input{background:#0d121c;color:#edf2ff;border-color:#1
 .duel-outcome.is-tie{background:linear-gradient(135deg,#e0e7ff,#ede9fe);color:#312e81}
 .duel-outcome.is-solo{background:linear-gradient(135deg,#eef4ff,#f3edff);color:#1e3a8a}
 .duel-outcome.is-wait{background:#f1f4fb;color:var(--muted)}
+.duel-outcome.is-daily{background:linear-gradient(135deg,#fef3c7,#ffedd5);color:#78350f}
 .duel-result-title{margin:0 0 4px;font:800 28px Manrope,sans-serif;text-wrap:balance}
 .duel-result-sub{margin:0;font:600 13.5px Manrope,sans-serif;opacity:.8}
 .duel-versus{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:14px;align-items:stretch}
@@ -7115,6 +7121,10 @@ body.dark .duel-outcome.is-win{background:linear-gradient(135deg,#12301f,#0f2e2a
 body.dark .duel-outcome.is-lose{background:linear-gradient(135deg,#3a1518,#2c1215);color:#fecaca}
 body.dark .duel-outcome.is-tie{background:linear-gradient(135deg,#1f1f4a,#241a44);color:#c7d2fe}
 body.dark .duel-outcome.is-solo{background:linear-gradient(135deg,#131c33,#1d1535);color:#bfd4ff}
+body.dark .duel-outcome.is-daily{background:linear-gradient(135deg,#33260d,#2e1d10);color:#fde68a}
+body.dark .duel-mode.is-daily{border-color:#78581c;background:linear-gradient(135deg,#231c0e,#20170f)}
+body.dark .duel-mode.is-daily .duel-mode-icon{background:#3a2c10}
+body.dark .duel-daily-status{background:#4a3710;color:#fde68a}
 body.dark .duel-rank{background:#1c2331}
 body.dark .duel-rank.is-ranked{background:#3a2c08;color:#fde68a}
 body.dark .duel-share{background:#171230;border-color:#2e2553}

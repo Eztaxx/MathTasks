@@ -140,7 +140,7 @@ describe('дуэли на сервере: конец попытки', () => {
     const response = await duelApi(post('/api/duel/finish', {
       run: 77, nick: 'Быстрая Лиса', player: 'abcdef0123456789', answers, times, token: 'ok-token', correct: 80
     }), ENV);
-    expect(await response.json()).toEqual({ correct: 23, attempted: 24, verified: true, ranked: true, place: 3, reason: '' });
+    expect(await response.json()).toEqual({ correct: 23, attempted: 24, verified: true, ranked: true, place: 3, reason: '', daily: null });
     const save = calls.find(call => call.url.endsWith('/rpc/duel_run_save')).body;
     // Счёт из запроса (correct: 80) не используется — только пересчитанный.
     expect(save).toMatchObject({ p_run: 77, p_nick: 'Быстрая Лиса', p_player: 'abcdef0123456789', p_correct: 23, p_attempted: 24, p_verified: true, p_ranked: true });
@@ -209,5 +209,75 @@ describe('дуэли на сервере: конец попытки', () => {
     const response = await duelApi(post('/api/duel/finish', { run: 77, answers: ['1', '2'], times: [5000, 1000] }), ENV);
     expect(response.status).toBe(400);
     expect(calls).toHaveLength(0);
+  });
+});
+
+/* Н2: дуэль дня. Таблица дня — из строк duel_runs с зерном дня; в неё идёт
+   первая попытка игрока за день, повторы — тренировка. */
+describe('дуэль дня на сервере', () => {
+  const today = D.rigaDayKey();
+  const daySeed = D.daySeed('multdiv', today);
+  const dayRows = [
+    { id: 5, nick: 'Gudrā Pūce', player: 'pppppppp', correct: 21, attempted: 23, finished_at: '2026-09-28T08:00:00Z', avatar: 'owl' },
+    { id: 77, nick: 'Быстрая Лиса', player: 'abcdef0123456789', correct: 23, attempted: 24, finished_at: '2026-09-28T09:00:00Z', avatar: null }
+  ];
+  const mockDaily = ({ earlier = [], rows = dayRows, avatarColumn = true } = {}) => {
+    const calls = [];
+    vi.stubGlobal('fetch', vi.fn(async (url, init = {}) => {
+      const text = String(url);
+      calls.push({ url: text, body: init.body ? JSON.parse(init.body) : null });
+      const reply = data => new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      if (text.includes('turnstile')) return reply({ success: true });
+      if (text.includes('/rest/v1/duel_runs?select=id&')) return reply(earlier);
+      if (text.includes('/rest/v1/duel_runs?select=')) {
+        if (!avatarColumn && text.includes('avatar')) return new Response('{"code":"42703"}', { status: 400 });
+        return reply(rows);
+      }
+      if (text.endsWith('/rpc/duel_run_load')) return reply([{ id: 77, cat: 'multdiv', diff: 'ladder', gen: GEN, seed: daySeed, elapsed_ms: 61800, finished: false }]);
+      if (text.endsWith('/rpc/duel_run_save')) return reply(true);
+      if (text.endsWith('/rpc/duel_run_place')) return reply(4);
+      return new Response('not found', { status: 404 });
+    }));
+    return calls;
+  };
+  const answersDay = count => D.ladderQuestions(T, 'multdiv', daySeed, BATCH).slice(0, count).map((q, i) => (i === 4 ? `${q.answer}9` : String(q.answer)));
+
+  it('GET /api/duel/daily — зерно на сегодня и таблица дня', async () => {
+    mockDaily();
+    const response = await worker.fetch(new Request(`${ORIGIN}/api/duel/daily?cat=multdiv`), ENV);
+    expect(response.headers.get('cache-control')).toContain('max-age=30');
+    const data = await response.json();
+    expect(data).toMatchObject({ day: today, seed: daySeed, cat: 'multdiv', gen: GEN, players: 2 });
+    expect(data.board.map(row => [row.place, row.id, row.avatar])).toEqual([[1, 77, ''], [2, 5, 'owl']]);
+  });
+
+  it('чужая категория — 400; без ключей зерно есть, таблицы нет', async () => {
+    expect((await worker.fetch(new Request(`${ORIGIN}/api/duel/daily?cat=hack`), ENV)).status).toBe(400);
+    const plain = await (await worker.fetch(new Request(`${ORIGIN}/api/duel/daily?cat=addsub2`), {})).json();
+    expect(plain).toMatchObject({ day: today, seed: D.daySeed('addsub2', today), board: null });
+  });
+
+  it('до миграции 031 (нет столбца avatar) таблица читается без него', async () => {
+    const calls = mockDaily({ avatarColumn: false });
+    const data = await (await worker.fetch(new Request(`${ORIGIN}/api/duel/daily?cat=multdiv`), ENV)).json();
+    expect(data.board).toHaveLength(2);
+    expect(calls.filter(call => call.url.includes('/rest/v1/duel_runs')).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('первая попытка дня — в таблицу дня с местом', async () => {
+    mockDaily();
+    const result = await (await duelApi(post('/api/duel/finish', {
+      run: 77, nick: 'Быстрая Лиса', player: 'abcdef0123456789', answers: answersDay(24), times: humanTimes(24), token: 'ok'
+    }), ENV)).json();
+    expect(result).toMatchObject({ ranked: true, daily: { day: today, place: 1 } });
+  });
+
+  it('повтор за день — тренировка: сохраняется, но не в таблицу', async () => {
+    const calls = mockDaily({ earlier: [{ id: 50 }] });
+    const result = await (await duelApi(post('/api/duel/finish', {
+      run: 77, nick: 'Быстрая Лиса', player: 'abcdef0123456789', answers: answersDay(24), times: humanTimes(24), token: 'ok'
+    }), ENV)).json();
+    expect(result).toMatchObject({ ranked: false, reason: 'daily_repeat', daily: { day: today, place: null } });
+    expect(calls.find(call => call.url.endsWith('/rpc/duel_run_save')).body).toMatchObject({ p_verified: true, p_ranked: false });
   });
 });

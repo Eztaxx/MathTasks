@@ -1,6 +1,7 @@
 /* Дуэли: запись попыток и таблица лидеров.
 
      GET  /api/duel/config — включено ли и ключ Turnstile для страницы
+     GET  /api/duel/daily  — дуэль дня: зерно на сегодня и таблица дня
      POST /api/duel/start  — начало минуты: база запоминает время старта
      POST /api/duel/finish — конец: счёт, проверка и место в таблице
 
@@ -64,6 +65,54 @@ async function rpc(env, name, args) {
   });
   if (!response.ok) throw new Error(`supabase ${name} ${response.status}`);
   return response.json();
+}
+
+// Чтение таблицы служебным ключом (RLS для служебной роли не действует).
+async function rest(env, path) {
+  const response = await fetch(`${env.SUPABASE_URL}/rest/v1/${path}`, {
+    headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}` }
+  });
+  if (!response.ok) throw Object.assign(new Error(`supabase ${path.split('?')[0]} ${response.status}`), { status: response.status });
+  return response.json();
+}
+
+/* ── Дуэль дня (Н2) ───────────────────────────────────────────────────
+   Зерно дня — из категории и даты по рижскому времени (duel.js: daySeed),
+   базе оно не нужно: попытка дня — обычная строка duel_runs с этим зерном.
+   В таблицу дня идёт первая попытка игрока за день: примеры у всех одни,
+   и «лучшая из десяти» превратила бы день в заучивание ответов. Повторы
+   сохраняются как тренировка и соперники-записи, но не в таблицу. */
+let dailyAvatarColumn = true; // до миграции 031 столбца avatar нет
+async function dailyRows(env, cat, seed) {
+  const query = cols => `duel_runs?select=${cols}&cat=eq.${cat}&seed=eq.${seed}&diff=eq.${D.LADDER}&gen=eq.${RUN_GEN}`
+    + '&ranked=is.true&hidden=is.false&order=correct.desc,attempted.asc,finished_at.asc&limit=300';
+  const base = 'id,nick,player,correct,attempted,finished_at';
+  if (dailyAvatarColumn) {
+    try {
+      return await rest(env, query(`${base},avatar`));
+    } catch (error) {
+      if (error.status !== 400) throw error;
+      dailyAvatarColumn = false;
+    }
+  }
+  return rest(env, query(base));
+}
+
+async function daily(request, env, config) {
+  const url = new URL(request.url);
+  const cat = url.searchParams.get('cat');
+  if (!D.CATEGORIES.includes(cat)) return json({ error: 'category' }, 400);
+  const day = D.rigaDayKey();
+  const seed = D.daySeed(cat, day);
+  const base = { day, seed, cat, gen: RUN_GEN };
+  if (!config.ranked) return json({ ...base, board: null, players: 0 }, 200, { 'Cache-Control': 'public, max-age=30' });
+  try {
+    const rows = await dailyRows(env, cat, seed);
+    return json({ ...base, board: D.dailyBoard(rows), players: new Set(rows.map(row => row.player || `r${row.id}`)).size }, 200,
+      { 'Cache-Control': 'public, max-age=30' });
+  } catch {
+    return json({ ...base, board: null, players: 0 }, 200, { 'Cache-Control': 'no-store' });
+  }
 }
 
 async function verifyHuman(env, token, ip) {
@@ -149,13 +198,24 @@ async function finish(request, env, config) {
   const human = config.ranked && assessment.ok
     ? await verifyHuman(env, token, request.headers.get('cf-connecting-ip'))
     : false;
-  const ranked = config.ranked && assessment.ok && human;
+  let ranked = config.ranked && assessment.ok && human;
+  const validPlayer = typeof player === 'string' && D.PLAYER_PATTERN.test(player) ? player : null;
+  // Дуэль дня: в таблицу — первая попытка игрока за день.
+  const dailyDay = D.dailySeedDay(row.cat, Number(row.seed));
+  let dailyRepeat = false;
+  if (dailyDay && ranked && validPlayer) {
+    try {
+      const earlier = await rest(env, `duel_runs?select=id&cat=eq.${row.cat}&seed=eq.${Number(row.seed)}&player=eq.${validPlayer}`
+        + `&ranked=is.true&id=neq.${run}&limit=1`);
+      if (earlier.length) { ranked = false; dailyRepeat = true; }
+    } catch {}
+  }
 
   try {
     const saved = await rpc(env, 'duel_run_save', {
       p_run: run,
       p_nick: D.sanitizeNick(nick) || null,
-      p_player: typeof player === 'string' && D.PLAYER_PATTERN.test(player) ? player : null,
+      p_player: validPlayer,
       p_answers: answers,
       p_times: times,
       p_correct: correct,
@@ -168,15 +228,21 @@ async function finish(request, env, config) {
     const avatar = D.sanitizeAvatar(body.avatar);
     if (avatar) await rpc(env, 'duel_run_set_avatar', { p_run: run, p_avatar: avatar }).catch(() => null);
     const place = ranked ? await rpc(env, 'duel_run_place', { p_run: run }).catch(() => null) : null;
+    let dayPlace = null;
+    if (dailyDay && ranked) {
+      dayPlace = await dailyRows(env, row.cat, Number(row.seed)).then(rows => D.dailyPlaceOf(D.dailyBoard(rows), run)).catch(() => null);
+    }
     let reason = assessment.reason;
     if (!reason && config.ranked && !human) reason = 'captcha';
+    if (!reason && dailyRepeat) reason = 'daily_repeat';
     return json({
       correct,
       attempted: bits.length,
       verified: assessment.ok,
       ranked,
       place: place === null || place === undefined || !Number.isInteger(Number(place)) ? null : Number(place),
-      reason
+      reason,
+      daily: dailyDay ? { day: dailyDay, place: dayPlace } : null
     });
   } catch {
     return json({ error: 'database' }, 502);
@@ -190,6 +256,10 @@ async function duelApi(request, env) {
   if (pathname === '/api/duel/config') {
     if (request.method !== 'GET') return json({ error: 'method' }, 405);
     return json(config, 200, { 'Cache-Control': 'public, max-age=300' });
+  }
+  if (pathname === '/api/duel/daily') {
+    if (request.method !== 'GET') return json({ error: 'method' }, 405);
+    return daily(request, env, config);
   }
   if (pathname !== '/api/duel/start' && pathname !== '/api/duel/finish') return json({ error: 'not_found' }, 404);
   if (request.method !== 'POST') return json({ error: 'method' }, 405);

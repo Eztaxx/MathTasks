@@ -126,6 +126,57 @@ describe('дуэль: зверь на выбор', () => {
   });
 });
 
+/* Н2: дуэль дня — одно зерно на категорию и сутки по рижскому времени,
+   одинаковое в браузере и воркере. */
+describe('дуэль дня', () => {
+  it('день — по Риге: летом UTC+3, зимой UTC+2', () => {
+    expect(duel.rigaDayKey(new Date('2026-09-27T21:30:00Z'))).toBe('2026-09-28');
+    expect(duel.rigaDayKey(new Date('2026-09-27T20:59:00Z'))).toBe('2026-09-27');
+    expect(duel.rigaDayKey(new Date('2026-12-27T21:30:00Z'))).toBe('2026-12-27');
+    expect(duel.shiftDayKey('2026-03-01', -1)).toBe('2026-02-28');
+    expect(duel.shiftDayKey('2026-12-31', 1)).toBe('2027-01-01');
+  });
+
+  it('зерно дня постоянно для дня и категории и различается между ними', () => {
+    const seed = duel.daySeed('multdiv', '2026-09-28');
+    expect(duel.daySeed('multdiv', '2026-09-28')).toBe(seed);
+    expect(duel.daySeed('addsub2', '2026-09-28')).not.toBe(seed);
+    expect(duel.daySeed('multdiv', '2026-09-29')).not.toBe(seed);
+    expect(Number.isInteger(seed) && seed >= 0 && seed <= 0xFFFFFFFF).toBe(true);
+  });
+
+  it('попытка дня узнаётся по зерну: сегодня и вчера, но не позавчера', () => {
+    const now = new Date('2026-09-28T10:00:00Z');
+    expect(duel.dailySeedDay('multdiv', duel.daySeed('multdiv', '2026-09-28'), now)).toBe('2026-09-28');
+    expect(duel.dailySeedDay('multdiv', duel.daySeed('multdiv', '2026-09-27'), now)).toBe('2026-09-27');
+    expect(duel.dailySeedDay('multdiv', duel.daySeed('multdiv', '2026-09-26'), now)).toBeNull();
+    expect(duel.dailySeedDay('multdiv', 12345, now)).toBeNull();
+  });
+
+  it('таблица дня: одна строка на игрока, порядок по верным, ошибкам и времени', () => {
+    const rows = [
+      { id: 1, player: 'aaaaaaaa', nick: 'A', correct: 20, attempted: 22, finished_at: '2026-09-28T08:00:00Z' },
+      { id: 2, player: 'bbbbbbbb', nick: 'B', correct: 25, attempted: 27, finished_at: '2026-09-28T09:00:00Z', avatar: 'fox' },
+      { id: 3, player: 'aaaaaaaa', nick: 'A', correct: 26, attempted: 26, finished_at: '2026-09-28T10:00:00Z' },
+      { id: 4, player: null, nick: 'C', correct: 25, attempted: 25, finished_at: '2026-09-28T07:00:00Z' },
+      { id: 5, player: null, nick: 'D', correct: 25, attempted: 25, finished_at: '2026-09-28T11:00:00Z', avatar: 'hacker' }
+    ];
+    const board = duel.dailyBoard(rows);
+    expect(board.map(row => row.id)).toEqual([3, 4, 5, 2]);
+    expect(board.map(row => row.place)).toEqual([1, 2, 3, 4]);
+    expect(board.find(row => row.id === 2).avatar).toBe('fox');
+    expect(board.find(row => row.id === 5).avatar).toBe('');
+    expect(duel.dailyPlaceOf(board, 2)).toBe(4);
+    expect(duel.dailyPlaceOf(board, 1)).toBeNull();
+    expect(duel.dailyBoard(rows, 2)).toHaveLength(2);
+  });
+
+  it('контрольная сумма ссылки после выделения FNV-1a — прежняя', () => {
+    const link = duel.encodeChallenge({ g: 11, s: 7, c: 'multdiv', a: { n: 'Ātrā Lapsa', pending: true } });
+    expect(duel.decodeChallenge(link)).not.toBeNull();
+  });
+});
+
 describe('дуэль: маска верных ответов', () => {
   it('упаковка обратима при любой длине', () => {
     for (const length of [0, 1, 5, 6, 7, 40, 121]) {

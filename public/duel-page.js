@@ -8,7 +8,9 @@
        другого игрока (duel_ghost);
      • вызов друга — ссылка появляется сразу, до своей минуты: её можно
        сыграть и позже; сравнение открывается, когда сыграли оба;
-     • на рекорд — минута в одиночку, результат идёт в таблицу лидеров. */
+     • на рекорд — минута в одиночку, результат идёт в таблицу лидеров;
+     • дуэль дня — одни примеры для всех на сегодня (зерно дня, duel.js:
+       daySeed), первая попытка идёт в таблицу дня. */
 (() => {
   const D = window.MathTasksDuel;
   const T = window.MathTasksTrainer;
@@ -99,7 +101,8 @@
     timer: null,
     me: null,
     nick: '',
-    mode: 'link',         // 'link' — вызов по ссылке, 'random' — случайный соперник, 'solo' — на рекорд
+    mode: 'link',         // 'link' — вызов по ссылке, 'random' — случайный соперник, 'solo' — на рекорд, 'daily' — дуэль дня
+    daily: null,          // { day } — какая дуэль дня сейчас играется
     opponent: null,       // { kind: 'live' | 'ghost', nick, r, q, … }
     answers: [],          // что ученик вписал — запись для будущих соперников
     times: [],            // когда: мс от начала минуты
@@ -242,6 +245,7 @@
       cats.innerHTML = D.CATEGORIES.map(cat => `<button type="button" class="trainer-cat-chip${cat === state.cat ? ' active' : ''}" data-duel-cat="${cat}" aria-pressed="${cat === state.cat}">${escapeHtml(tr(`cat_${cat}`))}</button>`).join('');
     }
     renderBest();
+    renderDailyStatus();
   };
   // Таблица лидеров рядом показывает ту же категорию, что выбрана для игры.
   const followChoice = () => {
@@ -297,10 +301,10 @@
         : item.me.r > item.them.r ? '🏆' : item.me.r < item.them.r ? '·' : '🤝';
       const solo = item.role === 'r' && !item.them;
       return `<li>
-        <span class="duel-history-outcome" aria-hidden="true">${solo ? '🏁' : outcome}</span>
+        <span class="duel-history-outcome" aria-hidden="true">${item.daily ? '⚡' : solo ? '🏁' : outcome}</span>
         <span class="duel-history-cat">${escapeHtml(catIcon(item.cat))} ${escapeHtml(catName(item.cat))}</span>
         <span class="duel-history-score">${escapeHtml(mine)}${solo ? '' : ` : ${escapeHtml(theirs)}`}</span>
-        <span class="duel-history-who">${solo ? escapeHtml(tr('duel_mode_solo_title')) : escapeHtml(who)}</span>
+        <span class="duel-history-who">${item.daily ? escapeHtml(tr('duel_mode_daily_title')) : solo ? escapeHtml(tr('duel_mode_solo_title')) : escapeHtml(who)}</span>
         <span class="duel-history-date">${escapeHtml(formatDate(item.at))}</span></li>`;
     }).join('');
   };
@@ -690,6 +694,7 @@
     if (rank) rank.hidden = true;
     if (state.mode === 'random') { finishRandom(me); return; }
     if (state.mode === 'solo') { finishSolo(me); return; }
+    if (state.mode === 'daily') { finishDaily(me); return; }
     reportRun();
 
     const challenge = state.challenge;
@@ -756,6 +761,75 @@
     });
     remember({ at: Date.now(), seed: state.seed, cat: state.cat, diff: state.diff, role: 'r', me, them: null });
   }
+
+  // ── Дуэль дня ───────────────────────────────────────────────────────
+  /* Зерно и таблицу дня даёт воркер (/api/duel/daily): так у всех один
+     день, даже если часы телефона сбиты. Без сервера зерно считаем сами —
+     примеры те же, только таблицы нет. */
+  const dailyInfo = new Map(); // cat → { at, data }
+  async function loadDaily(cat) {
+    const cached = dailyInfo.get(cat);
+    if (cached && Date.now() - cached.at < 30000) return cached.data;
+    let data = null;
+    try {
+      const response = await fetch(`/api/duel/daily?cat=${encodeURIComponent(cat)}`);
+      const json = response.ok ? await response.json() : null;
+      if (json && json.gen === RUN_GEN && Number.isInteger(json.seed) && typeof json.day === 'string') data = json;
+    } catch {}
+    if (!data) {
+      const day = D.rigaDayKey();
+      data = { day, seed: D.daySeed(cat, day), cat, board: null, players: 0 };
+    }
+    dailyInfo.set(cat, { at: Date.now(), data });
+    return data;
+  }
+  const playedToday = (cat, day) => duelHistory().find(item => item.daily === day && item.cat === cat && item.me);
+
+  async function renderDailyStatus() {
+    const el = $('#duel-daily-status');
+    if (!el) return;
+    const cat = state.cat;
+    const info = await loadDaily(cat);
+    if (cat !== state.cat) return;
+    const mineRuns = new Set(myRuns());
+    const row = (info.board || []).find(item => mineRuns.has(Number(item.id)));
+    const played = playedToday(cat, info.day);
+    let text = '';
+    if (row) text = tr('duel_daily_mine', { r: row.correct, place: row.place });
+    else if (played) text = tr('duel_daily_played', { r: played.me.r });
+    else if (info.players) text = tr('duel_daily_players', { n: info.players });
+    el.textContent = text;
+    el.hidden = !text;
+  }
+
+  async function playDaily() {
+    notice('');
+    stopSearch();
+    leaveMatch();
+    state.mode = 'daily';
+    state.role = 'a';
+    state.challenge = null;
+    state.opponent = null;
+    const info = await loadDaily(state.cat);
+    state.seed = info.seed >>> 0;
+    state.daily = { day: info.day };
+    takeNick();
+    board.cat = state.cat;
+    board.period = 'day';
+    window.history.replaceState(null, '', '/duel');
+    countdown();
+  }
+
+  function finishDaily(me) {
+    notice('');
+    const day = state.daily?.day || D.rigaDayKey();
+    renderSolo(me, tr('duel_daily_title', { date: formatLongDate(`${day}T12:00:00Z`) }), state.cat, 'daily');
+    show('#duel-result');
+    reportRun();
+    remember({ at: Date.now(), seed: state.seed, cat: state.cat, diff: state.diff, role: 'r', daily: day, me, them: null });
+    dailyInfo.delete(state.cat);
+  }
+  $('#duel-daily-start')?.addEventListener('click', playDaily);
 
   const playSolo = () => {
     notice('');
@@ -901,7 +975,11 @@
     }
     // Пока искали, ученик мог нажать «Отмена».
     if (state.mode !== 'random' || $('#duel-search').hidden) return;
-    const valid = candidates.filter(row => Number.isInteger(Number(row.seed)) && D.validateRun(row.answers, row.times));
+    // Попытка дня в соперники не идёт: иначе ученик сыграл бы «день», не зная об этом.
+    const today = D.rigaDayKey();
+    const dailySeeds = new Set([today, D.shiftDayKey(today, -1)].map(day => D.daySeed(state.cat, day)));
+    const valid = candidates.filter(row => Number.isInteger(Number(row.seed)) && !dailySeeds.has(Number(row.seed) >>> 0)
+      && D.validateRun(row.answers, row.times));
     if (!valid.length) {
       setSearchView(true);
       return;
@@ -1175,7 +1253,18 @@
     if (!box || !result) return;
     let text = '';
     let action = false;
-    if (result.ranked && result.place) {
+    let period = 'week';
+    if (result.daily && result.reason === 'daily_repeat') {
+      text = tr('duel_rank_day_repeat');
+    } else if (result.daily && result.ranked && result.daily.place) {
+      text = tr('duel_rank_day_place', { place: result.daily.place });
+      action = true;
+      period = 'day';
+    } else if (result.daily && result.ranked) {
+      text = tr('duel_rank_day_listed');
+      action = true;
+      period = 'day';
+    } else if (result.ranked && result.place) {
       text = tr('duel_rank_place', { place: result.place, cat: catName(cat) });
       action = true;
     } else if (result.ranked) {
@@ -1189,7 +1278,7 @@
       text = tr('duel_rank_clock');
     }
     if (!text) return;
-    box.innerHTML = `<p>${escapeHtml(text)}</p>${action ? `<button type="button" class="secondary-button" data-board-open="${escapeHtml(cat)}">${escapeHtml(tr('duel_board_open'))}</button>` : ''}`;
+    box.innerHTML = `<p>${escapeHtml(text)}</p>${action ? `<button type="button" class="secondary-button" data-board-open="${escapeHtml(cat)}" data-board-period-open="${period}">${escapeHtml(tr('duel_board_open'))}</button>` : ''}`;
     box.classList.toggle('is-ranked', Boolean(result.ranked));
     box.hidden = false;
   };
@@ -1243,6 +1332,11 @@
     if (!box || !config?.ranked) return;
     box.hidden = false;
     renderBoardFilters();
+    const note = $('#duel-board-note');
+    if (note) {
+      note.dataset.i18n = board.period === 'day' ? 'duel_board_note_day' : 'duel_board_note';
+      note.textContent = tr(note.dataset.i18n);
+    }
     box.querySelectorAll('[data-board-period]').forEach(button => {
       const active = button.dataset.boardPeriod === board.period;
       button.setAttribute('aria-pressed', String(active));
@@ -1256,10 +1350,15 @@
       list.innerHTML = `<li class="duel-board-empty">${escapeHtml(tr('duel_board_loading'))}</li>`;
       podium.innerHTML = '';
       let rows = null;
-      try {
-        const { data, error } = await realtime().rpc('duel_leaderboard', { p_cat: board.cat, p_diff: D.LADDER, p_period: board.period });
-        if (!error && Array.isArray(data)) rows = data;
-      } catch {}
+      if (board.period === 'day') {
+        dailyInfo.delete(board.cat);
+        rows = (await loadDaily(board.cat)).board;
+      } else {
+        try {
+          const { data, error } = await realtime().rpc('duel_leaderboard', { p_cat: board.cat, p_diff: D.LADDER, p_period: board.period });
+          if (!error && Array.isArray(data)) rows = data;
+        } catch {}
+      }
       if (key !== `${board.cat}:${board.period}`) return;
       if (!rows) {
         list.innerHTML = `<li class="duel-board-empty">${escapeHtml(tr('duel_board_error'))}</li>`;
@@ -1283,7 +1382,7 @@
     if (period) { board.period = period.dataset.boardPeriod; renderBoard(); return; }
     if (!open) return;
     board.cat = open.dataset.boardOpen;
-    board.period = 'week';
+    board.period = open.dataset.boardPeriodOpen === 'day' ? 'day' : 'week';
     board.cache.clear();
     state.role = 'a';
     state.challenge = null;
@@ -1362,6 +1461,7 @@
       if (play === 'random') { findOpponent(); return; }
       if (play === 'friend') { createFriendLink(); return; }
       if (play === 'solo') { playSolo(); return; }
+      if (play === 'daily') { playDaily(); return; }
     }
     if (!hash) { openSetup(); return; }
     const challenge = D.decodeChallenge(hash);
