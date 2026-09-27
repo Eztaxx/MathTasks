@@ -50,33 +50,40 @@ async function download(path, bucket = BUCKET) {
   return Buffer.from(await r.arrayBuffer());
 }
 
-const copies = await listCopies();
-if (argv.includes('--list')) {
-  if (!copies.length) console.log('Ночных копий пока нет.');
-  for (const c of copies) console.log(`${c.name}  ${(c.metadata.size / 1048576).toFixed(2)} МБ`);
-  process.exit(0);
+/* Выход — через exitCode, а не process.exit(): на Windows обрыв открытых
+   соединений fetch роняет Node с «Assertion failed … UV_HANDLE_CLOSING». */
+async function main() {
+  const copies = await listCopies();
+  if (argv.includes('--list')) {
+    if (!copies.length) console.log('Ночных копий пока нет.');
+    for (const c of copies) console.log(`${c.name}  ${(c.metadata.size / 1048576).toFixed(2)} МБ`);
+    return 0;
+  }
+
+  const wanted = argv.find(a => !a.startsWith('--') && a !== arg('--dir'));
+  const pick = wanted ? copies.find(c => c.name === wanted) : copies[0];
+  if (!pick) { console.error(wanted ? `Копии ${wanted} нет. Список: --list` : 'Ночных копий пока нет.'); return 1; }
+
+  const dump = JSON.parse((await download(`db/${pick.name}`)).toString('utf8'));
+  /* Файлы — внутрь копии, как их кладёт npm run backup. Воркер докопирует
+     чертежи по частям каждые 10 минут; ещё не скопированный берём из
+     исходного бакета. */
+  const files = [];
+  let fromSource = 0;
+  for (const f of dump.storage?.files || []) {
+    const buf = await download(f.ref).catch(() => { fromSource++; return download(f.path, f.bucket); });
+    files.push({ bucket: f.bucket, path: f.path, type: f.type, size: buf.length, base64: buf.toString('base64') });
+  }
+  dump.storage = { buckets: dump.storage?.buckets || [], files };
+
+  const dir = arg('--dir', join(ROOT, 'docs/backup/snapshots'));
+  mkdirSync(dir, { recursive: true });
+  const file = join(dir, pick.name);
+  writeFileSync(file, JSON.stringify(dump, null, 1), 'utf8');
+  console.log(`✓ ${file}  (${(statSync(file).size / 1048576).toFixed(2)} МБ, снята ${dump.takenAt})`);
+  if (fromSource) console.log(`  ${fromSource} файл(ов) ещё не было в копии — взяты из исходного бакета.`);
+  console.log(`Проверить: node scripts/backup.mjs --check "${file}"`);
+  return 0;
 }
 
-const wanted = argv.find(a => !a.startsWith('--') && a !== arg('--dir'));
-const pick = wanted ? copies.find(c => c.name === wanted) : copies[0];
-if (!pick) { console.error(wanted ? `Копии ${wanted} нет. Список: --list` : 'Ночных копий пока нет.'); process.exit(1); }
-
-const dump = JSON.parse((await download(`db/${pick.name}`)).toString('utf8'));
-/* Файлы — внутрь копии, как их кладёт npm run backup. Воркер докопирует
-   чертежи по частям каждые 10 минут; ещё не скопированный берём из
-   исходного бакета. */
-const files = [];
-let fromSource = 0;
-for (const f of dump.storage?.files || []) {
-  const buf = await download(f.ref).catch(() => { fromSource++; return download(f.path, f.bucket); });
-  files.push({ bucket: f.bucket, path: f.path, type: f.type, size: buf.length, base64: buf.toString('base64') });
-}
-dump.storage = { buckets: dump.storage?.buckets || [], files };
-
-const dir = arg('--dir', join(ROOT, 'docs/backup/snapshots'));
-mkdirSync(dir, { recursive: true });
-const file = join(dir, pick.name);
-writeFileSync(file, JSON.stringify(dump, null, 1), 'utf8');
-console.log(`✓ ${file}  (${(statSync(file).size / 1048576).toFixed(2)} МБ, снята ${dump.takenAt})`);
-if (fromSource) console.log(`  ${fromSource} файл(ов) ещё не было в копии — взяты из исходного бакета.`);
-console.log(`Проверить: node scripts/backup.mjs --check "${file}"`);
+process.exitCode = await main();
