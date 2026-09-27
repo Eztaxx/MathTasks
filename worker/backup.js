@@ -272,7 +272,8 @@ export const reportMessage = (report, task) => [
   String(report.message || '').trim() || '(без текста)',
   '',
   `Исправить: ${ORIGIN}/admin#task-${report.task_id}`,
-  `На сайте: ${ORIGIN}/task/${report.task_id}`
+  // Версия того языка, на котором ученик писал: латышская — без префикса.
+  `На сайте: ${ORIGIN}${report.lang === 'ru' ? '/ru' : ''}/task/${report.task_id}`
 ].join('\n');
 
 export async function sendTelegram(env, text) {

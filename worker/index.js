@@ -14,23 +14,15 @@
      npx wrangler secret put SUPABASE_KEY
      npx wrangler secret put GEMINI_API_KEY   (без него генератор только встроенный) */
 
-import { isLocalizablePath, latexToPlainText, toLangPath,
+import { isLocalizablePath, latexToPlainText, makeSlug, toLangPath,
   gradeSlug
 } from './lib.js';
 import { CANONICAL_ORIGIN, renderPage } from './seo.js';
 import { duelApi } from './duel-api.js';
 import { BACKUP_CRON, MIRROR_CRON, listBackups, mirrorStep, notifyReady, notifyReports, runBackup, sendTelegram } from './backup.js';
 
-const TRANSLIT = {
-  а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i',
-  й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't',
-  у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ы: 'y', э: 'e',
-  ю: 'yu', я: 'ya', ь: '', ъ: ''
-};
-
-const slugify = value => (value || '')
-  .toLowerCase().split('').map(c => TRANSLIT[c] ?? c).join('')
-  .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'topic';
+// Адрес по названию — та же функция, что на сайте: одна таблица букв, с латышскими.
+const slugify = makeSlug;
 
 const escapeHtml = value => String(value || '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -81,8 +73,8 @@ const CROSS_TAG_SLUGS = [
 
 /* Cloudflare отдаёт файлы страниц без расширения и перенаправляет на такой
    адрес с .html. В карту идёт то, что отдаётся, а не то, что редиректит.
-   Латышской версии у этих страниц нет: /lv/exams вернул бы оболочку
-   приложения, то есть копию главной. */
+   Русской версии по адресу у этих страниц нет: /ru/exams вернул бы
+   оболочку приложения, то есть копию главной. */
 const SINGLE_LANGUAGE_PAGES = new Set(['/exams', '/mock-exams', '/trainer', '/plotter', '/duel']);
 const BASE_SITEMAP_PATHS = [
   '/', '/tasks', '/tags', '/about', '/control-works', '/exams',
@@ -120,6 +112,12 @@ function buildSitemapPaths({ subjects = [], topics = [], tasks = [], tags = [], 
    её появление и меняет страницу. Страницы без своего содержимого («О
    проекте», тренажёры) даты не получают: выдуманный lastmod поисковик
    быстро перестаёт принимать всерьёз. */
+/* Задача в карте записана адресом со слагом из русского названия; у
+   латышской версии слаг из латышского. Карта «русский адрес → латышский». */
+function buildSitemapLvPaths(tasks = []) {
+  return new Map(tasks.map(task => [`/task/${task.id}-${slugify(task.title)}`, `/task/${task.id}-${slugify(task.title_lv || task.title)}`]));
+}
+
 function buildSitemapDates({ subjects = [], topics = [], tasks = [], subtopics = [] } = {}) {
   const dates = new Map();
   const bump = (path, value) => {
@@ -153,11 +151,12 @@ function buildSitemapDates({ subjects = [], topics = [], tasks = [], subtopics =
   return dates;
 }
 
-/* У страниц каталога две языковые версии: русская без префикса и латышская
-   на /lv/…. В карту идут обе, и у каждой — ссылки на обе версии
+/* У страниц каталога две языковые версии: латышская без префикса и русская
+   на /ru/…. В карту идут обе, и у каждой — ссылки на обе версии
    (xhtml:link hreflang, x-default — латышская). Файлы — trainer.html,
-   exams.html — одноязычные по адресу и идут одной строкой. */
-function buildSitemapXml(paths, origin = 'https://mathtasks.lv', dates = new Map()) {
+   exams.html — одноязычные по адресу и идут одной строкой. Адрес задачи
+   у версий разный: слаг из названия на своём языке (lvPaths). */
+function buildSitemapXml(paths, origin = 'https://mathtasks.lv', dates = new Map(), lvPaths = new Map()) {
   const cleanOrigin = String(origin || '').replace(/\/+$/, '');
   const entries = [];
   for (const p of new Set(paths)) {
@@ -169,13 +168,13 @@ function buildSitemapXml(paths, origin = 'https://mathtasks.lv', dates = new Map
       continue;
     }
     const rest = p.slice(pathOnly.length);
+    const lv = cleanOrigin + toLangPath(lvPaths.get(pathOnly) || pathOnly, 'lv') + rest;
     const ru = cleanOrigin + toLangPath(pathOnly, 'ru') + rest;
-    const lv = cleanOrigin + toLangPath(pathOnly, 'lv') + rest;
-    const alternates = [['ru', ru], ['lv', lv], ['x-default', lv]]
+    const alternates = [['lv', lv], ['ru', ru], ['x-default', lv]]
       .map(([lang, href]) => `\n    <xhtml:link rel="alternate" hreflang="${lang}" href="${escapeHtml(href)}"/>`)
       .join('');
-    entries.push(`  <url><loc>${escapeHtml(ru)}</loc>${lastmod}${alternates}\n  </url>`);
     entries.push(`  <url><loc>${escapeHtml(lv)}</loc>${lastmod}${alternates}\n  </url>`);
+    entries.push(`  <url><loc>${escapeHtml(ru)}</loc>${lastmod}${alternates}\n  </url>`);
   }
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
@@ -187,6 +186,7 @@ async function sitemap(request, env) {
   const origin = new URL(request.url).origin;
   let paths;
   let dates = new Map();
+  let lvPaths = new Map();
 
   if (env.SUPABASE_URL && supabaseKeyOf(env)) {
     try {
@@ -194,13 +194,14 @@ async function sitemap(request, env) {
         readSupabase(env, 'subjects?select=id,slug'),
         readSupabase(env, 'topics?select=id,slug,grade,subject_id'),
         // Черновики в карту не попадают — их и на сайте не видно.
-        readSupabase(env, 'tasks?select=id,title,topic_id,subtopic_id,updated_at,created_at&is_published=eq.true'),
+        readSupabase(env, 'tasks?select=id,title,title_lv,topic_id,subtopic_id,updated_at,created_at&is_published=eq.true'),
         readSupabase(env, 'tags?select=slug').catch(() => []),
         // Подтемы появляются миграцией 020: до неё запрос падает, карта живёт без них.
         readSupabase(env, 'subtopics?select=id,slug').catch(() => [])
       ]);
       paths = buildSitemapPaths({ subjects, topics, tasks, tags, subtopics });
       dates = buildSitemapDates({ subjects, topics, tasks, subtopics });
+      lvPaths = buildSitemapLvPaths(tasks);
     } catch (error) {
       // Каталог не прочитался — отдаём статические адреса, а не пустоту.
       console.error('sitemap:', error.message);
@@ -211,7 +212,7 @@ async function sitemap(request, env) {
   }
 
   // Адреса в карте — всегда основного домена: там же указывает и canonical.
-  const body = buildSitemapXml(paths, origin.endsWith('.workers.dev') ? CANONICAL_ORIGIN : origin, dates);
+  const body = buildSitemapXml(paths, origin.endsWith('.workers.dev') ? CANONICAL_ORIGIN : origin, dates, lvPaths);
 
   return new Response(body, {
     headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600' }
@@ -469,7 +470,6 @@ async function serveAsset(request, env) {
 }
 
 export {
-  TRANSLIT,
   CROSS_TAG_SLUGS,
   BASE_SITEMAP_PATHS,
   BOT_PATTERNS,
@@ -478,6 +478,7 @@ export {
   cleanLatexForPreview,
   isSocialBot,
   buildSitemapDates,
+  buildSitemapLvPaths,
   buildSitemapPaths,
   buildSitemapXml,
   renderTaskPreviewHtml,
@@ -497,20 +498,26 @@ export default {
     if (url.pathname.startsWith('/api/backup/')) return backupApi(request, env, url);
     if (url.pathname.startsWith('/assets/')) return serveAsset(request, env);
 
+    /* До 27.09.2026 латышская версия жила на /lv/…, теперь она на адресах
+       без префикса (русская — на /ru/…). Старые ссылки ведут туда же. */
+    if (url.pathname === '/lv' || url.pathname.startsWith('/lv/')) {
+      return Response.redirect(new URL((url.pathname.slice(3) || '/') + url.search, url).toString(), 301);
+    }
+
     // Страница задачи: ботам отдаём мета-теги, людям — обычное приложение.
-    const taskMatch = url.pathname.match(/^(?:\/lv)?\/task\/(\d+)/);
+    const taskMatch = url.pathname.match(/^(?:\/ru)?\/task\/(\d+)/);
     if (taskMatch && isSocialBot(request.headers.get('user-agent'))) {
       const preview = await taskPreview(request, env, taskMatch[1]);
       if (preview) return preview;
     }
 
-    /* Отдельных страниц под /lv не существует: /lv/trainer отдавал оболочку
-       главной с кодом 200. Уводим на сам адрес — старые ссылки живут. */
-    const langPage = url.pathname.match(/^\/lv\/(trainer|exams|mock-exams|plotter|duel)\/?$/);
+    /* Отдельных страниц под /ru не существует: /ru/trainer отдал бы оболочку
+       главной с кодом 200. Уводим на сам адрес. */
+    const langPage = url.pathname.match(/^\/ru\/(trainer|exams|mock-exams|plotter|duel)\/?$/);
     if (langPage) return Response.redirect(new URL(`/${langPage[1]}`, url).toString(), 301);
 
     // Уровни средней школы живут по словам: /grade/10 → /grade/visparigais.
-    const numericLevel = url.pathname.match(/^(\/lv)?\/grade\/(10|11|12)(\/tasks)?\/?$/);
+    const numericLevel = url.pathname.match(/^(\/ru)?\/grade\/(10|11|12)(\/tasks)?\/?$/);
     if (numericLevel) {
       const target = new URL(`${numericLevel[1] || ''}/grade/${gradeSlug(numericLevel[2])}${numericLevel[3] || ''}${url.search}`, url);
       return Response.redirect(target.toString(), 301);

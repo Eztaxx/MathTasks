@@ -1,56 +1,67 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
 import i18n from '../public/i18n.js';
-import { isLocalizablePath, isLvPath, langOfPath, localizeHref, stripLangPath, toLangPath } from '../public/lib.js';
+import { isLocalizablePath, isRuPath, langOfPath, localizeHref, stripLangPath, toLangPath } from '../public/lib.js';
 
-/* Язык в адресе: русская версия — без префикса, латышская — /lv/…. */
+/* Язык в адресе: латышская версия — без префикса, русская — /ru/….
+   До 27.09.2026 было наоборот; старые /lv/… сервер уводит на адрес без префикса. */
 
 describe('язык в адресе', () => {
-  it('узнаёт латышский адрес и снимает префикс', () => {
-    expect(isLvPath('/lv')).toBe(true);
-    expect(isLvPath('/lv/topic/x')).toBe(true);
-    expect(isLvPath('/lvx')).toBe(false);
-    expect(isLvPath('/topic/lv')).toBe(false);
-    expect(stripLangPath('/lv')).toBe('/');
-    expect(stripLangPath('/lv/')).toBe('/');
-    expect(stripLangPath('/lv/topic/x')).toBe('/topic/x');
+  it('узнаёт русский адрес и снимает префикс', () => {
+    expect(isRuPath('/ru')).toBe(true);
+    expect(isRuPath('/ru/topic/x')).toBe(true);
+    expect(isRuPath('/rux')).toBe(false);
+    expect(isRuPath('/topic/ru')).toBe(false);
+    expect(stripLangPath('/ru')).toBe('/');
+    expect(stripLangPath('/ru/')).toBe('/');
+    expect(stripLangPath('/ru/topic/x')).toBe('/topic/x');
     expect(stripLangPath('/topic/x')).toBe('/topic/x');
-    expect(langOfPath('/lv/tasks')).toBe('lv');
-    expect(langOfPath('/tasks')).toBe('ru');
+    expect(langOfPath('/ru/tasks')).toBe('ru');
+    expect(langOfPath('/tasks')).toBe('lv');
   });
 
-  it('строит путь нужного языка, главная — /lv/', () => {
-    expect(toLangPath('/topic/x', 'lv')).toBe('/lv/topic/x');
-    expect(toLangPath('/lv/topic/x', 'lv')).toBe('/lv/topic/x');
-    expect(toLangPath('/lv/topic/x', 'ru')).toBe('/topic/x');
-    expect(toLangPath('/', 'lv')).toBe('/lv/');
-    expect(toLangPath('/lv/', 'ru')).toBe('/');
+  // Страница из кеша могла открыться по старому адресу /lv/… — префикс снимается и там.
+  it('старый латышский префикс /lv/ снимается', () => {
+    expect(stripLangPath('/lv/topic/x')).toBe('/topic/x');
+    expect(stripLangPath('/lv')).toBe('/');
+    expect(langOfPath('/lv/tasks')).toBe('lv');
+    expect(toLangPath('/lv/topic/x', 'ru')).toBe('/ru/topic/x');
+    expect(toLangPath('/lv/topic/x', 'lv')).toBe('/topic/x');
+  });
+
+  it('строит путь нужного языка, русская главная — /ru/', () => {
+    expect(toLangPath('/topic/x', 'ru')).toBe('/ru/topic/x');
+    expect(toLangPath('/ru/topic/x', 'ru')).toBe('/ru/topic/x');
+    expect(toLangPath('/ru/topic/x', 'lv')).toBe('/topic/x');
+    expect(toLangPath('/', 'ru')).toBe('/ru/');
+    expect(toLangPath('/ru/', 'lv')).toBe('/');
   });
 
   it('ссылка: язык меняется у пути, запрос и якорь остаются', () => {
-    expect(localizeHref('/search?q=дроби', 'lv')).toBe('/lv/search?q=дроби');
-    expect(localizeHref('/lv/topic/x#task-5', 'ru')).toBe('/topic/x#task-5');
-    expect(localizeHref('/topic/x', 'ru')).toBe('/topic/x');
+    expect(localizeHref('/search?q=дроби', 'ru')).toBe('/ru/search?q=дроби');
+    expect(localizeHref('/ru/topic/x#task-5', 'lv')).toBe('/topic/x#task-5');
+    expect(localizeHref('/topic/x', 'lv')).toBe('/topic/x');
   });
 
   it('файлы, /api, админка и чужие адреса префикса не получают', () => {
     for (const href of ['/trainer.html', '/formulas/a.pdf', '/api/generate-task', '/admin', '/assets/x.css', 'https://example.com/x', '//cdn/x', '#top']) {
-      expect(localizeHref(href, 'lv'), href).toBe(href);
+      expect(localizeHref(href, 'ru'), href).toBe(href);
     }
     expect(isLocalizablePath('/topic/x')).toBe(true);
     expect(isLocalizablePath('/exams.html')).toBe(false);
   });
 
   it('отдельные страницы без расширения — не адреса приложения', () => {
-    /* Cloudflare отдаёт /trainer вместо /trainer.html; роутер и латышский
+    /* Cloudflare отдаёт /trainer вместо /trainer.html; роутер и языковой
        префикс должны узнавать их и без «.html» — иначе клик по меню
-       оставлял главную, а в латышской версии вёл на /lv/trainer. */
+       оставлял главную, а в русской версии вёл на /ru/trainer. */
     for (const path of ['/trainer', '/trainer?section=equations', '/exams', '/mock-exams', '/plotter', '/plotter?f=x', '/duel']) {
-      expect(localizeHref(path, 'lv'), path).toBe(path);
+      expect(localizeHref(path, 'ru'), path).toBe(path);
       expect(isLocalizablePath(path.split('?')[0]), path).toBe(false);
     }
-    // Экзамен по адресу /exam/<уровень> — экран приложения, у него есть /lv/
-    expect(localizeHref('/exam/pamat', 'lv')).toBe('/lv/exam/pamat');
+    // Экзамен по адресу /exam/<уровень> — экран приложения, у него есть /ru/
+    expect(localizeHref('/exam/pamat', 'ru')).toBe('/ru/exam/pamat');
     expect(isLocalizablePath('/examsomething')).toBe(true);
   });
 });
@@ -93,6 +104,55 @@ describe('словарь: заголовки страниц на обоих яз
   });
 });
 
+/* Язык при загрузке: выбор посетителя главнее всего; без выбора /ru/ в
+   адресе — русский, иначе язык браузера. Загрузка сама ничего не запоминает. */
+describe('язык при загрузке: браузер и запомненный выбор', () => {
+  const code = readFileSync(new URL('../public/i18n.js', import.meta.url), 'utf8');
+  const load = ({ path = '/', saved = null, browser = 'en-US', catalogue = true }) => {
+    const store = new Map(saved ? [['math-tasks:lang', saved]] : []);
+    const root = { hasAttribute: name => catalogue && name === 'data-url-lang', setAttribute() {}, classList: { add() {}, remove() {} } };
+    const document = { documentElement: root, readyState: 'complete', addEventListener() {}, querySelectorAll: () => [], querySelector: () => null };
+    const context = {
+      document, location: { pathname: path }, navigator: { language: browser, languages: [browser] },
+      localStorage: { getItem: key => store.get(key) ?? null, setItem: (key, value) => store.set(key, value) },
+      MutationObserver: class { observe() {} disconnect() {} }, CustomEvent: class {}, window: { dispatchEvent() {} }
+    };
+    vm.runInNewContext(code, context);
+    return { api: context.MathTasksI18n, store };
+  };
+
+  it('без выбора — по языку браузера: русский — русский, остальные — латышский', () => {
+    expect(load({ path: '/topic/x', browser: 'ru-RU' }).api.getLang()).toBe('ru');
+    expect(load({ path: '/topic/x', browser: 'lv-LV' }).api.getLang()).toBe('lv');
+    // Поисковик: английский браузер, ничего не сохранено — латышская версия.
+    expect(load({ path: '/' }).api.getLang()).toBe('lv');
+  });
+
+  it('адрес /ru/… без выбора — русский при любом браузере', () => {
+    expect(load({ path: '/ru/topic/x', browser: 'lv' }).api.getLang()).toBe('ru');
+  });
+
+  it('запомненный выбор главнее адреса и браузера', () => {
+    expect(load({ path: '/ru/topic/x', saved: 'lv' }).api.getLang()).toBe('lv');
+    expect(load({ path: '/', saved: 'ru', browser: 'lv' }).api.getLang()).toBe('ru');
+  });
+
+  it('отдельные страницы: выбор, иначе браузер', () => {
+    expect(load({ catalogue: false, browser: 'ru' }).api.getLang()).toBe('ru');
+    expect(load({ catalogue: false }).api.getLang()).toBe('lv');
+    expect(load({ catalogue: false, saved: 'ru' }).api.getLang()).toBe('ru');
+  });
+
+  it('загрузка и «назад» не запоминают язык, переключатель — запоминает', () => {
+    const { api, store } = load({ path: '/topic/x', browser: 'ru' });
+    expect(store.size).toBe(0);
+    api.setLang('lv', { remember: false });
+    expect(store.size).toBe(0);
+    api.setLang('lv');
+    expect(store.get('math-tasks:lang')).toBe('lv');
+  });
+});
+
 describe('приложение: язык из адреса', () => {
   const app = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -100,7 +160,7 @@ describe('приложение: язык из адреса', () => {
   const themeInit = readFileSync(new URL('../public/theme-init.js', import.meta.url), 'utf8');
 
   it('страница каталога помечена: язык — часть адреса', () => {
-    expect(html).toMatch(/<html lang="ru" data-url-lang>/);
+    expect(html).toMatch(/<html lang="lv" data-url-lang>/);
     expect(i18nSource).toContain("hasAttribute('data-url-lang')");
     expect(themeInit).toContain("hasAttribute('data-url-lang')");
   });
@@ -114,8 +174,15 @@ describe('приложение: язык из адреса', () => {
 
   it('переключатель меняет адрес, «назад» — и язык, ссылки получают префикс', () => {
     expect(app).toMatch(/#lang-switcher[\s\S]*?history\.pushState\(null, '', langPath\(location\.pathname \+ location\.search, lang\)/);
-    expect(app).toMatch(/addEventListener\('popstate'[\s\S]*?langOfPath[\s\S]*?setLang\(urlLang\)/);
+    // «Назад» меняет язык, но не запоминает его как выбор посетителя.
+    expect(app).toMatch(/addEventListener\('popstate'[\s\S]*?langOfPath[\s\S]*?setLang\(urlLang, \{ remember: false \}\)/);
     expect(app).toContain('function localizeLinks');
+  });
+
+  // Ссылка «поделиться» — латышский адрес со слагом из латышского названия.
+  it('«Скопировать ссылку» и «Скопировать текст» дают латышский адрес', () => {
+    expect(app).toMatch(/function shareTaskUrl\(task, taskId\)[\s\S]*?task\.title_lv \|\| task\.title/);
+    expect((app.match(/const url = shareTaskUrl\(task, taskId\);/g) || []).length).toBe(2);
   });
 
   it('заголовки страниц — из словаря, без русского текста в setMeta', () => {

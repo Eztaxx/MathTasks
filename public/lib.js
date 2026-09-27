@@ -7,7 +7,10 @@
     а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i',
     й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't',
     у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ы: 'y', э: 'e',
-    ю: 'yu', я: 'ya', ь: '', ъ: ''
+    ю: 'yu', я: 'ya', ь: '', ъ: '',
+    /* Латышские буквы — для адресов по латышскому названию: без них
+       «Trijstūra laukums» давал «trijst-ra-laukums». */
+    ā: 'a', č: 'c', ē: 'e', ģ: 'g', ī: 'i', ķ: 'k', ļ: 'l', ņ: 'n', š: 's', ū: 'u', ž: 'z'
   };
 
   const makeSlug = value => (value || '')
@@ -3448,17 +3451,23 @@
   };
 
   /* ── Язык в адресе ─────────────────────────────────────────────────
-     Русская версия — на адресах без префикса (/topic/…), латышская — на
-     /lv/… (/lv/topic/…, главная — /lv/). У каждой страницы два адреса, и
+     Латышская версия — на адресах без префикса (/topic/…), русская — на
+     /ru/… (/ru/topic/…, главная — /ru/). У каждой страницы два адреса, и
      поисковик получает каждую версию отдельно, со ссылками друг на друга
      (hreflang). Файлы (PDF), /api, админка и отдельные страницы — тренажёр,
      экзамены, пробники, графопостроитель — префикса не получают: языковых
      версий по адресу у них нет. Cloudflare отдаёт эти страницы без
      расширения (/trainer), поэтому узнавать их по «.html» нельзя:
-     /lv/trainer вернул бы оболочку приложения, то есть главную. */
-  const isLvPath = pathname => pathname === '/lv' || String(pathname || '').startsWith('/lv/');
-  const stripLangPath = pathname => (isLvPath(pathname) ? (String(pathname).slice(3) || '/') : (pathname || '/'));
-  const langOfPath = pathname => (isLvPath(pathname) ? 'lv' : 'ru');
+     /ru/trainer вернул бы оболочку приложения, то есть главную.
+     До 27.09.2026 было наоборот: русский без префикса, латышский на /lv/…
+     Старые /lv/… сервер переводит (301) на адрес без префикса; клиент
+     тоже снимает /lv — на случай страницы, открытой из кеша. */
+  const isRuPath = pathname => pathname === '/ru' || String(pathname || '').startsWith('/ru/');
+  const isOldLvPath = pathname => pathname === '/lv' || String(pathname || '').startsWith('/lv/');
+  const stripLangPath = pathname => (isRuPath(pathname) || isOldLvPath(pathname)
+    ? (String(pathname).slice(3) || '/')
+    : (pathname || '/'));
+  const langOfPath = pathname => (isRuPath(pathname) ? 'ru' : 'lv');
   const PAGE_FILES = /^\/(?:api|admin|assets|formulas|trainer|exams|mock-exams|plotter|duel)(?:\/|$)/;
   const isLocalizablePath = pathname => typeof pathname === 'string'
     && pathname.startsWith('/') && !pathname.startsWith('//')
@@ -3466,8 +3475,8 @@
     && !PAGE_FILES.test(pathname);
   const toLangPath = (pathname, lang) => {
     const clean = stripLangPath(pathname);
-    if (lang !== 'lv') return clean;
-    return clean === '/' ? '/lv/' : `/lv${clean}`;
+    if (lang !== 'ru') return clean;
+    return clean === '/' ? '/ru/' : `/ru${clean}`;
   };
   // Строка запроса и якорь сохраняются: язык меняется только у пути.
   const localizeHref = (href, lang) => {
@@ -3537,7 +3546,7 @@
     buildPrintVariants,
     sliceTaskRange,
     makeSlug,
-    isLvPath,
+    isRuPath,
     stripLangPath,
     langOfPath,
     isLocalizablePath,

@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import worker, {
-  TRANSLIT,
   CROSS_TAG_SLUGS,
   BASE_SITEMAP_PATHS,
   BOT_PATTERNS,
@@ -10,6 +9,7 @@ import worker, {
   isSocialBot,
   buildSitemapPaths,
   buildSitemapXml,
+  buildSitemapLvPaths,
   renderTaskPreviewHtml,
   buildSitemapDates,
   sitemap
@@ -197,27 +197,41 @@ describe('Cloudflare Worker: чистые функции', () => {
 
       expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
       expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">');
-      for (const loc of ['/', '/tasks', '/topic/algebra', '/lv/', '/lv/tasks', '/lv/topic/algebra']) {
+      for (const loc of ['/', '/tasks', '/topic/algebra', '/ru/', '/ru/tasks', '/ru/topic/algebra']) {
         expect(xml).toContain(`<url><loc>https://mathtasks.lv${loc}</loc>`);
       }
       expect(xml).toContain('</urlset>');
     });
 
-    it('у каждой версии страницы — ссылки на обе: ru, lv и x-default (латышская)', () => {
+    it('у каждой версии страницы — ссылки на обе: lv, ru и x-default (латышская)', () => {
       const xml = buildSitemapXml(['/topic/algebra'], 'https://mathtasks.lv');
       const blocks = xml.match(/<url>[\s\S]*?<\/url>/g);
       expect(blocks).toHaveLength(2);
+      // Латышская версия — первой: это основной язык.
+      expect(blocks[0]).toContain('<loc>https://mathtasks.lv/topic/algebra</loc>');
       for (const block of blocks) {
-        expect(block).toContain('<xhtml:link rel="alternate" hreflang="ru" href="https://mathtasks.lv/topic/algebra"/>');
-        expect(block).toContain('<xhtml:link rel="alternate" hreflang="lv" href="https://mathtasks.lv/lv/topic/algebra"/>');
-        expect(block).toContain('<xhtml:link rel="alternate" hreflang="x-default" href="https://mathtasks.lv/lv/topic/algebra"/>');
+        expect(block).toContain('<xhtml:link rel="alternate" hreflang="lv" href="https://mathtasks.lv/topic/algebra"/>');
+        expect(block).toContain('<xhtml:link rel="alternate" hreflang="ru" href="https://mathtasks.lv/ru/topic/algebra"/>');
+        expect(block).toContain('<xhtml:link rel="alternate" hreflang="x-default" href="https://mathtasks.lv/topic/algebra"/>');
       }
     });
 
-    it('страницы без латышской версии — одной строкой', () => {
+    it('у задачи версии со своими слагами: латышский из латышского названия', () => {
+      const tasks = [{ id: 5, title: 'Площадь', title_lv: 'Laukums' }, { id: 6, title: 'Периметр' }];
+      const lvPaths = buildSitemapLvPaths(tasks);
+      expect(lvPaths.get('/task/5-ploschad')).toBe('/task/5-laukums');
+      // Без латышского названия — тот же слаг.
+      expect(lvPaths.get('/task/6-perimetr')).toBe('/task/6-perimetr');
+      const xml = buildSitemapXml(['/task/5-ploschad'], 'https://mathtasks.lv', new Map(), lvPaths);
+      expect(xml).toContain('<url><loc>https://mathtasks.lv/task/5-laukums</loc>');
+      expect(xml).toContain('<url><loc>https://mathtasks.lv/ru/task/5-ploschad</loc>');
+      expect(xml).toContain('hreflang="x-default" href="https://mathtasks.lv/task/5-laukums"');
+    });
+
+    it('отдельные страницы (язык не в адресе) — одной строкой', () => {
       const xml = buildSitemapXml(['/trainer'], 'https://mathtasks.lv');
       expect(xml).toContain('  <url><loc>https://mathtasks.lv/trainer</loc></url>');
-      expect(xml).not.toContain('/lv/trainer');
+      expect(xml).not.toContain('/ru/trainer');
     });
 
     it('нормализует слэш в origin и экранирует спецсимволы в URL', () => {
@@ -387,7 +401,7 @@ describe('Cloudflare Worker: чистые функции', () => {
       expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/exams"');
     });
 
-    it('отдельная страница под /lv уводит на сам адрес: /lv/trainer → /trainer', async () => {
+    it('старый латышский адрес страницы уводит на сам адрес: /lv/trainer → /trainer', async () => {
       const env = shellEnv();
       const response = await worker.fetch(new Request('https://mathtasks.lv/lv/trainer'), env);
 
@@ -396,11 +410,25 @@ describe('Cloudflare Worker: чистые функции', () => {
       expect(env.ASSETS.fetch).not.toHaveBeenCalled();
     });
 
-    it('дуэль тоже одноязычная: /lv/duel → /duel', async () => {
-      const env = shellEnv();
-      const response = await worker.fetch(new Request('https://mathtasks.lv/lv/duel'), env);
-      expect(response.status).toBe(301);
-      expect(response.headers.get('location')).toBe('https://mathtasks.lv/duel');
+    it('дуэль тоже одноязычная: /lv/duel и /ru/duel → /duel', async () => {
+      for (const from of ['/lv/duel', '/ru/duel']) {
+        const env = shellEnv();
+        const response = await worker.fetch(new Request(`https://mathtasks.lv${from}`), env);
+        expect(response.status, from).toBe(301);
+        expect(response.headers.get('location'), from).toBe('https://mathtasks.lv/duel');
+      }
+    });
+
+    /* До 27.09.2026 латышская версия была на /lv/…, теперь — без префикса.
+       Старые ссылки уводятся навсегда, с запросом. */
+    it('старые латышские адреса /lv/… — постоянное перенаправление без префикса', async () => {
+      for (const [from, to] of [['/lv', '/'], ['/lv/', '/'], ['/lv/topic/x?y=1', '/topic/x?y=1'], ['/lv/task/5-laukums', '/task/5-laukums']]) {
+        const env = shellEnv();
+        const response = await worker.fetch(new Request(`https://mathtasks.lv${from}`), env);
+        expect(response.status, from).toBe(301);
+        expect(response.headers.get('location'), from).toBe(`https://mathtasks.lv${to}`);
+        expect(env.ASSETS.fetch).not.toHaveBeenCalled();
+      }
     });
 
     it('отдельная страница отдаётся как есть: воркер не трогает trainer.html', async () => {
@@ -646,7 +674,7 @@ describe('sitemap: даты последнего изменения', () => {
     const dates = new Map([['/topic/kv', '2026-09-19'], ['/trainer', '2026-09-19']]);
     const xml = buildSitemapXml(['/topic/kv', '/trainer', '/about'], 'https://mathtasks.lv', dates);
     expect(xml).toContain('<loc>https://mathtasks.lv/topic/kv</loc><lastmod>2026-09-19</lastmod>');
-    expect(xml).toContain('<loc>https://mathtasks.lv/lv/topic/kv</loc><lastmod>2026-09-19</lastmod>');
+    expect(xml).toContain('<loc>https://mathtasks.lv/ru/topic/kv</loc><lastmod>2026-09-19</lastmod>');
     expect(xml).toContain('<url><loc>https://mathtasks.lv/trainer</loc><lastmod>2026-09-19</lastmod></url>');
     expect(xml).toContain('<url><loc>https://mathtasks.lv/about</loc>');
     expect(xml.match(/<lastmod>/g)).toHaveLength(3);
@@ -687,7 +715,7 @@ describe('адреса уровней средней школы', () => {
     const env = { ASSETS: { fetch: vi.fn() } };
     for (const [from, to] of [
       ['/grade/10', '/grade/visparigais'],
-      ['/lv/grade/11/tasks', '/lv/grade/matematika-1/tasks'],
+      ['/ru/grade/11/tasks', '/ru/grade/matematika-1/tasks'],
       ['/grade/12/?x=1', '/grade/matematika-2?x=1']
     ]) {
       const response = await worker.fetch(new Request(`https://mathtasks.lv${from}`), env);

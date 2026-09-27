@@ -15,7 +15,7 @@ import { dirname, join } from 'node:path';
 
 const ORIGIN = process.env.LIVE_ORIGIN || 'https://mathtasks.lv';
 const DIST = process.argv[2] || 'dist';
-const PAGES = ['/', '/lv/', '/admin.html', '/trainer.html', '/exams.html', '/mock-exams.html'];
+const PAGES = ['/', '/ru/', '/admin.html', '/trainer.html', '/exams.html', '/mock-exams.html'];
 const ASSET = /(?:^|["'(\s=])\/?(assets\/[\w.-]+\.(?:css|js))/g;
 const TIMEOUT_MS = 15000;
 

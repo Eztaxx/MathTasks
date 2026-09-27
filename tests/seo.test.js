@@ -97,22 +97,22 @@ describe('seo: подстановка в оболочку', () => {
 describe('seo: страницы из каталога', () => {
   it('тема: заголовок как в приложении, canonical, список задач с текстом условия', async () => {
     vi.stubGlobal('fetch', supabase([['topics?slug=eq.', [TOPIC]], ['tasks?topic_id=eq.107', [TASK]]]));
-    const response = await page('/topic/skola2030-g6-1-x', makeEnv());
+    const response = await page('/ru/topic/skola2030-g6-1-x', makeEnv());
     const html = await response.text();
     expect(response.status).toBe(200);
     expect(response.headers.get('etag')).toBeNull();
     expect(html).toContain('<title>6.1. Как совокупность делят в определенном отношении, 6 класс — MathTasks</title>');
-    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/topic/skola2030-g6-1-x" />');
-    expect(html).toContain('<a href="/task/321-delenie-otrezka">Задача №9</a> — Найдите 1/2 от 10.');
-    expect(html).toContain('<a href="/subject/algebra">Алгебра и числа</a>');
+    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/ru/topic/skola2030-g6-1-x" />');
+    expect(html).toContain('<a href="/ru/task/321-delenie-otrezka">Задача №9</a> — Найдите 1/2 от 10.');
+    expect(html).toContain('<a href="/ru/subject/algebra">Алгебра и числа</a>');
   });
 
   it('задача: номер и тема в заголовке, описание из условия, canonical со слагом', async () => {
     vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [{ ...TASK, topics: TOPIC }]]]));
-    const html = await (await page('/task/321', makeEnv())).text();
+    const html = await (await page('/ru/task/321', makeEnv())).text();
     expect(html).toContain('<title>Задача №9 — 6.1. Как совокупность делят в определенном отношении, 6 класс — MathTasks</title>');
     expect(html).toContain('<meta name="description" content="Задача №9. Найдите 1/2 от 10. С ответом и разбором решения." />');
-    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/task/321-delenie-otrezka" />');
+    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/ru/task/321-delenie-otrezka" />');
   });
 
   /* Страница задачи должна нести собственный текст: заголовок «Задача №N»
@@ -131,13 +131,13 @@ describe('seo: страницы из каталога', () => {
       ['tasks?id=eq.321', [FULL]],
       ['tasks?topic_id=eq.107', [NEIGHBOUR]]
     ]));
-    const html = await (await page('/task/321', makeEnv())).text();
+    const html = await (await page('/ru/task/321', makeEnv())).text();
     expect(html).toContain('<h1>Задача №9. Найдите 1/2 от 10.</h1>');
     expect(html).toContain('<p>Ответ: x = 5</p>');
     expect(html).toContain('Подтема: 6.1.3. Отношения чисел');
     expect(html).toContain('Сложность: Сложный');
     expect(html).toContain('<h2>Другие задачи темы</h2>');
-    expect(html).toContain('<a href="/task/322-sosednyaya">Задача №10</a> — Сколько будет 2+2?');
+    expect(html).toContain('<a href="/ru/task/322-sosednyaya">Задача №10</a> — Сколько будет 2+2?');
   });
 
   it('задача на латышском: факты и соседние задачи на латышском', async () => {
@@ -150,7 +150,7 @@ describe('seo: страницы из каталога', () => {
       subtopics: { title_lv: 'Skaitļu attiecības', code: '6.1.3' }
     };
     vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [FULL_LV]]]));
-    const html = await (await page('/lv/task/321', makeEnv())).text();
+    const html = await (await page('/task/321', makeEnv())).text();
     expect(html).toContain('<h1>Uzdevums №9. Atrodiet 1/2 no 10.</h1>');
     expect(html).toContain('<p>Atbilde: x = 5</p>');
     expect(html).toContain('Apakštēma: 6.1.3. Skaitļu attiecības');
@@ -161,7 +161,7 @@ describe('seo: страницы из каталога', () => {
     const LONG = 'Турист прошёл первую часть пути пешком за три часа, вторую часть проехал на велосипеде, '
       + 'а третью часть проплыл на лодке. Найдите длину всего маршрута.';
     vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [{ ...TASK, condition_latex: LONG, topics: TOPIC }]]]));
-    const html = await (await page('/task/321', makeEnv())).text();
+    const html = await (await page('/ru/task/321', makeEnv())).text();
     expect(html).toContain('<h1>Задача №9. Турист прошёл первую часть пути пешком за три часа, вторую часть проехал на велосипеде, а третью часть…</h1>');
     expect(html).toContain('<p>' + LONG + '</p>');
   });
@@ -191,63 +191,74 @@ describe('seo: страницы из каталога', () => {
   });
 });
 
-describe('seo: латышская версия на /lv/…', () => {
+describe('seo: латышская версия без префикса, русская — на /ru/…', () => {
   const TOPIC_LV = { ...TOPIC, title_lv: 'Kā kopumu sadala noteiktā attiecībā?', subjects: { title: 'Алгебра и числа', title_lv: 'Algebra un skaitļi', slug: 'algebra' } };
-  const TASK_LV = { ...TASK, condition_latex_lv: 'Atrodiet $\\frac{1}{2}$ no $10$.' };
+  const TASK_LV = { ...TASK, title_lv: 'Nogriežņa dalīšana', condition_latex_lv: 'Atrodiet $\\frac{1}{2}$ no $10$.' };
 
-  it('адрес с /lv разбирается как без него', () => {
-    expect(routeOf('/lv')).toEqual({ kind: 'home' });
-    expect(routeOf('/lv/')).toEqual({ kind: 'home' });
-    expect(routeOf('/lv/topic/x')).toEqual({ kind: 'topic', slug: 'x' });
+  it('адрес с /ru разбирается как без него; старый /lv — тоже', () => {
+    expect(routeOf('/ru')).toEqual({ kind: 'home' });
+    expect(routeOf('/ru/')).toEqual({ kind: 'home' });
+    expect(routeOf('/ru/topic/x')).toEqual({ kind: 'topic', slug: 'x' });
+    expect(routeOf('/ru/task/321-a')).toEqual({ kind: 'task', id: 321 });
     expect(routeOf('/lv/task/321-a')).toEqual({ kind: 'task', id: 321 });
   });
 
-  it('тема на латышском: заголовок, lang, canonical на /lv, ссылки на обе версии', async () => {
+  it('тема на латышском: заголовок, lang, canonical без префикса, ссылки на обе версии', async () => {
     vi.stubGlobal('fetch', supabase([['topics?slug=eq.', [TOPIC_LV]], ['tasks?topic_id=eq.107', [TASK_LV]]]));
-    const response = await page('/lv/topic/skola2030-g6-1-x', makeEnv());
+    const response = await page('/topic/skola2030-g6-1-x', makeEnv());
     const html = await response.text();
     expect(response.headers.get('content-language')).toBe('lv');
     expect(html).toContain('<html lang="lv">');
     expect(html).toContain('<title>6.1. Kā kopumu sadala noteiktā attiecībā?, 6. klase — MathTasks</title>');
-    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/lv/topic/skola2030-g6-1-x" />');
-    expect(html).toContain('<link rel="alternate" hreflang="ru" href="https://mathtasks.lv/topic/skola2030-g6-1-x" />');
-    expect(html).toContain('<link rel="alternate" hreflang="lv" href="https://mathtasks.lv/lv/topic/skola2030-g6-1-x" />');
-    expect(html).toContain('<link rel="alternate" hreflang="x-default" href="https://mathtasks.lv/lv/topic/skola2030-g6-1-x" />');
-    // Ссылки текстовой версии — на латышские адреса, текст — латышский.
-    expect(html).toContain('<a href="/lv/task/321-delenie-otrezka">Uzdevums №9</a> — Atrodiet 1/2 no 10.');
-    expect(html).toContain('<a href="/lv/">Sākums</a>');
-    expect(html).toContain('<a href="/lv/subject/algebra">Algebra un skaitļi</a>');
+    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/topic/skola2030-g6-1-x" />');
+    expect(html).toContain('<link rel="alternate" hreflang="ru" href="https://mathtasks.lv/ru/topic/skola2030-g6-1-x" />');
+    expect(html).toContain('<link rel="alternate" hreflang="lv" href="https://mathtasks.lv/topic/skola2030-g6-1-x" />');
+    expect(html).toContain('<link rel="alternate" hreflang="x-default" href="https://mathtasks.lv/topic/skola2030-g6-1-x" />');
+    // Ссылки текстовой версии — латышские: без префикса и со слагом из латышского названия.
+    expect(html).toContain('<a href="/task/321-nogriezna-dalisana">Uzdevums №9</a> — Atrodiet 1/2 no 10.');
+    expect(html).toContain('<a href="/">Sākums</a>');
+    expect(html).toContain('<a href="/subject/algebra">Algebra un skaitļi</a>');
   });
 
   it('русская версия тоже ссылается на обе', async () => {
     vi.stubGlobal('fetch', supabase([['topics?slug=eq.', [TOPIC_LV]], ['tasks?topic_id=eq.107', [TASK_LV]]]));
-    const html = await (await page('/topic/skola2030-g6-1-x', makeEnv())).text();
+    const html = await (await page('/ru/topic/skola2030-g6-1-x', makeEnv())).text();
     expect(html).toContain('<html lang="ru">');
-    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/topic/skola2030-g6-1-x" />');
-    expect(html).toContain('<link rel="alternate" hreflang="lv" href="https://mathtasks.lv/lv/topic/skola2030-g6-1-x" />');
+    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/ru/topic/skola2030-g6-1-x" />');
+    expect(html).toContain('<link rel="alternate" hreflang="lv" href="https://mathtasks.lv/topic/skola2030-g6-1-x" />');
+    expect(html).toContain('<a href="/ru/task/321-delenie-otrezka">Задача №9</a>');
   });
 
-  it('задача на латышском: описание из латышского условия', async () => {
+  it('задача на латышском: описание из латышского условия, адрес со слагом из латышского названия', async () => {
     vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [{ ...TASK_LV, topics: TOPIC_LV }]]]));
-    const html = await (await page('/lv/task/321', makeEnv())).text();
+    const html = await (await page('/task/321', makeEnv())).text();
     expect(html).toContain('<title>Uzdevums №9 — 6.1. Kā kopumu sadala noteiktā attiecībā?, 6. klase — MathTasks</title>');
     expect(html).toContain('<meta name="description" content="Uzdevums №9. Atrodiet 1/2 no 10. Ar atbildi un risinājumu." />');
-    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/lv/task/321-delenie-otrezka" />');
+    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/task/321-nogriezna-dalisana" />');
+    expect(html).toContain('<link rel="alternate" hreflang="ru" href="https://mathtasks.lv/ru/task/321-delenie-otrezka" />');
+  });
+
+  it('задача на русском: canonical со слагом из русского названия, латышская — со своим', async () => {
+    vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [{ ...TASK_LV, topics: TOPIC_LV }]]]));
+    const html = await (await page('/ru/task/321-nogriezna-dalisana', makeEnv())).text();
+    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/ru/task/321-delenie-otrezka" />');
+    expect(html).toContain('<link rel="alternate" hreflang="lv" href="https://mathtasks.lv/task/321-nogriezna-dalisana" />');
+    expect(html).toContain('<link rel="alternate" hreflang="x-default" href="https://mathtasks.lv/task/321-nogriezna-dalisana" />');
   });
 
   it('главная на латышском, 404 и noindex — без ссылок на версии', async () => {
-    const homeHtml = await (await page('/lv/', makeEnv())).text();
+    const homeHtml = await (await page('/', makeEnv())).text();
     expect(homeHtml).toContain('<title>MathTasks — matemātikas uzdevumu krājums</title>');
-    expect(homeHtml).toContain('<link rel="canonical" href="https://mathtasks.lv/lv/" />');
-    expect(homeHtml).toContain('<a href="/lv/grade/6">6. klase</a>');
+    expect(homeHtml).toContain('<link rel="canonical" href="https://mathtasks.lv/" />');
+    expect(homeHtml).toContain('<a href="/grade/6">6. klase</a>');
 
     vi.stubGlobal('fetch', supabase([]));
-    const missing = await (await page('/lv/task/999', makeEnv())).text();
+    const missing = await (await page('/task/999', makeEnv())).text();
     expect(missing).toContain('<title>Uzdevums nav atrasts — MathTasks</title>');
     expect(missing).not.toContain('hreflang');
     expect(missing).not.toContain('rel="canonical"');
 
-    const progress = await (await page('/lv/progress', makeEnv())).text();
+    const progress = await (await page('/progress', makeEnv())).text();
     expect(progress).toContain('<title>Mans progress — MathTasks</title>');
     expect(progress).not.toContain('hreflang');
   });
@@ -312,6 +323,7 @@ describe('seo: разметка сайта для поиска', () => {
 
   it('главная: имя сайта, логотип и строка поиска', async () => {
     const html = await (await page('/', makeEnv())).text();
+    expect(ldOf(html)['@graph'].find(item => item['@type'] === 'WebSite').inLanguage).toBe('lv');
     const graph = ldOf(html)['@graph'];
     const site = graph.find(item => item['@type'] === 'WebSite');
     const org = graph.find(item => item['@type'] === 'EducationalOrganization');
@@ -322,22 +334,22 @@ describe('seo: разметка сайта для поиска', () => {
     expect(html).toContain('<meta property="og:image:width" content="1200" />');
   });
 
-  it('латышская главная: своё имя и свой адрес поиска', async () => {
-    const html = await (await page('/lv/', makeEnv())).text();
+  it('русская главная: своё имя и свой адрес поиска', async () => {
+    const html = await (await page('/ru/', makeEnv())).text();
     const site = ldOf(html)['@graph'].find(item => item['@type'] === 'WebSite');
-    expect(site.url).toBe('https://mathtasks.lv/lv/');
-    expect(site.inLanguage).toBe('lv');
-    expect(site.potentialAction.target.urlTemplate).toBe('https://mathtasks.lv/lv/search?q={search_term_string}');
+    expect(site.url).toBe('https://mathtasks.lv/ru/');
+    expect(site.inLanguage).toBe('ru');
+    expect(site.potentialAction.target.urlTemplate).toBe('https://mathtasks.lv/ru/search?q={search_term_string}');
   });
 
   it('страница задачи: путь по каталогу, «<» не закрывает тег script', async () => {
     vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [{ ...TASK, condition_latex: 'Верно ли, что $a < b$?', topics: TOPIC }]]]));
-    const html = await (await page('/task/321', makeEnv())).text();
+    const html = await (await page('/ru/task/321', makeEnv())).text();
     expect(html).toContain('\u003c');
     const crumbs = ldOf(html)['@graph'].find(item => item['@type'] === 'BreadcrumbList');
     expect(crumbs.itemListElement.map(item => item.name)).toEqual(
       ['Главная', '6 класс', '6.1. Как совокупность делят в определенном отношении']);
-    expect(crumbs.itemListElement[1].item).toBe('https://mathtasks.lv/grade/6');
+    expect(crumbs.itemListElement[1].item).toBe('https://mathtasks.lv/ru/grade/6');
   });
 
   it('страницы, которых нет, разметку не получают', async () => {
@@ -354,7 +366,7 @@ describe('seo: адрес, которого нет', () => {
   it('неизвестный путь — 404 и noindex, приложение всё равно грузится', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
-    const response = await page('/foo', makeEnv());
+    const response = await page('/ru/foo', makeEnv());
     const html = await response.text();
     expect(response.status).toBe(404);
     expect(html).toContain('<meta name="robots" content="noindex" />');
@@ -364,8 +376,8 @@ describe('seo: адрес, которого нет', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('латышский адрес, которого нет, отвечает по-латышски', async () => {
-    const html = await (await page('/lv/foo', makeEnv())).text();
+  it('адрес без префикса, которого нет, отвечает по-латышски', async () => {
+    const html = await (await page('/foo', makeEnv())).text();
     expect(html).toContain('<h1>Lapa nav atrasta</h1>');
   });
 

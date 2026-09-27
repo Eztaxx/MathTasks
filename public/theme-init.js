@@ -25,16 +25,24 @@
   } catch (e) {}
 
   try {
-    /* На странице каталога (data-url-lang) язык — часть адреса: /lv/… —
-       латышский, иначе — русский, если латышский не выбран раньше
-       (см. initLang в i18n.js). На остальных страницах — сохранённый выбор. */
-    const stored = localStorage.getItem('math-tasks:lang') || 'ru';
-    const onLv = location.pathname === '/lv' || location.pathname.startsWith('/lv/');
-    const savedLang = document.documentElement.hasAttribute('data-url-lang')
-      ? (onLv || stored === 'lv' ? 'lv' : 'ru')
-      : stored;
+    /* То же правило, что initLang в i18n.js: выбор посетителя главнее
+       всего; без выбора на странице каталога /ru/… — русский, адрес без
+       префикса — по языку браузера (русский браузер — русский, любой
+       другой — латышский). Отдельные страницы: выбор, иначе браузер.
+       Админка — только русская и без словаря: язык ей не выставляем,
+       иначе латышский браузер спрятал бы её подписи до страховки. */
+    if (/^\/admin(?:\.html)?(?:\/|$)/.test(location.pathname)) return;
+    let stored = null;
+    try { stored = localStorage.getItem('math-tasks:lang'); } catch (e) {}
+    if (stored !== 'ru' && stored !== 'lv') stored = null;
+    const browser = /^ru\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || '') ? 'ru' : 'lv';
+    const onRu = location.pathname === '/ru' || location.pathname.startsWith('/ru/');
+    const savedLang = stored
+      || (document.documentElement.hasAttribute('data-url-lang') && onRu ? 'ru' : browser);
     document.documentElement.lang = savedLang;
     document.documentElement.setAttribute('data-lang', savedLang);
+    /* Статический текст страниц по-русски: на латышском он прячется до
+       перевода словарём, чтобы не мигал. */
     if (savedLang === 'lv') {
       document.documentElement.classList.add('i18n-pending'); setTimeout(() => document.documentElement.classList.remove('i18n-pending'), 2500); /* Страховка: если i18n.js не загрузится или упадёт, текст не должен остаться скрытым навсегда — пусть лучше покажется по-русски. */
     }

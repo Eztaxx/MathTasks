@@ -3,7 +3,7 @@
    Работает как в браузере, так и в Node.js / Vitest тестах. */
 (() => {
   const STORAGE_KEY = 'math-tasks:lang';
-  const DEFAULT_LANG = 'ru';
+  const DEFAULT_LANG = 'lv';
   const SUPPORTED_LANGS = ['lv', 'ru'];
 
   const TRANSLATIONS = {
@@ -2372,38 +2372,38 @@
 
   let currentLang = DEFAULT_LANG;
 
-  // Инициализация языка из LocalStorage или браузера
+  // Язык браузера: русский — русский, любой другой — латышский.
+  function browserLang() {
+    if (typeof navigator === 'undefined') return DEFAULT_LANG;
+    const first = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+    return /^ru\b/i.test(first) ? 'ru' : 'lv';
+  }
+
+  /* Язык при загрузке. Главнее всего — выбор, который посетитель сделал
+     сам переключателем (сохранён в localStorage). Без выбора:
+     — на странице каталога (index.html, data-url-lang) адрес /ru/… — это
+       русская версия, её не трогаем; адрес без префикса — по языку
+       браузера, и приложение само переведёт русского на /ru/…;
+     — на отдельных страницах (тренажёр, экзамены, дуэль) — по браузеру.
+     Поисковик без сохранённого выбора и с английским браузером видит
+     латышскую версию без префикса и русскую на /ru/… — как отдаёт сервер.
+     Тот же порядок — в theme-init.js, до первой отрисовки. */
   function initLang() {
-    /* На странице каталога (index.html, data-url-lang) язык — часть адреса:
-       /lv/… — латышский, без префикса — русский. Сохранённый выбор
-       латышского тоже даёт латышский: приложение само переведёт адрес на
-       /lv/…. Язык браузера здесь не учитывается — открытая русская ссылка
-       остаётся русской. */
-    if (typeof document !== 'undefined' && typeof location !== 'undefined'
-      && document.documentElement && document.documentElement.hasAttribute('data-url-lang')) {
-      let saved = null;
-      try { saved = localStorage.getItem(STORAGE_KEY); } catch {}
-      const onLv = location.pathname === '/lv' || location.pathname.startsWith('/lv/');
-      currentLang = onLv || saved === 'lv' ? 'lv' : 'ru';
+    let saved = null;
+    try {
+      if (typeof localStorage !== 'undefined') saved = localStorage.getItem(STORAGE_KEY);
+    } catch {}
+    if (saved && SUPPORTED_LANGS.includes(saved)) {
+      currentLang = saved;
       return;
     }
-    if (typeof localStorage !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved && SUPPORTED_LANGS.includes(saved)) {
-          currentLang = saved;
-          return;
-        }
-      } catch {}
+    if (typeof document !== 'undefined' && typeof location !== 'undefined'
+      && document.documentElement && document.documentElement.hasAttribute('data-url-lang')) {
+      const onRu = location.pathname === '/ru' || location.pathname.startsWith('/ru/');
+      currentLang = onRu ? 'ru' : browserLang();
+      return;
     }
-    if (typeof navigator !== 'undefined' && navigator.language) {
-      const code = navigator.language.slice(0, 2).toLowerCase();
-      if (SUPPORTED_LANGS.includes(code)) {
-        currentLang = code;
-        return;
-      }
-    }
-    currentLang = DEFAULT_LANG;
+    currentLang = browserLang();
   }
 
   initLang();
@@ -2412,11 +2412,13 @@
     return currentLang;
   }
 
-  function setLang(lang) {
+  /* remember: false — язык сменился не по выбору посетителя (переход
+     «Назад» на адрес другой версии): запоминать его как выбор нельзя. */
+  function setLang(lang, { remember = true } = {}) {
     if (!SUPPORTED_LANGS.includes(lang)) return;
     currentLang = lang;
     try {
-      if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY, lang);
+      if (remember && typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY, lang);
     } catch {}
     if (typeof document !== 'undefined') {
       document.documentElement.lang = lang;

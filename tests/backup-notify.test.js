@@ -160,6 +160,10 @@ describe('уведомления о сообщениях об ошибках', (
     expect(text).toContain('#620 «Уравнение обратной пропорциональности» · 6 кл.');
     expect(text).toContain('в поле ответа: 12');
     expect(text).toContain('https://mathtasks.lv/admin#task-620');
+    // Ссылка на сайт — на версию языка ученика: латышская без префикса.
+    expect(text).toContain('На сайте: https://mathtasks.lv/task/620');
+    const ru = reportMessage({ task_id: 620, kind: 'answer', lang: 'ru', message: '' }, null);
+    expect(ru).toContain('На сайте: https://mathtasks.lv/ru/task/620');
   });
 
   it('без секретов Telegram ничего не делает', async () => {

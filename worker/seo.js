@@ -10,9 +10,10 @@
    текстовую версию прячет theme-init.js до первой отрисовки, а app.js её
    удаляет: приложение рисует ту же страницу само.
 
-   Две языковые версии: русская — на адресах без префикса, латышская — на
-   /lv/…. У каждой свой canonical и ссылки на обе версии (hreflang ru, lv и
-   x-default — латышская: основной язык страны). Тексты — из словаря
+   Две языковые версии: латышская — на адресах без префикса, русская — на
+   /ru/…. У каждой свой canonical и ссылки на обе версии (hreflang lv, ru и
+   x-default — латышская: основной язык страны). У задачи адрес версий
+   разный: слаг из названия на своём языке. Тексты — из словаря
    i18n.js, те же ключи, что у setMeta() в app.js: иначе поисковик видел
    бы, как заголовок меняется после загрузки скриптов. */
 
@@ -53,7 +54,7 @@ const decode = value => {
 const GRADE_KEYS = { visparigais: 'grade_visparigais', 'matematika-1': 'grade_matematika_1', 'matematika-2': 'grade_matematika_2' };
 
 // Как gradeLabel() в app.js: «6 класс» / «6. klase», старшие классы — уровнем.
-export const gradeLabelOf = (grade, lang = 'ru') => {
+export const gradeLabelOf = (grade, lang = 'lv') => {
   if (!grade) return '';
   const key = GRADE_KEYS[grade] || `grade_${grade}`;
   const text = t(key, {}, lang);
@@ -114,12 +115,12 @@ const shorten = (value, limit) => {
   const space = cut.lastIndexOf(' ');
   return `${(space > limit * 0.6 ? cut.slice(0, space) : cut).trimEnd()}…`;
 };
-const taskHref = task => `/task/${task.id}-${makeSlug(task.title)}`;
+const taskHref = (task, lang = 'lv') => `/task/${task.id}-${makeSlug(getLocalizedText(task, 'title', lang) || task.title)}`;
 const taskNumber = task => (Number(task.position) > 0 ? Number(task.position) : null);
 
 /* Данные и тексты страницы на нужном языке. null — страницу не трогаем
    (нет доступа к базе). */
-export async function buildPage(route, env, lang = 'ru') {
+export async function buildPage(route, env, lang = 'lv') {
   if (NEEDS_DATA.has(route.kind) && !(env.SUPABASE_URL && (env.SUPABASE_KEY || env.SUPABASE_ANON_KEY))) return null;
 
   const tr = (key, params) => t(key, params, lang);
@@ -133,7 +134,7 @@ export async function buildPage(route, env, lang = 'ru') {
   };
   const home = () => [tr('nav_home'), '/'];
   const taskItems = tasks => tasks.map(task => ({
-    href: taskHref(task),
+    href: taskHref(task, lang),
     label: taskLabel(task),
     text: latexToPlainText(text(task, 'condition_latex'), ITEM_TEXT_LENGTH)
   }));
@@ -242,7 +243,7 @@ export async function buildPage(route, env, lang = 'ru') {
       }
 
       const tasks = await query(env,
-        `tasks?topic_id=eq.${eq(topic.id)}&is_published=eq.true&select=id,title,position,condition_latex,condition_latex_lv&order=position.asc,id.asc&limit=${LIST_LIMIT}`);
+        `tasks?topic_id=eq.${eq(topic.id)}&is_published=eq.true&select=id,title,title_lv,position,condition_latex,condition_latex_lv&order=position.asc,id.asc&limit=${LIST_LIMIT}`);
       const description = text(topic, 'description');
       return {
         title: withGrade(topicTitle, topic.grade),
@@ -267,7 +268,7 @@ export async function buildPage(route, env, lang = 'ru') {
       const subTitle = text(sub, 'title');
       const title = `${code ? `${code}. ` : ''}${subTitle}`;
       const tasks = await query(env,
-        `tasks?subtopic_id=eq.${eq(sub.id)}&is_published=eq.true&select=id,title,position,condition_latex,condition_latex_lv&order=position.asc,id.asc&limit=${LIST_LIMIT}`);
+        `tasks?subtopic_id=eq.${eq(sub.id)}&is_published=eq.true&select=id,title,title_lv,position,condition_latex,condition_latex_lv&order=position.asc,id.asc&limit=${LIST_LIMIT}`);
       const crumbs = [home()];
       if (topic.grade) crumbs.push([gradeLabelOf(topic.grade, lang), `/grade/${gradeSlug(topic.grade)}`]);
       if (topic.slug) crumbs.push([topicTitleOf(topic), `/topic/${topic.slug}`]);
@@ -285,7 +286,7 @@ export async function buildPage(route, env, lang = 'ru') {
 
     case 'task': {
       const [task] = await query(env,
-        `tasks?id=eq.${eq(route.id)}&is_published=eq.true&select=id,title,position,condition_latex,condition_latex_lv,answer_latex,answer_latex_lv,difficulty,topics(id,title,title_lv,slug,grade,position),subtopics(title,title_lv,code)&limit=1`);
+        `tasks?id=eq.${eq(route.id)}&is_published=eq.true&select=id,title,title_lv,position,condition_latex,condition_latex_lv,answer_latex,answer_latex_lv,difficulty,topics(id,title,title_lv,slug,grade,position),subtopics(title,title_lv,code)&limit=1`);
       if (!task) return notFound('meta_not_found_task');
       const topic = task.topics || null;
       const topicTitle = topic ? topicTitleOf(topic) : '';
@@ -313,12 +314,13 @@ export async function buildPage(route, env, lang = 'ru') {
       ].filter(Boolean).join(' · ');
       const siblings = topic?.id
         ? await query(env, `tasks?topic_id=eq.${eq(topic.id)}&is_published=eq.true&id=neq.${eq(task.id)}`
-          + `&select=id,title,position,condition_latex,condition_latex_lv&order=position.asc,id.asc&limit=8`)
+          + `&select=id,title,title_lv,position,condition_latex,condition_latex_lv&order=position.asc,id.asc&limit=8`)
         : [];
       return {
         title: topic ? `${label} — ${withGrade(topicTitle, topic.grade)}` : label,
         description: taskDescription({ condition, number: taskNumber(task), topicTitle, lang }),
-        canonicalPath: taskHref(task),
+        canonicalPath: taskHref(task, lang),
+        altPaths: { lv: taskHref(task, 'lv'), ru: taskHref(task, 'ru') },
         heading: conditionText ? `${label}. ${shorten(conditionText, 110)}` : label,
         // Условие целиком — только если в заголовок оно не поместилось.
         intro: conditionText.length > 110 ? conditionText : '',
@@ -372,7 +374,7 @@ export async function buildPage(route, env, lang = 'ru') {
 
 /* Текстовая версия страницы: заголовок, «хлебные крошки», вводный текст,
    список ссылок. Ссылки ведут на версию того же языка. */
-export function renderSsrBody({ heading, intro = '', details = [], crumbs = [], items = [], itemsTitle = '' }, lang = 'ru') {
+export function renderSsrBody({ heading, intro = '', details = [], crumbs = [], items = [], itemsTitle = '' }, lang = 'lv') {
   const href = path => esc(localizeHref(path, lang));
   const crumbHtml = crumbs.length
     ? `<nav class="ssr-crumbs" aria-label="${esc(t('breadcrumbs', {}, lang))}">${crumbs
@@ -455,11 +457,12 @@ function structuredData(page, lang, canonical) {
 /* Подстановка в оболочку index.html. Замены делаются функцией, а не
    строкой: в описании может встретиться «$&», и String.replace принял бы
    его за ссылку на найденный текст. */
-export function injectPage(html, page, lang = 'ru') {
+export function injectPage(html, page, lang = 'lv') {
   const fullTitle = page.title ? `${page.title} — ${SITE_NAME}` : t('meta_site_title', {}, lang);
   const description = page.description || t('meta_home_desc', {}, lang);
   const path = page.canonicalPath || '/';
-  const canonical = CANONICAL_ORIGIN + toLangPath(path, lang);
+  const pathIn = code => page.altPaths?.[code] || path;
+  const canonical = CANONICAL_ORIGIN + toLangPath(pathIn(lang), lang);
   const setAttr = (source, pattern, value) => source.replace(pattern, (match, before, after) => `${before}${esc(value)}${after}`);
 
   let out = html.replace(/<html lang="[a-z]+"/, () => `<html lang="${lang}"`);
@@ -467,20 +470,20 @@ export function injectPage(html, page, lang = 'ru') {
   out = setAttr(out, /(<meta name="description" content=")[^"]*(")/, description);
   out = setAttr(out, /(<meta property="og:title" content=")[^"]*(")/, fullTitle);
   out = setAttr(out, /(<meta property="og:description" content=")[^"]*(")/, description);
-  out = setAttr(out, /(<meta property="og:locale" content=")[^"]*(")/, LOCALES[lang] || LOCALES.ru);
+  out = setAttr(out, /(<meta property="og:locale" content=")[^"]*(")/, LOCALES[lang] || LOCALES.lv);
   // Карточка широкая — значит и в X она должна быть широкой, а не квадратом.
   out = setAttr(out, /(<meta name="twitter:card" content=")[^"]*(")/, 'summary_large_image');
 
   /* Ссылки на обе языковые версии — только у страниц, которые попадают в
      поиск: у 404 и noindex их нет. */
   const indexable = page.status !== 404 && !page.robots;
-  const ruUrl = CANONICAL_ORIGIN + toLangPath(path, 'ru');
-  const lvUrl = CANONICAL_ORIGIN + toLangPath(path, 'lv');
+  const ruUrl = CANONICAL_ORIGIN + toLangPath(pathIn('ru'), 'ru');
+  const lvUrl = CANONICAL_ORIGIN + toLangPath(pathIn('lv'), 'lv');
   // У 404 canonical нет: указывать ему на главную — значит выдавать её за копию несуществующей страницы.
   const head = [
     page.status !== 404 ? `<link rel="canonical" href="${esc(canonical)}" />` : '',
-    indexable ? `<link rel="alternate" hreflang="ru" href="${esc(ruUrl)}" />` : '',
     indexable ? `<link rel="alternate" hreflang="lv" href="${esc(lvUrl)}" />` : '',
+    indexable ? `<link rel="alternate" hreflang="ru" href="${esc(ruUrl)}" />` : '',
     indexable ? `<link rel="alternate" hreflang="x-default" href="${esc(lvUrl)}" />` : '',
     `<meta property="og:url" content="${esc(canonical)}" />`,
     /* Без картинки ссылка на сайт в мессенджере выглядит голой строкой, а

@@ -1,4 +1,4 @@
-const { db, escapeHtml, loadViewer, renderMath, imageUrl, GRADES, fillGradeSelect, t = (k => k), getLang = () => 'ru', setLang = () => {}, applyTranslations = () => {} } = window.MathTasks;
+const { db, escapeHtml, loadViewer, renderMath, imageUrl, GRADES, fillGradeSelect, t = (k => k), getLang = () => 'lv', setLang = () => {}, applyTranslations = () => {} } = window.MathTasks;
 
 const sidebarNav = document.querySelector('#sidebar-nav');
 const viewHome = document.querySelector('#view-home');
@@ -113,7 +113,7 @@ const loc = (item, field) => {
     : (item?.[field] || '');
 };
 
-/* Язык — часть адреса: /lv/… латышский, без префикса русский (lib.js).
+/* Язык — часть адреса: /ru/… русский, без префикса латышский (lib.js).
    Маршруты разбираются по пути без префикса, а ссылки и переходы получают
    префикс текущего языка. */
 const langLib = window.MathTasksLib || {};
@@ -821,7 +821,7 @@ async function openRandomTask() {
     return;
   }
   const offset = Math.floor(Math.random() * count);
-  const { data } = await scopeToGrade(db.from('tasks').select('id, title, topic_id, grade').eq('is_published', true))
+  const { data } = await scopeToGrade(db.from('tasks').select('id, title, title_lv, topic_id, grade').eq('is_published', true))
     .order('id').range(offset, offset);
   if (data && data[0]) navigate(taskPath(data[0]));
 }
@@ -1233,9 +1233,22 @@ function syncAcceptVisibility(card) {
 }
 const insertIntoInput = window.MathTasks?.insertIntoInput || ((input, text) => { if (input) input.value += text; });
 
+/* Слаг — из названия на языке страницы: латышская версия получает
+   латышский адрес, русская — русский. Маршрут разбирает только номер. */
 function taskPath(task) {
-  const slug = (window.MathTasks?.makeSlug && task.title) ? window.MathTasks.makeSlug(task.title) : String(task.id);
+  const title = loc(task, 'title') || task.title;
+  const slug = (window.MathTasks?.makeSlug && title) ? window.MathTasks.makeSlug(title) : String(task.id);
   return `/task/${task.id}-${slug}`;
+}
+
+/* Ссылка «поделиться» — всегда латышский адрес без префикса: так её
+   просил владелец сайта. Получатель всё равно увидит свой язык — его
+   выбор или язык браузера (initLang в i18n.js). */
+function shareTaskUrl(task, taskId) {
+  if (!task) return `${location.origin}/task/${taskId}`;
+  const title = task.title_lv || task.title;
+  const slug = (window.MathTasks?.makeSlug && title) ? window.MathTasks.makeSlug(title) : String(task.id);
+  return `${location.origin}/task/${task.id}-${slug}`;
 }
 
 async function copyToClipboard(text) {
@@ -5432,11 +5445,12 @@ async function route({ force = false } = {}) {
   setMeta('', metaText('meta_home_desc'));
   await loadHome();
 }
-/* «Назад» может вернуть и другой язык: /lv/… ↔ без префикса. */
+/* «Назад» может вернуть и другой язык: /ru/… ↔ без префикса. Это не
+   выбор посетителя, поэтому язык не запоминается. */
 window.addEventListener('popstate', () => {
   const urlLang = langLib.langOfPath ? langLib.langOfPath(location.pathname) : getLang();
   if (urlLang !== getLang() && window.MathTasksI18n) {
-    window.MathTasksI18n.setLang(urlLang);
+    window.MathTasksI18n.setLang(urlLang, { remember: false });
     route({ force: true });
     return;
   }
@@ -5445,8 +5459,8 @@ window.addEventListener('popstate', () => {
 
 /* Переходы идут через History API: адрес /topic/<slug> должен быть настоящим,
    иначе поисковик видит один и тот же документ на все темы сразу. Путь
-   получает префикс текущего языка: navigate('/topic/x') в латышской версии
-   ведёт на /lv/topic/x. */
+   получает префикс текущего языка: navigate('/topic/x') в русской версии
+   ведёт на /ru/topic/x. */
 function navigate(path, { replace = false } = {}) {
   const target = langPath(path);
   if (location.pathname + location.search === target) return;
@@ -6021,8 +6035,7 @@ document.addEventListener('click', event => {
     event.preventDefault();
     const taskId = Number(copyLinkBtn.dataset.copyLink);
     const task = currentTasksMap.get(taskId);
-    const path = task ? taskPath(task) : `/task/${taskId}`;
-    const url = `${location.origin}${path}`;
+    const url = shareTaskUrl(task, taskId);
     copyToClipboard(url).then(ok => {
       if (ok) {
         showToast((window.MathTasks.t || (k => k))('toast_link_copied'));
@@ -6064,8 +6077,7 @@ document.addEventListener('click', event => {
       titleText = card?.querySelector('.task-title')?.textContent || '';
       conditionText = card?.querySelector('.task-condition')?.textContent || '';
     }
-    const path = task ? taskPath(task) : `/task/${taskId}`;
-    const url = `${location.origin}${path}`;
+    const url = shareTaskUrl(task, taskId);
     const tr = window.MathTasks.t || (k => k);
     const formatted = `${titleText}\n\n${tr('label_condition')}\n${conditionText}\n\n${tr('label_link')} ${url}\n— MathTasks`;
     copyToClipboard(formatted).then(ok => {
@@ -6573,9 +6585,10 @@ if (location.hash.startsWith('#/')) {
   history.replaceState(null, '', location.hash.slice(1));
 }
 
-/* Язык задаётся адресом. Кто выбрал латышский раньше (выбор хранится в
-   браузере), с русского адреса попадает на тот же адрес /lv/… — до первого
-   разбора маршрута. */
+/* Язык выбран до загрузки (initLang в i18n.js): выбор посетителя, иначе
+   /ru/ в адресе, иначе язык браузера. Если он не совпал с адресом —
+   русский читатель на латышском адресе или наоборот, — переводим на тот
+   же адрес нужной версии до первого разбора маршрута. */
 {
   const current = location.pathname + location.search;
   const wanted = langPath(current);
@@ -6583,7 +6596,7 @@ if (location.hash.startsWith('#/')) {
 }
 
 /* Внутренние ссылки получают префикс языка: шаблоны пишут /topic/…, а в
-   латышской версии ссылка должна вести на /lv/topic/… — и для человека,
+   русской версии ссылка должна вести на /ru/topic/… — и для человека,
    и для поисковика, который идёт по ссылкам. Один наблюдатель вместо правки
    десятков шаблонов; файлы, /api и админку он не трогает (localizeHref). */
 function localizeLinks(root = document) {

@@ -54,6 +54,13 @@ describe('makeSlug', () => {
     expect(makeSlug('Треугольники')).toBe('treugolniki');
   });
 
+  // Адрес латышской версии задачи — из латышского названия: буквы с надстрочными знаками не выпадают.
+  it('транслитерирует латышские буквы', () => {
+    expect(makeSlug('Trijstūra laukums')).toBe('trijstura-laukums');
+    expect(makeSlug('Ģeometriskā progresija')).toBe('geometriska-progresija');
+    expect(makeSlug('Nogriežņa dalīšana ČĒĶĻŠ')).toBe('nogriezna-dalisana-cekls');
+  });
+
   it('схлопывает разделители и обрезает края', () => {
     expect(makeSlug('  Степени   и  корни!  ')).toBe('stepeni-i-korni');
   });
