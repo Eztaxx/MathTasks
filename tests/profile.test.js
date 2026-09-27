@@ -141,3 +141,39 @@ describe('миграция профилей', () => {
     expect(sql).toMatch(/recovery_hash/);
   });
 });
+
+/* Миграция 031: ник меняется только функцией с проверкой срока, аватар —
+   ключ из набора, а не картинка. Применяется руками, как 027. */
+describe('миграция 031: ник раз в 3 месяца и аватар', () => {
+  const sql = readFileSync(new URL('../supabase/migrations/031_profile_nick_avatar.sql', import.meta.url), 'utf8');
+
+  it('прямое право менять ник отозвано, смена — через rename_profile со сроком', () => {
+    expect(sql).toMatch(/revoke update \(nick\) on public\.student_profiles from authenticated/);
+    expect(sql).toMatch(/revoke update on public\.student_profiles from authenticated/);
+    expect(sql).toMatch(/drop policy if exists "Member renames own profile"/);
+    expect(sql).toMatch(/create or replace function public\.rename_profile/);
+    expect(sql).toContain("interval '3 months'");
+    expect(sql).toContain('nick_too_soon');
+  });
+
+  it('аватар — короткий ключ, не адрес картинки', () => {
+    expect(sql).toMatch(/avatar text\s+check \(avatar is null or avatar ~ '\^\[a-z0-9_-\]\{1,24\}\$'\)/);
+    expect(sql).not.toMatch(/avatar_url|image|bytea/i);
+  });
+
+  it('функции security definer — с пустым search_path, запись аватара попытки — только воркеру', () => {
+    const definers = sql.match(/security definer[^\n]*/gi) || [];
+    expect(definers.length).toBeGreaterThan(4);
+    for (const line of definers) expect(line).toMatch(/set search_path = ''/);
+    expect(sql).toMatch(/grant execute on function public\.duel_run_set_avatar\(bigint, text\), public\.duel_run_place\(bigint\) to service_role;/);
+  });
+
+  it('таблица лидеров и соперник-запись отдают аватар; перед заменой — drop', () => {
+    expect(sql).toMatch(/drop function if exists public\.duel_ghost/);
+    expect(sql).toMatch(/drop function if exists public\.duel_leaderboard/);
+    expect(sql).toMatch(/returns table \(id bigint, seed bigint, nick text, avatar text,/);
+    expect(sql).toMatch(/returns table \(place bigint, id bigint, nick text, avatar text,/);
+    // Место попытки пересоздано после таблицы, на которую ссылается.
+    expect(sql.indexOf('create function public.duel_run_place')).toBeGreaterThan(sql.indexOf('create function public.duel_leaderboard'));
+  });
+});
