@@ -15,6 +15,13 @@
     { "name": "DUEL_LIMIT", "namespace_id": "2028", "simple": { "limit": 20, "period": 60 } }
   ],
 
+  /* Расписание (worker/backup.js): резервная копия базы в 03:00 UTC —
+     она сверяется с BACKUP_CRON, — и каждые 10 минут уведомления о новых
+     сообщениях об ошибках в Telegram. */
+  "triggers": {
+    "crons": ["0 3 * * *", "*/10 * * * *"]
+  },
+
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

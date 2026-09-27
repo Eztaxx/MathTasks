@@ -19,6 +19,7 @@
     "verify:access": "node scripts/check-visitor-access.mjs",
     "backup": "node scripts/backup.mjs",
     "backup:check": "node scripts/backup.mjs --check",
+    "backup:pull": "node scripts/backup-pull.mjs",
     "restore": "node scripts/restore.mjs",
     "renumber": "node scripts/renumber-tasks.mjs",
     "renumber:apply": "node scripts/renumber-tasks.mjs --apply",

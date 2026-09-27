@@ -19,6 +19,7 @@ import { isLocalizablePath, latexToPlainText, toLangPath,
 } from './lib.js';
 import { CANONICAL_ORIGIN, renderPage } from './seo.js';
 import { duelApi } from './duel-api.js';
+import { BACKUP_CRON, listBackups, notifyReady, notifyReports, runBackup, sendTelegram } from './backup.js';
 
 const TRANSLIT = {
   а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i',
@@ -342,6 +343,48 @@ async function isAdminToken(env, token) {
   return response.ok && (await response.json()) === true;
 }
 
+/* Ручной запуск копии, список копий и пробное уведомление — только
+   администратору (его токен из админки) или тому, у кого есть служебный
+   ключ базы: им проверяют работу копирования из терминала. */
+const sameSecret = (a, b) => {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+};
+
+async function isStaffRequest(request, env) {
+  const token = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
+  if (!token) return false;
+  if (env.SUPABASE_SERVICE_ROLE_KEY && sameSecret(token, env.SUPABASE_SERVICE_ROLE_KEY)) return true;
+  try {
+    return await isAdminToken(env, token);
+  } catch {
+    return false;
+  }
+}
+
+async function backupApi(request, env, url) {
+  if (!(await isStaffRequest(request, env))) return json({ error: 'Только для администратора — войдите в админку.' }, 403, { 'Cache-Control': 'no-store' });
+  const noStore = { 'Cache-Control': 'no-store' };
+  try {
+    if (url.pathname === '/api/backup/list' && request.method === 'GET') {
+      return json({ backups: await listBackups(env), notify: notifyReady(env) }, 200, noStore);
+    }
+    if (url.pathname === '/api/backup/run' && request.method === 'POST') {
+      return json(await runBackup(env), 200, noStore);
+    }
+    if (url.pathname === '/api/backup/notify-test' && request.method === 'POST') {
+      if (!notifyReady(env)) return json({ error: 'Секреты TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID не заданы.' }, 501, noStore);
+      await sendTelegram(env, 'MathTasks: уведомления о сообщениях об ошибках работают.');
+      return json({ sent: 1 }, 200, noStore);
+    }
+  } catch (error) {
+    return json({ error: error.message }, 502, noStore);
+  }
+  return json({ error: 'Нет такого действия.' }, 404, noStore);
+}
+
 async function geminiProxy(request, env) {
   if (request.method !== 'POST') return json({ error: 'Ожидался POST-запрос.' }, 405);
 
@@ -451,6 +494,7 @@ export default {
     if (url.pathname === '/sitemap.xml') return sitemap(request, env);
     if (url.pathname === '/api/gemini') return geminiProxy(request, env);
     if (url.pathname.startsWith('/api/duel/')) return duelApi(request, env);
+    if (url.pathname.startsWith('/api/backup/')) return backupApi(request, env, url);
     if (url.pathname.startsWith('/assets/')) return serveAsset(request, env);
 
     // Страница задачи: ботам отдаём мета-теги, людям — обычное приложение.
@@ -478,5 +522,15 @@ export default {
        404 вместо оболочки приложения с кодом 200. Раньше сюда попадали
        только известные адреса, и ветка с 404 была недостижима. */
     return renderPage(request, env);
+  },
+
+  /* По расписанию (wrangler.jsonc, triggers.crons): ночью — резервная
+     копия, каждые 10 минут — уведомления о новых сообщениях об ошибках.
+     Итог пишется в журнал воркера: wrangler tail или панель Cloudflare. */
+  async scheduled(event, env, ctx) {
+    const job = event.cron === BACKUP_CRON ? runBackup(env) : notifyReports(env, event.scheduledTime);
+    ctx.waitUntil(job
+      .then(result => console.log(`[${event.cron}]`, JSON.stringify(result)))
+      .catch(error => console.error(`[${event.cron}]`, error.message)));
   }
 };

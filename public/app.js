@@ -1359,6 +1359,19 @@ function openReportDialog(taskId) {
   reportDialog.showModal();
 }
 
+// «[в поле ответа: 12; 5 · неверных попыток: 2]» — для администратора, по-русски.
+function reportAnswerNote(taskId) {
+  const card = document.querySelector(`.task[data-task-id="${taskId}"]`);
+  const values = [...(card?.querySelectorAll('.self-check-form input:not([type="button"]):not([type="submit"]):not([type="checkbox"])') || [])]
+    .map(input => input.value.trim().slice(0, 100))
+    .filter(Boolean);
+  const wrong = getTaskWrongAttempts(taskId);
+  const parts = [];
+  if (values.length) parts.push(`в поле ответа: ${values.join('; ')}`);
+  if (wrong) parts.push(`неверных попыток: ${wrong}`);
+  return parts.length ? `[${parts.join(' · ')}]` : '';
+}
+
 async function submitReport(event) {
   event.preventDefault();
   const tr = window.MathTasks.t || (k => k);
@@ -1375,12 +1388,19 @@ async function submitReport(event) {
     return;
   }
   button.disabled = true;
+  /* К сообщению — что ученик набрал в поле ответа и сколько раз ошибся:
+     жалоба «ответ не принимается» без самого ответа не проверяется. Всё
+     вместе укладываем в 1000 знаков — таков предел колонки. */
+  const taskId = Number(reportDialog.dataset.taskId);
+  const note = reportAnswerNote(taskId);
+  const room = 1000 - (note ? note.length + 1 : 0);
+  const fullMessage = [message.slice(0, Math.max(0, room)), note].filter(Boolean).join('\n');
   /* Без .select(): посетитель читать task_reports не может, и запрос
      с возвратом строки упал бы на правах, хотя запись прошла. */
   const { error } = await db.from('task_reports').insert({
-    task_id: Number(reportDialog.dataset.taskId),
+    task_id: taskId,
     kind,
-    message,
+    message: fullMessage,
     lang: getLang() === 'lv' ? 'lv' : 'ru'
   });
   if (error) {

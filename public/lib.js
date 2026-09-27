@@ -1154,6 +1154,22 @@
   ];
   const filled = value => Boolean(String(value ?? '').trim());
 
+  /* Числа русского и латышского текста одни и те же? Если нет —
+     { onlyRu, onlyLv }: какие числа есть только в одном языке («4,5»
+     вместо «6»). Правку часто делают в одном языке, и во втором остаются
+     старые данные: так было с #778, #850, #625 и #798. Пустой текст на
+     любом языке — не расхождение, а отсутствие перевода. */
+  const numberMismatch = (ru, lv) => {
+    if (!filled(ru) || !filled(lv)) return null;
+    const a = textNumbers(ru);
+    const b = textNumbers(lv);
+    const onlyRu = missingNumbers(a, b);
+    const onlyLv = missingNumbers(b, a);
+    if (!onlyRu.length && !onlyLv.length) return null;
+    const show = list => list.map(n => n.replace('.', ','));
+    return { onlyRu: show(onlyRu), onlyLv: show(onlyLv) };
+  };
+
   /* Все проверки задачи: [{ code, level, text }], level — 'ok', 'warn'
      (замечание) или 'bad' (ошибка). context: grade и topicTitle — для
      правила про дроби; drawing — итог drawingIssues по чертежу: undefined,
@@ -1201,14 +1217,10 @@
        шагов, и это не ошибка. Конец решения сверяется отдельно, ниже. */
     const differ = [];
     for (const [field, name] of TASK_TEXTS.slice(0, 2)) {
-      if (!filled(t[field]) || !filled(t[field + '_lv'])) continue;
-      const ru = textNumbers(t[field]);
-      const lv = textNumbers(t[field + '_lv']);
-      const onlyRu = missingNumbers(ru, lv);
-      const onlyLv = missingNumbers(lv, ru);
-      if (!onlyRu.length && !onlyLv.length) continue;
-      const show = list => list.slice(0, 4).map(n => n.replace('.', ',')).join(', ') || '—';
-      differ.push(`в ${name}: RU ${show(onlyRu)}, LV ${show(onlyLv)}`);
+      const diff = numberMismatch(t[field], t[field + '_lv']);
+      if (!diff) continue;
+      const show = list => list.slice(0, 4).join(', ') || '—';
+      differ.push(`в ${name}: RU ${show(diff.onlyRu)}, LV ${show(diff.onlyLv)}`);
     }
     push('numbers', !differ.length, 'Числа в условии и ответе RU и LV совпадают',
       `Числа в RU и LV разные — ${differ.join('; ')}`);
@@ -3541,6 +3553,7 @@
     checkTaskAnswer,
     searchStems,
     isGenericTaskTitle,
+    numberMismatch,
     auditTask,
     taskIssues,
     drawingIssues,

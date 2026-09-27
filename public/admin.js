@@ -2386,6 +2386,14 @@ ${JSON.stringify(texts)}`;
     return 'задач';
   }
 
+  // «Только в русском: 6; только в латышском: 4,5» — для метки и вопроса перед сохранением.
+  function numberMismatchText(diff) {
+    return [
+      diff.onlyRu.length ? `только в русском ${diff.onlyRu.join(', ')}` : '',
+      diff.onlyLv.length ? `только в латышском ${diff.onlyLv.join(', ')}` : ''
+    ].filter(Boolean).join('; ');
+  }
+
   function declItems(n) {
     const mod10 = n % 10, mod100 = n % 100;
     if (mod100 >= 11 && mod100 <= 14) return 'пунктов';
@@ -2642,6 +2650,13 @@ ${JSON.stringify(texts)}`;
     if (cyrillicInLv) {
       chips.push({ level: 'warn', text: 'Кириллица в латышском тексте', action: cyrillicInLv[1],
         title: 'В латышской версии осталась кириллица — русский текст или единицы («см» вместо «cm»)' });
+    }
+    /* Числа в условии RU и LV: правку часто делают в одном языке, а во
+       втором остаются старые данные (#778, #850, #625, #798). */
+    const condDiff = lib.numberMismatch ? lib.numberMismatch(condRu, condLv) : null;
+    if (condDiff) {
+      chips.push({ level: 'bad', text: 'Числа в условии RU и LV разные', action: 'focus-cond-lv',
+        title: numberMismatchText(condDiff) });
     }
     const dupIds = duplicateTaskIds(condRu);
     if (dupIds.length) {
@@ -3696,6 +3711,22 @@ ${JSON.stringify(texts)}`;
     taskSuccess.textContent = '';
     const svgProblem = await applySvgCodeEdits();
     if (svgProblem) { taskSuccess.textContent = svgProblem; return; }
+    /* Числа на двух языках разные — спрашиваем перед сохранением: в одном
+       языке задачу поправили, а во втором остались прежние данные. */
+    const numbersLib = window.MathTasksLib;
+    if (numbersLib?.numberMismatch) {
+      const differ = [
+        ['условии', conditionInput.value, conditionInputLv?.value],
+        ['ответе', answerInput.value, answerInputLv?.value]
+      ].map(([name, ru, lv]) => {
+        const diff = numbersLib.numberMismatch(ru, lv);
+        return diff ? `в ${name}: ${numberMismatchText(diff)}` : '';
+      }).filter(Boolean);
+      if (differ.length && !confirm(`Числа в русском и латышском тексте разные.\n\n${differ.join('\n')}\n\nСохранить всё равно?`)) {
+        conditionInputLv?.focus();
+        return;
+      }
+    }
     const form = new FormData(taskForm);
     const topicId = form.get('topic_id') ? Number(form.get('topic_id')) : null;
     const taskPos = nextPosition(topicId, form.get('position'));
@@ -6391,6 +6422,7 @@ ${JSON.stringify(texts)}`;
   document.querySelectorAll('.adm-view').forEach(el => { viewEls[el.dataset.view] = el; });
   const VIEW_ALIASES = {};
   let currentView = null;
+  let pendingTaskLink = null; // номер задачи из ссылки #task-123
   let reviewFilterApplied = false;
 
   const slot = name => shell?.querySelector(`[data-slot="${name}"]`);
@@ -6428,6 +6460,14 @@ ${JSON.stringify(texts)}`;
 
   function showView(view, { push = true } = {}) {
     if (!shell) return;
+    /* #task-123 — ссылка из уведомления о сообщении об ошибке: открываем
+       задачу в редакторе. Саму задачу грузим после входа, в activateCurrentView. */
+    const taskLink = /^task-(\d+)$/.exec(view || '');
+    if (taskLink) {
+      pendingTaskLink = Number(taskLink[1]);
+      view = 'new';
+      push = false;
+    }
     if (!viewEls[view] && !VIEW_ALIASES[view]) view = 'home';
     const target = VIEW_ALIASES[view] || view;
     for (const [name, el] of Object.entries(viewEls)) el.hidden = name !== target;
@@ -6448,6 +6488,12 @@ ${JSON.stringify(texts)}`;
      закешировался бы без черновиков. */
   function activateCurrentView() {
     if (!adminAppStarted || !shell) return;
+    if (currentView === 'new' && pendingTaskLink) {
+      const id = pendingTaskLink;
+      pendingTaskLink = null;
+      fetchFullRow('tasks', id).then(full => { if (full) setTaskMode(full); });
+      return;
+    }
     if (currentView === 'review') {
       loadReviewQueue();
     } else if (currentView === 'tasks') {
@@ -7222,11 +7268,74 @@ ${JSON.stringify(texts)}`;
 
   /* Обзор: задачи без латышского условия и четыре свежих черновика —
      два маленьких запроса; остальные числа уже есть в указателе. */
+  /* ── Резервные копии и уведомления (worker/backup.js) ─────────────
+     Воркер снимает копию каждую ночь и шлёт в Telegram новые сообщения
+     об ошибках. Здесь видно, работает ли это, и есть кнопка «сейчас». */
+  async function staffFetch(path, init = {}) {
+    const session = (await db.auth.getSession())?.data?.session;
+    return fetch(path, { ...init, headers: { ...(init.headers || {}), Authorization: `Bearer ${session?.access_token || ''}` } });
+  }
+
+  async function loadBackupStatus() {
+    const status = byId('adm-backup-status');
+    const notify = byId('adm-notify-status');
+    const testBtn = byId('adm-notify-test');
+    if (!status) return;
+    try {
+      const res = await staffFetch('/api/backup/list');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `ответ ${res.status}`);
+      const last = data.backups?.[0];
+      const when = iso => new Date(iso).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+      status.textContent = last
+        ? `Последняя копия — ${when(last.created)}, ${(last.size / 1048576).toFixed(1)} МБ. Хранится ${data.backups.length} из 14, снимаются каждую ночь в 03:00 UTC. Вернуть: npm run backup:pull, затем npm run restore.`
+        : 'Копий ещё нет: первая появится этой ночью (03:00 UTC) или по кнопке «Сделать копию сейчас».';
+      if (notify) {
+        notify.textContent = data.notify
+          ? 'Новые сообщения об ошибках приходят в Telegram каждые 10 минут, со ссылкой на задачу в редакторе.'
+          : 'Уведомления в Telegram не настроены: воркеру нужны секреты TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID.';
+      }
+      if (testBtn) testBtn.hidden = !data.notify;
+    } catch (error) {
+      status.textContent = `Список копий не загрузился: ${error.message}`;
+    }
+  }
+
+  byId('adm-backup-run')?.addEventListener('click', async event => {
+    const btn = event.currentTarget;
+    const status = byId('adm-backup-status');
+    btn.disabled = true;
+    if (status) status.textContent = 'Снимаем копию…';
+    try {
+      const res = await staffFetch('/api/backup/run', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `ответ ${res.status}`);
+      await loadBackupStatus();
+    } catch (error) {
+      if (status) status.textContent = `Копия не снялась: ${error.message}`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  byId('adm-notify-test')?.addEventListener('click', async event => {
+    const btn = event.currentTarget;
+    btn.disabled = true;
+    try {
+      const res = await staffFetch('/api/backup/notify-test', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      btn.textContent = res.ok ? 'Отправлено — проверьте Telegram' : `Не отправилось: ${data.error || res.status}`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
   async function loadOverview() {
     if (!shell || !adminAppStarted || !db) return;
     const email = byId('admin-email')?.textContent.trim() || '';
     setShellText('#adm-avatar', email ? email[0] : '·');
     loadNoCheckList();
+    loadBackupStatus();
     const [noLv, drafts] = await Promise.all([
       db.from('tasks').select('id', { count: 'exact', head: true }).or('condition_latex_lv.is.null,condition_latex_lv.eq.'),
       db.from('tasks').select('id,title,topic_id,subtopic_id,grade,condition_latex_lv')

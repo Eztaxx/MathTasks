@@ -95,6 +95,15 @@
                 <div class="adm-panel-head"><h2>Без автопроверки</h2><span class="adm-panel-note">ответ не сверить автоматически — у ученика будет самопроверка. Запишите ответ без слов или впишите варианты для проверки</span></div>
                 <div id="adm-nocheck-list"><p class="adm-empty">Загружаем…</p></div>
               </section>
+              <!-- Ночные копии и уведомления о сообщениях — их делает воркер (worker/backup.js). -->
+              <section class="adm-panel adm-backup-panel" id="adm-backup-panel">
+                <div class="adm-panel-head"><h2>Резервные копии и уведомления</h2><button type="button" class="adm-btn soft" id="adm-backup-run">Сделать копию сейчас</button></div>
+                <div class="adm-backup-body">
+                  <p class="adm-backup-line" id="adm-backup-status">Загружаем…</p>
+                  <p class="adm-backup-line" id="adm-notify-status"></p>
+                  <button type="button" class="adm-btn text" id="adm-notify-test" hidden>Прислать пробное уведомление</button>
+                </div>
+              </section>
             </section>
 
             <section class="adm-view" data-view="review" hidden>

@@ -167,7 +167,9 @@ async function walk(bucket, prefix = '', depth = 0) {
 const storage = { buckets: [], files: [] };
 try {
   const bucketsRes = await fetch(`${URL_}/storage/v1/bucket`, { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } });
-  const buckets = bucketsRes.ok ? await bucketsRes.json() : [];
+  /* Бакет «backups» — сами ночные копии (worker/backup.js). Класть копии в
+     копию незачем: файл рос бы на мегабайты каждую ночь. */
+  const buckets = (bucketsRes.ok ? await bucketsRes.json() : []).filter(b => b.name !== 'backups');
   for (const b of buckets) {
     storage.buckets.push({ name: b.name, public: b.public });
     const files = await walk(b.name);
