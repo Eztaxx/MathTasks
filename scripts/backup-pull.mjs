@@ -44,8 +44,8 @@ async function listCopies() {
   return (await r.json()).filter(e => e.metadata && /^mathtasks-.*\.json$/.test(e.name));
 }
 
-async function download(path) {
-  const r = await fetch(`${URL_}/storage/v1/object/${BUCKET}/${path}`, { headers: H });
+async function download(path, bucket = BUCKET) {
+  const r = await fetch(`${URL_}/storage/v1/object/${bucket}/${path}`, { headers: H });
   if (!r.ok) throw new Error(`${path}: ${r.status}`);
   return Buffer.from(await r.arrayBuffer());
 }
@@ -62,10 +62,13 @@ const pick = wanted ? copies.find(c => c.name === wanted) : copies[0];
 if (!pick) { console.error(wanted ? `Копии ${wanted} нет. Список: --list` : 'Ночных копий пока нет.'); process.exit(1); }
 
 const dump = JSON.parse((await download(`db/${pick.name}`)).toString('utf8'));
-// Файлы — внутрь копии, как их кладёт npm run backup.
+/* Файлы — внутрь копии, как их кладёт npm run backup. Воркер докопирует
+   чертежи по частям каждые 10 минут; ещё не скопированный берём из
+   исходного бакета. */
 const files = [];
+let fromSource = 0;
 for (const f of dump.storage?.files || []) {
-  const buf = await download(f.ref);
+  const buf = await download(f.ref).catch(() => { fromSource++; return download(f.path, f.bucket); });
   files.push({ bucket: f.bucket, path: f.path, type: f.type, size: buf.length, base64: buf.toString('base64') });
 }
 dump.storage = { buckets: dump.storage?.buckets || [], files };
@@ -75,4 +78,5 @@ mkdirSync(dir, { recursive: true });
 const file = join(dir, pick.name);
 writeFileSync(file, JSON.stringify(dump, null, 1), 'utf8');
 console.log(`✓ ${file}  (${(statSync(file).size / 1048576).toFixed(2)} МБ, снята ${dump.takenAt})`);
+if (fromSource) console.log(`  ${fromSource} файл(ов) ещё не было в копии — взяты из исходного бакета.`);
 console.log(`Проверить: node scripts/backup.mjs --check "${file}"`);

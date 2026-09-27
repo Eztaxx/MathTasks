@@ -19,7 +19,7 @@ import { isLocalizablePath, latexToPlainText, toLangPath,
 } from './lib.js';
 import { CANONICAL_ORIGIN, renderPage } from './seo.js';
 import { duelApi } from './duel-api.js';
-import { BACKUP_CRON, listBackups, notifyReady, notifyReports, runBackup, sendTelegram } from './backup.js';
+import { BACKUP_CRON, MIRROR_CRON, listBackups, mirrorStep, notifyReady, notifyReports, runBackup, sendTelegram } from './backup.js';
 
 const TRANSLIT = {
   а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i',
@@ -525,10 +525,13 @@ export default {
   },
 
   /* По расписанию (wrangler.jsonc, triggers.crons): ночью — резервная
-     копия, каждые 10 минут — уведомления о новых сообщениях об ошибках.
+     копия, каждые 10 минут — уведомления о новых сообщениях об ошибках,
+     а со сдвигом в 5 минут — копирование новых чертежей в бакет копий.
      Итог пишется в журнал воркера: wrangler tail или панель Cloudflare. */
   async scheduled(event, env, ctx) {
-    const job = event.cron === BACKUP_CRON ? runBackup(env) : notifyReports(env, event.scheduledTime);
+    const job = event.cron === BACKUP_CRON ? runBackup(env)
+      : event.cron === MIRROR_CRON ? mirrorStep(env)
+      : notifyReports(env, event.scheduledTime);
     ctx.waitUntil(job
       .then(result => console.log(`[${event.cron}]`, JSON.stringify(result)))
       .catch(error => console.error(`[${event.cron}]`, error.message)));

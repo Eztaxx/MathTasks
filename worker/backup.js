@@ -3,14 +3,17 @@
    Копия — раз в сутки (BACKUP_CRON). Те же таблицы, что пишет
    scripts/backup.mjs, плюс профили учеников и дуэли, уходят одним JSON в
    закрытый бакет Supabase «backups» (db/mathtasks-<время>.json). Хранятся
-   последние BACKUP_KEEP копий. Файлы бакетов — чертежи — копируются туда
-   же по одному (files/<бакет>/<путь>) и только когда изменились, а в JSON
-   копии лежат ссылки на них. Целиком, с файлами внутри, копию собирает
-   npm run backup:pull — её понимает npm run restore.
+   последние BACKUP_KEEP копий. В JSON копии — ссылки на файлы бакетов
+   (чертежи), а сами файлы копирует туда же отдельный шаг (MIRROR_CRON,
+   каждые 10 минут): files/<бакет>/<путь>, только новые и изменившиеся.
+   Целиком, с файлами внутри, копию собирает npm run backup:pull — её
+   понимает npm run restore.
 
-   Процессорное время воркера на запуск невелико, поэтому JSON таблиц не
-   разбирается: страницы приходят текстом и склеиваются как есть, а число
-   строк берётся из заголовка Content-Range.
+   На бесплатном тарифе у воркера на вызов 50 запросов наружу и мало
+   процессорного времени. Поэтому копирование файлов вынесено в свой вызов
+   и ведёт счёт запросам (MAX_SUBREQUESTS), а JSON таблиц не разбирается:
+   страницы приходят текстом и склеиваются как есть, число строк берётся
+   из заголовка Content-Range.
 
    Уведомления — каждые 10 минут (REPORTS_CRON): сообщения об ошибках,
    пришедшие за эти 10 минут, уходят в Telegram со ссылкой в редактор.
@@ -27,6 +30,9 @@ export const BACKUP_BUCKET = 'backups';
 export const BACKUP_KEEP = 14;
 export const BACKUP_CRON = '0 3 * * *';
 export const REPORTS_CRON = '*/10 * * * *';
+export const MIRROR_CRON = '5-59/10 * * * *';
+// Бесплатный тариф Cloudflare — 50 запросов наружу за вызов; пять — в запас.
+export const MAX_SUBREQUESTS = 45;
 const REPORT_WINDOW_MS = 10 * 60 * 1000;
 const PAGE = 1000;
 const ORIGIN = 'https://mathtasks.lv';
@@ -72,11 +78,11 @@ export const totalFromRange = header => {
   return match ? Number(match[1]) : null;
 };
 
-async function tableText(env, table) {
+async function tableText(env, table, count = null) {
   const pages = [];
   let total = 0;
   for (let from = 0; ; from += PAGE) {
-    const response = await fetch(`${env.SUPABASE_URL}/rest/v1/${table.name}?select=*&order=${table.key}`, {
+    const response = await counted(count, `${env.SUPABASE_URL}/rest/v1/${table.name}?select=*&order=${table.key}`, {
       headers: { ...serviceHeaders(env), Range: `${from}-${from + PAGE - 1}`, 'Range-Unit': 'items', Prefer: 'count=exact' }
     });
     if (!response.ok) throw new Error(`${table.name}: ${response.status}`);
@@ -88,8 +94,14 @@ async function tableText(env, table) {
   return { text: joinPages(pages), count: total };
 }
 
-async function storageJson(env, path, init = {}) {
-  const response = await fetch(`${env.SUPABASE_URL}/storage/v1/${path}`, {
+// Каждый запрос наружу на счету: у бесплатного тарифа их 50 на вызов.
+const counted = (count, url, init) => {
+  if (count) count.n++;
+  return fetch(url, init);
+};
+
+async function storageJson(env, path, init = {}, count = null) {
+  const response = await counted(count, `${env.SUPABASE_URL}/storage/v1/${path}`, {
     ...init,
     headers: { ...serviceHeaders(env), 'Content-Type': 'application/json', ...(init.headers || {}) }
   });
@@ -98,44 +110,44 @@ async function storageJson(env, path, init = {}) {
 }
 
 // Бакет для копий — закрытый; создаётся при первом запуске.
-async function ensureBucket(env) {
-  const probe = await fetch(`${env.SUPABASE_URL}/storage/v1/bucket/${BACKUP_BUCKET}`, { headers: serviceHeaders(env) });
+async function ensureBucket(env, count) {
+  const probe = await counted(count, `${env.SUPABASE_URL}/storage/v1/bucket/${BACKUP_BUCKET}`, { headers: serviceHeaders(env) });
   if (probe.ok) return;
   await storageJson(env, 'bucket', {
     method: 'POST',
     body: JSON.stringify({ id: BACKUP_BUCKET, name: BACKUP_BUCKET, public: false })
-  });
+  }, count);
 }
 
-async function listFolder(env, bucket, prefix) {
+async function listFolder(env, bucket, prefix, count = null) {
   const out = [];
   for (let offset = 0; ; offset += 100) {
     const chunk = await storageJson(env, `object/list/${bucket}`, {
       method: 'POST',
       body: JSON.stringify({ prefix, limit: 100, offset, sortBy: { column: 'name', order: 'asc' } })
-    });
+    }, count);
     out.push(...chunk);
     if (chunk.length < 100) return out;
   }
 }
 
 // Рекурсивного обхода у Storage API нет: у папки нет metadata, по нему и отличаем.
-async function walk(env, bucket, prefix = '', depth = 0) {
+async function walk(env, bucket, prefix, depth, count) {
   if (depth > 4) return [];
   const files = [];
-  for (const entry of await listFolder(env, bucket, prefix)) {
+  for (const entry of await listFolder(env, bucket, prefix, count)) {
     const path = prefix ? `${prefix}/${entry.name}` : entry.name;
     if (entry.metadata) {
       files.push({ path, size: entry.metadata.size, type: entry.metadata.mimetype, updated: entry.updated_at || entry.metadata.lastModified || '' });
     } else {
-      files.push(...await walk(env, bucket, path, depth + 1));
+      files.push(...await walk(env, bucket, path, depth + 1, count));
     }
   }
   return files;
 }
 
-async function putObject(env, path, body, type) {
-  const response = await fetch(`${env.SUPABASE_URL}/storage/v1/object/${BACKUP_BUCKET}/${path}`, {
+async function putObject(env, path, body, type, count = null) {
+  const response = await counted(count, `${env.SUPABASE_URL}/storage/v1/object/${BACKUP_BUCKET}/${path}`, {
     method: 'POST',
     headers: { ...serviceHeaders(env), 'Content-Type': type || 'application/octet-stream', 'x-upsert': 'true' },
     body
@@ -143,36 +155,48 @@ async function putObject(env, path, body, type) {
   if (!response.ok) throw new Error(`запись ${path}: ${response.status} ${(await response.text()).slice(0, 120)}`);
 }
 
-async function readManifest(env) {
-  const response = await fetch(`${env.SUPABASE_URL}/storage/v1/object/${BACKUP_BUCKET}/files/manifest.json`, { headers: serviceHeaders(env) });
+async function readManifest(env, count) {
+  const response = await counted(count, `${env.SUPABASE_URL}/storage/v1/object/${BACKUP_BUCKET}/files/manifest.json`, { headers: serviceHeaders(env) });
   if (!response.ok) return {};
   try { return await response.json(); } catch { return {}; }
 }
 
-/* Файлы бакетов (кроме самого «backups») — в files/<бакет>/<путь>, только
-   новые и изменившиеся: чертежи меняются редко, и копировать все каждую
-   ночь незачем. Сверка — по размеру и времени изменения. */
-async function mirrorFiles(env) {
-  const buckets = (await storageJson(env, 'bucket')).filter(bucket => bucket.name !== BACKUP_BUCKET);
-  const manifest = await readManifest(env);
+// Что лежит в бакетах сейчас (кроме самого «backups») — для ссылок в копии.
+async function storageFiles(env, count) {
+  const buckets = (await storageJson(env, 'bucket', {}, count)).filter(bucket => bucket.name !== BACKUP_BUCKET);
   const files = [];
-  let copied = 0;
   for (const bucket of buckets) {
-    for (const file of await walk(env, bucket.name)) {
-      const key = `${bucket.name}/${file.path}`;
-      const stamp = `${file.size}|${file.updated}`;
-      if (manifest[key] !== stamp) {
-        const source = await fetch(`${env.SUPABASE_URL}/storage/v1/object/${bucket.name}/${file.path}`, { headers: serviceHeaders(env) });
-        if (!source.ok) throw new Error(`чтение ${key}: ${source.status}`);
-        await putObject(env, `files/${key}`, await source.arrayBuffer(), file.type);
-        manifest[key] = stamp;
-        copied++;
-      }
-      files.push({ bucket: bucket.name, path: file.path, type: file.type, size: file.size, ref: `files/${key}` });
+    for (const file of await walk(env, bucket.name, '', 0, count)) {
+      files.push({ ...file, bucket: bucket.name, ref: `files/${bucket.name}/${file.path}` });
     }
   }
-  if (copied) await putObject(env, 'files/manifest.json', JSON.stringify(manifest), 'application/json');
-  return { buckets: buckets.map(bucket => ({ name: bucket.name, public: bucket.public })), files, copied };
+  return { buckets: buckets.map(bucket => ({ name: bucket.name, public: bucket.public })), files };
+}
+
+const fileStamp = file => `${file.size}|${file.updated}`;
+
+/* Шаг копирования файлов (MIRROR_CRON): новые и изменившиеся — в
+   files/<бакет>/<путь>, сколько влезет в лимит запросов вызова; остальные
+   докопирует следующий шаг. Сверка — по размеру и времени изменения. */
+export async function mirrorStep(env) {
+  if (!backupReady(env)) return { copied: 0, skipped: 'нет ключа базы' };
+  const count = { n: 0 };
+  await ensureBucket(env, count);
+  const { files } = await storageFiles(env, count);
+  const manifest = await readManifest(env, count);
+  const stale = files.filter(file => manifest[`${file.bucket}/${file.path}`] !== fileStamp(file));
+  let copied = 0;
+  for (const file of stale) {
+    // Два запроса на файл и ещё один — записать список скопированного.
+    if (count.n + 3 > MAX_SUBREQUESTS) break;
+    const source = await counted(count, `${env.SUPABASE_URL}/storage/v1/object/${file.bucket}/${file.path}`, { headers: serviceHeaders(env) });
+    if (!source.ok) continue; // файл могли удалить между списком и чтением
+    await putObject(env, file.ref, await source.arrayBuffer(), file.type, count);
+    manifest[`${file.bucket}/${file.path}`] = fileStamp(file);
+    copied++;
+  }
+  if (copied) await putObject(env, 'files/manifest.json', JSON.stringify(manifest), 'application/json', count);
+  return { copied, pending: stale.length - copied, requests: count.n };
 }
 
 // Копии старше последних keep — на удаление. Имена сортируются по времени сами.
@@ -191,15 +215,16 @@ export async function listBackups(env) {
 
 export async function runBackup(env, now = new Date()) {
   if (!backupReady(env)) throw new Error('Нет SUPABASE_URL или SUPABASE_SERVICE_ROLE_KEY в секретах воркера');
-  await ensureBucket(env);
+  const count = { n: 0 };
+  await ensureBucket(env, count);
 
   const tables = [];
   const counts = {};
   for (const table of BACKUP_TABLES) {
     try {
-      const { text, count } = await tableText(env, table);
+      const { text, count: rows } = await tableText(env, table, count);
       tables.push([table.name, text]);
-      counts[table.name] = count;
+      counts[table.name] = rows;
     } catch (error) {
       if (!table.optional) throw error;
     }
@@ -208,7 +233,8 @@ export async function runBackup(env, now = new Date()) {
      такая копия вытеснила бы из хранилища хорошую. */
   if (!counts.tasks || !counts.topics) throw new Error('Задачи или темы не выгрузились — копия не записана');
 
-  const storage = await mirrorFiles(env);
+  const storage = await storageFiles(env, count);
+  const files = storage.files.map(({ bucket, path, type, size, ref }) => ({ bucket, path, type, size, ref }));
   const takenAt = now.toISOString();
   const stamp = takenAt.replace(/[:.]/g, '-').slice(0, 19);
   const name = `mathtasks-${stamp}.json`;
@@ -216,17 +242,17 @@ export async function runBackup(env, now = new Date()) {
   const body = `{"takenAt":${JSON.stringify(takenAt)},"project":${JSON.stringify(project)},"source":"worker",`
     + `"counts":${JSON.stringify(counts)},`
     + `"tables":{${tables.map(([table, text]) => `${JSON.stringify(table)}:${text}`).join(',')}},`
-    + `"storage":${JSON.stringify({ buckets: storage.buckets, files: storage.files })}}`;
-  await putObject(env, `db/${name}`, body, 'application/json');
+    + `"storage":${JSON.stringify({ buckets: storage.buckets, files })}}`;
+  await putObject(env, `db/${name}`, body, 'application/json', count);
 
-  const expired = expiredBackups((await listFolder(env, BACKUP_BUCKET, 'db')).map(entry => entry.name));
+  const expired = expiredBackups((await listFolder(env, BACKUP_BUCKET, 'db', count)).map(entry => entry.name));
   if (expired.length) {
     await storageJson(env, `object/${BACKUP_BUCKET}`, {
       method: 'DELETE',
       body: JSON.stringify({ prefixes: expired.map(file => `db/${file}`) })
-    });
+    }, count);
   }
-  return { name, bytes: body.length, counts, files: storage.files.length, copied: storage.copied, removed: expired.length };
+  return { name, bytes: body.length, counts, files: files.length, removed: expired.length, requests: count.n };
 }
 
 /* ── Уведомления о сообщениях об ошибках ──────────────────────────── */

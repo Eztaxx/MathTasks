@@ -2,9 +2,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import worker from '../worker/index.js';
 import {
   BACKUP_CRON,
+  MAX_SUBREQUESTS,
+  MIRROR_CRON,
   REPORTS_CRON,
   expiredBackups,
   joinPages,
+  mirrorStep,
   notifyReports,
   reportMessage,
   reportWindow,
@@ -59,7 +62,7 @@ describe('ночная копия: вспомогательное', () => {
 describe('ночная копия: запуск', () => {
   const env = { SUPABASE_URL: 'https://proj.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'service' };
 
-  const storageStub = (tables, uploads) => vi.fn(async (url, init = {}) => {
+  const storageStub = (tables, uploads, { images = [{ name: 'a.svg', metadata: { size: 3, mimetype: 'image/svg+xml' }, updated_at: 't1' }], manifest = null } = {}) => vi.fn(async (url, init = {}) => {
     const path = String(url).replace(env.SUPABASE_URL, '');
     if (path.startsWith('/rest/v1/')) {
       const name = path.slice('/rest/v1/'.length).split('?')[0];
@@ -69,10 +72,15 @@ describe('ночная копия: запуск', () => {
     }
     if (path === '/storage/v1/bucket/backups') return new Response('{}');
     if (path === '/storage/v1/bucket') return new Response(JSON.stringify([{ name: 'task-images', public: true }]));
-    if (path === '/storage/v1/object/list/task-images') return new Response(JSON.stringify([{ name: 'a.svg', metadata: { size: 3, mimetype: 'image/svg+xml' }, updated_at: 't1' }]));
+    if (path === '/storage/v1/object/list/task-images') {
+      const { offset } = JSON.parse(init.body);
+      return new Response(JSON.stringify(images.slice(offset, offset + 100)));
+    }
     if (path === '/storage/v1/object/list/backups') return new Response('[]');
-    if (path === '/storage/v1/object/backups/files/manifest.json' && !init.method) return new Response('{}', { status: 404 });
-    if (path === '/storage/v1/object/task-images/a.svg') return new Response('<s>');
+    if (path === '/storage/v1/object/backups/files/manifest.json' && !init.method) {
+      return manifest ? new Response(JSON.stringify(manifest)) : new Response('{}', { status: 404 });
+    }
+    if (path.startsWith('/storage/v1/object/task-images/')) return new Response('<s>');
     if (path.startsWith('/storage/v1/object/backups/') && init.method === 'POST') {
       uploads.push({ path: path.slice('/storage/v1/object/backups/'.length), body: init.body });
       return new Response('{}');
@@ -80,19 +88,19 @@ describe('ночная копия: запуск', () => {
     return new Response('?', { status: 500 });
   });
 
-  it('таблицы и ссылки на файлы — в один JSON, файлы — отдельно', async () => {
+  it('таблицы и ссылки на файлы — в один JSON, сами файлы копия не трогает', async () => {
     const uploads = [];
     vi.stubGlobal('fetch', storageStub({ topics: [{ id: 1 }], tasks: [{ id: 7, title: 'x' }], subjects: [], subtopics: [], tags: [], task_tags: [],
       exam_papers: [], exam_paper_topics: [], exam_paper_items: [], task_reports: [] }, uploads));
     const result = await runBackup(env, new Date('2026-09-27T03:00:00Z'));
     expect(result.name).toBe('mathtasks-2026-09-27T03-00-00.json');
     expect(result.counts.tasks).toBe(1);
-    expect(result.copied).toBe(1);
     const copy = uploads.find(u => u.path.startsWith('db/'));
     const dump = JSON.parse(copy.body);
     expect(dump.tables.tasks).toEqual([{ id: 7, title: 'x' }]);
     expect(dump.storage.files).toEqual([{ bucket: 'task-images', path: 'a.svg', type: 'image/svg+xml', size: 3, ref: 'files/task-images/a.svg' }]);
-    expect(uploads.map(u => u.path)).toContain('files/task-images/a.svg');
+    expect(uploads.map(u => u.path)).toEqual([`db/${result.name}`]);
+    expect(result.requests).toBeLessThan(MAX_SUBREQUESTS);
   });
 
   it('без задач копия не пишется', async () => {
@@ -101,6 +109,39 @@ describe('ночная копия: запуск', () => {
       exam_papers: [], exam_paper_topics: [], exam_paper_items: [], task_reports: [] }, uploads));
     await expect(runBackup(env)).rejects.toThrow(/не выгрузились/);
     expect(uploads.filter(u => u.path.startsWith('db/'))).toEqual([]);
+  });
+
+  /* Бесплатный тариф Cloudflare — 50 запросов наружу за вызов: первый
+     запуск на боевом упал на 60 чертежах. Шаг копирует, сколько влезает. */
+  const svg = i => ({ name: `f${String(i).padStart(3, '0')}.svg`, metadata: { size: 3, mimetype: 'image/svg+xml' }, updated_at: 't1' });
+
+  it('шаг копирования берёт новые файлы и не выходит за лимит запросов', async () => {
+    const uploads = [];
+    const stub = storageStub({}, uploads, { images: Array.from({ length: 150 }, (_, i) => svg(i)) });
+    vi.stubGlobal('fetch', stub);
+    const result = await mirrorStep(env);
+    expect(stub.mock.calls.length).toBeLessThanOrEqual(MAX_SUBREQUESTS);
+    expect(result.copied).toBeGreaterThan(10);
+    expect(result.pending).toBe(150 - result.copied);
+    const manifest = JSON.parse(uploads.find(u => u.path === 'files/manifest.json').body);
+    expect(Object.keys(manifest)).toHaveLength(result.copied);
+    expect(uploads.map(u => u.path)).toContain('files/task-images/f000.svg');
+  });
+
+  it('скопированное и не менявшееся второй раз не копируется', async () => {
+    const uploads = [];
+    const manifest = { 'task-images/f000.svg': '3|t1', 'task-images/f001.svg': '3|t0' };
+    vi.stubGlobal('fetch', storageStub({}, uploads, { images: [svg(0), svg(1)], manifest }));
+    const result = await mirrorStep(env);
+    expect(result).toMatchObject({ copied: 1, pending: 0 });
+    expect(uploads.map(u => u.path)).toEqual(['files/task-images/f001.svg', 'files/manifest.json']);
+  });
+
+  it('всё уже скопировано — шаг ничего не пишет', async () => {
+    const uploads = [];
+    vi.stubGlobal('fetch', storageStub({}, uploads, { images: [svg(0)], manifest: { 'task-images/f000.svg': '3|t1' } }));
+    expect(await mirrorStep(env)).toMatchObject({ copied: 0, pending: 0 });
+    expect(uploads).toEqual([]);
   });
 });
 
@@ -152,10 +193,12 @@ describe('уведомления о сообщениях об ошибках', (
 });
 
 describe('воркер: расписание и защищённые адреса', () => {
-  it('в wrangler.jsonc есть оба расписания, и воркер их различает', () => {
+  it('в wrangler.jsonc есть все три расписания, и воркер их различает', () => {
     const config = readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8');
     expect(config).toContain(`"${BACKUP_CRON}"`);
     expect(config).toContain(`"${REPORTS_CRON}"`);
+    expect(config).toContain(`"${MIRROR_CRON}"`);
+    expect(new Set([BACKUP_CRON, REPORTS_CRON, MIRROR_CRON]).size).toBe(3);
     expect(typeof worker.scheduled).toBe('function');
   });
 
