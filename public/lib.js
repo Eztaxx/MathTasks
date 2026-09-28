@@ -1169,9 +1169,14 @@
      «?» и строчные подписи вроде «h» значат, что данные ушли из условия
      на картинку. График и числовая прямая — исключение: там числа и есть
      содержание. */
-  const GRAPH_MARKS = /<text[^>]*>\s*(?:[xyXY]|0|O)\s*<\/text>/;
+  /* Числовая прямая — подпись «0»; график — обе оси, «x» и «y». Одной
+     буквы мало: «O» — это ещё и точка пересечения диагоналей, «x» — неизвестная
+     длина. Чертёж трапеции с точкой O принимался за график, и числа на нём
+     не ловились (#238, #249, #251 прошли бы в публикацию). */
+  const hasText = (svg, pattern) => new RegExp(`<text[^>]*>\\s*${pattern}\\s*</text>`).test(svg);
+  const GRAPH_MARKS = svg => hasText(svg, '0') || (hasText(svg, '[xX]') && hasText(svg, '[yY]'));
   const looksLikeChart = svg => /stroke-dasharray|marker-end|<path[^>]*d=['"][^'"]*[Cc]/.test(svg) === false
-    && (/(<line|<polyline)[^>]*\b(x1|points)=/.test(svg) && GRAPH_MARKS.test(svg));
+    && (/(<line|<polyline)[^>]*\b(x1|points)=/.test(svg) && GRAPH_MARKS(svg));
   const drawingIssues = svg => {
     const texts = [...String(svg ?? '').matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map(m => m[1].trim()).filter(Boolean);
     if (!texts.length || looksLikeChart(svg)) return null;

@@ -139,6 +139,19 @@ describe('чертёж без лишнего', () => {
   it('только вершины — чисто', () => {
     expect(drawingIssues('<svg><polygon points="0,0 10,0 0,10"/><text>A</text><text>B</text><text>C</text></svg>')).toBe(null);
   });
+
+  it('точка O на чертеже трапеции — не график: числа на нём всё равно лишние', () => {
+    const trapezoid = '<svg><polygon points="70,200 310,200 230,70 150,70"/><line x1="70" y1="200" x2="230" y2="70"/>'
+      + '<text>A</text><text>O</text><text>12 cm</text></svg>';
+    expect(drawingIssues(trapezoid)).toContain('12 cm');
+  });
+
+  it('график с осями x и y и числовая прямая с нулём — исключение', () => {
+    const graph = '<svg><line x1="0" y1="50" x2="100" y2="50"/><text>x</text><text>y</text><text>2</text><text>-3</text></svg>';
+    const numberLine = '<svg><line x1="0" y1="50" x2="100" y2="50"/><text>-2</text><text>0</text><text>3</text></svg>';
+    expect(drawingIssues(graph)).toBe(null);
+    expect(drawingIssues(numberLine)).toBe(null);
+  });
 });
 
 describe('латышское счётное слово без диакритики', () => {
