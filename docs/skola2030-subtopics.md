@@ -685,19 +685,27 @@
 | `10.1.6` | Абсолютная и относительная частота | Absolūtais un relatīvais biežums |
 | `10.1.7` | Статистическая вероятность | Statistiskā varbūtība |
 | `10.1.8` | Классическая вероятность, вычисление вероятности | Klasiskā varbūtība, varbūtības aprēķināšana |
+| `10.1.9` | Числовые множества N, Z, Q, R; способы задания множества | Skaitļu kopas N, Z, Q, R; kopas uzdošanas veidi |
+| `10.1.10` | Комбинаторика: правила сложения и умножения | Kombinatorika: saskaitīšanas un reizināšanas likums |
+| `10.1.11` | Полный перебор, схемы и графы для подсчёта элементов | Pilnā pārlase, shēmas un grafi elementu skaita noteikšanai |
+| `10.1.12` | Достоверное, невозможное и противоположное события | Drošs, neiespējams un pretējais notikums |
 
 ### 10.2. Элементы статистики
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `10.2.1` | Генеральная совокупность и выборка | Ģenerālkopa un izlase |
-| `10.2.2` | Типы данных: количественные и категориальные | Datu veidi: kvantitatīvie un kategoriālie |
-| `10.2.3` | Сведение данных в таблицы | Datu apkopošana tabulās |
+| `10.2.1` | Генеральная совокупность (популяция) и выборка; репрезентативная выборка | Populācija (ģenerālkopa) un izlase; reprezentatīva izlase |
+| `10.2.2` | Типы данных: количественные (дискретные, непрерывные) и категориальные | Datu veidi: kvantitatīvie (diskrētie, nepārtrauktie) un kategoriālie |
+| `10.2.3` | Сведение данных в таблицы частот; группировка данных по интервалам | Datu apkopošana biežuma tabulās; datu grupēšana intervālos |
 | `10.2.4` | Диаграммы: столбчатые, линейные, круговые, гистограмма, «ящик с усами» | Datu attēlošana: stabiņu, līniju, sektoru diagrammas, histogramma, kastu diagramma |
 | `10.2.5` | Меры центра: среднее, медиана, мода | Centrālās tendences rādītāji: vidējais aritmētiskais, mediāna, moda |
-| `10.2.6` | Меры разброса: размах, квартили, межквартильный размах, стандартное отклонение | Izkliedes rādītāji: amplitūda, kvartiles, starpkvartiļu izkliede, standartnovirze |
+| `10.2.6` | Меры разброса: размах, среднее абсолютное отклонение, стандартное отклонение | Izkliedes rādītāji: amplitūda, vidējā absolūtā novirze, standartnovirze |
 | `10.2.7` | Анализ связи двух переменных (диаграмма рассеяния) | Divu mainīgo sakarības analīze (izkliedes diagramma) |
 | `10.2.8` | Интерпретация данных и выводы | Datu interpretācija un secinājumi |
+| `10.2.9` | Квартили, межквартильный размах и «ящик с усами» | Kvartiles, starpkvartiļu amplitūda un kastu diagramma |
+| `10.2.10` | Форма и симметричность распределения; сравнение двух наборов данных | Datu sadalījuma forma un simetriskums; divu datu kopu salīdzināšana |
+| `10.2.11` | Вводящие в заблуждение представления данных и недостоверные данные | Maldinoši datu attēlojumi un neticami dati |
+| `10.2.12` | Статистическое исследование: выбор вопроса, сбор и анализ данных | Statistiskais pētījums: jautājuma izvēle, datu ieguve un analīze |
 
 ### 10.3. Вычисления в жизненных ситуациях
 
@@ -708,9 +716,13 @@
 | `10.3.3` | Отношения и пропорции | Attiecības un proporcijas |
 | `10.3.4` | Степень с целым и рациональным показателем, свойства степеней | Pakāpe ar veselu un racionālu kāpinātāju, pakāpju īpašības |
 | `10.3.5` | Корень n-й степени, действия с корнями | n-tās pakāpes sakne, darbības ar saknēm |
-| `10.3.6` | Стандартный вид числа | Skaitļa standartforma (normālforma) |
+| `10.3.6` | Стандартный вид числа, действия с числами в стандартном виде | Skaitļa standartforma (normālforma), darbības ar skaitļiem standartformā |
 | `10.3.7` | Логарифм, определение логарифма | Logaritms, logaritma definīcija |
 | `10.3.8` | Приближённые вычисления, округление, перевод единиц | Tuvinātie aprēķini, noapaļošana, mērvienību pārveidošana |
+| `10.3.9` | Сложные проценты: формула, накопленная сумма, срок и процентная ставка | Saliktie procenti: formula, uzkrātā vērtība, laiks un procentu likme |
+| `10.3.10` | Запись степени с рациональным показателем в виде корня и наоборот | Pakāpes ar racionālu kāpinātāju pierakstīšana kā sakne un otrādi |
+| `10.3.11` | Десятичный логарифм, формула перехода к новому основанию, значение логарифма на калькуляторе | Decimāllogaritms, bāzes maiņas formula, logaritma vērtība ar kalkulatoru |
+| `10.3.12` | Применение логарифма (pH, децибелы, определение времени) | Logaritma lietojums (pH, decibeli, laika noteikšana) |
 
 ### 10.4. Фигуры на плоскости в практических задачах
 
@@ -720,10 +732,14 @@
 | `10.4.2` | Равенство и подобие плоских фигур | Plaknes figūru vienādība un līdzība |
 | `10.4.3` | Площадь фигур: разбиение на части и достраивание до известной фигуры | Figūru laukums: sadalīšana daļās un papildināšana līdz pazīstamai figūrai |
 | `10.4.4` | Движения плоскости: параллельный перенос, осевая симметрия, поворот | Pārvietojumi: paralēlā pārnese, aksiālā simetrija, pagrieziens |
-| `10.4.5` | Вектор, скалярные и векторные величины; действия с векторами в геометрической форме | Vektors, skalāri un vektoriāli lielumi; darbības ar vektoriem ģeometriskā formā |
+| `10.4.5` | Вектор, скалярные и векторные величины; равные, противоположные, одинаково и противоположно направленные векторы | Vektors, skalāri un vektoriāli lielumi; vienādi, pretēji, vienādi vērsti un pretēji vērsti vektori |
 | `10.4.6` | Координаты и длина вектора, действия в координатах; расстояние между точками, середина отрезка | Vektora koordinātas un garums, darbības koordinātu formā; attālums starp punktiem, nogriežņa viduspunkts |
 | `10.4.7` | Векторы в пространстве, координаты в пространстве | Vektori telpā, telpas koordinātas |
 | `10.4.8` | Уравнение прямой, угловой коэффициент, приращение аргумента и функции | Taisnes vienādojums, virziena koeficients, argumenta un funkcijas pieaugums |
+| `10.4.9` | Сложение и вычитание векторов: правило треугольника и параллелограмма | Vektoru saskaitīšana un atņemšana: trijstūra un paralelograma likums |
+| `10.4.10` | Умножение вектора на число | Vektora reizināšana ar skaitli |
+| `10.4.11` | Общее уравнение прямой Ax + By + C = 0, построение прямой | Taisnes vispārīgais vienādojums Ax + By + C = 0, taisnes attēlošana |
+| `10.4.12` | Уравнение Ax + By = C в натуральных числах | Vienādojums Ax + By = C naturālo skaitļu kopā |
 
 ### 10.5. Функции как модели реальных ситуаций
 
@@ -737,6 +753,10 @@
 | `10.5.6` | Показательная функция и её график — экспонента; связь с геометрической прогрессией | Eksponentfunkcija un tās grafiks — eksponente; saistība ar ģeometrisko progresiju |
 | `10.5.7` | Простейшие показательные уравнения: корень по графику и через определение логарифма | Vienkāršākie eksponentvienādojumi: saknes noteikšana no grafika un ar logaritma definīciju |
 | `10.5.8` | Описание ситуаций по графику: линейная, квадратичная, дробно-линейная и показательная функции | Situāciju raksturošana pēc grafika: lineāra funkcija, kvadrātfunkcija, daļveida funkcija, eksponentfunkcija |
+| `10.5.9` | Последовательность как функция натурального аргумента; формула общего члена | Virkne kā naturāla argumenta funkcija; vispārīgā locekļa formula |
+| `10.5.10` | Свойства геометрической прогрессии и нахождение неизвестных величин; сравнение с арифметической прогрессией | Ģeometriskās progresijas īpašības un nezināmu lielumu noteikšana; salīdzinājums ar aritmētisko progresiju |
+| `10.5.11` | Понятие функции: область определения и область значений; является ли зависимость функцией | Funkcijas jēdziens: definīcijas kopa un vērtību kopa; vai sakarība ir funkcija |
+| `10.5.12` | Значение степени с рациональным показателем по графику показательной функции; сравнение чисел | Pakāpes ar racionālu kāpinātāju vērtība no eksponentfunkcijas grafika; skaitļu salīdzināšana |
 
 ### 10.6. Алгебраические модели в реальных ситуациях
 
@@ -745,24 +765,34 @@
 | `10.6.1` | Тождественные и равносильные преобразования | Identiski un ekvivalenti pārveidojumi |
 | `10.6.2` | Методы решения уравнений: разложение на множители, замена, графический метод | Vienādojumu risināšanas metodes: sadalīšana reizinātājos, substitūcija, grafiskā metode |
 | `10.6.3` | Алгебраические дроби, область определения рационального выражения | Algebriskās daļas, racionālas izteiksmes definīcijas apgabals |
-| `10.6.4` | Сокращение, умножение, сложение и вычитание алгебраических дробей | Algebrisko daļu saīsināšana, reizināšana, saskaitīšana un atņemšana |
+| `10.6.4` | Сокращение и расширение алгебраических дробей, смена знака | Algebrisko daļu saīsināšana un paplašināšana, zīmju maiņa |
 | `10.6.5` | Дробные уравнения | Daļveida vienādojumi |
 | `10.6.6` | Показательные уравнения (свойства степеней, определение логарифма) | Eksponentvienādojumi (pakāpju īpašības, logaritma definīcija) |
 | `10.6.7` | Системы уравнений с двумя неизвестными, решение как упорядоченная пара | Vienādojumu sistēmas ar diviem nezināmajiem, atrisinājums kā sakārtots skaitļu pāris |
 | `10.6.8` | Текстовые задачи: составление уравнений | Teksta uzdevumu modelēšana ar vienādojumiem |
+| `10.6.9` | Неполные квадратные уравнения и решение уравнений рассуждением | Nepilnie kvadrātvienādojumi un vienādojumu risināšana ar spriešanu |
+| `10.6.10` | Умножение и деление алгебраических дробей | Algebrisko daļu reizināšana un dalīšana |
+| `10.6.11` | Сложение и вычитание алгебраических дробей | Algebrisko daļu saskaitīšana un atņemšana |
+| `10.6.12` | Применение дробных уравнений в текстовых задачах (движение, работа, планируемое и фактическое) | Daļveida vienādojumu lietojums teksta uzdevumos (kustība, darbs, plānotais un faktiskais) |
+| `10.6.13` | Показательное уравнение a^x = b: точный и приближённый корень, сложные проценты | Eksponentvienādojums a^x = b: precīzā un aptuvenā sakne, saliktie procenti |
 
 ### 10.7. Пространственные тела в практических задачах
 
 | Номер | Подтема | Apakštēma |
 | :--- | :--- | :--- |
-| `10.7.1` | Взаимное расположение прямых и плоскостей (пересекающиеся, параллельные, скрещивающиеся) | Taišņu un plakņu savstarpējais novietojums telpā (krustiskas, paralēlas, šķērsas taisnes) |
+| `10.7.1` | Элементы, задающие плоскость; взаимное расположение прямых и плоскостей (пересекающиеся, параллельные, скрещивающиеся) | Plakni nosakoši elementi; taišņu un plakņu savstarpējais novietojums (krustiskas, paralēlas, šķērsas taisnes) |
 | `10.7.2` | Изображение тел, параллельное проецирование | Telpisku ķermeņu attēlošana, paralēlā projicēšana |
 | `10.7.3` | Сечения многогранников | Daudzskaldņu šķēlumi |
 | `10.7.4` | Перпендикуляр к плоскости, наклонная и проекция, угол между наклонной и плоскостью | Taisnes un plaknes perpendikularitāte, slīpne un projekcija, leņķis starp slīpni un plakni |
-| `10.7.5` | Многогранники: призма, пирамида, усечённая пирамида | Daudzskaldņi: prizma, piramīda, nošķelta piramīda |
+| `10.7.5` | Многогранники: призма, пирамида | Daudzskaldņi: prizma, piramīda |
 | `10.7.6` | Тела вращения: цилиндр, конус, шар | Rotācijas ķermeņi: cilindrs, konuss, lode |
 | `10.7.7` | Площадь поверхности и объём | Virsmas laukuma un tilpuma aprēķini |
 | `10.7.8` | Комбинации тел | Ģeometrisko ķermeņu kombinācijas |
+| `10.7.9` | Двугранный угол и его величина | Divplakņu kakts un tā leņķis |
+| `10.7.10` | Теорема о трёх перпендикулярах | Triju perpendikulu teorēma |
+| `10.7.11` | Диагональ призмы и диагональное сечение | Prizmas diagonāle un diagonālšķēlums |
+| `10.7.12` | Усечённая пирамида и усечённый конус | Nošķelta piramīda un nošķelts konuss |
+| `10.7.13` | Образование тел вращения и их сечения плоскостью | Rotācijas ķermeņu veidošanās un šķēlumi ar plakni |
 
 
 ## 11 класс

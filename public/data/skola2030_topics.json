@@ -2447,6 +2447,26 @@
         "num": "10.1.8",
         "ru": "Классическая вероятность, вычисление вероятности",
         "lv": "Klasiskā varbūtība, varbūtības aprēķināšana"
+      },
+      {
+        "num": "10.1.9",
+        "ru": "Числовые множества N, Z, Q, R; способы задания множества",
+        "lv": "Skaitļu kopas N, Z, Q, R; kopas uzdošanas veidi"
+      },
+      {
+        "num": "10.1.10",
+        "ru": "Комбинаторика: правила сложения и умножения",
+        "lv": "Kombinatorika: saskaitīšanas un reizināšanas likums"
+      },
+      {
+        "num": "10.1.11",
+        "ru": "Полный перебор, схемы и графы для подсчёта элементов",
+        "lv": "Pilnā pārlase, shēmas un grafi elementu skaita noteikšanai"
+      },
+      {
+        "num": "10.1.12",
+        "ru": "Достоверное, невозможное и противоположное события",
+        "lv": "Drošs, neiespējams un pretējais notikums"
       }
     ]
   },
@@ -2464,18 +2484,18 @@
     "subtopics": [
       {
         "num": "10.2.1",
-        "ru": "Генеральная совокупность и выборка",
-        "lv": "Ģenerālkopa un izlase"
+        "ru": "Генеральная совокупность (популяция) и выборка; репрезентативная выборка",
+        "lv": "Populācija (ģenerālkopa) un izlase; reprezentatīva izlase"
       },
       {
         "num": "10.2.2",
-        "ru": "Типы данных: количественные и категориальные",
-        "lv": "Datu veidi: kvantitatīvie un kategoriālie"
+        "ru": "Типы данных: количественные (дискретные, непрерывные) и категориальные",
+        "lv": "Datu veidi: kvantitatīvie (diskrētie, nepārtrauktie) un kategoriālie"
       },
       {
         "num": "10.2.3",
-        "ru": "Сведение данных в таблицы",
-        "lv": "Datu apkopošana tabulās"
+        "ru": "Сведение данных в таблицы частот; группировка данных по интервалам",
+        "lv": "Datu apkopošana biežuma tabulās; datu grupēšana intervālos"
       },
       {
         "num": "10.2.4",
@@ -2489,8 +2509,8 @@
       },
       {
         "num": "10.2.6",
-        "ru": "Меры разброса: размах, квартили, межквартильный размах, стандартное отклонение",
-        "lv": "Izkliedes rādītāji: amplitūda, kvartiles, starpkvartiļu izkliede, standartnovirze"
+        "ru": "Меры разброса: размах, среднее абсолютное отклонение, стандартное отклонение",
+        "lv": "Izkliedes rādītāji: amplitūda, vidējā absolūtā novirze, standartnovirze"
       },
       {
         "num": "10.2.7",
@@ -2501,6 +2521,26 @@
         "num": "10.2.8",
         "ru": "Интерпретация данных и выводы",
         "lv": "Datu interpretācija un secinājumi"
+      },
+      {
+        "num": "10.2.9",
+        "ru": "Квартили, межквартильный размах и «ящик с усами»",
+        "lv": "Kvartiles, starpkvartiļu amplitūda un kastu diagramma"
+      },
+      {
+        "num": "10.2.10",
+        "ru": "Форма и симметричность распределения; сравнение двух наборов данных",
+        "lv": "Datu sadalījuma forma un simetriskums; divu datu kopu salīdzināšana"
+      },
+      {
+        "num": "10.2.11",
+        "ru": "Вводящие в заблуждение представления данных и недостоверные данные",
+        "lv": "Maldinoši datu attēlojumi un neticami dati"
+      },
+      {
+        "num": "10.2.12",
+        "ru": "Статистическое исследование: выбор вопроса, сбор и анализ данных",
+        "lv": "Statistiskais pētījums: jautājuma izvēle, datu ieguve un analīze"
       }
     ]
   },
@@ -2543,8 +2583,8 @@
       },
       {
         "num": "10.3.6",
-        "ru": "Стандартный вид числа",
-        "lv": "Skaitļa standartforma (normālforma)"
+        "ru": "Стандартный вид числа, действия с числами в стандартном виде",
+        "lv": "Skaitļa standartforma (normālforma), darbības ar skaitļiem standartformā"
       },
       {
         "num": "10.3.7",
@@ -2555,6 +2595,26 @@
         "num": "10.3.8",
         "ru": "Приближённые вычисления, округление, перевод единиц",
         "lv": "Tuvinātie aprēķini, noapaļošana, mērvienību pārveidošana"
+      },
+      {
+        "num": "10.3.9",
+        "ru": "Сложные проценты: формула, накопленная сумма, срок и процентная ставка",
+        "lv": "Saliktie procenti: formula, uzkrātā vērtība, laiks un procentu likme"
+      },
+      {
+        "num": "10.3.10",
+        "ru": "Запись степени с рациональным показателем в виде корня и наоборот",
+        "lv": "Pakāpes ar racionālu kāpinātāju pierakstīšana kā sakne un otrādi"
+      },
+      {
+        "num": "10.3.11",
+        "ru": "Десятичный логарифм, формула перехода к новому основанию, значение логарифма на калькуляторе",
+        "lv": "Decimāllogaritms, bāzes maiņas formula, logaritma vērtība ar kalkulatoru"
+      },
+      {
+        "num": "10.3.12",
+        "ru": "Применение логарифма (pH, децибелы, определение времени)",
+        "lv": "Logaritma lietojums (pH, decibeli, laika noteikšana)"
       }
     ]
   },
@@ -2592,8 +2652,8 @@
       },
       {
         "num": "10.4.5",
-        "ru": "Вектор, скалярные и векторные величины; действия с векторами в геометрической форме",
-        "lv": "Vektors, skalāri un vektoriāli lielumi; darbības ar vektoriem ģeometriskā formā"
+        "ru": "Вектор, скалярные и векторные величины; равные, противоположные, одинаково и противоположно направленные векторы",
+        "lv": "Vektors, skalāri un vektoriāli lielumi; vienādi, pretēji, vienādi vērsti un pretēji vērsti vektori"
       },
       {
         "num": "10.4.6",
@@ -2609,6 +2669,26 @@
         "num": "10.4.8",
         "ru": "Уравнение прямой, угловой коэффициент, приращение аргумента и функции",
         "lv": "Taisnes vienādojums, virziena koeficients, argumenta un funkcijas pieaugums"
+      },
+      {
+        "num": "10.4.9",
+        "ru": "Сложение и вычитание векторов: правило треугольника и параллелограмма",
+        "lv": "Vektoru saskaitīšana un atņemšana: trijstūra un paralelograma likums"
+      },
+      {
+        "num": "10.4.10",
+        "ru": "Умножение вектора на число",
+        "lv": "Vektora reizināšana ar skaitli"
+      },
+      {
+        "num": "10.4.11",
+        "ru": "Общее уравнение прямой Ax + By + C = 0, построение прямой",
+        "lv": "Taisnes vispārīgais vienādojums Ax + By + C = 0, taisnes attēlošana"
+      },
+      {
+        "num": "10.4.12",
+        "ru": "Уравнение Ax + By = C в натуральных числах",
+        "lv": "Vienādojums Ax + By = C naturālo skaitļu kopā"
       }
     ]
   },
@@ -2663,6 +2743,26 @@
         "num": "10.5.8",
         "ru": "Описание ситуаций по графику: линейная, квадратичная, дробно-линейная и показательная функции",
         "lv": "Situāciju raksturošana pēc grafika: lineāra funkcija, kvadrātfunkcija, daļveida funkcija, eksponentfunkcija"
+      },
+      {
+        "num": "10.5.9",
+        "ru": "Последовательность как функция натурального аргумента; формула общего члена",
+        "lv": "Virkne kā naturāla argumenta funkcija; vispārīgā locekļa formula"
+      },
+      {
+        "num": "10.5.10",
+        "ru": "Свойства геометрической прогрессии и нахождение неизвестных величин; сравнение с арифметической прогрессией",
+        "lv": "Ģeometriskās progresijas īpašības un nezināmu lielumu noteikšana; salīdzinājums ar aritmētisko progresiju"
+      },
+      {
+        "num": "10.5.11",
+        "ru": "Понятие функции: область определения и область значений; является ли зависимость функцией",
+        "lv": "Funkcijas jēdziens: definīcijas kopa un vērtību kopa; vai sakarība ir funkcija"
+      },
+      {
+        "num": "10.5.12",
+        "ru": "Значение степени с рациональным показателем по графику показательной функции; сравнение чисел",
+        "lv": "Pakāpes ar racionālu kāpinātāju vērtība no eksponentfunkcijas grafika; skaitļu salīdzināšana"
       }
     ]
   },
@@ -2695,8 +2795,8 @@
       },
       {
         "num": "10.6.4",
-        "ru": "Сокращение, умножение, сложение и вычитание алгебраических дробей",
-        "lv": "Algebrisko daļu saīsināšana, reizināšana, saskaitīšana un atņemšana"
+        "ru": "Сокращение и расширение алгебраических дробей, смена знака",
+        "lv": "Algebrisko daļu saīsināšana un paplašināšana, zīmju maiņa"
       },
       {
         "num": "10.6.5",
@@ -2717,6 +2817,31 @@
         "num": "10.6.8",
         "ru": "Текстовые задачи: составление уравнений",
         "lv": "Teksta uzdevumu modelēšana ar vienādojumiem"
+      },
+      {
+        "num": "10.6.9",
+        "ru": "Неполные квадратные уравнения и решение уравнений рассуждением",
+        "lv": "Nepilnie kvadrātvienādojumi un vienādojumu risināšana ar spriešanu"
+      },
+      {
+        "num": "10.6.10",
+        "ru": "Умножение и деление алгебраических дробей",
+        "lv": "Algebrisko daļu reizināšana un dalīšana"
+      },
+      {
+        "num": "10.6.11",
+        "ru": "Сложение и вычитание алгебраических дробей",
+        "lv": "Algebrisko daļu saskaitīšana un atņemšana"
+      },
+      {
+        "num": "10.6.12",
+        "ru": "Применение дробных уравнений в текстовых задачах (движение, работа, планируемое и фактическое)",
+        "lv": "Daļveida vienādojumu lietojums teksta uzdevumos (kustība, darbs, plānotais un faktiskais)"
+      },
+      {
+        "num": "10.6.13",
+        "ru": "Показательное уравнение a^x = b: точный и приближённый корень, сложные проценты",
+        "lv": "Eksponentvienādojums a^x = b: precīzā un aptuvenā sakne, saliktie procenti"
       }
     ]
   },
@@ -2734,8 +2859,8 @@
     "subtopics": [
       {
         "num": "10.7.1",
-        "ru": "Взаимное расположение прямых и плоскостей (пересекающиеся, параллельные, скрещивающиеся)",
-        "lv": "Taišņu un plakņu savstarpējais novietojums telpā (krustiskas, paralēlas, šķērsas taisnes)"
+        "ru": "Элементы, задающие плоскость; взаимное расположение прямых и плоскостей (пересекающиеся, параллельные, скрещивающиеся)",
+        "lv": "Plakni nosakoši elementi; taišņu un plakņu savstarpējais novietojums (krustiskas, paralēlas, šķērsas taisnes)"
       },
       {
         "num": "10.7.2",
@@ -2754,8 +2879,8 @@
       },
       {
         "num": "10.7.5",
-        "ru": "Многогранники: призма, пирамида, усечённая пирамида",
-        "lv": "Daudzskaldņi: prizma, piramīda, nošķelta piramīda"
+        "ru": "Многогранники: призма, пирамида",
+        "lv": "Daudzskaldņi: prizma, piramīda"
       },
       {
         "num": "10.7.6",
@@ -2771,6 +2896,31 @@
         "num": "10.7.8",
         "ru": "Комбинации тел",
         "lv": "Ģeometrisko ķermeņu kombinācijas"
+      },
+      {
+        "num": "10.7.9",
+        "ru": "Двугранный угол и его величина",
+        "lv": "Divplakņu kakts un tā leņķis"
+      },
+      {
+        "num": "10.7.10",
+        "ru": "Теорема о трёх перпендикулярах",
+        "lv": "Triju perpendikulu teorēma"
+      },
+      {
+        "num": "10.7.11",
+        "ru": "Диагональ призмы и диагональное сечение",
+        "lv": "Prizmas diagonāle un diagonālšķēlums"
+      },
+      {
+        "num": "10.7.12",
+        "ru": "Усечённая пирамида и усечённый конус",
+        "lv": "Nošķelta piramīda un nošķelts konuss"
+      },
+      {
+        "num": "10.7.13",
+        "ru": "Образование тел вращения и их сечения плоскостью",
+        "lv": "Rotācijas ķermeņu veidošanās un šķēlumi ar plakni"
       }
     ]
   },
