@@ -2945,6 +2945,26 @@
         "num": "11.1.2",
         "ru": "Методы решения уравнений",
         "lv": "Vienādojumu risināšanas metodes"
+      },
+      {
+        "num": "11.1.3",
+        "ru": "Алгебраические выражения и их область определения",
+        "lv": "Algebriskas izteiksmes un to definīcijas kopa"
+      },
+      {
+        "num": "11.1.4",
+        "ru": "Разложение квадратного трёхчлена на множители",
+        "lv": "Kvadrāttrinoma sadalīšana reizinātājos"
+      },
+      {
+        "num": "11.1.5",
+        "ru": "Метод подстановки в уравнениях",
+        "lv": "Substitūcijas metode vienādojumos"
+      },
+      {
+        "num": "11.1.6",
+        "ru": "Графический способ решения уравнений",
+        "lv": "Vienādojumu risināšana ar grafisko paņēmienu"
       }
     ]
   },
@@ -2969,6 +2989,26 @@
         "num": "11.2.2",
         "ru": "Действия с алгебраическими дробями",
         "lv": "Darbības ar algebriskām daļām"
+      },
+      {
+        "num": "11.2.3",
+        "ru": "Сокращение, расширение дроби и смена знаков",
+        "lv": "Daļas saīsināšana, paplašināšana un zīmju maiņa"
+      },
+      {
+        "num": "11.2.4",
+        "ru": "Умножение и деление алгебраических дробей",
+        "lv": "Algebrisko daļu reizināšana un dalīšana"
+      },
+      {
+        "num": "11.2.5",
+        "ru": "Сложение и вычитание алгебраических дробей",
+        "lv": "Algebrisko daļu saskaitīšana un atņemšana"
+      },
+      {
+        "num": "11.2.6",
+        "ru": "Тождественные преобразования и доказательство тождеств",
+        "lv": "Izteiksmes identiskie pārveidojumi un identitāšu pierādīšana"
       }
     ]
   },
@@ -2993,6 +3033,26 @@
         "num": "11.3.2",
         "ru": "Дробное уравнение как математическая модель",
         "lv": "Daļveida vienādojums kā matemātiskais modelis"
+      },
+      {
+        "num": "11.3.3",
+        "ru": "Дробные уравнения с нулём в правой части",
+        "lv": "Daļveida vienādojumi ar nulli labajā pusē"
+      },
+      {
+        "num": "11.3.4",
+        "ru": "Основное свойство пропорции в уравнениях",
+        "lv": "Proporcijas pamatīpašība vienādojumos"
+      },
+      {
+        "num": "11.3.5",
+        "ru": "Умножение на общий знаменатель",
+        "lv": "Reizināšana ar kopsaucēju"
+      },
+      {
+        "num": "11.3.6",
+        "ru": "Подстановка в дробных уравнениях",
+        "lv": "Substitūcija daļveida vienādojumos"
       }
     ]
   },
@@ -3017,6 +3077,26 @@
         "num": "11.4.2",
         "ru": "Система уравнений как математическая модель",
         "lv": "Vienādojumu sistēma kā matemātiskais modelis"
+      },
+      {
+        "num": "11.4.3",
+        "ru": "Способ подстановки",
+        "lv": "Ievietošanas paņēmiens"
+      },
+      {
+        "num": "11.4.4",
+        "ru": "Способ сложения",
+        "lv": "Saskaitīšanas paņēmiens"
+      },
+      {
+        "num": "11.4.5",
+        "ru": "Системы с уравнениями второй степени",
+        "lv": "Sistēmas ar otrās pakāpes vienādojumiem"
+      },
+      {
+        "num": "11.4.6",
+        "ru": "Системы с дробными уравнениями",
+        "lv": "Sistēmas ar daļveida vienādojumiem"
       }
     ]
   },
@@ -3041,6 +3121,26 @@
         "num": "11.5.2",
         "ru": "Дробное неравенство как математическая модель ситуации",
         "lv": "Daļveida nevienādība kā situācijas matemātiskais modelis"
+      },
+      {
+        "num": "11.5.3",
+        "ru": "Квадратные неравенства",
+        "lv": "Kvadrātnevienādības"
+      },
+      {
+        "num": "11.5.4",
+        "ru": "Системы неравенств",
+        "lv": "Nevienādību sistēmas"
+      },
+      {
+        "num": "11.5.5",
+        "ru": "Метод интервалов",
+        "lv": "Intervālu metode"
+      },
+      {
+        "num": "11.5.6",
+        "ru": "Переход к равносильным системам неравенств",
+        "lv": "Pāreja uz ekvivalentām nevienādību sistēmām"
       }
     ]
   },
@@ -3065,6 +3165,26 @@
         "num": "11.6.2",
         "ru": "Площадь треугольника",
         "lv": "Trijstūra laukums"
+      },
+      {
+        "num": "11.6.3",
+        "ru": "Теорема Пифагора и формулы Евклида",
+        "lv": "Pitagora teorēma un Eiklīda formulas"
+      },
+      {
+        "num": "11.6.4",
+        "ru": "Расширение понятия угла",
+        "lv": "Leņķa jēdziena paplašinājums"
+      },
+      {
+        "num": "11.6.5",
+        "ru": "Теорема синусов",
+        "lv": "Sinusu teorēma"
+      },
+      {
+        "num": "11.6.6",
+        "ru": "Теорема косинусов",
+        "lv": "Kosinusa teorēma"
       }
     ]
   },
@@ -3094,6 +3214,21 @@
         "num": "11.7.3",
         "ru": "Дробная функция как математическая модель",
         "lv": "Daļveida funkcija kā matemātiskais modelis"
+      },
+      {
+        "num": "11.7.4",
+        "ru": "Область определения и нули функции",
+        "lv": "Definīcijas kopa un funkcijas nulles"
+      },
+      {
+        "num": "11.7.5",
+        "ru": "Чётные, нечётные и периодические функции",
+        "lv": "Pāra, nepāra un periodiskas funkcijas"
+      },
+      {
+        "num": "11.7.6",
+        "ru": "Сложная функция",
+        "lv": "Salikta funkcija"
       }
     ]
   },
@@ -3118,6 +3253,26 @@
         "num": "11.8.2",
         "ru": "Тригонометрические функции",
         "lv": "Trigonometriskās funkcijas"
+      },
+      {
+        "num": "11.8.3",
+        "ru": "Градусы и радианы",
+        "lv": "Grādi un radiāni"
+      },
+      {
+        "num": "11.8.4",
+        "ru": "Значения тригонометрических функций",
+        "lv": "Trigonometrisko funkciju vērtības"
+      },
+      {
+        "num": "11.8.5",
+        "ru": "Графики синуса, косинуса и тангенса",
+        "lv": "Sinusa, kosinusa un tangensa grafiki"
+      },
+      {
+        "num": "11.8.6",
+        "ru": "Преобразования графиков тригонометрических функций",
+        "lv": "Trigonometrisko funkciju grafiku transformācijas"
       }
     ]
   },
@@ -3147,6 +3302,21 @@
         "num": "11.9.3",
         "ru": "Формулы сложения аргументов",
         "lv": "Argumentu saskaitīšanas formulas"
+      },
+      {
+        "num": "11.9.4",
+        "ru": "Формулы двойного аргумента",
+        "lv": "Divkāršā argumenta formulas"
+      },
+      {
+        "num": "11.9.5",
+        "ru": "Упрощение тригонометрических выражений",
+        "lv": "Trigonometrisko izteiksmju vienkāršošana"
+      },
+      {
+        "num": "11.9.6",
+        "ru": "Доказательство тригонометрических тождеств",
+        "lv": "Trigonometrisko identitāšu pierādīšana"
       }
     ]
   },
@@ -3171,6 +3341,26 @@
         "num": "11.10.2",
         "ru": "Методы решения тригонометрических уравнений",
         "lv": "Trigonometrisko vienādojumu risināšanas metodes"
+      },
+      {
+        "num": "11.10.3",
+        "ru": "Уравнения со сложным аргументом",
+        "lv": "Vienādojumi ar saliktu argumentu"
+      },
+      {
+        "num": "11.10.4",
+        "ru": "Решения на заданном промежутке",
+        "lv": "Atrisinājumi dotajā intervālā"
+      },
+      {
+        "num": "11.10.5",
+        "ru": "Разложение на множители в тригонометрических уравнениях",
+        "lv": "Sadalīšana reizinātājos trigonometriskajos vienādojumos"
+      },
+      {
+        "num": "11.10.6",
+        "ru": "Подстановка в тригонометрических уравнениях",
+        "lv": "Substitūcija trigonometriskajos vienādojumos"
       }
     ]
   },
@@ -3200,6 +3390,21 @@
         "num": "11.11.3",
         "ru": "Применение векторов",
         "lv": "Vektoru lietojums"
+      },
+      {
+        "num": "11.11.4",
+        "ru": "Линейная комбинация векторов",
+        "lv": "Vektora izteikšana ar lineāru kombināciju"
+      },
+      {
+        "num": "11.11.5",
+        "ru": "Координаты и длина вектора",
+        "lv": "Vektora koordinātas un garums"
+      },
+      {
+        "num": "11.11.6",
+        "ru": "Расстояние между точками и середина отрезка",
+        "lv": "Attālums starp punktiem un viduspunkts"
       }
     ]
   },
@@ -3234,6 +3439,16 @@
         "num": "11.12.4",
         "ru": "Неравенства и их системы с двумя переменными",
         "lv": "Nevienādības un to sistēmas ar diviem mainīgajiem"
+      },
+      {
+        "num": "11.12.5",
+        "ru": "Угловой коэффициент и прямая через две точки",
+        "lv": "Virziena koeficients un taisne caur diviem punktiem"
+      },
+      {
+        "num": "11.12.6",
+        "ru": "Параллельные и перпендикулярные прямые",
+        "lv": "Paralēlas un perpendikulāras taisnes"
       }
     ]
   },
@@ -3263,6 +3478,21 @@
         "num": "11.13.3",
         "ru": "Геометрическая прогрессия",
         "lv": "Ģeometriskā progresija"
+      },
+      {
+        "num": "11.13.4",
+        "ru": "Свойства корней и тождественные преобразования",
+        "lv": "Sakņu īpašības un identiskie pārveidojumi"
+      },
+      {
+        "num": "11.13.5",
+        "ru": "Избавление от иррациональности в знаменателе",
+        "lv": "Atbrīvošanās no iracionalitātes saucējā"
+      },
+      {
+        "num": "11.13.6",
+        "ru": "Сумма членов геометрической прогрессии",
+        "lv": "Ģeometriskās progresijas locekļu summa"
       }
     ]
   },
@@ -3292,6 +3522,21 @@
         "num": "11.14.3",
         "ru": "Применения показательной функции и логарифма",
         "lv": "Eksponentfunkcijas un logaritma lietojumi"
+      },
+      {
+        "num": "11.14.4",
+        "ru": "График показательной функции и преобразования",
+        "lv": "Eksponentfunkcijas grafiks un transformācijas"
+      },
+      {
+        "num": "11.14.5",
+        "ru": "Свойства логарифма",
+        "lv": "Logaritma īpašības"
+      },
+      {
+        "num": "11.14.6",
+        "ru": "Замена основания, десятичный и натуральный логарифмы",
+        "lv": "Bāzes maiņa, decimāllogaritms un naturāllogaritms"
       }
     ]
   },
@@ -3321,6 +3566,21 @@
         "num": "11.15.3",
         "ru": "Применение показательных уравнений",
         "lv": "Eksponentvienādojumu lietojums"
+      },
+      {
+        "num": "11.15.4",
+        "ru": "Уравнения с одинаковыми основаниями",
+        "lv": "Vienādojumi ar vienādām bāzēm"
+      },
+      {
+        "num": "11.15.5",
+        "ru": "Вынесение общего множителя в показательных уравнениях",
+        "lv": "Kopīgā reizinātāja iznešana eksponentvienādojumos"
+      },
+      {
+        "num": "11.15.6",
+        "ru": "Подстановка в показательных уравнениях",
+        "lv": "Substitūcija eksponentvienādojumos"
       }
     ]
   },
@@ -3355,6 +3615,16 @@
         "num": "11.16.4",
         "ru": "Углы в пространстве",
         "lv": "Leņķi telpā"
+      },
+      {
+        "num": "11.16.5",
+        "ru": "Основные понятия и аксиомы стереометрии",
+        "lv": "Stereometrijas pamatjēdzieni un aksiomas"
+      },
+      {
+        "num": "11.16.6",
+        "ru": "Теорема о трёх перпендикулярах",
+        "lv": "Triju perpendikulu teorēma"
       }
     ]
   },
@@ -3379,6 +3649,26 @@
         "num": "11.17.2",
         "ru": "Пирамида",
         "lv": "Piramīda"
+      },
+      {
+        "num": "11.17.3",
+        "ru": "Прямоугольный параллелепипед",
+        "lv": "Taisnstūra paralēlskaldnis"
+      },
+      {
+        "num": "11.17.4",
+        "ru": "Правильная призма",
+        "lv": "Regulāra prizma"
+      },
+      {
+        "num": "11.17.5",
+        "ru": "Правильная пирамида",
+        "lv": "Regulāra piramīda"
+      },
+      {
+        "num": "11.17.6",
+        "ru": "Пирамида с равными боковыми рёбрами или двугранными углами",
+        "lv": "Piramīda ar vienādām sānu šķautnēm vai divplakņu kakta leņķiem"
       }
     ]
   },
@@ -3442,6 +3732,26 @@
         "num": "11.19.2",
         "ru": "Комбинаторика",
         "lv": "Kombinatorika"
+      },
+      {
+        "num": "11.19.3",
+        "ru": "Основные правила комбинаторики",
+        "lv": "Kombinatorikas pamatlikumi"
+      },
+      {
+        "num": "11.19.4",
+        "ru": "Перестановки и факториал",
+        "lv": "Permutācijas un faktoriāls"
+      },
+      {
+        "num": "11.19.5",
+        "ru": "Размещения",
+        "lv": "Variācijas"
+      },
+      {
+        "num": "11.19.6",
+        "ru": "Сочетания",
+        "lv": "Kombinācijas"
       }
     ]
   },
@@ -3471,6 +3781,21 @@
         "num": "11.20.3",
         "ru": "Условная вероятность",
         "lv": "Nosacītā varbūtība"
+      },
+      {
+        "num": "11.20.4",
+        "ru": "Классическая вероятность",
+        "lv": "Klasiskā varbūtība"
+      },
+      {
+        "num": "11.20.5",
+        "ru": "Статистическая вероятность и относительная частота",
+        "lv": "Statistiskā varbūtība un relatīvais biežums"
+      },
+      {
+        "num": "11.20.6",
+        "ru": "Независимые события и умножение вероятностей",
+        "lv": "Neatkarīgi notikumi un varbūtību reizināšana"
       }
     ]
   },
@@ -3524,7 +3849,38 @@
     "title_lv": "11.22. Kursa Matemātika I apkopojums",
     "description_ru": "Систематизация и обобщение понятий, методов и умений курса Математика I. Тему учитель может не выделять отдельно, а использовать часы для закрепления отдельных результатов.",
     "description_lv": "Kursa Matemātika I jēdzienu, metožu un prasmju sistematizēšana un apkopošana. Šo tematu skolotājs var neizdalīt atsevišķi, bet stundas izmantot atsevišķu rezultātu nostiprināšanai.",
-    "subtopics": []
+    "subtopics": [
+      {
+        "num": "11.22.1",
+        "ru": "Выражения, уравнения и неравенства",
+        "lv": "Izteiksmes, vienādojumi un nevienādības"
+      },
+      {
+        "num": "11.22.2",
+        "ru": "Степени, корни и логарифмы",
+        "lv": "Pakāpes, saknes un logaritmi"
+      },
+      {
+        "num": "11.22.3",
+        "ru": "Функции и их графики",
+        "lv": "Funkcijas un to grafiki"
+      },
+      {
+        "num": "11.22.4",
+        "ru": "Тригонометрия",
+        "lv": "Trigonometrija"
+      },
+      {
+        "num": "11.22.5",
+        "ru": "Геометрия на плоскости и в пространстве, векторы",
+        "lv": "Ģeometrija plaknē un telpā, vektori"
+      },
+      {
+        "num": "11.22.6",
+        "ru": "Комбинаторика, вероятность и статистика",
+        "lv": "Kombinatorika, varbūtība un statistika"
+      }
+    ]
   },
   {
     "id": 103,
