@@ -2951,6 +2951,8 @@ ${JSON.stringify(texts)}`;
       const box = document.createElement('div');
       box.className = 'adm-preview-lv';
       box.innerHTML = '<span class="adm-preview-lv-tag">LV</span><div class="adm-preview-lv-text"></div>';
+      // Латышский блок ведёт себя как русский над ним: переводы строк у решения и условия, а у ответа нет.
+      box.lastElementChild.classList.toggle('multiline', el.classList.contains('multiline'));
       el.append(box);
       put(box.lastElementChild, (lvInput?.value || '').trim(), 'Перевода пока нет');
     };
@@ -6060,7 +6062,7 @@ ${JSON.stringify(texts)}`;
       const hasLv = Boolean(String(item.condition_latex_lv || '').trim());
       return `<article class="ai-result" data-ai-key="${item.key}">
         <div class="ai-result-path">${escapeHtml(path)}</div>
-        <div class="ai-result-cond"></div>
+        <div class="ai-result-cond multiline"></div>
         <div class="ai-result-meta">
           <span class="adm-chip ${diffTone[item.difficulty] || 'warn'}">${escapeHtml(item.difficulty)}</span>
           <span class="adm-chip ${hasLv ? 'ok' : 'warn'}">${hasLv ? 'RU + LV' : 'только RU'}</span>
@@ -7007,7 +7009,7 @@ ${JSON.stringify(texts)}`;
           <button type="button" class="adm-link-btn" data-paper-peek="${task.id}">Посмотреть</button>
         </span>
       </div>
-      <div class="adm-paper-peek" id="paper-peek-${task.id}" hidden></div>`;
+      <div class="adm-paper-peek multiline" id="paper-peek-${task.id}" hidden></div>`;
     }).join('');
   }
 

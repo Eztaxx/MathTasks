@@ -1966,7 +1966,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
         <div class="compact-drill-item${solved ? ' is-solved' : ''}" data-task-id="${task.id}" id="drill-task-${task.id}">
           <span class="compact-drill-num" title="${escapeHtml(taskTitle)}">${taskNumber(task, index)}.</span>
           <div class="compact-drill-body">
-            <div class="compact-drill-expr math" data-drill-condition="${task.id}"></div>
+            <div class="compact-drill-expr math multiline" data-drill-condition="${task.id}"></div>
             <div class="compact-drill-answer-wrap">
               ${hasAnswer ? `
                 ${drillFields(task).map((field, slot) => `

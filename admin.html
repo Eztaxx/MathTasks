@@ -146,21 +146,21 @@
                     <div class="adm-review-main-col">
                       <div class="adm-review-block">
                         <div class="adm-review-label">Условие</div>
-                        <div class="adm-review-content math" id="adm-review-cond"></div>
+                        <div class="adm-review-content math multiline" id="adm-review-cond"></div>
                         <div id="adm-review-cond-img" class="adm-review-img-wrap" hidden></div>
                         <div id="adm-review-cond-lv-wrap" class="adm-review-subblock" hidden>
                           <div class="adm-review-sublabel">Nosacījums (LV)</div>
-                          <div class="adm-review-content math" id="adm-review-cond-lv"></div>
+                          <div class="adm-review-content math multiline" id="adm-review-cond-lv"></div>
                         </div>
                       </div>
                       <div class="adm-review-divider"></div>
                       <div class="adm-review-block">
                         <div class="adm-review-label">Решение и ответ</div>
-                        <div class="adm-review-content math" id="adm-review-sol"></div>
+                        <div class="adm-review-content math multiline" id="adm-review-sol"></div>
                         <div id="adm-review-sol-img" class="adm-review-img-wrap" hidden></div>
                         <div id="adm-review-sol-lv-wrap" class="adm-review-subblock" hidden>
                           <div class="adm-review-sublabel">Atrisinājums un atbilde (LV)</div>
-                          <div class="adm-review-content math" id="adm-review-sol-lv"></div>
+                          <div class="adm-review-content math multiline" id="adm-review-sol-lv"></div>
                         </div>
                       </div>
                       <div class="adm-review-tags" id="adm-review-tags"></div>
@@ -396,12 +396,12 @@
                       <div class="adm-preview-path" id="adm-preview-path"></div>
                       <div class="adm-preview-block">
                         <div class="adm-preview-label">Условие</div>
-                        <div class="adm-preview-text" id="adm-preview-cond"></div>
+                        <div class="adm-preview-text multiline" id="adm-preview-cond"></div>
                         <img class="adm-preview-img" id="adm-preview-cond-img" alt="Чертёж к условию" hidden />
                       </div>
                       <div class="adm-preview-block" id="adm-preview-hint-wrap" hidden>
                         <div class="adm-preview-label">Подсказка</div>
-                        <div class="adm-preview-text sub" id="adm-preview-hint"></div>
+                        <div class="adm-preview-text sub multiline" id="adm-preview-hint"></div>
                       </div>
                       <div class="adm-preview-block" id="adm-preview-answer-wrap" hidden>
                         <div class="adm-preview-label">Ответ</div>
@@ -410,7 +410,7 @@
                       <div class="adm-preview-divider"></div>
                       <div class="adm-preview-block">
                         <div class="adm-preview-label">Решение</div>
-                        <div class="adm-preview-text sub" id="adm-preview-sol"></div>
+                        <div class="adm-preview-text sub multiline" id="adm-preview-sol"></div>
                         <img class="adm-preview-img" id="adm-preview-sol-img" alt="Рисунок к решению" hidden />
                       </div>
                       <div class="adm-preview-tags" id="adm-preview-tags"></div>
@@ -930,17 +930,17 @@
           <!-- Группа полей RU -->
           <div class="task-lang-group" data-lang-group="ru">
             <label class="wide">Условие (RU) <span>обычный текст; формулы — между знаками $…$</span><textarea name="condition_latex" id="condition-input" required placeholder="Решите уравнение $2x^2 - 5x - 3 = 0$"></textarea></label>
-            <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель (RU)</span><div id="condition-preview"></div></div>
+            <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель (RU)</span><div class="multiline" id="condition-preview"></div></div>
             <label class="wide">Решение (RU) <span>необязательно; формулы — между знаками $…$</span><textarea name="solution_latex" id="solution-input" placeholder="Дискриминант $D = 49$, значит $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
-            <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель (RU)</span><div id="solution-preview"></div></div>
+            <div class="wide math-preview"><span class="math-preview-label">Как увидит посетитель (RU)</span><div class="multiline" id="solution-preview"></div></div>
           </div>
 
           <!-- Группа полей LV -->
           <div class="task-lang-group" data-lang-group="lv" hidden>
             <label class="wide">Nosacījums (LV) <span>parasts teksts; formulas — starp $…$</span><textarea name="condition_latex_lv" id="condition-input-lv" placeholder="Atrisiniet vienādojumu $2x^2 - 5x - 3 = 0$"></textarea></label>
-            <div class="wide math-preview"><span class="math-preview-label">Kā redzēs skolēns (LV)</span><div id="condition-preview-lv"></div></div>
+            <div class="wide math-preview"><span class="math-preview-label">Kā redzēs skolēns (LV)</span><div class="multiline" id="condition-preview-lv"></div></div>
             <label class="wide">Atrisinājums (LV) <span>neobligāti; formulas — starp $…$</span><textarea name="solution_latex_lv" id="solution-input-lv" placeholder="Diskriminants $D = 49$, tātad $x_1 = 3$, $x_2 = -\frac{1}{2}$"></textarea></label>
-            <div class="wide math-preview"><span class="math-preview-label">Kā redzēs skolēns (LV)</span><div id="solution-preview-lv"></div></div>
+            <div class="wide math-preview"><span class="math-preview-label">Kā redzēs skolēns (LV)</span><div class="multiline" id="solution-preview-lv"></div></div>
           </div>
 
           <!-- Общие поля ответа и чертежей -->
@@ -1294,8 +1294,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.113.0/dist/umd/supabase.js" integrity="sha384-6RfftBe0Rakn679H2xsb03EtYfeYGfNLCmLKWQCR71Xg7Z/hDhZc2N2ZIuJwREJX" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/lib.js?v=20260929-1"></script>
-  <script src="/client.js?v=20260913-8"></script>
+  <script src="/lib.js?v=20260929-2"></script>
+  <script src="/client.js?v=20260929-1"></script>
   <script src="/ai-generator.js?v=20260913-8"></script>
   <script src="/admin.js?v=20260927-4"></script>
 </body>

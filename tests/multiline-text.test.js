@@ -107,7 +107,7 @@ describe('переводы строк в тексте задачи: где он�
   // Условие, подсказка и решение в карточке; разбор в окне 💡; контрольная; печатный лист.
   it('класс стоит на условии, подсказке и решении во всех видах', () => {
     const marked = (source, attr) => new RegExp(`<div class="[^"]*\\bmultiline\\b[^"]*" ${attr}`).test(source);
-    for (const attr of ['data-condition>', 'data-hint>', 'data-solution>', 'data-cw-condition=', 'data-cw-sol=', 'data-print-latex="\\$\\{escapeHtml\\((?:solution|loc\\(task, \'condition_latex\'\\))']) {
+    for (const attr of ['data-condition>', 'data-hint>', 'data-solution>', 'data-drill-condition=', 'data-cw-condition=', 'data-cw-sol=', 'data-print-latex="\\$\\{escapeHtml\\((?:solution|loc\\(task, \'condition_latex\'\\))']) {
       expect(marked(app, attr), attr).toBe(true);
     }
     for (const id of ['drill-hint-condition', 'drill-hint-hint', 'drill-hint-solution']) {
@@ -125,5 +125,45 @@ describe('переводы строк в тексте задачи: где он�
     expect(client).toMatch(/classList\?\.contains\('multiline'\)[^\n]*trimBlockBreaks/);
     // Чистка идёт после KaTeX и не внутри try: сбой в ней не должен вернуть сырой текст.
     expect(client.indexOf('trimBlockBreaks')).toBeGreaterThan(client.indexOf('renderMathInElement(element'));
+  });
+});
+
+describe('переводы строк в тексте задачи: превью в админке', () => {
+  const adminHtml = read('admin.html');
+  const adminJs = read('public/admin.js');
+  const marked = id => new RegExp(`<div class="[^"]*\\bmultiline\\b[^"]*" id="${id}"`).test(adminHtml);
+
+  // Форма, боковое «Как увидит посетитель» и очередь проверки: условие, подсказка, решение.
+  it('класс стоит на условии, подсказке и решении во всех превью', () => {
+    for (const id of [
+      'condition-preview', 'solution-preview', 'condition-preview-lv', 'solution-preview-lv',
+      'adm-preview-cond', 'adm-preview-hint', 'adm-preview-sol',
+      'adm-review-cond', 'adm-review-cond-lv', 'adm-review-sol', 'adm-review-sol-lv'
+    ]) {
+      expect(marked(id), id).toBe(true);
+    }
+  });
+
+  it('превью ответа остаётся в одну строку', () => {
+    expect(adminHtml).toContain('id="answer-preview"');
+    for (const id of ['answer-preview', 'adm-preview-answer']) {
+      expect(marked(id), id).toBe(false);
+    }
+  });
+
+  it('карточки генератора и «Посмотреть» в печатном листе тоже с классом', () => {
+    expect(adminJs).toMatch(/class="ai-result-cond multiline"/);
+    expect(adminJs).toMatch(/class="adm-paper-peek multiline"/);
+  });
+
+  // Латышский блок создаётся в JS: без этой строки в нём переводы у выключных формул остались бы пустыми строками.
+  it('латышский блок бокового превью берёт класс у русского, а у ответа не получает', () => {
+    expect(adminJs).toMatch(/classList\.toggle\('multiline', el\.classList\.contains\('multiline'\)\)/);
+  });
+
+  // renderMath — из client.js, чистка — из lib.js: админка должна получить обе новые версии.
+  it('админка подключает lib.js и client.js с версией, вышедшей вместе с чисткой', () => {
+    expect(adminHtml).toMatch(/\/lib\.js\?v=20260929-2/);
+    expect(adminHtml).toMatch(/\/client\.js\?v=20260929-1/);
   });
 });
