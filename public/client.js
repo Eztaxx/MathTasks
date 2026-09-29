@@ -93,6 +93,10 @@ window.MathTasks = window.MathTasks || {};
   // insertIntoInput живёт в math-keyboard.js: он нужен и тренажёру, где client.js нет.
 
   window.MathTasks.renderMath = (element, text = '') => {
+    /* Текст с переводами строк (.multiline): «\r\n» приводим к «\n», а у выключных
+       формул лишние переводы срезаем после KaTeX (см. lib.trimBlockBreaks). */
+    const multiline = Boolean(element.classList?.contains('multiline'));
+    if (multiline && typeof lib.normalizeLineBreaks === 'function') text = lib.normalizeLineBreaks(text);
     element.textContent = text; // textContent — и экранирование, и запасной вид без KaTeX
     if (typeof window.renderMathInElement !== 'function') return;
     try {
@@ -101,8 +105,7 @@ window.MathTasks = window.MathTasks || {};
       element.textContent = text;
       return;
     }
-    // Текст с переводами строк (.multiline): у выключных формул они лишние, см. trimBlockBreaks.
-    if (element.classList?.contains('multiline') && typeof lib.trimBlockBreaks === 'function') lib.trimBlockBreaks(element);
+    if (multiline && typeof lib.trimBlockBreaks === 'function') lib.trimBlockBreaks(element);
   };
 
   /* Чертежи лежат в публичном бакете, а в базе — только путь.

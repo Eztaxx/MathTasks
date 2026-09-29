@@ -71,6 +71,13 @@
      выключную формулу в безымянный <span>, поэтому соседей ищем у этой
      обёртки, а не у .katex-display. Переводы строк в начале и в конце текста
      тоже срезаем: ведущий «\n» давал пустую первую строку. */
+  /* Часть решений в базе пришла из Windows с «\r\n». Chromium читает его как
+     один перенос, по стандарту «\r» — пробел, но что сделают Safari на
+     телефонах и старые движки, проверить нечем, а лишний «\r» рядом с формулой
+     мог дать вторую пустую строку. Поэтому текст .multiline приводим к «\n»
+     до показа. Не строка (null, число) — как есть. */
+  const normalizeLineBreaks = text => (typeof text === 'string' ? text.replace(/\r\n?/g, '\n') : text);
+
   const trimBlockBreaks = root => {
     if (!root || typeof root.querySelectorAll !== 'function') return;
     const TEXT_NODE = 3;
@@ -3993,6 +4000,7 @@
     importDupKey,
     sanitizeSearch,
     KATEX_DELIMITERS,
+    normalizeLineBreaks,
     trimBlockBreaks,
     cleanMathExample,
     normalizeMathAnswer,

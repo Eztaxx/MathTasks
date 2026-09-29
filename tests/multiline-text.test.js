@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { trimBlockBreaks } from '../public/lib.js';
+import { normalizeLineBreaks, trimBlockBreaks } from '../public/lib.js';
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
@@ -91,6 +91,21 @@ describe('переводы строк в тексте задачи: trimBlockBre
   });
 });
 
+describe('переводы строк в тексте задачи: normalizeLineBreaks', () => {
+  it('«\\r\\n» и одиночный «\\r» становятся «\\n», остальное не трогает', () => {
+    expect(normalizeLineBreaks('1) a\r\n2) b\r\n\r\n3) c')).toBe('1) a\n2) b\n\n3) c');
+    expect(normalizeLineBreaks('a\rb\nc')).toBe('a\nb\nc');
+    expect(normalizeLineBreaks('без переводов $x$')).toBe('без переводов $x$');
+  });
+
+  // renderMath зовёт её для любого .multiline; null и число не должны превратиться в текст «null».
+  it('не строку возвращает как есть', () => {
+    expect(normalizeLineBreaks(null)).toBeNull();
+    expect(normalizeLineBreaks(undefined)).toBeUndefined();
+    expect(normalizeLineBreaks(7)).toBe(7);
+  });
+});
+
 describe('переводы строк в тексте задачи: где они показываются', () => {
   const css = read('style.css');
   const app = read('public/app.js');
@@ -121,10 +136,14 @@ describe('переводы строк в тексте задачи: где он�
     }
   });
 
-  it('renderMath чистит переводы строк у выключных формул только в .multiline', () => {
-    expect(client).toMatch(/classList\?\.contains\('multiline'\)[^\n]*trimBlockBreaks/);
-    // Чистка идёт после KaTeX и не внутри try: сбой в ней не должен вернуть сырой текст.
-    expect(client.indexOf('trimBlockBreaks')).toBeGreaterThan(client.indexOf('renderMathInElement(element'));
+  it('renderMath приводит переводы строк и чистит блоки формул только в .multiline', () => {
+    expect(client).toMatch(/classList\?\.contains\('multiline'\)/);
+    expect(client).toMatch(/if \(multiline && [^\n]*normalizeLineBreaks/);
+    expect(client).toMatch(/if \(multiline && [^\n]*trimBlockBreaks/);
+    // Приведение — до записи текста в элемент, чистка — после KaTeX и не внутри try:
+    // сбой в ней не должен вернуть сырой текст.
+    expect(client.indexOf('normalizeLineBreaks(text)')).toBeLessThan(client.indexOf('element.textContent = text;'));
+    expect(client.indexOf('lib.trimBlockBreaks(element)')).toBeGreaterThan(client.indexOf('renderMathInElement(element'));
   });
 });
 
@@ -161,9 +180,12 @@ describe('переводы строк в тексте задачи: превью
     expect(adminJs).toMatch(/classList\.toggle\('multiline', el\.classList\.contains\('multiline'\)\)/);
   });
 
-  // renderMath — из client.js, чистка — из lib.js: админка должна получить обе новые версии.
-  it('админка подключает lib.js и client.js с версией, вышедшей вместе с чисткой', () => {
-    expect(adminHtml).toMatch(/\/lib\.js\?v=20260929-2/);
-    expect(adminHtml).toMatch(/\/client\.js\?v=20260929-1/);
+  // renderMath — из client.js, чистка и приведение — из lib.js. Главная и админка подключают
+  // один lib.js: разные версии значили бы, что одну из страниц забыли поднять при правке.
+  it('главная и админка подключают lib.js с одной версией, а client.js в админке — с номером', () => {
+    const version = (source, file) => new RegExp(`/${file}\\?v=([\\d-]+)`).exec(source)?.[1];
+    expect(version(adminHtml, 'lib\\.js')).toBeTruthy();
+    expect(version(adminHtml, 'lib\\.js')).toBe(version(read('index.html'), 'lib\\.js'));
+    expect(version(adminHtml, 'client\\.js')).toBeTruthy();
   });
 });
