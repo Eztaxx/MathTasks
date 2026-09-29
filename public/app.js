@@ -1618,7 +1618,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   const revealPanels = [];
 
   if (taskHint) {
-    const hintItem = createRevealItem('hint', '<div class="math" data-hint></div>', {
+    const hintItem = createRevealItem('hint', '<div class="math multiline" data-hint></div>', {
       hidden: !reveal.hint,
       icon: '💡'
     });
@@ -1636,7 +1636,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   }
 
   if (taskSolution || task.solution_image) {
-    const solutionBody = `<div class="math" data-solution></div>${taskFigure(task.solution_image, taskTitle, 'Attēls pie atrisinājuma')}`;
+    const solutionBody = `<div class="math multiline" data-solution></div>${taskFigure(task.solution_image, taskTitle, 'Attēls pie atrisinājuma')}`;
     const solItem = createRevealItem('solution', solutionBody, {
       hidden: !reveal.solution,
       icon: '📘'
@@ -1667,7 +1667,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
   return `<article class="task" id="task-${task.id}" data-task="${task.id}" data-task-id="${task.id}">
     <div class="task-meta">${meta}</div>
     <div class="task-condition-wrap">
-      <div class="math task-condition" data-condition></div>
+      <div class="math task-condition multiline" data-condition></div>
     </div>
     ${inlineFigure ? taskFigure(task.condition_image, taskTitle, 'Zīmējums') : ''}
     ${tagsRowHtml}
@@ -3079,7 +3079,7 @@ function printTaskHtml(task, index, options) {
     : '';
   const solution = options.content === 'full' ? loc(task, 'solution_latex') : '';
   const solutionBlock = solution
-    ? `<div class="print-solution math" data-print-latex="${escapeHtml(solution)}"></div>`
+    ? `<div class="print-solution math multiline" data-print-latex="${escapeHtml(solution)}"></div>`
     : '';
   const fields = answerFieldsOf(task);
   // Несколько величин — несколько строк ответа, как и полей на сайте.
@@ -3101,7 +3101,7 @@ function printTaskHtml(task, index, options) {
     <li class="print-task">
       <span class="print-task-num">${index + 1}.</span>
       <div class="print-task-body">
-        <div class="print-condition math" data-print-latex="${escapeHtml(loc(task, 'condition_latex'))}"></div>
+        <div class="print-condition math multiline" data-print-latex="${escapeHtml(loc(task, 'condition_latex'))}"></div>
         ${figure}
         ${solutionBlock}
         ${spaceBlock}
@@ -4737,7 +4737,7 @@ function renderControlWorkCards() {
           ${difficultyBadge(diff)}
         </div>
         <div class="cw-task-body">
-          <div class="math cw-task-condition" data-cw-condition="${task.id}"></div>
+          <div class="math cw-task-condition multiline" data-cw-condition="${task.id}"></div>
           ${figure}
         </div>
         <div class="cw-task-answer-area">
@@ -4952,7 +4952,7 @@ function renderCwOutcome(firstRun) {
         <details class="cw-solution-dropdown" open>
           <summary class="cw-solution-summary">${escapeHtml(tr('atrisinajums') || 'Разбор решения')}</summary>
           <div class="cw-solution-content">
-            <div class="math cw-solution-math" data-cw-sol="${task.id}"></div>
+            <div class="math cw-solution-math multiline" data-cw-sol="${task.id}"></div>
             ${solImg}
           </div>
         </details>

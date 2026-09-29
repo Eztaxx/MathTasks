@@ -99,7 +99,10 @@ window.MathTasks = window.MathTasks || {};
       window.renderMathInElement(element, { delimiters: lib.KATEX_DELIMITERS, throwOnError: false, errorColor: '#dc3151' });
     } catch {
       element.textContent = text;
+      return;
     }
+    // Текст с переводами строк (.multiline): у выключных формул они лишние, см. trimBlockBreaks.
+    if (element.classList?.contains('multiline') && typeof lib.trimBlockBreaks === 'function') lib.trimBlockBreaks(element);
   };
 
   /* Чертежи лежат в публичном бакете, а в базе — только путь.

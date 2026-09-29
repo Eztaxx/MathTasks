@@ -63,6 +63,39 @@
     { left: '\\(', right: '\\)', display: false }
   ];
 
+  /* Шаги решения, пункты условия и подсказки лежат в базе через перевод
+     строки. Класс .multiline (white-space: pre-line) его показывает, но
+     рядом с выключной формулой он лишний: формула — блок и сама начинает
+     строку, а «\n» между двумя блоками рисуется пустой строкой (решение из
+     трёх формул подряд вырастало вдвое). Вызывать после KaTeX: он кладёт
+     выключную формулу в безымянный <span>, поэтому соседей ищем у этой
+     обёртки, а не у .katex-display. Переводы строк в начале и в конце текста
+     тоже срезаем: ведущий «\n» давал пустую первую строку. */
+  const trimBlockBreaks = root => {
+    if (!root || typeof root.querySelectorAll !== 'function') return;
+    const TEXT_NODE = 3;
+    const trimEnd = node => {
+      if (!node || node.nodeType !== TEXT_NODE) return;
+      const value = node.nodeValue;
+      const kept = value.trimEnd();
+      if (kept.length < value.length && value.slice(kept.length).includes('\n')) node.nodeValue = kept;
+    };
+    const trimStart = node => {
+      if (!node || node.nodeType !== TEXT_NODE) return;
+      const value = node.nodeValue;
+      const kept = value.trimStart();
+      if (kept.length < value.length && value.slice(0, value.length - kept.length).includes('\n')) node.nodeValue = kept;
+    };
+    root.querySelectorAll('.katex-display').forEach(display => {
+      let box = display;
+      while (box.parentNode && box.parentNode !== root && box.parentNode.childNodes.length === 1) box = box.parentNode;
+      trimEnd(box.previousSibling);
+      trimStart(box.nextSibling);
+    });
+    trimStart(root.firstChild);
+    trimEnd(root.lastChild);
+  };
+
   /* Очистка условия задачи от шаблонных вводных фраз для компактного тренажёра */
   const cleanMathExample = val => {
     if (!val) return '';
@@ -3960,6 +3993,7 @@
     importDupKey,
     sanitizeSearch,
     KATEX_DELIMITERS,
+    trimBlockBreaks,
     cleanMathExample,
     normalizeMathAnswer,
     parseFractionOrNumber,
