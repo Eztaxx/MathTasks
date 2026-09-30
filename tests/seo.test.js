@@ -73,6 +73,9 @@ describe('seo: адрес → вид страницы', () => {
     expect(legacyTarget('/ru/subtopic/dirihle-princips-9-11-2')).toMatchObject({ kind: 'subtopic', table: 'subtopic', to: 'dirihle-princips-9-9-2' });
     expect(legacyTarget('/topic/skola2030-g9-1-ka-define-un-raksturo-lidzigus-trijsturus')).toBeNull();
     expect(legacyTarget('/subtopic/paralelograms-8-5-3')).toBeNull();
+    expect(legacyTarget('/ru/subject/geometry')).toMatchObject({ kind: 'subject', table: 'subject', to: 'geometrija', path: '/subject/geometrija' });
+    expect(legacyTarget('/subject/statistics')).toMatchObject({ table: 'subject', to: 'statistika' });
+    expect(legacyTarget('/subject/algebra')).toBeNull();
     expect(legacyTarget('/task/12-x')).toBeNull();
     expect(legacyTarget('/topic/toString')).toBeNull();
   });
@@ -124,6 +127,23 @@ describe('seo: старые адреса тем отвечают 301', () => {
     const response = await page('/subtopic/novertejums-un-piemers-9-11-4', makeEnv());
     expect(response.status).toBe(301);
     expect(response.headers.get('location')).toBe('https://mathtasks.lv/subtopic/novertejums-un-piemers-9-9-4');
+  });
+
+  it('раздел geometry -> geometrija, statistics -> statistika (и на /ru/)', async () => {
+    vi.stubGlobal('fetch', supabase([['subjects?slug=eq.geometrija', [{ id: 2 }]], ['subjects?slug=eq.statistika', [{ id: 3 }]]]));
+    const geo = await page('/subject/geometry', makeEnv());
+    expect(geo.status).toBe(301);
+    expect(geo.headers.get('location')).toBe('https://mathtasks.lv/subject/geometrija');
+    const stat = await page('/ru/subject/statistics?x=1', makeEnv());
+    expect(stat.status).toBe(301);
+    expect(stat.headers.get('location')).toBe('https://mathtasks.lv/ru/subject/statistika?x=1');
+  });
+
+  it('подтема с формулой в слаге: 301 на словесный слаг', async () => {
+    vi.stubGlobal('fetch', supabase([['subtopics?slug=eq.kvadrata-un-kuba-funkcijas-8-2-5', [{ id: 215 }]]]));
+    const response = await page('/ru/subtopic/y-x-y-x-8-2-5', makeEnv());
+    expect(response.status).toBe(301);
+    expect(response.headers.get('location')).toBe('https://mathtasks.lv/ru/subtopic/kvadrata-un-kuba-funkcijas-8-2-5');
   });
 
   it('пока нового слага нет в базе, редиректа нет: страница не ломается', async () => {
@@ -273,7 +293,8 @@ describe('seo: латышская версия без префикса, русс
     expect(html).toContain('<html lang="ru">');
     expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/ru/topic/skola2030-g6-1-x" />');
     expect(html).toContain('<link rel="alternate" hreflang="lv" href="https://mathtasks.lv/topic/skola2030-g6-1-x" />');
-    expect(html).toContain('<a href="/ru/task/321-delenie-otrezka">Задача №9</a>');
+    // Слаг задачи латышский и на русской версии, как и у тем.
+    expect(html).toContain('<a href="/ru/task/321-nogriezna-dalisana">Задача №9</a>');
   });
 
   it('задача на латышском: описание из латышского условия, адрес со слагом из латышского названия', async () => {
@@ -282,15 +303,31 @@ describe('seo: латышская версия без префикса, русс
     expect(html).toContain('<title>Uzdevums №9 — 6.1. Kā kopumu sadala noteiktā attiecībā?, 6. klase — MathTasks</title>');
     expect(html).toContain('<meta name="description" content="Uzdevums №9. Atrodiet 1/2 no 10. Ar atbildi un risinājumu." />');
     expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/task/321-nogriezna-dalisana" />');
-    expect(html).toContain('<link rel="alternate" hreflang="ru" href="https://mathtasks.lv/ru/task/321-delenie-otrezka" />');
+    expect(html).toContain('<link rel="alternate" hreflang="ru" href="https://mathtasks.lv/ru/task/321-nogriezna-dalisana" />');
   });
 
-  it('задача на русском: canonical со слагом из русского названия, латышская — со своим', async () => {
+  it('задача на русском: слаг в адресе тоже латышский', async () => {
     vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [{ ...TASK_LV, topics: TOPIC_LV }]]]));
     const html = await (await page('/ru/task/321-nogriezna-dalisana', makeEnv())).text();
-    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/ru/task/321-delenie-otrezka" />');
+    expect(html).toContain('<link rel="canonical" href="https://mathtasks.lv/ru/task/321-nogriezna-dalisana" />');
     expect(html).toContain('<link rel="alternate" hreflang="lv" href="https://mathtasks.lv/task/321-nogriezna-dalisana" />');
     expect(html).toContain('<link rel="alternate" hreflang="x-default" href="https://mathtasks.lv/task/321-nogriezna-dalisana" />');
+  });
+
+  it('старый русский слаг задачи ведёт 301 на латышский (и на /ru/, и без префикса)', async () => {
+    vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [{ ...TASK_LV, topics: TOPIC_LV }]]]));
+    const ru = await page('/ru/task/321-delenie-otrezka?x=1', makeEnv());
+    expect(ru.status).toBe(301);
+    expect(ru.headers.get('location')).toBe('https://mathtasks.lv/ru/task/321-nogriezna-dalisana?x=1');
+    const lv = await page('/task/321-delenie-otrezka', makeEnv());
+    expect(lv.status).toBe(301);
+    expect(lv.headers.get('location')).toBe('https://mathtasks.lv/task/321-nogriezna-dalisana');
+  });
+
+  it('адрес задачи без слага или с верным слагом 301 не даёт', async () => {
+    vi.stubGlobal('fetch', supabase([['tasks?id=eq.321', [{ ...TASK_LV, topics: TOPIC_LV }]]]));
+    expect((await page('/ru/task/321', makeEnv())).status).toBe(200);
+    expect((await page('/task/321-nogriezna-dalisana', makeEnv())).status).toBe(200);
   });
 
   it('главная на латышском, 404 и noindex — без ссылок на версии', async () => {

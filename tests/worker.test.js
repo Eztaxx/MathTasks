@@ -9,7 +9,6 @@ import worker, {
   isSocialBot,
   buildSitemapPaths,
   buildSitemapXml,
-  buildSitemapLvPaths,
   renderTaskPreviewHtml,
   buildSitemapDates,
   sitemap
@@ -216,16 +215,21 @@ describe('Cloudflare Worker: чистые функции', () => {
       }
     });
 
-    it('у задачи версии со своими слагами: латышский из латышского названия', () => {
-      const tasks = [{ id: 5, title: 'Площадь', title_lv: 'Laukums' }, { id: 6, title: 'Периметр' }];
-      const lvPaths = buildSitemapLvPaths(tasks);
-      expect(lvPaths.get('/task/5-ploschad')).toBe('/task/5-laukums');
-      // Без латышского названия — тот же слаг.
-      expect(lvPaths.get('/task/6-perimetr')).toBe('/task/6-perimetr');
-      const xml = buildSitemapXml(['/task/5-ploschad'], 'https://mathtasks.lv', new Map(), lvPaths);
+    it('слаг задачи один для обеих версий — из латышского названия', () => {
+      const xml = buildSitemapXml(['/task/5-laukums'], 'https://mathtasks.lv');
       expect(xml).toContain('<url><loc>https://mathtasks.lv/task/5-laukums</loc>');
-      expect(xml).toContain('<url><loc>https://mathtasks.lv/ru/task/5-ploschad</loc>');
+      expect(xml).toContain('<url><loc>https://mathtasks.lv/ru/task/5-laukums</loc>');
       expect(xml).toContain('hreflang="x-default" href="https://mathtasks.lv/task/5-laukums"');
+    });
+
+    it('карта берёт слаг задачи от латышского названия, без него — от русского', () => {
+      const paths = buildSitemapPaths({
+        subjects: [], topics: [], subtopics: [], tags: [],
+        tasks: [{ id: 5, title: 'Площадь', title_lv: 'Laukums' }, { id: 6, title: 'Периметр' }]
+      });
+      expect(paths).toContain('/task/5-laukums');
+      expect(paths).not.toContain('/task/5-ploschad');
+      expect(paths).toContain('/task/6-perimetr');
     });
 
     it('отдельные страницы (язык не в адресе) — одной строкой', () => {
@@ -647,15 +651,15 @@ describe('sitemap: даты последнего изменения', () => {
     topics: [{ id: 7, slug: 'kv', grade: 8, subject_id: 1 }],
     subtopics: [{ id: 3, slug: 'kv-1' }],
     tasks: [
-      { id: 10, title: 'Старая', topic_id: 7, subtopic_id: 3, updated_at: '2026-01-05T10:00:00+00:00' },
-      { id: 11, title: 'Свежая', topic_id: 7, subtopic_id: null, updated_at: '2026-09-19T12:05:45+00:00' }
+      { id: 10, title: 'Старая', title_lv: 'Vecais', topic_id: 7, subtopic_id: 3, updated_at: '2026-01-05T10:00:00+00:00' },
+      { id: 11, title: 'Свежая', title_lv: 'Jaunais', topic_id: 7, subtopic_id: null, updated_at: '2026-09-19T12:05:45+00:00' }
     ]
   };
 
   it('у задачи — своя дата, у списков — дата самой свежей задачи', () => {
     const dates = buildSitemapDates(DATA);
-    expect(dates.get('/task/10-staraya')).toBe('2026-01-05');
-    expect(dates.get('/task/11-svezhaya')).toBe('2026-09-19');
+    expect(dates.get('/task/10-vecais')).toBe('2026-01-05');
+    expect(dates.get('/task/11-jaunais')).toBe('2026-09-19');
     expect(dates.get('/topic/kv')).toBe('2026-09-19');
     expect(dates.get('/subtopic/kv-1')).toBe('2026-01-05');
     expect(dates.get('/grade/8')).toBe('2026-09-19');

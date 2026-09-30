@@ -21,8 +21,8 @@ describe('Skola2030 Topics Catalog (JSON & Database integrity)', () => {
 
   it('каждая тема имеет корректный класс, уникальный слаг, раздел, оба перевода и подтемы', () => {
     const content = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-    /* Слаги разделов исторические: geometry и statistics по-английски. */
-    const validSubjects = ['algebra', 'geometry', 'statistics', 'funkcijas', 'trigonometrija',
+    /* geometry и statistics — прежние английские слаги, до переименования в geometrija и statistika. */
+    const validSubjects = ['algebra', 'geometrija', 'statistika', 'geometry', 'statistics', 'funkcijas', 'trigonometrija',
       'planimetrija', 'stereometrija', 'matematiskais-analizs', 'kombinatorika-un-varbutibas'];
     const slugs = new Set();
 

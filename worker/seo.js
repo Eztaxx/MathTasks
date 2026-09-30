@@ -81,9 +81,9 @@ const STATIC_PAGES = {
    Старый адрес отвечает 301 на новый, но только когда новый слаг уже есть в базе:
    так порядок «выложить код» и «переименовать в базе» не важен. */
 export function legacyTarget(pathname) {
-  const m = stripLangPath(pathname).match(/^\/(topic|control-work|subtopic)\/([^/]+?)\/?$/);
+  const m = stripLangPath(pathname).match(/^\/(topic|control-work|subtopic|subject)\/([^/]+?)\/?$/);
   if (!m) return null;
-  const table = m[1] === 'subtopic' ? 'subtopic' : 'topic';
+  const table = m[1] === 'subtopic' ? 'subtopic' : m[1] === 'subject' ? 'subject' : 'topic';
   const from = decode(m[2]);
   const map = slugRedirects[table];
   const to = map && Object.prototype.hasOwnProperty.call(map, from) ? map[from] : null;
@@ -93,7 +93,7 @@ export function legacyTarget(pathname) {
 async function legacyTargetExists(env, legacy) {
   if (!(env.SUPABASE_URL && (env.SUPABASE_KEY || env.SUPABASE_ANON_KEY))) return false;
   try {
-    const rows = await query(env, `${legacy.table === 'subtopic' ? 'subtopics' : 'topics'}?slug=eq.${eq(legacy.to)}&select=id&limit=1`);
+    const rows = await query(env, `${{ subtopic: 'subtopics', subject: 'subjects' }[legacy.table] || 'topics'}?slug=eq.${eq(legacy.to)}&select=id&limit=1`);
     return rows.length > 0;
   } catch {
     return false;
@@ -140,7 +140,9 @@ const shorten = (value, limit) => {
   const space = cut.lastIndexOf(' ');
   return `${(space > limit * 0.6 ? cut.slice(0, space) : cut).trimEnd()}…`;
 };
-const taskHref = (task, lang = 'lv') => `/task/${task.id}-${makeSlug(getLocalizedText(task, 'title', lang) || task.title)}`;
+/* Слаг задачи — всегда из латышского названия, в том числе на /ru/: все адреса сайта латышские.
+   Маршрут разбирает только номер, слаг нужен для читаемости и поисковика. */
+const taskHref = task => `/task/${task.id}-${makeSlug(task.title_lv || task.title)}`;
 const taskNumber = task => (Number(task.position) > 0 ? Number(task.position) : null);
 
 /* Данные и тексты страницы на нужном языке. null — страницу не трогаем
@@ -159,7 +161,7 @@ export async function buildPage(route, env, lang = 'lv') {
   };
   const home = () => [tr('nav_home'), '/'];
   const taskItems = tasks => tasks.map(task => ({
-    href: taskHref(task, lang),
+    href: taskHref(task),
     label: taskLabel(task),
     text: latexToPlainText(text(task, 'condition_latex'), ITEM_TEXT_LENGTH)
   }));
@@ -344,8 +346,8 @@ export async function buildPage(route, env, lang = 'lv') {
       return {
         title: topic ? `${label} — ${withGrade(topicTitle, topic.grade)}` : label,
         description: taskDescription({ condition, number: taskNumber(task), topicTitle, lang }),
-        canonicalPath: taskHref(task, lang),
-        altPaths: { lv: taskHref(task, 'lv'), ru: taskHref(task, 'ru') },
+        canonicalPath: taskHref(task),
+        altPaths: { lv: taskHref(task), ru: taskHref(task) },
         heading: conditionText ? `${label}. ${shorten(conditionText, 110)}` : label,
         // Условие целиком — только если в заголовок оно не поместилось.
         intro: conditionText.length > 110 ? conditionText : '',
@@ -587,6 +589,16 @@ export async function renderPage(request, env) {
     return assetResponse;
   }
   if (!page) return assetResponse;
+
+  /* Адрес задачи со слагом, который не совпадает с латышским (раньше на /ru/ слаг был
+     из русского названия, название могли и поправить): 301 на канонический адрес.
+     Адрес без слага (/task/42) остаётся как есть. */
+  if (route.kind === 'task' && page.canonicalPath) {
+    const current = stripLangPath(pathname).replace(/\/+$/, '');
+    if (/^\/task\/\d+-/.test(current) && current !== page.canonicalPath) {
+      return Response.redirect(new URL(toLangPath(page.canonicalPath, lang) + requested.search, requested).toString(), 301);
+    }
+  }
 
   const html = injectPage(await assetResponse.text(), page, lang);
   const headers = new Headers(assetResponse.headers);

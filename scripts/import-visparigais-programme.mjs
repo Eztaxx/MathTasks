@@ -67,7 +67,7 @@ const слаг = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
    у остальных уровней. */
 const ТЕМЫ = [
   {
-    n: 1, h: 28, s: 'statistics',
+    n: 1, h: 28, s: 'statistika',
     lv: 'Kopas un varbūtība', ru: 'Множества и вероятность',
     d_ru: 'Множества и операции над ними, диаграммы Эйлера–Венна, случайные события, частота и вероятность.',
     d_lv: 'Kopas un darbības ar tām, Eilera–Venna diagrammas, nejauši notikumi, biežums un varbūtība.',
@@ -83,7 +83,7 @@ const ТЕМЫ = [
     ],
   },
   {
-    n: 2, h: 28, s: 'statistics',
+    n: 2, h: 28, s: 'statistika',
     lv: 'Statistikas elementi', ru: 'Элементы статистики',
     d_ru: 'Генеральная совокупность и выборка, таблицы и диаграммы, меры центра и разброса, связь двух переменных.',
     d_lv: 'Ģenerālkopa un izlase, tabulas un diagrammas, centrālās tendences un izkliedes rādītāji, divu mainīgo sakarība.',

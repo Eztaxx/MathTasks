@@ -24,7 +24,7 @@
   {
     "topic_title": "Название темы по-русски",
     "topic_title_lv": "Tēmas nosaukums latviski",
-    "subject_slug": "geometry",
+    "subject_slug": "geometrija",
     "grade": 8,
     "tasks": [
       {
@@ -110,7 +110,7 @@
 | `subject_slug` | Раздел |
 | :--- | :--- |
 | `algebra` | Algebra un skaitļi |
-| `geometry` | Ģeometrija |
+| `geometrija` | Ģeometrija |
 | `kombinatorika-un-varbutibas` | Kombinatorika un varbūtības |
 
 **10–12 класс** — семь:
@@ -122,10 +122,10 @@
 | `trigonometrija` | Trigonometrija |
 | `planimetrija` | Planimetrija |
 | `stereometrija` | Stereometrija |
-| `statistics` | Kombinatorika, varbūtības un statistika |
+| `statistika` | Kombinatorika, varbūtības un statistika |
 | `matematiskais-analizs` | Matemātiskā analīze (только 12 класс) |
 
-Слаги — латиницей и ровно в таком написании; `geometry` и `statistics` действительно по-английски, это исторические имена в базе. Слаг не из списка — и тема уедет в «Алгебру».
+Слаги — латиницей и ровно в таком написании (все латышские; старые `geometry` и `statistics` переименованы 30.09.2026, админка их ещё узнаёт). Слаг не из списка — и тема уедет в «Алгебру».
 
 ## Подтемы
 

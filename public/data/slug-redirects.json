@@ -1,5 +1,5 @@
 {
- "_note": "Старый слаг -> новый. Слаги тем 1-9 классов были русской транслитерацией (30.09.2026 заменены на латышские), у четырёх олимпиадных подтем был устаревший номер. Читают worker/seo.js (301) и public/app.js.",
+ "_note": "Старый слаг -> новый. Слаги тем 1-9 классов были русской транслитерацией (30.09.2026 заменены на латышские), у четырёх олимпиадных подтем был устаревший номер, у трёх подтем 8 класса слаг был из формулы, а разделы geometry и statistics стали geometrija и statistika. Читают worker/seo.js (301) и public/app.js.",
  "topic": {
   "kak-obyasnyayut-i-ispolzuyut-osnovnoe-svoystvo-drobi-1788781791980-202": "skola2030-g5-3-ka-skaidro-un-lieto-dalas-pamatipasibu",
   "olimpiadnye-metody-invarianty-i-diofantovy-uravneniya-1788561102366-852": "skola2030-g9-9-olimpiazu-metodes-invarianti-un-diofanta-vienadojumi",
@@ -64,6 +64,13 @@
   "invarianti-un-krasojumi-9-11-1": "invarianti-un-krasojumi-9-9-1",
   "dirihle-princips-9-11-2": "dirihle-princips-9-9-2",
   "diofanta-vienadojumi-9-11-3": "diofanta-vienadojumi-9-9-3",
-  "novertejums-un-piemers-9-11-4": "novertejums-un-piemers-9-9-4"
+  "novertejums-un-piemers-9-11-4": "novertejums-un-piemers-9-9-4",
+  "y-x-y-x-8-2-5": "kvadrata-un-kuba-funkcijas-8-2-5",
+  "y-k-x-8-7-1": "kvadratfunkcija-un-apgrieztas-proporcionalitates-funkcija-8-7-1",
+  "y-k-x-8-7-3": "apgrieztas-proporcionalitates-funkcijas-grafiks-8-7-3"
+ },
+ "subject": {
+  "geometry": "geometrija",
+  "statistics": "statistika"
  }
 }

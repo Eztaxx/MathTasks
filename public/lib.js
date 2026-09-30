@@ -2428,12 +2428,12 @@
     // 4. Поиск по алиасам / корням слов
     const ALIAS_RULES = [
       { keys: ['algebra', 'skaitli', 'chisla', 'алгебр', 'числа'], slug: 'algebra' },
-      { keys: ['geometr', 'geometry', 'figuras', 'геометр', 'фигур'], slug: 'geometry' },
+      { keys: ['geometr', 'geometry', 'figuras', 'геометр', 'фигур'], slug: 'geometrija' },
       { keys: ['planimetr', 'планиметр'], slug: 'planimetrija' },
       { keys: ['stereometr', 'стереометр'], slug: 'stereometrija' },
       { keys: ['trigonometr', 'тригонометр'], slug: 'trigonometrija' },
       { keys: ['funkcij', 'function', 'функци'], slug: 'funkcijas' },
-      { keys: ['statist', 'статист'], slug: 'statistics' },
+      { keys: ['statist', 'статист'], slug: 'statistika' },
       { keys: ['kombinatorik', 'varbutib', 'комбинаторик', 'вероятност'], slug: 'kombinatorika-un-varbutibas' },
       { keys: ['analiz', 'calculus', 'анализ'], slug: 'matematiskais-analizs' }
     ];

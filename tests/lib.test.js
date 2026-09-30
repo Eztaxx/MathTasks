@@ -459,6 +459,14 @@ describe('resolveSubject (Умное распознавание разделов
     expect(resolveSubject('математический анализ', sampleSubjects)?.id).toBe(19);
   });
 
+  it('после переименования слагов (geometrija, statistika) старые английские названия находят тот же раздел', () => {
+    const renamed = sampleSubjects.map(s => ({ ...s, slug: { geometry: 'geometrija', statistics: 'statistika' }[s.slug] || s.slug }));
+    expect(resolveSubject('geometrija', renamed)?.id).toBe(2);
+    expect(resolveSubject('geometry', renamed)?.id).toBe(2);
+    expect(resolveSubject('statistika', renamed)?.id).toBe(3);
+    expect(resolveSubject('statistics', renamed)?.id).toBe(3);
+  });
+
   it('возвращает null для несуществующего раздела', () => {
     expect(resolveSubject('astronomy', sampleSubjects)).toBeNull();
     expect(resolveSubject('', sampleSubjects)).toBeNull();

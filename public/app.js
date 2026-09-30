@@ -1289,10 +1289,10 @@ function syncAcceptVisibility(card) {
 }
 const insertIntoInput = window.MathTasks?.insertIntoInput || ((input, text) => { if (input) input.value += text; });
 
-/* Слаг — из названия на языке страницы: латышская версия получает
-   латышский адрес, русская — русский. Маршрут разбирает только номер. */
+/* Слаг — всегда из латышского названия, на обоих языках страницы (как и
+   адреса тем). Маршрут разбирает только номер. */
 function taskPath(task) {
-  const title = loc(task, 'title') || task.title;
+  const title = task.title_lv || task.title;
   const slug = (window.MathTasks?.makeSlug && title) ? window.MathTasks.makeSlug(title) : String(task.id);
   return `/task/${task.id}-${slug}`;
 }
@@ -2122,6 +2122,7 @@ document.addEventListener('click', event => {
    раздела в меню и заголовок группы тем. Смайлики — только у разделов. */
 const SUBJECT_COLORS = {
   algebra: 'blue',
+  geometrija: 'violet',
   geometry: 'violet',
   planimetrija: 'violet',
   stereometrija: 'bordeaux',
@@ -2129,6 +2130,7 @@ const SUBJECT_COLORS = {
   trigonometrija: 'pink',
   'matematiskais-analizs': 'indigo',
   'kombinatorika-un-varbutibas': 'amber',
+  statistika: 'amber',
   statistics: 'amber'
 };
 const subjectColor = subject => SUBJECT_COLORS[subject?.slug] || 'blue';
@@ -5556,15 +5558,17 @@ let lastRoute = null;
 /* Старые адреса тем и подтем. Слаги тем 1–9 классов были русской транслитерацией,
    теперь они латышские (public/data/slug-redirects.json). Сервер отвечает на
    старый адрес 301; здесь запасной путь — оболочка из кеша service worker
-   открывается без похода на сервер. Возвращает новый путь или null. */
+   открывается без похода на сервер. Возвращает новый путь или null.
+   Так же переезжают разделы: geometry → geometrija, statistics → statistika. */
 let slugRedirects = null;
 async function legacyPathOf(path) {
-  const m = path.match(/^\/(topic|control-work|subtopic)\/([^/]+)\/?$/);
+  const m = path.match(/^\/(topic|control-work|subtopic|subject)\/([^/]+)\/?$/);
   if (!m) return null;
-  const table = m[1] === 'subtopic' ? 'subtopic' : 'topic';
+  const table = m[1] === 'subtopic' ? 'subtopic' : m[1] === 'subject' ? 'subject' : 'topic';
   let slug;
   try { slug = decodeURIComponent(m[2]); } catch { return null; }
-  const known = table === 'subtopic' ? allSubtopics.some(s => s.slug === slug) : allTopics.some(item => item.slug === slug);
+  const pool = table === 'subtopic' ? allSubtopics : table === 'subject' ? subjects : allTopics;
+  const known = pool.some(item => item.slug === slug);
   if (known) return null;
   if (!slugRedirects) {
     try { slugRedirects = await (await fetch('/data/slug-redirects.json')).json(); } catch { slugRedirects = {}; }
@@ -5584,7 +5588,7 @@ async function route({ force = false } = {}) {
 
   const moved = await legacyPathOf(path);
   if (moved) {
-    history.replaceState(history.state, '', location.pathname.replace(/\/(?:topic|control-work|subtopic)\/[^/]+\/?$/, moved) + location.search + location.hash);
+    history.replaceState(history.state, '', location.pathname.replace(/\/(?:topic|control-work|subtopic|subject)\/[^/]+\/?$/, moved) + location.search + location.hash);
     return route({ force: true });
   }
 

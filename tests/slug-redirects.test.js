@@ -4,9 +4,9 @@ import redirects from '../public/data/slug-redirects.json';
 /* Файл соответствий старых слагов новым читают воркер (301) и приложение (запасной путь).
    Ошибка в нём — битые ссылки, поэтому целостность проверяется отдельно. */
 describe('public/data/slug-redirects.json', () => {
-  const tables = ['topic', 'subtopic'];
+  const tables = ['topic', 'subtopic', 'subject'];
 
-  it('есть обе таблицы и они не пустые', () => {
+  it('все таблицы есть и не пустые', () => {
     for (const name of tables) expect(Object.keys(redirects[name] || {}).length).toBeGreaterThan(0);
   });
 

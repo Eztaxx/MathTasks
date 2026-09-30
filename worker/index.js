@@ -102,7 +102,7 @@ function buildSitemapPaths({ subjects = [], topics = [], tasks = [], tags = [], 
     // /control-work/* не попадает: контрольная повторяет задачи темы и помечена noindex (seo.js).
     .concat(grades.map(g => `/grade/${g}/tasks`))
     .concat(tagSlugs.map(slug => `/tag/${slug}`))
-    .concat(tasks.map(t => `/task/${t.id}-${slugify(t.title)}`));
+    .concat(tasks.map(t => `/task/${t.id}-${slugify(t.title_lv || t.title)}`));
 
   return [...new Set(paths)];
 }
@@ -112,12 +112,6 @@ function buildSitemapPaths({ subjects = [], topics = [], tasks = [], tags = [], 
    её появление и меняет страницу. Страницы без своего содержимого («О
    проекте», тренажёры) даты не получают: выдуманный lastmod поисковик
    быстро перестаёт принимать всерьёз. */
-/* Задача в карте записана адресом со слагом из русского названия; у
-   латышской версии слаг из латышского. Карта «русский адрес → латышский». */
-function buildSitemapLvPaths(tasks = []) {
-  return new Map(tasks.map(task => [`/task/${task.id}-${slugify(task.title)}`, `/task/${task.id}-${slugify(task.title_lv || task.title)}`]));
-}
-
 function buildSitemapDates({ subjects = [], topics = [], tasks = [], subtopics = [] } = {}) {
   const dates = new Map();
   const bump = (path, value) => {
@@ -132,7 +126,7 @@ function buildSitemapDates({ subjects = [], topics = [], tasks = [], subtopics =
 
   for (const task of tasks) {
     const day = task.updated_at || task.created_at;
-    bump(`/task/${task.id}-${slugify(task.title)}`, day);
+    bump(`/task/${task.id}-${slugify(task.title_lv || task.title)}`, day);
     bump('/', day);
     bump('/tasks', day);
     const topic = topicById.get(task.topic_id);
@@ -154,9 +148,9 @@ function buildSitemapDates({ subjects = [], topics = [], tasks = [], subtopics =
 /* У страниц каталога две языковые версии: латышская без префикса и русская
    на /ru/…. В карту идут обе, и у каждой — ссылки на обе версии
    (xhtml:link hreflang, x-default — латышская). Файлы — trainer.html,
-   exams.html — одноязычные по адресу и идут одной строкой. Адрес задачи
-   у версий разный: слаг из названия на своём языке (lvPaths). */
-function buildSitemapXml(paths, origin = 'https://mathtasks.lv', dates = new Map(), lvPaths = new Map()) {
+   exams.html — одноязычные по адресу и идут одной строкой. Слаг задачи
+   один для обеих версий — из латышского названия. */
+function buildSitemapXml(paths, origin = 'https://mathtasks.lv', dates = new Map()) {
   const cleanOrigin = String(origin || '').replace(/\/+$/, '');
   const entries = [];
   for (const p of new Set(paths)) {
@@ -168,7 +162,7 @@ function buildSitemapXml(paths, origin = 'https://mathtasks.lv', dates = new Map
       continue;
     }
     const rest = p.slice(pathOnly.length);
-    const lv = cleanOrigin + toLangPath(lvPaths.get(pathOnly) || pathOnly, 'lv') + rest;
+    const lv = cleanOrigin + toLangPath(pathOnly, 'lv') + rest;
     const ru = cleanOrigin + toLangPath(pathOnly, 'ru') + rest;
     const alternates = [['lv', lv], ['ru', ru], ['x-default', lv]]
       .map(([lang, href]) => `\n    <xhtml:link rel="alternate" hreflang="${lang}" href="${escapeHtml(href)}"/>`)
@@ -186,7 +180,6 @@ async function sitemap(request, env) {
   const origin = new URL(request.url).origin;
   let paths;
   let dates = new Map();
-  let lvPaths = new Map();
 
   if (env.SUPABASE_URL && supabaseKeyOf(env)) {
     try {
@@ -201,7 +194,6 @@ async function sitemap(request, env) {
       ]);
       paths = buildSitemapPaths({ subjects, topics, tasks, tags, subtopics });
       dates = buildSitemapDates({ subjects, topics, tasks, subtopics });
-      lvPaths = buildSitemapLvPaths(tasks);
     } catch (error) {
       // Каталог не прочитался — отдаём статические адреса, а не пустоту.
       console.error('sitemap:', error.message);
@@ -212,7 +204,7 @@ async function sitemap(request, env) {
   }
 
   // Адреса в карте — всегда основного домена: там же указывает и canonical.
-  const body = buildSitemapXml(paths, origin.endsWith('.workers.dev') ? CANONICAL_ORIGIN : origin, dates, lvPaths);
+  const body = buildSitemapXml(paths, origin.endsWith('.workers.dev') ? CANONICAL_ORIGIN : origin, dates);
 
   return new Response(body, {
     headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600' }
@@ -478,7 +470,6 @@ export {
   cleanLatexForPreview,
   isSocialBot,
   buildSitemapDates,
-  buildSitemapLvPaths,
   buildSitemapPaths,
   buildSitemapXml,
   renderTaskPreviewHtml,
