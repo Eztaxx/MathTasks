@@ -32,3 +32,6 @@ docs/subtopic-assignment.log
 docs/subtopic-assignment.json
 docs/subtopic-generation.log
 docs/subtopic-generation.json
+
+# сборка чертежей (scripts/figs): результат лежит в бакете task-images
+scripts/figs/out/
