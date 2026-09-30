@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "slug": "skola2030-g1-1-rasskazat-i-pokazat-skolko",
+    "slug": "skola2030-g1-1-ka-izstasta-un-parada-cik-kur-kads",
     "grade": 1,
     "grade_name": "1 класс",
     "subject_slug": "geometry",
@@ -40,7 +40,7 @@
   },
   {
     "id": 2,
-    "slug": "skola2030-g1-2-skolko-vsego-skolko-ostalos",
+    "slug": "skola2030-g1-2-cik-kopa-cik-palika",
     "grade": 1,
     "grade_name": "1 класс",
     "subject_slug": "algebra",
@@ -69,7 +69,7 @@
   },
   {
     "id": 3,
-    "slug": "skola2030-g1-3-izmeryat-dliny-i-poluchat",
+    "slug": "skola2030-g1-3-ka-mera-garumus-un-ka-iegust-simetrisku-figuru",
     "grade": 1,
     "grade_name": "1 класс",
     "subject_slug": "geometry",
@@ -98,7 +98,7 @@
   },
   {
     "id": 4,
-    "slug": "skola2030-g1-4-zapisyvayut-i-sravnivayut-chisla",
+    "slug": "skola2030-g1-4-ka-pieraksta-un-salidzina-skaitlus-kuri-ir-lielaki",
     "grade": 1,
     "grade_name": "1 класс",
     "subject_slug": "algebra",
@@ -132,7 +132,7 @@
   },
   {
     "id": 5,
-    "slug": "skola2030-g1-5-skladyvayut-i-vychitayut-chisla",
+    "slug": "skola2030-g1-5-ka-saskaita-un-atnem-skaitlus-kuri-lielaki-neka-10",
     "grade": 1,
     "grade_name": "1 класс",
     "subject_slug": "algebra",
@@ -161,7 +161,7 @@
   },
   {
     "id": 6,
-    "slug": "skola2030-g1-6-znachit-na-stolko-bolshe",
+    "slug": "skola2030-g1-6-ko-nozime-par-tik-vairak-par-tik-mazak",
     "grade": 1,
     "grade_name": "1 класс",
     "subject_slug": "algebra",
@@ -185,7 +185,7 @@
   },
   {
     "id": 7,
-    "slug": "skola2030-g1-7-my-vstrechaemsya-s-bolshimi",
+    "slug": "skola2030-g1-7-kur-sastopamies-ar-lieliem-skaitliem",
     "grade": 1,
     "grade_name": "1 класс",
     "subject_slug": "algebra",
@@ -311,7 +311,7 @@
   },
   {
     "id": 11,
-    "slug": "skola2030-g2-1-skladyvayut-i-vychitayut-dvuznachnye",
+    "slug": "skola2030-g2-3-ka-saskaita-un-atnem-divciparu-skaitlus",
     "grade": 2,
     "grade_name": "2 класс",
     "subject_slug": "algebra",
@@ -461,7 +461,7 @@
   },
   {
     "id": 16,
-    "slug": "skola2030-g2-2-umnozhayut-i-delyat-na",
+    "slug": "skola2030-g2-8-ka-reizina-un-dala-ar-3-4-un-5",
     "grade": 2,
     "grade_name": "2 класс",
     "subject_slug": "algebra",
@@ -495,7 +495,7 @@
   },
   {
     "id": 17,
-    "slug": "skola2030-g3-1-umnozhayut-i-delyat-na",
+    "slug": "skola2030-g3-1-ka-reizina-un-dala-ar-6-7-8-9-un-10",
     "grade": 3,
     "grade_name": "3 класс",
     "subject_slug": "algebra",
@@ -524,7 +524,7 @@
   },
   {
     "id": 18,
-    "slug": "skola2030-g3-2-ispolzuyut-vse-deystviya",
+    "slug": "skola2030-g3-2-ka-izmanto-visas-darbibas",
     "grade": 3,
     "grade_name": "3 класс",
     "subject_slug": "algebra",
@@ -553,7 +553,7 @@
   },
   {
     "id": 19,
-    "slug": "skola2030-g3-3-sostavlyayut-plan-mestnosti",
+    "slug": "skola2030-g3-3-ka-veido-vietas-planu",
     "grade": 3,
     "grade_name": "3 класс",
     "subject_slug": "geometry",
@@ -592,7 +592,7 @@
   },
   {
     "id": 20,
-    "slug": "skola2030-g3-4-znachit-chast-ot-tselogo",
+    "slug": "skola2030-g3-4-ko-nozime-dala-no-vesela",
     "grade": 3,
     "grade_name": "3 класс",
     "subject_slug": "algebra",
@@ -694,7 +694,7 @@
   },
   {
     "id": 23,
-    "slug": "skola2030-g3-5-sozdayut-prostranstvennye-modeli",
+    "slug": "skola2030-g3-7-ka-veido-telpiskus-modelus",
     "grade": 3,
     "grade_name": "3 класс",
     "subject_slug": "geometry",
@@ -723,7 +723,7 @@
   },
   {
     "id": 24,
-    "slug": "skola2030-g4-1-skladyvayut-i-vychitayut-mnogoznachnye",
+    "slug": "skola2030-g4-1-ka-saskaita-un-atnem-daudzciparu-skaitlus",
     "grade": 4,
     "grade_name": "4 класс",
     "subject_slug": "algebra",
@@ -762,7 +762,7 @@
   },
   {
     "id": 25,
-    "slug": "skola2030-g4-2-mnogoznachnye-chisla-umnozhayut-i",
+    "slug": "skola2030-g4-2-ka-daudzciparu-skaitlus-reizina-un-dala",
     "grade": 4,
     "grade_name": "4 класс",
     "subject_slug": "algebra",
@@ -830,7 +830,7 @@
   },
   {
     "id": 27,
-    "slug": "skola2030-g4-3-mnogoznachnye-chisla-umnozhayut-i",
+    "slug": "skola2030-g4-4-ka-daudzciparu-skaitlus-reizina-un-dala",
     "grade": 4,
     "grade_name": "4 класс",
     "subject_slug": "algebra",
@@ -864,7 +864,7 @@
   },
   {
     "id": 28,
-    "slug": "skola2030-g4-4-sravnivayut-skladyvayut-i-vychitayut",
+    "slug": "skola2030-g4-5-ka-salidzina-saskaita-un-atnem-dalskaitlus",
     "grade": 4,
     "grade_name": "4 класс",
     "subject_slug": "algebra",
@@ -898,7 +898,7 @@
   },
   {
     "id": 29,
-    "slug": "skola2030-g4-5-znachit-chast-ot-tselogo",
+    "slug": "skola2030-g4-6-ko-nozime-dala-no-vesela",
     "grade": 4,
     "grade_name": "4 класс",
     "subject_slug": "algebra",
@@ -961,7 +961,7 @@
   },
   {
     "id": 31,
-    "slug": "skola2030-g4-6-obshchego-v-matematicheskom-opisanii",
+    "slug": "skola2030-g4-8-kas-kopigs-iepirksanas-un-kustibas-matematiskaja",
     "grade": 4,
     "grade_name": "4 класс",
     "subject_slug": "algebra",
@@ -985,7 +985,7 @@
   },
   {
     "id": 32,
-    "slug": "skola2030-g5-1-po-raznomu-zapisyvayut-naturalnye",
+    "slug": "skola2030-g5-1-ka-dazadi-pieraksta-naturalos-skaitlus",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "algebra",
@@ -1024,7 +1024,7 @@
   },
   {
     "id": 33,
-    "slug": "skola2030-g5-2-ispolzuyut-razlozhenie-chisla-na",
+    "slug": "skola2030-g5-2-ka-lieto-skaitla-sadalisanu-reizinatajos",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "algebra",
@@ -1058,7 +1058,7 @@
   },
   {
     "id": 34,
-    "slug": "kak-obyasnyayut-i-ispolzuyut-osnovnoe-svoystvo-drobi-1788781791980-202",
+    "slug": "skola2030-g5-3-ka-skaidro-un-lieto-dalas-pamatipasibu",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "algebra",
@@ -1092,7 +1092,7 @@
   },
   {
     "id": 35,
-    "slug": "skola2030-g5-4-odno-chislo-vyrazhayut-chast",
+    "slug": "skola2030-g5-4-ka-vienu-skaitli-izsaka-ka-otra-skaitla-dalu",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "algebra",
@@ -1121,7 +1121,7 @@
   },
   {
     "id": 36,
-    "slug": "skola2030-g5-5-skladyvayut-i-vychitayut-smeshannye",
+    "slug": "skola2030-g5-5-ka-saskaita-un-atnem-jauktus-skaitlus",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "algebra",
@@ -1150,7 +1150,7 @@
   },
   {
     "id": 37,
-    "slug": "skola2030-g5-6-opredelyayut-neizvestnye-velichiny-figur",
+    "slug": "skola2030-g5-6-ka-nosaka-figuru-nezinamos-lielumus",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "geometry",
@@ -1184,7 +1184,7 @@
   },
   {
     "id": 38,
-    "slug": "skola2030-g5-7-ispolzuyut-desyatichnye-drobi-i",
+    "slug": "skola2030-g5-7-ka-lieto-decimaldalas-un-procentus",
     "grade": 5,
     "grade_name": "5 класс",
     "subject_slug": "statistics",
@@ -1252,7 +1252,7 @@
   },
   {
     "id": 40,
-    "slug": "skola2030-g6-1-sovokupnost-delyat-v-opredelennom",
+    "slug": "skola2030-g6-1-ka-kopumu-sadala-noteikta-attieciba",
     "grade": 6,
     "grade_name": "6 класс",
     "subject_slug": "algebra",
@@ -1291,7 +1291,7 @@
   },
   {
     "id": 41,
-    "slug": "skola2030-g6-2-umnozhayut-i-delyat-obyknovennye",
+    "slug": "skola2030-g6-2-ka-reizina-un-dala-parastas-dalas",
     "grade": 6,
     "grade_name": "6 класс",
     "subject_slug": "algebra",
@@ -1354,7 +1354,7 @@
   },
   {
     "id": 43,
-    "slug": "skola2030-g6-3-izobrazhayut-i-kharakterizuyut-prostranstvennye",
+    "slug": "skola2030-g6-4-ka-attelo-un-raksturo-telpiskus-kermenus",
     "grade": 6,
     "grade_name": "6 класс",
     "subject_slug": "geometry",
@@ -1412,7 +1412,7 @@
   },
   {
     "id": 45,
-    "slug": "skola2030-g6-4-nuzhny-chisla-kotorye-menshe",
+    "slug": "skola2030-g6-6-kapec-nepieciesami-skaitli-kuri-ir-mazaki-neka-nulle",
     "grade": 6,
     "grade_name": "6 класс",
     "subject_slug": "algebra",
@@ -1446,7 +1446,7 @@
   },
   {
     "id": 46,
-    "slug": "skola2030-g6-5-znachit-pribavit-k-chislu",
+    "slug": "skola2030-g6-7-ko-nozime-skaitlim-pieskaitit-negativu-skaitli",
     "grade": 6,
     "grade_name": "6 класс",
     "subject_slug": "algebra",
@@ -1504,7 +1504,7 @@
   },
   {
     "id": 48,
-    "slug": "skola2030-g7-1-opredelyayut-vse-elementy-mnozhestva",
+    "slug": "skola2030-g7-1-ka-nosaka-kopas-visus-elementus-aprekina-notikuma",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "statistics",
@@ -1538,7 +1538,7 @@
   },
   {
     "id": 49,
-    "slug": "skola2030-g7-2-opredelyayut-geometricheskie-figury",
+    "slug": "skola2030-g7-2-ka-define-geometriskas-figuras",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "geometry",
@@ -1572,7 +1572,7 @@
   },
   {
     "id": 50,
-    "slug": "skola2030-g7-3-kharakterizuyut-zavisimost-mezhdu-peremennymi",
+    "slug": "skola2030-g7-3-ka-raksturo-sakaribu-starp-mainigiem-lielumiem",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "algebra",
@@ -1601,7 +1601,7 @@
   },
   {
     "id": 51,
-    "slug": "skola2030-g7-4-zapisyvayut-i-issleduyut-funktsii",
+    "slug": "skola2030-g7-4-ka-pieraksta-un-peta-funkcijas-kuru-grafiks",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "algebra",
@@ -1635,7 +1635,7 @@
   },
   {
     "id": 52,
-    "slug": "skola2030-g7-5-kharakterizuyut-treugolnik-ispolzuya-ego",
+    "slug": "skola2030-g7-5-ka-raksturo-trijsturi-izmantojot-ta-elementus",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "geometry",
@@ -1674,7 +1674,7 @@
   },
   {
     "id": 53,
-    "slug": "skola2030-g7-6-zavisimosti-mezhdu-velichinami-v",
+    "slug": "skola2030-g7-6-kadas-ir-sakaribas-starp-lielumiem-trijsturi",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "geometry",
@@ -1713,7 +1713,7 @@
   },
   {
     "id": 54,
-    "slug": "skola2030-g7-7-znachit-preobrazovat-vyrazhenie-s",
+    "slug": "skola2030-g7-7-ko-nozime-parveidot-izteiksmi-ar-mainigo-lielumu",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "algebra",
@@ -1747,7 +1747,7 @@
   },
   {
     "id": 55,
-    "slug": "skola2030-g7-8-priemy-opredeleniya-neizvestnogo-lineynoe",
+    "slug": "skola2030-g7-8-kadi-ir-panemieni-nezinama-noteiksanai",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "algebra",
@@ -1781,7 +1781,7 @@
   },
   {
     "id": 56,
-    "slug": "skola2030-g7-9-sravnivayut-vyrazheniya-est-peremennaya",
+    "slug": "skola2030-g7-9-ka-salidzina-izteiksmes-kuras-ir-mainigais-lielums",
     "grade": 7,
     "grade_name": "7 класс",
     "subject_slug": "algebra",
@@ -1815,7 +1815,7 @@
   },
   {
     "id": 57,
-    "slug": "skola2030-g8-1-matematicheski-opisyvayut-i-analiziruyut",
+    "slug": "skola2030-g8-1-ka-matematiski-raksturo-un-analize-datus",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "statistics",
@@ -1849,7 +1849,7 @@
   },
   {
     "id": 58,
-    "slug": "skola2030-g8-2-obyasnyayut-i-primenyayut-stepen",
+    "slug": "skola2030-g8-2-ka-skaidro-un-lieto-pakapi-ar-veselu-kapinataju",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "algebra",
@@ -1888,7 +1888,7 @@
   },
   {
     "id": 59,
-    "slug": "skola2030-g8-3-postupayut-esli-chislo-nelzya",
+    "slug": "skola2030-g8-3-ka-rikojas-ja-skaitli-nevar-pierakstit-ka-dalu",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "algebra",
@@ -1922,7 +1922,7 @@
   },
   {
     "id": 60,
-    "slug": "skola2030-g8-4-vychislyayut-ploshchad-dlya-lyubogo",
+    "slug": "skola2030-g8-4-ka-aprekina-laukumu-jebkuram-trijsturim-rinkim",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "geometry",
@@ -1961,7 +1961,7 @@
   },
   {
     "id": 61,
-    "slug": "skola2030-g8-5-obshchego-u-chetyrekhugolnikov-protivopolozhnye",
+    "slug": "skola2030-g8-5-kas-kopigs-cetrsturiem-kuru-pretejas-malas",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "geometry",
@@ -2000,7 +2000,7 @@
   },
   {
     "id": 62,
-    "slug": "skola2030-g8-6-obyasnyayut-i-vypolnyayut-deystviya",
+    "slug": "skola2030-g8-6-ka-skaidro-un-izpilda-darbibas-ar-izteiksmem",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "algebra",
@@ -2034,7 +2034,7 @@
   },
   {
     "id": 63,
-    "slug": "skola2030-g8-7-razlichnye-funktsii-ispolzuyut-dlya",
+    "slug": "skola2030-g8-7-ka-dazadas-funkcijas-izmanto-matematiskai",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "algebra",
@@ -2068,7 +2068,7 @@
   },
   {
     "id": 64,
-    "slug": "skola2030-g8-8-opredelyayut-neizvestnuyu-storonu-pryamougolnogo",
+    "slug": "skola2030-g8-8-ka-nosaka-taisnlenka-trijstura-nezinamas-malas",
     "grade": 8,
     "grade_name": "8 класс",
     "subject_slug": "geometry",
@@ -2102,7 +2102,7 @@
   },
   {
     "id": 65,
-    "slug": "podobnye-treugolniki-1788737251039-299",
+    "slug": "skola2030-g9-1-ka-define-un-raksturo-lidzigus-trijsturus",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "geometry",
@@ -2141,7 +2141,7 @@
   },
   {
     "id": 66,
-    "slug": "skola2030-g9-2-obshchego-u-chetyrekhugolnikov-u",
+    "slug": "skola2030-g9-2-kas-kopigs-cetrsturiem-kuriem-tiesi-divas-malas",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "geometry",
@@ -2180,7 +2180,7 @@
   },
   {
     "id": 67,
-    "slug": "skola2030-g9-3-v-vychisleniyakh-ispolzuyut-otnoshenie",
+    "slug": "skola2030-g9-3-ka-aprekinos-izmanto-taisnlenka-trijstura-divu-malu",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "geometry",
@@ -2209,7 +2209,7 @@
   },
   {
     "id": 68,
-    "slug": "skola2030-g9-4-ispolzuyut-razlozhenie-vyrazheniy-na",
+    "slug": "skola2030-g9-4-ka-izmanto-izteiksmju-sadalisanu-reizinajos",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "algebra",
@@ -2243,7 +2243,7 @@
   },
   {
     "id": 69,
-    "slug": "skola2030-g9-5-obyasnyayut-i-ispolzuyut-formuly",
+    "slug": "skola2030-g9-5-ka-skaidro-un-izmanto-formulas-darba",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "algebra",
@@ -2272,7 +2272,7 @@
   },
   {
     "id": 70,
-    "slug": "skola2030-g9-6-opisyvayut-situatsii-s-dvumya",
+    "slug": "skola2030-g9-6-ka-apraksta-situacijas-ar-diviem-nezinamiem",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "algebra",
@@ -2301,7 +2301,7 @@
   },
   {
     "id": 71,
-    "slug": "skola2030-g9-7-chislovuyu-posledovatelnost-zapisyvayut-formuloy",
+    "slug": "skola2030-g9-7-ka-skaitlu-virkni-pieraksta-ar-formulu",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "algebra",
@@ -2330,7 +2330,7 @@
   },
   {
     "id": 72,
-    "slug": "skola2030-g9-8-opisyvayut-vzaimnoe-raspolozhenie-okruzhnosti",
+    "slug": "skola2030-g9-8-ka-raksturo-rinka-linijas-un-daudzstura-savstarpejo",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "geometry",
@@ -2364,7 +2364,7 @@
   },
   {
     "id": 73,
-    "slug": "olimpiadnye-metody-invarianty-i-diofantovy-uravneniya-1788561102366-852",
+    "slug": "skola2030-g9-9-olimpiazu-metodes-invarianti-un-diofanta-vienadojumi",
     "grade": 9,
     "grade_name": "9 класс",
     "subject_slug": "algebra",
