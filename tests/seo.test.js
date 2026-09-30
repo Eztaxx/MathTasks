@@ -66,6 +66,13 @@ describe('seo: адрес → вид страницы', () => {
     expect(routeOf('/admin')).toBeNull();
   });
 
+  it('старые слаги олимпиадных подтем ведут на новые, в том числе на /ru/', () => {
+    expect(routeOf('/subtopic/novertejums-un-piemers-9-11-4')).toEqual({ kind: 'subtopic', slug: 'novertejums-un-piemers-9-9-4' });
+    expect(routeOf('/ru/subtopic/dirihle-princips-9-11-2')).toEqual({ kind: 'subtopic', slug: 'dirihle-princips-9-9-2' });
+    expect(routeOf('/subtopic/novertejums-un-piemers-9-9-4')).toEqual({ kind: 'subtopic', slug: 'novertejums-un-piemers-9-9-4' });
+    expect(routeOf('/subtopic/paralelograms-8-5-3')).toEqual({ kind: 'subtopic', slug: 'paralelograms-8-5-3' });
+  });
+
   it('подписи классов — как в приложении на русском', () => {
     expect(gradeLabelRu(6)).toBe('6 класс');
     expect(gradeLabelRu('visparigais')).toBe('Vispārīgais līmenis');

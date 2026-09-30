@@ -75,6 +75,16 @@ const STATIC_PAGES = {
   '/search': { title: 'meta_search_page_title', description: 'meta_search_page_desc', robots: 'noindex, follow' }
 };
 
+/* Слаги четырёх олимпиадных подтем 9 класса вышли с устаревшим номером «9-11-N»,
+   а код подтемы — 9.9.N. Слаги исправлены, старые адреса ведут на новые: страница
+   отдаётся с новым canonical. Такой же список в public/app.js. */
+export const LEGACY_SUBTOPIC_SLUGS = {
+  'invarianti-un-krasojumi-9-11-1': 'invarianti-un-krasojumi-9-9-1',
+  'dirihle-princips-9-11-2': 'dirihle-princips-9-9-2',
+  'diofanta-vienadojumi-9-11-3': 'diofanta-vienadojumi-9-9-3',
+  'novertejums-un-piemers-9-11-4': 'novertejums-un-piemers-9-9-4'
+};
+
 /* Адрес → вид страницы (префикс языка снимается). null — страницу не трогаем. */
 export function routeOf(pathname) {
   const clean = stripLangPath(pathname);
@@ -84,7 +94,7 @@ export function routeOf(pathname) {
   let m;
   if ((m = path.match(/^\/task\/(\d+)(?:-[^/]*)?$/))) return { kind: 'task', id: Number(m[1]) };
   if ((m = path.match(/^\/topic\/([^/]+)$/))) return { kind: 'topic', slug: decode(m[1]) };
-  if ((m = path.match(/^\/subtopic\/([^/]+)$/))) return { kind: 'subtopic', slug: decode(m[1]) };
+  if ((m = path.match(/^\/subtopic\/([^/]+)$/))) return { kind: 'subtopic', slug: LEGACY_SUBTOPIC_SLUGS[decode(m[1])] || decode(m[1]) };
   if ((m = path.match(/^\/grade\/([^/]+)\/tasks$/))) return { kind: 'gradeTasks', grade: decode(m[1]) };
   if ((m = path.match(/^\/grade\/([^/]+)$/))) return { kind: 'grade', grade: decode(m[1]) };
   if ((m = path.match(/^\/subject\/([^/]+)$/))) return { kind: 'subject', slug: decode(m[1]) };

@@ -1,0 +1,34 @@
+name: Проверка задач в базе
+
+# Каждый день прогоняет тот же разбор, что и админка, по всем опубликованным задачам:
+# ответ, который не принимается, разные числа в RU и LV, лишнее на чертеже, нет подписи у поля.
+# Ловит правки, сделанные в базе мимо репозитория (несколько сессий пишут в одну базу).
+# «Самопроверка» ошибкой не считается.
+#
+# Нужны два секрета репозитория (Settings → Secrets and variables → Actions):
+#   SUPABASE_URL, SUPABASE_ANON_KEY — те же, что в public/config.js (анонимный ключ публичный).
+# Пока секретов нет, проверка честно пишет предупреждение и выходит без ошибки.
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Разбор опубликованных задач
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::warning::Секреты SUPABASE_URL и SUPABASE_ANON_KEY не заданы — проверка пропущена"
+            exit 0
+          fi
+          node scripts/audit-tasks.mjs --grade 1 --strict

@@ -2846,7 +2846,16 @@ function showSubject(slug) {
 /* ── Подтемы ──────────────────────────────────────────────────────── */
 
 const subtopicsOf = topicId => subtopicsByTopic.get(topicId) || [];
-const subtopicBySlug = slug => allSubtopics.find(s => s.slug === slug);
+/* Слаги четырёх олимпиадных подтем 9 класса вышли с устаревшим номером «9-11-N»,
+   а код подтемы — 9.9.N. Слаги исправлены, старые адреса ведут на новые.
+   Такой же список в worker/seo.js. */
+const LEGACY_SUBTOPIC_SLUGS = {
+  'invarianti-un-krasojumi-9-11-1': 'invarianti-un-krasojumi-9-9-1',
+  'dirihle-princips-9-11-2': 'dirihle-princips-9-9-2',
+  'diofanta-vienadojumi-9-11-3': 'diofanta-vienadojumi-9-9-3',
+  'novertejums-un-piemers-9-11-4': 'novertejums-un-piemers-9-9-4'
+};
+const subtopicBySlug = slug => allSubtopics.find(s => s.slug === (LEGACY_SUBTOPIC_SLUGS[slug] || slug));
 /* В базе код подтемы всегда полный («10.5.1»), а показываем его так же,
    как номер темы: в старшей школе без служебной десятки. */
 const subtopicCode = (sub, topic) => {
@@ -2904,6 +2913,11 @@ async function showSubtopic(slug) {
   showView('list');
   resetListBlocks();
   const tr = window.MathTasks.t || (k => k);
+  const legacyTarget = LEGACY_SUBTOPIC_SLUGS[slug];
+  if (legacyTarget) {
+    slug = legacyTarget;
+    history.replaceState(history.state, '', location.pathname.replace(/[^/]+$/, encodeURIComponent(slug)) + location.search + location.hash);
+  }
   const sub = subtopicBySlug(slug);
   const topic = sub ? allTopics.find(t => t.id === sub.topic_id) : null;
   if (!sub || !topic) {

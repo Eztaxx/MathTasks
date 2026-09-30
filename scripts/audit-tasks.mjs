@@ -14,11 +14,16 @@
  *     числовые данные живут в тексте условия (графики — исключение);
  *   — дроби в теме 5–6 класса, где их ещё не проходили.
  *
- * Запуск:  node scripts/audit-tasks.mjs [--grade 7] [--limit 12] [--id 710] [--drafts]
+ * Запуск:  node scripts/audit-tasks.mjs [--grade 7] [--limit 12] [--id 710] [--drafts] [--strict]
  *   --grade N  начиная с какого класса смотреть (по умолчанию 7)
  *   --limit N  сколько примеров показывать в каждом разделе
  *   --drafts   черновики вместо опубликованных — нужен ключ service_role
  *              из .env: анонимный ключ черновиков не видит
+ *   --strict   код выхода 1, если нашлось хоть одно замечание, кроме
+ *              «самопроверки» (это не ошибка, а свойство ответа). Для CI.
+ *
+ * Ключи берутся из .env, а если файла нет (CI) — из переменных окружения
+ * SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY.
  *
  * Чертежи читаются из публичного бакета, поэтому прогон идёт дольше
  * остальных отчётов — это сетевые запросы, по одному на рисунок.
@@ -37,12 +42,21 @@ const FROM_GRADE = numArg('--grade', 7);
 const LIMIT = numArg('--limit', 12);
 const ONLY_ID = numArg('--id', null);
 const DRAFTS = argv.includes('--drafts');
+const STRICT = argv.includes('--strict');
 
 function loadEnv() {
-  return Object.fromEntries(
-    readFileSync(ROOT + '.env', 'utf8').split(/\r?\n/).filter(l => l && !l.startsWith('#'))
-      .map(l => { const i = l.indexOf('='); return [l.slice(0, i), l.slice(i + 1)]; })
+  let fromFile = {};
+  try {
+    fromFile = Object.fromEntries(
+      readFileSync(ROOT + '.env', 'utf8').split(/\r?\n/).filter(l => l && !l.startsWith('#'))
+        .map(l => { const i = l.indexOf('='); return [l.slice(0, i), l.slice(i + 1)]; })
+    );
+  } catch { /* в CI файла .env нет — ключи приходят из окружения */ }
+  const fromProcess = Object.fromEntries(
+    ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY']
+      .filter(name => process.env[name]).map(name => [name, process.env[name]])
   );
+  return { ...fromFile, ...fromProcess };
 }
 
 new Function(readFileSync(ROOT + 'public/lib.js', 'utf8'))();
@@ -123,6 +137,13 @@ async function main() {
     if (list.length > LIMIT) console.log(`  … и ещё ${list.length - LIMIT}`);
   }
   console.log('');
+  if (STRICT) {
+    const found = SECTIONS.filter(([code]) => code !== 'selfcheck').reduce((sum, [code]) => sum + bad[code].length, 0);
+    if (found) {
+      console.error(`--strict: замечаний, кроме самопроверки: ${found}`);
+      process.exitCode = 1;
+    }
+  }
 }
 
 await main();
