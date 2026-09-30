@@ -33,6 +33,7 @@ import {
   toLangPath
 } from './lib.js';
 import { t } from './i18n.js';
+import slugRedirects from '../public/data/slug-redirects.json';
 
 /* Сайт открывается и на mathtasks.lv, и на *.workers.dev. Для поисковика это
    две копии; canonical всегда указывает на основной домен. */
@@ -75,15 +76,29 @@ const STATIC_PAGES = {
   '/search': { title: 'meta_search_page_title', description: 'meta_search_page_desc', robots: 'noindex, follow' }
 };
 
-/* Слаги четырёх олимпиадных подтем 9 класса вышли с устаревшим номером «9-11-N»,
-   а код подтемы — 9.9.N. Слаги исправлены, старые адреса ведут на новые: страница
-   отдаётся с новым canonical. Такой же список в public/app.js. */
-export const LEGACY_SUBTOPIC_SLUGS = {
-  'invarianti-un-krasojumi-9-11-1': 'invarianti-un-krasojumi-9-9-1',
-  'dirihle-princips-9-11-2': 'dirihle-princips-9-9-2',
-  'diofanta-vienadojumi-9-11-3': 'diofanta-vienadojumi-9-9-3',
-  'novertejums-un-piemers-9-11-4': 'novertejums-un-piemers-9-9-4'
-};
+/* Старые слаги → новые (public/data/slug-redirects.json). Слаги тем 1–9 классов
+   были русской транслитерацией, у четырёх олимпиадных подтем — устаревший номер.
+   Старый адрес отвечает 301 на новый, но только когда новый слаг уже есть в базе:
+   так порядок «выложить код» и «переименовать в базе» не важен. */
+export function legacyTarget(pathname) {
+  const m = stripLangPath(pathname).match(/^\/(topic|control-work|subtopic)\/([^/]+?)\/?$/);
+  if (!m) return null;
+  const table = m[1] === 'subtopic' ? 'subtopic' : 'topic';
+  const from = decode(m[2]);
+  const map = slugRedirects[table];
+  const to = map && Object.prototype.hasOwnProperty.call(map, from) ? map[from] : null;
+  return to ? { table, kind: m[1], from, to, path: `/${m[1]}/${to}` } : null;
+}
+
+async function legacyTargetExists(env, legacy) {
+  if (!(env.SUPABASE_URL && (env.SUPABASE_KEY || env.SUPABASE_ANON_KEY))) return false;
+  try {
+    const rows = await query(env, `${legacy.table === 'subtopic' ? 'subtopics' : 'topics'}?slug=eq.${eq(legacy.to)}&select=id&limit=1`);
+    return rows.length > 0;
+  } catch {
+    return false;
+  }
+}
 
 /* Адрес → вид страницы (префикс языка снимается). null — страницу не трогаем. */
 export function routeOf(pathname) {
@@ -94,7 +109,7 @@ export function routeOf(pathname) {
   let m;
   if ((m = path.match(/^\/task\/(\d+)(?:-[^/]*)?$/))) return { kind: 'task', id: Number(m[1]) };
   if ((m = path.match(/^\/topic\/([^/]+)$/))) return { kind: 'topic', slug: decode(m[1]) };
-  if ((m = path.match(/^\/subtopic\/([^/]+)$/))) return { kind: 'subtopic', slug: LEGACY_SUBTOPIC_SLUGS[decode(m[1])] || decode(m[1]) };
+  if ((m = path.match(/^\/subtopic\/([^/]+)$/))) return { kind: 'subtopic', slug: decode(m[1]) };
   if ((m = path.match(/^\/grade\/([^/]+)\/tasks$/))) return { kind: 'gradeTasks', grade: decode(m[1]) };
   if ((m = path.match(/^\/grade\/([^/]+)$/))) return { kind: 'grade', grade: decode(m[1]) };
   if ((m = path.match(/^\/subject\/([^/]+)$/))) return { kind: 'subject', slug: decode(m[1]) };
@@ -518,6 +533,12 @@ export function injectPage(html, page, lang = 'lv') {
    базы, база ответила ошибкой, ответ не HTML) — отдаём статику как есть:
    страница без подстановки лучше, чем сломанная. */
 export async function renderPage(request, env) {
+  const requested = new URL(request.url);
+  const legacy = ['GET', 'HEAD'].includes(request.method) ? legacyTarget(requested.pathname) : null;
+  if (legacy && await legacyTargetExists(env, legacy)) {
+    const prefix = langOfPath(requested.pathname) === 'ru' ? '/ru' : '';
+    return Response.redirect(new URL(prefix + legacy.path + requested.search, requested).toString(), 301);
+  }
   /* У HEAD тело пустое, и по нему не отличить оболочку приложения от
      отдельной страницы: маркер не находился, и несуществующий адрес
      отвечал 200 вместо 404. Поэтому для HEAD спрашиваем страницу как GET,

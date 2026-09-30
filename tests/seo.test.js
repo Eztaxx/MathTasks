@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { gradeLabelRu, injectPage, renderPage, routeOf } from '../worker/seo.js';
+import { gradeLabelRu, injectPage, legacyTarget, renderPage, routeOf } from '../worker/seo.js';
 import { latexToPlainText, taskDescription } from '../public/lib.js';
 
 /* Оболочка — те же строки <head>, что в index.html: подстановка ищет именно их. */
@@ -66,11 +66,15 @@ describe('seo: адрес → вид страницы', () => {
     expect(routeOf('/admin')).toBeNull();
   });
 
-  it('старые слаги олимпиадных подтем ведут на новые, в том числе на /ru/', () => {
-    expect(routeOf('/subtopic/novertejums-un-piemers-9-11-4')).toEqual({ kind: 'subtopic', slug: 'novertejums-un-piemers-9-9-4' });
-    expect(routeOf('/ru/subtopic/dirihle-princips-9-11-2')).toEqual({ kind: 'subtopic', slug: 'dirihle-princips-9-9-2' });
-    expect(routeOf('/subtopic/novertejums-un-piemers-9-9-4')).toEqual({ kind: 'subtopic', slug: 'novertejums-un-piemers-9-9-4' });
-    expect(routeOf('/subtopic/paralelograms-8-5-3')).toEqual({ kind: 'subtopic', slug: 'paralelograms-8-5-3' });
+  it('старые слаги тем и подтем распознаются, новые и чужие — нет', () => {
+    expect(legacyTarget('/topic/podobnye-treugolniki-1788737251039-299'))
+      .toMatchObject({ kind: 'topic', from: 'podobnye-treugolniki-1788737251039-299', to: 'skola2030-g9-1-ka-define-un-raksturo-lidzigus-trijsturus', path: '/topic/skola2030-g9-1-ka-define-un-raksturo-lidzigus-trijsturus' });
+    expect(legacyTarget('/ru/control-work/podobnye-treugolniki-1788737251039-299')).toMatchObject({ kind: 'control-work', table: 'topic' });
+    expect(legacyTarget('/ru/subtopic/dirihle-princips-9-11-2')).toMatchObject({ kind: 'subtopic', table: 'subtopic', to: 'dirihle-princips-9-9-2' });
+    expect(legacyTarget('/topic/skola2030-g9-1-ka-define-un-raksturo-lidzigus-trijsturus')).toBeNull();
+    expect(legacyTarget('/subtopic/paralelograms-8-5-3')).toBeNull();
+    expect(legacyTarget('/task/12-x')).toBeNull();
+    expect(legacyTarget('/topic/toString')).toBeNull();
   });
 
   it('подписи классов — как в приложении на русском', () => {
@@ -98,6 +102,42 @@ describe('seo: подстановка в оболочку', () => {
     const html = injectPage(SHELL, { title: 'A <b> & "c"', description: 'цена $& и $1', canonicalPath: '/', heading: 'x' });
     expect(html).toContain('<title>A &lt;b&gt; &amp; &quot;c&quot; — MathTasks</title>');
     expect(html).toContain('content="цена $&amp; и $1"');
+  });
+});
+
+describe('seo: старые адреса тем отвечают 301', () => {
+  const OLD = 'podobnye-treugolniki-1788737251039-299';
+  const NEW = 'skola2030-g9-1-ka-define-un-raksturo-lidzigus-trijsturus';
+
+  it('на /ru/ и без префикса, с сохранением строки запроса', async () => {
+    vi.stubGlobal('fetch', supabase([[`topics?slug=eq.${NEW}`, [{ id: 301 }]]]));
+    const ru = await page(`/ru/topic/${OLD}?q=1`, makeEnv());
+    expect(ru.status).toBe(301);
+    expect(ru.headers.get('location')).toBe(`https://mathtasks.lv/ru/topic/${NEW}?q=1`);
+    const lv = await page(`/control-work/${OLD}`, makeEnv());
+    expect(lv.status).toBe(301);
+    expect(lv.headers.get('location')).toBe(`https://mathtasks.lv/control-work/${NEW}`);
+  });
+
+  it('подтема с устаревшим номером: 301 на слаг с верным номером', async () => {
+    vi.stubGlobal('fetch', supabase([['subtopics?slug=eq.novertejums-un-piemers-9-9-4', [{ id: 753 }]]]));
+    const response = await page('/subtopic/novertejums-un-piemers-9-11-4', makeEnv());
+    expect(response.status).toBe(301);
+    expect(response.headers.get('location')).toBe('https://mathtasks.lv/subtopic/novertejums-un-piemers-9-9-4');
+  });
+
+  it('пока нового слага нет в базе, редиректа нет: страница не ломается', async () => {
+    vi.stubGlobal('fetch', supabase([]));
+    const response = await page(`/topic/${OLD}`, makeEnv());
+    expect(response.status).not.toBe(301);
+  });
+
+  it('новый слаг и чужие адреса редирект не трогает', async () => {
+    const fetchMock = supabase([['topics?slug=eq.', [TOPIC]]]);
+    vi.stubGlobal('fetch', fetchMock);
+    const response = await page('/topic/skola2030-g6-1-x', makeEnv());
+    expect(response.status).toBe(200);
+    expect(response.headers.get('location')).toBeNull();
   });
 });
 

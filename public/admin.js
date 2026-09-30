@@ -530,7 +530,7 @@
     });
     const { error } = editingSubjectId
       ? await db.from('subjects').update(payload).eq('id', editingSubjectId)
-      : await db.from('subjects').insert({ ...payload, slug: `${makeSlug(title)}-${Date.now()}` });
+      : await db.from('subjects').insert({ ...payload, slug: `${makeSlug(payload.title_lv || title)}-${Date.now()}` });
     if (error) { subjectSuccess.textContent = 'Ошибка: ' + error.message; return; }
     subjectSuccess.textContent = editingSubjectId ? 'Раздел сохранён.' : 'Раздел добавлен.';
     subjectForm.reset();
@@ -805,7 +805,8 @@
       const { error } = await db.from('topics').update(payload).eq('id', editingTopicId);
       if (error) { topicSuccess.textContent = 'Ошибка: ' + error.message; return; }
     } else {
-      const newSlug = `${makeSlug(title)}-${Date.now()}`;
+      /* Адрес темы — латышский: от латышского названия, а не от русского. */
+      const newSlug = `${makeSlug(payload.title_lv || title)}-${Date.now()}`;
       const { data: inserted, error } = await db.from('topics').insert({ ...payload, slug: newSlug }).select().single();
       if (error) { topicSuccess.textContent = 'Ошибка: ' + error.message; return; }
       savedTopicId = inserted?.id;
@@ -1245,7 +1246,7 @@
       const { error } = await db.from('subtopics').update(payload).eq('id', editingSubtopicId);
       if (error) { subtopicSuccess.textContent = 'Ошибка: ' + error.message; return; }
     } else {
-      const newSlug = `${makeSlug(title)}-${Date.now()}`;
+      const newSlug = `${makeSlug(payload.title_lv || title)}-${Date.now()}`;
       const { data: inserted, error } = await db.from('subtopics').insert({ ...payload, slug: newSlug }).select().single();
       if (error) { subtopicSuccess.textContent = 'Ошибка: ' + error.message; return; }
       savedSubtopicId = inserted?.id;
@@ -5007,7 +5008,7 @@ ${JSON.stringify(texts)}`;
           /* В конец своего класса, а не нулём: нулевая позиция выпадала из
              нумерации 1..N, и у темы на сайте не было номера. */
           position: nextTopicPosition(top.grade, targetSubjectId, null),
-          slug: `${makeSlug(top.title)}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          slug: `${makeSlug(top.title_lv || top.title)}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
           description: top.description || null,
           description_lv: top.description_lv || null
         });
@@ -5049,7 +5050,7 @@ ${JSON.stringify(texts)}`;
           title_lv: sub.title_lv || null,
           code: sub.code || null,
           position: sub.position || (subtopics.filter(s => s.topic_id === parentTopic.id).length + 1),
-          slug: `${makeSlug(titleVal)}-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+          slug: `${makeSlug(sub.title_lv || titleVal)}-${Date.now()}-${Math.floor(Math.random() * 1000)}`
         };
         const { data: createdSub, error: subErr } = await db.from('subtopics').insert(newSubPayload).select().single();
         if (!subErr && createdSub) {
