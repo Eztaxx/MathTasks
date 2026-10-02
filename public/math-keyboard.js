@@ -216,7 +216,8 @@
 
   function ensureToggles() {
     document.querySelectorAll(TOGGLE_FIELDS).forEach(input => {
-      if (toggleOf(input)) return;
+      // У поля-дроби вместо строки бланк, и кнопка клавиатуры ему не нужна.
+      if (input.dataset.frac || toggleOf(input)) return;
       input.classList.add('math-kb-host');
       input.insertAdjacentHTML('afterend', `<button type="button" class="math-kb-toggle" data-math-kb-open>${TOGGLE_ICON}</button>`);
       setToggle(input, input === field);
@@ -475,10 +476,169 @@
     document.querySelectorAll(TOGGLE_FIELDS).forEach(input => setToggle(input, input === field));
   });
 
+  /* ── Поле-дробь ──
+     Когда верный ответ — дробь или смешанное число, страница помечает поле
+     data-frac="fraction|mixed", а здесь вместо строки «1 1/2» рисуется бланк:
+     [целое] и числитель над чертой над знаменателем. Настоящее поле остаётся
+     в документе скрытым — на нём держится вся проверка (value, disabled,
+     классы «верно/неверно», фокус). Бланк пишет в него собранную строку
+     «1 1/2» и сообщает об этом обычным событием input, а значение, классы
+     и disabled, выставленные страницей, зеркалит обратно в бланк. */
+  const FRAC_TEXT = {
+    ru: { whole: 'Целая часть', num: 'Числитель', den: 'Знаменатель', group: 'Ответ дробью' },
+    lv: { whole: 'Veselā daļa', num: 'Skaitītājs', den: 'Saucējs', group: 'Atbilde daļas veidā' }
+  };
+  const fracText = () => FRAC_TEXT[MathTasks.getLang?.() === 'lv' ? 'lv' : 'ru'];
+  const VALUE = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  const FRAC_STATES = ['success', 'error', 'is-wrong', 'is-right'];
+
+  function mountFractionField(source) {
+    const lib = window.MathTasksLib;
+    if (source.dataset.fracMounted || !lib?.composeFraction || !lib?.splitFraction) return;
+    source.dataset.fracMounted = '1';
+    const mixed = source.dataset.frac === 'mixed';
+    const t = fracText();
+    /* Длину не ограничиваем атрибутом maxlength: «1 1/5», вставленная целиком,
+       обрезалась бы на четвёртом знаке. Предел ставим после разбора (см. input). */
+    const part = (cls, label, mode) =>
+      `<input type="text" class="frac-part ${cls}" inputmode="${mode}" autocomplete="off" aria-label="${esc(label)}" />`;
+    const wrap = document.createElement('span');
+    wrap.className = 'frac-field';
+    wrap.setAttribute('role', 'group');
+    wrap.setAttribute('aria-label', t.group);
+    wrap.innerHTML = `${mixed ? part('frac-whole', t.whole, 'numeric') : ''}`
+      + `<span class="frac-stack">${part('frac-num', t.num, 'decimal')}<span class="frac-bar" aria-hidden="true"></span>${part('frac-den', t.den, 'numeric')}</span>`;
+    source.after(wrap);
+    source.classList.add('frac-source');
+    source.tabIndex = -1;
+    source.setAttribute('aria-hidden', 'true');
+
+    const whole = wrap.querySelector('.frac-whole');
+    const num = wrap.querySelector('.frac-num');
+    const den = wrap.querySelector('.frac-den');
+    const parts = [whole, num, den].filter(Boolean);
+    // Секундомер и сверка читают номер задачи с поля — отдаём его частям бланка.
+    if (source.dataset.drillId) parts.forEach(p => { p.dataset.drillId = source.dataset.drillId; });
+
+    const fill = text => {
+      const p = lib.splitFraction(text);
+      if (whole) whole.value = p.whole;
+      num.value = p.num;
+      den.value = p.den;
+    };
+    const sync = () => {
+      VALUE.set.call(source, lib.composeFraction({ whole: whole?.value, num: num.value, den: den.value }));
+      source.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    /* Страница пишет в поле сама («очистить», «показать ответ»): значение
+       переносим в бланк. */
+    Object.defineProperty(source, 'value', {
+      configurable: true,
+      get() { return VALUE.get.call(source); },
+      set(next) { VALUE.set.call(source, next); fill(String(next ?? '')); }
+    });
+    source.focus = options => { (parts.find(p => !p.value && !p.disabled) || parts[0]).focus(options); };
+    source.select = () => {
+      const target = parts.find(p => p === document.activeElement) || parts[0];
+      target.focus();
+      target.select();
+    };
+
+    const mirror = () => {
+      parts.forEach(p => { p.disabled = source.disabled; });
+      wrap.classList.toggle('is-disabled', source.disabled);
+      FRAC_STATES.forEach(cls => wrap.classList.toggle(cls, source.classList.contains(cls)));
+    };
+    new MutationObserver(mirror).observe(source, { attributes: true, attributeFilter: ['disabled', 'class'] });
+    fill(VALUE.get.call(source));
+    mirror();
+
+    // Только цифры (в числителе ещё запятая и минус); наружу уходит событие с настоящего поля.
+    wrap.addEventListener('input', event => {
+      const el = event.target;
+      if (!el.classList?.contains('frac-part')) return;
+      event.stopPropagation();
+      /* «3/5» или «1 3/5» набрали или вставили в одну часть (экранная клавиатура
+         телефона, буфер обмена) — раскладываем по частям и ставим курсор дальше. */
+      if (el !== den && /[/ ]/.test(el.value)) {
+        const text = el.value;
+        const p = lib.splitFraction(text);
+        if (text.includes('/')) {
+          // Целая часть без бланка под неё («1 3/5» вставили в простую дробь) уходит в числитель.
+          if (whole) whole.value = p.whole.slice(0, 5);
+          else if (p.whole && p.den) p.num = String(Number(p.whole) * Number(p.den) + Number(p.num));
+          num.value = p.num.replace(/\s+/g, '').slice(0, 8);
+          den.value = p.den.slice(0, 5);
+          den.focus();
+        } else if (el === whole) {
+          whole.value = text.trim();
+          num.focus();
+        } else {
+          el.value = text.replace(/\s+/g, '');
+        }
+        sync();
+        return;
+      }
+      const cleaned = (el === den
+        ? el.value.replace(/\D/g, '')
+        : el.value.replace(/−/g, '-').replace(/[^\d,.\-]/g, '')).slice(0, el === num ? 8 : 5);
+      if (cleaned !== el.value) el.value = cleaned;
+      sync();
+    });
+
+    // Клавиши, которые страница ждёт от поля ответа (Enter, ↑ ↓), пересылаем настоящему полю.
+    const forward = event => {
+      const copy = new KeyboardEvent('keydown', { key: event.key, code: event.code, shiftKey: event.shiftKey, bubbles: true, cancelable: true });
+      source.dispatchEvent(copy);
+      if (copy.defaultPrevented) event.preventDefault();
+    };
+    const go = (event, target) => { event.preventDefault(); target.focus(); target.select?.(); };
+    wrap.addEventListener('keydown', event => {
+      const el = event.target;
+      if (!el.classList?.contains('frac-part') || event.isComposing) return;
+      const { key } = event;
+      if (key === 'Enter') {
+        // В форме Enter отправит её сам; в остальных местах — как у обычного поля.
+        if (!source.form) { event.preventDefault(); forward(event); }
+        return;
+      }
+      if (key === 'ArrowDown' && el === num) { go(event, den); return; }
+      if (key === 'ArrowUp' && el === den) { go(event, num); return; }
+      if (key === 'ArrowUp' || key === 'ArrowDown') { forward(event); return; }
+      if (key === 'ArrowRight' && el === whole && el.selectionStart === el.value.length) { go(event, num); return; }
+      if (key === 'ArrowLeft' && el === num && whole && el.selectionStart === 0 && el.selectionEnd === 0) { go(event, whole); return; }
+      // «/» и пробел — шаг к следующей части, как при наборе строкой.
+      if (key === '/' || key === ' ') {
+        event.preventDefault();
+        if (el === whole && key === ' ') go(event, num);
+        else if (el === num && key === '/' && num.value) go(event, den);
+        return;
+      }
+      if (key === 'Backspace' && !el.value) {
+        if (el === den) go(event, num);
+        else if (el === num && whole) go(event, whole);
+      }
+    });
+
+    // Фокус мог быть на поле до того, как бланк появился.
+    if (document.activeElement === source) source.focus();
+  }
+
+  const mountFractionFields = (root = document) => {
+    if (root.matches?.('input[data-frac]:not([data-frac-mounted])')) mountFractionField(root);
+    root.querySelectorAll?.('input[data-frac]:not([data-frac-mounted])').forEach(mountFractionField);
+  };
+  MathTasks.mountFractionFields = mountFractionFields;
+
   /* Поля появляются при каждой отрисовке списка — кнопку ставим сразу,
      в том же обходе, до того как страница успеет показаться без неё. */
-  new MutationObserver(ensureToggles).observe(document.body, { childList: true, subtree: true });
+  new MutationObserver(records => {
+    ensureToggles();
+    for (const record of records) record.addedNodes.forEach(node => { if (node.nodeType === 1) mountFractionFields(node); });
+  }).observe(document.body, { childList: true, subtree: true });
   ensureToggles();
+  mountFractionFields(document);
 
   // Поле с autofocus (карточка тренажёра) получило фокус раньше, чем загрузился модуль.
   const active = document.activeElement;

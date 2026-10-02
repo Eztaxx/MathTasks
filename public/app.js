@@ -1070,7 +1070,7 @@ function recordSolveEntry(taskId, correct) {
 /* Секундомер стартует с первого касания поля ответа — и в обычной
    карточке, и в компактном режиме «Примеры». */
 document.addEventListener('focusin', event => {
-  const input = event.target.closest?.('.self-check-input, .compact-drill-input');
+  const input = event.target.closest?.('.self-check-input, .compact-drill-input, .frac-part');
   if (!input) return;
   markTaskStarted(input.dataset.drillId || input.closest('.self-check-form')?.dataset.checkId);
 });
@@ -1431,7 +1431,7 @@ function openReportDialog(taskId) {
 // «[в поле ответа: 12; 5 · неверных попыток: 2]» — для администратора, по-русски.
 function reportAnswerNote(taskId) {
   const card = document.querySelector(`.task[data-task-id="${taskId}"]`);
-  const values = [...(card?.querySelectorAll('.self-check-form input:not([type="button"]):not([type="submit"]):not([type="checkbox"])') || [])]
+  const values = [...(card?.querySelectorAll('.self-check-form input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not(.frac-part)') || [])]
     .map(input => input.value.trim().slice(0, 100))
     .filter(Boolean);
   const wrong = getTaskWrongAttempts(taskId);
@@ -1571,12 +1571,12 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
           ? answerParts.map((field, i) => `
             <span class="answer-field">
               <span class="answer-label math" data-answer-label="${task.id}:${i}"></span>
-              <input type="text" class="self-check-input" data-field-index="${i}" placeholder="${escapeHtml(tr('self_check_placeholder'))}" aria-label="${escapeHtml(stripLatex(field.label))} ${escapeHtml(tr('self_check_placeholder'))}" autocomplete="off" ${solved ? 'disabled' : ''} />
+              <input type="text" class="self-check-input" data-field-index="${i}"${solved ? '' : fracAttr(field.value)} placeholder="${escapeHtml(tr('self_check_placeholder'))}" aria-label="${escapeHtml(stripLatex(field.label))} ${escapeHtml(tr('self_check_placeholder'))}" autocomplete="off" ${solved ? 'disabled' : ''} />
               ${field.unit ? `<span class="answer-unit">${escapeHtml(field.unit)}</span>` : ''}
             </span>`).join('')
           : `
         ${answerLabel ? `<span class="answer-label math" data-answer-label="${task.id}:0"></span>` : ''}
-        <input type="text" class="self-check-input" placeholder="${escapeHtml(tr('self_check_placeholder'))}" aria-label="${escapeHtml(tr('self_check_placeholder'))}" autocomplete="off" ${solved ? `disabled value="${escapeHtml(tr('solved_badge'))}"` : ''} />
+        <input type="text" class="self-check-input"${solved ? '' : fracAttr(answerValueOf(task, 0))} placeholder="${escapeHtml(tr('self_check_placeholder'))}" aria-label="${escapeHtml(tr('self_check_placeholder'))}" autocomplete="off" ${solved ? `disabled value="${escapeHtml(tr('solved_badge'))}"` : ''} />
         ${unit ? `<span class="answer-unit">${escapeHtml(unit)}</span>` : ''}`}
         <button type="submit" class="self-check-btn" ${solved ? 'hidden' : ''}>${escapeHtml(tr('self_check_btn'))}</button>
       </form>
@@ -1720,7 +1720,7 @@ function fillTaskMath(container, tasks) {
     const task = tasks.find(item => String(item.id) === id);
     if (!task) return;
     const fields = answerFieldsOf(task);
-    renderMath(element, fields.length ? (fields[Number(index)]?.label || '') : answerLabelOf(task));
+    renderMath(element, bigFractions(fields.length ? (fields[Number(index)]?.label || '') : answerLabelOf(task)));
   });
   const answerSource = tasks.filter(task => loc(task, 'answer_latex'));
   container.querySelectorAll('[data-answer]').forEach((element, index) => {
@@ -1885,17 +1885,39 @@ function drillFields(task) {
 function drillSolvedValue(task, slot) {
   const lib = window.MathTasksLib;
   if (!lib?.latexToPlainText) return '';
-  const field = drillFields(task)[slot];
-  let raw = field?.value;
-  if (!raw && slot === 0) {
-    const parts = lib.parseAnswerParts ? lib.parseAnswerParts(loc(task, 'answer_latex')) : [];
-    raw = parts.length === 1 ? parts[0].values[0] : loc(task, 'answer_latex');
-  }
-  raw = String(raw || '').replace(/^\$+|\$+$/g, '').trim();
-  if (field?.unit) raw = raw.replace(/\s*\\(?:text|mathrm)\{[^{}]*\}(?:\^\{?[23]\}?)?\s*$/, '');
+  // Ответ из нескольких частей без полей по величинам — показываем его целиком.
+  let raw = answerValueOf(task, slot) || (slot === 0 ? String(loc(task, 'answer_latex') || '').replace(/^\$+|\$+$/g, '') : '');
   /* Смешанное число: «1\frac{1}{2}» читается как «1 1/2», а не «11/2». */
   raw = raw.replace(/(\d)\s*\\[dt]?frac\{(\d+)\}\{(\d+)\}/g, '$1 $2/$3');
   return lib.latexToPlainText(raw, 40);
+}
+
+/* Подпись ответа («3/8 · 4 =») стоит в строке и набиралась мелко: числитель
+   и знаменатель выходили вдвое меньше цифр вокруг. \dfrac держит их в размер. */
+function bigFractions(label) {
+  return String(label || '').replace(/\\frac(?![a-zA-Z])/g, '\\dfrac');
+}
+
+/* Значение, которое ждёт поле номер slot, в записи LaTeX: без подписи
+   («AC =») и без единицы (она стоит рядом с полем). */
+function answerValueOf(task, slot = 0) {
+  const lib = window.MathTasksLib;
+  const field = drillFields(task)[slot];
+  let raw = field?.value;
+  if (!raw && slot === 0) {
+    const parts = lib?.parseAnswerParts ? lib.parseAnswerParts(loc(task, 'answer_latex')) : [];
+    raw = parts.length === 1 && parts[0].values.length === 1 ? parts[0].values[0] : '';
+  }
+  raw = String(raw || '').replace(/^\$+|\$+$/g, '').trim();
+  if (field?.unit) raw = raw.replace(/\s*\\(?:text|mathrm)\{[^{}]*\}(?:\^\{?[23]\}?)?\s*$/, '');
+  return raw;
+}
+
+/* Поле-дробь: если верный ответ — дробь или смешанное число, ставим на поле
+   пометку, и math-keyboard.js рисует бланк «целое, числитель, знаменатель». */
+function fracAttr(value) {
+  const kind = window.MathTasksLib?.fractionAnswerKind?.(value) || '';
+  return kind ? ` data-frac="${kind}"` : '';
 }
 
 function answerFieldsOf(task) {
@@ -1990,7 +2012,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
                 ${drillFields(task).map((field, slot) => `
                   ${field.label ? `<span class="answer-label math" data-drill-label="${task.id}:${slot}"></span>` : ''}
                   <input type="text"
-                         class="compact-drill-input${solved ? ' success' : ''}"
+                         class="compact-drill-input${solved ? ' success' : ''}"${fracAttr(answerValueOf(task, slot))}
                          data-drill-id="${task.id}"
                          data-drill-index="${index}"
                          data-drill-slot="${slot}"
@@ -2043,9 +2065,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     container.querySelectorAll('[data-drill-label]').forEach(el => {
       const [id, slot] = String(el.dataset.drillLabel || '').split(':');
       const task = currentTasksMap.get(Number(id));
-      /* В строке формула набрана мелко: числитель и знаменатель дроби в подписи
-         («3/8 · 4 =») выходили вдвое меньше цифр вокруг. \dfrac держит их в размер. */
-      if (task) renderMath(el, (drillFields(task)[Number(slot)]?.label || '').replace(/\\frac(?![a-zA-Z])/g, '\\dfrac'));
+      if (task) renderMath(el, bigFractions(drillFields(task)[Number(slot)]?.label || ''));
     });
 
     // Рендерим формулы в примерах через KaTeX
@@ -4784,7 +4804,7 @@ function renderControlWorkCards() {
           </div>
           <div class="cw-answer-input-wrap">
             <label for="cw-input-${task.id}" class="cw-input-label">${escapeHtml(tr('atbilde') || 'Ответ')}:</label>
-            <input type="text" id="cw-input-${task.id}" class="cw-answer-input" data-task-id="${task.id}" placeholder="${escapeHtml(tr('self_check_placeholder'))}" value="${escapeHtml(val)}" autocomplete="off" />
+            <input type="text" id="cw-input-${task.id}" class="cw-answer-input"${fracAttr(answerValueOf(task, 0))} data-task-id="${task.id}" placeholder="${escapeHtml(tr('self_check_placeholder'))}" value="${escapeHtml(val)}" autocomplete="off" />
           </div>
         </div>
         <div class="cw-task-review" data-cw-review="${task.id}" hidden></div>

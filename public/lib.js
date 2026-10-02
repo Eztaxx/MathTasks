@@ -671,6 +671,42 @@
     return plainFields(parts) || [];
   };
 
+  /* Поле-дробь. Когда верный ответ — дробь или смешанное число, ученик вместо
+     строки «1 1/2» видит бланк: [целое] и числитель над чертой над знаменателем.
+     Бланк рисуется только для целых числителя и знаменателя; «\frac{a}{b}»
+     и дробь внутри выражения остаются обычным полем. Возвращает
+     'fraction' (\frac{3}{8}), 'mixed' (1\frac{1}{2}) или ''. */
+  const FRACTION_VALUE_RE = /^[-−]?\s*(\d+)?\s*\\[dt]?frac\{\s*\d+\s*\}\{\s*\d+\s*\}$/;
+  const fractionAnswerKind = value => {
+    const text = String(value ?? '').trim().replace(/^\$+|\$+$/g, '').trim();
+    const match = text.match(FRACTION_VALUE_RE);
+    if (!match) return '';
+    return match[1] !== undefined ? 'mixed' : 'fraction';
+  };
+
+  /* Части бланка → строка, которую понимает проверка: «1 1/2», «3/8», «5».
+     Знаменатель пуст — это просто число (целое или десятичное). */
+  const composeFraction = ({ whole = '', num = '', den = '' } = {}) => {
+    const clean = part => String(part ?? '').replace(/\s+/g, '').replace(/[−–]/g, '-');
+    const w = clean(whole);
+    const n = clean(num);
+    const d = clean(den);
+    if (!d) return [w, n].filter(Boolean).join(' ');
+    return `${w ? `${w} ` : ''}${n}/${d}`;
+  };
+
+  /* Обратно: строка → части бланка. Смешанное число делится на три части,
+     «3/8» — на две, всё остальное (число, текст) целиком уходит в числитель. */
+  const splitFraction = text => {
+    const s = String(text ?? '').trim().replace(/[−–]/g, '-');
+    // Знаменатель может быть ещё не набран: «1 1/» и «3/» — тоже разбираются.
+    let match = s.match(/^(-?\d+)\s+([\d.,]+)\s*\/\s*(\d*)$/);
+    if (match) return { whole: match[1], num: match[2], den: match[3] };
+    match = s.match(/^(-?[\d.,]+)\s*\/\s*(\d*)$/);
+    if (match) return { whole: '', num: match[1], den: match[2] };
+    return { whole: '', num: s, den: '' };
+  };
+
   /* Проверка по полям: какое значение верное, какое нет. Итог подстрахован
      обычной сверкой склеенной строки — если наш разбор почему-то не сошёлся,
      а общая проверка принимает, задача засчитывается. */
@@ -4023,6 +4059,9 @@
     answerLabelMarkup,
     conditionPrompt,
     answerFields,
+    fractionAnswerKind,
+    composeFraction,
+    splitFraction,
     checkAnswerFields,
     answerUnitOf,
     localDateKey,
