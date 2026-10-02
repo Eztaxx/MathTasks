@@ -2908,6 +2908,9 @@ const formatSubtopicSummary = (subCount, taskCount, lang = 'ru') => {
     : `${subCount} • ${taskCount}`;
 };
 
+/* От скольки подтем панель рисуется сеткой, а не чипами в одну-две строки */
+const SUBTOPIC_GRID_MIN = 7;
+
 /* Компактная, элегантная и выразительная панель подтем (Skola2030) */
 function renderSubtopicNav(topic, activeSubtopicId = null) {
   if (!listSubtopics) return;
@@ -2934,8 +2937,28 @@ function renderSubtopicNav(topic, activeSubtopicId = null) {
     </a>`;
   }).join('');
 
-  // Одна строка подтем с прокруткой вбок; «Skola2030» — значком в шапке темы.
-  listSubtopics.innerHTML = `<div class="subtopic-pills">${allPill}${pills}</div>`;
+  if (list.length < SUBTOPIC_GRID_MIN) {
+    listSubtopics.innerHTML = `<div class="subtopic-pills">${allPill}${pills}</div>`;
+    listSubtopics.hidden = false;
+    return;
+  }
+
+  // Подтем много (Vispārīgais: 11–13): чипы в 4 ряда выглядят кучей, поэтому — сетка
+  // из ровных карточек. На странице подтемы она свёрнута до строки с текущей подтемой,
+  // чтобы задачи не уезжали вниз; на узком экране свёрнута и на странице темы.
+  const active = list.find(s => s.id === activeSubtopicId);
+  const narrow = window.innerWidth > 0 && window.innerWidth <= 720;
+  const open = isAllActive && !narrow;
+  const current = active
+    ? `<span class="subtopic-menu-current"><span class="subtopic-pill-code">${escapeHtml(subtopicCode(active, topic))}</span><span class="subtopic-menu-current-title">${escapeHtml(loc(active, 'title'))}</span></span>`
+    : '';
+  listSubtopics.innerHTML = `<details class="subtopic-menu"${open ? ' open' : ''}>
+    <summary class="subtopic-menu-summary">
+      <span class="subtopic-menu-label">${escapeHtml(tr('subtopics_nav'))}</span>
+      <span class="subtopic-menu-total">${list.length}</span>${current}
+    </summary>
+    <div class="subtopic-pills subtopic-pills-grid">${allPill}${pills}</div>
+  </details>`;
   listSubtopics.hidden = false;
 }
 
