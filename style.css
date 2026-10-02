@@ -3605,6 +3605,46 @@ body.dark .drill-hint-section .math {
 .compact-drill-body { align-self: stretch; }
 .compact-drill-answer-wrap { align-self: flex-end; margin-top: auto; }
 
+/* Ответ в режиме «Тренажёр»: подпись («3/8 · 4 =»), поле и единица — в одну
+   строку, одинаково в обеих темах. Базовое правило обёртки 7 сентября потеряло
+   селектор (осталось «body.dark …»): в тёмной теме обёртка была 105px и подпись
+   вставала над полем, в светлой — обёртка тянулась по подписи, поля выходили
+   разной ширины, а отметка ✓/✕ (position:absolute) уезжала от поля. Страницу
+   /trainer (trainer-sheet-grid) это не трогает — у неё свои правила. */
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-answer-wrap {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 8px;
+  width: auto;
+  max-width: 100%;
+}
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-input {
+  flex: 0 0 105px;
+  width: 105px;
+  padding-right: 8px;
+}
+.task-compact-grid:not(.trainer-sheet-grid) .answer-label {
+  font-size: 15px;
+}
+/* Отметка ✓/✕ — после поля, а не поверх него; место занято заранее, чтобы
+   строка не дёргалась, когда отметка появляется. */
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-status {
+  position: static;
+  transform: none;
+  flex: none;
+  width: 16px;
+  text-align: center;
+  display: block;
+  visibility: hidden;
+}
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-status.success,
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-status.error {
+  visibility: visible;
+}
+
 /* Подсвеченная стрелками задача в режиме списка. */
 
 /* Подпись под полем ответа: первая попытка — мягкое «не сошлось»,

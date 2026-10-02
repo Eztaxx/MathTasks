@@ -109,7 +109,10 @@
     let s = String(val).trim();
     const prefixRegex = /^(?:atrisiniet(?:\s+(?:vienādojumu|kvadrātvienādojumu|nevienādību(?:\s+ar\s+intervālu\s+metodi)?|sistēmu))?|aprēķiniet(?:\s+(?:skaitliskās\s+)?izteiksmes\s+vērtību)?|vienkāršojiet(?:\s+izteiksmi)?|atrodiet(?:\s+izteiksmes\s+vērtību)?|решите(?:\s+(?:уравнение|квадратное\s+уравнение|неравенство(?:\s+методом\s+интервалов)?|систему(?:\s+уравнений)?))?|вычислите(?:\s+(?:значение\s+(?:числового\s+)?выражения)?)?|найдите(?:\s+значение\s+выражения)?|упростите(?:\s+выражение)?)\s*[:—–-]?\s*/i;
     const cleaned = s.replace(prefixRegex, '').trim();
-    return cleaned || s;
+    /* Фразу снимаем, только когда за ней идёт сама формула. Если предложение
+       продолжается («Вычислите и запишите ответ в виде смешанного числа: …»),
+       срез оставлял обрубок «и запишите ответ…» без главного слова. */
+    return cleaned && /^[$\\(\[{|\d−-]/.test(cleaned) ? cleaned : s;
   };
 
   /* Нормализация и сравнение математических ответов ученика с эталоном из базы */

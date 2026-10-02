@@ -1879,6 +1879,25 @@ function drillFields(task) {
   return [{ label: answerLabelOf(task), unit: answerUnit(task), value: '' }];
 }
 
+/* Что остаётся в заблокированной ячейке решённой задачи: само значение в
+   обычной записи («1 1/2», «9»), без подписи и единицы — они стоят рядом — и
+   без сырого LaTeX из базы (раньше там лежало «1\frac{1}{2}»). */
+function drillSolvedValue(task, slot) {
+  const lib = window.MathTasksLib;
+  if (!lib?.latexToPlainText) return '';
+  const field = drillFields(task)[slot];
+  let raw = field?.value;
+  if (!raw && slot === 0) {
+    const parts = lib.parseAnswerParts ? lib.parseAnswerParts(loc(task, 'answer_latex')) : [];
+    raw = parts.length === 1 ? parts[0].values[0] : loc(task, 'answer_latex');
+  }
+  raw = String(raw || '').replace(/^\$+|\$+$/g, '').trim();
+  if (field?.unit) raw = raw.replace(/\s*\\(?:text|mathrm)\{[^{}]*\}(?:\^\{?[23]\}?)?\s*$/, '');
+  /* Смешанное число: «1\frac{1}{2}» читается как «1 1/2», а не «11/2». */
+  raw = raw.replace(/(\d)\s*\\[dt]?frac\{(\d+)\}\{(\d+)\}/g, '$1 $2/$3');
+  return lib.latexToPlainText(raw, 40);
+}
+
 function answerFieldsOf(task) {
   const fields = window.MathTasksLib?.answerFields;
   return fields ? fields(loc(task, 'answer_latex'), loc(task, 'answer_check')) : [];
@@ -1957,7 +1976,6 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
       const answerText = loc(task, 'answer_latex');
       // Ответ, который не сверить автоматически, в экспресс-режиме не вводится.
       const hasAnswer = Boolean(answerText) && taskAutoCheckable(answerText, loc(task, 'answer_check'));
-      const cleanAnswer = answerText ? answerText.replace(/^\$+|\$+$/g, '') : '';
       /* Кнопка чертежа появляется только у задач, к которым чертёж
          действительно загружен: подставного показывать нельзя. */
       const figureUrl = task.condition_image ? imageUrl(task.condition_image) : '';
@@ -1979,7 +1997,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
                          placeholder="${escapeHtml(tr('drill_placeholder'))}"
                          aria-label="${escapeHtml(tr('drill_placeholder'))} ${slot + 1}"
                          autocomplete="off"
-                         ${solved ? `disabled value="${slot === 0 ? (escapeHtml(cleanAnswer) || '✓') : '✓'}"` : ''} />
+                         ${solved ? `disabled value="${escapeHtml(drillSolvedValue(task, slot) || '✓')}"` : ''} />
                   ${field.unit ? `<span class="answer-unit">${escapeHtml(field.unit)}</span>` : ''}
                 `).join('')}
                 <span class="compact-drill-status${solved ? ' success' : ''}">${solved ? '✓' : ''}</span>
@@ -2025,7 +2043,9 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     container.querySelectorAll('[data-drill-label]').forEach(el => {
       const [id, slot] = String(el.dataset.drillLabel || '').split(':');
       const task = currentTasksMap.get(Number(id));
-      if (task) renderMath(el, drillFields(task)[Number(slot)]?.label || '');
+      /* В строке формула набрана мелко: числитель и знаменатель дроби в подписи
+         («3/8 · 4 =») выходили вдвое меньше цифр вокруг. \dfrac держит их в размер. */
+      if (task) renderMath(el, (drillFields(task)[Number(slot)]?.label || '').replace(/\\frac(?![a-zA-Z])/g, '\\dfrac'));
     });
 
     // Рендерим формулы в примерах через KaTeX

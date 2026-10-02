@@ -134,6 +134,17 @@ describe('cleanMathExample', () => {
     expect(cleanMathExample('Упростите: $$x^2 - 4$$')).toBe('$$x^2 - 4$$');
   });
 
+  it('не обрубает предложение, которое продолжается после глагола', () => {
+    const ru = 'Вычислите и запишите ответ в виде смешанного числа: $$\\frac{3}{8} \\cdot 4$$';
+    const ru2 = 'Решите уравнение и запишите корень в виде смешанного числа: $$x : 5 = \\frac{3}{10}$$';
+    const lv = 'Aprēķiniet un uzrakstiet atbildi jaukta skaitļa formā: $$\\frac{3}{8} \\cdot 4$$';
+    expect(cleanMathExample(ru)).toBe(ru);
+    expect(cleanMathExample(ru2)).toBe(ru2);
+    expect(cleanMathExample(lv)).toBe(lv);
+    // Формула сразу после фразы — как и раньше, фраза снимается.
+    expect(cleanMathExample('Вычислите: $$12 \\cdot \\frac{3}{4}$$')).toBe('$$12 \\cdot \\frac{3}{4}$$');
+  });
+
   it('сохраняет формулы и условия с важным контекстом и текстовые задачи', () => {
     const wordProblem = 'Viens no blakusleņķiem ir par $40^\\circ$ lielāks nekā otrs.';
     expect(cleanMathExample(wordProblem)).toBe(wordProblem);
