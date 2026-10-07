@@ -794,6 +794,14 @@ body.dark .task .self-check-input:focus{border-color:#5a92ff}
 .self-check-form.has-fields{flex-wrap:wrap;gap:10px 14px}
 .compact-drill-order{margin:0 0 10px;font-size:12.5px;color:var(--muted)}
 .compact-drill-tools{display:flex;justify-content:flex-end;margin:0 0 8px}
+/* Стиль .list-tool-btn привязан к #list-actions, а кнопка клавиатуры стоит
+   над сеткой задач — без своих правил она рисовалась серой кнопкой браузера. */
+.compact-drill-tools .list-tool-btn{display:inline-flex;align-items:center;gap:7px;height:36px;box-sizing:border-box;padding:0 13px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:600 12.5px Manrope,sans-serif;white-space:nowrap;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
+.compact-drill-tools .list-tool-btn>span{font-size:16px;line-height:1}
+.compact-drill-tools .list-tool-btn:hover{border-color:#b9c6dc}
+.compact-drill-tools .list-tool-btn:focus-visible{outline:2px solid #5a92ff;outline-offset:2px}
+body.dark .compact-drill-tools .list-tool-btn{border-color:#1c2331;background:transparent;color:#e9eefb}
+body.dark .compact-drill-tools .list-tool-btn:hover{border-color:#2c3547}
 .math-kb-btn.is-on{border-color:#1764ff;background:#eef4ff;color:#1764ff}
 body.dark .math-kb-btn.is-on{border-color:#3a5286;background:#17294a;color:#93b8ff}
 @media print{.compact-drill-tools{display:none!important}}
@@ -3590,8 +3598,11 @@ body.dark .drill-hint-section .math {
 }
 
 @media (max-width: 860px) {
+  /* В одну колонку выравнивать высоту не с чем: при 1fr короткие задачи
+     тянулись по самой длинной и стояли с пустой серединой. */
   .task-compact-grid {
     grid-template-columns: 1fr;
+    grid-auto-rows: auto;
   }
   .compact-drill-item {
     padding: 10px;
@@ -3643,7 +3654,7 @@ body.dark .drill-hint-section .math {
 .task-compact-grid:not(.trainer-sheet-grid) .compact-drill-answer-wrap {
   position: relative;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-end;
   gap: 6px 8px;
@@ -3657,6 +3668,60 @@ body.dark .drill-hint-section .math {
 }
 .task-compact-grid:not(.trainer-sheet-grid) .answer-label {
   font-size: 15px;
+}
+/* Подпись, поле и единица — одна неразрывная группа: раньше они переносились
+   по отдельности, и «b₄ =» могла остаться в конце строки, а поле уехать вниз. */
+.compact-drill-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 12px;
+  min-width: 0;
+}
+.compact-drill-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  min-width: 0;
+  white-space: nowrap;
+}
+/* Три поля и больше — ровной сеткой во всю ширину карточки: столбцы одной
+   ширины, подписи прижаты к своим полям, а лишнее уходит в следующий ряд
+   под те же столбцы, а не лесенкой. Чтобы полям хватило места, ряд ответа
+   занимает и полосу под кнопками 💡 ↗: карточка становится сеткой, а тело
+   (display: contents) раскладывает условие, ответ и заметку по её ячейкам. */
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-item:has(> .compact-drill-body > .is-many) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr auto auto;
+  column-gap: 8px;
+}
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-item:has(> .compact-drill-body > .is-many) > .compact-drill-body { display: contents; }
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-item:has(> .compact-drill-body > .is-many) > .compact-drill-num { grid-column: 1; grid-row: 1; }
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-item:has(> .compact-drill-body > .is-many) > .compact-drill-actions { grid-column: 3; grid-row: 1; }
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-item:has(> .compact-drill-body > .is-many) .compact-drill-expr { grid-column: 2; grid-row: 1; }
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-answer-wrap.is-many {
+  grid-column: 2 / -1;
+  grid-row: 3;
+  margin-top: 8px;
+}
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-item:has(> .compact-drill-body > .is-many) .compact-drill-note { grid-column: 2 / -1; grid-row: 4; }
+.compact-drill-answer-wrap.is-many .compact-drill-fields {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+}
+.compact-drill-answer-wrap.is-many .compact-drill-field {
+  justify-content: flex-end;
+}
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-answer-wrap.is-many .compact-drill-input {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: 105px;
 }
 /* Отметка ✓/✕ — после поля, а не поверх него; место занято заранее, чтобы
    строка не дёргалась, когда отметка появляется. */
@@ -3772,7 +3837,11 @@ body.dark .lightbox-img{background:#f7f9ff}
 /* Потолок высоты условия в тренажёре: без него одна длинная задача
    задаёт высоту всем карточкам сетки. Что не поместилось — прокручивается. */
 :root{--drill-expr-max:150px}
-.compact-drill-expr{max-height:var(--drill-expr-max);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;scrollbar-gutter:stable}
+/* flex: 0 0 auto — условие не сжимается ради поля ответа: при flex:1 и
+   overflow:auto карточка с двумя рядами полей резала даже короткое условие
+   и показывала полосу прокрутки. Теперь растёт карточка, а полоса
+   появляется, только когда условие длиннее потолка. */
+.compact-drill-expr{flex:0 0 auto;max-height:var(--drill-expr-max);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;scrollbar-gutter:stable}
 @media (max-width:720px){:root{--drill-expr-max:200px}}
 
 /* Любое модальное окно центрируется в окне просмотра. Без этого диалог

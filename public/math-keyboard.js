@@ -207,7 +207,9 @@
     const glued = toggle.previousElementSibling;
     if (glued?.matches?.(FIELDS)) return glued;
     const scope = toggle.closest('[data-math-kb-scope]') || document;
-    const fields = [...scope.querySelectorAll(FIELDS)].filter(el => !el.disabled && !el.readOnly);
+    /* Поле-дробь скрыто за бланком, и печатать в него с панели нельзя —
+       ему её кнопка не нужна (см. ensureToggles). */
+    const fields = [...scope.querySelectorAll(FIELDS)].filter(el => !el.disabled && !el.readOnly && !el.dataset.frac);
     if (!fields.length) return null;
     const active = document.activeElement;
     if (active && fields.includes(active)) return active;
