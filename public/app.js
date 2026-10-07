@@ -2007,9 +2007,10 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
           <span class="compact-drill-num" title="${escapeHtml(taskTitle)}">${taskNumber(task, index)}.</span>
           <div class="compact-drill-body">
             <div class="compact-drill-expr math multiline" data-drill-condition="${task.id}"></div>
-            <div class="compact-drill-answer-wrap">
+            <div class="compact-drill-answer-wrap${hasAnswer && drillFields(task).length > 2 ? ' is-many' : ''}">
               ${hasAnswer ? `
-                ${drillFields(task).map((field, slot) => `
+                <span class="compact-drill-fields">${drillFields(task).map((field, slot) => `
+                  <span class="compact-drill-field">
                   ${field.label ? `<span class="answer-label math" data-drill-label="${task.id}:${slot}"></span>` : ''}
                   <input type="text"
                          class="compact-drill-input${solved ? ' success' : ''}"${fracAttr(answerValueOf(task, slot))}
@@ -2021,7 +2022,8 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
                          autocomplete="off"
                          ${solved ? `disabled value="${escapeHtml(drillSolvedValue(task, slot) || '✓')}"` : ''} />
                   ${field.unit ? `<span class="answer-unit">${escapeHtml(field.unit)}</span>` : ''}
-                `).join('')}
+                  </span>
+                `).join('')}</span>
                 <span class="compact-drill-status${solved ? ' success' : ''}">${solved ? '✓' : ''}</span>
               ` : `
                 <span class="compact-drill-no-ans">—</span>
