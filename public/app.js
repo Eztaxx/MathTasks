@@ -3767,7 +3767,8 @@ function renderProgressStats(summary) {
   const tr = window.MathTasks.t || (k => k);
   const solvedSub = selectedGrade
     ? tr('progress_stat_solved_grade', {
-        solved: (summary.grades.find(group => String(group.grade ?? '') === String(selectedGrade))?.solved) || 0,
+        // У уровня в topic.grade число (10–12), а в selectedGrade — слово.
+        solved: (summary.grades.find(group => String(group.grade ?? '') === String(window.MathTasksLib.gradeNumber(selectedGrade)))?.solved) || 0,
         grade: gradeLabel(selectedGrade)
       })
     : (summary.total ? tr('progress_stat_solved_sub', { total: summary.total }) : '');
@@ -3845,7 +3846,8 @@ function renderProgressSubjects(summary) {
   const tr = window.MathTasks.t || (k => k);
   const lib = window.MathTasksLib;
   const rows = lib.buildSubjectBreakdown(summary.rows, {
-    grade: progressSubjectScope,
+    // У уровня в topic.grade число (10–12), а в progressSubjectScope — слово.
+    grade: lib.gradeNumber(progressSubjectScope),
     subjects: summary.subjects
   });
   const totals = rows.reduce((acc, row) => ({ solved: acc.solved + row.solved, total: acc.total + row.total }), { solved: 0, total: 0 });
