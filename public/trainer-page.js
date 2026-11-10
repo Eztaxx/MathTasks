@@ -267,7 +267,8 @@
         // Фокусируем первое поле ввода
         setTimeout(() => {
           const firstInput = trainerSheetGrid.querySelector('.compact-drill-input');
-          if (firstInput) firstInput.focus();
+          // Без прокрутки: иначе страница при открытии уезжает мимо заголовка и настроек.
+          if (firstInput) firstInput.focus({ preventScroll: true });
         }, 50);
       }
 
