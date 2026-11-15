@@ -2242,7 +2242,7 @@ body.nb-start-open { overflow: hidden; }
 .nb-start-body h2.nb-eyebrow { display: block; margin: 48px 0 0; }
 .nb-start-body h2.nb-eyebrow + .nb-start-grades, .nb-start-body h2.nb-eyebrow + .nb-start-levels { margin-top: 12px; }
 .nb-start-body #nb-start-high { margin-top: 32px; }
-.nb-start-grades { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100px, 100%), 1fr)); gap: 8px; }
+.nb-start-grades { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; }
 .nb-start-grade {
   display: flex; align-items: center; justify-content: center; min-width: 0; height: 112px;
   border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
