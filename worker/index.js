@@ -453,9 +453,10 @@ async function serveAsset(request, env) {
   const [, name, ext] = stale;
   const shell = await (await env.ASSETS.fetch(new Request(new URL('/', url)))).text();
   /* С редизайна «Начала» стили собираются в nachala-<хеш>.css: страница,
-     закэшированная до него, просит style-<хеш>.css — отдаём новый файл. */
+     закэшированная до него, просит style-<хеш>.css (админка — admin-<хеш>.css) —
+     отдаём новый файл. */
   const current = shell.match(new RegExp(`/assets/${name}-[\\w-]+\\.${ext}`))
-    || (name === 'style' && ext === 'css' ? shell.match(/\/assets\/nachala-[\w-]+\.css/) : null);
+    || ((name === 'style' || name === 'admin') && ext === 'css' ? shell.match(/\/assets\/nachala-[\w-]+\.css/) : null);
   if (!current || current[0] === url.pathname) return new Response('Not found', { status: 404 });
 
   const fresh = await env.ASSETS.fetch(new Request(new URL(current[0], url)));

@@ -1899,4 +1899,231 @@ input.cw-answer-input {
   border: 2px solid var(--ink-1); border-radius: 0; background: var(--sheet); color: var(--ink-1); box-shadow: none;
 }
 
+/* ── 28 Админка ───────────────────────────────────────────────────────── */
+/* Старые стили админки построены на переменных --adm-*: перенаправляем
+   их на токены «Начал», и большая часть экранов перекрашивается сама. */
+body.admin-page, body.dark.admin-page {
+  --adm-bg: var(--paper); --adm-panel: var(--sheet); --adm-panel2: var(--paper); --adm-raise: var(--sheet);
+  --adm-line: var(--rule); --adm-line2: var(--rule); --adm-field: var(--sheet); --adm-fieldbd: var(--rule-2);
+  --adm-ink: var(--ink-1); --adm-ink2: var(--ink-2); --adm-mute: var(--ink-3); --adm-dim: var(--ink-3);
+  --adm-acc: var(--ink-1); --adm-accsoft: var(--blue-tint); --adm-accbd: var(--rule-2); --adm-acclink: var(--ink-1);
+  --adm-okbg: #DDF1E5; --adm-okbd: #A9D8B8; --adm-okfg: #1F7A4D;
+  --adm-warnbg: var(--yellow-tint); --adm-warnbd: #E9C766; --adm-warnfg: #6B4E00;
+  --adm-badbg: var(--red-tint); --adm-badbd: #F2B8B1; --adm-badfg: var(--red-ink);
+  --adm-hover: var(--yellow-tint);
+  --ok: #1F7A4D; --ok-tint: #DDF1E5;
+  background: var(--paper);
+}
+body.dark.admin-page {
+  --adm-okbg: #12321F; --adm-okbd: #1E5236; --adm-okfg: #6FD39B;
+  --adm-warnbg: var(--yellow-tint); --adm-warnbd: #6B5A1E; --adm-warnfg: #FFD34D;
+  --adm-badbd: #5A2626;
+  --ok: #6FD39B; --ok-tint: #12321F;
+}
+.adm-shell { font-size: 15px; line-height: 1.5; color: var(--ink-1); }
+/* Шапка с логотипом — только до входа; в самой админке её заменяет боковое меню */
+body.admin-page:has(#admin-content:not([hidden])) .admin-topbar { display: none; }
+body.admin-page:has(#admin-content:not([hidden])) .admin-main { max-width: none; margin: 0; padding: 0; }
+.adm-shell a { color: var(--ink-1); }
+/* Поля с LaTeX и номера — моноширинным, как было */
+body.admin-page textarea, .adm-meta-field input, .imp-text, .json-sample-pre, .adm-view-head code, .adm-cheat code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+body.admin-page textarea { font-size: 14px; line-height: 1.5; }
+.adm-shell input[type="text"], .adm-shell input[type="search"], .adm-shell input[type="number"],
+.adm-shell input:not([type]), .adm-shell select, .adm-shell textarea {
+  border: 2px solid var(--rule-2); background: var(--sheet); color: var(--ink-1);
+}
+.adm-shell input:focus, .adm-shell select:focus, .adm-shell textarea:focus { border-color: var(--ink-1); outline: none; }
+.adm-shell select, .adm-shell input[type="text"], .adm-shell input[type="number"], .adm-shell input:not([type]) { min-height: 44px; padding: 8px 12px; font-size: 15px; }
+.adm-shell select { padding-right: 34px; }
+
+/* Боковое меню: тёмно-синее, жёлтая кромка справа */
+.adm-side {
+  --adm-ink: var(--bar-ink); --adm-ink2: var(--bar-ink-2); --adm-mute: #E8ECF3; --adm-dim: #AEB8D0;
+  --adm-line: var(--bar-rule); --adm-panel: var(--bar-sheet); --adm-hover: var(--bar-sheet); --adm-acc: var(--yellow);
+  --ink-1: var(--bar-ink); --ink-2: var(--bar-ink-2); --paper: var(--bar); --sheet: var(--bar-sheet); --rule: var(--bar-rule);
+  flex: 0 0 272px; width: 272px; gap: 0; padding: 0;
+  background: var(--bar); color: var(--bar-ink); border-right: 4px solid var(--yellow);
+}
+.adm-brand { padding: 22px 20px 18px; border-bottom: 1px solid var(--bar-rule); gap: 12px; }
+.adm-home-btn { width: auto; height: auto; border: 0; background: none; padding: 0; }
+.adm-home-btn:hover { background: none; }
+.adm-brand-title { font-size: 17px; line-height: 1.2; color: var(--bar-ink); }
+.adm-brand-sub { font-size: 13px; color: #AEB8D0; }
+.adm-nav { padding: 10px 10px 16px; gap: 0; }
+.adm-nav-group { padding: 16px 12px 6px; font-size: 11px; font-weight: 600; letter-spacing: .14em; color: #AEB8D0; }
+.adm-shell .adm-nav-item {
+  min-height: 44px; padding: 0 12px; font-size: 15px; font-weight: 500; color: #E8ECF3;
+}
+.adm-shell .adm-nav-item:hover { background: var(--bar-sheet); color: #FFFFFF; }
+.adm-shell .adm-nav-item.is-active { background: #FFFFFF; color: #14213D; font-weight: 600; }
+.adm-count {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 22px; padding: 0 7px;
+  border: 0; font-family: var(--f-ui); font-size: 12px; font-weight: 700;
+}
+.adm-count.warn { background: var(--yellow); color: #14213D; }
+.adm-count.bad { background: #FF8A7A; color: #2A0A07; }
+.adm-count.plain { background: var(--bar-rule); color: #E8ECF3; }
+.adm-nav-item.is-active .adm-count.plain { background: #DCE3F2; color: #14213D; }
+.adm-nav-item kbd {
+  height: 22px; padding: 0 7px; border: 1px solid #5C6B8C; background: none;
+  color: #C9D1E6; font-family: var(--f-ui); font-size: 12px; font-weight: 600; box-shadow: none;
+}
+.adm-nav-item.is-active kbd { border-color: var(--rule-2); color: #14213D; }
+.adm-side-foot {
+  margin-top: auto; padding: 16px 20px 22px; border-top: 1px solid var(--bar-rule);
+  display: flex; flex-direction: column; gap: 10px; font-size: 14px; color: #C9D1E6;
+}
+.adm-theme-btn, .adm-link-btn {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0; border: 0; background: none;
+  color: #FFFFFF; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; cursor: pointer;
+}
+.adm-theme-btn small { color: #AEB8D0; text-decoration: none; font-weight: 500; }
+.adm-avatar { background: var(--yellow); color: #14213D; border: 0; }
+.adm-user strong { color: #FFFFFF; font-weight: 500; }
+
+/* Верхняя строка: поиск и действия на белом */
+.adm-top {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px;
+  padding: 14px clamp(16px, 3vw, 36px); background: var(--sheet); border-bottom: 1px solid var(--rule);
+}
+#adm-global-search { flex: 1 1 320px; min-width: 0; height: 44px; padding: 0 16px; background: var(--paper); font-size: 15px; }
+.adm-views { padding: 28px clamp(16px, 3vw, 36px) 56px; }
+.adm-view-head h1 { margin: 0; font-size: 34px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; color: var(--ink-1); }
+.adm-view-head p { margin: 6px 0 0; max-width: 68ch; font-size: 16px; color: var(--ink-2); }
+.adm-view-head code { padding: 1px 6px; background: var(--blue-tint); font-size: 14px; }
+
+/* Кнопки */
+.adm-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+  font-size: 15px; font-weight: 600; white-space: nowrap; cursor: pointer; box-shadow: none; text-decoration: none;
+}
+.adm-btn:hover { background: var(--ink-1); color: var(--paper); }
+.adm-btn.primary { background: #14213D; border-color: #14213D; color: #FFFFFF; }
+html.dark .adm-btn.primary { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
+.adm-btn.primary:hover { background: var(--ink-1); border-color: var(--ink-1); color: var(--paper); }
+.adm-btn.ok { background: var(--ok); border-color: var(--ok); color: #FFFFFF; }
+html.dark .adm-btn.ok { color: #0F1626; }
+.adm-btn.bad { border-color: var(--red); color: var(--red-ink); background: var(--sheet); }
+.adm-btn.bad:hover { background: var(--red); color: var(--on-red); }
+.adm-btn.text { border-color: transparent; background: transparent; text-decoration: underline; text-underline-offset: 4px; }
+.adm-btn.text:hover { background: transparent; color: var(--ink-1); }
+.adm-btn:disabled, .adm-btn[disabled] { opacity: .45; cursor: not-allowed; }
+.adm-rowbtn, .adm-link-btn:not(.adm-side .adm-link-btn) { border-radius: 0; }
+/* Сегменты */
+.adm-seg { display: inline-flex; flex-wrap: wrap; gap: 0; padding: 0; border: 0; background: none; }
+.adm-seg-btn, .adm-lang-btn, .adm-diff-btn, .adm-preview-lang-btn {
+  min-height: 40px; padding: 0 14px; border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: none;
+}
+.adm-seg-btn + .adm-seg-btn, .adm-lang-btn + .adm-lang-btn, .adm-diff-btn + .adm-diff-btn, .adm-preview-lang-btn + .adm-preview-lang-btn { margin-left: -2px; }
+.adm-seg-btn.is-active, .adm-seg-btn.active, .adm-seg-btn[aria-pressed="true"],
+.adm-lang-btn.is-active, .adm-lang-btn.active, .adm-lang-btn[aria-pressed="true"],
+.adm-diff-btn.is-active, .adm-diff-btn.active, .adm-diff-btn[aria-pressed="true"],
+.adm-preview-lang-btn.is-active, .adm-preview-lang-btn.active { background: #14213D; color: #FFFFFF; }
+html.dark :is(.adm-seg-btn, .adm-lang-btn, .adm-diff-btn, .adm-preview-lang-btn):is(.is-active, .active, [aria-pressed="true"]) { background: var(--ink-1); color: var(--paper); }
+.adm-seg-n { font-family: var(--f-ui); font-weight: 700; opacity: .8; }
+
+/* Счётчики «Обзора»: первый — жёлтый, сообщения — красная цифра */
+.adm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)); gap: 12px; }
+.adm-stat {
+  display: flex; flex-direction: column; gap: 4px; padding: 16px 18px;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1); text-decoration: none; box-shadow: none;
+}
+.adm-stat:hover { background: var(--yellow-tint); }
+.adm-stat.warn { background: var(--yellow); border-color: var(--yellow); color: #14213D; }
+.adm-stat.warn .adm-stat-label, .adm-stat.warn .adm-stat-note, .adm-stat.warn .adm-stat-value { color: #14213D; }
+.adm-stat-label { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.adm-stat-value { font-family: var(--f-ui); font-size: 40px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; color: var(--ink-1); }
+.adm-stat[href="#reports"] .adm-stat-value { color: var(--red-ink); }
+.adm-stat-note { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+
+/* Панели */
+.adm-panel { border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1); box-shadow: none; overflow: hidden; }
+.adm-panel-head {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 16px 20px;
+  border-bottom: 1px solid var(--rule); background: none;
+}
+.adm-panel-head h2 { margin: 0; font-size: 19px; line-height: 1.25; font-weight: 700; color: var(--ink-1); }
+.adm-panel-head a { margin-left: auto; color: var(--ink-1); font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+.adm-panel-note { font-size: 14px; color: var(--ink-2); }
+.adm-empty { color: var(--ink-3); }
+.adm-chip, .adm-tflag, .adm-missing-chip, .adm-paper-chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border: 0;
+  background: var(--blue-tint); color: var(--ink-1); font-size: 13px; font-weight: 600; white-space: nowrap;
+}
+.adm-queue-row, .adm-trow, .adm-publish-row, .adm-paper-row, .adm-cat3-row {
+  border-top: 1px solid var(--rule); background: none;
+}
+.adm-queue-row:hover, .adm-trow:hover, .adm-cat3-row:hover { background: var(--yellow-tint); }
+.adm-queue-id, .adm-review-id, .adm-publish-id, .adm-tnum, .adm-report-id, .adm-cat3-code, .adm-crumb-code, .adm-pop-code {
+  font-family: var(--f-ui); font-weight: 700; color: var(--ink-3);
+}
+.adm-thead { background: var(--paper); font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+.adm-ready-dot { border-radius: 50%; }
+
+/* Предпросмотр «как увидит посетитель» — на доске */
+.adm-review-content, .adm-preview-body {
+  --ink-1: var(--chalk); --ink-2: var(--chalk-2); --ink-3: var(--chalk-3); --rule: #2F5A45; --rule-2: var(--board-frame);
+  --adm-ink: var(--chalk); --adm-ink2: var(--chalk-2); --adm-mute: var(--chalk-3); --adm-line: #2F5A45;
+  --adm-panel: var(--board); --adm-panel2: var(--board-deep); --adm-accsoft: #2A5541;
+  background: var(--board); color: var(--chalk); border: 6px solid var(--board-edge); border-radius: 12px;
+}
+.adm-review-content { padding: 22px 26px; }
+.adm-preview-body { padding: 18px 22px 22px; }
+.adm-review-cond, .adm-preview-cond, .adm-review-sol, .adm-preview-sol, .adm-preview-text {
+  font-family: var(--f-serif); color: var(--chalk);
+}
+.adm-review-cond, .adm-preview-cond { font-size: 22px; line-height: 1.45; }
+.adm-review-content .katex, .adm-preview-body .katex { color: var(--chalk); }
+.adm-preview-lv-tag {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border: 0;
+  background: #2A5541; color: var(--chalk); font-family: var(--f-ui); font-size: 12px; font-weight: 700; letter-spacing: .08em;
+}
+.adm-review-box, .adm-review-subblock { padding: 16px 18px; border: 1px solid var(--rule); background: var(--paper); }
+.adm-review-card { border: 2px solid var(--ink-1); background: var(--sheet); box-shadow: none; }
+.adm-review-card-head, .adm-review-card-foot { padding: 14px 20px; border-color: var(--rule); background: var(--paper); }
+.adm-review-card-head { background: none; border-bottom: 1px solid var(--rule); }
+.adm-review-triage, .adm-editor-ready-bar, .adm-editor-actions {
+  padding: 12px 16px; border: 1px solid var(--rule); background: var(--sheet);
+}
+.adm-check-dot { border-radius: 50%; }
+
+/* Редактор: группы полей листами */
+.adm-shell #task-form fieldset, .adm-shell .adm-editor-body > section {
+  border: 2px solid var(--ink-1); background: var(--sheet);
+}
+.adm-shell #task-form legend { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.adm-crumb-btn, .adm-crumb-select {
+  border: 2px solid var(--rule-2); background: var(--sheet); color: var(--ink-1); box-shadow: none;
+}
+.adm-pop, .adm-place-pop { border: 2px solid var(--ink-1); background: var(--sheet); box-shadow: none; }
+.adm-pop-opt:hover, .adm-pop-opt.is-active { background: var(--yellow-tint); }
+
+/* Сообщения об ошибках */
+.adm-report { border: 2px solid var(--ink-1); background: var(--sheet); box-shadow: none; }
+.adm-report-kind { padding: 0 10px; min-height: 26px; display: inline-flex; align-items: center; background: var(--red-tint); color: var(--red-ink); font-size: 13px; font-weight: 600; }
+.adm-report-text { font-size: 19px; line-height: 1.45; color: var(--ink-1); }
+
+/* Генератор */
+.ai-settings-card, .ai-custom-card, .ai-result { border: 2px solid var(--ink-1); background: var(--sheet); box-shadow: none; }
+.ai-preset-chip {
+  min-height: 40px; padding: 0 12px; border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-weight: 600; box-shadow: none;
+}
+.ai-preset-chip.active, .ai-preset-chip.is-active { background: var(--yellow); color: var(--on-yellow); }
+.ai-primary-btn { background: #14213D; border: 2px solid #14213D; color: #FFFFFF; box-shadow: none; }
+html.dark .ai-primary-btn { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
+.ai-icon, .ai-custom-icon { display: none; }
+.ai-translate-btn, .ai-translate-back, .ai-cancel-btn, .ai-prompt-btn, .ai-prompt-copy-btn, .ai-prompt-close-btn, .ai-field-clear-btn, .adm-preview-toggle, .adm-crumb-btn {
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1); box-shadow: none; font-weight: 600;
+}
+.ai-translate-btn:hover, .ai-prompt-btn:hover, .ai-cancel-btn:hover { background: var(--ink-1); color: var(--paper); }
+
+@media (max-width: 900px) {
+  .adm-side { flex-basis: auto; width: 100%; border-right: 0; border-bottom: 4px solid var(--yellow); position: static; height: auto; }
+}
+
 }

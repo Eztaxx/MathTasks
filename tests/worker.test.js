@@ -657,6 +657,10 @@ describe('Cloudflare Worker: чистые функции', () => {
       expect(response.status).toBe(200);
       expect(response.headers.get('content-type')).toBe('text/css');
       expect(await response.text()).toBe(':root{--paper:#E8ECF3}');
+      // Админка раньше собиралась в свой admin-<хеш>.css.
+      const admin = await worker.fetch(new Request('https://mathtasks.lv/assets/admin-OLD7.css'), nbEnv);
+      expect(admin.status).toBe(200);
+      expect(await admin.text()).toBe(':root{--paper:#E8ECF3}');
     });
   });
 });
