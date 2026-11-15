@@ -640,6 +640,24 @@ describe('Cloudflare Worker: чистые функции', () => {
       const response = await get('/assets/chart-ABC.js');
       expect(response.status).toBe(404);
     });
+
+    // Редизайн «Начала»: стили переехали в nachala-<хеш>.css, старая страница ещё просит style-….
+    it('style-<старый хеш>.css после редизайна получает nachala-<хеш>.css', async () => {
+      const nbShell = '<!doctype html><link rel="stylesheet" href="/assets/nachala-NB1.css"><div id="view-home"></div>';
+      const nbFiles = { '/': [nbShell, 'text/html; charset=utf-8'], '/assets/nachala-NB1.css': [':root{--paper:#E8ECF3}', 'text/css'] };
+      const nbEnv = {
+        ASSETS: {
+          fetch: vi.fn(async req => {
+            const [body, type] = nbFiles[new URL(req.url).pathname] || nbFiles['/'];
+            return new Response(body, { headers: { 'content-type': type } });
+          })
+        }
+      };
+      const response = await worker.fetch(new Request('https://mathtasks.lv/assets/style-_OLD99.css'), nbEnv);
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-type')).toBe('text/css');
+      expect(await response.text()).toBe(':root{--paper:#E8ECF3}');
+    });
   });
 });
 

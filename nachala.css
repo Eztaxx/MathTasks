@@ -1,0 +1,1126 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   «Начала» — система оформления MathTasks (редизайн, ноябрь 2026).
+   Макеты: claude.ai artifact «MathTasks — редизайн», доска «Система «Начала»».
+
+   Как устроено. Старый style.css (7400 строк, сотни правил body.dark …)
+   подключается здесь нижним слоем «legacy». Всё, что ниже в слое
+   «nachala», сильнее любого старого правила независимо от специфичности —
+   поэтому новые правила пишутся короткими селекторами и без !important.
+   Побеждают нас только старые !important (их ~200) и внешние стили без
+   слоя (KaTeX), что нам и нужно: формулы KaTeX остаются своим шрифтом.
+
+   Страницы подключают этот файл вместо /style.css.
+   ═══════════════════════════════════════════════════════════════════════ */
+/* nb-force объявлен раньше legacy: при !important побеждает более ранний
+   слой, и только так перекрываются старые правила с !important. Сюда — лишь
+   то, что старые !important иначе ломают. */
+@layer nb-force, legacy, nachala;
+@import url('./style.css') layer(legacy);
+
+@layer nb-force {
+  @media screen {
+    .solution-toggle, .solution-toggle-hint,
+    #list-tasks > .task .solution-toggle, #list-tasks > .task .solution-toggle-hint,
+    .sv-card .solution-toggle, .sv-card .solution-toggle-hint {
+      border: 2px solid var(--ink-1) !important; background: transparent !important;
+      color: var(--ink-1) !important; box-shadow: none !important; transform: none !important;
+    }
+    .solution-toggle:not(.is-locked):hover, .solution-toggle-hint:not(.is-locked):hover,
+    #list-tasks > .task .solution-toggle:not(.is-locked):hover {
+      background: var(--yellow-tint) !important; border-color: var(--ink-1) !important; color: var(--ink-1) !important;
+    }
+    .solution-toggle.active, .solution-toggle-hint.active,
+    #list-tasks > .task .solution-toggle.active, .sv-card .solution-toggle.active {
+      background: var(--yellow) !important; color: var(--on-yellow) !important; border-color: var(--ink-1) !important;
+    }
+    .task .solution-toggle.is-locked, .sv-card .solution-toggle.is-locked, .solution-toggle-hint.is-locked {
+      border: 2px dashed var(--rule-2) !important; background: transparent !important; color: var(--ink-3) !important;
+    }
+    #view-list[data-nb-page="task"] .task .solution-toggle:not(.active):not(.is-locked) { border-color: var(--board-frame) !important; }
+  }
+}
+
+@layer nachala {
+
+/* ── 01 Цвет ──────────────────────────────────────────────────────────── */
+:root {
+  --paper: #E8ECF3;
+  --sheet: #FFFFFF;
+  --ink-1: #14213D;
+  --ink-2: #3D4A66;
+  --ink-3: #56627C;
+  --rule: #D3D9E6;
+  --rule-2: #A3ADC2;
+  --nb-blue: #14213D;        /* «решено», главное действие вне доски */
+  --on-blue: #FFFFFF;
+  --blue-tint: #DCE3F2;
+  --yellow: #FFD34D;         /* текущее, выбранное, подсказка */
+  --on-yellow: #14213D;
+  --yellow-tint: #FFF3C7;
+  --red: #D6342B;
+  --on-red: #FFFFFF;
+  --red-tint: #FBE2DF;
+  --red-ink: #A9221A;
+  --fb: #2F5BEA;             /* фигуры знака */
+  --fr: #D6342B;
+  --fy: #FFD34D;
+  --bar: #14213D;            /* шапка и подвал */
+  --bar-ink: #FFFFFF;
+  --bar-ink-2: #C9D1E6;
+  --bar-rule: #2C3A5C;
+  --bar-sheet: #1B2B4F;
+  --board: #1A3D2E;          /* доска с условием задачи */
+  --board-deep: #13301F;
+  --chalk: #F2F0E6;
+  --chalk-2: #DCE3D3;
+  --chalk-3: #B0BDAE;
+  --board-rule: #3D6B55;
+  --board-frame: #5F8A73;
+  --board-edge: #14213D;
+  --f-ui: 'Golos Text', 'Segoe UI', 'Helvetica Neue', system-ui, sans-serif;
+  --f-serif: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
+
+  /* Старые имена переменных — на новые цвета, чтобы правила style.css,
+     которые берут цвет из переменных, перекрасились сами. */
+  --ink: var(--ink-1);
+  --muted: var(--ink-2);
+  --line: var(--rule);
+  --blue: var(--nb-blue);
+  --accent: var(--nb-blue);
+  color-scheme: light;
+}
+
+html.dark, body.dark {
+  --paper: #0F1626;
+  --sheet: #172138;
+  --ink-1: #E8ECF3;
+  --ink-2: #B8C2D6;
+  --ink-3: #8D99B0;
+  --rule: #26324D;
+  --rule-2: #3A4867;
+  --nb-blue: #8FA6FF;
+  --on-blue: #0F1626;
+  --blue-tint: #1E2A4A;
+  --yellow: #FFD34D;
+  --on-yellow: #14213D;
+  --yellow-tint: #3A3215;
+  --red: #FF7A6B;
+  --on-red: #2A0A07;
+  --red-tint: #3A1A17;
+  --red-ink: #FFA196;
+  --fb: #8FA6FF;
+  --fr: #FF6B5B;
+  --fy: #FFD34D;
+  --bar: #0A101C;
+  --bar-ink: #E8ECF3;
+  --bar-ink-2: #B8C2D6;
+  --bar-rule: #26324D;
+  --bar-sheet: #172138;
+  --board: #173528;
+  --board-edge: #0A101C;
+  --ink: var(--ink-1);
+  --muted: var(--ink-2);
+  --line: var(--rule);
+  --blue: var(--nb-blue);
+  --accent: var(--nb-blue);
+  color-scheme: dark;
+}
+
+/* ── 02 Основа: фон, шрифт, углы ─────────────────────────────────────── */
+html, html.dark { background: var(--paper); }
+body, body.dark {
+  background: var(--paper);
+  color: var(--ink-1);
+  font-family: var(--f-ui);
+  font-size: 17px;
+  line-height: 1.5;
+}
+/* Старые правила задают шрифт каждому элементу (font: 600 13px Manrope) —
+   здесь все наследуют его от body. Формулы KaTeX не трогаем: его стили без
+   слоя и всё равно сильнее. */
+body *, body *::before, body *::after { font-family: inherit; }
+code, pre, kbd, samp { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+/* Плоско и прямоугольно: без скруглений и теней. Круглыми остаются только
+   то, что круглое по смыслу (ниже — .nb-round). */
+body *, body *::before, body *::after { border-radius: 0; box-shadow: none; }
+.nb-round { border-radius: 50%; }
+
+:focus-visible { outline: 3px solid var(--nb-blue); outline-offset: 3px; }
+::selection { background: var(--yellow); color: var(--on-yellow); }
+
+/* Подписи-«брови»: капс с разрядкой */
+.nb-eyebrow {
+  font-size: 13px; font-weight: 600; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-2);
+}
+.nb-wrap { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); }
+.nb-serif { font-family: var(--f-serif); }
+.visually-hidden, .nb-vh {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ── 03 Кнопки ────────────────────────────────────────────────────────── */
+/* Основное действие — тёмно-синее, одно на экран; остальные — контур. */
+.nb-btn, .primary-button, .secondary-button, .ghost-button, .account-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 44px; padding: 0 18px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 16px; font-weight: 600; line-height: 1.2; white-space: nowrap;
+  text-decoration: none; cursor: pointer; transform: none; transition: background .12s, color .12s;
+}
+.nb-btn:hover, .secondary-button:hover, .ghost-button:hover, .account-button:hover {
+  background: var(--ink-1); border-color: var(--ink-1); color: var(--paper); transform: none;
+}
+.nb-btn-blue, .primary-button {
+  background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue);
+}
+.nb-btn-blue:hover, .primary-button:hover {
+  background: var(--ink-1); border-color: var(--ink-1); color: var(--paper);
+}
+.nb-btn-lg { min-height: 52px; padding: 0 24px; font-size: 17px; }
+.primary-button:disabled, .secondary-button:disabled, .nb-btn:disabled {
+  border-style: dashed; border-color: var(--rule-2); background: transparent;
+  color: var(--ink-3); cursor: not-allowed;
+}
+.text-button { color: var(--ink-1); font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+
+.nb-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 44px; height: 44px; padding: 0;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); cursor: pointer;
+}
+.nb-icon-btn:hover { background: var(--ink-1); color: var(--paper); }
+.nb-icon-btn svg { display: block; }
+
+/* Переключатель-сегменты: режим — тёмная заливка */
+.nb-seg {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 44px; padding: 0 14px; border: 2px solid var(--ink-1);
+  background: transparent; color: var(--ink-1);
+  font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.nb-seg + .nb-seg { margin-left: -2px; }
+.nb-seg.is-on, .nb-seg[aria-pressed="true"], .nb-seg.active { background: var(--ink-1); color: var(--paper); }
+
+/* Чипы: выбор из набора — жёлтая заливка */
+.nb-chip {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 16px; font-weight: 600; white-space: nowrap; cursor: pointer;
+}
+.nb-chip:hover { background: var(--yellow-tint); }
+.nb-chip.is-on, .nb-chip[aria-pressed="true"] { background: var(--yellow); color: var(--on-yellow); }
+
+/* Клетка задачи: не решали · текущая · решена */
+.nb-cell {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 48px; height: 48px; border: 2px solid var(--ink-1);
+  background: transparent; color: var(--ink-1);
+  font-size: 20px; font-weight: 700; text-decoration: none; cursor: pointer;
+}
+.nb-cell:hover { background: var(--yellow-tint); }
+.nb-cell.is-current, .nb-cell[aria-pressed="true"] { background: var(--yellow); color: var(--on-yellow); }
+.nb-cell.is-solved { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
+
+/* ── 04 Поля ──────────────────────────────────────────────────────────── */
+input[type="text"], input[type="search"], input[type="email"], input[type="number"],
+input[type="password"], input:not([type]), textarea, select {
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+}
+input::placeholder, textarea::placeholder { color: var(--ink-3); opacity: 1; }
+select {
+  appearance: none; -webkit-appearance: none;
+  padding-right: 34px;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+/* ── 05 Сложность — столбики ──────────────────────────────────────────── */
+.nb-bars { display: inline-block; vertical-align: middle; }
+.nb-bars .on { fill: currentColor; }
+.nb-bars .off { fill: var(--rule-2); }
+
+/* ── 06 Окна ──────────────────────────────────────────────────────────── */
+dialog { border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1); }
+dialog::backdrop { background: rgba(10, 16, 28, .6); }
+.auth-dialog, body.dark .auth-dialog { background: var(--sheet); color: var(--ink-1); border: 2px solid var(--ink-1); }
+.auth-dialog p, body.dark .auth-dialog p { color: var(--ink-2); }
+.auth-dialog h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+
+/* ── 07 Шапка и подвал: тёмно-синяя полоса ────────────────────────────── */
+/* Внутри полосы свои значения токенов: кнопки и вкладки берут цвет из них
+   и сами становятся светлыми на синем. */
+.nb-header, .nb-footer, .admin-topbar {
+  --ink-1: var(--bar-ink); --ink-2: var(--bar-ink-2); --ink-3: var(--bar-ink-2);
+  --paper: var(--bar); --sheet: var(--bar-sheet); --rule: var(--bar-rule);
+  --nb-blue: var(--yellow); --on-blue: var(--on-yellow);
+  --fb: #8FA6FF;
+  --ink: var(--ink-1); --muted: var(--ink-2); --line: var(--rule);
+  background: var(--bar); color: var(--bar-ink);
+}
+body main#home { margin: 0; padding: 0; max-width: none; min-height: 100vh; display: flex; flex-direction: column; }
+
+.nb-header {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px;
+  min-height: 80px; margin: 0;
+  padding: 0 max(clamp(16px, 4vw, 40px), calc((100% - 1200px) / 2));
+  border-bottom: 2px solid var(--bar);
+}
+.nb-logo {
+  display: inline-flex; align-items: center; gap: 12px; flex: none;
+  color: inherit; text-decoration: none;
+  font-size: 26px; font-weight: 700; letter-spacing: -0.025em; line-height: 1;
+}
+.nb-logo svg { flex: none; }
+.nb-header .nb-logo { order: 1; margin-right: 20px; }
+.nb-tabs { order: 2; display: flex; flex-wrap: wrap; gap: 0 8px; }
+.nb-tab {
+  display: inline-flex; align-items: center; height: 44px; padding: 0 14px;
+  color: inherit; text-decoration: none; font-size: 18px; font-weight: 600;
+  border-bottom: 4px solid transparent;
+}
+.nb-tab:hover { border-bottom-color: var(--rule-2); }
+.nb-tab[aria-current="page"] { border-bottom-color: var(--yellow); }
+
+.nb-header .nb-search-btn { order: 3; margin-left: auto; }
+.nb-header .lang-switcher { order: 4; }
+.nb-header .theme-switch { order: 5; }
+.nb-header .nb-progress-btn { order: 6; }
+.nb-header .account-button { order: 7; }
+.nb-header .sidebar-toggle { order: 8; }
+.nb-header .nb-searchbar { order: 99; }
+.nb-header .topbar-grade { display: none; }
+
+/* Язык: два сегмента; выбранный — светлая заливка */
+.lang-switcher {
+  display: inline-flex; flex: none; padding: 0; gap: 0;
+  border: 0; background: transparent;
+}
+.lang-btn {
+  height: 44px; min-width: 48px; padding: 0 12px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 15px; font-weight: 700; letter-spacing: .02em;
+}
+.lang-btn + .lang-btn { margin-left: -2px; }
+.lang-btn:hover { background: var(--yellow-tint); color: var(--on-yellow); }
+.nb-header .lang-btn:hover { background: var(--bar-sheet); color: var(--ink-1); }
+.lang-btn.active { background: var(--ink-1); color: var(--paper); }
+
+.nb-theme-btn { position: static; width: 44px; height: 44px; }
+.nb-theme-btn svg { width: 20px; height: 20px; }
+
+.nb-header .account-button { min-height: 44px; padding: 0 16px; }
+.sidebar-toggle.nb-icon-btn { display: inline-flex; width: 44px; height: 44px; font-size: 0; }
+
+/* Строка поиска выезжает под шапкой */
+.nb-searchbar { display: none; flex: 1 1 100%; padding: 4px 0 16px; }
+body.nb-search-open .nb-searchbar,
+.nb-searchbar:has(input:not(:placeholder-shown)) { display: block; }
+.nb-searchbar .search {
+  display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 16px;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-2);
+}
+.nb-searchbar .search svg { flex: none; }
+.nb-searchbar .search input {
+  flex: 1; min-width: 0; height: 100%; margin: 0; padding: 0;
+  border: 0; outline: 0; background: transparent; color: var(--ink-1); font-size: 18px;
+}
+
+@media (max-width: 1100px) {
+  .nb-header .nb-tabs { display: none; }
+}
+@media (max-width: 720px) {
+  .nb-header { min-height: 64px; gap: 8px; }
+  .nb-header .nb-logo { font-size: 22px; gap: 10px; margin-right: 0; }
+  .nb-header .nb-logo svg { width: 34px; height: 34px; }
+  .nb-header .nb-progress-btn, .nb-header .account-button { display: none; }
+  .nb-header .theme-switch { display: none; }
+}
+@media (max-width: 380px) {
+  .nb-header .nb-logo span { display: none; }
+}
+
+/* Шапка отдельных страниц (тренажёр, экзамены, дуэль, графопостроитель) */
+.admin-topbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px;
+  min-height: 80px; margin: 0; border: 0; border-radius: 0;
+  padding: 8px max(clamp(16px, 4vw, 40px), calc((100% - 1200px) / 2));
+}
+.admin-topbar .topbar-brand-wrap { display: flex; align-items: center; gap: 16px; }
+.admin-topbar .brand.nb-logo { height: auto; margin: 0; color: var(--bar-ink); }
+.topbar-home-btn {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 15px; font-weight: 600; text-decoration: none;
+}
+.topbar-home-btn:hover { background: var(--ink-1); color: var(--paper); }
+.trainer-switch { display: flex; flex-wrap: wrap; gap: 0 8px; padding: 0; border: 0; background: none; }
+.trainer-switch-link {
+  display: inline-flex; align-items: center; height: 44px; padding: 0 14px;
+  border: 0; border-bottom: 4px solid transparent; background: none; color: var(--ink-1);
+  font-size: 17px; font-weight: 600; text-decoration: none;
+}
+.trainer-switch-link:hover { border-bottom-color: var(--rule-2); background: none; }
+.trainer-switch-link[aria-current="page"], .trainer-switch-link.active { border-bottom-color: var(--yellow); background: none; color: var(--ink-1); }
+.trainer-top-actions, .admin-topbar .topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.topbar-menu { position: relative; }
+.topbar-menu-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); cursor: pointer; list-style: none;
+}
+.topbar-menu-btn::-webkit-details-marker { display: none; }
+.topbar-menu-panel {
+  --ink-1: #14213D; --ink-2: #3D4A66; --paper: #E8ECF3; --sheet: #FFFFFF; --rule: #D3D9E6;
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 120; min-width: 260px; padding: 0;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+}
+html.dark .topbar-menu-panel { --ink-1: #E8ECF3; --ink-2: #B8C2D6; --sheet: #172138; --rule: #26324D; }
+.topbar-menu-panel a {
+  display: flex; align-items: center; min-height: 48px; padding: 0 16px;
+  border-top: 1px solid var(--rule); color: var(--ink-1); font-size: 16px; font-weight: 600; text-decoration: none;
+}
+.topbar-menu-panel a:first-child { border-top: 0; }
+.topbar-menu-panel a:hover { background: var(--yellow-tint); }
+.sound-toggle-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); cursor: pointer;
+}
+.admin-footer {
+  --ink-1: var(--bar-ink); --ink-2: var(--bar-ink-2); --muted: var(--bar-ink-2); --line: var(--bar-rule);
+  background: var(--bar); color: var(--bar-ink-2) !important;
+  border-top: 4px solid var(--yellow) !important; margin-top: 96px !important; padding: 32px 16px 40px !important;
+}
+@media (max-width: 720px) {
+  .admin-topbar { min-height: 64px; }
+  .admin-topbar .nb-logo span, .topbar-home-label { display: none; }
+  .trainer-switch { order: 9; flex: 1 1 100%; }
+}
+
+/* ── 08 Полное меню — выдвижная панель ────────────────────────────────── */
+body .sidebar, body.dark .sidebar, body.sidebar-collapsed .sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 300;
+  width: min(380px, 88vw); height: 100vh; padding: 20px 20px 28px;
+  display: flex; flex-direction: column; overflow-y: auto;
+  background: var(--paper); color: var(--ink-1);
+  border-right: 2px solid var(--ink-1);
+  transform: translateX(0); visibility: visible;
+  transition: transform .2s ease, visibility 0s linear 0s;
+}
+body.sidebar-collapsed .sidebar {
+  transform: translateX(-105%); visibility: hidden;
+  transition: transform .2s ease, visibility 0s linear .2s;
+}
+body .sidebar-scrim { display: none; position: fixed; inset: 0; z-index: 290; background: rgba(10, 16, 28, .55); }
+body.sidebar-open .sidebar-scrim { display: block; }
+@media (prefers-reduced-motion: reduce) { body .sidebar { transition: none; } }
+
+.sidebar .brand { display: none; }
+.sidebar .sidebar-quick { margin: 0 0 8px; }
+.sidebar .sidebar-home-btn {
+  display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 12px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 17px; font-weight: 600; text-decoration: none;
+}
+.sidebar .sidebar-home-btn.active { background: var(--yellow); color: var(--on-yellow); }
+.sidebar .sidebar-home-icon { background: none; color: inherit; width: auto; height: auto; }
+.sidebar-track-header {
+  display: flex; align-items: center; gap: 8px; margin: 24px 0 6px; padding: 0;
+  font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2);
+}
+.sidebar .track-header-icon, .sidebar .track-card-badge, .sidebar .action-card-icon { display: none; }
+.sidebar-track-subgroup { display: flex; flex-direction: column; gap: 0; border-top: 2px solid var(--ink-1); }
+.sidebar-track-card, .sidebar-action-card {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  min-height: 52px; padding: 10px 12px; margin: 0;
+  border: 0; border-bottom: 1px solid var(--rule); background: transparent; color: var(--ink-1);
+  text-align: left; text-decoration: none; cursor: pointer;
+}
+.sidebar-track-card:hover, .sidebar-action-card:hover { background: var(--yellow-tint); transform: none; }
+.sidebar-track-card.active, .sidebar-action-card.active { background: var(--yellow); color: var(--on-yellow); }
+.track-card-body, .action-card-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.track-card-body strong, .action-card-body strong { font-size: 17px; font-weight: 600; line-height: 1.3; color: inherit; }
+.track-card-body span, .action-card-body span { font-size: 14px; line-height: 1.35; color: var(--ink-2); }
+.sidebar-footer {
+  display: flex; align-items: stretch; gap: 8px; margin-top: 24px; padding-top: 16px;
+  border-top: 2px solid var(--ink-1);
+}
+.sidebar-grade {
+  flex: 1; display: flex; align-items: center; gap: 10px; position: relative;
+  min-height: 52px; padding: 0 12px; border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+}
+.sidebar-grade small { display: block; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+.sidebar-grade strong { font-size: 16px; font-weight: 600; }
+.sidebar-grade-short { display: none; }
+.sidebar .about {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 52px; margin: 0; padding: 0; border: 2px solid var(--ink-1); color: var(--ink-1); text-decoration: none;
+}
+
+/* ── 09 Страница: колонка по центру ───────────────────────────────────── */
+main#home > [id^="view-"] {
+  width: 100%; max-width: 1280px; margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 40px);
+}
+main#home > [id^="view-"]:not(#view-home) { padding-top: 24px; }
+
+/* ── 10 Первый экран главной ──────────────────────────────────────────── */
+.nb-hero {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 40px 56px;
+  padding: 56px 0 72px;
+}
+.nb-hero-copy { flex: 3 1 560px; min-width: 0; }
+.nb-hero h1 {
+  margin: 16px 0 0; color: var(--ink-1);
+  font-size: clamp(44px, 6.4vw, 88px); line-height: .98; font-weight: 700; letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.nb-hero-lead { margin: 24px 0 0; max-width: 30ch; font-size: 22px; line-height: 1.4; color: var(--ink-2); }
+.nb-grade { margin-top: 40px; }
+.nb-grade-cells { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+.nb-grade-cells .nb-cell { width: 56px; height: 56px; }
+.nb-grade-levels { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
+.nb-hero .grade-actions { display: block; margin-top: 32px; }
+.nb-hero .grade-actions[hidden] { display: none; }
+.nb-hero .grade-action {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 60px; padding: 0 28px;
+  border: 2px solid var(--nb-blue); background: var(--nb-blue); color: var(--on-blue);
+  font-size: 19px; font-weight: 600; text-decoration: none;
+}
+.nb-hero .grade-action:hover { background: var(--ink-1); border-color: var(--ink-1); color: var(--paper); }
+.nb-hero-figure { flex: 2 1 320px; min-width: 0; display: block; width: min(100%, 480px); max-width: 480px; height: auto; margin: 0 auto; }
+.nb-hero-figure text { font-family: var(--f-serif); font-style: italic; font-size: 11px; }
+@media (max-width: 720px) {
+  .nb-hero { padding: 24px 0 32px; gap: 24px; }
+  .nb-hero h1 { font-size: 40px; line-height: 1; }
+  .nb-hero-lead { font-size: 18px; margin-top: 16px; }
+  .nb-grade { margin-top: 28px; }
+  .nb-grade-cells { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .nb-grade-cells .nb-cell { width: auto; height: 52px; }
+  .nb-hero .grade-action { display: flex; justify-content: center; width: 100%; font-size: 18px; }
+  .nb-hero-figure { display: none; }
+}
+
+/* ── 11 Подвал ────────────────────────────────────────────────────────── */
+.nb-footer { margin-top: auto; border-top: 4px solid var(--yellow); }
+main#home > .nb-footer { margin-top: 96px; }
+.nb-footer-main { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 24px 48px; padding-top: 32px; padding-bottom: 40px; }
+.nb-footer-brand { max-width: 400px; }
+.nb-footer .nb-logo { font-size: 22px; gap: 10px; }
+.nb-footer-brand p { margin: 14px 0 0; font-size: 16px; color: var(--ink-2); }
+.nb-footer-nav { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px 28px; max-width: 640px; }
+.nb-footer-nav a, .nb-footer-nav button {
+  padding: 0; border: 0; background: none; color: var(--ink-1); cursor: pointer;
+  font-size: 17px; font-weight: 500; text-decoration: none; text-align: left;
+}
+.nb-footer-nav a:hover, .nb-footer-nav button:hover { text-decoration: underline; text-underline-offset: 4px; }
+.nb-footer-bottom { border-top: 1px solid var(--rule); }
+.nb-footer-bottom .nb-wrap { padding-top: 18px; padding-bottom: 28px; font-size: 16px; color: var(--ink-2); }
+
+/* ── 12 Главная: задача дня, «Продолжить», серия ──────────────────────── */
+.home-today:not([hidden]) {
+  display: grid; gap: 24px; margin: 0; padding: 56px 0 0;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 400px);
+  grid-template-areas: "daily side" "daily streak";
+  align-items: start;
+  border-top: 2px solid var(--ink-1);
+}
+.home-today.no-daily { grid-template-areas: "side streak"; grid-template-columns: 1fr 1fr; }
+.home-today .home-daily { grid-area: daily; }
+.home-today .home-side { grid-area: side; display: flex; flex-direction: column; gap: 24px; }
+.home-today .home-streak-row { grid-area: streak; }
+@media (max-width: 900px) {
+  .home-today:not([hidden]), .home-today.no-daily { grid-template-columns: 1fr; grid-template-areas: "daily" "side" "streak"; }
+}
+
+.home-daily {
+  padding: 32px; border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+}
+.home-daily-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin: 0; }
+.home-daily-badge {
+  display: inline-flex; align-items: center; height: 30px; padding: 0 12px;
+  background: var(--yellow); color: var(--on-yellow);
+  font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+}
+.home-daily-meta { flex: 1 1 200px; min-width: 0; font-size: 16px; color: var(--ink-2); }
+.home-daily-other {
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; margin-left: auto;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 16px; font-weight: 600; cursor: pointer;
+}
+.home-daily-other:hover { background: var(--ink-1); color: var(--paper); }
+/* Задача дня — та же карточка задачи, но без своей рамки: рамку даёт блок */
+.home-daily article.task { margin: 20px 0 0; padding: 0; border: 0; background: transparent; }
+.home-daily .task-meta { display: none; }
+.home-daily-foot {
+  display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 24px;
+  font-size: 15px; color: var(--ink-2);
+}
+.home-daily-foot a { color: var(--ink-1); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.home-daily-empty { margin: 24px 0 8px; font-size: 18px; color: var(--ink-2); }
+.home-daily-empty-go { font-weight: 700; color: var(--ink-1); text-decoration: underline; text-underline-offset: 4px; }
+
+.home-card { padding: 28px; border: 0; background: var(--sheet); color: var(--ink-1); }
+.home-card-label { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: inherit; }
+.home-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+/* «Продолжить» — тёмно-синий блок */
+.home-continue { background: var(--nb-blue); color: var(--on-blue); }
+.home-continue.is-empty { background: var(--sheet); color: var(--ink-1); border: 2px solid var(--ink-1); }
+.home-continue.is-empty p { margin: 12px 0 0; color: var(--ink-2); font-size: 16px; }
+.home-continue-go { color: inherit; font-size: 17px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.home-continue-title {
+  display: block; margin-top: 16px; color: inherit; text-decoration: none;
+  font-size: 26px; line-height: 1.2; font-weight: 700;
+}
+.home-continue-where { display: block; margin-top: 8px; font-size: 16px; color: inherit; opacity: .9; }
+.home-continue .progress-bar, .home-continue [class*="progress-bar"] {
+  height: 14px; margin-top: 20px; background: transparent; border: 2px solid var(--on-blue);
+}
+.home-continue .progress-bar > *, .home-continue [class*="progress-bar"] > * { background: var(--on-blue); }
+.home-continue-count { display: flex; justify-content: space-between; margin-top: 12px; font-size: 17px; color: inherit; }
+.home-continue-count *, .home-continue .home-card-label { color: inherit; }
+
+/* Серия — жёлтый блок, дни недели клетками */
+.home-streak { background: var(--yellow); color: var(--on-yellow); display: block; }
+.home-streak-count { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.home-streak-head { display: flex; align-items: baseline; gap: 12px; flex: 1; }
+.home-streak-value strong { font-size: 72px; line-height: .9; font-weight: 700; letter-spacing: -0.04em; }
+.home-streak-value b { font-size: 20px; }
+.home-streak-head .home-card-label { margin-left: auto; color: var(--on-yellow); }
+.home-streak-empty { font-size: 20px; font-weight: 700; line-height: 1.3; }
+.home-streak-count small { display: block; width: 100%; font-size: 15px; color: var(--on-yellow); }
+.home-streak-week {
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-top: 20px;
+}
+.home-streak-day {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: none; border: 0; padding: 0; color: var(--on-yellow);
+}
+.home-streak-day i {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; max-width: 44px; aspect-ratio: 1;
+  border: 2px dashed var(--on-yellow); background: transparent; color: var(--yellow);
+  font-size: 17px; font-weight: 700; font-style: normal;
+}
+.home-streak-day.is-done i { border: 2px solid var(--on-yellow); background: var(--on-yellow); }
+.home-streak-day.is-today i { outline: 3px solid var(--on-yellow); outline-offset: 2px; }
+.home-streak-day small { font-size: 13px; font-weight: 600; color: var(--on-yellow); text-transform: capitalize; }
+.home-streak-link {
+  display: inline-flex; min-height: 44px; align-items: center; margin-top: 12px; padding: 0; border: 0; background: none;
+  color: var(--on-yellow); font-weight: 700; text-decoration: underline; text-underline-offset: 4px;
+}
+
+/* Дуэль — карточка-лист */
+.home-duel {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 20px 28px;
+  margin: 24px 0 0; padding: 28px; border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+}
+.home-duel-icon { display: none; }
+.home-duel-body { flex: 1 1 360px; min-width: 0; }
+.home-duel-body h2 { margin: 0; font-size: 26px; line-height: 1.15; font-weight: 700; color: var(--ink-1); }
+.home-duel-body p { margin: 8px 0 0; font-size: 17px; color: var(--ink-2); }
+.home-duel-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.home-duel::before {
+  content: ""; flex: none; width: 36px; height: 36px; align-self: flex-start;
+  background: var(--fr); clip-path: polygon(50% 4%, 96% 92%, 4% 92%);
+}
+
+/* Слабые места, контрольные, экзамен — три карточки с фигурами */
+.home-insights:not([hidden]) {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 24px;
+  margin: 24px 0 0; padding: 0;
+}
+.home-insight {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
+  padding: 28px; border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+}
+.home-insight::before { content: ""; width: 36px; height: 36px; background: var(--fb); }
+.home-insight.is-weak::before { background: var(--fr); clip-path: polygon(50% 4%, 96% 92%, 4% 92%); }
+.home-insight.is-exam::before, .home-insight.is-trainer::before { background: var(--fy); border-radius: 50%; }
+.home-insight-label { font-size: 26px; line-height: 1.15; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--ink-1); }
+.home-insight p { margin: 0; font-size: 17px; line-height: 1.5; color: var(--ink-2); }
+.home-insight-go {
+  margin-top: auto; padding-top: 6px; color: var(--ink-1);
+  font-size: 18px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px;
+}
+
+/* ── 13 Темы: строки вместо плиток ────────────────────────────────────── */
+.topics { margin: 0; padding-top: 88px; }
+.topics .section-heading { display: block; margin: 0 0 40px; }
+#topics-heading, .topics h2 {
+  margin: 0; font-size: clamp(36px, 4.4vw, 56px); line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; color: var(--ink-1);
+}
+.topic-grid { display: block; border-bottom: 1px solid var(--rule); }
+.topic-grid.nb-groups { display: flex; flex-direction: column; gap: 56px; border-bottom: 0; }
+.topic-card, .topic-card.tc {
+  display: grid; align-items: center; gap: 4px 24px; min-height: 0;
+  grid-template-columns: 56px minmax(0, 1fr) 120px 96px 140px;
+  grid-template-areas: "num title state bar foot" "num subj state bar foot";
+  padding: 18px 12px; margin: 0 -12px;
+  border: 0; border-top: 1px solid var(--rule); background: transparent; color: var(--ink-1);
+  text-decoration: none; transform: none;
+}
+.topic-card:hover { background: var(--yellow-tint); transform: none; }
+.topic-card .tc-head { display: contents; }
+.topic-card .tc-num {
+  grid-area: num; justify-self: start; padding: 0; background: none; color: var(--ink-3);
+  font-size: 17px; font-weight: 700;
+}
+.topic-card .tc-subject { grid-area: subj; font-size: 14px; color: var(--ink-3); background: none; padding: 0; }
+.topic-card .tc-title { grid-area: title; margin: 0; font-size: 19px; line-height: 1.35; font-weight: 500; color: var(--ink-1); }
+.topic-card .tc-state {
+  grid-area: state; justify-self: end; padding: 0; background: none;
+  font-size: 15px; font-weight: 600; color: var(--ink-2); white-space: nowrap;
+}
+.topic-card .tc-state.is-done { color: var(--nb-blue); }
+.topic-card .tc-bar {
+  grid-area: bar; display: block; height: 14px; margin: 0;
+  border: 2px solid var(--ink-1); background: transparent;
+}
+.topic-card .tc-bar i { display: block; height: 100%; background: var(--nb-blue); }
+.topic-card .tc-foot {
+  grid-area: foot; display: flex; flex-direction: column; gap: 0; margin: 0;
+  font-size: 15px; line-height: 1.35; color: var(--ink-3);
+}
+@media (max-width: 720px) {
+  .topic-card, .topic-card.tc {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    grid-template-areas: "num title title" "num subj state" "num foot bar";
+    gap: 6px 12px;
+  }
+  .topic-card .tc-foot { flex-direction: row; gap: 12px; }
+  .topic-card .tc-bar { width: 80px; justify-self: end; }
+}
+
+.nb-group {
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px 48px;
+  padding-top: 24px; border-top: 2px solid var(--ink-1);
+}
+.nb-group-head { flex: 1 1 240px; max-width: 300px; }
+.nb-group-head h3 { margin: 16px 0 0; font-size: 30px; line-height: 1.1; font-weight: 700; color: var(--ink-1); }
+.nb-group-head p { margin: 6px 0 0; font-size: 16px; color: var(--ink-2); }
+.nb-group-head a {
+  display: inline-block; margin-top: 12px; color: var(--ink-1);
+  font-size: 17px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px;
+}
+.nb-group-list { flex: 999 1 560px; min-width: 0; padding-bottom: 12px; }
+.nb-group-list .topic-card:first-child { border-top: 0; }
+.nb-group .tc-subject { display: none; }
+.nb-group .topic-card { grid-template-areas: "num title state bar foot" "num title state bar foot"; }
+@media (max-width: 720px) {
+  .nb-group .topic-card { grid-template-areas: "num title title" "num foot state" "num foot bar"; }
+  .nb-subject-figure { width: 48px; height: 48px; }
+}
+
+/* ── 14 Карточка задачи ───────────────────────────────────────────────── */
+article.task {
+  display: block; position: relative; margin: 0 0 24px;
+  padding: 24px clamp(20px, 3.4vw, 40px) 32px;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+  transform: none;
+}
+article.task:hover { transform: none; border-color: var(--ink-1); }
+.task-meta {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 20px; margin: 0;
+  font-size: 16px; color: var(--ink-3);
+}
+.task-number {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 44px; height: 44px; padding: 0 8px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 18px; font-weight: 700; text-decoration: none;
+}
+a.task-number:hover { background: var(--yellow-tint); }
+article.task.is-solved .task-number, article.task.solved .task-number {
+  background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue);
+}
+.task-where { font-size: 15px; color: var(--ink-3); }
+.task-where b { color: var(--ink-2); font-weight: 700; }
+.task-topic { color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; }
+.task-meta .tag, .task-meta .grade-badge {
+  padding: 0; background: none; color: var(--ink-3); font-size: 15px; font-weight: 600;
+}
+.task-solved-badge {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px;
+  background: var(--nb-blue); color: var(--on-blue); font-size: 14px; font-weight: 700; white-space: nowrap;
+}
+.task-solved-badge::before {
+  content: ""; width: 12px; height: 7px; margin-top: -3px;
+  border-left: 3px solid currentColor; border-bottom: 3px solid currentColor; transform: rotate(-45deg);
+}
+
+/* Сложность — столбики: один базовый, два средний, три сложный, четыре олимпиадный */
+.task-diff, .similar-diff {
+  display: inline-flex; align-items: center; gap: 8px; padding: 0; background: none; border: 0;
+  font-size: 15px; font-weight: 600; color: var(--ink-2);
+}
+.task-diff .diff-dot {
+  --on: currentColor; --off: var(--rule-2);
+  --b1: var(--on); --b2: var(--off); --b3: var(--off); --b4: var(--off);
+  display: inline-block; flex: none; width: 25px; height: 16px; font-size: 0; color: inherit;
+  background:
+    linear-gradient(var(--b1), var(--b1)) 0 100% / 4px 4px no-repeat,
+    linear-gradient(var(--b2), var(--b2)) 7px 100% / 4px 8px no-repeat,
+    linear-gradient(var(--b3), var(--b3)) 14px 100% / 4px 12px no-repeat,
+    linear-gradient(var(--b4), var(--b4)) 21px 100% / 4px 16px no-repeat;
+}
+.task-diff.medium .diff-dot { --b2: var(--on); }
+.task-diff.hard .diff-dot { --b2: var(--on); --b3: var(--on); }
+.task-diff.olympiad .diff-dot { --b2: var(--on); --b3: var(--on); --b4: var(--on); }
+
+.task-actions { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.task-icon-btn, .task-action-btn.task-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; padding: 0;
+  border: 2px solid transparent; background: transparent; color: var(--ink-3); cursor: pointer;
+}
+.task-icon-btn:hover { border-color: var(--ink-1); color: var(--ink-1); background: transparent; }
+.task-icon-btn svg { width: 18px; height: 18px; }
+.task-icon-btn.active, .task-icon-btn[aria-pressed="true"] { color: var(--ink-1); }
+.task-icon-btn.active svg, .task-icon-btn[aria-pressed="true"] svg { fill: currentColor; }
+
+/* Условие — шрифт с засечками, формулы KaTeX крупно */
+.task-condition-wrap { margin-top: 24px; }
+.task-condition {
+  font-family: var(--f-serif); font-size: 24px; line-height: 1.45; color: var(--ink-1);
+}
+.task-condition .katex { font-size: 1.15em; }
+.task-condition .katex-display { margin: .5em 0; }
+.task-figure { max-width: 100%; margin-top: 16px; background: #fff; border: 1px solid var(--rule); }
+.task-tags-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.task-tag-chip {
+  display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px;
+  border: 1.5px solid var(--rule-2); background: transparent; color: var(--ink-2);
+  font-size: 14px; font-weight: 600; text-decoration: none;
+}
+.task-tag-chip:hover { border-color: var(--ink-1); color: var(--ink-1); }
+
+/* Ответ: поле, «Проверить», результат */
+.task-self-check, .task-self-assess { margin-top: 28px; }
+.self-check-tips {
+  display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 0 0 12px; padding: 0; list-style: none;
+  font-size: 15px; color: var(--ink-2);
+}
+.self-check-tip { padding: 0; background: none; color: inherit; font-size: inherit; }
+.self-check-tip::before { content: none; display: none; }
+.self-check-form {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 12px 16px; margin: 0; padding: 0;
+  border: 0; background: transparent;
+}
+.self-check-form .answer-field { display: inline-flex; align-items: center; gap: 12px; flex: 1 1 280px; max-width: 460px; }
+.answer-label { font-family: var(--f-serif); font-size: 26px; color: var(--ink-1); white-space: nowrap; }
+.answer-unit { font-family: var(--f-serif); font-size: 22px; color: var(--ink-2); }
+input.self-check-input {
+  flex: 1 1 220px; width: auto; min-width: 0; max-width: 420px; height: 60px; padding: 0 16px;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+  font-family: var(--f-serif); font-size: 24px;
+}
+input.self-check-input:focus { outline: 3px solid var(--nb-blue); outline-offset: 3px; border-color: var(--ink-1); }
+input.self-check-input.is-right, input.self-check-input.success, input.self-check-input:disabled {
+  border-color: var(--nb-blue); background: var(--blue-tint); color: var(--ink-1); -webkit-text-fill-color: var(--ink-1); opacity: 1;
+}
+input.self-check-input.is-wrong, input.self-check-input.error { border-color: var(--red); background: var(--red-tint); }
+.math-kb-toggle {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 60px; height: 60px; padding: 0; margin: 0;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); cursor: pointer;
+  position: static; transform: none;
+}
+.math-kb-toggle:hover { background: var(--ink-1); color: var(--paper); }
+.self-check-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  height: 60px; padding: 0 28px; margin: 0;
+  border: 2px solid var(--nb-blue); background: var(--nb-blue); color: var(--on-blue);
+  font-size: 18px; font-weight: 600; cursor: pointer; transform: none;
+}
+.self-check-btn:hover { background: var(--ink-1); border-color: var(--ink-1); color: var(--paper); transform: none; }
+.self-check-result {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px;
+  margin-top: 20px; padding: 16px 20px; border: 0;
+  font-size: 18px; font-weight: 700;
+}
+.self-check-result[hidden] { display: none; }
+.self-check-result.success { background: var(--blue-tint); color: var(--nb-blue); }
+.self-check-result.error { background: var(--red-tint); color: var(--red-ink); }
+.self-check-result.success::before, .self-check-result.error::before {
+  content: ""; flex: none; width: 22px; height: 22px; background: currentColor;
+  -webkit-mask: var(--nb-icon) center / contain no-repeat; mask: var(--nb-icon) center / contain no-repeat;
+}
+.self-check-result.success { --nb-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E"); }
+.self-check-result.error { --nb-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6 6 18'/%3E%3C/svg%3E"); }
+.self-check-reset, .self-assess-reset, .self-check-accept, .self-assess-yes, .self-assess-no {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; margin-left: auto;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 16px; font-weight: 600; cursor: pointer;
+}
+.self-check-reset:hover, .self-check-accept:hover, .self-assess-yes:hover, .self-assess-no:hover { background: var(--ink-1); color: var(--paper); }
+.self-check-override:not([hidden]) {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin-top: 14px;
+  font-size: 16px; color: var(--ink-2); background: none; border: 0; padding: 0;
+}
+.self-check-override .self-check-accept { margin-left: 0; }
+.self-check-lock { margin: 16px 0 0; font-size: 15px; color: var(--ink-3); }
+.self-assess-lead { font-size: 17px; color: var(--ink-2); }
+.self-assess-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px; }
+
+/* Подсказка · ответ · решение */
+.task-actions-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 24px; padding: 0; border: 0;
+}
+.solution-toggle {
+  display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 18px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 16px; font-weight: 600; cursor: pointer; transform: none; animation: none;
+}
+.solution-toggle:hover { background: var(--yellow-tint); }
+.solution-toggle.active { background: var(--yellow); color: var(--on-yellow); border-color: var(--ink-1); }
+.solution-toggle.is-locked, .solution-toggle:disabled {
+  border-style: dashed; border-color: var(--rule-2); background: transparent; color: var(--ink-3); cursor: not-allowed;
+}
+.solution-toggle .toggle-icon { font-size: 16px; }
+.task-reveals-wrap { margin-top: 0; }
+.reveal {
+  margin-top: 16px; padding: 18px 20px; border: 0; border-left: 0;
+  background: var(--sheet); color: var(--ink-1);
+}
+.reveal[hidden] { display: none; }
+.reveal.hint { background: var(--yellow-tint); }
+.reveal.answer { background: var(--blue-tint); }
+.reveal.solution { border-top: 2px solid var(--ink-1); padding-left: 0; padding-right: 0; background: transparent; }
+.reveal-label {
+  display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2);
+}
+.reveal .math { font-family: var(--f-serif); font-size: 19px; line-height: 1.6; color: var(--ink-1); }
+.reveal.answer .math { font-size: 26px; line-height: 1.3; }
+.solution-missing { font-size: 15px; color: var(--ink-3); }
+
+/* ── 15 Доска: условие задачи на своей странице ───────────────────────── */
+/* Зелёная доска с рамкой и полочкой. На ней нет жёлтого: «текущее» и
+   «выбранное» — зеленоватые тона, кнопка «Проверить» — цвета мела. */
+#view-list[data-nb-page="task"] article.task, .sv-card article.task {
+  --sheet: var(--board); --paper: var(--board-deep);
+  --ink-1: var(--chalk); --ink-2: var(--chalk-2); --ink-3: var(--chalk-3);
+  --rule: #2F5A45; --rule-2: var(--board-frame);
+  --nb-blue: var(--chalk); --on-blue: #14213D; --blue-tint: #2A5541;
+  --yellow: #2A5541; --on-yellow: var(--chalk); --yellow-tint: #244D3A;
+  --red: #FF8A7A; --red-tint: #4A2A24; --red-ink: #FFB4A8;
+  --ink: var(--chalk); --muted: var(--chalk-2); --line: #2F5A45;
+  background: var(--board); color: var(--chalk);
+  border: 6px solid var(--board-edge); border-radius: 12px 12px 0 0;
+  margin-bottom: 0;
+  padding: 20px clamp(20px, 4vw, 48px) 44px;
+}
+#view-list[data-nb-page="task"] article.task input.self-check-input,
+.sv-card article.task input.self-check-input {
+  background: var(--board-deep); border-color: var(--board-frame); height: 64px; font-size: 26px;
+}
+#view-list[data-nb-page="task"] article.task .math-kb-toggle,
+#view-list[data-nb-page="task"] article.task .solution-toggle:not(.active):not(.is-locked),
+#view-list[data-nb-page="task"] article.task .task-number,
+#view-list[data-nb-page="task"] article.task .self-check-reset,
+#view-list[data-nb-page="task"] article.task .self-check-accept { border-color: var(--board-frame); }
+#view-list[data-nb-page="task"] article.task .self-check-btn { border-color: var(--chalk); }
+#view-list[data-nb-page="task"] article.task .task-condition { font-size: 26px; }
+#view-list[data-nb-page="task"] article.task .task-condition .katex { font-size: 1.35em; }
+#view-list[data-nb-page="task"] article.task .task-figure { border: 6px solid #fff; }
+/* Полочка с мелками под доской */
+#view-list[data-nb-page="task"] #list-tasks::after {
+  content: ""; display: block; height: 22px; margin-top: -2px;
+  background:
+    linear-gradient(var(--chalk), var(--chalk)) 20px 50% / 34px 8px no-repeat,
+    linear-gradient(#A9D8B8, #A9D8B8) 64px 50% / 18px 8px no-repeat,
+    linear-gradient(#8FA6FF, #8FA6FF) 92px 50% / 26px 8px no-repeat,
+    var(--board-edge);
+  border-radius: 0 0 12px 12px;
+}
+
+/* ── 16 Страница темы и задачи: шапка, крошки, инструменты списка ─────── */
+.breadcrumb {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0;
+  font-size: 16px; color: var(--ink-2);
+}
+.breadcrumb a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; }
+.breadcrumb a:hover { color: var(--ink-1); }
+.breadcrumb span:last-child:not(.crumb-sep) { color: var(--ink-1); font-weight: 600; }
+.crumb-sep { color: var(--ink-3); }
+
+.list-header {
+  display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 24px 64px;
+  margin: 0; padding: 32px 0 48px; border: 0; background: none;
+}
+.list-header h1 {
+  flex: 3 1 520px; min-width: 0; margin: 0; color: var(--ink-1);
+  font-size: clamp(40px, 5vw, 68px); line-height: 1.02; font-weight: 700; letter-spacing: -0.03em; text-wrap: balance;
+}
+#list-description:not(:empty) {
+  flex: 1 1 100%; order: 3; max-width: 56ch; margin: -8px 0 0;
+  font-family: var(--f-serif); font-size: 21px; line-height: 1.55; color: var(--ink-2);
+}
+#list-description:empty { display: none; }
+.list-meta { flex: 2 1 320px; max-width: 460px; min-width: 0; order: 2; }
+.list-meta .grade-badge {
+  display: inline-flex; align-items: center; height: 30px; padding: 0 10px;
+  background: none; border: 2px solid var(--ink-1); color: var(--ink-1); font-size: 14px; font-weight: 700;
+}
+/* На странице задачи заголовок «Задача №N» короче и меньше */
+#view-list[data-nb-page="task"] .list-header { padding: 24px 0 24px; }
+#view-list[data-nb-page="task"] .list-header h1 { font-size: 24px; line-height: 1.25; letter-spacing: 0; }
+
+.topic-header-meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.topic-header-progress {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 16px; width: 100%;
+  padding: 0; border: 0; background: none;
+}
+.nb-topic-percent {
+  font-size: 112px; line-height: .85; font-weight: 700; letter-spacing: -0.05em; color: var(--ink-1);
+}
+.nb-topic-percent small { font-size: .5em; letter-spacing: 0; }
+.topic-header-progress-bar { display: none; }
+.topic-header-progress-text { font-size: 18px; color: var(--ink-2); }
+.topic-header-progress.done .nb-topic-percent { color: var(--nb-blue); }
+.skola-chip {
+  display: inline-flex; align-items: center; height: 30px; padding: 0 10px;
+  border: 1.5px solid var(--ink-2); background: none; color: var(--ink-2);
+  font-size: 13px; font-weight: 600; letter-spacing: .08em;
+}
+.topic-header-cw-btn {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 16px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 16px; font-weight: 600; text-decoration: none; transform: none;
+}
+.topic-header-cw-btn:hover { background: var(--ink-1); color: var(--paper); }
+.topic-header-cw-btn.highlighted { background: var(--yellow); color: var(--on-yellow); }
+.topic-header-cw-btn .cw-btn-icon { display: none; }
+.cw-ready-pill { padding: 0 8px; background: var(--ink-1); color: var(--paper); font-size: 13px; font-weight: 700; }
+
+/* Подтемы — чипы */
+.subtopic-pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; }
+.subtopic-pill {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 15px; font-weight: 600; text-decoration: none; transform: none;
+}
+.subtopic-pill:hover { background: var(--yellow-tint); }
+.subtopic-pill.active { background: var(--yellow); color: var(--on-yellow); }
+.subtopic-pill.empty { border-style: dashed; border-color: var(--rule-2); color: var(--ink-3); }
+.subtopic-pill-code { color: var(--ink-3); font-weight: 700; background: none; padding: 0; }
+.subtopic-pill.active .subtopic-pill-code { color: var(--on-yellow); }
+.subtopic-pill-count { color: var(--ink-3); font-weight: 500; background: none; padding: 0; }
+.subtopic-pills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.subtopic-menu { margin: 0 0 24px; border: 2px solid var(--ink-1); background: var(--sheet); }
+.subtopic-menu-summary { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; cursor: pointer; font-weight: 600; }
+.subtopic-menu .subtopic-pills { padding: 0 16px 16px; margin: 0; }
+
+/* Режимы, фильтр, сортировка — полоса между двумя линиями */
+.list-actions:not([hidden]) {
+  flex: 1 1 100%; order: 4; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 28px;
+  margin: 0 0 40px; padding: 14px 0; border-top: 2px solid var(--ink-1); border-bottom: 2px solid var(--ink-1);
+  background: none;
+}
+.view-mode-toggle { display: inline-flex; padding: 0; gap: 0; border: 0; background: none; }
+.view-mode-btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.view-mode-btn + .view-mode-btn { margin-left: -2px; }
+.view-mode-btn.active { background: var(--ink-1); color: var(--paper); }
+.view-mode-icon { display: none; }
+.list-tool-btn, .tasks-reshuffle-btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 15px; font-weight: 600; cursor: pointer;
+}
+.list-tool-btn:hover, .tasks-reshuffle-btn:hover { background: var(--yellow-tint); }
+.list-tool-btn.active { background: var(--yellow); color: var(--on-yellow); }
+.tasks-sort-wrap { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.tasks-sort-wrap .sort-icon { display: none; }
+.tasks-sort-select { height: 44px; padding: 0 34px 0 14px; font-size: 15px; font-weight: 600; }
+
+/* Соседние задачи и похожие */
+.task-nav { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 0; }
+.task-nav-link {
+  display: inline-flex; flex-direction: column; justify-content: center; gap: 2px; flex: 1 1 240px;
+  min-height: 64px; padding: 10px 18px;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1); text-decoration: none;
+}
+.task-nav-link:hover { background: var(--yellow-tint); }
+.task-nav-link span { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.task-nav-link strong { font-size: 17px; font-weight: 600; line-height: 1.35; }
+.task-nav-link.next { text-align: right; align-items: flex-end; }
+.similar-tasks { margin-top: 64px; padding: 0; border: 0; background: none; }
+.similar-title { margin: 0 0 20px; font-size: 34px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; color: var(--ink-1); }
+.similar-list { margin: 0; padding: 0; list-style: none; border-bottom: 1px solid var(--rule); }
+.similar-list li { margin: 0; padding: 0; border: 0; }
+.similar-list a {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 20px; padding: 20px 0;
+  border: 0; border-top: 1px solid var(--rule); background: none; color: var(--ink-1); text-decoration: none;
+}
+.similar-list a:hover { background: var(--yellow-tint); }
+.similar-name { flex: 1 1 280px; min-width: 0; font-family: var(--f-serif); font-size: 21px; line-height: 1.45; }
+
+/* Ещё задачи — постранично */
+.tasks-more { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin: 24px 0 0; }
+.tasks-page-num {
+  display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); font-size: 16px; font-weight: 700; cursor: pointer;
+}
+.tasks-page-num.active { background: var(--yellow); color: var(--on-yellow); }
+.tasks-more-count { color: var(--ink-3); font-size: 15px; }
+
+/* Режим «Тренажёр» на странице темы: жёлтая полоса и строки */
+.compact-drill-banner {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 14px 20px;
+  border: 0; background: var(--yellow); color: var(--on-yellow);
+}
+.task-compact-grid:not(.trainer-sheet-grid) {
+  display: block; border: 2px solid var(--ink-1); border-top: 0; background: var(--sheet);
+}
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-item {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px 20px; margin: 0;
+  padding: 18px 20px; border: 0; border-top: 1px solid var(--rule); background: transparent;
+}
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-item:first-child { border-top: 0; }
+.task-compact-grid:not(.trainer-sheet-grid) .compact-drill-item:focus-within { background: var(--yellow-tint); }
+.compact-drill-num { flex: none; width: 32px; font-size: 18px; font-weight: 700; color: var(--ink-3); background: none; }
+.compact-drill-expr { font-family: var(--f-serif); font-size: 22px; line-height: 1.4; color: var(--ink-1); }
+.compact-drill-input {
+  height: 52px; padding: 0 12px; border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+  font-family: var(--f-serif); font-size: 20px;
+}
+.compact-drill-input.success { border-color: var(--nb-blue); background: var(--blue-tint); }
+.compact-drill-input.error { border-color: var(--red); background: var(--red-tint); }
+.compact-drill-hint-btn, .compact-drill-link-btn, .compact-drill-figure-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+}
+
+/* «По одной»: счётчик и карта задач клетками */
+.sv-top { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 20px; font-size: 16px; color: var(--ink-2); }
+.sv-track { flex: 1 1 200px; height: 14px; border: 2px solid var(--ink-1); background: transparent; }
+.sv-track i { display: block; height: 100%; background: var(--nb-blue); }
+.sv-card { padding: 0; border: 0; background: none; }
+.sv-nav { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.sv-nav-btn {
+  display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 24px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); font-size: 17px; font-weight: 600; cursor: pointer;
+}
+.sv-nav-btn.is-next { margin-left: auto; background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
+.sv-map { margin-top: 32px; padding: 0; border: 0; background: none; }
+.sv-map-label { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.sv-map-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.sv-cell {
+  display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1); font-size: 17px; font-weight: 700; cursor: pointer;
+}
+.sv-cell.is-solved { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
+.sv-cell.is-current { background: var(--yellow); color: var(--on-yellow); }
+.sv-cell.is-wrong { border-color: var(--red); color: var(--red-ink); background: var(--red-tint); }
+
+}

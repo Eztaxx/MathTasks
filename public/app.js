@@ -229,6 +229,12 @@ function renderGradeControls() {
   const short = document.querySelector('#topbar-grade-short');
   if (short) short.textContent = gradeShortLabel();
   select.closest('.topbar-grade')?.classList.toggle('is-set', Boolean(selectedGrade));
+  // Клетки класса на первом экране главной: выбранная — жёлтая.
+  document.querySelectorAll('.nb-grade [data-grade-value]').forEach(button => {
+    const on = button.dataset.gradeValue === select.value;
+    button.classList.toggle('is-current', on);
+    button.setAttribute('aria-pressed', String(on));
+  });
 }
 /* Свой список классов вместо системного: тот не оформляется, а длинные
    названия курсов в кнопке приходилось резать многоточием. Родной select
@@ -276,7 +282,8 @@ document.addEventListener('click', event => {
       select.dispatchEvent(new Event('change', { bubbles: true }));
     }
     openGradeMenu(false);
-    document.querySelector('#topbar-grade-btn')?.focus();
+    // Фокус возвращаем кнопке списка, только если выбор был в самом списке.
+    if (option.closest('#topbar-grade-menu')) document.querySelector('#topbar-grade-btn')?.focus();
     return;
   }
   if (!event.target.closest?.('#topbar-grade')) openGradeMenu(false);
@@ -1361,7 +1368,7 @@ function difficultyBadge(diff) {
     cls = 'hard';
     label = tr('diff_hard');
   } else if (d.includes('олимп') || d.includes('olimp')) {
-    cls = 'hard';
+    cls = 'hard olympiad';
     label = tr('diff_olympiad');
   } else {
     label = tr('diff_medium');
@@ -2248,6 +2255,56 @@ function renderTopicGroups(container, groups) {
   </section>`).join('');
 }
 
+/* Значки разделов «Начала»: собраны из квадрата, круга и треугольника знака.
+   Цвета — переменные CSS, поэтому значки сами перекрашиваются в тёмной теме. */
+const SUBJECT_FIGURES = {
+  algebra: '<circle cx="10" cy="24" r="8" fill="var(--fy)"/><rect x="20" y="18.5" width="10" height="3.5" fill="var(--ink-1)"/><rect x="20" y="26" width="10" height="3.5" fill="var(--ink-1)"/><rect x="33" y="17" width="14" height="14" fill="var(--fb)"/>',
+  geometrija: '<polygon points="24,5 45,41 3,41" fill="var(--fy)"/><circle cx="24" cy="31" r="9" fill="var(--fb)"/>',
+  funkcijas: '<path d="M8 4V42H46" fill="none" stroke="var(--ink-1)" stroke-width="3" stroke-linecap="square"/><path d="M12 38Q28 -6 44 30" fill="none" stroke="var(--fr)" stroke-width="4" stroke-linecap="round"/><circle cx="28" cy="14" r="5" fill="var(--fb)"/>',
+  trigonometrija: '<polygon points="5,42 43,42 43,12" fill="var(--fr)"/><path d="M5 42H21A16 16 0 0 0 17.6 32.1Z" fill="var(--fy)"/><path d="M43 35H36V42" fill="none" stroke="var(--paper)" stroke-width="1.5"/>',
+  stereometrija: '<polygon points="24,5 42,15 24,25 6,15" fill="var(--fy)"/><polygon points="6,15 24,25 24,45 6,35" fill="var(--fb)"/><polygon points="24,25 42,15 42,35 24,45" fill="var(--fr)"/>',
+  statistika: '<rect x="5" y="26" width="10" height="16" fill="var(--fb)"/><rect x="19" y="10" width="10" height="32" fill="var(--fr)"/><rect x="33" y="19" width="10" height="23" fill="var(--fy)"/><rect x="2" y="43" width="44" height="2.5" fill="var(--ink-1)"/>',
+  'matematiskais-analizs': '<path d="M6 42V28C14 8 26 8 32 22S42 34 44 16V42Z" fill="var(--fy)"/><path d="M6 28C14 8 26 8 32 22S42 34 44 16" fill="none" stroke="var(--fb)" stroke-width="4" stroke-linecap="round"/><rect x="2" y="42" width="46" height="3" fill="var(--ink-1)"/>'
+};
+SUBJECT_FIGURES.planimetrija = SUBJECT_FIGURES.geometrija;
+SUBJECT_FIGURES.geometry = SUBJECT_FIGURES.geometrija;
+SUBJECT_FIGURES['kombinatorika-un-varbutibas'] = SUBJECT_FIGURES.statistika;
+SUBJECT_FIGURES.statistics = SUBJECT_FIGURES.statistika;
+
+function subjectFigure(subject, size = 72) {
+  const inner = SUBJECT_FIGURES[subject?.slug] || SUBJECT_FIGURES.algebra;
+  return `<svg class="nb-subject-figure" width="${size}" height="${size}" viewBox="0 0 48 48" aria-hidden="true">${inner}</svg>`;
+}
+
+/* Темы класса на главной — по разделам: слева значок и название раздела,
+   справа строки тем. Порядок разделов — как в каталоге. */
+function homeTopicGroups(topics) {
+  const tr = window.MathTasks.t || (k => k);
+  const bySubject = new Map();
+  topics.forEach(topic => {
+    const key = topic.subject_id ?? 'none';
+    if (!bySubject.has(key)) bySubject.set(key, []);
+    bySubject.get(key).push(topic);
+  });
+  const order = subject => subjects.findIndex(item => item.id === subject?.id);
+  return [...bySubject.entries()]
+    .map(([id, list]) => ({ subject: subjectById(id), list }))
+    .sort((a, b) => order(a.subject) - order(b.subject))
+    .map(({ subject, list }, index) => {
+      const title = loc(subject, 'title') || '';
+      const headId = `nb-group-${index}`;
+      return `<section class="nb-group" aria-labelledby="${headId}">
+        <div class="nb-group-head">
+          ${subjectFigure(subject)}
+          <h3 id="${headId}">${escapeHtml(title)}</h3>
+          <p>${escapeHtml(countLabel('topic_topics', list.length))}</p>
+          ${subject?.slug ? `<a href="/subject/${encodeURIComponent(subject.slug)}">${escapeHtml(tr('subject_all_topics_arrow'))}</a>` : ''}
+        </div>
+        <div class="topic-grid nb-group-list">${list.map((topic, i) => topicCard(topic, i, false)).join('')}</div>
+      </section>`;
+    }).join('');
+}
+
 /* ── Главная ──────────────────────────────────────────────────────── */
 
 /* Заголовки разделов главной считает этот код, а не data-i18n: к названию
@@ -2553,8 +2610,9 @@ async function loadHome() {
   renderGradeActions();
   renderHomeToday();
   const topics = topicsForGrade(allTopics);
+  topicsElement.classList.toggle('nb-groups', Boolean(selectedGrade && topics.length));
   topicsElement.innerHTML = topics.length
-    ? (selectedGrade ? topics : popularTopics(topics)).map((topic, index) => topicCard(topic, index, !selectedGrade)).join('')
+    ? (selectedGrade ? homeTopicGroups(topics) : popularTopics(topics).map((topic, index) => topicCard(topic, index, true)).join(''))
     : `<p class="empty-state">${escapeHtml(selectedGrade
       ? (window.MathTasks.t || (k => k))('empty_topics_grade', { grade: gradeLabel(selectedGrade) })
       : (window.MathTasks.t || (k => k))('empty_topics'))}</p>`;
@@ -2702,6 +2760,9 @@ function fillTopicHeader(topic, sub = null) {
 
 // Каждый список сам решает, что ему нужно; остальные контейнеры гасим.
 function resetListBlocks() {
+  // Вид страницы для оформления «Начала»: task — доска с одной задачей, topic — страница темы.
+  const viewList = document.querySelector('#view-list');
+  if (viewList) delete viewList.dataset.nbPage;
   document.querySelector('#similar-tasks')?.remove();
   renderTopicCards(listTopics, []);
   renderTopicGroups(listGroups, []);
@@ -3619,6 +3680,7 @@ function renderTopicHeaderMeta(topic, tasks) {
   // По образцу: полоса, «22% темы решено · 54 задачи», значок Skola2030.
   const progHtml = total > 0 ? `
     <div class="topic-header-progress${prog.isComplete ? ' done' : ''}" id="topic-header-progress" title="${escapeHtml(tr('topic_progress', { solved: prog.solved, total, percent: prog.percent }))}">
+      <span class="nb-topic-percent" aria-hidden="true">${prog.percent}<small>%</small></span>
       <span class="topic-header-progress-bar" aria-hidden="true"><span class="topic-header-progress-fill" style="width:${prog.percent}%"></span></span>
       <span class="topic-header-progress-text">${escapeHtml(prog.isComplete ? tr('topic_mastered') : tr('topic_solved_share', { percent: prog.percent }))} · ${escapeHtml(countLabel('topic_tasks', total))}</span>
     </div>` : '';
@@ -3635,6 +3697,8 @@ function renderTopicHeaderMeta(topic, tasks) {
   ` : '';
 
   metaEl.innerHTML = `<div class="topic-header-meta-row">${progHtml}${skolaChip}${cwBtnHtml}</div>`;
+  const viewList = document.querySelector('#view-list');
+  if (viewList) viewList.dataset.nbPage = 'topic';
 }
 
 /* ── Все задачи ───────────────────────────────────────────────────── */
@@ -5390,6 +5454,7 @@ async function showTask(rawId) {
     taskDesc
   );
   renderTaskList(listTasks, [task], '', { showTopicLink: false, showGrade: false, linkTitle: false });
+  document.querySelector('#view-list').dataset.nbPage = 'task';
   await renderTaskNeighbours(task);
   await renderSimilarTasks(task);
 }
@@ -6401,7 +6466,7 @@ document.addEventListener('click', event => {
   }
 
   // Справочник формул
-  const formulasBtn = event.target.closest('#open-formulas-btn');
+  const formulasBtn = event.target.closest('#open-formulas-btn, [data-nb-tool="formulas"]');
   if (formulasBtn) {
     event.preventDefault();
     openFormulasDialog();
@@ -6530,7 +6595,7 @@ document.addEventListener('click', event => {
   }
 
   // Случайная задача
-  const randomBtn = event.target.closest('#random-task-btn');
+  const randomBtn = event.target.closest('#random-task-btn, [data-nb-tool="random"]');
   if (randomBtn) {
     event.preventDefault();
     openRandomTask();
