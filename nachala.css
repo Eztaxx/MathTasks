@@ -514,6 +514,13 @@ main#home > [id^="view-"]:not(#view-home) { padding-top: 24px; }
 .nb-hero .grade-action:hover { background: var(--ink-1); border-color: var(--ink-1); color: var(--paper); }
 .nb-hero-figure { flex: 2 1 320px; min-width: 0; display: block; width: min(100%, 480px); max-width: 480px; height: auto; margin: 0 auto; }
 .nb-hero-figure text { font-family: var(--f-serif); font-style: italic; font-size: 11px; }
+/* Средняя ширина: фигура остаётся справа от текста и не крупнее 300 px —
+   иначе она падала под текст и растягивалась на всю колонку. */
+@media (min-width: 721px) and (max-width: 1100px) {
+  .nb-hero { flex-wrap: nowrap; gap: 32px; }
+  .nb-hero-copy { flex: 3 1 400px; }
+  .nb-hero-figure { flex: 1 1 220px; max-width: 300px; }
+}
 @media (max-width: 720px) {
   .nb-hero { padding: 24px 0 32px; gap: 24px; }
   .nb-hero h1 { font-size: 40px; line-height: 1; }
