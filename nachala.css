@@ -36,7 +36,15 @@
     .task .solution-toggle.is-locked, .sv-card .solution-toggle.is-locked, .solution-toggle-hint.is-locked {
       border: 2px dashed var(--rule-2) !important; background: transparent !important; color: var(--ink-3) !important;
     }
-    #view-list[data-nb-page="task"] .task .solution-toggle:not(.active):not(.is-locked) { border-color: var(--board-frame) !important; }
+    /* «Помощь» на странице задачи: кнопки — строки во всю ширину */
+    #list-tasks .nb-help .solution-toggle, #list-tasks .nb-help .solution-toggle-hint {
+      border: 0 !important; border-top: 1px solid var(--rule) !important; background: transparent !important; color: var(--ink-1) !important;
+    }
+    #list-tasks .nb-help .solution-toggle:not(.is-locked):hover { background: var(--yellow-tint) !important; }
+    #list-tasks .nb-help .solution-toggle.active { background: var(--yellow) !important; color: var(--on-yellow) !important; }
+    #list-tasks .nb-help .solution-toggle.is-locked { border-style: solid !important; border-color: var(--rule) !important; color: var(--ink-3) !important; }
+    /* Текущая задача на доске в списке темы: кнопки помощи — рамкой доски */
+    #list-tasks > .task.nb-current .solution-toggle:not(.active):not(.is-locked) { border-color: var(--board-frame) !important; }
     /* Окно входа в админку рисует admin.js со стилями прямо в разметке */
     .admin-login-card {
       border: 2px solid var(--ink-1) !important; border-radius: 0 !important; box-shadow: none !important;
@@ -770,7 +778,7 @@ article.task:hover { transform: none; border-color: var(--ink-1); }
   font-size: 18px; font-weight: 700; text-decoration: none;
 }
 a.task-number:hover { background: var(--yellow-tint); }
-article.task.is-solved .task-number, article.task.solved .task-number {
+article.task:has(.task-solved-badge) .task-number, article.task.is-solved .task-number, article.task.solved .task-number {
   background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue);
 }
 .task-where { font-size: 15px; color: var(--ink-3); }
@@ -879,6 +887,8 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
   font-size: 18px; font-weight: 700;
 }
 .self-check-result[hidden] { display: none; }
+.self-check-result.error { flex-wrap: nowrap; align-items: flex-start; }
+.self-check-result.error::before { margin-top: 3px; }
 .self-check-result.success { background: var(--blue-tint); color: var(--nb-blue); }
 .self-check-result.error { background: var(--red-tint); color: var(--red-ink); }
 .self-check-result.success::before, .self-check-result.error::before {
@@ -934,10 +944,15 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 .reveal.answer .math { font-size: 26px; line-height: 1.3; }
 .solution-missing { font-size: 15px; color: var(--ink-3); }
 
-/* ── 15 Доска: условие задачи на своей странице ───────────────────────── */
+/* ── 15 Доска: условие задачи ──────────────────────────────────────────── */
 /* Зелёная доска с рамкой и полочкой. На ней нет жёлтого: «текущее» и
-   «выбранное» — зеленоватые тона, кнопка «Проверить» — цвета мела. */
-#view-list[data-nb-page="task"] article.task, .sv-card article.task {
+   «выбранное» — зеленоватые тона, кнопка «Проверить» — цвета мела.
+   На странице задачи доска — левая часть карточки (.nb-board), справа
+   колонка «Помощь» (.nb-help); в списке темы на доске текущая задача
+   (.nb-current); в режиме «по одной» — вся карточка. */
+#view-list[data-nb-page="task"] .nb-board,
+#view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current,
+.sv-card article.task {
   --sheet: var(--board); --paper: var(--board-deep);
   --ink-1: var(--chalk); --ink-2: var(--chalk-2); --ink-3: var(--chalk-3);
   --rule: #2F5A45; --rule-2: var(--board-frame);
@@ -945,27 +960,24 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
   --yellow: #2A5541; --on-yellow: var(--chalk); --yellow-tint: #244D3A;
   --red: #FF8A7A; --red-tint: #4A2A24; --red-ink: #FFB4A8;
   --ink: var(--chalk); --muted: var(--chalk-2); --line: #2F5A45;
+  position: relative;
   background: var(--board); color: var(--chalk);
   border: 6px solid var(--board-edge); border-radius: 12px 12px 0 0;
-  margin-bottom: 0;
   padding: 20px clamp(20px, 4vw, 48px) 44px;
 }
-#view-list[data-nb-page="task"] article.task input.self-check-input,
-.sv-card article.task input.self-check-input {
+:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current, .sv-card article.task) input.self-check-input {
   background: var(--board-deep); border-color: var(--board-frame); height: 64px; font-size: 26px;
 }
-#view-list[data-nb-page="task"] article.task .math-kb-toggle,
-#view-list[data-nb-page="task"] article.task .solution-toggle:not(.active):not(.is-locked),
-#view-list[data-nb-page="task"] article.task .task-number,
-#view-list[data-nb-page="task"] article.task .self-check-reset,
-#view-list[data-nb-page="task"] article.task .self-check-accept { border-color: var(--board-frame); }
-#view-list[data-nb-page="task"] article.task .self-check-btn { border-color: var(--chalk); }
-#view-list[data-nb-page="task"] article.task .task-condition { font-size: 26px; }
-#view-list[data-nb-page="task"] article.task .task-condition .katex { font-size: 1.35em; }
-#view-list[data-nb-page="task"] article.task .task-figure { border: 6px solid #fff; }
+:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current, .sv-card article.task) :is(.math-kb-toggle, .task-number, .self-check-reset, .self-check-accept, .task-tag-chip) {
+  border-color: var(--board-frame);
+}
+:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current, .sv-card article.task) .self-check-btn { border-color: var(--chalk); }
+:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current) .task-figure { border: 6px solid #fff; }
+#view-list[data-nb-page="task"] .nb-board .task-condition { font-size: 26px; }
+#view-list[data-nb-page="task"] .nb-board .task-condition .katex { font-size: 1.35em; }
 /* Полочка с мелками под доской */
-#view-list[data-nb-page="task"] #list-tasks::after {
-  content: ""; display: block; height: 22px; margin-top: -2px;
+:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current)::after {
+  content: ""; position: absolute; left: -6px; right: -6px; bottom: -34px; height: 22px;
   background:
     linear-gradient(var(--chalk), var(--chalk)) 20px 50% / 34px 8px no-repeat,
     linear-gradient(#A9D8B8, #A9D8B8) 64px 50% / 18px 8px no-repeat,
@@ -973,6 +985,63 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
     var(--board-edge);
   border-radius: 0 0 12px 12px;
 }
+#view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current { margin: 12px 0 56px; }
+
+/* Страница задачи: доска слева, «Помощь» справа */
+#view-list[data-nb-page="task"] article.task {
+  display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 56px 48px;
+  margin: 0 0 34px; padding: 0; border: 0; background: none;
+}
+#view-list[data-nb-page="task"] .nb-board { flex: 3 1 620px; min-width: 0; }
+.nb-help {
+  flex: 1 1 320px; max-width: 400px; min-width: 0;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+}
+.nb-help-title {
+  margin: 0; padding: 16px 20px;
+  font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2);
+}
+.nb-help .solution-toggle {
+  display: flex; align-items: center; gap: 12px; width: 100%; height: auto; min-height: 56px; padding: 16px 20px;
+  font-size: 18px; font-weight: 600; text-align: left;
+}
+/* Значки строк «Помощи»: лампочка, ключ, книга; пока закрыто — замок */
+.nb-help .toggle-icon {
+  flex: none; width: 18px; height: 18px; font-size: 0; background: currentColor;
+  -webkit-mask: var(--nb-i) center / contain no-repeat; mask: var(--nb-i) center / contain no-repeat;
+}
+.nb-help [data-reveal="hint"] .toggle-icon { --nb-i: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18h6M10 21h4'/%3E%3Cpath d='M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.3 1 2.1h5c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3Z'/%3E%3C/svg%3E"); }
+.nb-help [data-reveal="answer"] .toggle-icon { --nb-i: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='15' r='4'/%3E%3Cpath d='m11 12 9-9M16 7l3 3M14 9l2 2'/%3E%3C/svg%3E"); }
+.nb-help [data-reveal="solution"] .toggle-icon { --nb-i: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z'/%3E%3Cpath d='M4 21.5A2.5 2.5 0 0 1 6.5 19H20'/%3E%3C/svg%3E"); }
+.nb-help .solution-toggle.is-locked .toggle-icon { --nb-i: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='9'/%3E%3Cpath d='M8 11V8a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E"); }
+.nb-help .reveal { margin: 0; padding: 18px 20px; border-top: 1px solid var(--rule); }
+.nb-help .reveal.solution { padding: 18px 20px 22px; border-top: 1px solid var(--rule); }
+.nb-help .reveal-label { display: none; }
+.nb-help .reveal .math { font-size: 18px; line-height: 1.55; }
+.nb-help .reveal.answer .math { font-size: 28px; line-height: 1.3; }
+.nb-help .solution-missing { margin: 0; padding: 16px 20px; border-top: 1px solid var(--rule); }
+@media (max-width: 1000px) {
+  .nb-help { max-width: none; flex-basis: 100%; }
+}
+
+/* Полоса «Тема» над доской: в шапке страницы задачи */
+#view-list[data-nb-page="task"] .list-header { align-items: flex-end; padding: 24px 0 28px; }
+#view-list[data-nb-page="task"] .list-header h1 { flex: 0 1 auto; }
+#view-list[data-nb-page="task"] .list-meta { flex: 1 1 420px; max-width: none; order: 0; }
+.nb-tbar { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nb-tbar-title { font-size: 22px; line-height: 1.25; font-weight: 700; color: var(--ink-1); text-decoration: none; }
+.nb-tbar-title:hover { text-decoration: underline; text-underline-offset: 4px; }
+.nb-tbar-progress { font-size: 15px; color: var(--ink-2); }
+
+/* Список темы: решённая задача — строка (номер, условие, «Решено»);
+   открыть целиком можно по номеру. */
+#view-list[data-nb-page="topic"] #list-tasks > article.task:has(.task-solved-badge) {
+  margin: 0; padding: 22px 0; border: 0; border-top: 1px solid var(--rule); background: none;
+}
+#view-list[data-nb-page="topic"] #list-tasks > article.task:has(.task-solved-badge) + article.task:not(:has(.task-solved-badge)):not(.nb-current) { margin-top: 24px; }
+#view-list[data-nb-page="topic"] #list-tasks > article.task:has(.task-solved-badge) :is(.task-self-check, .task-self-assess, .task-actions-bar, .task-reveals-wrap, .task-tags-row, .task-figure) { display: none; }
+#view-list[data-nb-page="topic"] #list-tasks > article.task:has(.task-solved-badge) .task-condition-wrap { margin-top: 10px; }
+#view-list[data-nb-page="topic"] #list-tasks > article.task:has(.task-solved-badge) .task-condition { font-size: 20px; color: var(--ink-2); }
 
 /* ── 16 Страница темы и задачи: шапка, крошки, инструменты списка ─────── */
 .breadcrumb {
@@ -1897,6 +1966,19 @@ input.cw-answer-input {
 .formula-sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
 .formulas-content { font-family: var(--f-serif); }
 /* Печать: переключатели и наборы */
+.print-dialog-lead { color: var(--ink-2); }
+.print-field > :first-child, .print-field legend { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.print-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.print-chip {
+  min-height: 40px; padding: 0 14px; border: 2px solid var(--ink-1); border-radius: 0;
+  background: transparent; color: var(--ink-1); font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: none;
+}
+.print-chip:hover { background: var(--yellow-tint); }
+.print-chip.is-active { background: var(--ink-1); color: var(--paper); }
+.print-range input { height: 44px; border: 2px solid var(--rule-2); font-size: 16px; }
+.print-field-hint { font-size: 14px; color: var(--ink-2); }
+.print-error { color: var(--red-ink); }
+.print-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 20px; }
 .print-toggle-btn, .print-set-btn {
   min-height: 44px; padding: 0 14px; border: 2px solid var(--ink-1); border-radius: 0;
   background: transparent; color: var(--ink-1); font-weight: 600;

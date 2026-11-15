@@ -1245,6 +1245,57 @@ function markCardSolved(card) {
   badge.textContent = (window.MathTasks.t || (k => k))('solved_badge');
   // Перед значками справа, а не за ними.
   meta.insertBefore(badge, meta.querySelector('.task-actions'));
+  nbMarkCurrentTask(card.closest('#list-tasks'));
+}
+
+/* «Начала», страница задачи: условие с ответом — на доске слева, подсказка,
+   ответ и решение — в колонке «Помощь» справа, каждая панель под своей
+   кнопкой. Части переносятся внутрь той же article, поэтому обработчики,
+   которые ищут closest('.task'), работают как раньше. */
+function nbSplitTaskCard(card) {
+  if (!card || card.querySelector(':scope > .nb-board')) return;
+  const tr = window.MathTasks.t || (k => k);
+  const bar = card.querySelector(':scope > .task-actions-bar');
+  const wrap = card.querySelector(':scope > .task-reveals-wrap');
+  const board = document.createElement('div');
+  board.className = 'nb-board';
+  [...card.children].forEach(child => { if (child !== bar && child !== wrap) board.append(child); });
+  card.append(board);
+  if (!bar && !wrap) return;
+  const help = document.createElement('aside');
+  help.className = 'nb-help';
+  help.setAttribute('aria-label', tr('nb_help'));
+  help.innerHTML = `<h2 class="nb-help-title">${escapeHtml(tr('nb_help'))}</h2>`;
+  [...(bar?.children || [])].forEach(toggle => {
+    help.append(toggle);
+    const panel = wrap?.querySelector(`:scope > .reveal.${toggle.dataset.reveal}`);
+    if (panel) help.append(panel);
+  });
+  [...(wrap?.children || [])].forEach(rest => help.append(rest));
+  bar?.remove();
+  wrap?.remove();
+  card.append(help);
+}
+
+/* «Начала», страница задачи: над доской — тема задачи и прогресс по ней. */
+function nbTopicBar(topic) {
+  const tr = window.MathTasks.t || (k => k);
+  const prog = getTopicProgress(topic.id);
+  const total = prog.total || taskCount(topic.id);
+  const progress = total ? tr('topic_progress', { solved: prog.solved, total, percent: prog.percent }) : '';
+  return `<div class="nb-tbar">
+    <span class="nb-eyebrow">${escapeHtml(tr('nb_topic'))}</span>
+    <a class="nb-tbar-title" href="/topic/${encodeURIComponent(topic.slug)}">${escapeHtml(topicTitleOf(topic))}</a>
+    ${progress ? `<span class="nb-tbar-progress">${escapeHtml(progress)}</span>` : ''}
+  </div>`;
+}
+
+/* «Начала», список темы: первая нерешённая задача — «текущая», она на доске. */
+function nbMarkCurrentTask(container) {
+  if (!container) return;
+  const cards = [...container.querySelectorAll(':scope > article.task, :scope > .task-list-chunk > article.task')];
+  cards.forEach(card => card.classList.remove('nb-current'));
+  cards.find(card => !card.querySelector('.task-solved-badge'))?.classList.add('nb-current');
 }
 
 /* Строка под полем ответа: что и когда откроется. Пустая — всё открыто. */
@@ -2088,6 +2139,7 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     container.innerHTML = shown.map((task, i) => taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number: taskNumber(task, pageStart + i) })).join('')
       + moreButton(tasks.length);
     fillTaskMath(container, shown);
+    nbMarkCurrentTask(container);
   }
 }
 
@@ -5437,7 +5489,7 @@ async function showTask(rawId) {
     crumbs,
     title: crumbsTaskTitle,
     description: '',
-    meta: grade ? `<span class="grade-badge">${gradeLabel(grade)}</span>` : ''
+    meta: topic ? nbTopicBar(topic) : (grade ? `<span class="grade-badge">${gradeLabel(grade)}</span>` : '')
   });
   /* Описание — из условия задачи, тем же текстом, что отдаёт воркер
      (worker/seo.js): у сотен задач оно иначе было одинаковым. */
@@ -5455,6 +5507,7 @@ async function showTask(rawId) {
   );
   renderTaskList(listTasks, [task], '', { showTopicLink: false, showGrade: false, linkTitle: false });
   document.querySelector('#view-list').dataset.nbPage = 'task';
+  nbSplitTaskCard(listTasks.querySelector('article.task'));
   await renderTaskNeighbours(task);
   await renderSimilarTasks(task);
 }
@@ -5990,7 +6043,9 @@ document.addEventListener('submit', event => {
     markSelfCheckSolved(form, taskId, 'self_check_success');
   } else {
     const attempts = addTaskWrongAttempt(taskId);
-    const messageKey = loc(task, 'hint_latex') ? 'self_check_error_open' : 'self_check_error_open_nohint';
+    const baseKey = loc(task, 'hint_latex') ? 'self_check_error_open' : 'self_check_error_open_nohint';
+    // На странице задачи «Помощь» стоит справа от доски, а не под ней.
+    const messageKey = form.closest('.nb-board') ? `${baseKey}_side` : baseKey;
     resultDiv.className = 'self-check-result error';
     /* Записал иначе, чем ждёт автопроверка («3; -0,5» вместо «x=3»), —
        ученик отмечает совпадение сам, как в задачах без автопроверки.
