@@ -37,6 +37,14 @@
       border: 2px dashed var(--rule-2) !important; background: transparent !important; color: var(--ink-3) !important;
     }
     #view-list[data-nb-page="task"] .task .solution-toggle:not(.active):not(.is-locked) { border-color: var(--board-frame) !important; }
+    /* Окно входа в админку рисует admin.js со стилями прямо в разметке */
+    .admin-login-card {
+      border: 2px solid var(--ink-1) !important; border-radius: 0 !important; box-shadow: none !important;
+      background: var(--sheet) !important; color: var(--ink-1) !important;
+    }
+    .admin-login-card * { border-radius: 0 !important; box-shadow: none !important; }
+    .admin-login-card input { border: 2px solid var(--rule-2) !important; min-height: 44px; background: var(--sheet) !important; color: var(--ink-1) !important; }
+    .admin-login-card h3 { font-size: 22px !important; }
   }
 }
 
