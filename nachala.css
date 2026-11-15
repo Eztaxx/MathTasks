@@ -360,6 +360,7 @@ body.nb-search-open .nb-searchbar,
   font-size: 15px; font-weight: 600; text-decoration: none;
 }
 .topbar-home-btn:hover { background: var(--ink-1); color: var(--paper); }
+.topbar-home-btn .topbar-home-icon { display: block; flex: none; color: inherit; stroke: currentColor; background: none; }
 .trainer-switch { display: flex; flex-wrap: wrap; gap: 0 8px; padding: 0; border: 0; background: none; }
 .trainer-switch-link {
   display: inline-flex; align-items: center; height: 44px; padding: 0 14px;
@@ -368,6 +369,14 @@ body.nb-search-open .nb-searchbar,
 }
 .trainer-switch-link:hover { border-bottom-color: var(--rule-2); background: none; }
 .trainer-switch-link[aria-current="page"], .trainer-switch-link.active { border-bottom-color: var(--yellow); background: none; color: var(--ink-1); }
+/* Текущий раздел и соседние ссылки — как вкладки шапки */
+.admin-topbar .admin-badge, .admin-topbar .nav-btn-link {
+  display: inline-flex; align-items: center; height: 44px; padding: 0 14px; margin: 0;
+  border: 0; border-bottom: 4px solid transparent; border-radius: 0; background: none; color: var(--ink-1);
+  font-size: 17px; font-weight: 600; text-decoration: none; box-shadow: none;
+}
+.admin-topbar .admin-badge { border-bottom-color: var(--yellow); }
+.admin-topbar .nav-btn-link:hover { border-bottom-color: var(--rule-2); background: none; color: var(--ink-1); }
 .trainer-top-actions, .admin-topbar .topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .topbar-menu { position: relative; }
 .topbar-menu-btn {
@@ -387,6 +396,15 @@ html.dark .topbar-menu-panel { --ink-1: #E8ECF3; --ink-2: #B8C2D6; --sheet: #172
 }
 .topbar-menu-panel a:first-child { border-top: 0; }
 .topbar-menu-panel a:hover { background: var(--yellow-tint); }
+.sound-toggle-btn::before {
+  content: ""; width: 20px; height: 20px; background: currentColor;
+  -webkit-mask: var(--nb-sound) center / contain no-repeat; mask: var(--nb-sound) center / contain no-repeat;
+  --nb-sound: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 9h4l5-4v14l-5-4H4z'/%3E%3Cpath d='M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11'/%3E%3C/svg%3E");
+}
+.sound-toggle-btn[data-sound="off"]::before {
+  --nb-sound: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 9h4l5-4v14l-5-4H4z'/%3E%3Cpath d='M17 9l5 6M22 9l-5 6'/%3E%3C/svg%3E");
+}
+#sound-icon { display: none; }
 .sound-toggle-btn {
   display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
   border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); cursor: pointer;
@@ -397,7 +415,8 @@ html.dark .topbar-menu-panel { --ink-1: #E8ECF3; --ink-2: #B8C2D6; --sheet: #172
   border-top: 4px solid var(--yellow) !important; margin-top: 96px !important; padding: 32px 16px 40px !important;
 }
 @media (max-width: 720px) {
-  .admin-topbar { min-height: 64px; }
+  .admin-topbar { position: static; min-height: 64px; padding-top: 10px; padding-bottom: 10px; }
+  .admin-topbar .trainer-top-actions { margin-left: 0; }
   .admin-topbar .nb-logo span, .topbar-home-label { display: none; }
   .trainer-switch { order: 9; flex: 1 1 100%; }
 }
@@ -1122,5 +1141,377 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 .sv-cell.is-solved { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
 .sv-cell.is-current { background: var(--yellow); color: var(--on-yellow); }
 .sv-cell.is-wrong { border-color: var(--red); color: var(--red-ink); background: var(--red-tint); }
+
+/* ── 17 Отдельные страницы: колонка и заголовок ───────────────────────── */
+body.trainer-page, body.exams-page { background: var(--paper); }
+.trainer-container, .exams-main {
+  width: 100%; max-width: 1280px; margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 40px) 0;
+}
+.trainer-header, .exams-hero {
+  display: block; margin: 0; padding: 56px 0 48px; border: 0; border-radius: 0;
+  background: none; color: var(--ink-1); text-align: left; box-shadow: none;
+}
+.exams-hero::before, .exams-hero::after, .trainer-header::before, .trainer-header::after { content: none; display: none; }
+.exams-hero-content { max-width: none; margin: 0; padding: 0; text-align: left; }
+.trainer-header h1, .exams-hero h1 {
+  margin: 0; max-width: 18ch; color: var(--ink-1); background: none; -webkit-text-fill-color: currentColor;
+  font-size: clamp(40px, 5vw, 68px); line-height: 1.02; font-weight: 700; letter-spacing: -0.03em; text-wrap: balance;
+}
+.trainer-header p, .exams-hero-content > p {
+  margin: 24px 0 0; max-width: 56ch; color: var(--ink-2);
+  font-family: var(--f-serif); font-size: 21px; line-height: 1.55;
+}
+.exams-tag {
+  display: inline-block; margin: 0 0 16px; padding: 0; border: 0; background: none; color: var(--ink-2);
+  font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+}
+.exams-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; justify-content: flex-start; }
+.primary-button.small, .secondary-button.small { min-height: 44px; padding: 0 16px; font-size: 15px; }
+
+/* ── 18 Тренажёр ──────────────────────────────────────────────────────── */
+/* Школа — сегменты в полосе между двумя линиями */
+.trainer-view-tabs {
+  display: flex; flex-wrap: wrap; gap: 0; margin: 0; padding: 14px 0; max-width: none;
+  border: 0; border-top: 2px solid var(--ink-1); border-bottom: 2px solid var(--ink-1); background: none;
+}
+.trainer-view-tab {
+  flex: none; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; margin: 0;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.trainer-view-tab + .trainer-view-tab { margin-left: -2px; }
+.trainer-view-tab.active, .trainer-view-tab[aria-selected="true"] { background: var(--ink-1); color: var(--paper); }
+
+/* Настройки — лист с подписанными строками */
+.trainer-panel {
+  margin: 32px 0 0; padding: 0; border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+}
+.trainer-panel > [class$="-row"]:not([hidden]) {
+  display: flex; flex-direction: row; align-items: flex-start; flex-wrap: wrap; gap: 10px 24px; margin: 0;
+  padding: 18px 24px; border: 0; border-top: 1px solid var(--rule); background: none;
+}
+.trainer-panel > [class$="-row"]:first-child { border-top: 0; }
+.trainer-label {
+  flex: none; width: 200px; padding-top: 12px; margin: 0;
+  font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2);
+}
+.trainer-categories-row { flex-direction: row; }
+.trainer-categories-row > .trainer-chip-group, .trainer-categories-row > .trainer-chip-subgroup { flex: 1 1 520px; min-width: 0; }
+.trainer-categories-row > .trainer-chip-subgroup { margin-left: 224px; }
+.trainer-chip-group { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; flex: 1 1 520px; min-width: 0; }
+.trainer-chip-subgroup:not([hidden]) { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 8px 12px; margin-top: 12px; text-align: left; }
+.trainer-chip-subgroup .trainer-chip-group { flex: 1 1 auto; }
+.trainer-sublabel { font-size: 15px; color: var(--ink-3); }
+.trainer-cat-chip, .trainer-diff-chip, .trainer-mode-chip, .sheet-count-chip {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; margin: 0;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 16px; font-weight: 600; white-space: nowrap; cursor: pointer; transform: none;
+}
+.trainer-cat-chip:hover, .trainer-diff-chip:hover, .trainer-mode-chip:hover, .sheet-count-chip:hover { background: var(--yellow-tint); }
+.trainer-cat-chip.active, .trainer-diff-chip.active, .trainer-mode-chip.active, .sheet-count-chip.active {
+  background: var(--yellow); color: var(--on-yellow); border-color: var(--ink-1);
+}
+/* Формат — режим, поэтому тёмная заливка, как сегменты */
+.trainer-format-chip {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; margin: 0;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.trainer-format-chip + .trainer-format-chip { margin-left: -2px; }
+.trainer-format-chip.active { background: var(--ink-1); color: var(--paper); }
+#trainer-format-row .trainer-chip-group { gap: 0; }
+/* Сложность — столбики, как у задач */
+.trainer-diff-chip::before {
+  content: ""; flex: none; width: 25px; height: 16px;
+  --b1: currentColor; --b2: var(--rule-2); --b3: var(--rule-2);
+  background:
+    linear-gradient(var(--b1), var(--b1)) 0 100% / 4px 4px no-repeat,
+    linear-gradient(var(--b2), var(--b2)) 7px 100% / 4px 8px no-repeat,
+    linear-gradient(var(--b3), var(--b3)) 14px 100% / 4px 12px no-repeat,
+    linear-gradient(var(--rule-2), var(--rule-2)) 21px 100% / 4px 16px no-repeat;
+}
+.trainer-diff-chip[data-diff="hard"]::before { --b2: currentColor; }
+.trainer-diff-chip[data-diff="expert"]::before { --b2: currentColor; --b3: currentColor; }
+@media (max-width: 720px) {
+  .trainer-label { width: 100%; padding-top: 0; }
+  .trainer-categories-row > .trainer-chip-subgroup { margin-left: 0; }
+  .trainer-panel > [class$="-row"]:not([hidden]) { padding: 16px; }
+}
+
+/* Лист примеров */
+.trainer-sheet-container { margin-top: 40px; }
+.sheet-controls-bar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; margin: 0 0 16px; padding: 0;
+  border: 0; background: none;
+}
+.sheet-count-group { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.sheet-count-group .trainer-label { width: auto; padding: 0 8px 0 0; }
+.sheet-action-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-left: auto; }
+#btn-sheet-check-all { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
+#btn-sheet-check-all:hover { background: var(--ink-1); border-color: var(--ink-1); color: var(--paper); }
+.text-button.danger { color: var(--red-ink); }
+.trainer-sheet-container .compact-drill-banner { margin: 0; }
+.sheet-banner-left { flex: 1 1 320px; min-width: 0; font-size: 16px; }
+.sheet-banner-left kbd {
+  display: inline-flex; align-items: center; height: 26px; padding: 0 8px; margin: 0 2px;
+  border: 1.5px solid var(--on-yellow); background: transparent; color: var(--on-yellow); font-family: var(--f-ui); font-size: 13px; font-weight: 600;
+}
+.sheet-banner-right { display: flex; align-items: center; gap: 20px; }
+.sheet-stopwatch { padding: 0; border: 0; background: none; color: var(--on-yellow); font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.compact-drill-stats { padding: 0; border: 0; background: none; color: var(--on-yellow); font-size: 28px; line-height: 1; font-weight: 700; }
+
+.task-compact-grid.trainer-sheet-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 0;
+  margin-top: 16px; border: 2px solid var(--ink-1); background: var(--sheet); overflow: hidden;
+}
+.trainer-sheet-grid .compact-drill-item {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; min-height: 0; margin: 0 -1px -1px 0;
+  padding: 14px 18px; border: 0; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+  border-radius: 0; background: transparent; box-shadow: none; transform: none;
+}
+.trainer-sheet-grid .compact-drill-item:focus-within { background: var(--yellow-tint); }
+.trainer-sheet-grid .compact-drill-num { align-self: center; padding: 0; width: 28px; font-size: 15px; font-weight: 700; color: var(--ink-3); }
+.trainer-sheet-grid .compact-drill-body { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; }
+.trainer-sheet-grid .compact-drill-expr { flex: 1 1 auto; font-size: 26px; white-space: nowrap; }
+.trainer-sheet-grid .compact-drill-answer-wrap { display: flex; align-items: center; gap: 8px; flex: none; }
+.trainer-sheet-grid .compact-drill-input { width: 104px; height: 48px; padding: 0 12px; font-size: 20px; }
+.trainer-sheet-grid .compact-drill-status { width: 24px; font-size: 20px; font-weight: 700; background: none; border: 0; }
+.trainer-sheet-grid .compact-drill-status.success { color: var(--nb-blue); }
+.trainer-sheet-grid .compact-drill-status.error { color: var(--red); }
+.trainer-sheet-grid .compact-drill-note { flex: 1 1 100%; margin: 0; padding-left: 40px; font-size: 15px; font-weight: 600; color: var(--red-ink); }
+.sheet-completion-card {
+  margin-top: 24px; padding: 32px; border: 2px solid var(--ink-1); background: var(--sheet); text-align: left;
+}
+.sheet-completion-card .completion-icon { display: none; }
+.sheet-completion-card h3 { margin: 0; font-size: 28px; font-weight: 700; color: var(--ink-1); }
+.sheet-completion-card p { margin: 8px 0 0; color: var(--ink-2); }
+.completion-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; justify-content: flex-start; }
+
+/* Карточка: счёт, время — клетками; пример — на доске */
+.trainer-arena { max-width: 960px; margin: 40px auto 0; }
+.trainer-hud {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 0;
+  border: 2px solid var(--ink-1); background: var(--sheet); overflow: hidden;
+}
+.trainer-stat-badge:not([hidden]) {
+  display: flex; flex-direction: column-reverse; align-items: flex-start; justify-content: flex-end; gap: 2px;
+  margin: 0 -1px -1px 0; padding: 16px 22px; min-height: 0;
+  border: 0; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+  border-radius: 0; background: transparent; color: var(--ink-1); box-shadow: none;
+}
+.trainer-stat-badge .stat-icon, .trainer-stat-badge .streak-icon, .trainer-stat-badge .timer-icon { display: none; }
+.trainer-stat-badge .stat-val, .trainer-stat-badge .streak-val, .trainer-stat-badge .timer-val {
+  font-size: 48px; line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; color: var(--ink-1); font-variant-numeric: tabular-nums;
+}
+.trainer-stat-badge .stat-caption { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.trainer-timer-progress-wrap:not([hidden]) {
+  height: 14px; margin-top: 20px; border: 2px solid var(--nb-blue); border-radius: 0; background: transparent; overflow: hidden;
+}
+.trainer-timer-progress-bar { height: 100%; border-radius: 0; background: var(--nb-blue); }
+
+.trainer-card {
+  --sheet: var(--board); --paper: var(--board-deep);
+  --ink-1: var(--chalk); --ink-2: var(--chalk-2); --ink-3: var(--chalk-3);
+  --rule: #2F5A45; --rule-2: var(--board-frame);
+  --nb-blue: var(--chalk); --on-blue: #14213D; --blue-tint: #2A5541;
+  --yellow: #2A5541; --on-yellow: var(--chalk); --yellow-tint: #244D3A;
+  --red: #FF8A7A; --red-tint: #4A2A24; --red-ink: #FFB4A8;
+  --ink: var(--chalk); --muted: var(--chalk-2); --line: #2F5A45;
+  position: relative; margin: 20px 0 0; padding: 32px 40px 44px;
+  border: 6px solid var(--board-edge); border-radius: 12px 12px 0 0;
+  background: var(--board); color: var(--chalk); box-shadow: none; transform: none;
+}
+.trainer-card::after {
+  content: ""; position: absolute; left: -6px; right: -6px; bottom: -28px; height: 22px;
+  background:
+    linear-gradient(var(--chalk), var(--chalk)) 20px 50% / 34px 8px no-repeat,
+    linear-gradient(#A9D8B8, #A9D8B8) 64px 50% / 18px 8px no-repeat,
+    linear-gradient(#8FA6FF, #8FA6FF) 92px 50% / 26px 8px no-repeat,
+    var(--board-edge);
+  border-radius: 0 0 12px 12px;
+}
+.trainer-card.correct-flash, .trainer-card.wrong-flash { animation: none; box-shadow: none; border-color: var(--board-edge); }
+.trainer-question-box { margin: 0; padding: 12px 0 0; border: 0; background: none; min-height: 0; }
+.trainer-formula, .trainer-formula-task { color: var(--chalk); text-align: center; }
+.trainer-formula { font-family: var(--f-serif); font-size: clamp(48px, 7vw, 96px); line-height: 1.1; }
+.trainer-formula .katex { font-size: 1em; color: var(--chalk); }
+.trainer-formula-task { font-family: var(--f-serif); font-size: 22px; color: var(--chalk-2); margin-bottom: 12px; }
+.trainer-answer-form { margin: 36px 0 0; }
+.trainer-input-wrap { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; }
+input.trainer-input {
+  width: 260px; max-width: 100%; height: 68px; padding: 0 16px; flex: none;
+  border: 2px solid var(--board-frame); background: var(--board-deep); color: var(--chalk);
+  font-family: var(--f-serif); font-size: 28px; text-align: center;
+}
+.trainer-submit-btn {
+  height: 68px; padding: 0 32px; font-size: 18px;
+  background: var(--chalk); border-color: var(--chalk); color: #14213D;
+}
+.trainer-submit-btn:hover { background: transparent; color: var(--chalk); border-color: var(--chalk); }
+.trainer-skip-btn {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px;
+  border: 2px solid var(--board-frame); background: transparent; color: var(--chalk);
+  font-size: 16px; font-weight: 600; text-decoration: none;
+}
+.trainer-skip-btn:hover { background: var(--chalk); color: #14213D; }
+.trainer-input-hint { margin: 24px auto 0; max-width: 56ch; text-align: center; font-size: 15px; color: var(--chalk-3); }
+.trainer-input-hint code { font-family: var(--f-serif); font-weight: 700; background: none; color: var(--chalk-2); padding: 0; }
+.trainer-numpad { gap: 6px; margin: 24px auto 0; max-width: 360px; }
+.numpad-key {
+  height: 48px; border: 1.5px solid var(--board-frame); background: var(--board-deep); color: var(--chalk);
+  font-family: var(--f-ui); font-size: 22px; font-weight: 700; box-shadow: none; transform: none;
+}
+.numpad-key.op { background: #2A5541; font-family: var(--f-serif); }
+.numpad-key.action { background: transparent; font-size: 16px; }
+.numpad-key.enter { background: var(--chalk); border-color: var(--chalk); color: #14213D; font-size: 17px; }
+.trainer-feedback-card:not([hidden]) {
+  display: flex; justify-content: center; max-width: 480px; margin: 28px auto 0; padding: 14px 18px;
+  border: 0; border-radius: 0; box-shadow: none; animation: none;
+  background: var(--red-tint); color: var(--red-ink);
+}
+.trainer-feedback-card.correct { background: var(--blue-tint); color: var(--chalk); }
+.feedback-status-row { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; }
+.feedback-icon { background: none; color: inherit; width: auto; height: auto; font-size: 20px; }
+
+/* Окно итогов спринта */
+.sprint-stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border: 2px solid var(--ink-1); }
+.sprint-stat-item {
+  display: flex; flex-direction: column; gap: 2px; margin: 0 -1px -1px 0; padding: 16px 18px;
+  border: 0; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: none;
+}
+.sprint-stat-item.highlight { background: var(--yellow); color: var(--on-yellow); }
+.sprint-stat-num { font-size: 40px; line-height: 1.05; font-weight: 700; color: inherit; }
+.sprint-stat-label { font-size: 14px; color: inherit; }
+.sprint-modal-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+
+/* ── 19 Подготовка к экзаменам ────────────────────────────────────────── */
+.exams-levels, .exams-plan, .mock-variants-section, .mock-grading-section, .formula-guide-section { margin: 56px 0 0; padding: 0; }
+.section-title-wrap { margin: 0 0 16px; text-align: left; }
+.section-title-wrap h2, .exams-plan > h2, .exams-main h2 {
+  margin: 0; color: var(--ink-1); font-size: 28px; line-height: 1.15; font-weight: 700; letter-spacing: -0.01em;
+}
+.section-title-wrap p { margin: 12px 0 0; max-width: 60ch; font-size: 17px; color: var(--ink-2); }
+.exams-levels-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr)); gap: 16px; margin-top: 16px;
+}
+.exam-level-card, .mock-exam-card, .formula-guide-card, .grading-card, .callout-card {
+  display: flex; flex-direction: column; gap: 10px; padding: 22px;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+  box-shadow: none; transform: none;
+}
+.exam-level-card:hover, .mock-exam-card:hover { transform: none; box-shadow: none; border-color: var(--ink-1); }
+.exam-level-card::before, .exam-level-card::after, .mock-exam-card::before { content: none; display: none; }
+.exam-level-header, .mock-card-top { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.exam-badge {
+  display: inline-flex; align-items: center; padding: 4px 10px; border: 0;
+  background: var(--ink-1); color: var(--paper); font-size: 13px; font-weight: 700;
+}
+.exam-level-type { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.exam-level-card h3, .mock-exam-card h3 { margin: 0; font-size: 23px; line-height: 1.2; font-weight: 700; color: var(--ink-1); }
+.exam-desc { margin: 0; font-size: 16px; color: var(--ink-2); }
+.exam-features-list { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; font-size: 15px; }
+.exam-features-list li { margin: 0; padding: 0 0 0 14px; border-left: 3px solid var(--yellow); background: none; color: var(--ink-1); }
+.exam-features-list li::before { content: none; display: none; }
+.exam-card-footer {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: auto; padding: 8px 0 0; border: 0;
+}
+.exam-doc-link {
+  order: 3; display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: none;
+  color: var(--ink-1); font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px;
+}
+.plan-steps-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 14px; margin-top: 16px;
+}
+.plan-step-card {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr); align-content: start; gap: 6px 14px; padding: 20px; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink-1); box-shadow: none;
+}
+.plan-step-num {
+  grid-row: span 3; flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+  background: var(--yellow); color: var(--on-yellow); font-weight: 800; font-size: 16px; border: 0;
+}
+.plan-step-card h3 { margin: 0; font-size: 18px; line-height: 1.25; font-weight: 700; color: var(--ink-1); }
+.plan-step-card p { margin: 0; font-size: 15px; color: var(--ink-2); }
+.plan-step-card a { color: var(--ink-1); font-weight: 600; text-decoration: underline; }
+/* Формульные листы VISC — тёмно-синяя полоса */
+.exams-formulas-callout { margin: 40px 0 0; padding: 0; }
+.exams-formulas-callout .callout-card, .formula-sheet-downloads-bar {
+  --ink-1: var(--bar-ink); --ink-2: var(--bar-ink-2); --paper: var(--bar); --sheet: var(--bar-sheet);
+  flex-direction: row; flex-wrap: wrap; align-items: center; gap: 20px 32px; padding: 26px 28px;
+  border: 0; background: var(--bar); color: var(--bar-ink);
+}
+.callout-icon { display: none; }
+.callout-body { flex: 1 1 420px; min-width: 0; }
+.callout-body h2, .callout-body h3 { margin: 0; color: var(--bar-ink); font-size: 24px; }
+.callout-body p { margin: 8px 0 0; color: var(--bar-ink-2); }
+.callout-links, .downloads-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.callout-links a, .downloads-buttons a, .download-pill {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px;
+  border: 2px solid var(--bar-ink); background: transparent; color: var(--bar-ink);
+  font-size: 15px; font-weight: 600; text-decoration: none;
+}
+.callout-links a:hover, .downloads-buttons a:hover, .download-pill:hover { background: var(--bar-ink); color: var(--bar); }
+.downloads-label { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--bar-ink-2); }
+
+/* ── 20 Пробные экзамены ──────────────────────────────────────────────── */
+.mock-cards-stack { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+.mock-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+.mock-time, .mock-points, .mock-status-pill {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border: 0;
+  background: var(--blue-tint); color: var(--ink-1); font-size: 13px; font-weight: 600; white-space: nowrap;
+}
+.mock-points { background: var(--yellow); color: var(--on-yellow); }
+.mock-summary { margin: 0; font-size: 16px; color: var(--ink-2); }
+.mock-parts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 12px; margin-top: 4px; }
+.mock-part { padding: 14px 16px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink-1); }
+.mock-part-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.part-tag { font-weight: 700; background: none; padding: 0; color: var(--ink-1); }
+.part-points { font-size: 14px; color: var(--ink-2); }
+.part-calc-badge { padding: 2px 10px; border: 0; font-size: 13px; font-weight: 700; }
+.part-calc-badge.no-calc { background: var(--red-tint); color: var(--red-ink); }
+.part-calc-badge.has-calc { background: var(--blue-tint); color: var(--ink-1); }
+.mock-part p { margin: 6px 0 0; font-size: 15px; color: var(--ink-2); }
+.formula-guide-banner { display: flex; align-items: center; gap: 12px; }
+.guide-badge-big { display: none; }
+.formula-comparison-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 16px; margin-top: 16px; }
+.formula-column { padding: 20px 22px 22px; border: 2px solid var(--ink-1); background: var(--sheet); }
+.column-header { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; padding: 8px 12px; }
+.formula-column.has-formulas .column-header { background: var(--blue-tint); }
+.formula-column.missing-formulas .column-header { background: var(--red-tint); color: var(--red-ink); }
+.col-icon { display: none; }
+.col-desc { font-size: 15px; color: var(--ink-2); }
+.formula-check-list, .formula-cross-list { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 0; padding: 0; list-style: none; font-size: 15px; line-height: 1.5; }
+.formula-check-list li, .formula-cross-list li { padding: 0; background: none; border: 0; }
+.formula-check-list li::before, .formula-cross-list li::before { content: none; display: none; }
+.grading-table-wrap { margin-top: 16px; border: 2px solid var(--ink-1); background: var(--sheet); overflow-x: auto; }
+.grading-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.grading-table th {
+  padding: 14px 20px; text-align: left; background: var(--paper); color: var(--ink-2);
+  font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; border: 0;
+}
+.grading-table td { padding: 14px 20px; border: 0; border-top: 1px solid var(--rule); color: var(--ink-1); background: none; }
+.grading-table tr.fail-row td:first-child { color: var(--red-ink); font-weight: 700; }
+.grading-table tr.success-row td { background: none; }
+/* Экзаменационный таймер в шапке — тёмно-синяя панель */
+.timer-topbar-btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.timer-topbar-btn .timer-icon { display: none; }
+.timer-dropdown:not([hidden]) {
+  --ink-1: var(--bar-ink); --ink-2: var(--bar-ink-2); --paper: var(--bar); --sheet: var(--bar-sheet);
+  display: flex; flex-direction: column; gap: 12px; padding: 20px; min-width: 340px;
+  border: 2px solid var(--bar-ink); background: var(--bar); color: var(--bar-ink); box-shadow: none;
+}
+.timer-dropdown-title { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--bar-ink-2); }
+.timer-close-btn { border: 0; background: none; color: var(--bar-ink); font-size: 24px; }
+.timer-big-display { font-size: 64px; line-height: 1; font-weight: 800; color: var(--yellow); font-variant-numeric: tabular-nums; background: none; }
+.timer-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.timer-preset-btn {
+  min-height: 40px; padding: 0 10px; border: 2px solid #5C6B8C; background: transparent; color: var(--bar-ink);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.timer-preset-btn.active { border-color: var(--yellow); background: var(--yellow); color: var(--on-yellow); }
+.timer-controls { display: flex; gap: 8px; }
 
 }
