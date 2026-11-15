@@ -1245,7 +1245,6 @@ function markCardSolved(card) {
   badge.textContent = (window.MathTasks.t || (k => k))('solved_badge');
   // Перед значками справа, а не за ними.
   meta.insertBefore(badge, meta.querySelector('.task-actions'));
-  nbMarkCurrentTask(card.closest('#list-tasks'));
 }
 
 /* «Начала», страница задачи: условие с ответом — на доске слева, подсказка,
@@ -1291,12 +1290,54 @@ function nbTopicBar(topic) {
 }
 
 /* «Начала», список темы: первая нерешённая задача — «текущая», она на доске. */
-function nbMarkCurrentTask(container) {
+/* Остальные задачи на странице темы свёрнуты в строки (CSS); у нерешённых
+   кнопка «Решать» ставит задачу на доску прямо здесь. Решённая остаётся на
+   доске с «Отлично!» и кнопкой «Следующая задача» — та ставит на доску
+   следующую нерешённую (after — только что решённая). */
+function nbMarkCurrentTask(container, after) {
   if (!container) return;
-  const cards = [...container.querySelectorAll(':scope > article.task, :scope > .task-list-chunk > article.task')];
-  cards.forEach(card => card.classList.remove('nb-current'));
-  cards.find(card => !card.querySelector('.task-solved-badge'))?.classList.add('nb-current');
+  const cards = [...container.querySelectorAll(':scope > article.task')];
+  if (!cards.length) return;
+  const unsolved = card => !card.querySelector('.task-solved-badge');
+  let current = cards.find(card => card.classList.contains('nb-current') && unsolved(card));
+  if (!current) {
+    const start = after ? cards.indexOf(after) + 1 : 0;
+    current = cards.slice(start).find(unsolved) || cards.find(unsolved);
+  }
+  const label = (window.MathTasks.t || (k => k))('nb_solve');
+  const nextLabel = (window.MathTasks.t || (k => k))('nb_next_task');
+  cards.forEach(card => {
+    card.classList.toggle('nb-current', card === current);
+    if (!card.querySelector(':scope > .nb-solve-btn')) {
+      card.insertAdjacentHTML('beforeend', `<button type="button" class="nb-solve-btn" data-nb-solve>${escapeHtml(label)} →</button>`
+        + `<button type="button" class="nb-next-btn" data-nb-next>${escapeHtml(nextLabel)} →</button>`);
+    }
+  });
 }
+
+document.addEventListener('click', event => {
+  const next = event.target.closest?.('[data-nb-next]');
+  if (next) {
+    const card = next.closest('article.task');
+    const container = card?.parentElement;
+    if (!card || !container) return;
+    card.classList.remove('nb-current');
+    nbMarkCurrentTask(container, card);
+    const current = container.querySelector(':scope > article.task.nb-current');
+    current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    current?.querySelector('input.self-check-input:not([disabled])')?.focus({ preventScroll: true });
+    return;
+  }
+  const button = event.target.closest?.('[data-nb-solve]');
+  if (!button) return;
+  const card = button.closest('article.task');
+  const container = card?.parentElement;
+  if (!card || !container) return;
+  container.querySelectorAll(':scope > article.task.nb-current').forEach(other => other.classList.remove('nb-current'));
+  card.classList.add('nb-current');
+  card.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  card.querySelector('input.self-check-input:not([disabled])')?.focus({ preventScroll: true });
+});
 
 /* Строка под полем ответа: что и когда откроется. Пустая — всё открыто. */
 function revealLockText(task, attempts) {

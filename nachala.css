@@ -1033,15 +1033,37 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 .nb-tbar-title:hover { text-decoration: underline; text-underline-offset: 4px; }
 .nb-tbar-progress { font-size: 15px; color: var(--ink-2); }
 
-/* Список темы: решённая задача — строка (номер, условие, «Решено»);
-   открыть целиком можно по номеру. */
-#view-list[data-nb-page="topic"] #list-tasks > article.task:has(.task-solved-badge) {
+/* Список темы: все задачи, кроме текущей (на доске), — строки: номер,
+   сложность и условие; у решённой — «Решено», у нерешённой — «Решать →»,
+   кнопка ставит её на доску прямо здесь. Открыть отдельно — по номеру. */
+#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 24px;
   margin: 0; padding: 22px 0; border: 0; border-top: 1px solid var(--rule); background: none;
 }
-#view-list[data-nb-page="topic"] #list-tasks > article.task:has(.task-solved-badge) + article.task:not(:has(.task-solved-badge)):not(.nb-current) { margin-top: 24px; }
-#view-list[data-nb-page="topic"] #list-tasks > article.task:has(.task-solved-badge) :is(.task-self-check, .task-self-assess, .task-actions-bar, .task-reveals-wrap, .task-tags-row, .task-figure) { display: none; }
-#view-list[data-nb-page="topic"] #list-tasks > article.task:has(.task-solved-badge) .task-condition-wrap { margin-top: 10px; }
-#view-list[data-nb-page="topic"] #list-tasks > article.task:has(.task-solved-badge) .task-condition { font-size: 20px; color: var(--ink-2); }
+#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) > :not(.nb-solve-btn) { grid-column: 1; }
+#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) :is(.task-self-check, .task-self-assess, .task-actions-bar, .task-reveals-wrap, .task-tags-row, .task-figure, .task-actions) { display: none; }
+#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) .task-condition-wrap { margin-top: 10px; }
+#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) .task-condition { font-size: 20px; line-height: 1.45; }
+#view-list[data-nb-page="topic"] #list-tasks > article.task:has(.task-solved-badge):not(.nb-current) .task-condition { color: var(--ink-2); }
+#view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current + article.task { border-top: 0; }
+.nb-solve-btn, .nb-next-btn { display: none; }
+/* Только что решённая задача на доске: «Следующая задача» */
+#view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current:has(.task-solved-badge) > .nb-next-btn {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 24px; min-height: 52px; padding: 0 24px;
+  border: 2px solid var(--chalk); background: var(--chalk); color: #14213D;
+  font-size: 17px; font-weight: 600; cursor: pointer;
+}
+#view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current:has(.task-solved-badge) > .nb-next-btn:hover { background: transparent; color: var(--chalk); }
+#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current):not(:has(.task-solved-badge)) > .nb-solve-btn {
+  display: inline-flex; align-items: center; gap: 8px; grid-column: 2; grid-row: 1 / span 2;
+  min-height: 44px; padding: 0 18px; border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 16px; font-weight: 600; white-space: nowrap; cursor: pointer;
+}
+#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) > .nb-solve-btn:hover { background: var(--ink-1); color: var(--paper); }
+@media (max-width: 720px) {
+  #view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) { grid-template-columns: minmax(0, 1fr); row-gap: 12px; }
+  #view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current):not(:has(.task-solved-badge)) > .nb-solve-btn { grid-column: 1; grid-row: auto; justify-self: start; }
+}
 
 /* ── 16 Страница темы и задачи: шапка, крошки, инструменты списка ─────── */
 .breadcrumb {
