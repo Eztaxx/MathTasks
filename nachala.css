@@ -982,6 +982,10 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
   font-family: var(--f-serif); font-size: 21px; line-height: 1.55; color: var(--ink-2);
 }
 #list-description:empty { display: none; }
+.list-header > p:not(:empty) {
+  flex: 1 1 100%; order: 3; max-width: 56ch; margin: -8px 0 0; text-align: left;
+  font-family: var(--f-serif); font-size: 21px; line-height: 1.55; color: var(--ink-2);
+}
 .list-meta { flex: 2 1 320px; max-width: 460px; min-width: 0; order: 2; }
 .list-meta .grade-badge {
   display: inline-flex; align-items: center; height: 30px; padding: 0 10px;
@@ -1513,5 +1517,379 @@ input.trainer-input {
 }
 .timer-preset-btn.active { border-color: var(--yellow); background: var(--yellow); color: var(--on-yellow); }
 .timer-controls { display: flex; gap: 8px; }
+
+/* ── 21 Общие карточки страниц ────────────────────────────────────────── */
+/* Лист с рамкой: блоки прогресса, профиль, карточки контрольных и тегов */
+.progress-card, .progress-block, .profile-card, .cw-catalog-card, .tag-catalog-card,
+.cw-header-card, .cw-result-card, .cw-lock-card, .about-page {
+  padding: 20px 22px 22px; border: 2px solid var(--ink-1); border-radius: 0;
+  background: var(--sheet); color: var(--ink-1); box-shadow: none; transform: none;
+}
+.cw-catalog-card:hover, .tag-catalog-card:hover { transform: none; box-shadow: none; border-color: var(--ink-1); background: var(--sheet); }
+.list-header p, #list-description { font-family: var(--f-serif); }
+
+/* ── 22 Мой прогресс ──────────────────────────────────────────────────── */
+.progress-page { display: flex; flex-direction: column; gap: 20px; }
+.profile-card { margin: 0 0 20px; }
+.profile-card h2, .profile-card h3 { margin: 0; font-size: 21px; font-weight: 700; color: var(--ink-1); }
+.profile-card p { color: var(--ink-2); }
+.profile-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.profile-nick input, .profile-card input[type="text"] { height: 52px; padding: 0 14px; font-size: 18px; }
+.profile-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 12px; }
+.profile-note, .progress-note { font-size: 15px; color: var(--ink-2); }
+.progress-note { margin-top: 8px; padding-top: 18px; border-top: 1px solid var(--rule); }
+.progress-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px; }
+.progress-stat {
+  display: flex; flex-direction: column; gap: 2px; padding: 18px 20px;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1); box-shadow: none;
+}
+.progress-stat:nth-child(2) { background: var(--yellow); border-color: var(--yellow); color: var(--on-yellow); }
+.progress-stat:nth-child(2) .progress-stat-label, .progress-stat:nth-child(2) .progress-stat-sub { color: var(--on-yellow); }
+.progress-stat strong, .progress-stat b, .progress-stat-value { font-size: 46px; line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; color: inherit; }
+.progress-stat-label { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.progress-stat-sub { font-size: 15px; color: var(--ink-2); }
+.progress-block-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 14px; }
+.progress-block-head h2, .progress-block-head h3 { margin: 0; font-size: 21px; line-height: 1.25; font-weight: 700; color: var(--ink-1); }
+.progress-block-head a { margin-left: auto; color: var(--ink-1); font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+.progress-block-sub { font-size: 15px; color: var(--ink-2); }
+.progress-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 20px; }
+/* Активность — клетки по дням */
+.progress-strip { display: flex; justify-content: flex-start; gap: 5px; overflow-x: auto; padding-bottom: 4px; }
+.progress-strip-week { display: flex; flex: none; flex-direction: column; gap: 5px; width: auto; }
+.progress-day { display: block; width: 16px; height: 16px; border: 0; }
+.progress-day.l0, .progress-legend .l0 { background: var(--rule); }
+.progress-day.l1, .progress-legend .l1 { background: #B9C6E4; }
+.progress-day.l2, .progress-legend .l2 { background: #6F86C4; }
+.progress-day.l3, .progress-legend .l3 { background: #3D4A86; }
+.progress-day.l4, .progress-legend .l4 { background: var(--ink-1); }
+html.dark .progress-day.l1, html.dark .progress-legend .l1 { background: #2A3A66; }
+html.dark .progress-day.l2, html.dark .progress-legend .l2 { background: #4A62A8; }
+html.dark .progress-day.l3, html.dark .progress-legend .l3 { background: #6F86D8; }
+.progress-legend { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--ink-2); }
+.progress-legend i { display: block; width: 14px; height: 14px; }
+.progress-scope { display: inline-flex; gap: 0; padding: 0; border: 0; background: none; }
+.progress-scope-btn {
+  min-height: 42px; padding: 0 14px; border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 15px; font-weight: 600; cursor: pointer;
+}
+.progress-scope-btn + .progress-scope-btn { margin-left: -2px; }
+.progress-scope-btn.is-active { background: var(--ink-1); color: var(--paper); }
+.progress-subjects { display: flex; flex-direction: column; gap: 14px; }
+.progress-subject-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; }
+.progress-subject-name { font-size: 17px; font-weight: 700; color: var(--ink-1); }
+.progress-subject-count { font-size: 14px; color: var(--ink-2); }
+.progress-subject-bar { height: 12px; margin-top: 6px; border: 0; background: var(--rule); overflow: hidden; }
+.progress-subject-bar > *, .progress-subject-bar i { display: block; height: 100%; background: var(--ink-1); }
+.progress-subject-bar.is-warn > *, .progress-subject-bar.is-warn i { background: var(--red); }
+.progress-weak, .progress-recent {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 12px 0;
+  border: 0; border-top: 1px solid var(--rule); background: none;
+}
+.progress-weak-body { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; }
+.progress-weak-link {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px;
+  border: 2px solid var(--ink-1); color: var(--ink-1); font-size: 15px; font-weight: 600; text-decoration: none;
+}
+.progress-weak-link:hover { background: var(--ink-1); color: var(--paper); }
+.progress-outcome { font-size: 14px; font-weight: 700; color: var(--nb-blue); }
+.progress-outcome.is-wrong { color: var(--red-ink); }
+.progress-badges { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: 10px; }
+.progress-badge {
+  display: flex; flex-direction: column; gap: 2px; padding: 14px; border: 1px solid var(--rule);
+  background: var(--paper); color: var(--ink-1); box-shadow: none; filter: none; opacity: 1;
+}
+.progress-badge-icon {
+  display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin-bottom: 6px;
+  border-radius: 50%; background: var(--yellow); color: var(--on-yellow); font-size: 16px;
+}
+.progress-badge-count { font-size: 13px; color: var(--ink-2); }
+.progress-empty { padding: 20px; border: 2px dashed var(--rule-2); color: var(--ink-2); background: none; }
+
+/* ── 23 Контрольные работы ────────────────────────────────────────────── */
+.cw-catalog-list { display: flex; flex-direction: column; gap: 40px; }
+.cw-stage-heading { margin: 0 0 16px; font-size: 28px; line-height: 1.15; font-weight: 700; color: var(--ink-1); }
+.cw-catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 16px; }
+.cw-catalog-card { display: flex; flex-direction: column; gap: 8px; }
+.cw-cat-top { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; }
+.cw-cat-top .tag, .cw-cat-top .grade-badge {
+  padding: 0; background: none; border: 0; color: var(--ink-2);
+  font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+}
+.cw-cat-pill {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 10px; margin-left: auto;
+  border: 0; background: var(--blue-tint); color: var(--ink-1); font-size: 13px; font-weight: 600;
+}
+.cw-cat-title { margin: 0; font-size: 20px; line-height: 1.25; font-weight: 700; color: var(--ink-1); }
+.cw-cat-desc { margin: 0; font-size: 15px; color: var(--ink-2); }
+.cw-cat-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: auto; padding-top: 8px; border: 0; }
+.cw-cat-count { font-size: 14px; color: var(--ink-3); }
+.cw-cat-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.print-set-icon { display: none; }
+/* Сама работа: панель с таймером, задания на доске */
+.cw-header-card { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 32px; margin: 0 0 24px; }
+.cw-header-info { flex: 1 1 420px; min-width: 0; }
+.cw-badge {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border: 0;
+  background: var(--blue-tint); color: var(--ink-1); font-size: 13px; font-weight: 600;
+}
+.cw-guard-note { margin: 12px 0 0; padding: 12px 16px; border: 0; background: var(--red-tint); color: var(--red-ink); font-size: 15px; }
+.cw-header-timer {
+  display: flex; flex-direction: column; gap: 2px; padding: 16px 20px; border: 0;
+  background: var(--bar); color: var(--bar-ink);
+}
+.cw-timer-label { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--bar-ink-2); }
+.cw-timer-val { font-size: 48px; line-height: 1; font-weight: 800; color: var(--yellow); font-variant-numeric: tabular-nums; }
+.cw-sticky-bar {
+  --ink-1: var(--bar-ink); --ink-2: var(--bar-ink-2); --paper: var(--bar); --nb-blue: var(--yellow); --on-blue: var(--on-yellow);
+  border: 0; border-radius: 0; background: var(--bar); color: var(--bar-ink); box-shadow: none;
+}
+.cw-sticky-time { color: var(--yellow); font-weight: 800; font-variant-numeric: tabular-nums; }
+.cw-task-list { display: flex; flex-direction: column; gap: 28px; }
+.cw-task-card {
+  --sheet: var(--board); --paper: var(--board-deep);
+  --ink-1: var(--chalk); --ink-2: var(--chalk-2); --ink-3: var(--chalk-3);
+  --rule: #2F5A45; --rule-2: var(--board-frame); --nb-blue: var(--chalk); --on-blue: #14213D;
+  --blue-tint: #2A5541; --yellow: #2A5541; --on-yellow: var(--chalk); --yellow-tint: #244D3A;
+  --ink: var(--chalk); --muted: var(--chalk-2); --line: #2F5A45;
+  margin: 0; padding: 24px clamp(20px, 3.4vw, 40px) 32px;
+  border: 6px solid var(--board-edge); border-radius: 12px; background: var(--board); color: var(--chalk);
+  box-shadow: none;
+}
+.cw-task-answer-area, .cw-task-body { margin-top: 20px; padding: 0; border: 0; background: transparent; color: var(--chalk); }
+.cw-task-body { margin-top: 0; }
+.cw-tips { color: var(--chalk-3); }
+.cw-task-review { color: var(--chalk-2); }
+.cw-task-header { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; font-size: 16px; color: var(--chalk-3); }
+.cw-task-num { font-weight: 700; color: var(--chalk-2); background: none; padding: 0; }
+.cw-task-condition { margin-top: 16px; font-family: var(--f-serif); font-size: 24px; line-height: 1.45; color: var(--chalk); }
+.cw-answer-input-wrap { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.cw-input-label { font-family: var(--f-serif); font-size: 24px; color: var(--chalk); }
+input.cw-answer-input {
+  flex: 1 1 220px; max-width: 420px; height: 60px; padding: 0 16px;
+  border: 2px solid var(--board-frame); background: var(--board-deep); color: var(--chalk);
+  font-family: var(--f-serif); font-size: 24px;
+}
+.cw-task-card .math-kb-toggle { border-color: var(--board-frame); }
+.cw-actions-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 28px; }
+.cw-lock-card { text-align: center; }
+.cw-lock-icon { display: none; }
+.cw-lock-time { font-family: var(--f-serif); font-size: 48px; color: var(--ink-1); }
+.cw-result-card .cw-grade, .cw-result-card .cw-score-big { font-size: 72px; line-height: .9; font-weight: 700; }
+
+/* Окно «Вставка» над полем ответа — клавиши-знаки */
+.quick-math-bar:not([hidden]) {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 0 10px; margin: 0;
+  border: 0; border-bottom: 1px dashed var(--rule-2); background: none;
+}
+.quick-math-bar-label { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+.quick-math-btn {
+  min-width: 36px; height: 36px; padding: 0 8px; border: 1.5px solid var(--rule-2);
+  background: var(--sheet); color: var(--ink-1); font-family: var(--f-serif); font-size: 15px; box-shadow: none;
+}
+.quick-math-btn:hover { border-color: var(--ink-1); background: var(--yellow-tint); }
+
+/* ── 24 О сайте, кросс-теги, поиск ────────────────────────────────────── */
+#view-about .hero {
+  display: block; min-height: 0; margin: 0; padding: 32px 0 40px; border: 0; border-radius: 0;
+  background: none; text-align: left;
+}
+#view-about .hero::after { content: none; }
+#view-about .hero h1 { margin: 0; font-size: clamp(40px, 5vw, 64px); line-height: 1.02; font-weight: 700; letter-spacing: -0.03em; color: var(--ink-1); }
+#view-about .hero p { margin: 16px 0 0; max-width: 60ch; font-family: var(--f-serif); font-size: 21px; color: var(--ink-2); }
+#view-about .hero-badges { justify-content: flex-start; gap: 12px; margin-top: 28px; }
+#view-about .hero-badge { padding: 14px 16px; border: 2px solid var(--ink-1); background: var(--sheet); box-shadow: none; transform: none; }
+#view-about .hero-badge-icon { display: none; }
+.about-page { max-width: 760px; padding: 28px; }
+.about-page h2 { margin: 28px 0 10px; font-size: 28px; font-weight: 700; color: var(--ink-1); }
+.about-page p { font-size: 17px; line-height: 1.6; color: var(--ink-2); }
+.tags-catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 16px; }
+.tag-catalog-card { display: flex; flex-direction: column; gap: 8px; text-decoration: none; }
+.tag-catalog-header { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.tag-catalog-chip {
+  display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px;
+  border: 0; background: var(--yellow); color: var(--on-yellow); font-size: 15px; font-weight: 700;
+}
+.tag-catalog-alt { font-size: 14px; color: var(--ink-3); }
+.tag-catalog-desc { margin: 0; font-size: 15px; color: var(--ink-2); }
+.search-count { font-size: 16px; color: var(--ink-2); }
+.empty-state { color: var(--ink-2); }
+
+/* ── 25 Дуэль ─────────────────────────────────────────────────────────── */
+.duel-main, .duel-board, .duel-card, .duel-link-card, .duel-share-card, .duel-invite {
+  padding: 20px 22px 22px; border: 2px solid var(--ink-1); border-radius: 0;
+  background: var(--sheet); color: var(--ink-1); box-shadow: none;
+}
+.duel-main { display: flex; flex-direction: column; gap: 20px; }
+.duel-player { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 16px; padding: 0; border: 0; background: none; }
+.duel-avatar {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 44px; height: 44px; border: 2px solid var(--ink-1); border-radius: 0;
+  background: var(--yellow-tint); font-size: 24px; box-shadow: none;
+}
+.duel-avatar-lg { width: 64px; height: 64px; font-size: 34px; }
+.duel-avatar.is-button { cursor: pointer; }
+.duel-avatar.is-button:hover { background: var(--yellow); }
+.duel-player-body { flex: 1 1 320px; min-width: 0; }
+.duel-player-body .trainer-label { width: auto; padding: 0; }
+.duel-nick-field { display: flex; gap: 8px; margin-top: 6px; max-width: 420px; }
+.duel-nick-field input { flex: 1; height: 52px; padding: 0 14px; font-size: 18px; font-weight: 600; }
+.duel-nick-new {
+  display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; flex: none;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); font-size: 20px; cursor: pointer;
+}
+.duel-nick-note { margin: 8px 0 0; font-size: 14px; color: var(--ink-2); }
+.duel-best {
+  display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border: 0;
+  background: var(--yellow); color: var(--on-yellow); font-size: 15px; font-weight: 700;
+}
+.duel-best.is-empty { background: var(--blue-tint); color: var(--ink-2); font-weight: 600; }
+.duel-avatar-picker:not([hidden]) { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px; border: 1px solid var(--rule); background: var(--paper); }
+.duel-modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.duel-mode {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 0; padding: 18px 20px;
+  border: 2px solid var(--ink-1); border-radius: 0; background: transparent; color: var(--ink-1);
+  text-align: left; cursor: pointer; box-shadow: none; transform: none;
+}
+.duel-mode:hover { background: var(--yellow-tint); transform: none; box-shadow: none; }
+.duel-mode.is-primary { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
+.duel-mode.is-primary:hover { background: var(--ink-1); border-color: var(--ink-1); color: var(--paper); }
+.duel-mode.is-daily { background: var(--yellow); border-color: var(--ink-1); color: var(--on-yellow); }
+.duel-mode-icon { display: none; }
+.duel-mode-title { font-size: 19px; font-weight: 700; color: inherit; }
+.duel-mode-desc { font-size: 15px; color: inherit; opacity: .85; }
+.duel .trainer-categories-row {
+  display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 10px 24px;
+  margin: 0; padding: 18px 0 0; border: 0; border-top: 1px solid var(--rule); background: none;
+}
+.duel-aside { display: flex; flex-direction: column; gap: 20px; }
+.duel-board-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 12px; }
+.duel-board-head h2, .duel-board h2 { margin: 0; font-size: 21px; font-weight: 700; color: var(--ink-1); }
+.duel-board-filters { display: flex; flex-wrap: wrap; gap: 0; }
+.duel-board-period {
+  min-height: 40px; padding: 0 12px; border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.duel-board-period + .duel-board-period { margin-left: -2px; }
+.duel-board-period.active, .duel-board-period.is-active, .duel-board-period[aria-pressed="true"] { background: var(--ink-1); color: var(--paper); }
+.duel-board-list { margin: 0; padding: 0; list-style: none; }
+.duel-board-list li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border: 0; border-top: 1px solid var(--rule); background: none; }
+.duel-board-note, .duel-ladder-note { font-size: 14px; color: var(--ink-2); }
+/* Игра: счёт и время сверху, пример на доске */
+.duel-hud { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; padding: 0; border: 0; background: none; }
+.duel-hud-main { font-size: 48px; line-height: 1; font-weight: 700; color: var(--ink-1); font-variant-numeric: tabular-nums; }
+.duel-hud-sub { font-size: 15px; color: var(--ink-2); }
+.duel-strip { display: flex; align-items: center; gap: 12px; padding: 12px 0; border: 0; background: none; }
+.duel-strip-score { font-size: 28px; font-weight: 700; color: var(--ink-1); }
+.duel-strip-bars { flex: 1; height: 14px; border: 2px solid var(--ink-1); background: transparent; }
+.duel-ring-track { stroke: var(--rule); }
+.duel-ring-fill { stroke: var(--ink-1); }
+.duel-question {
+  margin-top: 20px; padding: 32px 40px; text-align: center;
+  border: 6px solid var(--board-edge); border-radius: 12px; background: var(--board); color: var(--chalk);
+  font-family: var(--f-serif); font-size: clamp(48px, 7vw, 96px); line-height: 1.1; box-shadow: none;
+}
+.duel-question .katex { color: var(--chalk); }
+.duel-form { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.duel-form input { width: 260px; height: 64px; font-family: var(--f-serif); font-size: 28px; text-align: center; }
+.duel-keypad button, .duel-key-ok {
+  height: 52px; border: 1.5px solid var(--ink-1); border-radius: 0; background: var(--sheet); color: var(--ink-1);
+  font-size: 22px; font-weight: 700; box-shadow: none;
+}
+.duel-key-ok { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
+.duel-tier, .duel-streak { font-size: 14px; font-weight: 600; color: var(--ink-2); background: none; border: 0; }
+/* Итог */
+.duel-outcome { margin: 0; font-size: clamp(40px, 5vw, 64px); line-height: 1.02; font-weight: 700; letter-spacing: -0.03em; color: var(--ink-1); }
+.duel-result-actions, .duel-link-actions, .duel-search-actions, .duel-invite-actions, .duel-share-row {
+  display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px;
+}
+.duel-notice { padding: 12px 16px; border: 0; background: var(--yellow-tint); color: var(--ink-1); }
+.duel-big-btn { min-height: 60px; padding: 0 28px; font-size: 18px; }
+.duel-search-time { font-size: 48px; font-weight: 700; color: var(--ink-1); font-variant-numeric: tabular-nums; }
+.duel-radar { filter: grayscale(1); }
+@media (max-width: 720px) { .duel-modes { grid-template-columns: 1fr; } }
+
+/* ── 26 Графопостроитель (страница и окно) ────────────────────────────── */
+.plot-main { width: 100%; max-width: 1280px; margin: 0 auto; padding: 40px clamp(16px, 4vw, 40px) 0; }
+.plot-bar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 0; margin: 0 0 16px;
+  border: 0; background: none; box-shadow: none;
+}
+.plotter-prefix { font-family: var(--f-serif); font-size: 26px; font-style: italic; color: var(--ink-1); }
+.plot-expr, #plotter-input {
+  flex: 1 1 320px; min-width: 0; height: 60px; padding: 0 16px;
+  border: 2px solid var(--ink-1); border-radius: 0; background: var(--sheet); color: var(--ink-1);
+  font-family: var(--f-serif); font-size: 24px;
+}
+.plot-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
+.plotter-presets-label { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.plotter-chip {
+  display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px;
+  border: 2px solid var(--ink-1); border-radius: 0; background: transparent; color: var(--ink-1);
+  font-family: var(--f-serif); font-size: 16px; cursor: pointer; box-shadow: none;
+}
+.plotter-chip:hover { background: var(--yellow-tint); }
+.plotter-chip.active, .plotter-chip.is-active { background: var(--yellow); color: var(--on-yellow); }
+.plot-stage { padding: 0; border: 2px solid var(--ink-1); border-radius: 0; background: var(--sheet); box-shadow: none; overflow: hidden; }
+.plot-zoom, .plotter-zoom { display: flex; gap: 6px; }
+.plot-zoom button, .plotter-zoom button {
+  width: 44px; height: 44px; border: 2px solid var(--ink-1); border-radius: 0; background: var(--sheet); color: var(--ink-1);
+  font-size: 18px; font-weight: 700; box-shadow: none;
+}
+.plot-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin-top: 12px; font-size: 15px; color: var(--ink-2); }
+.plot-readout { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink-1); }
+.plot-hint { font-size: 14px; color: var(--ink-3); }
+.plot-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-family: var(--f-serif); }
+.plot-roots { font-size: 15px; color: var(--ink-2); }
+
+/* ── 27 Окна: формулы, печать, вход, подсказка, график ────────────────── */
+.formulas-dialog, .print-dialog, .plotter-dialog, .drill-hint-dialog, .account-dialog, .trainer-modal {
+  border: 2px solid var(--ink-1); border-radius: 0; background: var(--sheet); color: var(--ink-1); box-shadow: none;
+}
+.formulas-dialog-header, .plotter-dialog-header { display: flex; align-items: flex-start; gap: 16px; border: 0; background: none; }
+.formulas-dialog h2, .print-dialog h2, .plotter-dialog h2, .drill-hint-dialog h2, .trainer-modal h2 {
+  margin: 0; font-size: 26px; line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; color: var(--ink-1);
+}
+.dialog-close {
+  display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-left: auto; float: none;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); font-size: 22px; line-height: 1; cursor: pointer;
+}
+.dialog-close:hover { background: var(--ink-1); color: var(--paper); }
+.auth-dialog > .dialog-close, .auth-dialog form > .dialog-close { float: right; margin: 0 0 8px 16px; }
+.auth-dialog input { height: 48px; padding: 0 12px; font-size: 16px; }
+.auth-dialog label { font-size: 13px; font-weight: 600; letter-spacing: .06em; color: var(--ink-2); }
+.formulas-main-tabs { display: flex; gap: 0; padding: 0; margin: 16px 0; border: 0; background: none; }
+.formulas-main-tab, .formulas-tab {
+  flex: none; min-height: 44px; padding: 0 16px; border: 2px solid var(--ink-1); border-radius: 0;
+  background: transparent; color: var(--ink-1); font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: none;
+}
+.formulas-main-tab + .formulas-main-tab { margin-left: -2px; }
+.formulas-main-tab.active { background: var(--ink-1); color: var(--paper); }
+.formulas-nav { display: flex; flex-wrap: wrap; gap: 8px; border: 0; background: none; }
+.formulas-tab { font-weight: 600; }
+.formulas-tab.active { background: var(--yellow); color: var(--on-yellow); }
+.formula-sheets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 12px; }
+.formula-sheet-card {
+  display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 2px solid var(--ink-1); border-radius: 0;
+  background: var(--sheet); box-shadow: none;
+}
+.formula-sheet-badge {
+  align-self: flex-start; padding: 4px 10px; border: 0; border-radius: 0;
+  background: var(--ink-1); color: var(--paper); font-size: 13px; font-weight: 700;
+}
+.formula-sheet-info h3 { margin: 0; font-size: 19px; font-weight: 700; color: var(--ink-1); }
+.formula-sheet-info p { font-size: 14px; color: var(--ink-2); }
+.formula-sheet-meta { font-size: 13px; color: var(--ink-3); }
+.formula-sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.formulas-content { font-family: var(--f-serif); }
+/* Печать: переключатели и наборы */
+.print-toggle-btn, .print-set-btn {
+  min-height: 44px; padding: 0 14px; border: 2px solid var(--ink-1); border-radius: 0;
+  background: transparent; color: var(--ink-1); font-weight: 600;
+}
+.print-toggle-btn.active, .print-set-btn.active { background: var(--yellow); color: var(--on-yellow); }
+/* Плавающая кнопка «Формулы» */
+.formulas-fab, .floating-formulas-btn, #formulas-fab {
+  border: 2px solid var(--ink-1); border-radius: 0; background: var(--sheet); color: var(--ink-1); box-shadow: none;
+}
 
 }

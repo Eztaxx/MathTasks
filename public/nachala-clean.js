@@ -9,7 +9,7 @@
 (() => {
   const LEAD = /^(\s*)(?:[\p{Extended_Pictographic}\u2190-\u21FF\u2300-\u23FF\u2460-\u27BF\u2B00-\u2BFF\uFE0F\u200D]+\s*)+/u;
   const TARGETS = 'button, a, h1, h2, h3, summary, label, li, span, strong, p, div[data-i18n], div[data-i18n-html], .sheet-stopwatch';
-  const SKIP = '.katex, input, textarea, [contenteditable], .trainer-formula, .trainer-formula-task, .compact-drill-expr, .compact-drill-status, .feedback-icon, .numpad-key, .math, [data-keep-emoji]';
+  const SKIP = '.katex, input, textarea, [contenteditable], .trainer-formula, .trainer-formula-task, .compact-drill-expr, .compact-drill-status, .feedback-icon, .numpad-key, .progress-badge-icon, .duel-avatar, .duel-avatar-picker, .duel-nick-new, .duel-podium, .duel-rank, .math, [data-keep-emoji]';
 
   const cleanElement = el => {
     // Звук: скрипт пишет в значок 🔊 / 🔇 — переводим это в пометку на кнопке, значок рисует CSS.
