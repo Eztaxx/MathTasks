@@ -7123,8 +7123,77 @@ document.querySelector('#ssr-content')?.remove();
 window.MathTasksI18n?.applyTranslations(document);
 window.MathTasksI18n?.updateSwitcherUI();
 
+/* «Начала», первый заход: на главной, пока класс не выбран и экран не
+   закрывали, спрашиваем класс. Тех, кто пришёл по ссылке на тему или
+   задачу (из поиска, от учителя), не прерываем. */
+const START_SEEN_KEY = 'math-tasks:start-seen';
+function initStartPicker() {
+  const box = document.querySelector('#nb-start');
+  if (!box) return;
+  const onHome = ['/', '/ru', '/ru/'].includes(location.pathname) && !location.search;
+  let seen = false;
+  try { seen = localStorage.getItem(START_SEEN_KEY) === '1'; } catch {}
+  if (!onHome || seen || selectedGrade) return;
+
+  const tr = window.MathTasks.t || (k => k);
+  const go = box.querySelector('#nb-start-go');
+  const hint = box.querySelector('#nb-start-hint');
+  let picked = '';
+
+  const close = () => {
+    try { localStorage.setItem(START_SEEN_KEY, '1'); } catch {}
+    box.hidden = true;
+    document.body.classList.remove('nb-start-open');
+    document.removeEventListener('keydown', onKey);
+    document.querySelector('#nb-hero-title')?.focus?.();
+  };
+  const renderGo = () => {
+    go.hidden = !picked;
+    hint.hidden = Boolean(picked);
+    if (picked) go.textContent = `${tr('nb_start_go', { grade: gradeLabel(parseGradeValue(picked)) })} →`;
+  };
+  const onKey = event => { if (event.key === 'Escape') close(); };
+
+  box.querySelectorAll('[data-start-grade]').forEach(button => {
+    const value = button.dataset.startGrade;
+    if (/^\d$/.test(value)) button.setAttribute('aria-label', gradeLabel(Number(value)));
+    button.addEventListener('click', () => {
+      picked = value;
+      box.querySelectorAll('[data-start-grade]').forEach(b => {
+        const on = b.dataset.startGrade === picked;
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      renderGo();
+    });
+    button.addEventListener('dblclick', () => go.click());
+  });
+  go.addEventListener('click', () => {
+    if (!picked) return;
+    const select = document.querySelector('#topbar-grade-select');
+    close();
+    if (select) {
+      select.value = picked;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+  box.querySelector('#nb-start-all')?.addEventListener('click', close);
+  // Язык — через тот же переключатель, что в шапке: там вся логика адресов /ru/.
+  box.querySelectorAll('[data-start-lang]').forEach(button => {
+    button.addEventListener('click', () => document.querySelector(`#lang-switcher [data-lang="${button.dataset.startLang}"]`)?.click());
+  });
+  window.addEventListener('languagechange', renderGo);
+
+  box.hidden = false;
+  document.body.classList.add('nb-start-open');
+  document.addEventListener('keydown', onKey);
+  renderGo();
+  box.querySelector('[data-start-grade]')?.focus();
+}
+
 renderGradeControls();
 renderHeadings();
+initStartPicker();
 (async () => {
   await loadCatalog();
   await route();

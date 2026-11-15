@@ -435,6 +435,53 @@
     </footer>
   </main>
 
+  <!-- Первый заход на главную: выбор класса (app.js, initStartPicker). -->
+  <div class="nb-start" id="nb-start" role="dialog" aria-modal="true" aria-labelledby="nb-start-title" hidden>
+    <header class="nb-start-head">
+      <span class="nb-logo">
+        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect x="2" y="20" width="18" height="18" fill="var(--fb)"/><circle cx="29" cy="11" r="9" fill="var(--fy)"/><path d="M22 38 L38 38 L30 22 Z" fill="var(--fr)"/></svg>
+        <span>MathTasks</span>
+      </span>
+      <div class="nb-start-lang" role="group" aria-label="Valodas izvēle / Выбор языка" data-i18n-aria="lang_switcher">
+        <button type="button" class="lang-btn" data-lang="lv" data-start-lang="lv">LV</button>
+        <button type="button" class="lang-btn" data-lang="ru" data-start-lang="ru">RU</button>
+      </div>
+    </header>
+    <div class="nb-start-body">
+      <span class="nb-eyebrow" data-i18n="nb_start_eyebrow">Сборник задач по математике · Skola2030</span>
+      <h1 id="nb-start-title" data-i18n="nb_start_title">В каком вы классе?</h1>
+      <p class="nb-start-lead" data-i18n="nb_start_lead">Покажем темы и задачи только вашего класса. Поменять класс можно в любой момент.</p>
+
+      <h2 class="nb-eyebrow" id="nb-start-basic" data-i18n="nb_start_basic">Основная школа</h2>
+      <div class="nb-start-grades" role="group" aria-labelledby="nb-start-basic">
+        <button type="button" class="nb-start-grade" data-start-grade="1">1</button>
+        <button type="button" class="nb-start-grade" data-start-grade="2">2</button>
+        <button type="button" class="nb-start-grade" data-start-grade="3">3</button>
+        <button type="button" class="nb-start-grade" data-start-grade="4">4</button>
+        <button type="button" class="nb-start-grade" data-start-grade="5">5</button>
+        <button type="button" class="nb-start-grade" data-start-grade="6">6</button>
+        <button type="button" class="nb-start-grade" data-start-grade="7">7</button>
+        <button type="button" class="nb-start-grade" data-start-grade="8">8</button>
+        <button type="button" class="nb-start-grade" data-start-grade="9">9</button>
+      </div>
+
+      <h2 class="nb-eyebrow" id="nb-start-high" data-i18n="nb_start_high">Средняя школа</h2>
+      <div class="nb-start-levels" role="group" aria-labelledby="nb-start-high">
+        <button type="button" class="nb-start-level" data-start-grade="visparigais"><b>Vispārīgais līmenis</b><span data-i18n="nb_start_visp">Общий уровень</span></button>
+        <button type="button" class="nb-start-level" data-start-grade="matematika-1"><b>Matemātika I</b><span data-i18n="nb_start_m1">Оптимальный уровень</span></button>
+        <button type="button" class="nb-start-level" data-start-grade="matematika-2"><b>Matemātika II</b><span data-i18n="nb_start_m2">Углублённый уровень</span></button>
+      </div>
+
+      <div class="nb-start-actions">
+        <button type="button" class="nb-btn nb-btn-blue nb-start-go" id="nb-start-go" hidden></button>
+        <p class="nb-start-hint" id="nb-start-hint" data-i18n="nb_start_hint">Нажмите на свой класс — откроются его темы.</p>
+        <button type="button" class="nb-start-all" id="nb-start-all" data-i18n="nb_start_all">Показать все классы</button>
+      </div>
+
+      <p class="nb-start-note" data-i18n="nb_start_note">Выбор класса хранится в этом браузере. Регистрация не нужна.</p>
+    </div>
+  </div>
+
   <dialog class="auth-dialog" id="auth-dialog" aria-labelledby="auth-dialog-title">
     <button class="dialog-close" type="button" aria-label="Закрыть" data-i18n-aria="dialog_close">×</button>
     <form id="login-form">
