@@ -4317,6 +4317,159 @@ document.addEventListener('click', event => {
   showProgress();
 });
 
+/* ── «Спираль прогресса»: неделя как спираль Феодора ─────────────────
+   Каждая решённая за неделю задача достраивает прямоугольный треугольник
+   с внешним катетом 1: от центра до n-й вершины ровно √(n + 1). Шестнадцать
+   треугольников ложатся без наложения — это виток; семнадцатый начинает
+   новый, а собранный уходит в «Собранные витки». Цвет треугольника — день
+   недели; выбранный день подсвечивается жёлтым. Данные — счётчик решений
+   по дням (math-tasks:activity), неделя с понедельника. */
+const SPIRAL_DAY_COLORS = ['#2F5BEA', '#00A3A3', '#22A55B', '#F08C00', '#D6342B', '#8E4EC6', '#14213D'];
+const SPIRAL_LIGHT_DAYS = new Set([1, 2, 3]);
+let spiralDay = -1;
+
+function spiralWeek() {
+  const lib = window.MathTasksLib;
+  const keyOf = date => (lib?.localDateKey ? lib.localDateKey(date) : date.toISOString().slice(0, 10));
+  const now = new Date();
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+  const activity = getActivity();
+  const todayKey = keyOf(now);
+  return Array.from({ length: 7 }, (_, d) => {
+    const date = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + d);
+    const key = keyOf(date);
+    return { date, key, count: Number(activity[key]) || 0, isToday: key === todayKey, isFuture: key > todayKey };
+  });
+}
+
+function spiralVertices() {
+  const V = [[1, 0]];
+  for (let k = 1; k <= 16; k++) {
+    const p = V[k - 1];
+    const r = Math.sqrt(k);
+    V.push([p[0] - p[1] / r, p[1] + p[0] / r]);
+  }
+  return V;
+}
+
+function renderSpiralBlock() {
+  const tr = window.MathTasks.t || (k => k);
+  const week = spiralWeek();
+  const total = week.reduce((sum, day) => sum + day.count, 0);
+  const ends = [];
+  week.reduce((acc, day, d) => { ends[d] = acc + day.count; return ends[d]; }, 0);
+  const dayOf = k => { for (let d = 0; d < 7; d++) if (k <= ends[d]) return d; return 6; };
+  const full = total > 0 ? Math.floor((total - 1) / 16) : 0;
+  const n = total - full * 16;
+  const offset = full * 16;
+  const V = spiralVertices();
+  const pt = p => `${p[0].toFixed(3)} ${(-p[1]).toFixed(3)}`;
+  const tri = k => `M0 0L${pt(V[k - 1])}L${pt(V[k])}Z`;
+  const X = x => (((x + 3.1) / 7.6) * 100).toFixed(2);
+  const Y = y => (((-y + 2.3) / 6.2) * 100).toFixed(2);
+
+  const paths = Array(7).fill('');
+  let yellow = '';
+  let ghost = '';
+  const labels = [];
+  for (let k = 1; k <= 16; k++) {
+    if (k > n) { ghost += tri(k); continue; }
+    const g = offset + k;
+    const d = dayOf(g);
+    if (d === spiralDay) yellow += tri(k); else paths[d] += tri(k);
+    const u = V[k - 1];
+    const w = V[k];
+    const cls = d === spiralDay ? 'is-y' : (SPIRAL_LIGHT_DAYS.has(d) ? 'is-l' : '');
+    labels.push(`<span class="nb-spiral-lb ${cls}" style="left:${X((u[0] + w[0]) * 0.37)}%;top:${Y((u[1] + w[1]) * 0.37)}%">${g}</span>`);
+  }
+  if (n > 0) {
+    const e0 = V[n - 1];
+    const e1 = V[n];
+    const mx = (e0[0] + e1[0]) / 2;
+    const my = (e0[1] + e1[1]) / 2;
+    const ml = Math.hypot(mx, my);
+    labels.push(`<span class="nb-spiral-lb is-out" style="left:${X(mx + 0.26 * mx / ml)}%;top:${Y(my + 0.26 * my / ml)}%">1</span>`);
+    const cs = Math.cos(0.122);
+    const sn = Math.sin(0.122);
+    const hx = e1[0] * 0.62;
+    const hy = e1[1] * 0.62;
+    labels.push(`<span class="nb-spiral-lb is-out" style="left:${X(hx * cs - hy * sn)}%;top:${Y(hx * sn + hy * cs)}%">√${n + 1}</span>`);
+  }
+  const svgPaths = (list, highlight, stroke) => list.map((d, i) => (d ? `<path d="${d}" fill="${SPIRAL_DAY_COLORS[i]}" stroke="#FFFFFF" stroke-width="${stroke}" stroke-linejoin="round"/>` : '')).join('')
+    + (highlight ? `<path d="${highlight}" fill="var(--yellow)" stroke="#FFFFFF" stroke-width="${stroke}" stroke-linejoin="round"/>` : '');
+
+  const q = Math.round(Math.sqrt(n + 1));
+  const hyp = n === 0 ? '—' : (q * q === n + 1 ? `√${n + 1} = ${q}` : `√${n + 1} ≈ ${Math.sqrt(n + 1).toFixed(2).replace('.', ',')}`);
+  const word = count => countLabel('topic_tasks', count).replace(/^\d+\s*/, '');
+
+  const minis = [];
+  for (let sp = 0; sp < full; sp++) {
+    const m = Array(7).fill('');
+    let my = '';
+    for (let k = 1; k <= 16; k++) {
+      const d = dayOf(sp * 16 + k);
+      if (d === spiralDay) my += tri(k); else m[d] += tri(k);
+    }
+    minis.push(`<figure class="nb-spiral-mini">
+      <svg viewBox="-3.1 -2.3 7.6 6.2" role="img" aria-label="${escapeHtml(tr('nb_spiral_coil', { n: sp + 1 }))}">${svgPaths(m, my, 0.05)}</svg>
+      <figcaption><b>${escapeHtml(tr('nb_spiral_coil', { n: sp + 1 }))}</b><span>${escapeHtml(tr('nb_spiral_range', { from: sp * 16 + 1, to: sp * 16 + 16 }))}</span></figcaption>
+    </figure>`);
+  }
+
+  const dayNames = week.map(day => day.date.toLocaleDateString(progressLocale(), { weekday: 'short' }));
+  const dayLong = week.map(day => day.date.toLocaleDateString(progressLocale(), { weekday: 'long' }));
+  const days = week.map((day, d) => {
+    const cls = ['nb-spiral-day', !day.count ? 'is-empty' : '', d === spiralDay ? 'is-on' : ''].filter(Boolean).join(' ');
+    return `<button type="button" class="${cls}" data-nb-spiral-day="${d}" aria-pressed="${d === spiralDay}" aria-label="${escapeHtml(`${dayLong[d]}: ${countLabel('topic_tasks', day.count)}`)}"${day.isFuture ? ' disabled' : ''}>
+      <span class="dn">${day.count}</span><span class="dl">${escapeHtml(dayNames[d])}</span><i style="background:${SPIRAL_DAY_COLORS[d]}"></i>
+    </button>`;
+  }).join('');
+  const selText = spiralDay >= 0
+    ? tr('nb_spiral_day_sel', { day: dayLong[spiralDay], count: countLabel('topic_tasks', week[spiralDay].count) })
+    : tr('nb_spiral_day_hint');
+
+  const milestones = [[3, 4, 2], [8, 9, 3], [15, 16, 4]].map(([need, sq, root]) => {
+    const on = total >= need;
+    return `<div class="nb-spiral-ms${on ? ' is-on' : ''}"><span class="nb-serif">√${sq} = ${root}</span><span class="mt">${escapeHtml(countLabel('topic_tasks', need))}</span>${on ? '<span class="ck" aria-hidden="true">✓</span>' : ''}</div>`;
+  }).join('');
+
+  const left = 16 - n;
+  return `<section class="progress-block progress-card nb-spiral" aria-labelledby="nb-spiral-title">
+    <div class="nb-spiral-main">
+      <div class="nb-spiral-copy">
+        <span class="nb-eyebrow">${escapeHtml(tr('nb_spiral_eyebrow'))}</span>
+        <h2 id="nb-spiral-title"><span class="nb-spiral-n">${total}</span> <span>${escapeHtml(tr('nb_spiral_week', { word: word(total) }))}</span></h2>
+        <p class="nb-spiral-coil">${escapeHtml(tr('nb_spiral_current', { n: full + 1, k: n }))}</p>
+        <p class="nb-spiral-hyp"><span class="nb-serif">${escapeHtml(hyp)}</span> <span>${escapeHtml(tr('nb_spiral_hyp'))}</span></p>
+        <p class="nb-spiral-explain">${escapeHtml(tr('nb_spiral_explain'))}</p>
+        <p class="nb-spiral-left">${escapeHtml(n >= 16 ? tr('nb_spiral_full') : tr('nb_spiral_left', { count: countLabel('topic_tasks', left) }))}</p>
+        <a class="nb-btn nb-btn-blue" href="${selectedGrade ? '/set' : '/'}">${escapeHtml(tr('nb_spiral_more'))} →</a>
+      </div>
+      <div class="nb-spiral-fig">
+        <svg viewBox="-3.1 -2.3 7.6 6.2" role="img" aria-label="${escapeHtml(tr('nb_spiral_fig', { count: total }))}">
+          <path d="${ghost}" fill="none" stroke="var(--rule-2)" stroke-width="0.022" stroke-dasharray="0.09 0.08"/>
+          ${svgPaths(paths, yellow, 0.036)}
+          <circle cx="0" cy="0" r="0.07" fill="var(--ink-1)"/>
+        </svg>
+        ${labels.join('')}
+      </div>
+    </div>
+    ${minis.length ? `<div class="nb-spiral-section"><h3>${escapeHtml(tr('nb_spiral_minis'))}</h3><p>${escapeHtml(tr('nb_spiral_minis_text', { n: full }))}</p><div class="nb-spiral-minis">${minis.join('')}</div></div>` : ''}
+    <div class="nb-spiral-section"><h3>${escapeHtml(tr('nb_spiral_days'))}</h3><p>${escapeHtml(selText)}</p><div class="nb-spiral-days">${days}</div></div>
+    <div class="nb-spiral-section"><h3>${escapeHtml(tr('nb_spiral_int'))}</h3><p>${escapeHtml(tr('nb_spiral_int_text'))}</p><div class="nb-spiral-mss">${milestones}</div></div>
+  </section>`;
+}
+
+document.addEventListener('click', event => {
+  const button = event.target.closest?.('[data-nb-spiral-day]');
+  if (!button) return;
+  const d = Number(button.dataset.nbSpiralDay);
+  spiralDay = spiralDay === d ? -1 : d;
+  const block = document.querySelector('.nb-spiral');
+  if (block) block.outerHTML = renderSpiralBlock();
+  document.querySelector(`[data-nb-spiral-day="${d}"]`)?.focus();
+});
+
 function showProgress() {
   showView('progress');
   window.MathTasksProfile?.renderCard();
@@ -4381,6 +4534,7 @@ function showProgress() {
   root.innerHTML = [
     renderProgressStats(s),
     empty,
+    renderSpiralBlock(),
     renderProgressActivity(s, getActivity()),
     `<div class="progress-columns">${renderProgressSubjects(s)}${renderProgressWeakSpots(s)}</div>`,
     `<section class="progress-block progress-card"><div class="progress-block-head"><h2>${escapeHtml(tr('progress_recent_title'))}</h2></div><div id="progress-recent"></div></section>`,

@@ -2374,4 +2374,60 @@ body.nb-start-open { overflow: hidden; }
   .nb-set-role, .nb-set-subject { display: none; }
 }
 
+/* ── 31 Спираль прогресса ─────────────────────────────────────────────── */
+.nb-spiral { padding: 28px; }
+.nb-spiral-main { display: flex; flex-wrap: wrap; align-items: center; gap: 32px 48px; }
+.nb-spiral-copy { flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.nb-spiral h2 { margin: 6px 0 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; font-size: 26px; font-weight: 700; color: var(--ink-1); }
+.nb-spiral-n { font-size: 96px; line-height: .85; letter-spacing: -0.05em; }
+.nb-spiral-coil { margin: 0; font-size: 18px; font-weight: 600; color: var(--ink-2); }
+.nb-spiral-hyp { margin: 4px 0 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; font-size: 15px; color: var(--ink-2); }
+.nb-spiral-hyp .nb-serif { font-size: 34px; color: var(--ink-1); }
+.nb-spiral-explain, .nb-spiral-left { margin: 0; max-width: 52ch; font-size: 16px; color: var(--ink-2); }
+.nb-spiral-copy .nb-btn { margin-top: 10px; }
+.nb-spiral-fig { position: relative; flex: 1 1 380px; max-width: 520px; aspect-ratio: 7.6 / 6.2; min-width: 0; }
+.nb-spiral-fig svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.nb-spiral-lb {
+  position: absolute; transform: translate(-50%, -50%); pointer-events: none;
+  font-size: 13px; font-weight: 700; line-height: 1; white-space: nowrap; color: #FFFFFF;
+}
+.nb-spiral-lb.is-l { color: #14213D; }
+.nb-spiral-lb.is-y { color: var(--on-yellow); }
+.nb-spiral-lb.is-out { font-family: var(--f-serif); font-size: 20px; font-weight: 600; color: var(--ink-1); }
+.nb-spiral-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--rule); }
+.nb-spiral-section h3 { margin: 0; font-size: 21px; font-weight: 700; color: var(--ink-1); }
+.nb-spiral-section > p { margin: 6px 0 0; font-size: 16px; color: var(--ink-2); }
+.nb-spiral-minis { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-top: 16px; }
+.nb-spiral-mini { margin: 0; padding: 12px; border: 1px solid var(--rule); background: var(--paper); }
+.nb-spiral-mini svg { display: block; width: 100%; height: auto; }
+.nb-spiral-mini figcaption { display: flex; flex-direction: column; margin-top: 8px; font-size: 14px; color: var(--ink-2); }
+.nb-spiral-mini figcaption b { color: var(--ink-1); }
+.nb-spiral-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+.nb-spiral-day {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0; min-height: 80px; padding: 8px 2px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); cursor: pointer;
+}
+.nb-spiral-day .dn { font-size: 30px; font-weight: 700; line-height: 1; }
+.nb-spiral-day .dl { font-size: 14px; font-weight: 600; line-height: 1; text-transform: capitalize; }
+.nb-spiral-day i { display: block; width: 24px; height: 6px; }
+.nb-spiral-day:hover { background: var(--yellow-tint); }
+.nb-spiral-day.is-empty { border-style: dashed; border-color: var(--rule-2); color: var(--ink-3); }
+.nb-spiral-day.is-on { border-style: solid; border-color: var(--ink-1); background: var(--yellow); color: var(--on-yellow); }
+.nb-spiral-day:disabled { cursor: default; opacity: .5; }
+.nb-spiral-mss { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px; margin-top: 16px; }
+.nb-spiral-ms { display: flex; align-items: center; gap: 18px; padding: 20px 22px; border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1); }
+.nb-spiral-ms .nb-serif { font-size: 34px; line-height: 1; }
+.nb-spiral-ms .mt { font-size: 16px; font-weight: 600; }
+.nb-spiral-ms .ck { margin-left: auto; font-size: 24px; font-weight: 700; }
+.nb-spiral-ms.is-on { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
+@media (max-width: 720px) {
+  .nb-spiral { padding: 20px; }
+  .nb-spiral-n { font-size: 72px; }
+  .nb-spiral-days { gap: 4px; }
+  .nb-spiral-day { min-height: 64px; }
+  .nb-spiral-day .dn { font-size: 22px; }
+  .nb-spiral-lb { font-size: 10px; }
+  .nb-spiral-lb.is-out { font-size: 15px; }
+}
+
 }
