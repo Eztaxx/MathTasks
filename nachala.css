@@ -2494,4 +2494,52 @@ body.nb-start-open { overflow: hidden; }
   .nb-fg { width: 14px; height: 14px; border-width: 2px; }
 }
 
+
+/* ── 33 Скругления по макетам: экзамены, прогресс, дуэль, графопостроитель ─
+   В макетах этих страниц углы скруглены (карточки 12–16 px, кнопки и поля
+   8 px, метки 14 px). Скругляем только содержимое страницы: шапка, подвал
+   и выдвижное меню остаются прямыми — это общая рамка сайта. */
+:is(.exams-main, .duel, .plot-main, #view-progress, .timer-dropdown) :is(.primary-button, .secondary-button, .ghost-button, .nb-btn, .text-button.danger,
+  input[type="text"], input[type="search"], input[type="number"], input:not([type]), select, textarea) { border-radius: 8px; }
+
+/* Сегменты: скругляем только края группы */
+:is(.duel, #view-progress, .exams-main) :is(.progress-scope, .duel-board-filters) > :first-child:not(:only-child) { border-radius: 8px 0 0 8px; }
+:is(.duel, #view-progress, .exams-main) :is(.progress-scope, .duel-board-filters) > :last-child:not(:only-child) { border-radius: 0 8px 8px 0; }
+
+/* Экзамены и пробные экзамены */
+.exams-main :is(.exam-level-card, .plan-step-card) { border-radius: 14px; }
+.exams-main :is(.mock-exam-card, .formula-guide-card, .formula-column, .grading-table-wrap, .grading-card) { border-radius: 12px; }
+.exams-main :is(.callout-card, .formula-sheet-downloads-bar) { border-radius: 16px; }
+.exams-main .mock-part { border-radius: 10px; }
+.exams-main .column-header { border-radius: 8px; }
+.exams-main .exam-badge { border-radius: 6px; }
+.exams-main :is(.mock-time, .mock-points, .mock-status-pill) { border-radius: 14px; }
+.exams-main .part-calc-badge { border-radius: 12px; }
+.exams-main .plan-step-num { border-radius: 50%; }
+.exams-main :is(.callout-links a, .downloads-buttons a, .download-pill) { border-radius: 8px; }
+.timer-dropdown:not([hidden]) { border-radius: 16px; }
+.timer-dropdown :is(.timer-preset-btn, .timer-action-btn) { border-radius: 8px; }
+
+/* Мой прогресс */
+#view-progress :is(.progress-card, .progress-block, .profile-card, .progress-stat, .nb-spiral) { border-radius: 12px; }
+#view-progress .progress-badge { border-radius: 10px; }
+#view-progress :is(.progress-subject-bar, .progress-subject-bar > *, .progress-subject-bar i) { border-radius: 6px; }
+#view-progress :is(.progress-day, .progress-legend i) { border-radius: 3px; }
+#view-progress :is(.progress-weak-link, .progress-empty) { border-radius: 8px; }
+#view-progress :is(.nb-spiral-day, .nb-spiral-ms) { border-radius: 10px; }
+#view-progress .nb-spiral-mini { border-radius: 10px; }
+
+/* Дуэль */
+.duel :is(.duel-main, .duel-board, .duel-card, .duel-link-card, .duel-share-card, .duel-invite, .duel-mode, .duel-avatar, .duel-avatar-picker) { border-radius: 12px; }
+.duel .duel-question { border-radius: 12px; }
+.duel :is(.duel-nick-new, .duel-keypad button, .duel-key-ok, .trainer-cat-chip) { border-radius: 8px; }
+.duel .duel-best { border-radius: 14px; }
+.duel .duel-notice { border-radius: 8px; }
+.duel .duel-strip-bars { border-radius: 5px; }
+.duel .trainer-categories-row { border-radius: 0; }
+
+/* Графопостроитель */
+.plot-main .plot-stage { border-radius: 14px; }
+.plot-main :is(.plot-expr, #plotter-input, .plotter-chip, .plot-zoom button, .plotter-zoom button) { border-radius: 8px; }
+
 }
