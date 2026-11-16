@@ -5919,6 +5919,8 @@ async function showTask(rawId) {
   renderTaskList(listTasks, [task], '', { showTopicLink: false, showGrade: false, linkTitle: false });
   document.querySelector('#view-list').dataset.nbPage = 'task';
   nbSplitTaskCard(listTasks.querySelector('article.task'));
+  // «Задача на весах»: для подходящих линейных уравнений — предложение под доской.
+  window.MathTasksScale?.mount(listTasks.querySelector('article.task'), task);
   await renderTaskNeighbours(task);
   await renderSimilarTasks(task);
 }
