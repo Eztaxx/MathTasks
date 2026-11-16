@@ -73,6 +73,7 @@ const STATIC_PAGES = {
   '/control-works': { title: 'cw_catalog_title', description: 'cw_catalog_desc' },
   '/progress': { title: 'progress_title', description: 'progress_meta', robots: 'noindex, follow' },
   '/favorites': { title: 'meta_favorites_title', description: 'meta_favorites_desc', robots: 'noindex, follow' },
+  '/set': { title: 'nb_set_title', description: 'nb_set_desc', robots: 'noindex, follow' },
   '/search': { title: 'meta_search_page_title', description: 'meta_search_page_desc', robots: 'noindex, follow' }
 };
 

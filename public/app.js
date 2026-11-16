@@ -1245,6 +1245,7 @@ function markCardSolved(card) {
   badge.textContent = (window.MathTasks.t || (k => k))('solved_badge');
   // Перед значками справа, а не за ними.
   meta.insertBefore(badge, meta.querySelector('.task-actions'));
+  if (document.querySelector('#nb-set-strip')) renderSetStrip();
 }
 
 /* «Начала», страница задачи: условие с ответом — на доске слева, подсказка,
@@ -2424,7 +2425,8 @@ function renderGradeActions() {
   box.innerHTML = `<a class="grade-action" href="${gradeHref(selectedGrade)}/tasks"
       title="${escapeHtml(tr('grade_solve_all_hint', { count: total, topics: topics.length }))}">
       ${escapeHtml(tr('grade_solve_all_short', { count: total }))} →
-    </a>`;
+    </a>
+    <a class="grade-action nb-set-link" href="/set">${escapeHtml(tr('nb_set_link'))} →</a>`;
   box.hidden = false;
 }
 
@@ -2855,7 +2857,9 @@ function fillTopicHeader(topic, sub = null) {
 function resetListBlocks() {
   // Вид страницы для оформления «Начала»: task — доска с одной задачей, topic — страница темы.
   const viewList = document.querySelector('#view-list');
-  if (viewList) delete viewList.dataset.nbPage;
+  if (viewList) { delete viewList.dataset.nbPage; delete viewList.dataset.nbSet; }
+  document.querySelector('#nb-set-strip')?.remove();
+  document.querySelector('#nb-set-done')?.remove();
   document.querySelector('#similar-tasks')?.remove();
   renderTopicCards(listTopics, []);
   renderTopicGroups(listGroups, []);
@@ -3830,6 +3834,218 @@ async function showAllTasks() {
     : (window.MathTasks.t || (k => k))('empty_tasks');
   renderCurrentTopicTasks();
 }
+
+/* ── «Сет дня»: пять задач по прогрессу ученика ──────────────────────
+   Одна на повторение (была ошибка), одна из текущей темы, две из ещё не
+   начатых тем и одна «на вырост» (сложная из начатой темы). Чего нет —
+   добираем нерешёнными задачами класса. Сет один на день: ключ — дата,
+   класс и сдвиг «Собрать другой»; состав запоминается в браузере. */
+const SET_CACHE_KEY = 'math-tasks:set';
+const SET_SIZE = 5;
+let setShift = 0;
+
+function setKey(shift) {
+  const lib = window.MathTasksLib;
+  const today = lib?.localDateKey ? lib.localDateKey() : new Date().toISOString().slice(0, 10);
+  return `${today}|${selectedGrade ?? 'all'}|${shift}`;
+}
+
+function readSetCache() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SET_CACHE_KEY) || 'null');
+    return raw && typeof raw === 'object' ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+const isHardDifficulty = diff => /сложн|hard|проф|augst|padziļ|олимп|olimp/i.test(String(diff || ''));
+const isEasyDifficulty = diff => /лёгк|легк|баз|easy|pamat/i.test(String(diff || ''));
+
+/* Детерминированный «случайный» выбор: тот же день — тот же сет. */
+function seededPick(list, seed) {
+  if (!list.length) return null;
+  return list[seed % list.length];
+}
+
+async function buildDailySet(shift) {
+  const topics = topicsForGrade(allTopics);
+  const topicIds = topics.map(topic => topic.id);
+  if (!topicIds.length) return [];
+  const { data, error } = await db.from('tasks').select('id, topic_id, difficulty, position')
+    .eq('is_published', true).in('topic_id', topicIds);
+  if (error || !data?.length) return [];
+
+  const solved = new Set(getSolvedTasks());
+  const wrong = getWrongAttemptCounts();
+  const seed = dailySeed(setKey(shift)) >>> 0;
+  const order = new Map(topics.map((topic, index) => [topic.id, index]));
+  const rows = data.slice().sort((a, b) => (order.get(a.topic_id) - order.get(b.topic_id)) || ((a.position ?? 0) - (b.position ?? 0)) || (a.id - b.id));
+  const unsolved = rows.filter(row => !solved.has(row.id));
+  const startedTopics = new Set(rows.filter(row => solved.has(row.id)).map(row => row.topic_id));
+  const picked = [];
+  const used = new Set();
+  const take = (row, role) => {
+    if (!row || used.has(row.id)) return false;
+    used.add(row.id);
+    picked.push({ id: row.id, role });
+    return true;
+  };
+
+  // 1. Повторение: задача с ошибкой, ещё не решённая.
+  const review = unsolved.filter(row => Number(wrong[row.id]) > 0);
+  take(seededPick(review, seed), 'review');
+
+  // 2. Текущая тема: где ученик остановился, следующая нерешённая.
+  const place = getLastPlace();
+  const currentTopicId = place && order.has(place.topicId) ? place.topicId
+    : [...startedTopics].find(id => unsolved.some(row => row.topic_id === id));
+  if (currentTopicId) take(unsolved.find(row => row.topic_id === currentTopicId && !used.has(row.id)), 'current');
+
+  // 3–4. Новые темы: первые задачи двух ещё не начатых тем, лёгкие — вперёд.
+  const freshTopics = topics.filter(topic => !startedTopics.has(topic.id) && topic.id !== currentTopicId
+    && unsolved.some(row => row.topic_id === topic.id));
+  const freshStart = freshTopics.length ? seed % freshTopics.length : 0;
+  const rotated = freshTopics.map((_, i) => freshTopics[(freshStart + i) % freshTopics.length]);
+  // Сначала — темы из разных разделов, потом уже любые.
+  const newSubjects = new Set();
+  for (const pass of [true, false]) {
+    for (const topic of rotated) {
+      if (picked.filter(p => p.role === 'new').length >= 2) break;
+      if (pass && newSubjects.has(topic.subject_id)) continue;
+      const inTopic = unsolved.filter(row => row.topic_id === topic.id && !used.has(row.id));
+      if (take(inTopic.find(row => isEasyDifficulty(row.difficulty)) || inTopic[0], 'new')) newSubjects.add(topic.subject_id);
+    }
+  }
+
+  // 5. На вырост: сложная задача из уже начатой темы (или любой).
+  const hard = unsolved.filter(row => isHardDifficulty(row.difficulty) && !used.has(row.id));
+  const hardStarted = hard.filter(row => startedTopics.has(row.topic_id) || row.topic_id === currentTopicId);
+  take(seededPick(hardStarted.length ? hardStarted : hard, seed + 7), 'stretch');
+
+  // Добираем до пяти нерешёнными задачами класса.
+  const rest = unsolved.filter(row => !used.has(row.id));
+  for (let i = 0; picked.length < SET_SIZE && rest.length && i < rest.length; i++) {
+    take(rest[(seed + i * 13) % rest.length], 'extra');
+  }
+  return picked.slice(0, SET_SIZE);
+}
+
+async function loadDailySet(shift) {
+  const key = setKey(shift);
+  const cached = readSetCache();
+  if (cached?.key === key && Array.isArray(cached.items) && cached.items.length) return cached.items;
+  const items = await buildDailySet(shift);
+  try { localStorage.setItem(SET_CACHE_KEY, JSON.stringify({ key, items })); } catch {}
+  return items;
+}
+
+const SET_ROLE_KEYS = { review: 'nb_set_role_review', current: 'nb_set_role_current', new: 'nb_set_role_new', stretch: 'nb_set_role_stretch', extra: 'nb_set_role_extra' };
+
+/* Полоса из пяти клеток над задачами: номер, роль, раздел. Решённая —
+   тёмно-синяя, текущая (на доске) — жёлтая. Нажатие ставит задачу на доску. */
+function renderSetStrip() {
+  const strip = document.querySelector('#nb-set-strip');
+  if (!strip) return;
+  const tr = window.MathTasks.t || (k => k);
+  const cards = [...listTasks.querySelectorAll(':scope > article.task')];
+  strip.innerHTML = cards.map((card, index) => {
+    const task = currentTasksMap.get(Number(card.dataset.taskId));
+    const topic = task ? allTopics.find(item => item.id === task.topic_id) : null;
+    const subject = topic ? loc(subjectById(topic.subject_id), 'title') : '';
+    const solved = Boolean(card.querySelector('.task-solved-badge'));
+    const current = card.classList.contains('nb-current');
+    const cls = ['nb-set-cell', solved ? 'is-solved' : '', current ? 'is-current' : ''].filter(Boolean).join(' ');
+    return `<button type="button" class="${cls}" data-nb-set-idx="${index}" aria-pressed="${current}">
+      <span class="nb-set-num">${index + 1}</span>
+      <span class="nb-set-role">${escapeHtml(tr(SET_ROLE_KEYS[card.dataset.setRole] || 'nb_set_role_extra'))}</span>
+      <span class="nb-set-subject">${escapeHtml(subject || '')}</span>
+    </button>`;
+  }).join('');
+  const done = cards.length && cards.every(card => card.querySelector('.task-solved-badge'));
+  const note = document.querySelector('#nb-set-done');
+  if (note) note.hidden = !done;
+}
+
+async function showDailySet() {
+  showView('list');
+  resetListBlocks();
+  const tr = window.MathTasks.t || (k => k);
+  const viewList = document.querySelector('#view-list');
+  setMeta(metaText('nb_set_title'), metaText('nb_set_desc'));
+  fillListHeader({
+    crumbs: [[tr('nav_home'), '/'], [tr('nb_set_title'), null]],
+    title: tr('nb_set_title'),
+    description: selectedGrade ? tr('nb_set_desc') : ''
+  });
+  if (!selectedGrade) {
+    listTasks.innerHTML = `<p class="empty-state">${escapeHtml(tr('nb_set_no_grade'))} <a href="/">${escapeHtml(tr('nav_home'))} →</a></p>`;
+    return;
+  }
+  document.querySelector('#list-meta').innerHTML = `<div class="nb-set-head">
+      <span class="nb-eyebrow">${escapeHtml(tr('nb_set_eyebrow', { grade: gradeLabel(selectedGrade) }))}</span>
+      <div class="nb-set-actions">
+        <button type="button" class="nb-btn nb-btn-blue" data-nb-set-first>${escapeHtml(tr('nb_set_first'))} →</button>
+        <button type="button" class="nb-btn" data-nb-set-other>↻ ${escapeHtml(tr('nb_set_other'))}</button>
+      </div>
+    </div>`;
+  listTasks.innerHTML = `<p class="empty-state">${escapeHtml(tr('state_loading_tasks'))}</p>`;
+  const items = await loadDailySet(setShift);
+  if (!items.length) {
+    listTasks.innerHTML = `<p class="empty-state">${escapeHtml(tr('nb_set_empty'))}</p>`;
+    return;
+  }
+  const { data, error } = await db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('id', items.map(item => item.id));
+  if (error || !data?.length) {
+    listTasks.innerHTML = `<p class="empty-state">${escapeHtml(tr('err_load_tasks'))}</p>`;
+    return;
+  }
+  const byId = new Map(data.map(task => [task.id, task]));
+  const tasks = items.map(item => byId.get(item.id)).filter(Boolean);
+  currentActiveTopic = null;
+  currentTopicTasks = tasks;
+  renderTaskList(listTasks, tasks, '', { showTopicLink: true, showGrade: false });
+  [...listTasks.querySelectorAll(':scope > article.task')].forEach((card, index) => {
+    const item = items.find(entry => entry.id === Number(card.dataset.taskId)) || items[index];
+    card.dataset.setRole = item?.role || 'extra';
+  });
+  viewList.dataset.nbPage = 'topic';
+  viewList.dataset.nbSet = '1';
+  if (!document.querySelector('#nb-set-strip')) {
+    listTasks.insertAdjacentHTML('beforebegin', `<div class="nb-set-strip" id="nb-set-strip" role="group" aria-label="${escapeHtml(tr('nb_set_title'))}"></div><p class="nb-set-done" id="nb-set-done" hidden>${escapeHtml(tr('nb_set_done'))}</p>`);
+  }
+  renderSetStrip();
+}
+
+document.addEventListener('click', async event => {
+  const cell = event.target.closest?.('[data-nb-set-idx]');
+  if (cell) {
+    const card = listTasks.querySelectorAll(':scope > article.task')[Number(cell.dataset.nbSetIdx)];
+    card?.querySelector('[data-nb-solve]')?.click();
+    if (card?.querySelector('.task-solved-badge')) {
+      listTasks.querySelectorAll(':scope > article.task.nb-current').forEach(other => other.classList.remove('nb-current'));
+      card.classList.add('nb-current');
+      card.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+    renderSetStrip();
+    return;
+  }
+  if (event.target.closest?.('[data-nb-set-first]')) {
+    const current = listTasks.querySelector(':scope > article.task.nb-current') || listTasks.querySelector(':scope > article.task');
+    current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    current?.querySelector('input.self-check-input:not([disabled])')?.focus({ preventScroll: true });
+    return;
+  }
+  if (event.target.closest?.('[data-nb-set-other]')) {
+    setShift += 1;
+    await showDailySet();
+    return;
+  }
+  // После «Решать» и «Следующая задача» в сете перерисовываем полосу.
+  if (event.target.closest?.('[data-nb-solve], [data-nb-next]') && document.querySelector('#nb-set-strip')) {
+    setTimeout(renderSetStrip, 0);
+  }
+});
 
 async function showFavorites() {
   showView('list');
@@ -5872,6 +6088,7 @@ async function route({ force = false } = {}) {
 
   if (path === '/tasks') { await showAllTasks(); return; }
   if (path === '/favorites') { await showFavorites(); return; }
+  if (path === '/set') { await showDailySet(); return; }
   if (path === '/progress') { showProgress(); return; }
   if (path === '/about') { showView('about'); setMeta(metaText('meta_about_title'), metaText('meta_about_desc')); return; }
 

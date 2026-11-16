@@ -250,6 +250,17 @@ describe('seo: страницы из каталога', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  // «Сет дня» (редизайн «Начала»): своя страница приложения, личная — noindex.
+  it('/set — страница приложения, noindex, не 404', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const response = await page('/set', makeEnv());
+    const html = await response.text();
+    expect(response.status).toBe(200);
+    expect(html).toContain('<meta name="robots" content="noindex, follow" />');
+    expect(routeOf('/set')).toEqual({ kind: 'static', path: '/set' });
+  });
+
   it('контрольная — noindex, ссылка на тему', async () => {
     vi.stubGlobal('fetch', supabase([['topics?slug=eq.', [TOPIC]]]));
     const html = await (await page('/control-work/skola2030-g6-1-x', makeEnv())).text();
