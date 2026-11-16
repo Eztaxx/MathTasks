@@ -2001,6 +2001,39 @@ input.cw-answer-input {
 .print-field-hint { font-size: 14px; color: var(--ink-2); }
 .print-error { color: var(--red-ink); }
 .print-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 20px; }
+/* Окно печати по макету: шире, поля парами. Порядок групп в разметке:
+   1 диапазон, 2 сколько, 3 что на листе, 4 порядок, 5 место для решения,
+   6 вариантов, 7 поля для имени, 8 ошибка, 9 кнопки — на экране он другой. */
+.auth-dialog.print-dialog { width: min(720px, calc(100% - 32px)); max-width: none; padding: 24px 28px 28px; }
+.print-dialog h2 { margin: 0 0 6px; }
+.print-dialog-lead { margin: 0 0 20px; }
+.print-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; }
+.print-form > * { grid-column: 1 / -1; margin: 0; }
+.print-form > .print-field { min-width: 0; padding: 0; border: 0; }
+.print-form > :nth-child(2) { order: 1; grid-column: 1; }   /* сколько задач */
+.print-form > :nth-child(6) { order: 2; grid-column: 2; }   /* вариантов */
+.print-form > :nth-child(3) { order: 3; }                   /* что на листе */
+.print-form > :nth-child(5) { order: 4; grid-column: 1; }   /* место для решения */
+.print-form > :nth-child(4) { order: 5; grid-column: 2; }   /* порядок */
+.print-form > :nth-child(1) { order: 6; }                   /* с какой по какую */
+.print-form > .print-check { order: 7; display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; color: var(--ink-1); }
+.print-form > .print-check input { width: 20px; height: 20px; accent-color: var(--ink-1); }
+.print-form > .print-error { order: 8; }
+.print-form > .print-form-actions { order: 9; justify-content: flex-end; margin-top: 4px; padding-top: 20px; border-top: 1px solid var(--rule); }
+.print-form-actions .text-button {
+  display: inline-flex; align-items: center; min-height: 52px; padding: 0 24px;
+  border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+  font-size: 17px; font-weight: 600; text-decoration: none;
+}
+.print-form-actions .text-button:hover { background: var(--ink-1); color: var(--paper); }
+.print-form-actions .primary-button { min-height: 52px; padding: 0 28px; font-size: 17px; }
+@media (max-width: 640px) {
+  .auth-dialog.print-dialog { padding: 20px; }
+  .print-form { grid-template-columns: minmax(0, 1fr); }
+  .print-form > * { grid-column: 1 / -1 !important; }
+  .print-form > .print-form-actions { justify-content: stretch; }
+  .print-form-actions > * { flex: 1 1 auto; justify-content: center; }
+}
 .print-toggle-btn, .print-set-btn {
   min-height: 44px; padding: 0 14px; border: 2px solid var(--ink-1); border-radius: 0;
   background: transparent; color: var(--ink-1); font-weight: 600;
