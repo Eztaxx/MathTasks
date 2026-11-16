@@ -142,7 +142,15 @@ html.dark, body.dark {
   color-scheme: dark;
 }
 
-/* ── 02 Основа: фон, шрифт, углы ─────────────────────────────────────── */
+/* ── 02 Основа: масштаб, фон, шрифт, углы ─────────────────────────────── */
+/* Весь сайт на 10% мельче (просьба 16.11.2026). zoom уменьшает всё разом —
+   шрифты, отступы, рамки, формулы — и не требует править сотни размеров.
+   Админку не трогаем: она ставит всплывающие списки по координатам экрана.
+   Внутри масштаба 100vh — это 90% экрана, поэтому высоты «на весь экран»
+   ниже делятся на --nb-zoom. */
+:root { --nb-zoom: 0.9; }
+html:not(:has(body.admin-page)) { zoom: var(--nb-zoom); }
+
 html, html.dark { background: var(--paper); }
 body, body.dark {
   background: var(--paper);
@@ -278,7 +286,7 @@ dialog::backdrop { background: rgba(10, 16, 28, .6); }
   --ink: var(--ink-1); --muted: var(--ink-2); --line: var(--rule);
   background: var(--bar); color: var(--bar-ink);
 }
-body main#home { margin: 0; padding: 0; max-width: none; min-height: 100vh; display: flex; flex-direction: column; }
+body main#home { margin: 0; padding: 0; max-width: none; min-height: calc(100vh / var(--nb-zoom)); display: flex; flex-direction: column; }
 
 .nb-header {
   position: sticky; top: 0; z-index: 100;
@@ -440,7 +448,7 @@ html.dark .topbar-menu-panel { --ink-1: #E8ECF3; --ink-2: #B8C2D6; --sheet: #172
 /* ── 08 Полное меню — выдвижная панель ────────────────────────────────── */
 body .sidebar, body.dark .sidebar, body.sidebar-collapsed .sidebar {
   position: fixed; top: 0; left: 0; bottom: 0; z-index: 300;
-  width: min(380px, 88vw); height: 100vh; padding: 20px 20px 28px;
+  width: min(380px, 88vw); height: calc(100vh / var(--nb-zoom)); padding: 20px 20px 28px;
   display: flex; flex-direction: column; overflow-y: auto;
   background: var(--paper); color: var(--ink-1);
   border-right: 2px solid var(--ink-1);

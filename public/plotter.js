@@ -427,9 +427,14 @@
       redraw();
     }
 
+    /* Координаты мыши — в пикселях экрана, а график считает в пикселях
+       вёрстки. При масштабе страницы (zoom в nachala.css) они расходятся:
+       переводим через отношение размера на экране к размеру в вёрстке. */
+    const screenScale = rect => (canvas.offsetWidth && rect.width ? canvas.offsetWidth / rect.width : 1);
     const localPoint = e => {
       const rect = canvas.getBoundingClientRect();
-      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      const k = screenScale(rect);
+      return { x: (e.clientX - rect.left) * k, y: (e.clientY - rect.top) * k };
     };
 
     canvas.addEventListener('wheel', e => {
@@ -475,10 +480,11 @@
     // Щипок двумя пальцами: расстояние между ними — масштаб, середина — сдвиг
     const touchState = touches => {
       const rect = canvas.getBoundingClientRect();
+      const k = screenScale(rect);
       return {
-        x: (touches[0].clientX + touches[1].clientX) / 2 - rect.left,
-        y: (touches[0].clientY + touches[1].clientY) / 2 - rect.top,
-        d: Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY)
+        x: ((touches[0].clientX + touches[1].clientX) / 2 - rect.left) * k,
+        y: ((touches[0].clientY + touches[1].clientY) / 2 - rect.top) * k,
+        d: Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY) * k
       };
     };
     canvas.addEventListener('touchstart', e => {
