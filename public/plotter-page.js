@@ -151,6 +151,47 @@
   document.querySelector('#plot-zoom-out').addEventListener('click', () => plotter.zoomBy(1 / 1.4));
   document.querySelector('#plot-zoom-reset').addEventListener('click', () => plotter.reset());
 
+  /* Полный экран: раскрываем всю рабочую область (формула, примеры, график),
+     чтобы формулу можно было править, не выходя из режима. Где у страницы нет
+     Fullscreen API (iPhone), включаем то же оформление классом: окно на весь вьюпорт. */
+  const fsBtn = document.querySelector('#plot-fullscreen');
+  const fsRoot = document.querySelector('.plot-main');
+  if (fsBtn && fsRoot) {
+    const nativeFs = typeof fsRoot.requestFullscreen === 'function';
+    const isFs = () => document.fullscreenElement === fsRoot || fsRoot.classList.contains('is-fullscreen');
+
+    const syncFs = () => {
+      const on = isFs();
+      const key = on ? 'plot_fullscreen_exit' : 'plot_fullscreen';
+      fsBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      fsBtn.title = t(key);
+      fsBtn.setAttribute('aria-label', t(key));
+      document.body.classList.toggle('plot-fs', on);
+      plotter.redraw();
+    };
+
+    const setFs = async on => {
+      if (on === isFs()) return;
+      if (nativeFs) {
+        try {
+          if (on) await fsRoot.requestFullscreen();
+          else await document.exitFullscreen();
+          return; // дальше сработает fullscreenchange
+        } catch {
+          // браузер отказал — покажем то же классом
+        }
+      }
+      fsRoot.classList.toggle('is-fullscreen', on);
+      syncFs();
+    };
+
+    fsBtn.addEventListener('click', () => setFs(!isFs()));
+    document.addEventListener('fullscreenchange', syncFs);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && fsRoot.classList.contains('is-fullscreen')) setFs(false);
+    });
+  }
+
   if (copyBtn) {
     copyBtn.addEventListener('click', async () => {
       try {
@@ -175,6 +216,11 @@
 
   window.addEventListener('languagechange', () => {
     syncTitle();
+    if (fsBtn) {
+      const key = fsRoot.classList.contains('is-fullscreen') || document.fullscreenElement === fsRoot ? 'plot_fullscreen_exit' : 'plot_fullscreen';
+      fsBtn.title = t(key);
+      fsBtn.setAttribute('aria-label', t(key));
+    }
     renderLegend(lastItems);
     renderRoots();
   });

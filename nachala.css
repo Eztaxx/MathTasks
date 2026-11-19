@@ -2542,4 +2542,12 @@ body.nb-start-open { overflow: hidden; }
 .plot-main .plot-stage { border-radius: 14px; }
 .plot-main :is(.plot-expr, #plotter-input, .plotter-chip, .plot-zoom button, .plotter-zoom button) { border-radius: 8px; }
 
+/* Полный экран графика: настоящий (Fullscreen API) и запасной класс для браузеров без него. */
+.plot-main:fullscreen { max-width: none; margin: 0; padding: 14px clamp(12px, 3vw, 26px) 16px; background: var(--paper); overflow: auto; }
+.plot-main.is-fullscreen { position: fixed; inset: 0; z-index: 1000; max-width: none; margin: 0; padding: 14px clamp(12px, 3vw, 26px) 16px; background: var(--paper); overflow: auto; }
+.plot-main:fullscreen .plot-stage, .plot-main.is-fullscreen .plot-stage { flex: 1; min-height: 0; }
+body.plot-fs { overflow: hidden; }
+#plot-fullscreen .fs-close, #plot-fullscreen[aria-pressed="true"] .fs-open { display: none; }
+#plot-fullscreen[aria-pressed="true"] .fs-close { display: inline; }
+
 }
