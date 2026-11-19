@@ -2801,6 +2801,7 @@ function renderHomeInsights() {
 
 let currentView = null;
 function showView(name) {
+  document.documentElement.classList.remove('boot-sub');
   viewHome.hidden = name !== 'home';
   viewList.hidden = name !== 'list';
   viewAbout.hidden = name !== 'about';
@@ -7609,7 +7610,12 @@ renderGradeControls();
 renderHeadings();
 initStartPicker();
 (async () => {
-  await loadCatalog();
-  await route();
+  try {
+    await loadCatalog();
+    await route();
+  } finally {
+    // Если каталог не загрузился и вид так и не выбран — не оставлять пустую страницу.
+    document.documentElement.classList.remove('boot-sub');
+  }
   await refreshSession();
 })();

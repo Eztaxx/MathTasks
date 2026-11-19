@@ -7,6 +7,11 @@
      первой отрисовки, а app.js потом удаляет её совсем. */
   document.documentElement.classList.add('js');
 
+  /* На внутреннем адресе (тема, задача, прогресс…) главная не должна мелькать,
+     пока грузится каталог: её прячет класс boot-sub, а первый showView в app.js
+     его снимает. На страницах без #view-home класс ни на что не влияет. */
+  if (!/^\/(?:ru\/?)?(?:index\.html)?$/.test(location.pathname)) document.documentElement.classList.add('boot-sub');
+
   try {
     const saved = localStorage.getItem('math-tasks:theme') || localStorage.getItem('theme');
     const isDark = saved ? saved === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);

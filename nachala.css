@@ -511,6 +511,8 @@ main#home > [id^="view-"] {
   padding: 0 clamp(16px, 4vw, 40px);
 }
 main#home > [id^="view-"]:not(#view-home) { padding-top: 24px; }
+/* Прямая ссылка на тему, задачу, прогресс: пока грузится каталог, главную не показываем (класс ставит theme-init.js). */
+html.boot-sub #view-home { display: none; }
 
 /* ── 10 Первый экран главной ──────────────────────────────────────────── */
 .nb-hero {
