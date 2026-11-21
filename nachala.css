@@ -1833,6 +1833,33 @@ input.cw-answer-input {
 .cw-lock-time { font-family: var(--f-serif); font-size: 48px; color: var(--ink-1); }
 .cw-result-card .cw-grade, .cw-result-card .cw-score-big { font-size: 72px; line-height: .9; font-weight: 700; }
 
+/* Пробный экзамен в формате VISC: части, баллы, перерыв, итог в баллах */
+.exam-intro { background: var(--sheet); border: 2px solid var(--ink-1); border-radius: 0; }
+.exam-rules { font-size: 16px; }
+.exam-part-head {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px;
+  padding: 14px 18px; border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1); font-size: 18px;
+}
+.exam-part-calc { font-size: 15px; font-weight: 600; color: var(--ink-2); }
+.exam-part-calc.is-off { color: var(--red-ink); }
+.cw-task-points {
+  margin-left: auto; padding: 2px 10px; border: 2px solid var(--board-frame);
+  font-size: 15px; font-weight: 700; color: var(--chalk);
+}
+.exam-break {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+  padding: 28px clamp(20px, 3.4vw, 40px); border: 2px solid var(--ink-1); background: var(--sheet);
+}
+.exam-break h2 { margin: 0; font-size: 28px; font-weight: 700; color: var(--ink-1); }
+.exam-break p { margin: 0; max-width: 60ch; font-size: 17px; color: var(--ink-2); }
+.cw-result-stats { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-size: 17px; }
+.cw-result-stat, .cw-result-stat :is(strong, span) { font-size: 17px; }
+.cw-result-notice { font-size: 15px; }
+.exam-points-badge.is-pass { background: var(--progress); color: var(--on-progress); }
+.exam-points-badge.is-fail { background: var(--red-tint); color: var(--red-ink); }
+.exam-pass.is-pass { color: var(--progress); }
+.exam-pass.is-fail { color: var(--red-ink); }
+
 /* Окно «Вставка» над полем ответа — клавиши-знаки */
 .quick-math-bar:not([hidden]) {
   display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 0 10px; margin: 0;

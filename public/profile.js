@@ -146,7 +146,18 @@
   async function deleteProfile() {
     // Подписку в базе удалит сам профиль (каскад), а браузер пусть тоже забудет её.
     await disableRemind().catch(() => {});
-    const { error } = await db.rpc('delete_my_profile');
+    /* Вместе с профилем стираем попытки дуэли с этого устройства — по номеру
+       игрока из браузера (миграция 035). Пока 035 не применена, функции с
+       аргументом нет (PGRST202) — удаляем профиль прежним вызовом. */
+    let player = null;
+    try {
+      const stored = localStorage.getItem('math-tasks:duel-player');
+      if (stored && /^[a-z0-9]{8,32}$/.test(stored)) player = stored;
+    } catch {}
+    let { error } = player
+      ? await db.rpc('delete_my_profile', { p_player: player })
+      : await db.rpc('delete_my_profile');
+    if (error && player && error.code === 'PGRST202') ({ error } = await db.rpc('delete_my_profile'));
     if (error) throw error;
     profile = null;
     rememberProfile();

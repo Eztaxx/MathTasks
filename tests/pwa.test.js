@@ -132,6 +132,8 @@ describe('service worker', () => {
     expect(sw.strategyOf(req('/assets/style-BXkHGBgM.css'))).toBe('immutable');
     expect(sw.strategyOf(req('https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js'))).toBe('immutable');
     expect(sw.strategyOf(req('https://abc.supabase.co/rest/v1/tasks?id=eq.5', { headers: anon }))).toBe('data');
+    // Указатель каталога одним запросом (миграция 034) идёт GET — без сети он из кэша.
+    expect(sw.strategyOf(req('https://abc.supabase.co/rest/v1/rpc/catalog_index', { headers: anon }))).toBe('data');
     expect(sw.strategyOf(req('https://abc.supabase.co/storage/v1/object/public/task-images/1.svg'))).toBe('data');
     // Не трогает: запись, вход, прокси модели, карту сайта и чужие адреса.
     expect(sw.strategyOf(req('https://abc.supabase.co/rest/v1/reports', { method: 'POST', headers: anon }))).toBeNull();

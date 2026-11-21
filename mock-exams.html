@@ -29,7 +29,7 @@
   <link rel="stylesheet" href="/nachala.css" />
   <script src="/theme-init.js?v=20261120-1"></script>
   <script src="/nachala-clean.js" defer></script>
-  <script src="/i18n.js?v=20261121-21"></script>
+  <script src="/i18n.js?v=20261121-22"></script>
 </head>
 <body class="exams-page">
   <header class="admin-topbar">
@@ -40,7 +40,7 @@
       </a>
       <a class="topbar-home-btn" href="/" aria-label="На главную" data-i18n-aria="nav_to_home"><svg class="topbar-home-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span class="topbar-home-label" data-i18n="nav_to_home">На главную</span></a>
     </div>
-    <span class="admin-badge" data-i18n="mock_badge">📋 Пробные экзамены</span>
+    <span class="admin-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h4"/></svg><span data-i18n="mock_badge">Пробные экзамены</span></span>
 
     <div class="trainer-top-actions">
       <a class="nav-btn-link" href="/exams" data-i18n="nav_exams">🎯 Подготовка к экзаменам</a>
@@ -48,7 +48,7 @@
 
       <div class="exam-timer-wrap" id="exam-timer-wrap">
         <button class="timer-topbar-btn" id="exam-timer-btn" type="button" aria-label="Экзаменационный таймер" data-i18n-aria="timer_title" title="Экзаменационный таймер" data-i18n-title="timer_title">
-          <span class="timer-icon" aria-hidden="true">⏱️</span>
+          <span class="timer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg></span>
           <span class="timer-topbar-digits" id="timer-display">00:00</span>
         </button>
         <div class="timer-dropdown" id="timer-dropdown" hidden>
@@ -61,9 +61,9 @@
             <button type="button" class="timer-preset-btn active" data-timer-seconds="0" data-i18n="timer_stopwatch">⏱️ Секундомер</button>
             <button type="button" class="timer-preset-btn" data-timer-seconds="2400" data-i18n="timer_40m">40 мин (Урок / К/Р)</button>
             <button type="button" class="timer-preset-btn" data-timer-seconds="4500" data-i18n="timer_75m">75 мин (Основная, 2 часть)</button>
-            <button type="button" class="timer-preset-btn" data-timer-seconds="6300" data-i18n="timer_105m">105 мин (Основная 1 ч. / Средняя 2 ч.)</button>
-            <button type="button" class="timer-preset-btn" data-timer-seconds="8100" data-i18n="timer_135m">135 мин (Средняя, 1 часть)</button>
-            <button type="button" class="timer-preset-btn" data-timer-seconds="10800" data-i18n="timer_180m">180 мин (Augstākais)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="6300" data-i18n="timer_105m">105 мин (Основная 1 ч. / Vispārīgais и Optimālais 2 ч.)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="7200" data-i18n="timer_120m">120 мин (Augstākais, 2 часть)</button>
+            <button type="button" class="timer-preset-btn" data-timer-seconds="8100" data-i18n="timer_135m">135 мин (Vispārīgais, Optimālais, Augstākais — 1 часть)</button>
           </div>
           <div class="timer-controls">
             <button type="button" class="primary-button timer-action-btn" id="timer-toggle-btn" data-i18n="timer_start">Старт</button>
@@ -183,10 +183,9 @@
           <div class="mock-card-top">
             <div class="mock-meta">
               <span class="exam-badge badge-gold">Pamatskola</span>
-              <span class="mock-time" data-i18n="mock_time_pamat">⏱️ 105 + 75 минут (2 части)</span>
-              <span class="mock-points" data-i18n="mock_points_50">⭐ 50 баллов суммарно</span>
+              <span class="mock-time" data-i18n="mock_time_pamat">105 + 75 минут (всего 180)</span>
+              <span class="mock-points" data-i18n="mock_points_80">80 баллов суммарно</span>
             </div>
-            <span class="mock-status-pill" data-i18n="mock_status_pill">Заготовка структуры</span>
           </div>
 
           <h3 data-i18n="mock_pamatskola_title">Государственный экзамен основной школы (Pamatskola)</h3>
@@ -201,7 +200,7 @@
                 <span class="part-calc-badge no-calc" data-i18n="mock_no_calc">🚫 Без калькулятора</span>
               </div>
               <ul class="part-points">
-                <li data-i18n-html="mock_pamatskola_p1_format"><strong>Формат:</strong> 25 заданий с кратким ответом или выбором варианта (1 балл за задание).</li>
+                <li data-i18n-html="mock_pamatskola_p1_format"><strong>Формат:</strong> 60 баллов — выбор ответа, краткий и развёрнутый ответ.</li>
                 <li data-i18n-html="mock_pamatskola_p1_time"><strong>Время:</strong> 105 минут.</li>
                 <li data-i18n-html="mock_pamatskola_p1_topics"><strong>Темы:</strong> арифметика целых чисел и дробей, проценты, действия со степенями, преобразование одночленов и многочленов, чтение линейных графиков, простейшая вероятность.</li>
               </ul>
@@ -213,11 +212,57 @@
                 <span class="part-calc-badge has-calc" data-i18n="mock_has_calc">📱 С калькулятором</span>
               </div>
               <ul class="part-points">
-                <li data-i18n-html="mock_pamatskola_p2_format"><strong>Формат:</strong> 8–10 развёрнутых задач с полным пошаговым решением (2–5 баллов за задачу).</li>
+                <li data-i18n-html="mock_pamatskola_p2_format"><strong>Формат:</strong> 20 баллов — развёрнутые решения с полным пошаговым описанием.</li>
                 <li data-i18n-html="mock_pamatskola_p2_time"><strong>Время:</strong> 75 минут.</li>
                 <li data-i18n-html="mock_pamatskola_p2_topics"><strong>Темы:</strong> текстовые прикладные задачи (движение, смеси, работа), системы уравнений, планиметрия (подобие, прямоугольные треугольники), многогранники.</li>
               </ul>
             </div>
+          </div>
+          <div class="mock-card-actions" style="margin-top:18px">
+            <a class="primary-button small" href="/exam/pamat"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M8 5l11 7-11 7z"/></svg><span data-i18n="mock_try_btn">Пробный экзамен</span></a>
+          </div>
+        </div>
+
+        <!-- Vispārīgais -->
+        <div class="mock-exam-card">
+          <div class="mock-card-top">
+            <div class="mock-meta">
+              <span class="exam-badge badge-teal">Vispārīgais</span>
+              <span class="mock-time" data-i18n="mock_time_visp">135 + 105 минут (всего 240)</span>
+              <span class="mock-points" data-i18n="mock_points_80">80 баллов суммарно</span>
+            </div>
+          </div>
+
+          <h3 data-i18n="mock_visp_title">Уровень Vispārīgais</h3>
+          <p class="mock-summary" data-i18n="mock_visp_sub">
+            Государственный экзамен средней школы по математике на общем уровне. Калькулятор и лист формул разрешены на всём экзамене.
+          </p>
+
+          <div class="mock-parts-grid">
+            <div class="mock-part">
+              <div class="mock-part-head">
+                <span class="part-tag" data-i18n="mock_visp_p1_tag">1. daļa • 60 баллов</span>
+                <span class="part-calc-badge has-calc" data-i18n="mock_has_calc">С калькулятором</span>
+              </div>
+              <ul class="part-points">
+                <li data-i18n-html="mock_visp_p1_format"><strong>Формат:</strong> выбор ответа, краткий и развёрнутый ответ.</li>
+                <li data-i18n-html="mock_visp_p1_time"><strong>Время:</strong> 135 минут.</li>
+              </ul>
+            </div>
+
+            <div class="mock-part">
+              <div class="mock-part-head">
+                <span class="part-tag" data-i18n="mock_visp_p2_tag">2. daļa • 20 баллов</span>
+                <span class="part-calc-badge has-calc" data-i18n="mock_has_calc">С калькулятором</span>
+              </div>
+              <ul class="part-points">
+                <li data-i18n-html="mock_visp_p2_format"><strong>Формат:</strong> развёрнутые решения.</li>
+                <li data-i18n-html="mock_visp_p2_time"><strong>Время:</strong> 105 минут.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="mock-card-actions" style="margin-top:18px">
+            <a class="primary-button small" href="/exam/visp"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M8 5l11 7-11 7z"/></svg><span data-i18n="mock_try_btn">Пробный экзамен</span></a>
           </div>
         </div>
 
@@ -226,10 +271,9 @@
           <div class="mock-card-top">
             <div class="mock-meta">
               <span class="exam-badge badge-blue">Optimālais (Mat I)</span>
-              <span class="mock-time" data-i18n="mock_time_opt">⏱️ 135 + 105 минут (2 части)</span>
-              <span class="mock-points" data-i18n="mock_points_70">⭐ 70 баллов суммарно</span>
+              <span class="mock-time" data-i18n="mock_time_opt">135 + 105 минут (всего 240)</span>
+              <span class="mock-points" data-i18n="mock_points_100">100 баллов суммарно</span>
             </div>
-            <span class="mock-status-pill" data-i18n="mock_status_pill">Заготовка структуры</span>
           </div>
 
           <h3 data-i18n="mock_mat1_title">Оптимальный уровень — Matemātika I</h3>
@@ -240,19 +284,19 @@
           <div class="mock-parts-grid">
             <div class="mock-part">
               <div class="mock-part-head">
-                <span class="part-tag" data-i18n="mock_mat1_p1_tag">1. daļa • 30 баллов</span>
-                <span class="part-calc-badge no-calc" data-i18n="mock_no_calc">🚫 Без калькулятора</span>
+                <span class="part-tag" data-i18n="mock_mat1_p1_tag">1. daļa • 75 баллов</span>
+                <span class="part-calc-badge has-calc" data-i18n="mock_has_calc">С калькулятором</span>
               </div>
               <ul class="part-points">
                 <li data-i18n-html="mock_mat1_p1_tasks"><strong>Задания:</strong> преобразование выражений с корнями и логарифмами, тригонометрические значения на круге, геометрические свойства векторов.</li>
-                <li data-i18n-html="mock_mat1_p1_skill"><strong>Навык:</strong> математическая строгость, понимание определений и свойств функций без подсказок техники.</li>
+                <li data-i18n-html="mock_mat1_p1_skill"><strong>Навык:</strong> математическая строгость, понимание определений и свойств функций.</li>
                 <li data-i18n-html="mock_mat1_p1_time"><strong>Время:</strong> 135 минут.</li>
               </ul>
             </div>
 
             <div class="mock-part">
               <div class="mock-part-head">
-                <span class="part-tag" data-i18n="mock_mat1_p2_tag">2. daļa • 40 баллов</span>
+                <span class="part-tag" data-i18n="mock_mat1_p2_tag">2. daļa • 25 баллов</span>
                 <span class="part-calc-badge has-calc" data-i18n="mock_has_calc">📱 С калькулятором</span>
               </div>
               <ul class="part-points">
@@ -262,6 +306,9 @@
               </ul>
             </div>
           </div>
+          <div class="mock-card-actions" style="margin-top:18px">
+            <a class="primary-button small" href="/exam/opt"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M8 5l11 7-11 7z"/></svg><span data-i18n="mock_try_btn">Пробный экзамен</span></a>
+          </div>
         </div>
 
         <!-- Augstākais līmenis -->
@@ -269,10 +316,9 @@
           <div class="mock-card-top">
             <div class="mock-meta">
               <span class="exam-badge badge-purple">Augstākais (Mat II)</span>
-              <span class="mock-time" data-i18n="mock_time_augst">⏱️ 180 минут (3 часа)</span>
-              <span class="mock-points" data-i18n="mock_points_80">⭐ 80 баллов суммарно</span>
+              <span class="mock-time" data-i18n="mock_time_augst">135 + 120 минут (всего 255)</span>
+              <span class="mock-points" data-i18n="mock_points_100">100 баллов суммарно</span>
             </div>
-            <span class="mock-status-pill" data-i18n="mock_status_pill">Заготовка структуры</span>
           </div>
 
           <h3 data-i18n="mock_mat2_title">Высший уровень — Matemātika II (Padziļinātais kurss)</h3>
@@ -283,23 +329,28 @@
           <div class="mock-parts-grid">
             <div class="mock-part">
               <div class="mock-part-head">
-                <span class="part-tag" data-i18n="mock_mat2_p1_tag">1. daļa • 25 баллов</span>
-                <span class="part-calc-badge no-calc" data-i18n="mock_no_calc">🚫 Без калькулятора</span>
+                <span class="part-tag" data-i18n="mock_mat2_p1_tag">1. daļa • 70 баллов</span>
+                <span class="part-calc-badge has-calc" data-i18n="mock_has_calc">С калькулятором</span>
               </div>
               <ul class="part-points">
                 <li data-i18n-html="mock_mat2_p1_topics"><strong>Темы:</strong> вычисление пределов последовательностей и функций, производные элементарных и сложных функций, геометрия векторов в $\mathbb{R}^3$.</li>
+                <li data-i18n-html="mock_mat2_p1_time"><strong>Время:</strong> 135 минут.</li>
               </ul>
             </div>
 
             <div class="mock-part">
               <div class="mock-part-head">
-                <span class="part-tag" data-i18n="mock_mat2_p2_tag">2. daļa • 55 баллов</span>
+                <span class="part-tag" data-i18n="mock_mat2_p2_tag">2. daļa • 30 баллов</span>
                 <span class="part-calc-badge has-calc" data-i18n="mock_has_calc">📱 С калькулятором</span>
               </div>
               <ul class="part-points">
                 <li data-i18n-html="mock_mat2_p2_topics"><strong>Темы:</strong> интегральное исчисление (определённый интеграл, площади криволинейных трапеций, объёмы тел вращения), метод математической индукции, бином Ньютона, стереометрические доказательства.</li>
+                <li data-i18n-html="mock_mat2_p2_time"><strong>Время:</strong> 120 минут.</li>
               </ul>
             </div>
+          </div>
+          <div class="mock-card-actions" style="margin-top:18px">
+            <a class="primary-button small" href="/exam/augst"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M8 5l11 7-11 7z"/></svg><span data-i18n="mock_try_btn">Пробный экзамен</span></a>
           </div>
         </div>
       </div>
@@ -324,12 +375,12 @@
             </thead>
             <tbody>
               <tr class="fail-row">
-                <td>0% — 14%</td>
+                <td>0% — 19%</td>
                 <td data-i18n="mock_lvl_fail">Не сдано (Zem sliekšņa)</td>
-                <td data-i18n="mock_lvl_fail_desc">Минимальный порог сдачи не достигнут. Сертификат не выдаётся.</td>
+                <td data-i18n="mock_lvl_fail_desc">Порог сдачи (20 %) не достигнут. Экзамен не сдан.</td>
               </tr>
               <tr>
-                <td>15% — 39%</td>
+                <td>20% — 39%</td>
                 <td data-i18n="mock_lvl_basic">Базовый (Pamata līmenis)</td>
                 <td data-i18n="mock_lvl_basic_desc">Удовлетворительное владение стандартными алгоритмами и правилами.</td>
               </tr>
@@ -346,6 +397,7 @@
             </tbody>
           </table>
         </div>
+        <p class="mock-scale-note" data-i18n="mock_scale_note" style="margin:14px 4px 0;color:var(--muted);font-size:0.92rem">Результат выражается в процентах за всю работу и за каждую часть отдельно. Между частями — перерыв. Экзамен не сдан, если результат ниже 20 %.</p>
       </div>
     </section>
   </main>

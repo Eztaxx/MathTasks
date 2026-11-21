@@ -88,6 +88,8 @@ npm run dev
 | `supabase/migrations/031_profile_nick_avatar.sql` | Смена ника не чаще раза в 3 месяца (`rename_profile`), зверь в профиле и в попытках дуэли (`avatar`), индекс для «дуэли дня» |
 | `supabase/migrations/032_progress_version.sql` | Версия снимка прогресса (`version`) и запись через `save_progress`: два устройства не затирают друг друга |
 | `supabase/migrations/033_push_reminders.sql` | Напоминание позаниматься: подписки (`push_subscriptions`) и выборка «кому напомнить сейчас» для воркера |
+| `supabase/migrations/034_catalog_index.sql` | Каталог одним запросом: `catalog_index()` отдаёт id опубликованных задач по темам и подтемам (до применения сайт читает страницами) |
+| `supabase/migrations/035_delete_profile_duels.sql` | «Удалить профиль» стирает и попытки дуэли этого устройства: `delete_my_profile(p_player)`. После неё 027 не перезапускать |
 
 Базовый язык — русский, он лежит в основных колонках; латышский — в парных с суффиксом `_lv`. Английского на сайте нет.
 

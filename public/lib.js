@@ -2196,6 +2196,25 @@
     return { data: rows, error: null };
   };
 
+  /* Ответ catalog_index() (миграция 034): [{ t: тема, s: подтема, ids: [...] }].
+     Разворачиваем в те же строки { id, topic_id, subtopic_id }, что давала
+     постраничная выборка, и в том же порядке по id — от него зависит задача
+     дня. Что-то не так в ответе — null, и каталог идёт старым путём. */
+  const expandTaskIndex = groups => {
+    if (!Array.isArray(groups)) return null;
+    const rows = [];
+    for (const group of groups) {
+      if (!group || typeof group !== 'object' || !Array.isArray(group.ids)) return null;
+      const topicId = group.t ?? null;
+      const subtopicId = group.s ?? null;
+      for (const id of group.ids) {
+        if (!Number.isFinite(id)) return null;
+        rows.push({ id, topic_id: topicId, subtopic_id: subtopicId });
+      }
+    }
+    return rows.sort((a, b) => a.id - b.id);
+  };
+
   /* ── Чертёж SVG из импорта или от нейросети ──
      Чужая разметка. На сайте она идёт через img, где скрипты не
      выполняются, но в хранилище лежит публичным файлом, а по прямой ссылке
@@ -3274,17 +3293,168 @@
     };
   };
 
-  /* Пробный экзамен: уровни и их параметры. Время — как на настоящем
-     экзамене: основная школа 105 + 75 минут, Vispārīgais и Optimālais
-     135 + 105, Augstākais — 180 одной частью. Здесь части идут подряд,
-     одним отрезком: minutes — их сумма, parts — как делится на экзамене.
-     Заданий меньше, чем в настоящем варианте: машина сверяет только
-     краткий ответ, развёрнутые решения ей не проверить. */
+  /* Пробный экзамен в формате VISC. Части, баллы, время и калькулятор — по
+     программам централизованных экзаменов 2026./2027. m. g. (viaa.gov.lv,
+     раздел 3 «Eksāmena uzbūve» и 6 «Palīglīdzekļi»):
+       9 класс      — 60 б. / 105 мин без калькулятора + 20 б. / 75 мин;
+       Vispārīgais  — 60 б. / 135 мин + 20 б. / 105 мин;
+       Optimālais   — 75 б. / 135 мин + 25 б. / 105 мин;
+       Augstākais   — 70 б. / 135 мин + 30 б. / 120 мин, ~30 % — содержание Optimālais.
+     Экзамен не сдан ниже 20 %. Число заданий программа строго не задаёт —
+     ориентир по демо-вариантам. grade — «свой» класс уровня (его читает
+     админка), grades — откуда берутся задачи, gradeShare — доля чужого
+     класса (Augstākais берёт 30 % из 11-го). minutes и tasks — суммы частей. */
   const EXAM_KINDS = {
-    pamat: { grade: 9, minutes: 180, parts: [105, 75], tasks: 12 },
-    visp: { grade: 10, minutes: 240, parts: [135, 105], tasks: 12 },
-    opt: { grade: 11, minutes: 240, parts: [135, 105], tasks: 14 },
-    augst: { grade: 12, minutes: 180, parts: [180], tasks: 14 }
+    pamat: {
+      grade: 9, grades: [7, 8, 9], minutes: 180, tasks: 27, passPercent: 20,
+      parts: [{ minutes: 105, points: 60, tasks: 22, calc: false }, { minutes: 75, points: 20, tasks: 5, calc: true }]
+    },
+    visp: {
+      grade: 10, grades: [10], minutes: 240, tasks: 27, passPercent: 20,
+      parts: [{ minutes: 135, points: 60, tasks: 22, calc: true }, { minutes: 105, points: 20, tasks: 5, calc: true }]
+    },
+    opt: {
+      grade: 11, grades: [11], minutes: 240, tasks: 34, passPercent: 20,
+      parts: [{ minutes: 135, points: 75, tasks: 28, calc: true }, { minutes: 105, points: 25, tasks: 6, calc: true }]
+    },
+    augst: {
+      grade: 12, grades: [12, 11], gradeShare: { 11: 0.3 }, minutes: 255, tasks: 32, passPercent: 20,
+      parts: [{ minutes: 135, points: 70, tasks: 26, calc: true }, { minutes: 120, points: 30, tasks: 6, calc: true }]
+    }
+  };
+
+  const examLevelOf = task => {
+    const weight = getDifficultyWeight(task.difficulty);
+    return weight === 1 ? 1 : weight >= 3 ? 3 : 2;
+  };
+
+  /* Баллы части: вес задачи по сложности, потом раздача суммы части методом
+     наибольших остатков — сумма всегда ровно points, у каждой задачи ≥ 1. */
+  const assignExamPoints = (tasks = [], total = 0, weights = { 1: 1, 2: 2, 3: 3 }) => {
+    const list = Array.isArray(tasks) ? tasks : [];
+    if (!list.length || total <= 0) return list.map(() => 0);
+    if (total < list.length) return list.map((_, i) => (i < total ? 1 : 0));
+    const w = list.map(task => weights[examLevelOf(task)] || 1);
+    const sum = w.reduce((a, b) => a + b, 0);
+    const spare = total - list.length;
+    const raw = w.map(x => (spare * x) / sum);
+    const points = raw.map(x => 1 + Math.floor(x));
+    let left = total - points.reduce((a, b) => a + b, 0);
+    raw.map((x, i) => ({ i, rest: x - Math.floor(x) }))
+      .sort((a, b) => b.rest - a.rest || a.i - b.i)
+      .forEach(({ i }) => { if (left > 0) { points[i] += 1; left -= 1; } });
+    return points;
+  };
+
+  /* Вариант по частям: [{ tasks, points, minutes, calc, maxPoints }].
+     1-я часть — как selectExamTasks: по задаче из темы за круг, 40 % лёгких,
+     45 % средних, 15 % сложных. 2-я — сложные (не хватит — средние) из разных
+     тем, без повторов с 1-й. У Augstākais доля 11-го класса берётся отдельно
+     и подмешивается. Задач меньше нужного — часть короче, сумма баллов та же. */
+  const buildExamVariant = (tasks = [], config = {}, { random = Math.random } = {}) => {
+    const all = (Array.isArray(tasks) ? tasks : [])
+      .filter(task => isTaskAutoCheckable(task.answer_latex, task.answer_check));
+    const grades = Array.isArray(config.grades) && config.grades.length ? config.grades : [config.grade];
+    const gradeOf = task => Number(task.topic_grade ?? task.grade);
+    const share = config.gradeShare || {};
+    const used = new Set();
+
+    const pickFrom = (pool, count, mix) => {
+      const byTopic = new Map();
+      for (const task of shuffleArray(pool.filter(task => !used.has(task.id)), random)) {
+        if (!byTopic.has(task.topic_id)) byTopic.set(task.topic_id, []);
+        byTopic.get(task.topic_id).push(task);
+      }
+      const picked = [];
+      /* 2-я часть: сперва сложные по кругу тем, потом средние, потом остальные —
+         иначе тема без сложных задач подсунула бы лёгкую, хотя сложные есть в
+         других темах. */
+      if (mix.prefer) {
+        for (const level of mix.prefer) {
+          let added = true;
+          while (picked.length < count && added) {
+            added = false;
+            for (const list of byTopic.values()) {
+              if (picked.length >= count) break;
+              const index = list.findIndex(task => examLevelOf(task) === level);
+              if (index < 0) continue;
+              const [task] = list.splice(index, 1);
+              picked.push(task);
+              used.add(task.id);
+              added = true;
+            }
+          }
+        }
+        return picked;
+      }
+      const need = {};
+      let assigned = 0;
+      for (const level of [1, 3]) { need[level] = Math.round(count * (mix[level] || 0)); assigned += need[level]; }
+      need[2] = Math.max(0, count - assigned);
+      while (picked.length < count) {
+        let added = false;
+        for (const list of byTopic.values()) {
+          if (picked.length >= count) break;
+          if (!list.length) continue;
+          const wanted = list.findIndex(task => need[examLevelOf(task)] > 0);
+          const [task] = list.splice(wanted >= 0 ? wanted : 0, 1);
+          need[examLevelOf(task)] -= 1;
+          picked.push(task);
+          used.add(task.id);
+          added = true;
+        }
+        if (!added) break;
+      }
+      return picked;
+    };
+
+    // Сколько задач части взять из каждого класса уровня.
+    const split = count => {
+      const plan = [];
+      let rest = count;
+      for (const grade of grades.slice(1)) {
+        const n = Math.round(count * (share[grade] || 0));
+        plan.push([grade, n]);
+        rest -= n;
+      }
+      plan.unshift([grades[0], rest]);
+      // У «9 класса» grades = [7, 8, 9] без долей: весь пул общий.
+      return Object.keys(share).length ? plan : [[null, count]];
+    };
+    const poolOf = grade => (grade === null ? all.filter(task => grades.includes(gradeOf(task))) : all.filter(task => gradeOf(task) === grade));
+
+    const parts = (config.parts || []).map((part, index) => {
+      const mix = index === 0 ? { 1: 0.4, 3: 0.15 } : { prefer: [3, 2, 1] };
+      let picked = [];
+      for (const [grade, n] of split(part.tasks || 0)) picked = picked.concat(pickFrom(poolOf(grade), n, mix));
+      // Не хватило в своём классе — добираем из всего пула уровня.
+      if (picked.length < (part.tasks || 0)) picked = picked.concat(pickFrom(poolOf(null), part.tasks - picked.length, mix));
+      picked.sort((a, b) => examLevelOf(a) - examLevelOf(b));
+      const weights = index === 0 ? { 1: 1, 2: 2, 3: 3 } : { 1: 3, 2: 4, 3: 5 };
+      return {
+        tasks: picked,
+        points: assignExamPoints(picked, part.points || 0, weights),
+        minutes: part.minutes || 0,
+        calc: Boolean(part.calc),
+        maxPoints: picked.length ? part.points || 0 : 0
+      };
+    });
+    return parts;
+  };
+
+  /* Итог экзамена по баллам. correct — Set id верных задач. Порог — 20 %. */
+  const scoreExam = (parts = [], correct = new Set(), passPercent = 20) => {
+    const percentOf = (points, max) => (max ? Math.round((points / max) * 100) : 0);
+    const byPart = (Array.isArray(parts) ? parts : []).map(part => {
+      const ids = part.ids || (part.tasks || []).map(task => task.id);
+      const points = ids.reduce((sum, id, i) => sum + (correct.has(id) ? Number(part.points?.[i]) || 0 : 0), 0);
+      const max = (part.points || []).reduce((sum, value) => sum + (Number(value) || 0), 0);
+      return { points, max, percent: percentOf(points, max) };
+    });
+    const points = byPart.reduce((sum, part) => sum + part.points, 0);
+    const max = byPart.reduce((sum, part) => sum + part.max, 0);
+    const percent = percentOf(points, max);
+    return { points, max, percent, passed: percent >= passPercent, parts: byPart };
   };
 
   /* Вариант экзамена: только задачи с автопроверкой, по одной из темы за
@@ -4190,6 +4360,9 @@
     orderPaperTasks,
     paperMinutes,
     selectExamTasks,
+    buildExamVariant,
+    assignExamPoints,
+    scoreExam,
     createFocusGuard,
     parseCsvRows,
     csvToTsv,
@@ -4201,6 +4374,7 @@
     sanitizeSvg,
     fetchAllRows,
     fetchByIdChunks,
+    expandTaskIndex,
     buildTaskPrompt,
     TASK_PROMPT_COLUMNS,
     computeTaskRenumbering,

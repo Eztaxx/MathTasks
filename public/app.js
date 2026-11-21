@@ -2725,7 +2725,7 @@ function weakSpot() {
 
 /* Экзамен по контексту класса. Цифры — со страницы пробных экзаменов:
    основная школа — 105 + 75 минут; Vispārīgais и Optimālais — 135 + 105;
-   Augstākais — 180 одной частью (время — в EXAM_KINDS). */
+   Augstākais — 135 + 120 (части, баллы и время — в EXAM_KINDS). */
 function homeExamKind() {
   if (selectedGrade === 'matematika-1' || selectedGrade === 10 || selectedGrade === 11) return 'opt';
   if (selectedGrade === 'matematika-2' || selectedGrade === 12) return 'augst';
@@ -3447,11 +3447,12 @@ async function printSet(spec) {
   } else if (kind === 'exam') {
     const config = lib.EXAM_KINDS[value];
     if (!config || !db) return;
-    const topicIds = allTopics.filter(topic => Number(topic.grade) === config.grade).map(topic => topic.id);
-    const { data } = topicIds.length
-      ? await lib.fetchAllRows(() => db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('topic_id', topicIds).order('id'))
-      : { data: [] };
-    tasks = lib.selectExamTasks(data || [], { count: config.tasks });
+    // Печатный вариант — тот же формат VISC: 1-я часть, затем 2-я.
+    const { data: pool } = await fetchExamPool(config);
+    const ids = lib.buildExamVariant(pool || [], config).flatMap(part => part.tasks.map(task => task.id));
+    const { data: full } = ids.length ? await db.from('tasks').select(TASK_SELECT).in('id', ids) : { data: [] };
+    const byId = new Map((full || []).map(task => [task.id, task]));
+    tasks = ids.map(id => byId.get(id)).filter(Boolean);
     title = tr(`home_exam_title_${value}`);
     minutes = config.minutes;
   }
@@ -4660,6 +4661,11 @@ let currentCwViolations = 0;
 let currentExamKind = null;
 let currentExamSession = null;
 let currentExamPaper = null;
+/* Экзамен по частям (формат VISC): все задачи варианта, части с баллами
+   (они живут и после сдачи — для итога) и баллы задач текущего экрана. */
+let currentExamAllTasks = [];
+let currentExamParts = null;
+let currentExamPointsById = new Map();
 let currentCwPaperSlug = null;
 
 /* ── Честный режим контрольной и экзамена ──────────────────────────
@@ -4800,6 +4806,23 @@ function startCwTimer(seconds) {
   currentCwTimer.start();
 }
 
+/* Кнопки «Сдать»: в 1-й части экзамена они завершают часть. Подпись — через
+   data-i18n, чтобы смена языка её не сбивала. */
+function setCwSubmitLabels(finishPart) {
+  const tr = window.MathTasks.t || (k => k);
+  [['#cw-submit-btn', 'cw_submit_btn'], ['[data-cw-submit]', 'cw_submit_short']].forEach(([selector, key]) => {
+    document.querySelectorAll(selector).forEach(button => {
+      const wanted = finishPart ? 'exam_finish_part1' : key;
+      /* Без раннего выхода и со снятым таймером «нажмите ещё раз»: иначе он
+         через 4 с вернул бы старую подпись «Завершить 1-ю часть» во 2-ю часть. */
+      clearTimeout(button.confirmTimer);
+      button.dataset.i18n = wanted;
+      button.dataset.confirm = '';
+      button.textContent = tr(wanted);
+    });
+  });
+}
+
 function showCwWorkBars(on) {
   const bar = document.querySelector('#cw-sticky-bar');
   if (bar) bar.hidden = !on;
@@ -4858,6 +4881,10 @@ function setCwMode(mode, kind = null) {
   currentExamKind = kind;
   currentCwPaperSlug = null;
   if (mode !== 'exam') currentExamSession = null;
+  currentExamAllTasks = [];
+  currentExamParts = null;
+  currentExamPointsById = new Map();
+  setCwSubmitLabels(false);
   currentCwTopic = null;
   currentCwTasks = [];
   currentCwUserAnswers = {};
@@ -4995,7 +5022,7 @@ async function listCwPapers() {
   }
 }
 
-// Части: у уровня это числа [105, 75], у собранного варианта — объекты.
+// Части: у уровня это объекты { minutes, points, … }, у собранного варианта — объекты или числа.
 const partsMinutesOf = parts => (Array.isArray(parts) ? parts : [])
   .map(part => (typeof part === 'number' ? part : Number(part?.minutes) || 0))
   .filter(minutes => minutes > 0);
@@ -5029,7 +5056,12 @@ async function startExam(kindOrSlug, { fresh = false } = {}) {
   const minutes = paper ? lib.paperMinutes(paper) : config.minutes;
   const count = paper ? (paper.exam_paper_items || []).length : config.tasks;
   const parts = partsMinutesOf(paper ? paper.parts : config.parts);
-  const descText = tr('exam_desc', { count, minutes });
+  // Уровень в формате VISC: части со своим временем, баллами и калькулятором.
+  const visc = !paper && config.parts.every(part => typeof part === 'object');
+  const totalPoints = visc ? config.parts.reduce((sum, part) => sum + part.points, 0) : 0;
+  const descText = visc
+    ? tr('exam_desc_visc', { parts: config.parts.length, points: totalPoints, minutes })
+    : tr('exam_desc', { count, minutes });
   if (desc) {
     delete desc.dataset.i18n;
     desc.textContent = descText;
@@ -5053,9 +5085,17 @@ async function startExam(kindOrSlug, { fresh = false } = {}) {
     list.innerHTML = `
       <section class="exam-intro">
         <ul class="exam-rules">
+          ${visc ? `
+          ${config.parts.map((part, i) => `<li>${escapeHtml(tr('exam_rule_part', {
+            n: i + 1, tasks: part.tasks, points: part.points, minutes: part.minutes,
+            calc: tr(part.calc ? 'exam_calc_yes' : 'exam_calc_no')
+          }))}</li>`).join('')}
+          <li>${escapeHtml(tr('exam_rule_break'))}</li>
+          <li>${escapeHtml(tr('exam_rule_pass', { percent: config.passPercent }))}</li>
+          <li>${escapeHtml(tr('exam_rule_formulas'))}</li>` : `
           <li>${escapeHtml(tr('exam_rule_time', { minutes }))}</li>
           ${parts.length > 1 ? `<li>${escapeHtml(tr('exam_rule_parts', { parts: parts.join(' + ') }))}</li>` : ''}
-          <li>${escapeHtml(tr('exam_rule_tasks', { count }))}</li>
+          <li>${escapeHtml(tr('exam_rule_tasks', { count }))}</li>`}
           <li>${escapeHtml(tr('exam_rule_guard'))}</li>
           <li>${escapeHtml(tr('exam_rule_save'))}</li>
         </ul>
@@ -5067,6 +5107,23 @@ async function startExam(kindOrSlug, { fresh = false } = {}) {
       </section>
       ${papersHtml}`;
   }
+}
+
+/* Пул задач уровня для варианта: только поля, нужные выбору (тема,
+   сложность, автопроверка), — у «9 класса» это тысячи задач трёх классов,
+   полные строки с решениями на двух языках качать незачем. Тем у уровня
+   десятки: .in() по ним — адрес приемлемой длины, а fetchAllRows пройдёт по
+   страницам, если задач больше тысячи. */
+const EXAM_POOL_SELECT = 'id, topic_id, difficulty, answer_latex, answer_check';
+async function fetchExamPool(config) {
+  const lib = window.MathTasksLib;
+  const grades = config.grades || [config.grade];
+  const topicGrade = new Map(allTopics.map(topic => [topic.id, Number(topic.grade)]));
+  const topicIds = allTopics.filter(topic => grades.includes(Number(topic.grade))).map(topic => topic.id);
+  if (!topicIds.length || !db) return { data: [], error: null };
+  const { data, error } = await lib.fetchAllRows(() => db.from('tasks').select(EXAM_POOL_SELECT).eq('is_published', true).in('topic_id', topicIds).order('id'));
+  if (error) return { data: null, error };
+  return { data: (data || []).map(task => ({ ...task, topic_grade: topicGrade.get(task.topic_id) })), error: null };
 }
 
 // «Начать экзамен»: собрать вариант и запустить время.
@@ -5081,34 +5138,50 @@ async function beginExam(kindOrSlug) {
   list.innerHTML = `<p class="empty-state">${escapeHtml(tr('state_loading_tasks'))}</p>`;
 
   let tasks;
+  let variant = null;
   if (paper) {
     tasks = await fetchPaperTasks(paper);
   } else {
-    const topicIds = allTopics.filter(topic => Number(topic.grade) === config.grade).map(topic => topic.id);
-    const { data, error } = topicIds.length
-      ? await lib.fetchAllRows(() => db.from('tasks').select(TASK_SELECT).eq('is_published', true).in('topic_id', topicIds).order('id'))
-      : { data: [], error: null };
+    const { data: pool, error } = await fetchExamPool(config);
     if (error) {
       list.innerHTML = `<p class="empty-state">${escapeHtml(tr('err_load_tasks'))}</p>`;
       return;
     }
-    tasks = lib.selectExamTasks(data || [], { count: config.tasks });
+    variant = lib.buildExamVariant(pool, config);
+    tasks = variant.flatMap(part => part.tasks);
   }
   if (tasks.length < 3) {
     list.innerHTML = `<p class="empty-state">${escapeHtml(tr('exam_too_few'))}</p>`;
     return;
   }
+  const now = Date.now();
   currentExamSession = {
     kind: kindOrSlug,
     ids: tasks.map(task => task.id),
-    startedAt: Date.now(),
+    startedAt: now,
     durationSec: (paper ? lib.paperMinutes(paper) : config.minutes) * 60,
     answers: {},
     violations: 0,
     lockedUntil: 0
   };
+  /* Формат VISC: части по очереди, у каждой своё время; между ними перерыв
+     по кнопке. Пустая часть (задач не нашлось) выпадает. */
+  if (variant) {
+    Object.assign(currentExamSession, {
+      v: 2,
+      parts: variant.filter(part => part.tasks.length).map(part => ({
+        ids: part.tasks.map(task => task.id), points: part.points, minutes: part.minutes, calc: part.calc
+      })),
+      part: 0,
+      partStartedAt: now,
+      partSpent: [],
+      onBreak: false,
+      passPercent: config.passPercent || 20
+    });
+  }
   saveExamSession();
-  await runExam(currentExamSession, tasks);
+  // Вариант уровня собран по лёгкой выборке — полные задачи runExam дочитает по id.
+  await runExam(currentExamSession, variant ? null : tasks);
 }
 
 async function runExam(session, tasks = null) {
@@ -5119,6 +5192,13 @@ async function runExam(session, tasks = null) {
     const { data, error } = await db.from('tasks').select(TASK_SELECT).in('id', session.ids);
     if (error) {
       if (list) list.innerHTML = `<p class="empty-state">${escapeHtml(tr('err_load_tasks'))}</p>`;
+      /* Вариант только что собран и ни одного ответа нет — сессию не держим:
+         иначе время 1-й части шло бы, пока ученик смотрит на ошибку. */
+      if (!Object.values(session.answers || {}).some(value => String(value || '').trim())
+        && Date.now() - session.startedAt < 60000) {
+        currentExamSession = null;
+        saveExamSession();
+      }
       return;
     }
     const byId = new Map((data || []).map(task => [task.id, task]));
@@ -5131,8 +5211,12 @@ async function runExam(session, tasks = null) {
     await startExam(session.kind, { fresh: true });
     return;
   }
-  currentCwTasks = tasks;
   currentCwUserAnswers = { ...(session.answers || {}) };
+  if (Array.isArray(session.parts) && session.parts.length) {
+    runExamPart(session, tasks);
+    return;
+  }
+  currentCwTasks = tasks;
   renderControlWorkCards();
   showCwWorkBars(true);
   beginCwGuard({ lockedUntil: session.lockedUntil || 0, violations: session.violations || 0 });
@@ -5147,6 +5231,108 @@ async function runExam(session, tasks = null) {
     return;
   }
   startCwTimer(remaining);
+}
+
+// Секунды, оставшиеся у текущей части.
+const examPartRemaining = session => {
+  const part = session.parts[session.part];
+  return part.minutes * 60 - Math.floor((Date.now() - (session.partStartedAt || session.startedAt)) / 1000);
+};
+
+/* Экзамен по частям: на экране только задачи текущей части, её время и
+   баллы; после сдачи 1-й части — перерыв до кнопки «Начать 2-ю часть». */
+function runExamPart(session, tasks) {
+  const tr = window.MathTasks.t || (k => k);
+  const byId = new Map(tasks.map(task => [task.id, task]));
+  currentExamAllTasks = session.ids.map(id => byId.get(id)).filter(Boolean);
+  // Порог сдачи едет вместе с частями: итог считается уже после сброса сессии.
+  currentExamParts = Object.assign([...session.parts], { passPercent: session.passPercent || 20 });
+  if (session.onBreak) {
+    renderExamBreak(session);
+    return;
+  }
+  const index = Math.min(session.part || 0, session.parts.length - 1);
+  const part = session.parts[index];
+  currentExamPointsById = new Map(part.ids.map((id, i) => [id, part.points[i]]));
+  currentCwTasks = part.ids.map(id => byId.get(id)).filter(Boolean);
+  // Задачи этой части сняли с публикации — не тупик, а новый вариант.
+  if (!currentCwTasks.length) {
+    currentExamSession = null;
+    saveExamSession();
+    startExam(session.kind, { fresh: true });
+    return;
+  }
+  renderControlWorkCards();
+  const maxPoints = part.points.reduce((sum, value) => sum + value, 0);
+  document.querySelector('#cw-task-list')?.insertAdjacentHTML('afterbegin', `
+    <div class="exam-part-head">
+      <strong>${escapeHtml(tr('exam_part_head', { n: index + 1, points: maxPoints, minutes: part.minutes }))}</strong>
+      <span class="exam-part-calc${part.calc ? '' : ' is-off'}">${escapeHtml(tr(part.calc ? 'exam_calc_yes' : 'exam_calc_no'))}</span>
+    </div>`);
+  setCwSubmitLabels(index < session.parts.length - 1);
+  showCwWorkBars(true);
+  beginCwGuard({ lockedUntil: session.lockedUntil || 0, violations: session.violations || 0 });
+  if (session.away) {
+    session.away = false;
+    cwGuard().strike();
+    onCwViolation();
+  }
+  const remaining = examPartRemaining(session);
+  if (remaining <= 0) {
+    submitControlWork(true);
+    return;
+  }
+  startCwTimer(remaining);
+}
+
+function renderExamBreak(session) {
+  const tr = window.MathTasks.t || (k => k);
+  const list = document.querySelector('#cw-task-list');
+  showCwWorkBars(false);
+  setCwSubmitLabels(false);
+  const next = session.parts[session.part];
+  showCwTime(next.minutes * 60);
+  if (!list) return;
+  list.innerHTML = `
+    <section class="exam-break">
+      <h2>${escapeHtml(tr('exam_break_title', { n: session.part }))}</h2>
+      <p>${escapeHtml(tr('exam_break_text', { n: session.part, next: session.part + 1, minutes: next.minutes }))}</p>
+      <p class="exam-part-calc${next.calc ? '' : ' is-off'}">${escapeHtml(tr(next.calc ? 'exam_calc_yes' : 'exam_calc_no'))}</p>
+      <button type="button" class="primary-button" data-exam-next-part>${escapeHtml(tr('exam_break_start', { n: session.part + 1 }))}</button>
+    </section>`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* Сдача не последней части: ответы остаются в сессии, время части
+   записывается, честный режим и таймер стоят до кнопки «Начать». */
+function finishExamPart(isTimeout = false) {
+  const session = currentExamSession;
+  document.querySelectorAll('.cw-answer-input').forEach(input => {
+    const taskId = Number(input.dataset.taskId);
+    if (taskId) session.answers[taskId] = input.value.trim();
+  });
+  if (currentCwTimer) currentCwTimer.stop();
+  const part = session.parts[session.part];
+  const spent = isTimeout ? part.minutes * 60
+    : Math.min(part.minutes * 60, Math.round((Date.now() - (session.partStartedAt || session.startedAt)) / 1000));
+  session.partSpent = [...(session.partSpent || []), spent];
+  const guard = cwGuard();
+  session.violations = guard.violations;
+  session.lockedUntil = 0;
+  endCwGuard();
+  session.part += 1;
+  session.onBreak = true;
+  saveExamSession();
+  renderExamBreak(session);
+}
+
+function startNextExamPart() {
+  const session = currentExamSession;
+  if (!session?.onBreak) return;
+  session.onBreak = false;
+  session.partStartedAt = Date.now();
+  saveExamSession();
+  runExamPart(session, currentExamAllTasks);
 }
 
 async function startControlWork(slug) {
@@ -5312,6 +5498,7 @@ function renderControlWorkCards() {
         <div class="cw-task-header">
           <span class="cw-task-num">№ ${idx + 1}</span>
           ${difficultyBadge(diff)}
+          ${currentExamPointsById.has(task.id) ? `<span class="cw-task-points">${escapeHtml(tr('exam_points_short', { n: currentExamPointsById.get(task.id) }))}</span>` : ''}
         </div>
         <div class="cw-task-body">
           <div class="math cw-task-condition multiline" data-cw-condition="${task.id}"></div>
@@ -5358,6 +5545,11 @@ function renderControlWorkCards() {
 
 function submitControlWork(isTimeout = false) {
   if (currentCwSubmitted || !currentCwTasks.length) return;
+  const partSession = currentCwMode === 'exam' && Array.isArray(currentExamSession?.parts) ? currentExamSession : null;
+  if (partSession && partSession.part < partSession.parts.length - 1) {
+    finishExamPart(isTimeout);
+    return;
+  }
   currentCwSubmitted = true;
 
   let elapsedSec = 40 * 60;
@@ -5366,7 +5558,12 @@ function submitControlWork(isTimeout = false) {
     currentCwTimer.stop();
   }
   // Экзамен мог продолжиться после перезагрузки: время — от начала сессии.
-  if (currentCwMode === 'exam' && currentExamSession) {
+  if (partSession) {
+    // По частям: сумма времени частей, перерыв не считается.
+    const limit = partSession.parts[partSession.part].minutes * 60;
+    const last = isTimeout ? limit : Math.max(0, Math.min(limit, limit - examPartRemaining(partSession)));
+    elapsedSec = (partSession.partSpent || []).reduce((sum, value) => sum + value, 0) + last;
+  } else if (currentCwMode === 'exam' && currentExamSession) {
     elapsedSec = Math.min(currentExamSession.durationSec, Math.round((Date.now() - currentExamSession.startedAt) / 1000));
   }
   currentCwViolations = cwGuard().violations;
@@ -5378,6 +5575,16 @@ function submitControlWork(isTimeout = false) {
     const taskId = Number(input.dataset.taskId);
     if (taskId) currentCwUserAnswers[taskId] = input.value.trim();
   });
+
+  /* Итог по частям — на всех задачах варианта: ответы прошлых частей лежат
+     в сессии, карточки рисуем заново все подряд. */
+  if (partSession) {
+    currentCwUserAnswers = { ...(partSession.answers || {}), ...currentCwUserAnswers };
+    currentCwTasks = currentExamAllTasks.length ? currentExamAllTasks : currentCwTasks;
+    currentExamPointsById = new Map(partSession.parts.flatMap(part => part.ids.map((id, i) => [id, part.points[i]])));
+    setCwSubmitLabels(false);
+    renderControlWorkCards();
+  }
 
   if (currentCwMode === 'exam' && currentExamKind) {
     currentExamSession = null;
@@ -5433,12 +5640,26 @@ function renderCwOutcome(firstRun) {
       timeSpentSec: elapsedSec
     });
   }
+  /* Экзамен по частям: официальный результат — баллы и проценты, порог 20 %.
+     Старые поля записи (score/total/grade/percent) остаются — их читают
+     прогресс и синхронизация; процент — уже по баллам. */
+  const examScore = currentCwMode === 'exam' && currentExamParts && window.MathTasksLib?.scoreExam
+    ? window.MathTasksLib.scoreExam(currentExamParts,
+      new Set(gradedResults.filter(item => item.isCorrect).map(item => item.task.id)),
+      currentExamParts.passPercent || 20)
+    : null;
   if (currentCwMode === 'exam' && currentExamKind) {
     saveExamResult(currentExamKind, {
       score: gradeInfo.score,
       total: gradeInfo.total,
       grade: gradeInfo.grade,
-      percent: gradeInfo.percent,
+      percent: examScore ? examScore.percent : gradeInfo.percent,
+      ...(examScore ? {
+        points: examScore.points,
+        maxPoints: examScore.max,
+        passed: examScore.passed,
+        partPoints: examScore.parts.map(part => part.points)
+      } : {}),
       timeSpentSec: elapsedSec,
       violations
     }, !firstRun);
@@ -5451,27 +5672,45 @@ function renderCwOutcome(firstRun) {
     const secs = elapsedSec % 60;
     const timeFormatted = (window.MathTasks.t || (k => k))('cw_time_spent', { min: mins, sec: String(secs).padStart(2, '0') });
 
-    resCard.innerHTML = `
-      <div class="cw-result-inner">
-        <div class="cw-result-grade-badge grade-${gradeInfo.grade}">
-          <span class="cw-grade-val">${gradeInfo.grade}</span>
-          <span class="cw-grade-scale">/ 10</span>
-        </div>
-        <div class="cw-result-info">
-          <h2 class="cw-result-title">${escapeHtml(tr(currentCwMode === 'exam' ? 'exam_result_heading' : 'cw_result_heading'))}</h2>
-          <div class="cw-result-stats">
+    const passPercent = currentExamParts?.passPercent || 20;
+    const scoreBlock = examScore ? `
+            <div class="cw-result-stat">
+              <strong>${escapeHtml(tr('exam_points_line', { points: examScore.points, max: examScore.max, percent: examScore.percent }))}</strong>
+            </div>
+            ${examScore.parts.map((part, i) => `<div class="cw-result-stat"><span>${escapeHtml(tr('exam_part_line', { n: i + 1, points: part.points, max: part.max, percent: part.percent }))}</span></div>`).join('')}
+            <div class="cw-result-stat exam-pass ${examScore.passed ? 'is-pass' : 'is-fail'}">
+              <strong>${escapeHtml(tr(examScore.passed ? 'exam_pass_line' : 'exam_fail_line', { percent: passPercent }))}</strong>
+            </div>` : `
             <div class="cw-result-stat">
               <strong>${escapeHtml(tr('cw_score_line', { correct: gradeInfo.score, total: gradeInfo.total, percent: gradeInfo.percent }))}</strong>
             </div>
             <div class="cw-result-stat">
               <strong>${escapeHtml(tr('cw_grade_line', { grade: gradeInfo.grade, level: gradeLevelLabel(gradeInfo) }))}</strong>
-            </div>
+            </div>`;
+    const badge = examScore
+      ? `<div class="cw-result-grade-badge exam-points-badge ${examScore.passed ? 'is-pass' : 'is-fail'}">
+          <span class="cw-grade-val">${examScore.points}</span>
+          <span class="cw-grade-scale">/ ${examScore.max}</span>
+        </div>`
+      : `<div class="cw-result-grade-badge grade-${gradeInfo.grade}">
+          <span class="cw-grade-val">${gradeInfo.grade}</span>
+          <span class="cw-grade-scale">/ 10</span>
+        </div>`;
+
+    resCard.innerHTML = `
+      <div class="cw-result-inner">
+        ${badge}
+        <div class="cw-result-info">
+          <h2 class="cw-result-title">${escapeHtml(tr(currentCwMode === 'exam' ? 'exam_result_heading' : 'cw_result_heading'))}</h2>
+          <div class="cw-result-stats">
+            ${scoreBlock}
             <div class="cw-result-stat">
               <span>${escapeHtml(tr('cw_time_spent_line', { time: timeFormatted }))}</span>
             </div>
             ${violations ? `<div class="cw-result-stat cw-result-violations"><span>${escapeHtml(tr('cw_violations_line', { count: violations }))}</span></div>` : ''}
           </div>
           <p class="cw-result-notice">💡 ${escapeHtml(tr('cw_solutions_unlocked'))}</p>
+          ${examScore ? `<p class="cw-result-notice exam-answer-note">${escapeHtml(tr('exam_answer_only_note'))}</p>` : ''}
         </div>
       </div>
       <div class="cw-result-footer">
@@ -6746,6 +6985,12 @@ document.addEventListener('click', event => {
     return;
   }
 
+  if (event.target.closest('[data-exam-next-part]')) {
+    event.preventDefault();
+    startNextExamPart();
+    return;
+  }
+
   const examStartBtn = event.target.closest('[data-exam-start]');
   if (examStartBtn) {
     event.preventDefault();
@@ -7261,8 +7506,22 @@ window.addEventListener('keydown', event => {
    задачи тем и подтем и прогресс. Раньше это были два запроса на всю
    таблицу, и после тысячи задач оба молча обрезались — счётчики врали. */
 let publishedTaskRows = [];
+/* Указатель опубликованных задач { id, topic_id, subtopic_id } по порядку id.
+   Быстрый путь — функция catalog_index() (миграция 034): один запрос вместо
+   страниц по 1000 строк. GET обязателен — только его кэширует sw.js, иначе
+   без сети каталог остался бы без счётчиков. Функции ещё нет, ответ кривой
+   или старый lib.js из кэша без expandTaskIndex — идём старым путём. Признак
+   «функции нет» не запоминаем: после применения миграции быстрый путь
+   включится сам. */
 async function fetchTaskIndexRows() {
-  const { fetchAllRows } = window.MathTasksLib;
+  const { fetchAllRows, expandTaskIndex } = window.MathTasksLib;
+  if (expandTaskIndex) {
+    try {
+      const { data, error } = await db.rpc('catalog_index', {}, { get: true });
+      const rows = error ? null : expandTaskIndex(data);
+      if (rows) return { data: rows, error: null };
+    } catch {}
+  }
   const pages = cols => fetchAllRows(() => db.from('tasks').select(cols).eq('is_published', true).order('id'));
   const withSubtopics = await pages('id, topic_id, subtopic_id');
   // Колонка subtopic_id появляется миграцией 020 — без неё счёт по темам всё равно нужен.
@@ -7270,7 +7529,6 @@ async function fetchTaskIndexRows() {
 }
 
 async function loadCatalog() {
-  await detectMultilingualColumns();
   /* Без config.js клиент Supabase не создаётся. Раньше каталог просто оставался
      пустым без объяснений — на выкладке это выглядит как «сайт сломался».
      Частая причина: config.js в .gitignore, и сборка на хостинге его не получила. */
@@ -7281,13 +7539,18 @@ async function loadCatalog() {
     if (tasksElement) tasksElement.innerHTML = '';
     return;
   }
-  const [subjectResult, topicResult, countResult] = await Promise.all([
+  /* Все запросы каталога — одной волной. Проверка колонок нужна только
+     маршрутам (TASK_SELECT), поэтому её ждём в конце, а не в начале. */
+  const columnsReady = detectMultilingualColumns();
+  const [subjectResult, topicResult, countResult, subtopicResult] = await Promise.all([
     db.from('subjects').select('*').order('position').order('title'),
     db.from('topics').select('*').order('position').order('title'),
-    fetchTaskIndexRows()
+    fetchTaskIndexRows(),
+    fetchSubtopics()
   ]);
   if (subjectResult.error || topicResult.error) {
     console.warn('Схема ещё не готова: примените миграции из supabase/migrations.', subjectResult.error || topicResult.error);
+    await columnsReady;
     return;
   }
   subjects = subjectResult.data || [];
@@ -7303,19 +7566,28 @@ async function loadCatalog() {
       topicTasksMap.get(topicId).push(id);
     }
   });
-  await loadSubtopics();
+  applySubtopics(subtopicResult);
+  await columnsReady;
   renderSidebar();
 }
 
 /* Подтемы добавляет миграция 020. Пока её не применили, PostgREST отвечает
    404 на таблицу и 400 на колонку — сайт должен продолжать работать без
-   третьего уровня, а не падать целиком. */
-async function loadSubtopics() {
+   третьего уровня, а не падать целиком. Запрос уходит вместе с остальными
+   запросами каталога, разбор — после указателя задач. */
+async function fetchSubtopics() {
+  try {
+    return await db.from('subtopics').select('*').order('position');
+  } catch (error) {
+    return { data: null, error };
+  }
+}
+
+function applySubtopics({ data, error } = {}) {
   allSubtopics = [];
   subtopicsByTopic = new Map();
   subtopicCounts = new Map();
   try {
-    const { data, error } = await db.from('subtopics').select('*').order('position');
     if (error || !data) return;
     allSubtopics = data;
     for (const s of allSubtopics) {

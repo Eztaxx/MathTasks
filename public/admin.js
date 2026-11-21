@@ -6665,8 +6665,9 @@ ${JSON.stringify(texts)}`;
     ['augst', 'Augstākais (Matemātika II)']
   ];
   // Сколько заданий добирать автоматически: у контрольной — как у сайта.
-  const PAPER_TARGET = { cw: 5, pamat: 12, visp: 12, opt: 14, augst: 14 };
-  const PAPER_DEFAULT_PARTS = { pamat: '105 + 75', visp: '135 + 105', opt: '135 + 105', augst: '180' };
+  // Как в EXAM_KINDS (public/lib.js): формат VISC 2026./2027. m. g.
+  const PAPER_TARGET = { cw: 5, pamat: 27, visp: 27, opt: 34, augst: 32 };
+  const PAPER_DEFAULT_PARTS = { pamat: '105 + 75', visp: '135 + 105', opt: '135 + 105', augst: '135 + 120' };
   const paperView = document.querySelector('.adm-view[data-view="papers"]');
   let papers = [];
   let paperTab = 'cw';
