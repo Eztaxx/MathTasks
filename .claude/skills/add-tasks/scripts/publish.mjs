@@ -11,8 +11,8 @@
  */
 import { join } from 'node:path';
 import {
-  SITE, fetchAll, rest, lib, katexProblems, readJson, writeJson, batchDir, loadItems, itemToRow,
-  log, releaseLock, sleep, FIELD_MAP
+  SITE, fetchAll, rest, katexProblems, readJson, writeJson, batchDir, loadItems, itemToRow,
+  log, releaseLock, sleep, FIELD_MAP, metaSubs, autoCheckable, robotIssues
 } from './common.mjs';
 
 const batch = process.argv[2];
@@ -46,7 +46,12 @@ async function main() {
       for (const col of [...Object.values(FIELD_MAP), 'difficulty', 'subtopic_id', 'topic_id', 'grade']) {
         if (String(row[col] ?? '') !== String(expected[col] ?? '')) why.push(`в базе ${col} не совпадает с tasks.mjs`);
       }
-      for (const x of lib.taskIssues(row, { grade: meta.grade, topicTitle: meta.topicTitle })) why.push(`робот [${x.code}] ${x.text}`);
+      // Самопроверка — по пометке в tasks.mjs, и сайт действительно не должен сверять ответ ни на одном языке.
+      const isSelf = items[i].self === true;
+      const auto = autoCheckable(row);
+      if (isSelf && (auto.ru || auto.lv)) why.push('помечена self, но сайт сверяет ответ');
+      if (!isSelf && (!auto.ru || !auto.lv)) why.push('ответ не сверяется автоматически, а задача не помечена self');
+      for (const x of robotIssues(row, { grade: meta.grade, topicTitle: meta.topicTitle }, isSelf)) why.push(`робот [${x.code}] ${x.text}`);
       for (const col of Object.values(FIELD_MAP)) for (const p of katexProblems(row[col])) why.push(`${col}: ${p}`);
     }
     if (why.length) held.push({ id, why });
@@ -91,9 +96,18 @@ async function main() {
   }
   console.log(live.length ? `живой сайт: не открываются ${live.join(', ')}` : `живой сайт: все ${ok.length * 2} страниц отвечают 200`);
 
-  writeJson(join(dir, 'published.json'), { ids: ok, drafts: held, live });
-  log({ type: 'published', batch, sub: meta.sub, code: meta.code, grade: meta.grade, ids: ok, drafts: held.map(h => h.id), live });
+  // Подтемы, где что-то опубликовано, и задачи с самопроверкой (по ним audit.mjs снимает замечание «самопроверка»).
+  const entry = id => inserted.find(x => x.id === id);
+  const subOf = id => { const x = entry(id); return x.sub ?? items[x.i].sub ?? meta.sub; };
+  const selfIds = ok.filter(id => items[entry(id).i].self === true);
+  const pubSubs = [...new Set(ok.map(subOf))];
+  const codes = metaSubs(meta).filter(p => pubSubs.includes(p.id)).map(p => p.code);
+  writeJson(join(dir, 'published.json'), { ids: ok, selfIds, drafts: held, live });
+  log({
+    type: 'published', stream: meta.stream ?? 'all', batch, sub: meta.sub, code: meta.code, subs: pubSubs, codes, grade: meta.grade,
+    ids: ok, selfIds, drafts: held.map(h => h.id), live
+  });
   releaseLock(batch);
-  console.log(`готово: подтема ${meta.code}, опубликованы id ${ok.join(', ') || '—'}`);
+  console.log(`готово: подтемы ${codes.join(', ') || meta.code}, опубликованы id ${ok.join(', ') || '—'}${selfIds.length ? `, из них с самопроверкой ${selfIds.join(', ')}` : ''}`);
   if (held.length) process.exitCode = 2;
 }

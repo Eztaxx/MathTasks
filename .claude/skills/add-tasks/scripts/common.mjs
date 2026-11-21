@@ -3,12 +3,13 @@
  * журнал, замок и папки пачек.
  *
  * Состояние живёт в .claude/skills/add-tasks/state/ (в git не идёт):
- *   lock.json            — идёт запуск (одна пачка за раз);
+ *   lock-<поток>.json    — идёт запуск потока (у потока одна пачка за раз; поток — набор
+ *                          классов из --grades, например lock-10.json, lock-6-7-8.json, lock-all.json);
  *   log.jsonl            — журнал: inserted / published / failed;
  *   skip.json            — подтемы, которые выбор пропускает (id → причина);
  *   batches/<id>/        — meta.json, tasks.mjs, verify.py, inserted.json, published.json.
  */
-import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync, rmSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync, rmSync, readdirSync, renameSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 
@@ -18,10 +19,11 @@ export const STATE = join(SKILL, 'state');
 export const BATCHES = join(STATE, 'batches');
 mkdirSync(BATCHES, { recursive: true });
 
-// Классы, которые заполняем (1–5 — нет), потолок задач в подтеме, размер пачки.
+// Классы, которые заполняем (1–5 — нет). Потолок подтемы, размер пачки и доля самопроверки — в quota.mjs.
 export const GRADES = [6, 7, 8, 9, 10, 11, 12];
-export const TARGET = 15;
-export const PER_RUN = 8;
+// Сначала заполняются эти классы (10 — Vispārīgais, 11 — Optimālais); остальные из GRADES — когда здесь все подтемы дошли до TARGET.
+export const PRIORITY_GRADES = [10, 11];
+export { TARGET, PER_RUN, SELF_EVERY, SELF_PER_RUN, MAX_SUBS } from './quota.mjs';
 // Замок старше этого считается брошенным (запуск упал, не сняв его).
 export const LOCK_MINUTES = 75;
 export const SITE = 'https://mathtasks.lv';
@@ -90,7 +92,17 @@ export function katexProblems(text) {
 export const readJson = (path, fallback = null) => {
   try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return fallback; }
 };
-export const writeJson = (path, value) => writeFileSync(path, JSON.stringify(value, null, 2) + '\n');
+// Запись через временный файл: потоки читают skip.json и замки одновременно, недописанный файл они не увидят.
+export const writeJson = (path, value) => {
+  const text = JSON.stringify(value, null, 2) + '\n';
+  const tmp = `${path}.${process.pid}.tmp`;
+  writeFileSync(tmp, text);
+  try { renameSync(tmp, path); } catch {
+    // Windows: антивирус или чтение в этот момент дают EPERM/EBUSY — пишем напрямую (inserted.json терять нельзя).
+    writeFileSync(path, text);
+    rmSync(tmp, { force: true });
+  }
+};
 
 export const batchDir = id => join(BATCHES, id);
 export const batchIds = () => readdirSync(BATCHES, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name).sort();
@@ -104,17 +116,47 @@ export function readLog() {
     .map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
 }
 
-const LOCK = join(STATE, 'lock.json');
-export function lockInfo() {
-  const lock = readJson(LOCK);
-  if (!lock) return null;
+/* Потоки: каждый запуск по расписанию берёт свои классы (pick.mjs --grades 10).
+   У потока свой замок, так что потоки идут параллельно и не ждут друг друга;
+   классы у потоков не пересекаются, значит, и темы (перенумерация, правило young). */
+export function parseGrades(argv) {
+  // «--grades=10», «--grade 10» молча дали бы все классы и поток «all» поверх потоков — отказываем.
+  const typo = argv.find(a => /^--grade/.test(a) && a !== '--grades');
+  if (typo) throw new Error(`неизвестный флаг ${typo} — пиши --grades 10 или --grades 6,7,8`);
+  const i = argv.indexOf('--grades');
+  if (i < 0) return GRADES;
+  const list = String(argv[i + 1] ?? '').split(',').map(Number);
+  if (!list.length || list.some(g => !GRADES.includes(g))) throw new Error(`--grades: нужны классы из ${GRADES.join(', ')}, через запятую`);
+  return [...new Set(list)].sort((a, b) => a - b);
+}
+export const streamKey = grades => (grades.length === GRADES.length && grades.every(g => GRADES.includes(g)) ? 'all' : grades.join('-'));
+
+const lockPath = key => join(STATE, `lock-${key}.json`);
+const withAge = lock => {
   const ageMin = (Date.now() - Date.parse(lock.startedAt)) / 60000;
   return { ...lock, ageMin, stale: !(ageMin < LOCK_MINUTES) };
+};
+export function lockInfo(key = 'all') {
+  // Старый общий lock.json (до потоков) — это тоже поток «all».
+  const lock = readJson(lockPath(key)) ?? (key === 'all' ? readJson(join(STATE, 'lock.json')) : null);
+  return lock ? withAge({ stream: key, ...lock }) : null;
 }
-export const takeLock = batch => writeJson(LOCK, { batch, startedAt: new Date().toISOString(), pid: process.pid });
-export function releaseLock(batch) {
-  const lock = readJson(LOCK);
-  if (lock && (!batch || lock.batch === batch)) rmSync(LOCK, { force: true });
+// Все замки (старый lock.json до потоков — тоже), для audit.mjs и pick.mjs --status.
+export function allLocks() {
+  return readdirSync(STATE).filter(f => /^lock(-[\w-]+)?\.json$/.test(f))
+    .map(f => { const lock = readJson(join(STATE, f)); return lock ? withAge({ stream: f.replace(/^lock-?|\.json$/g, '') || 'all', file: f, ...lock }) : null; })
+    .filter(Boolean);
+}
+export const takeLock = (batch, key = 'all') => writeJson(lockPath(key), { batch, stream: key, startedAt: new Date().toISOString(), pid: process.pid });
+/* Снять замок пачки (какого бы потока он ни был). Без пачки — замки потока key или всех потоков;
+   живые (не брошенные) — только при force, иначе поток получит второй запуск поверх идущего. */
+export function releaseLock(batch, key = null, { force = false } = {}) {
+  const removed = [];
+  for (const lock of allLocks()) {
+    const mine = batch ? lock.batch === batch : (!key || lock.stream === key) && (force || lock.stale);
+    if (mine) { rmSync(join(STATE, lock.file), { force: true }); removed.push(lock); }
+  }
+  return removed;
 }
 
 // Пачка в файле: tasks.mjs (export default [...]) — свежий импорт, без кеша модулей.
@@ -133,12 +175,30 @@ export const FIELD_MAP = {
 };
 export function itemToRow(it, meta) {
   const row = {
-    topic_id: meta.topic_id, subtopic_id: meta.sub, grade: meta.grade, difficulty: it.d,
+    topic_id: meta.topic_id, subtopic_id: it.sub ?? meta.sub, grade: meta.grade, difficulty: it.d,
     answer_check: it.chk ?? null, answer_check_lv: it.chkl ?? null
   };
   for (const [k, col] of Object.entries(FIELD_MAP)) row[col] = String(it[k] ?? '').trim();
   return row;
 }
+
+/* Подтемы пачки. Старые пачки (до 21.11.2026) — одна подтема в meta.sub, без самопроверки. */
+export const metaSubs = meta => meta.subs
+  ?? [{ id: meta.sub, code: meta.code, wantAuto: meta.want ?? 0, wantSelf: 0 }];
+
+/* Сверяет ли сайт ответ — отдельно на каждом языке (страница LV смотрит на латышский ответ,
+   а если его нет — на русский, как getLocalizedText в lib.js). */
+export const autoCheckable = row => ({
+  ru: lib.isTaskAutoCheckable(row.answer_latex, row.answer_check || ''),
+  lv: String(row.answer_latex_lv ?? '').trim()
+    ? lib.isTaskAutoCheckable(row.answer_latex_lv, row.answer_check_lv || row.answer_check || '')
+    : lib.isTaskAutoCheckable(row.answer_latex, row.answer_check || '')
+});
+
+/* Замечания робота. У задачи, нарочно сделанной с самопроверкой, снимается ровно одно —
+   accept/warn «у ученика будет самопроверка»; остальные остаются. */
+export const robotIssues = (row, context, isSelf) => lib.taskIssues(row, context)
+  .filter(x => !(isSelf && x.code === 'accept' && x.level === 'warn'));
 
 export const flat = s => String(s ?? '').replace(/\s+/g, ' ').trim();
 export const norm = s => String(s ?? '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
