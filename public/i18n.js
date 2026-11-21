@@ -379,6 +379,65 @@
       meta_tag_desc: 'Uzdevumi ar birku #{tag}',
       meta_about_title: 'Par vietni',
       meta_about_desc: 'Kā veidots MathTasks: klases, sadaļas, tēmas un risinājumi.',
+      nav_privacy: 'Privātuma politika',
+      meta_privacy_title: 'Privātuma politika',
+      meta_privacy_desc: 'Kādus datus glabā MathTasks, kāpēc un kā tos dzēst: profils, progress, atgādinājumi, dueļi.',
+      privacy_more: 'Privātuma politika',
+      contact_title: 'Rakstiet mums',
+      contact_lead: 'Lūgums dzēst datus, jautājums par to, kas tiek glabāts, vai kas cits. Ziņa pienāk administratoram un vietnē netiek glabāta.',
+      contact_topic: 'Par ko',
+      contact_topic_delete: 'Dzēst manus datus',
+      contact_topic_access: 'Uzzināt, kādi dati tiek glabāti',
+      contact_topic_other: 'Cits',
+      contact_nick: 'Profila vai dueļa segvārds (ja lūgums ir par tiem)',
+      contact_message: 'Ziņa',
+      contact_reply: 'Kā jums atbildēt — e-pasts vai cits veids (nav obligāti)',
+      contact_send: 'Nosūtīt',
+      contact_sending: 'Sūta…',
+      contact_sent: 'Paldies! Ziņa nosūtīta.',
+      contact_err_short: 'Uzrakstiet ziņu — vismaz dažus vārdus.',
+      contact_err_long: 'Ziņa ir pārāk gara: līdz 2000 rakstzīmēm.',
+      contact_err_often: 'Pārāk daudz ziņu īsā laikā. Mēģiniet pēc minūtes.',
+      contact_err_human: 'Neizdevās pārbaudīt, ka esat cilvēks. Mēģiniet vēlreiz.',
+      contact_err_unavailable: 'Forma pagaidām nedarbojas. Mēģiniet vēlāk.',
+      contact_err_send: 'Neizdevās nosūtīt. Pārbaudiet savienojumu un mēģiniet vēlreiz.',
+      privacy_body: '<p class="privacy-updated">Pēdējais atjauninājums: 2026. gada 21. novembris.</p>'
+        + '<p>MathTasks (mathtasks.lv) ir skolas matemātikas uzdevumu krājums. Mēs vācam pēc iespējas mazāk datu: vārds, tālrunis un dzimšanas datums mums nav vajadzīgi un netiek prasīti. E-pasts nav vajadzīgs ne profilam, ne dueļiem; to var norādīt tikai saziņas veidlapā, ja vēlaties saņemt atbildi.</p>'
+        + '<h2>Kas atbild par datiem</h2>'
+        + '<p>Boriss Gogoļevs. Sazināties var ar veidlapu <a href="#contact">«Rakstiet mums»</a> šīs lapas beigās.</p>'
+        + '<h2>Kas paliek tikai jūsu pārlūkā</h2>'
+        + '<p>Atrisinātie uzdevumi, favorīti, trenažiera kļūdas un rekordi, nodarbību dienas, pārbaudes darbu rezultāti, izvēlētā klase, valoda un noformējuma tēma, skaņa. Tas glabājas pārlūka atmiņā (localStorage) un netiek sūtīts uz mūsu serveri, kamēr neizveidojat profilu. Notīrot vietnes datus pārlūkā, tas viss pazūd. Reklāmas un izsekošanas sīkdatņu vietnē nav. Dueļi ir izņēmums: to rezultāti nonāk serverī arī bez profila (skat. «Dueļi»).</p>'
+        + '<h2>Profils (pēc izvēles)</h2>'
+        + '<p>Profils vajadzīgs, lai progress pārietu starp ierīcēm. Ja to izveidojat, mēs glabājam:</p>'
+        + '<ul><li>jūsu izvēlēto segvārdu (lūdzu, nelietojiet īsto vārdu), dzīvnieka avatāru un pēdējās segvārda maiņas datumu;</li>'
+        + '<li>progresu: atrisinātos uzdevumus un risinājumu žurnālu, nepareizo mēģinājumu skaitu, favorītus, nozīmītes, pārbaudes darbu un eksāmenu rezultātus, vietu, kur apstājāties, nodarbību dienas, trenažiera kļūdas un rekordus, dueļu statistiku un pēdējo 20 dueļu vēsturi (ar pretinieku segvārdiem un dzīvniekiem);</li>'
+        + '<li>profila izveides, pēdējā apmeklējuma un ierīču piesaistes datumus;</li>'
+        + '<li>atjaunošanas koda jaucējkodu (pašu kodu mēs neglabājam) un anonīmu pieteikšanās identifikatoru — bez e-pasta un paroles. Pārneses kods uz citu ierīci derīgs 10 minūtes.</li></ul>'
+        + '<p>Profils tiek glabāts, kamēr to neizdzēšat. To var dzēst jebkurā brīdī ar pogu «Dzēst profilu» lapā «Mans progress»: kopā ar to tiek dzēsts progress, ierīču piesaiste un atgādinājumi. Supabase pieteikšanās sistēmā paliek ieraksts par anonīmo pieteikšanos — identifikators un datumi, bez vārda un e-pasta. Datubāzes nakts rezerves kopijās (tiek glabātas pēdējās 14) dzēstais paliek, līdz tās nomaina jaunākas, parasti divas nedēļas.</p>'
+        + '<h2>Atgādinājums pamācīties (pēc izvēles)</h2>'
+        + '<p>Ja profilā ieslēdzat atgādinājumu, mēs glabājam pārlūka paziņojumu abonementa adresi un tā šifrēšanas atslēgas, valodu, izvēlēto stundu, laika joslu, pēdējā atgādinājuma datumu un neveiksmīgo sūtījumu skaitu. Atgādinājums tiek nosūtīts caur jūsu pārlūka paziņojumu pakalpojumu (Google, Apple, Mozilla vai Microsoft); tā teksts visiem ir vienāds un neko par jums neatklāj. Atgādinājuma dati tiek dzēsti, kad to izslēdzat, dzēšat profilu vai kad paziņojumu pakalpojums ziņo, ka abonementa vairs nav.</p>'
+        + '<h2>Dueļi</h2>'
+        + '<p>Duelim un līderu tabulai mēs glabājam segvārdu, dzīvnieku, nejaušu spēlētāja numuru no pārlūka, jūsu atbildes, katras atbildes laiku, rezultātu un datumu — ar profilu un bez tā. Līderu tabulā redzams segvārds, dzīvnieks, rezultāts un datums. Jūsu mēģinājums var tikt rādīts citiem spēlētājiem kā «pretinieks-ieraksts» — ar atbildēm un to laiku. Dzīvam pretiniekam redzams jūsu segvārds un dzīvnieks. Mēģinājums līderu tabulai iziet Cloudflare Turnstile pārbaudi («vai neesat robots»). Mēģinājumi tiek automātiski dzēsti pēc 60 dienām, izņemot 20 labākos rezultātus katrā kategorijā un grūtības līmenī — tie tiek glabāti bez termiņa. Savus rezultātus agrāk var dzēst pēc lūguma veidlapā šīs lapas beigās.</p>'
+        + '<h2>Ziņojumi par kļūdām uzdevumos</h2>'
+        + '<p>Poga «Atradāt kļūdu?» nosūta uzdevuma numuru, kļūdas veidu, jūsu tekstu (līdz 1000 rakstzīmēm), ievadīto atbildi, nepareizo mēģinājumu skaitu un valodu. Personas datu veidlapā nav — nerakstiet tos tekstā. Ziņojumu redz vietnes administrators, kopija pienāk arī Telegram.</p>'
+        + '<h2>Ziņas caur veidlapu «Rakstiet mums»</h2>'
+        + '<p>Veidlapa nosūta tēmu, jūsu tekstu, saskarnes valodu, segvārdu (tas tiek ielikts no profila šajā ierīcē, to var izdzēst) un saziņas veidu, ja to norādāt. Ziņa pienāk administratoram Telegram un vietnē netiek glabāta. Pret surogātpastu darbojas Cloudflare Turnstile pārbaude.</p>'
+        + '<h2>Apmeklējumu statistika</h2>'
+        + '<p>Vietne izmanto Cloudflare Web Analytics — anonimizētu apmeklējumu statistiku bez sīkdatnēm un bez izsekošanas starp vietnēm. Tā rāda, kuras lapas tiek atvērtas un cik ātri tās ielādējas.</p>'
+        + '<h2>Kāpēc</h2>'
+        + '<p>Lai vietne darbotos, pārnestu progresu starp ierīcēm, atgādinātu par nodarbībām, uzturētu līderu tabulu un lai mēs labotu kļūdas uzdevumos. Pamats — jūsu piekrišana (profilu un atgādinājumu ieslēdzat paši) un mūsu leģitīmās intereses vietnes darbībā un uzlabošanā. Dati netiek pārdoti, netiek izmantoti reklāmai un netiek nodoti trešajām personām mārketinga nolūkos.</p>'
+        + '<h2>Kas tehniski apstrādā datus</h2>'
+        + '<ul><li>Supabase — datubāze un pieteikšanās; pārlūks tai piekļūst tieši, tāpēc tā saņem IP adresi un informāciju par pārlūku. Serveri Londonā (Apvienotā Karaliste); Apvienotajai Karalistei ir Eiropas Komisijas lēmums par pietiekamu datu aizsardzības līmeni.</li>'
+        + '<li>Cloudflare — vietnes mitināšana, apmeklējumu statistika un Turnstile pārbaude; saņem IP adresi un tehniskos piekļuves žurnālus.</li>'
+        + '<li>Pārlūku paziņojumu pakalpojumi (Google, Apple, Mozilla, Microsoft) — tikai tad, ja atgādinājums ir ieslēgts.</li>'
+        + '<li>jsDelivr (KaTeX un Supabase bibliotēkas) un Google Fonts (fonti) — lapas ielādes laikā saņem IP adresi un informāciju par pārlūku.</li>'
+        + '<li>Telegram — paziņojumi administratoram par ziņojumiem par kļūdām un ziņas no veidlapas «Rakstiet mums»; tā serveri var atrasties ārpus ES.</li></ul>'
+        + '<h2>Jūsu tiesības</h2>'
+        + '<p>Jūs varat pieprasīt piekļuvi saviem datiem, to labošanu vai dzēšanu, apstrādes ierobežošanu, iebilst pret apstrādi un atsaukt piekrišanu. Rakstiet mums ar veidlapu šīs lapas beigās. Ja uzskatāt, ka mēs pārkāpjam likumu, varat vērsties Datu valsts inspekcijā (<a href="https://www.dvi.gov.lv" rel="noopener">dvi.gov.lv</a>).</p>'
+        + '<h2>Bērni</h2>'
+        + '<p>Vietne paredzēta skolēniem. Profilu var izveidot, ja jums ir vismaz 13 gadi vai ja to atļāvis pieaugušais (vecāks vai skolotājs). Mēs neko nezinām par lietotāja vecumu — mums nav ne dzimšanas datuma, ne vārda.</p>'
+        + '<h2>Izmaiņas</h2>'
+        + '<p>Ja datu apstrādē kaut kas mainīsies, mēs atjaunosim šo lapu un datumu augšā.</p>',
       meta_favorites_title: 'Mani favorīti',
       meta_favorites_desc: 'Saglabātie matemātikas uzdevumi atkārtošanai.',
       meta_search_title: 'Meklēšana: {query}',
@@ -787,7 +846,7 @@
       profile_have_one: 'Man jau ir profils',
       profile_code_label: 'Kods no cita ierīces vai atjaunošanas kods',
       profile_join: 'Pievienot',
-      profile_privacy: 'Kas tiek glabāts: segvārds un atrisināto uzdevumu saraksts. Ne vārda, ne e-pasta. Profilu var dzēst jebkurā brīdī.',
+      profile_privacy: 'Kas tiek glabāts: segvārds un progress — atrisinātie uzdevumi, favorīti, trenažiera kļūdas. Ne vārda, ne e-pasta. Profilu var dzēst jebkurā brīdī.',
       profile_syncing: 'Sinhronizējam…',
       profile_synced: 'Progress saglabāts · {time}',
       profile_move: 'Pārcelt uz citu ierīci',
@@ -1681,6 +1740,65 @@
       meta_tag_desc: 'Задачи с тегом #{tag}',
       meta_about_title: 'О сайте',
       meta_about_desc: 'Как устроен MathTasks: классы, разделы, темы и разбор решений.',
+      nav_privacy: 'Конфиденциальность',
+      meta_privacy_title: 'Политика конфиденциальности',
+      meta_privacy_desc: 'Какие данные хранит MathTasks, зачем и как их удалить: профиль, прогресс, напоминания, дуэли.',
+      privacy_more: 'Политика конфиденциальности',
+      contact_title: 'Написать нам',
+      contact_lead: 'Просьба удалить данные, вопрос о том, что хранится, или что-то другое. Сообщение приходит администратору и на сайте не хранится.',
+      contact_topic: 'О чём',
+      contact_topic_delete: 'Удалить мои данные',
+      contact_topic_access: 'Узнать, какие данные хранятся',
+      contact_topic_other: 'Другое',
+      contact_nick: 'Ник профиля или дуэли (если просьба о них)',
+      contact_message: 'Сообщение',
+      contact_reply: 'Как вам ответить — почта или другой способ (необязательно)',
+      contact_send: 'Отправить',
+      contact_sending: 'Отправляем…',
+      contact_sent: 'Спасибо! Сообщение отправлено.',
+      contact_err_short: 'Напишите сообщение — хотя бы несколько слов.',
+      contact_err_long: 'Сообщение слишком длинное: до 2000 знаков.',
+      contact_err_often: 'Слишком много сообщений за короткое время. Попробуйте через минуту.',
+      contact_err_human: 'Не удалось проверить, что вы человек. Попробуйте ещё раз.',
+      contact_err_unavailable: 'Форма пока не работает. Попробуйте позже.',
+      contact_err_send: 'Не удалось отправить. Проверьте подключение и попробуйте ещё раз.',
+      privacy_body: '<p class="privacy-updated">Последнее обновление: 21 ноября 2026 г.</p>'
+        + '<p>MathTasks (mathtasks.lv) — сборник школьных задач по математике. Мы собираем как можно меньше данных: имя, телефон и дата рождения нам не нужны и не запрашиваются. Почта не нужна ни для профиля, ни для дуэлей; оставить её можно только в форме обращения, если вам нужен ответ.</p>'
+        + '<h2>Кто отвечает за данные</h2>'
+        + '<p>Boriss Gogoļevs. Связаться можно через форму <a href="#contact">«Написать нам»</a> в конце этой страницы.</p>'
+        + '<h2>Что остаётся только в вашем браузере</h2>'
+        + '<p>Решённые задачи, закладки, ошибки и рекорды тренажёра, дни занятий, результаты контрольных, выбранные класс, язык и тема оформления, звук. Это хранится в памяти браузера (localStorage) и на наш сервер не отправляется, пока вы не создадите профиль. Если очистить данные сайта в браузере, всё это исчезнет. Рекламных и отслеживающих cookie на сайте нет. Дуэли — исключение: их результаты уходят на сервер и без профиля (см. «Дуэли»).</p>'
+        + '<h2>Профиль (по желанию)</h2>'
+        + '<p>Профиль нужен, чтобы прогресс переходил между устройствами. Если вы его создаёте, мы храним:</p>'
+        + '<ul><li>ник, который вы выбрали (пожалуйста, не используйте настоящее имя), зверя-аватар и дату последней смены ника;</li>'
+        + '<li>прогресс: решённые задачи и журнал решений, число неверных попыток, закладки, значки, результаты контрольных и экзаменов, место, где вы остановились, дни занятий, ошибки и рекорды тренажёра, статистику дуэлей и историю последних 20 дуэлей (с никами и зверями соперников);</li>'
+        + '<li>даты создания профиля, последнего визита и подключения устройств;</li>'
+        + '<li>хеш кода восстановления (сам код мы не храним) и анонимный идентификатор входа — без почты и пароля. Код переноса на другое устройство действует 10 минут.</li></ul>'
+        + '<p>Профиль хранится, пока вы его не удалите. Удалить его можно в любой момент кнопкой «Удалить профиль» на странице «Мой прогресс»: вместе с ним удаляются прогресс, привязка устройств и напоминания. В системе входа Supabase остаётся запись об анонимном входе — идентификатор и даты, без имени и почты. В ночных резервных копиях базы (хранятся последние 14) удалённое остаётся, пока эти копии не сменятся новыми, обычно две недели.</p>'
+        + '<h2>Напоминание позаниматься (по желанию)</h2>'
+        + '<p>Если в профиле включить напоминание, мы храним адрес подписки браузера на уведомления и её ключи шифрования, язык, выбранный час, часовой пояс, дату последнего напоминания и число неудачных отправок. Напоминание отправляется через службу уведомлений вашего браузера (Google, Apple, Mozilla или Microsoft); его текст у всех одинаковый и ничего о вас не сообщает. Данные напоминания удаляются, когда вы его выключаете, удаляете профиль или когда служба уведомлений сообщает, что подписки больше нет.</p>'
+        + '<h2>Дуэли</h2>'
+        + '<p>Для дуэли и таблицы лидеров мы храним ник, зверя, случайный номер игрока из браузера, ваши ответы, время каждого ответа, результат и дату — с профилем и без него. В таблице лидеров видны ник, зверь, результат и дата. Ваша попытка может показываться другим игрокам как «соперник-запись» — с ответами и их временем. Живому сопернику видны ваш ник и зверь. Попытка в таблицу лидеров проходит проверку Cloudflare Turnstile («не робот ли»). Попытки удаляются автоматически через 60 дней, кроме 20 лучших результатов в каждой категории и уровне сложности — они хранятся без срока. Удалить свои результаты раньше можно по просьбе через форму в конце страницы.</p>'
+        + '<h2>Сообщения об ошибках в задачах</h2>'
+        + '<p>Кнопка «Нашли ошибку?» отправляет номер задачи, тип ошибки, ваш текст (до 1000 знаков), введённый ответ, число неверных попыток и язык. Личных данных в форме нет — не пишите их в тексте. Сообщение видит администратор сайта, копия приходит и в Telegram.</p>'
+        + '<h2>Сообщения через форму «Написать нам»</h2>'
+        + '<p>Форма отправляет тему, ваш текст, язык интерфейса, ник (он подставляется из профиля на этом устройстве, его можно стереть) и способ связи, если вы его укажете. Сообщение приходит администратору в Telegram и на сайте не хранится. От спама работает проверка Cloudflare Turnstile.</p>'
+        + '<h2>Статистика посещений</h2>'
+        + '<p>Сайт использует Cloudflare Web Analytics — обезличенную статистику посещений без cookie и без отслеживания между сайтами. Она показывает, какие страницы открывают и как быстро они загружаются.</p>'
+        + '<h2>Зачем</h2>'
+        + '<p>Чтобы сайт работал, переносил прогресс между устройствами, напоминал о занятиях, вёл таблицу лидеров и чтобы мы исправляли ошибки в задачах. Основание — ваше согласие (профиль и напоминание вы включаете сами) и наш законный интерес в работе и улучшении сайта. Данные не продаются, не используются для рекламы и не передаются третьим лицам в маркетинговых целях.</p>'
+        + '<h2>Кто технически обрабатывает данные</h2>'
+        + '<ul><li>Supabase — база данных и вход; браузер обращается к ней напрямую, поэтому она получает IP-адрес и сведения о браузере. Серверы в Лондоне (Великобритания); для Великобритании действует решение Европейской комиссии о достаточном уровне защиты данных.</li>'
+        + '<li>Cloudflare — хостинг сайта, статистика посещений и проверка Turnstile; получает IP-адрес и технические журналы обращений.</li>'
+        + '<li>Службы уведомлений браузеров (Google, Apple, Mozilla, Microsoft) — только если напоминание включено.</li>'
+        + '<li>jsDelivr (библиотеки KaTeX и Supabase) и Google Fonts (шрифты) — при загрузке страницы получают IP-адрес и сведения о браузере.</li>'
+        + '<li>Telegram — уведомления администратору о сообщениях об ошибках и сообщения из формы «Написать нам»; его серверы могут находиться за пределами ЕС.</li></ul>'
+        + '<h2>Ваши права</h2>'
+        + '<p>Вы можете запросить доступ к своим данным, их исправление или удаление, ограничение обработки, возразить против обработки и отозвать согласие. Напишите нам через форму в конце страницы. Если считаете, что мы нарушаем закон, вы вправе обратиться в Datu valsts inspekcija (<a href="https://www.dvi.gov.lv" rel="noopener">dvi.gov.lv</a>).</p>'
+        + '<h2>Дети</h2>'
+        + '<p>Сайт рассчитан на школьников. Профиль можно создать, если вам не меньше 13 лет или если взрослый (родитель или учитель) разрешил. Мы ничего не знаем о возрасте пользователя — у нас нет ни даты рождения, ни имени.</p>'
+        + '<h2>Изменения</h2>'
+        + '<p>Если что-то в обработке данных изменится, мы обновим эту страницу и дату вверху.</p>',
       meta_favorites_title: 'Мои закладки',
       meta_favorites_desc: 'Сохранённые задачи по математике для повторения.',
       meta_search_title: 'Поиск: {query}',
@@ -2093,7 +2211,7 @@
       profile_have_one: 'У меня уже есть профиль',
       profile_code_label: 'Код с другого устройства или код восстановления',
       profile_join: 'Подключить',
-      profile_privacy: 'Что хранится: ник и список решённых задач. Ни имени, ни почты. Профиль можно удалить в любой момент.',
+      profile_privacy: 'Что хранится: ник и прогресс — решённые задачи, закладки, ошибки тренажёра. Ни имени, ни почты. Профиль можно удалить в любой момент.',
       profile_syncing: 'Синхронизируем…',
       profile_synced: 'Прогресс сохранён · {time}',
       profile_move: 'Перенести на другое устройство',

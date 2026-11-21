@@ -333,7 +333,7 @@
         <label><span>${escapeHtml(tr('profile_code_label'))}</span><input type="text" autocomplete="off" spellcheck="false" placeholder="ABCD-2345" /></label>
         <button type="submit" class="secondary-button">${escapeHtml(tr('profile_join'))}</button>
       </form>
-      <p class="profile-note">${escapeHtml(tr('profile_privacy'))}</p>
+      <p class="profile-note">${escapeHtml(tr('profile_privacy'))} <a href="/privacy">${escapeHtml(tr('privacy_more'))}</a></p>
       <p class="profile-error" data-profile-error hidden></p>`;
   }
 
@@ -372,7 +372,7 @@
         <button type="button" class="text-button danger" data-profile-delete>${escapeHtml(tr('profile_delete'))}</button>
       </div>
       <div class="profile-code-box" data-profile-code-box hidden></div>${remindControls()}
-      <p class="profile-note">${escapeHtml(tr('profile_privacy'))}</p>
+      <p class="profile-note">${escapeHtml(tr('profile_privacy'))} <a href="/privacy">${escapeHtml(tr('privacy_more'))}</a></p>
       <p class="profile-error" data-profile-error hidden></p>`;
     renderStatus();
     renderRemind(box);

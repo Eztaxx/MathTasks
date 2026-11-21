@@ -25,7 +25,7 @@
   <script src="/theme-init.js?v=20261120-1"></script>
   <script src="/nachala-clean.js" defer></script>
   <script src="/nb-scale.js?v=20261116-1" defer></script>
-  <script src="/i18n.js?v=20261121-7"></script>
+  <script src="/i18n.js?v=20261121-21"></script>
 </head>
 <body>
   <noscript>
@@ -363,6 +363,41 @@
       <div class="progress-page" id="progress-root"></div>
     </div>
 
+    <div id="view-privacy" hidden>
+      <nav class="breadcrumb" aria-label="Хлебные крошки" data-i18n-aria="breadcrumbs"><a href="/" data-i18n="nav_home">Главная</a><span class="crumb-sep">/</span><span data-i18n="nav_privacy">Конфиденциальность</span></nav>
+      <article class="privacy-page">
+        <h1 data-i18n="meta_privacy_title">Политика конфиденциальности</h1>
+        <div class="privacy-body" data-i18n-html="privacy_body"></div>
+        <section class="privacy-contact" id="contact" aria-labelledby="contact-title">
+          <h2 id="contact-title" data-i18n="contact_title">Написать нам</h2>
+          <p data-i18n="contact_lead">Просьба удалить данные, вопрос о том, что хранится, или что-то другое. Сообщение приходит администратору и на сайте не хранится.</p>
+          <form class="contact-form" data-contact-form method="post" action="/api/contact" novalidate>
+            <label><span data-i18n="contact_topic">О чём</span>
+              <select name="topic">
+                <option value="delete" data-i18n="contact_topic_delete">Удалить мои данные</option>
+                <option value="access" data-i18n="contact_topic_access">Узнать, какие данные хранятся</option>
+                <option value="other" data-i18n="contact_topic_other">Другое</option>
+              </select>
+            </label>
+            <label><span data-i18n="contact_nick">Ник профиля или дуэли (если просьба о них)</span>
+              <input type="text" name="nick" maxlength="24" autocomplete="off" spellcheck="false" />
+            </label>
+            <label><span data-i18n="contact_message">Сообщение</span>
+              <textarea name="message" rows="5" maxlength="2000" required></textarea>
+            </label>
+            <label><span data-i18n="contact_reply">Как вам ответить — почта или другой способ (необязательно)</span>
+              <input type="text" name="reply" maxlength="200" autocomplete="off" spellcheck="false" />
+            </label>
+            <div class="contact-turnstile" data-contact-turnstile></div>
+            <div class="contact-actions">
+              <button type="submit" class="primary-button" data-i18n="contact_send" disabled>Отправить</button>
+              <p class="contact-status" data-contact-status role="status" aria-live="polite"></p>
+            </div>
+          </form>
+        </section>
+      </article>
+    </div>
+
     <div id="view-about" hidden>
       <nav class="breadcrumb" aria-label="Хлебные крошки" data-i18n-aria="breadcrumbs"><a href="/" data-i18n="nav_home">Главная</a><span class="crumb-sep">/</span><span data-i18n="nav_about">О сайте</span></nav>
       <section class="hero">
@@ -429,6 +464,7 @@
           <a href="/control-works" data-i18n="nav_control_works">Контрольные работы</a>
           <a href="/duel" data-i18n="nav_duel">Дуэль на устный счёт</a>
           <a href="/about" data-i18n="nav_about">О сайте</a>
+          <a href="/privacy" data-i18n="nav_privacy">Конфиденциальность</a>
         </nav>
       </div>
       <div class="nb-footer-bottom">
@@ -767,6 +803,7 @@
   <script src="/duel.js?v=20260927-3"></script>
   <script src="/app.js"></script>
   <script src="/progress-sync.js?v=20261121-7"></script>
-  <script src="/profile.js?v=20261121-7"></script>
+  <script src="/profile.js?v=20261121-21"></script>
+  <script src="/privacy-contact.js?v=20261121-21"></script>
 </body>
 </html>

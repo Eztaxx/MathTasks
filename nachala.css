@@ -1859,6 +1859,33 @@ input.cw-answer-input {
 .about-page { max-width: 760px; padding: 28px; }
 .about-page h2 { margin: 28px 0 10px; font-size: 28px; font-weight: 700; color: var(--ink-1); }
 .about-page p { font-size: 17px; line-height: 1.6; color: var(--ink-2); }
+/* Политика конфиденциальности (/privacy): лист как у «О сайте», текст из i18n (privacy_body) */
+.privacy-page {
+  max-width: 760px; margin: 8px 0 32px; padding: 28px;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+}
+.privacy-page h1 { margin: 0 0 6px; font-size: clamp(32px, 4vw, 44px); line-height: 1.08; font-weight: 700; letter-spacing: -0.02em; }
+.privacy-body h2 { margin: 28px 0 8px; font-size: 22px; font-weight: 700; color: var(--ink-1); }
+.privacy-body p, .privacy-body li { font-size: 17px; line-height: 1.6; color: var(--ink-2); }
+.privacy-body p { margin: 0 0 10px; }
+.privacy-body ul { margin: 0 0 10px; padding-left: 22px; }
+.privacy-body li { margin: 4px 0; }
+.privacy-body a { color: var(--nb-blue); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.privacy-body .privacy-updated { margin-bottom: 18px; font-size: 15px; color: var(--ink-3); }
+/* Форма «Написать нам» (privacy-contact.js) */
+.privacy-contact { margin-top: 32px; padding-top: 24px; border-top: 2px solid var(--ink-1); }
+.privacy-contact h2 { margin: 0 0 8px; font-size: 24px; font-weight: 700; color: var(--ink-1); }
+.privacy-contact > p { margin: 0 0 16px; font-size: 17px; line-height: 1.6; color: var(--ink-2); }
+.contact-form { display: flex; flex-direction: column; gap: 14px; }
+.contact-form label { display: flex; flex-direction: column; gap: 6px; font-size: 15px; font-weight: 600; color: var(--ink-1); }
+.contact-form input[type="text"], .contact-form select { height: 48px; width: 100%; padding: 0 14px; font-size: 17px; }
+.contact-form select { padding-right: 40px; }
+.contact-form textarea { width: 100%; min-height: 132px; padding: 12px 14px; font-size: 17px; line-height: 1.5; resize: vertical; }
+.contact-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.contact-status { margin: 0; font-size: 15px; color: var(--ink-2); }
+.contact-status.is-ok { color: var(--progress, var(--nb-blue)); font-weight: 600; }
+.contact-status.is-error { color: var(--red-ink, var(--red)); font-weight: 600; }
+@media (max-width: 600px) { .privacy-page { padding: 20px 16px; } }
 .tags-catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 16px; }
 .tag-catalog-card { display: flex; flex-direction: column; gap: 8px; text-decoration: none; }
 .tag-catalog-header { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }

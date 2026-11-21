@@ -4,6 +4,7 @@ const sidebarNav = document.querySelector('#sidebar-nav');
 const viewHome = document.querySelector('#view-home');
 const viewList = document.querySelector('#view-list');
 const viewAbout = document.querySelector('#view-about');
+const viewPrivacy = document.querySelector('#view-privacy');
 const viewControlWork = document.querySelector('#view-control-work');
 const viewControlWorks = document.querySelector('#view-control-works');
 const viewProgress = document.querySelector('#view-progress');
@@ -2777,6 +2778,7 @@ function showView(name) {
   viewHome.hidden = name !== 'home';
   viewList.hidden = name !== 'list';
   viewAbout.hidden = name !== 'about';
+  if (viewPrivacy) viewPrivacy.hidden = name !== 'privacy';
   if (viewControlWork) viewControlWork.hidden = name !== 'control-work';
   if (viewControlWorks) viewControlWorks.hidden = name !== 'control-works';
   if (viewProgress) viewProgress.hidden = name !== 'progress';
@@ -6228,6 +6230,13 @@ async function route({ force = false } = {}) {
   if (path === '/set') { await showDailySet(); return; }
   if (path === '/progress') { showProgress(); return; }
   if (path === '/about') { showView('about'); setMeta(metaText('meta_about_title'), metaText('meta_about_desc')); return; }
+  if (path === '/privacy') {
+    showView('privacy');
+    setMeta(metaText('meta_privacy_title'), metaText('meta_privacy_desc'));
+    // Прямая ссылка /privacy#contact: showView прокрутил наверх — возвращаем к форме.
+    if (location.hash) requestAnimationFrame(() => document.getElementById(location.hash.slice(1))?.scrollIntoView());
+    return;
+  }
 
   /* Чужой адрес сервер отдаёт с кодом 404, а приложение рисовало под ним
      главную: посетитель не понимал, что ссылка битая. */

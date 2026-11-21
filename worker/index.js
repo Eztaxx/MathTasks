@@ -3,6 +3,7 @@
      /task/<id>-<slug> — мета-теги Open Graph для ботов мессенджеров
      /api/gemini       — прокси к Google Gemini для админки, только администратору
      /api/duel/*       — попытки дуэлей и таблица лидеров (worker/duel-api.js)
+     /api/contact      — форма «Написать нам» со страницы /privacy (worker/contact.js)
 
    Раньше это лежало в папке functions/ — соглашение Cloudflare Pages.
    Проект живёт на Workers, где эта папка не выполняется вовсе, поэтому
@@ -19,6 +20,7 @@ import { isLocalizablePath, latexToPlainText, makeSlug, toLangPath,
 } from './lib.js';
 import { CANONICAL_ORIGIN, renderPage } from './seo.js';
 import { duelApi } from './duel-api.js';
+import { contactApi } from './contact.js';
 import { BACKUP_CRON, MIRROR_CRON, listBackups, mirrorStep, notifyReady, notifyReports, runBackup, sendTelegram } from './backup.js';
 import { SUBREQUEST_LIMIT, isRemindTime, pushKey, remindDue } from './push.js';
 
@@ -78,7 +80,7 @@ const CROSS_TAG_SLUGS = [
    оболочку приложения, то есть копию главной. */
 const SINGLE_LANGUAGE_PAGES = new Set(['/exams', '/mock-exams', '/trainer', '/plotter', '/duel']);
 const BASE_SITEMAP_PATHS = [
-  '/', '/tasks', '/tags', '/about', '/control-works', '/exams',
+  '/', '/tasks', '/tags', '/about', '/privacy', '/control-works', '/exams',
   '/mock-exams', '/trainer', '/plotter', '/duel', '/grade/visparigais',
   '/grade/matematika-1', '/grade/matematika-2'
 ];
@@ -546,6 +548,7 @@ export default {
     if (url.pathname === '/api/push/key') return pushKey(env);
     if (url.pathname === '/api/gemini') return geminiProxy(request, env);
     if (url.pathname.startsWith('/api/duel/')) return duelApi(request, env);
+    if (url.pathname === '/api/contact') return contactApi(request, env);
     if (url.pathname.startsWith('/api/backup/')) return backupApi(request, env, url);
     if (url.pathname.startsWith('/assets/')) return serveAsset(request, env);
 

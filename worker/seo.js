@@ -70,6 +70,7 @@ const STATIC_PAGES = {
   '/tasks': { title: 'meta_all_tasks_title', description: 'meta_all_tasks_desc' },
   '/tags': { title: 'tags_label', description: 'meta_tags_desc' },
   '/about': { title: 'meta_about_title', description: 'meta_about_desc' },
+  '/privacy': { title: 'meta_privacy_title', description: 'meta_privacy_desc' },
   '/control-works': { title: 'cw_catalog_title', description: 'cw_catalog_desc' },
   '/progress': { title: 'progress_title', description: 'progress_meta', robots: 'noindex, follow' },
   '/favorites': { title: 'meta_favorites_title', description: 'meta_favorites_desc', robots: 'noindex, follow' },
