@@ -1,6 +1,6 @@
 /* Напоминание позаниматься — веб-пуш (миграция 033).
 
-   Раз в час (REMIND_CRON) база отдаёт подписки, у которых сейчас выбранный
+   Раз в час, в :00, база отдаёт подписки, у которых сейчас выбранный
    час в их часовом поясе, сегодня напоминания ещё не было и ученик сегодня
    не занимался. Решает это SQL (due_reminders); воркер только шифрует
    сообщение и отправляет его сервису пушей браузера (RFC 8291/8292).
@@ -14,7 +14,14 @@
 
 import { buildPushPayload } from '@block65/webcrypto-web-push';
 
-export const REMIND_CRON = '2 * * * *';
+/* Отдельного расписания у напоминаний нет: на бесплатном тарифе Cloudflare
+   их не больше пяти на весь аккаунт, все пять уже заняты (три у этого
+   воркера, два у других), и шестое выкладка не приняла. Поэтому
+   напоминания идут в том же вызове, что уведомления о сообщениях об
+   ошибках (расписание «каждые 10 минут», REMIND_HOST_CRON), — в тот, что
+   приходится на начало часа. */
+export const REMIND_HOST_CRON = '*/10 * * * *';
+export const isRemindTime = scheduledTime => new Date(Number(scheduledTime)).getUTCMinutes() < 10;
 
 // Язык — тот, что был на сайте при включении напоминания.
 const MESSAGES = {
@@ -25,10 +32,13 @@ const OPEN_URL = '/trainer.html';
 const BATCH = 20;
 /* Бесплатный тариф Cloudflare — 50 запросов наружу за вызов (как в
    backup.js). Два уходят в базу (due_reminders и mark_reminders), ещё
-   несколько — в запас. Остальным в этот час напоминание не придёт; сколько
+   несколько — в запас, часть забирают уведомления в Telegram в том же
+   вызове (maxPushes). Остальным в этот час напоминание не придёт; сколько
    их, видно в журнале (skipped). На платном тарифе предел поднимается
-   переменной REMIND_MAX_PER_RUN. */
+   двумя переменными воркера: SUBREQUEST_LIMIT (запросов на вызов, см.
+   worker/index.js) и REMIND_MAX_PER_RUN (пушей за запуск). */
 const MAX_PER_RUN = 45;
+export const SUBREQUEST_LIMIT = 50;
 const SEND_TIMEOUT_MS = 10 * 1000;
 
 /* Подписку сохраняет браузер ученика через save_push_subscription, а
@@ -70,14 +80,15 @@ async function rpc(env, name, body, fetchImpl) {
   return text ? JSON.parse(text) : null;
 }
 
-export async function remindDue(env, scheduledTime = Date.now(), fetchImpl = fetch) {
+export async function remindDue(env, scheduledTime = Date.now(), fetchImpl = fetch, { maxPushes = Infinity } = {}) {
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY || !env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) {
     return { skipped: 'not configured' };
   }
   const now = new Date(scheduledTime).toISOString();
   const all = await rpc(env, 'due_reminders', { p_now: now }, fetchImpl);
   if (!Array.isArray(all) || all.length === 0) return { due: 0 };
-  const limit = Number(env.REMIND_MAX_PER_RUN) > 0 ? Math.floor(Number(env.REMIND_MAX_PER_RUN)) : MAX_PER_RUN;
+  const configured = Number(env.REMIND_MAX_PER_RUN) > 0 ? Math.floor(Number(env.REMIND_MAX_PER_RUN)) : MAX_PER_RUN;
+  const limit = Math.max(0, Math.min(configured, maxPushes));
   const due = all.slice(0, limit);
 
   const vapid = {

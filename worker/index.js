@@ -20,7 +20,7 @@ import { isLocalizablePath, latexToPlainText, makeSlug, toLangPath,
 import { CANONICAL_ORIGIN, renderPage } from './seo.js';
 import { duelApi } from './duel-api.js';
 import { BACKUP_CRON, MIRROR_CRON, listBackups, mirrorStep, notifyReady, notifyReports, runBackup, sendTelegram } from './backup.js';
-import { REMIND_CRON, pushKey, remindDue } from './push.js';
+import { SUBREQUEST_LIMIT, isRemindTime, pushKey, remindDue } from './push.js';
 
 // Адрес по названию — та же функция, что на сайте: одна таблица букв, с латышскими.
 const slugify = makeSlug;
@@ -504,8 +504,38 @@ export {
   taskPreview,
   geminiProxy,
   serveAsset,
-  assetLinks
+  assetLinks,
+  reportsAndReminders
 };
+
+/* Вызов каждые 10 минут: сообщения об ошибках в Telegram, а в начале часа
+   ещё и напоминания позаниматься (своего расписания у них нет — лимит
+   тарифа, worker/push.js). Запросы наружу у вызова общие, 50 штук: сколько
+   потратили отчёты, столько меньше пушей. Сбой отчётов напоминаниям не мешает. */
+const REPORTS_WORST_CASE = 22; // task_reports + tasks + до 20 сообщений в Telegram
+const SUBREQUEST_RESERVE = 3;
+
+const reportsSubrequests = result => {
+  if (!result || result.error) return REPORTS_WORST_CASE;
+  if (result.skipped) return 0;
+  return result.sent ? result.sent + 2 : 1;
+};
+
+// Итог в журнал воркера: со сбоем — как ошибка, чтобы его было видно в фильтре по уровню.
+const logResult = (label, result) => (result?.error ? console.error : console.log)(label, JSON.stringify(result));
+
+async function reportsAndReminders(env, scheduledTime, notify = notifyReports, remind = remindDue) {
+  const reports = await notify(env, scheduledTime).catch(error => ({ error: String(error?.message || error) }));
+  if (!isRemindTime(scheduledTime)) return reports;
+  // Итог отчётов — сразу: если пуши оборвёт лимит среды, строка про Telegram всё равно останется.
+  logResult('[reports]', reports);
+  // На платном тарифе запросов наружу больше — тогда задать переменную SUBREQUEST_LIMIT.
+  const limit = Number(env.SUBREQUEST_LIMIT) > 0 ? Number(env.SUBREQUEST_LIMIT) : SUBREQUEST_LIMIT;
+  const maxPushes = limit - SUBREQUEST_RESERVE - reportsSubrequests(reports) - 2;
+  const reminders = await remind(env, scheduledTime, fetch, { maxPushes })
+    .catch(error => ({ error: String(error?.message || error) }));
+  return { reminders };
+}
 
 export default {
   async fetch(request, env) {
@@ -554,16 +584,15 @@ export default {
 
   /* По расписанию (wrangler.jsonc, triggers.crons): ночью — резервная
      копия, каждые 10 минут — уведомления о новых сообщениях об ошибках,
-     со сдвигом в 5 минут — копирование новых чертежей в бакет копий, а раз
-     в час — напоминания позаниматься (worker/push.js).
+     со сдвигом в 5 минут — копирование новых чертежей в бакет копий, а в
+     начале часа вместе с уведомлениями — напоминания позаниматься.
      Итог пишется в журнал воркера: wrangler tail или панель Cloudflare. */
   async scheduled(event, env, ctx) {
     const job = event.cron === BACKUP_CRON ? runBackup(env)
       : event.cron === MIRROR_CRON ? mirrorStep(env)
-      : event.cron === REMIND_CRON ? remindDue(env, event.scheduledTime)
-      : notifyReports(env, event.scheduledTime);
+      : reportsAndReminders(env, event.scheduledTime);
     ctx.waitUntil(job
-      .then(result => console.log(`[${event.cron}]`, JSON.stringify(result)))
+      .then(result => logResult(`[${event.cron}]`, result?.reminders?.error ? { ...result, error: result.reminders.error } : result))
       .catch(error => console.error(`[${event.cron}]`, error.message)));
   }
 };

@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import worker, { assetLinks } from '../worker/index.js';
-import { REMIND_CRON, isPushEndpoint, pushKey, remindDue } from '../worker/push.js';
+import worker, { assetLinks, reportsAndReminders } from '../worker/index.js';
+import { REMIND_HOST_CRON, isPushEndpoint, isRemindTime, pushKey, remindDue } from '../worker/push.js';
 
 describe('адрес подписки', () => {
   it('только пуш-сервисы браузеров и только https', () => {
@@ -73,9 +73,50 @@ describe('assetlinks.json для приложения из Google Play', () => {
 });
 
 describe('напоминание позаниматься', () => {
-  it('расписание раз в час совпадает с wrangler.jsonc', async () => {
+  it('своего расписания нет: не больше трёх у воркера, напоминания — в начале часа вызова «каждые 10 минут»', async () => {
     const { readFileSync } = await import('node:fs');
-    expect(readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8')).toContain(`"${REMIND_CRON}"`);
+    const config = readFileSync(new URL('../wrangler.jsonc', import.meta.url), 'utf8');
+    const crons = JSON.parse(config.match(/"crons":\s*(\[[^\]]*\])/)[1]);
+    expect(crons).toContain(REMIND_HOST_CRON);
+    expect(crons.length).toBeLessThanOrEqual(3);
+    expect(isRemindTime(Date.UTC(2026, 10, 21, 15, 0))).toBe(true);
+    expect(isRemindTime(Date.UTC(2026, 10, 21, 15, 10))).toBe(false);
+    expect(isRemindTime(Date.UTC(2026, 10, 21, 15, 50))).toBe(false);
+  });
+
+  it('в начале часа — отчёты, потом напоминания на оставшиеся запросы', async () => {
+    const seen = [];
+    const remind = async (env, time, fetchImpl, { maxPushes }) => { seen.push(maxPushes); return { due: 0 }; };
+    const atHour = Date.UTC(2026, 10, 21, 15, 0);
+    const logs = [];
+    const spyLog = vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(['log', ...args]));
+    const spyError = vi.spyOn(console, 'error').mockImplementation((...args) => logs.push(['error', ...args]));
+    try {
+      expect(await reportsAndReminders({}, atHour, async () => ({ sent: 0, skipped: 'нет секретов Telegram' }), remind))
+        .toEqual({ reminders: { due: 0 } });
+      await reportsAndReminders({}, atHour, async () => ({ sent: 20 }), remind);
+      await reportsAndReminders({}, atHour, async () => { throw new Error('task_reports: 500'); }, remind);
+      // Платный тариф: больше запросов на вызов.
+      await reportsAndReminders({ SUBREQUEST_LIMIT: '1000' }, atHour, async () => ({ sent: 0 }), remind);
+    } finally {
+      spyLog.mockRestore();
+      spyError.mockRestore();
+    }
+    expect(seen).toEqual([45, 23, 23, 994]);
+    // Итог отчётов — в журнал сразу, сбой — как ошибка.
+    expect(logs.map(([level, label]) => `${level} ${label}`)).toEqual(['log [reports]', 'log [reports]', 'error [reports]', 'log [reports]']);
+    // Не начало часа — только отчёты.
+    expect(await reportsAndReminders({}, Date.UTC(2026, 10, 21, 15, 20), async () => ({ sent: 1 }), remind)).toEqual({ sent: 1 });
+    expect(seen).toHaveLength(4);
+  });
+
+  it('предел maxPushes сильнее настроенного', async () => {
+    const env = { SUPABASE_URL: 'https://db.example', SUPABASE_SERVICE_ROLE_KEY: 'service', ...makeVapid() };
+    const keys = await browserKeys();
+    const rows = Array.from({ length: 30 }, (_, i) => ({ endpoint: `https://fcm.googleapis.com/fcm/send/${i}`, lang: 'lv', ...keys }));
+    const fetchImpl = async url => (String(url).endsWith('/rpc/due_reminders') ? new Response(JSON.stringify(rows))
+      : String(url).endsWith('/rpc/mark_reminders') ? new Response(null, { status: 204 }) : new Response('', { status: 201 }));
+    expect(await remindDue(env, Date.now(), fetchImpl, { maxPushes: 23 })).toMatchObject({ due: 30, sent: 23, skipped: 7 });
   });
 
   it('открытый ключ для подписки — только если он задан', async () => {
