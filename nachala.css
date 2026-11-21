@@ -71,6 +71,9 @@
   --rule-2: #A3ADC2;
   --nb-blue: #14213D;        /* «решено», главное действие вне доски */
   --on-blue: #FFFFFF;
+  --progress: var(--nb-blue); /* полосы прогресса, «решено», «верно»; в тёмной теме свой цвет */
+  --on-progress: var(--on-blue);
+  --progress-tint: var(--blue-tint);
   --blue-tint: #DCE3F2;
   --yellow: #FFD34D;         /* текущее, выбранное, подсказка */
   --on-yellow: #14213D;
@@ -108,34 +111,39 @@
   color-scheme: light;
 }
 
+/* Тёмная тема «Графит» (21.11.2026): нейтральный серый без синевы.
+   Цвет кнопок (--nb-blue) и полос прогресса (--progress) — отдельные токены. */
 html.dark, body.dark {
-  --paper: #0F1626;
-  --sheet: #172138;
-  --ink-1: #E8ECF3;
-  --ink-2: #B8C2D6;
-  --ink-3: #8D99B0;
-  --rule: #26324D;
-  --rule-2: #3A4867;
-  --nb-blue: #8FA6FF;
-  --on-blue: #0F1626;
-  --blue-tint: #1E2A4A;
+  --paper: #141414;
+  --sheet: #1E1E1E;
+  --ink-1: #EDEDED;
+  --ink-2: #B3B3B3;
+  --ink-3: #8C8C8C;
+  --rule: #303030;
+  --rule-2: #4A4A4A;
+  --nb-blue: #8AB4FF;
+  --on-blue: #0E1420;
+  --progress: #8AB4FF;
+  --on-progress: #0E1420;
+  --progress-tint: color-mix(in srgb, var(--progress) 16%, var(--sheet));
+  --blue-tint: #242A35;
   --yellow: #FFD34D;
-  --on-yellow: #14213D;
+  --on-yellow: #141414;
   --yellow-tint: #3A3215;
   --red: #FF7A6B;
   --on-red: #2A0A07;
-  --red-tint: #3A1A17;
+  --red-tint: #3A1C19;
   --red-ink: #FFA196;
-  --fb: #8FA6FF;
+  --fb: #8AB4FF;
   --fr: #FF6B5B;
   --fy: #FFD34D;
-  --bar: #0A101C;
-  --bar-ink: #E8ECF3;
-  --bar-ink-2: #B8C2D6;
-  --bar-rule: #26324D;
-  --bar-sheet: #172138;
-  --board: #173528;
-  --board-edge: #0A101C;
+  --bar: #0B0B0B;
+  --bar-ink: #EDEDED;
+  --bar-ink-2: #B3B3B3;
+  --bar-rule: #2A2A2A;
+  --bar-sheet: #1A1A1A;
+  --board: #1B3A2B;
+  --board-edge: #0B0B0B;
   --ink: var(--ink-1);
   --muted: var(--ink-2);
   --line: var(--rule);
@@ -250,7 +258,7 @@ body *, body *::before, body *::after { border-radius: 0; box-shadow: none; }
 }
 .nb-cell:hover { background: var(--yellow-tint); }
 .nb-cell.is-current, .nb-cell[aria-pressed="true"] { background: var(--yellow); color: var(--on-yellow); }
-.nb-cell.is-solved { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
+.nb-cell.is-solved { background: var(--progress); border-color: var(--progress); color: var(--on-progress); }
 
 /* ── 04 Поля ──────────────────────────────────────────────────────────── */
 input[type="text"], input[type="search"], input[type="email"], input[type="number"],
@@ -417,7 +425,7 @@ body.nb-search-open .nb-searchbar,
   position: absolute; right: 0; top: calc(100% + 8px); z-index: 120; min-width: 260px; padding: 0;
   border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
 }
-html.dark .topbar-menu-panel { --ink-1: #E8ECF3; --ink-2: #B8C2D6; --sheet: #172138; --rule: #26324D; }
+html.dark .topbar-menu-panel { --ink-1: #EDEDED; --ink-2: #B3B3B3; --sheet: #1E1E1E; --rule: #303030; }
 .topbar-menu-panel a {
   display: flex; align-items: center; min-height: 48px; padding: 0 16px;
   border-top: 1px solid var(--rule); color: var(--ink-1); font-size: 16px; font-weight: 600; text-decoration: none;
@@ -504,6 +512,17 @@ body.sidebar-open .sidebar-scrim { display: block; }
 .sidebar-grade small { display: block; font-size: 14px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
 .sidebar-grade strong { font-size: 16px; font-weight: 600; }
 .sidebar-grade-short { display: none; }
+/* Тема в меню — только на телефоне: там переключатель в шапке спрятан */
+.sidebar-footer { flex-wrap: wrap; }
+.nb-menu-theme { display: none; }
+@media (max-width: 720px) {
+  .nb-menu-theme {
+    display: inline-flex; align-items: center; gap: 10px; flex: 1 1 100%; order: -1;
+    min-height: 48px; padding: 0 14px; border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
+    font: 600 16px var(--f-ui); cursor: pointer;
+  }
+  .sidebar .nb-menu-theme span { font-size: 16px; font-weight: 600; }
+}
 .sidebar .about {
   display: inline-flex; align-items: center; justify-content: center; flex: none;
   width: 52px; margin: 0; padding: 0; border: 2px solid var(--ink-1); color: var(--ink-1); text-decoration: none;
@@ -676,6 +695,10 @@ main#home > .nb-footer { margin-top: 96px; }
    это меньше 10 px на экране. */
 .formulas-drawer-tab, .formulas-drawer-foot .text-button { font-size: 15px; }
 .formulas-drawer-cat { height: 34px; font-size: 14px; }
+/* Старая тема красила это в тёмно-синий напрямую, мимо токенов — в «Графите» берём токены */
+html.dark :is(.formulas-drawer) { background: var(--paper); border-color: var(--rule); }
+html.dark :is(.formula-card, .formulas-drawer-tab) { background: var(--sheet); border-color: var(--rule); }
+html.dark :is(.formulas-drawer-cat, .formulas-drawer-foot, .home-daily-foot, .tasks-sort-wrap, .topic-control-work-card, .sidebar-home-icon) { border-color: var(--rule); }
 /* Остальные подписи старой темы 12–14 px: профиль, экзамены, шапка с таймером. */
 .profile-card > p, .profile-consent span, .profile-nick > span, .profile-actions .text-button,
 .progress-block h2 small, .callout-body p, .formula-guide-banner p, .timer-topbar-digits { font-size: 15px; }
@@ -741,12 +764,12 @@ main#home > .nb-footer { margin-top: 96px; }
   grid-area: state; justify-self: end; padding: 0; background: none;
   font-size: 15px; font-weight: 600; color: var(--ink-2); white-space: nowrap;
 }
-.topic-card .tc-state.is-done { color: var(--nb-blue); }
+.topic-card .tc-state.is-done { color: var(--progress); }
 .topic-card .tc-bar {
   grid-area: bar; display: block; height: 14px; margin: 0;
   border: 2px solid var(--ink-1); background: transparent;
 }
-.topic-card .tc-bar i { display: block; height: 100%; background: var(--nb-blue); }
+.topic-card .tc-bar i { display: block; height: 100%; background: var(--progress); }
 .topic-card .tc-foot {
   grid-area: foot; display: flex; flex-direction: column; gap: 0; margin: 0;
   font-size: 15px; line-height: 1.35; color: var(--ink-3);
@@ -897,7 +920,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 .self-check-result[hidden] { display: none; }
 .self-check-result.error { flex-wrap: nowrap; align-items: flex-start; }
 .self-check-result.error::before { margin-top: 3px; }
-.self-check-result.success { background: var(--blue-tint); color: var(--nb-blue); }
+.self-check-result.success { background: var(--progress-tint); color: var(--progress); }
 .self-check-result.error { background: var(--red-tint); color: var(--red-ink); }
 .self-check-result.success::before, .self-check-result.error::before {
   content: ""; flex: none; width: 22px; height: 22px; background: currentColor;
@@ -1120,7 +1143,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 .nb-topic-percent small { font-size: .5em; letter-spacing: 0; }
 .topic-header-progress-bar { display: none; }
 .topic-header-progress-text { font-size: 18px; color: var(--ink-2); }
-.topic-header-progress.done .nb-topic-percent { color: var(--nb-blue); }
+.topic-header-progress.done .nb-topic-percent { color: var(--progress); }
 .skola-chip {
   display: inline-flex; align-items: center; height: 30px; padding: 0 10px;
   border: 1.5px solid var(--ink-2); background: none; color: var(--ink-2);
@@ -1239,7 +1262,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
   height: 52px; padding: 0 12px; border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
   font-family: var(--f-serif); font-size: 20px;
 }
-.compact-drill-input.success { border-color: var(--nb-blue); background: var(--blue-tint); }
+.compact-drill-input.success { border-color: var(--progress); background: var(--progress-tint); }
 .compact-drill-input.error { border-color: var(--red); background: var(--red-tint); }
 .compact-drill-hint-btn, .compact-drill-link-btn, .compact-drill-figure-btn {
   display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
@@ -1249,7 +1272,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 /* «По одной»: счётчик и карта задач клетками */
 .sv-top { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 20px; font-size: 16px; color: var(--ink-2); }
 .sv-track { flex: 1 1 200px; height: 14px; border: 2px solid var(--ink-1); background: transparent; }
-.sv-track i { display: block; height: 100%; background: var(--nb-blue); }
+.sv-track i { display: block; height: 100%; background: var(--progress); }
 .sv-card { padding: 0; border: 0; background: none; }
 .sv-nav { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 .sv-nav-btn {
@@ -1264,7 +1287,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
   display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
   border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1); font-size: 17px; font-weight: 700; cursor: pointer;
 }
-.sv-cell.is-solved { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
+.sv-cell.is-solved { background: var(--progress); border-color: var(--progress); color: var(--on-progress); }
 .sv-cell.is-current { background: var(--yellow); color: var(--on-yellow); }
 .sv-cell.is-wrong { border-color: var(--red); color: var(--red-ink); background: var(--red-tint); }
 
@@ -1403,7 +1426,7 @@ body.trainer-page, body.exams-page { background: var(--paper); }
 .trainer-sheet-grid .compact-drill-answer-wrap { display: flex; align-items: center; gap: 8px; flex: none; }
 .trainer-sheet-grid .compact-drill-input { width: 104px; height: 48px; padding: 0 12px; font-size: 20px; }
 .trainer-sheet-grid .compact-drill-status { width: 24px; font-size: 20px; font-weight: 700; background: none; border: 0; }
-.trainer-sheet-grid .compact-drill-status.success { color: var(--nb-blue); }
+.trainer-sheet-grid .compact-drill-status.success { color: var(--progress); }
 .trainer-sheet-grid .compact-drill-status.error { color: var(--red); }
 .trainer-sheet-grid .compact-drill-note { flex: 1 1 100%; margin: 0; padding-left: 40px; font-size: 15px; font-weight: 600; color: var(--red-ink); }
 .sheet-completion-card {
@@ -1432,9 +1455,9 @@ body.trainer-page, body.exams-page { background: var(--paper); }
 }
 .trainer-stat-badge .stat-caption { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .trainer-timer-progress-wrap:not([hidden]) {
-  height: 14px; margin-top: 20px; border: 2px solid var(--nb-blue); border-radius: 0; background: transparent; overflow: hidden;
+  height: 14px; margin-top: 20px; border: 2px solid var(--progress); border-radius: 0; background: transparent; overflow: hidden;
 }
-.trainer-timer-progress-bar { height: 100%; border-radius: 0; background: var(--nb-blue); }
+.trainer-timer-progress-bar { height: 100%; border-radius: 0; background: var(--progress); }
 
 .trainer-card {
   --sheet: var(--board); --paper: var(--board-deep);
@@ -1684,9 +1707,11 @@ input.trainer-input {
 .progress-day.l2, .progress-legend .l2 { background: #6F86C4; }
 .progress-day.l3, .progress-legend .l3 { background: #3D4A86; }
 .progress-day.l4, .progress-legend .l4 { background: var(--ink-1); }
-html.dark .progress-day.l1, html.dark .progress-legend .l1 { background: #2A3A66; }
-html.dark .progress-day.l2, html.dark .progress-legend .l2 { background: #4A62A8; }
-html.dark .progress-day.l3, html.dark .progress-legend .l3 { background: #6F86D8; }
+/* Календарь занятий в тёмной теме — оттенки цвета прогресса по фону листа */
+html.dark .progress-day.l1, html.dark .progress-legend .l1 { background: color-mix(in srgb, var(--progress) 30%, var(--sheet)); }
+html.dark .progress-day.l2, html.dark .progress-legend .l2 { background: color-mix(in srgb, var(--progress) 55%, var(--sheet)); }
+html.dark .progress-day.l3, html.dark .progress-legend .l3 { background: color-mix(in srgb, var(--progress) 80%, var(--sheet)); }
+html.dark .progress-day.l4, html.dark .progress-legend .l4 { background: var(--progress); }
 .progress-legend { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; color: var(--ink-2); }
 .progress-legend i { display: block; width: 14px; height: 14px; }
 .progress-scope { display: inline-flex; gap: 0; padding: 0; border: 0; background: none; }
@@ -1713,7 +1738,7 @@ html.dark .progress-day.l3, html.dark .progress-legend .l3 { background: #6F86D8
   border: 2px solid var(--ink-1); color: var(--ink-1); font-size: 15px; font-weight: 600; text-decoration: none;
 }
 .progress-weak-link:hover { background: var(--ink-1); color: var(--paper); }
-.progress-outcome { font-size: 15px; font-weight: 700; color: var(--nb-blue); }
+.progress-outcome { font-size: 15px; font-weight: 700; color: var(--progress); }
 .progress-outcome.is-wrong { color: var(--red-ink); }
 .progress-badges { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: 10px; }
 .progress-badge {
@@ -2376,7 +2401,7 @@ body.nb-start-open { overflow: hidden; }
 .nb-set-subject { font-size: 15px; color: var(--ink-2); }
 .nb-set-cell.is-current { background: var(--yellow); color: var(--on-yellow); }
 .nb-set-cell.is-current .nb-set-subject { color: var(--on-yellow); }
-.nb-set-cell.is-solved { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
+.nb-set-cell.is-solved { background: var(--progress); border-color: var(--progress); color: var(--on-progress); }
 .nb-set-cell.is-solved .nb-set-subject { color: var(--on-blue); opacity: .85; }
 .nb-set-done:not([hidden]) {
   margin: -16px 0 32px; padding: 16px 20px; background: var(--blue-tint); color: var(--nb-blue);
@@ -2488,7 +2513,7 @@ body.nb-start-open { overflow: hidden; }
 .nb-scale-move-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .nb-scale-move-head h3 { margin: 4px 0 0; font-size: 24px; font-weight: 700; color: var(--ink-1); }
 .nb-scale-fb { display: flex; gap: 10px; margin: 16px 0 0; padding: 14px 18px; font-size: 17px; font-weight: 600; }
-.nb-scale-fb.is-ok { background: var(--blue-tint); color: var(--nb-blue); }
+.nb-scale-fb.is-ok { background: var(--progress-tint); color: var(--progress); }
 .nb-scale-fb.is-bad { background: var(--red-tint); color: var(--red-ink); }
 .nb-scale-mvs { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
 .nb-scale-mv {

@@ -4304,7 +4304,8 @@ document.addEventListener('click', event => {
    новый, а собранный уходит в «Собранные витки». Цвет треугольника — день
    недели; выбранный день подсвечивается жёлтым. Данные — счётчик решений
    по дням (math-tasks:activity), неделя с понедельника. */
-const SPIRAL_DAY_COLORS = ['#2F5BEA', '#00A3A3', '#22A55B', '#F08C00', '#D6342B', '#8E4EC6', '#14213D'];
+// Воскресенье — цвет текста темы: тёмно-синий на светлой, светлый на тёмной (иначе не видно).
+const SPIRAL_DAY_COLORS = ['#2F5BEA', '#00A3A3', '#22A55B', '#F08C00', '#D6342B', '#8E4EC6', 'var(--ink-1)'];
 const SPIRAL_LIGHT_DAYS = new Set([1, 2, 3]);
 let spiralDay = -1;
 
@@ -4375,7 +4376,7 @@ function renderSpiralBlock() {
     const hy = e1[1] * 0.62;
     labels.push(`<span class="nb-spiral-lb is-out" style="left:${X(hx * cs - hy * sn)}%;top:${Y(hx * sn + hy * cs)}%">√${n + 1}</span>`);
   }
-  const svgPaths = (list, highlight, stroke) => list.map((d, i) => (d ? `<path d="${d}" fill="${SPIRAL_DAY_COLORS[i]}" stroke="#FFFFFF" stroke-width="${stroke}" stroke-linejoin="round"/>` : '')).join('')
+  const svgPaths = (list, highlight, stroke) => list.map((d, i) => (d ? `<path d="${d}" style="fill:${SPIRAL_DAY_COLORS[i]}" stroke="#FFFFFF" stroke-width="${stroke}" stroke-linejoin="round"/>` : '')).join('')
     + (highlight ? `<path d="${highlight}" fill="var(--yellow)" stroke="#FFFFFF" stroke-width="${stroke}" stroke-linejoin="round"/>` : '');
 
   const q = Math.round(Math.sqrt(n + 1));
