@@ -31,19 +31,21 @@
 
   try {
     /* То же правило, что initLang в i18n.js: выбор посетителя главнее
-       всего; без выбора на странице каталога /ru/… — русский, адрес без
-       префикса — по языку браузера (русский браузер — русский, любой
-       другой — латышский). Отдельные страницы: выбор, иначе браузер.
+       всего; без выбора на странице каталога /ru/… — русский, иначе —
+       латышский, при любом языке браузера. Отдельные страницы: выбор,
+       иначе язык каталога в этой вкладке (sessionStorage), иначе латышский.
        Админка — только русская и без словаря: язык ей не выставляем,
        иначе латышский браузер спрятал бы её подписи до страховки. */
     if (/^\/admin(?:\.html)?(?:\/|$)/.test(location.pathname)) return;
     let stored = null;
     try { stored = localStorage.getItem('math-tasks:lang'); } catch (e) {}
     if (stored !== 'ru' && stored !== 'lv') stored = null;
-    const browser = /^ru\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || '') ? 'ru' : 'lv';
     const onRu = location.pathname === '/ru' || location.pathname.startsWith('/ru/');
+    let tabLang = null;
+    try { tabLang = sessionStorage.getItem('math-tasks:tab-lang'); } catch (e) {}
     const savedLang = stored
-      || (document.documentElement.hasAttribute('data-url-lang') && onRu ? 'ru' : browser);
+      || (document.documentElement.hasAttribute('data-url-lang') ? (onRu ? 'ru' : 'lv')
+        : (tabLang === 'ru' || tabLang === 'lv' ? tabLang : 'lv'));
     document.documentElement.lang = savedLang;
     document.documentElement.setAttribute('data-lang', savedLang);
     /* Статический текст страниц по-русски: на латышском он прячется до

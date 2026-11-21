@@ -116,7 +116,13 @@
   };
 
   // Какая таблица лидеров открыта: по умолчанию — выбранные для игры категория и сложность.
-  const board = { cat: state.cat, period: 'week', cache: new Map() };
+  /* auto — неделю выбрал не посетитель, а мы по умолчанию: если за неделю
+     в категории пусто, таблица сама показывает «Всё время» (fellBack). */
+  const board = { cat: state.cat, period: 'week', auto: true, fellBack: false, cache: new Map() };
+  // Другая категория или своя игра на этой неделе — переход на «Всё время» больше не верен.
+  const undoFallback = () => {
+    if (board.fellBack) { board.period = 'week'; board.fellBack = false; }
+  };
 
   const screens = ['#duel-setup', '#duel-link', '#duel-search', '#duel-countdown', '#duel-play', '#duel-result'];
   const show = id => {
@@ -253,6 +259,7 @@
   };
   // Таблица лидеров рядом показывает ту же категорию, что выбрана для игры.
   const followChoice = () => {
+    if (board.cat !== state.cat) undoFallback();
     board.cat = state.cat;
     renderBoard();
   };
@@ -1011,6 +1018,7 @@
     takeNick();
     board.cat = state.cat;
     board.period = 'day';
+    board.fellBack = false;
     window.history.replaceState(null, '', '/duel');
     countdown();
   }
@@ -1492,7 +1500,7 @@
     // Пока ждали сервер, ученик мог уйти с экрана итога.
     if (!$('#duel-result').hidden) renderRank(result, cat, diff);
     // Таблица могла измениться — при следующем показе перечитать.
-    if (result?.ranked) board.cache.clear();
+    if (result?.ranked) { board.cache.clear(); undoFallback(); }
     return result;
   }
 
@@ -1537,7 +1545,8 @@
     renderBoardFilters();
     const note = $('#duel-board-note');
     if (note) {
-      note.dataset.i18n = board.period === 'day' ? 'duel_board_note_day' : 'duel_board_note';
+      note.dataset.i18n = board.period === 'day' ? 'duel_board_note_day'
+        : board.fellBack && board.period === 'all' ? 'duel_board_note_fallback' : 'duel_board_note';
       note.textContent = tr(note.dataset.i18n);
     }
     box.querySelectorAll('[data-board-period]').forEach(button => {
@@ -1570,6 +1579,11 @@
       cached = { at: Date.now(), rows };
       board.cache.set(key, cached);
     }
+    if (board.period === 'week' && board.auto && !cached.rows.length) {
+      board.period = 'all';
+      board.fellBack = true;
+      return renderBoard();
+    }
     const mine = new Set(myRuns());
     podium.innerHTML = cached.rows.length ? podiumHtml(cached.rows, mine) : '';
     podium.hidden = !cached.rows.length;
@@ -1578,14 +1592,21 @@
       : `<li class="duel-board-empty">${escapeHtml(tr('duel_board_empty'))}</li>`;
   }
 
-  $('#duel-board-cat')?.addEventListener('change', event => { board.cat = event.target.value; renderBoard(); });
+  // Новая категория — снова неделя, если на «Всё время» перешли сами; «Сегодня» остаётся.
+  $('#duel-board-cat')?.addEventListener('change', event => {
+    board.cat = event.target.value;
+    undoFallback();
+    renderBoard();
+  });
   document.addEventListener('click', event => {
     const period = event.target.closest?.('[data-board-period]');
     const open = event.target.closest?.('[data-board-open]');
-    if (period) { board.period = period.dataset.boardPeriod; renderBoard(); return; }
+    if (period) { board.period = period.dataset.boardPeriod; board.auto = false; board.fellBack = false; renderBoard(); return; }
     if (!open) return;
     board.cat = open.dataset.boardOpen;
     board.period = open.dataset.boardPeriodOpen === 'day' ? 'day' : 'week';
+    board.auto = board.period === 'week';
+    board.fellBack = false;
     board.cache.clear();
     state.role = 'a';
     state.challenge = null;

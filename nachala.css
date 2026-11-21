@@ -53,6 +53,8 @@
     .admin-login-card * { border-radius: 0 !important; box-shadow: none !important; }
     .admin-login-card input { border: 2px solid var(--rule-2) !important; min-height: 44px; background: var(--sheet) !important; color: var(--ink-1) !important; }
     .admin-login-card h3 { font-size: 22px !important; }
+    /* Подпись под формой профиля: в старой теме 12.5px !important — при масштабе 0,8 это 10 px */
+    .profile-note { font-size: 15px !important; }
   }
 }
 
@@ -147,7 +149,9 @@ html.dark, body.dark {
    шрифты, отступы, рамки, формулы — и не требует править сотни размеров.
    Админку не трогаем: она ставит всплывающие списки по координатам экрана.
    Внутри масштаба 100vh — это 90% экрана, поэтому высоты «на весь экран»
-   ниже делятся на --nb-zoom. */
+   ниже делятся на --nb-zoom.
+   Поэтому подписи мельче 14 px (заглавные с разрядкой) и 15 px (обычные)
+   не ставим: на экране это меньше 11–12 px. */
 :root { --nb-zoom: 0.8; }
 html:not(:has(body.admin-page)) { zoom: var(--nb-zoom); }
 
@@ -175,7 +179,7 @@ body *, body *::before, body *::after { border-radius: 0; box-shadow: none; }
 
 /* Подписи-«брови»: капс с разрядкой */
 .nb-eyebrow {
-  font-size: 13px; font-weight: 600; letter-spacing: .14em;
+  font-size: 14px; font-weight: 600; letter-spacing: .14em;
   text-transform: uppercase; color: var(--ink-2);
 }
 .nb-wrap { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); }
@@ -474,7 +478,7 @@ body.sidebar-open .sidebar-scrim { display: block; }
 .sidebar .sidebar-home-icon { background: none; color: inherit; width: auto; height: auto; }
 .sidebar-track-header {
   display: flex; align-items: center; gap: 8px; margin: 24px 0 6px; padding: 0;
-  font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2);
+  font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2);
 }
 .sidebar .track-header-icon, .sidebar .track-card-badge, .sidebar .action-card-icon { display: none; }
 .sidebar-track-subgroup { display: flex; flex-direction: column; gap: 0; border-top: 2px solid var(--ink-1); }
@@ -488,7 +492,7 @@ body.sidebar-open .sidebar-scrim { display: block; }
 .sidebar-track-card.active, .sidebar-action-card.active { background: var(--yellow); color: var(--on-yellow); }
 .track-card-body, .action-card-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .track-card-body strong, .action-card-body strong { font-size: 17px; font-weight: 600; line-height: 1.3; color: inherit; }
-.track-card-body span, .action-card-body span { font-size: 14px; line-height: 1.35; color: var(--ink-2); }
+.track-card-body span, .action-card-body span { font-size: 15px; line-height: 1.35; color: var(--ink-2); }
 .sidebar-footer {
   display: flex; align-items: stretch; gap: 8px; margin-top: 24px; padding-top: 16px;
   border-top: 2px solid var(--ink-1);
@@ -497,7 +501,7 @@ body.sidebar-open .sidebar-scrim { display: block; }
   flex: 1; display: flex; align-items: center; gap: 10px; position: relative;
   min-height: 52px; padding: 0 12px; border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
 }
-.sidebar-grade small { display: block; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+.sidebar-grade small { display: block; font-size: 14px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
 .sidebar-grade strong { font-size: 16px; font-weight: 600; }
 .sidebar-grade-short { display: none; }
 .sidebar .about {
@@ -597,7 +601,7 @@ main#home > .nb-footer { margin-top: 96px; }
 .home-daily-badge {
   display: inline-flex; align-items: center; height: 30px; padding: 0 12px;
   background: var(--yellow); color: var(--on-yellow);
-  font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  font-size: 14px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
 }
 .home-daily-meta { flex: 1 1 200px; min-width: 0; font-size: 16px; color: var(--ink-2); }
 .home-daily-other {
@@ -618,7 +622,7 @@ main#home > .nb-footer { margin-top: 96px; }
 .home-daily-empty-go { font-weight: 700; color: var(--ink-1); text-decoration: underline; text-underline-offset: 4px; }
 
 .home-card { padding: 28px; border: 0; background: var(--sheet); color: var(--ink-1); }
-.home-card-label { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: inherit; }
+.home-card-label { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: inherit; }
 .home-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
 /* «Продолжить» — тёмно-синий блок */
@@ -662,11 +666,19 @@ main#home > .nb-footer { margin-top: 96px; }
 }
 .home-streak-day.is-done i { border: 2px solid var(--on-yellow); background: var(--on-yellow); }
 .home-streak-day.is-today i { outline: 3px solid var(--on-yellow); outline-offset: 2px; }
-.home-streak-day small { font-size: 13px; font-weight: 600; color: var(--on-yellow); text-transform: capitalize; }
+.home-streak-day small { font-size: 15px; font-weight: 600; color: var(--on-yellow); text-transform: capitalize; }
 .home-streak-link {
   display: inline-flex; min-height: 44px; align-items: center; margin-top: 12px; padding: 0; border: 0; background: none;
-  color: var(--on-yellow); font-weight: 700; text-decoration: underline; text-underline-offset: 4px;
+  color: var(--on-yellow); font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px;
 }
+
+/* Шпаргалка формул: подписи из старой темы были 12–13 px — при масштабе 0,8
+   это меньше 10 px на экране. */
+.formulas-drawer-tab, .formulas-drawer-foot .text-button { font-size: 15px; }
+.formulas-drawer-cat { height: 34px; font-size: 14px; }
+/* Остальные подписи старой темы 12–14 px: профиль, экзамены, шапка с таймером. */
+.profile-card > p, .profile-consent span, .profile-nick > span, .profile-actions .text-button,
+.progress-block h2 small, .callout-body p, .formula-guide-banner p, .timer-topbar-digits { font-size: 15px; }
 
 /* Дуэль — карточка-лист */
 .home-duel {
@@ -709,7 +721,6 @@ main#home > .nb-footer { margin-top: 96px; }
   margin: 0; font-size: clamp(36px, 4.4vw, 56px); line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; color: var(--ink-1);
 }
 .topic-grid { display: block; border-bottom: 1px solid var(--rule); }
-.topic-grid.nb-groups { display: flex; flex-direction: column; gap: 56px; border-bottom: 0; }
 .topic-card, .topic-card.tc {
   display: grid; align-items: center; gap: 4px 24px; min-height: 0;
   grid-template-columns: 56px minmax(0, 1fr) 120px 96px 140px;
@@ -724,7 +735,7 @@ main#home > .nb-footer { margin-top: 96px; }
   grid-area: num; justify-self: start; padding: 0; background: none; color: var(--ink-3);
   font-size: 17px; font-weight: 700;
 }
-.topic-card .tc-subject { grid-area: subj; font-size: 14px; color: var(--ink-3); background: none; padding: 0; }
+.topic-card .tc-subject { grid-area: subj; font-size: 15px; color: var(--ink-3); background: none; padding: 0; }
 .topic-card .tc-title { grid-area: title; margin: 0; font-size: 19px; line-height: 1.35; font-weight: 500; color: var(--ink-1); }
 .topic-card .tc-state {
   grid-area: state; justify-self: end; padding: 0; background: none;
@@ -750,25 +761,6 @@ main#home > .nb-footer { margin-top: 96px; }
   .topic-card .tc-bar { width: 80px; justify-self: end; }
 }
 
-.nb-group {
-  display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px 48px;
-  padding-top: 24px; border-top: 2px solid var(--ink-1);
-}
-.nb-group-head { flex: 1 1 240px; max-width: 300px; }
-.nb-group-head h3 { margin: 16px 0 0; font-size: 30px; line-height: 1.1; font-weight: 700; color: var(--ink-1); }
-.nb-group-head p { margin: 6px 0 0; font-size: 16px; color: var(--ink-2); }
-.nb-group-head a {
-  display: inline-block; margin-top: 12px; color: var(--ink-1);
-  font-size: 17px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px;
-}
-.nb-group-list { flex: 999 1 560px; min-width: 0; padding-bottom: 12px; }
-.nb-group-list .topic-card:first-child { border-top: 0; }
-.nb-group .tc-subject { display: none; }
-.nb-group .topic-card { grid-template-areas: "num title state bar foot" "num title state bar foot"; }
-@media (max-width: 720px) {
-  .nb-group .topic-card { grid-template-areas: "num title title" "num foot state" "num foot bar"; }
-  .nb-subject-figure { width: 48px; height: 48px; }
-}
 
 /* ── 14 Карточка задачи ───────────────────────────────────────────────── */
 article.task {
@@ -799,7 +791,7 @@ article.task:has(.task-solved-badge) .task-number, article.task.is-solved .task-
 }
 .task-solved-badge {
   display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px;
-  background: var(--nb-blue); color: var(--on-blue); font-size: 14px; font-weight: 700; white-space: nowrap;
+  background: var(--nb-blue); color: var(--on-blue); font-size: 15px; font-weight: 700; white-space: nowrap;
 }
 .task-solved-badge::before {
   content: ""; width: 12px; height: 7px; margin-top: -3px;
@@ -848,7 +840,7 @@ article.task:has(.task-solved-badge) .task-number, article.task.is-solved .task-
 .task-tag-chip {
   display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px;
   border: 1.5px solid var(--rule-2); background: transparent; color: var(--ink-2);
-  font-size: 14px; font-weight: 600; text-decoration: none;
+  font-size: 15px; font-weight: 600; text-decoration: none;
 }
 .task-tag-chip:hover { border-color: var(--ink-1); color: var(--ink-1); }
 
@@ -867,6 +859,12 @@ article.task:has(.task-solved-badge) .task-number, article.task.is-solved .task-
 .self-check-form .answer-field { display: inline-flex; align-items: center; gap: 12px; flex: 1 1 280px; max-width: 460px; }
 .answer-label { font-family: var(--f-serif); font-size: 26px; color: var(--ink-1); white-space: nowrap; }
 .answer-unit { font-family: var(--f-serif); font-size: 22px; color: var(--ink-2); }
+/* Узкий экран: подпись, поле и кнопка клавиатуры не помещались в строку и вылезали за карточку
+   (кнопка клавиатуры обрезалась). Строка сжимается и переносится, поле занимает остаток. */
+@media (max-width: 640px) {
+  .self-check-form .answer-field { flex-wrap: wrap; min-width: 0; max-width: 100%; row-gap: 8px; }
+  .self-check-form .answer-field input.self-check-input { flex: 1 1 96px; width: auto; }
+}
 input.self-check-input {
   flex: 1 1 220px; width: auto; min-width: 0; max-width: 420px; height: 60px; padding: 0 16px;
   border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
@@ -947,7 +945,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 .reveal.answer { background: var(--blue-tint); }
 .reveal.solution { border-top: 2px solid var(--ink-1); padding-left: 0; padding-right: 0; background: transparent; }
 .reveal-label {
-  display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600;
+  display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600;
   letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2);
 }
 .reveal .math { font-family: var(--f-serif); font-size: 19px; line-height: 1.6; color: var(--ink-1); }
@@ -1009,7 +1007,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 }
 .nb-help-title {
   margin: 0; padding: 16px 20px;
-  font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2);
+  font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2);
 }
 .nb-help .solution-toggle {
   display: flex; align-items: center; gap: 12px; width: 100%; height: auto; min-height: 56px; padding: 16px 20px;
@@ -1105,7 +1103,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 .list-meta { flex: 2 1 320px; max-width: 460px; min-width: 0; order: 2; }
 .list-meta .grade-badge {
   display: inline-flex; align-items: center; height: 30px; padding: 0 10px;
-  background: none; border: 2px solid var(--ink-1); color: var(--ink-1); font-size: 14px; font-weight: 700;
+  background: none; border: 2px solid var(--ink-1); color: var(--ink-1); font-size: 15px; font-weight: 700;
 }
 /* На странице задачи заголовок «Задача №N» короче и меньше */
 #view-list[data-nb-page="task"] .list-header { padding: 24px 0 24px; }
@@ -1126,7 +1124,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 .skola-chip {
   display: inline-flex; align-items: center; height: 30px; padding: 0 10px;
   border: 1.5px solid var(--ink-2); background: none; color: var(--ink-2);
-  font-size: 13px; font-weight: 600; letter-spacing: .08em;
+  font-size: 14px; font-weight: 600; letter-spacing: .08em;
 }
 .topic-header-cw-btn {
   display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 16px;
@@ -1136,7 +1134,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 .topic-header-cw-btn:hover { background: var(--ink-1); color: var(--paper); }
 .topic-header-cw-btn.highlighted { background: var(--yellow); color: var(--on-yellow); }
 .topic-header-cw-btn .cw-btn-icon { display: none; }
-.cw-ready-pill { padding: 0 8px; background: var(--ink-1); color: var(--paper); font-size: 13px; font-weight: 700; }
+.cw-ready-pill { padding: 0 8px; background: var(--ink-1); color: var(--paper); font-size: 15px; font-weight: 700; }
 
 /* Подтемы — чипы */
 .subtopic-pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; }
@@ -1151,6 +1149,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 .subtopic-pill-code { color: var(--ink-3); font-weight: 700; background: none; padding: 0; }
 .subtopic-pill.active .subtopic-pill-code { color: var(--on-yellow); }
 .subtopic-pill-count { color: var(--ink-3); font-weight: 500; background: none; padding: 0; }
+.subtopic-pill-code, .subtopic-pill-count { font-size: 14px; }
 .subtopic-pills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 .subtopic-menu { margin: 0 0 24px; border: 2px solid var(--ink-1); background: var(--sheet); }
 .subtopic-menu-summary { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 16px; cursor: pointer; font-weight: 600; }
@@ -1161,6 +1160,11 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
   flex: 1 1 100%; order: 4; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 28px;
   margin: 0 0 40px; padding: 14px 0; border-top: 2px solid var(--ink-1); border-bottom: 2px solid var(--ink-1);
   background: none;
+}
+/* На телефоне 40 px под полосой и 48 px шапки складывались в пустую дыру перед подтемами */
+@media (max-width: 640px) {
+  .list-header:has(> .list-actions:not([hidden])) { padding-bottom: 16px; }
+  .list-actions:not([hidden]) { margin-bottom: 0; }
 }
 .view-mode-toggle { display: inline-flex; padding: 0; gap: 0; border: 0; background: none; }
 .view-mode-btn {
@@ -1190,7 +1194,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
   border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1); text-decoration: none;
 }
 .task-nav-link:hover { background: var(--yellow-tint); }
-.task-nav-link span { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.task-nav-link span { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .task-nav-link strong { font-size: 17px; font-weight: 600; line-height: 1.35; }
 .task-nav-link.next { text-align: right; align-items: flex-end; }
 .similar-tasks { margin-top: 64px; padding: 0; border: 0; background: none; }
@@ -1212,6 +1216,8 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 }
 .tasks-page-num.active { background: var(--yellow); color: var(--on-yellow); }
 .tasks-more-count { color: var(--ink-3); font-size: 15px; }
+.tasks-more .text-button { font-size: 15px; }
+.cw-card-desc, .cw-card-features li { font-size: 15px; }
 
 /* Режим «Тренажёр» на странице темы: жёлтая полоса и строки */
 .compact-drill-banner {
@@ -1252,7 +1258,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 }
 .sv-nav-btn.is-next { margin-left: auto; background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
 .sv-map { margin-top: 32px; padding: 0; border: 0; background: none; }
-.sv-map-label { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.sv-map-label { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .sv-map-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .sv-cell {
   display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
@@ -1284,7 +1290,7 @@ body.trainer-page, body.exams-page { background: var(--paper); }
 }
 .exams-tag {
   display: inline-block; margin: 0 0 16px; padding: 0; border: 0; background: none; color: var(--ink-2);
-  font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+  font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
 }
 .exams-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; justify-content: flex-start; }
 .primary-button.small, .secondary-button.small { min-height: 44px; padding: 0 16px; font-size: 15px; }
@@ -1314,7 +1320,7 @@ body.trainer-page, body.exams-page { background: var(--paper); }
 .trainer-panel > [class$="-row"]:first-child { border-top: 0; }
 .trainer-label {
   flex: none; width: 200px; padding-top: 12px; margin: 0;
-  font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2);
+  font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2);
 }
 .trainer-categories-row { flex-direction: row; }
 .trainer-categories-row > .trainer-chip-group, .trainer-categories-row > .trainer-chip-subgroup { flex: 1 1 520px; min-width: 0; }
@@ -1375,7 +1381,7 @@ body.trainer-page, body.exams-page { background: var(--paper); }
 .sheet-banner-left { flex: 1 1 320px; min-width: 0; font-size: 16px; }
 .sheet-banner-left kbd {
   display: inline-flex; align-items: center; height: 26px; padding: 0 8px; margin: 0 2px;
-  border: 1.5px solid var(--on-yellow); background: transparent; color: var(--on-yellow); font-family: var(--f-ui); font-size: 13px; font-weight: 600;
+  border: 1.5px solid var(--on-yellow); background: transparent; color: var(--on-yellow); font-family: var(--f-ui); font-size: 15px; font-weight: 600;
 }
 .sheet-banner-right { display: flex; align-items: center; gap: 20px; }
 .sheet-stopwatch { padding: 0; border: 0; background: none; color: var(--on-yellow); font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -1424,7 +1430,7 @@ body.trainer-page, body.exams-page { background: var(--paper); }
 .trainer-stat-badge .stat-val, .trainer-stat-badge .streak-val, .trainer-stat-badge .timer-val {
   font-size: 48px; line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; color: var(--ink-1); font-variant-numeric: tabular-nums;
 }
-.trainer-stat-badge .stat-caption { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.trainer-stat-badge .stat-caption { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .trainer-timer-progress-wrap:not([hidden]) {
   height: 14px; margin-top: 20px; border: 2px solid var(--nb-blue); border-radius: 0; background: transparent; overflow: hidden;
 }
@@ -1502,7 +1508,7 @@ input.trainer-input {
 }
 .sprint-stat-item.highlight { background: var(--yellow); color: var(--on-yellow); }
 .sprint-stat-num { font-size: 40px; line-height: 1.05; font-weight: 700; color: inherit; }
-.sprint-stat-label { font-size: 14px; color: inherit; }
+.sprint-stat-label { font-size: 15px; color: inherit; }
 .sprint-modal-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
 
 /* ── 19 Подготовка к экзаменам ────────────────────────────────────────── */
@@ -1525,9 +1531,9 @@ input.trainer-input {
 .exam-level-header, .mock-card-top { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
 .exam-badge {
   display: inline-flex; align-items: center; padding: 4px 10px; border: 0;
-  background: var(--ink-1); color: var(--paper); font-size: 13px; font-weight: 700;
+  background: var(--ink-1); color: var(--paper); font-size: 15px; font-weight: 700;
 }
-.exam-level-type { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.exam-level-type { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .exam-level-card h3, .mock-exam-card h3 { margin: 0; font-size: 23px; line-height: 1.2; font-weight: 700; color: var(--ink-1); }
 .exam-desc { margin: 0; font-size: 16px; color: var(--ink-2); }
 .exam-features-list { display: flex; flex-direction: column; gap: 6px; margin: 4px 0 0; padding: 0; list-style: none; font-size: 15px; }
@@ -1571,23 +1577,23 @@ input.trainer-input {
   font-size: 15px; font-weight: 600; text-decoration: none;
 }
 .callout-links a:hover, .downloads-buttons a:hover, .download-pill:hover { background: var(--bar-ink); color: var(--bar); }
-.downloads-label { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--bar-ink-2); }
+.downloads-label { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--bar-ink-2); }
 
 /* ── 20 Пробные экзамены ──────────────────────────────────────────────── */
 .mock-cards-stack { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
 .mock-meta { display: flex; flex-wrap: wrap; gap: 8px; }
 .mock-time, .mock-points, .mock-status-pill {
   display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border: 0;
-  background: var(--blue-tint); color: var(--ink-1); font-size: 13px; font-weight: 600; white-space: nowrap;
+  background: var(--blue-tint); color: var(--ink-1); font-size: 15px; font-weight: 600; white-space: nowrap;
 }
 .mock-points { background: var(--yellow); color: var(--on-yellow); }
 .mock-summary { margin: 0; font-size: 16px; color: var(--ink-2); }
 .mock-parts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 12px; margin-top: 4px; }
 .mock-part { padding: 14px 16px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink-1); }
 .mock-part-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
-.part-tag { font-weight: 700; background: none; padding: 0; color: var(--ink-1); }
-.part-points { font-size: 14px; color: var(--ink-2); }
-.part-calc-badge { padding: 2px 10px; border: 0; font-size: 13px; font-weight: 700; }
+.part-tag { font-size: 14px; font-weight: 700; background: none; padding: 0; color: var(--ink-1); }
+.part-points { font-size: 15px; color: var(--ink-2); }
+.part-calc-badge { padding: 2px 10px; border: 0; font-size: 15px; font-weight: 700; }
 .part-calc-badge.no-calc { background: var(--red-tint); color: var(--red-ink); }
 .part-calc-badge.has-calc { background: var(--blue-tint); color: var(--ink-1); }
 .mock-part p { margin: 6px 0 0; font-size: 15px; color: var(--ink-2); }
@@ -1607,7 +1613,7 @@ input.trainer-input {
 .grading-table { width: 100%; border-collapse: collapse; font-size: 15px; }
 .grading-table th {
   padding: 14px 20px; text-align: left; background: var(--paper); color: var(--ink-2);
-  font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; border: 0;
+  font-size: 14px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; border: 0;
 }
 .grading-table td { padding: 14px 20px; border: 0; border-top: 1px solid var(--rule); color: var(--ink-1); background: none; }
 .grading-table tr.fail-row td:first-child { color: var(--red-ink); font-weight: 700; }
@@ -1623,13 +1629,13 @@ input.trainer-input {
   display: flex; flex-direction: column; gap: 12px; padding: 20px; min-width: 340px;
   border: 2px solid var(--bar-ink); background: var(--bar); color: var(--bar-ink); box-shadow: none;
 }
-.timer-dropdown-title { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--bar-ink-2); }
+.timer-dropdown-title { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--bar-ink-2); }
 .timer-close-btn { border: 0; background: none; color: var(--bar-ink); font-size: 24px; }
 .timer-big-display { font-size: 64px; line-height: 1; font-weight: 800; color: var(--yellow); font-variant-numeric: tabular-nums; background: none; }
 .timer-presets { display: flex; flex-wrap: wrap; gap: 6px; }
 .timer-preset-btn {
   min-height: 40px; padding: 0 10px; border: 2px solid #5C6B8C; background: transparent; color: var(--bar-ink);
-  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-size: 15px; font-weight: 600; cursor: pointer;
 }
 .timer-preset-btn.active { border-color: var(--yellow); background: var(--yellow); color: var(--on-yellow); }
 .timer-controls { display: flex; gap: 8px; }
@@ -1662,7 +1668,7 @@ input.trainer-input {
 .progress-stat:nth-child(2) { background: var(--yellow); border-color: var(--yellow); color: var(--on-yellow); }
 .progress-stat:nth-child(2) .progress-stat-label, .progress-stat:nth-child(2) .progress-stat-sub { color: var(--on-yellow); }
 .progress-stat strong, .progress-stat b, .progress-stat-value { font-size: 46px; line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; color: inherit; }
-.progress-stat-label { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.progress-stat-label { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .progress-stat-sub { font-size: 15px; color: var(--ink-2); }
 .progress-block-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 14px; }
 .progress-block-head h2, .progress-block-head h3 { margin: 0; font-size: 21px; line-height: 1.25; font-weight: 700; color: var(--ink-1); }
@@ -1681,7 +1687,7 @@ input.trainer-input {
 html.dark .progress-day.l1, html.dark .progress-legend .l1 { background: #2A3A66; }
 html.dark .progress-day.l2, html.dark .progress-legend .l2 { background: #4A62A8; }
 html.dark .progress-day.l3, html.dark .progress-legend .l3 { background: #6F86D8; }
-.progress-legend { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--ink-2); }
+.progress-legend { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; color: var(--ink-2); }
 .progress-legend i { display: block; width: 14px; height: 14px; }
 .progress-scope { display: inline-flex; gap: 0; padding: 0; border: 0; background: none; }
 .progress-scope-btn {
@@ -1693,7 +1699,7 @@ html.dark .progress-day.l3, html.dark .progress-legend .l3 { background: #6F86D8
 .progress-subjects { display: flex; flex-direction: column; gap: 14px; }
 .progress-subject-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; }
 .progress-subject-name { font-size: 17px; font-weight: 700; color: var(--ink-1); }
-.progress-subject-count { font-size: 14px; color: var(--ink-2); }
+.progress-subject-count { font-size: 15px; color: var(--ink-2); }
 .progress-subject-bar { height: 12px; margin-top: 6px; border: 0; background: var(--rule); overflow: hidden; }
 .progress-subject-bar > *, .progress-subject-bar i { display: block; height: 100%; background: var(--ink-1); }
 .progress-subject-bar.is-warn > *, .progress-subject-bar.is-warn i { background: var(--red); }
@@ -1707,7 +1713,7 @@ html.dark .progress-day.l3, html.dark .progress-legend .l3 { background: #6F86D8
   border: 2px solid var(--ink-1); color: var(--ink-1); font-size: 15px; font-weight: 600; text-decoration: none;
 }
 .progress-weak-link:hover { background: var(--ink-1); color: var(--paper); }
-.progress-outcome { font-size: 14px; font-weight: 700; color: var(--nb-blue); }
+.progress-outcome { font-size: 15px; font-weight: 700; color: var(--nb-blue); }
 .progress-outcome.is-wrong { color: var(--red-ink); }
 .progress-badges { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: 10px; }
 .progress-badge {
@@ -1718,7 +1724,8 @@ html.dark .progress-day.l3, html.dark .progress-legend .l3 { background: #6F86D8
   display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin-bottom: 6px;
   border-radius: 50%; background: var(--yellow); color: var(--on-yellow); font-size: 16px;
 }
-.progress-badge-count { font-size: 13px; color: var(--ink-2); }
+.progress-badge-count { font-size: 15px; color: var(--ink-2); }
+.progress-badge strong, .progress-badge small { font-size: 15px; }
 .progress-empty { padding: 20px; border: 2px dashed var(--rule-2); color: var(--ink-2); background: none; }
 
 /* ── 23 Контрольные работы ────────────────────────────────────────────── */
@@ -1729,16 +1736,16 @@ html.dark .progress-day.l3, html.dark .progress-legend .l3 { background: #6F86D8
 .cw-cat-top { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; }
 .cw-cat-top .tag, .cw-cat-top .grade-badge {
   padding: 0; background: none; border: 0; color: var(--ink-2);
-  font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+  font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
 }
 .cw-cat-pill {
   display: inline-flex; align-items: center; height: 28px; padding: 0 10px; margin-left: auto;
-  border: 0; background: var(--blue-tint); color: var(--ink-1); font-size: 13px; font-weight: 600;
+  border: 0; background: var(--blue-tint); color: var(--ink-1); font-size: 15px; font-weight: 600;
 }
 .cw-cat-title { margin: 0; font-size: 20px; line-height: 1.25; font-weight: 700; color: var(--ink-1); }
 .cw-cat-desc { margin: 0; font-size: 15px; color: var(--ink-2); }
 .cw-cat-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: auto; padding-top: 8px; border: 0; }
-.cw-cat-count { font-size: 14px; color: var(--ink-3); }
+.cw-cat-count { font-size: 15px; color: var(--ink-3); }
 .cw-cat-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
 .print-set-icon { display: none; }
 /* Сама работа: панель с таймером, задания на доске */
@@ -1746,14 +1753,14 @@ html.dark .progress-day.l3, html.dark .progress-legend .l3 { background: #6F86D8
 .cw-header-info { flex: 1 1 420px; min-width: 0; }
 .cw-badge {
   display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border: 0;
-  background: var(--blue-tint); color: var(--ink-1); font-size: 13px; font-weight: 600;
+  background: var(--blue-tint); color: var(--ink-1); font-size: 15px; font-weight: 600;
 }
 .cw-guard-note { margin: 12px 0 0; padding: 12px 16px; border: 0; background: var(--red-tint); color: var(--red-ink); font-size: 15px; }
 .cw-header-timer {
   display: flex; flex-direction: column; gap: 2px; padding: 16px 20px; border: 0;
   background: var(--bar); color: var(--bar-ink);
 }
-.cw-timer-label { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--bar-ink-2); }
+.cw-timer-label { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--bar-ink-2); }
 .cw-timer-val { font-size: 48px; line-height: 1; font-weight: 800; color: var(--yellow); font-variant-numeric: tabular-nums; }
 .cw-sticky-bar {
   --ink-1: var(--bar-ink); --ink-2: var(--bar-ink-2); --paper: var(--bar); --nb-blue: var(--yellow); --on-blue: var(--on-yellow);
@@ -1797,7 +1804,7 @@ input.cw-answer-input {
   display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 0 10px; margin: 0;
   border: 0; border-bottom: 1px dashed var(--rule-2); background: none;
 }
-.quick-math-bar-label { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+.quick-math-bar-label { font-size: 14px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
 .quick-math-btn {
   min-width: 36px; height: 36px; padding: 0 8px; border: 1.5px solid var(--rule-2);
   background: var(--sheet); color: var(--ink-1); font-family: var(--f-serif); font-size: 15px; box-shadow: none;
@@ -1825,7 +1832,7 @@ input.cw-answer-input {
   display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px;
   border: 0; background: var(--yellow); color: var(--on-yellow); font-size: 15px; font-weight: 700;
 }
-.tag-catalog-alt { font-size: 14px; color: var(--ink-3); }
+.tag-catalog-alt { font-size: 15px; color: var(--ink-3); }
 .tag-catalog-desc { margin: 0; font-size: 15px; color: var(--ink-2); }
 .search-count { font-size: 16px; color: var(--ink-2); }
 .empty-state { color: var(--ink-2); }
@@ -1853,7 +1860,7 @@ input.cw-answer-input {
   display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; flex: none;
   border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); font-size: 20px; cursor: pointer;
 }
-.duel-nick-note { margin: 8px 0 0; font-size: 14px; color: var(--ink-2); }
+.duel-nick-note { margin: 8px 0 0; font-size: 15px; color: var(--ink-2); }
 .duel-best {
   display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border: 0;
   background: var(--yellow); color: var(--on-yellow); font-size: 15px; font-weight: 700;
@@ -1883,13 +1890,20 @@ input.cw-answer-input {
 .duel-board-filters { display: flex; flex-wrap: wrap; gap: 0; }
 .duel-board-period {
   min-height: 40px; padding: 0 12px; border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
-  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-size: 15px; font-weight: 600; cursor: pointer;
 }
 .duel-board-period + .duel-board-period { margin-left: -2px; }
 .duel-board-period.active, .duel-board-period.is-active, .duel-board-period[aria-pressed="true"] { background: var(--ink-1); color: var(--paper); }
 .duel-board-list { margin: 0; padding: 0; list-style: none; }
 .duel-board-list li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border: 0; border-top: 1px solid var(--rule); background: none; }
-.duel-board-note, .duel-ladder-note { font-size: 14px; color: var(--ink-2); }
+.duel-board-note, .duel-ladder-note { font-size: 15px; color: var(--ink-2); }
+/* Таблица лидеров: в старой теме 11,5–13 px — при масштабе 0,8 меньше 10 px. */
+.duel-board-period button, .duel-board-filters select, .duel-board-list li { font-size: 15px; }
+/* Три кнопки периода по-русски в колонку 340 px: без отступа обёртки — в одну строку */
+.duel-board-filters .duel-board-period { padding: 0; }
+.duel-board-filters select { height: 40px; }
+.duel-podium-nick, .duel-board-empty { font-size: 15px; }
+.duel-board-score small, .duel-board-nick em { font-size: 14px; }
 /* Игра: счёт и время сверху, пример на доске */
 .duel-hud { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; padding: 0; border: 0; background: none; }
 .duel-hud-main { font-size: 48px; line-height: 1; font-weight: 700; color: var(--ink-1); font-variant-numeric: tabular-nums; }
@@ -1912,7 +1926,7 @@ input.cw-answer-input {
   font-size: 22px; font-weight: 700; box-shadow: none;
 }
 .duel-key-ok { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
-.duel-tier, .duel-streak { font-size: 14px; font-weight: 600; color: var(--ink-2); background: none; border: 0; }
+.duel-tier, .duel-streak { font-size: 15px; font-weight: 600; color: var(--ink-2); background: none; border: 0; }
 /* Итог */
 .duel-outcome { margin: 0; font-size: clamp(40px, 5vw, 64px); line-height: 1.02; font-weight: 700; letter-spacing: -0.03em; color: var(--ink-1); }
 .duel-result-actions, .duel-link-actions, .duel-search-actions, .duel-invite-actions, .duel-share-row {
@@ -1937,7 +1951,7 @@ input.cw-answer-input {
   font-family: var(--f-serif); font-size: 24px;
 }
 .plot-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
-.plotter-presets-label { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.plotter-presets-label { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .plotter-chip {
   display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px;
   border: 2px solid var(--ink-1); border-radius: 0; background: transparent; color: var(--ink-1);
@@ -1953,8 +1967,9 @@ input.cw-answer-input {
 }
 .plot-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin-top: 12px; font-size: 15px; color: var(--ink-2); }
 .plot-readout { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink-1); }
-.plot-hint { font-size: 14px; color: var(--ink-3); }
+.plot-hint { font-size: 15px; color: var(--ink-3); }
 .plot-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-family: var(--f-serif); }
+.plot-legend-item { font-size: 15px; }
 .plot-roots { font-size: 15px; color: var(--ink-2); }
 
 /* ── 27 Окна: формулы, печать, вход, подсказка, график ────────────────── */
@@ -1972,7 +1987,7 @@ input.cw-answer-input {
 .dialog-close:hover { background: var(--ink-1); color: var(--paper); }
 .auth-dialog > .dialog-close, .auth-dialog form > .dialog-close { float: right; margin: 0 0 8px 16px; }
 .auth-dialog input { height: 48px; padding: 0 12px; font-size: 16px; }
-.auth-dialog label { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.auth-dialog label { font-size: 15px; font-weight: 600; color: var(--ink-2); }
 .formulas-main-tabs { display: flex; gap: 0; padding: 0; margin: 16px 0; border: 0; background: none; }
 .formulas-main-tab, .formulas-tab {
   flex: none; min-height: 44px; padding: 0 16px; border: 2px solid var(--ink-1); border-radius: 0;
@@ -1990,25 +2005,25 @@ input.cw-answer-input {
 }
 .formula-sheet-badge {
   align-self: flex-start; padding: 4px 10px; border: 0; border-radius: 0;
-  background: var(--ink-1); color: var(--paper); font-size: 13px; font-weight: 700;
+  background: var(--ink-1); color: var(--paper); font-size: 15px; font-weight: 700;
 }
 .formula-sheet-info h3 { margin: 0; font-size: 19px; font-weight: 700; color: var(--ink-1); }
-.formula-sheet-info p { font-size: 14px; color: var(--ink-2); }
-.formula-sheet-meta { font-size: 13px; color: var(--ink-3); }
+.formula-sheet-info p { font-size: 15px; color: var(--ink-2); }
+.formula-sheet-meta { font-size: 15px; color: var(--ink-3); }
 .formula-sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
 .formulas-content { font-family: var(--f-serif); }
 /* Печать: переключатели и наборы */
 .print-dialog-lead { color: var(--ink-2); }
-.print-field > :first-child, .print-field legend { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.print-field > :first-child, .print-field legend { font-size: 14px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
 .print-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .print-chip {
   min-height: 40px; padding: 0 14px; border: 2px solid var(--ink-1); border-radius: 0;
-  background: transparent; color: var(--ink-1); font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: none;
+  background: transparent; color: var(--ink-1); font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: none;
 }
 .print-chip:hover { background: var(--yellow-tint); }
 .print-chip.is-active { background: var(--ink-1); color: var(--paper); }
 .print-range input { height: 44px; border: 2px solid var(--rule-2); font-size: 16px; }
-.print-field-hint { font-size: 14px; color: var(--ink-2); }
+.print-field-hint { font-size: 15px; color: var(--ink-2); }
 .print-error { color: var(--red-ink); }
 .print-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 20px; }
 /* Окно печати по макету: шире, поля парами. Порядок групп в разметке:
@@ -2358,7 +2373,7 @@ body.nb-start-open { overflow: hidden; }
 .nb-set-cell:hover { background: var(--yellow-tint); }
 .nb-set-num { font-size: 28px; line-height: 1; font-weight: 700; }
 .nb-set-role { margin-top: 6px; font-size: 15px; font-weight: 700; }
-.nb-set-subject { font-size: 14px; color: var(--ink-2); }
+.nb-set-subject { font-size: 15px; color: var(--ink-2); }
 .nb-set-cell.is-current { background: var(--yellow); color: var(--on-yellow); }
 .nb-set-cell.is-current .nb-set-subject { color: var(--on-yellow); }
 .nb-set-cell.is-solved { background: var(--nb-blue); border-color: var(--nb-blue); color: var(--on-blue); }
@@ -2367,6 +2382,7 @@ body.nb-start-open { overflow: hidden; }
   margin: -16px 0 32px; padding: 16px 20px; background: var(--blue-tint); color: var(--nb-blue);
   font-size: 18px; font-weight: 700;
 }
+.nb-set-done a { margin-left: 8px; color: inherit; text-decoration: underline; text-underline-offset: 4px; white-space: nowrap; }
 .nb-hero .grade-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .nb-hero .grade-action.nb-set-link { background: transparent; color: var(--ink-1); border-color: var(--ink-1); }
 .nb-hero .grade-action.nb-set-link:hover { background: var(--ink-1); color: var(--paper); }
@@ -2402,7 +2418,7 @@ body.nb-start-open { overflow: hidden; }
 .nb-spiral-minis { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-top: 16px; }
 .nb-spiral-mini { margin: 0; padding: 12px; border: 1px solid var(--rule); background: var(--paper); }
 .nb-spiral-mini svg { display: block; width: 100%; height: auto; }
-.nb-spiral-mini figcaption { display: flex; flex-direction: column; margin-top: 8px; font-size: 14px; color: var(--ink-2); }
+.nb-spiral-mini figcaption { display: flex; flex-direction: column; margin-top: 8px; font-size: 15px; color: var(--ink-2); }
 .nb-spiral-mini figcaption b { color: var(--ink-1); }
 .nb-spiral-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
 .nb-spiral-day {
@@ -2410,7 +2426,7 @@ body.nb-start-open { overflow: hidden; }
   border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); cursor: pointer;
 }
 .nb-spiral-day .dn { font-size: 30px; font-weight: 700; line-height: 1; }
-.nb-spiral-day .dl { font-size: 14px; font-weight: 600; line-height: 1; text-transform: capitalize; }
+.nb-spiral-day .dl { font-size: 15px; font-weight: 600; line-height: 1; text-transform: capitalize; }
 .nb-spiral-day i { display: block; width: 24px; height: 6px; }
 .nb-spiral-day:hover { background: var(--yellow-tint); }
 .nb-spiral-day.is-empty { border-style: dashed; border-color: var(--rule-2); color: var(--ink-3); }
@@ -2486,7 +2502,7 @@ body.nb-start-open { overflow: hidden; }
 .nb-scale-notes h3 { margin: 0 0 12px; }
 .nb-scale-line { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); }
 .nb-scale-line .nb-cell { width: 36px; height: 36px; font-size: 16px; cursor: default; }
-.nb-scale-lb { display: block; font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.nb-scale-lb { display: block; font-size: 15px; font-weight: 600; color: var(--ink-2); }
 .nb-scale-line p { margin: 2px 0 0; font-size: 20px; color: var(--ink-1); }
 .nb-scale-wait { margin: 12px 0 0; font-size: 15px; color: var(--ink-3); }
 @media (max-width: 720px) {

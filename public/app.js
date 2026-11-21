@@ -1399,7 +1399,7 @@ function taskPath(task) {
 
 /* Ссылка «поделиться» — всегда латышский адрес без префикса: так её
    просил владелец сайта. Получатель всё равно увидит свой язык — его
-   выбор или язык браузера (initLang в i18n.js). */
+   выбор, иначе латышский (initLang в i18n.js). */
 function shareTaskUrl(task, taskId) {
   if (!task) return `${location.origin}/task/${taskId}`;
   const title = task.title_lv || task.title;
@@ -2349,56 +2349,6 @@ function renderTopicGroups(container, groups) {
   </section>`).join('');
 }
 
-/* Значки разделов «Начала»: собраны из квадрата, круга и треугольника знака.
-   Цвета — переменные CSS, поэтому значки сами перекрашиваются в тёмной теме. */
-const SUBJECT_FIGURES = {
-  algebra: '<circle cx="10" cy="24" r="8" fill="var(--fy)"/><rect x="20" y="18.5" width="10" height="3.5" fill="var(--ink-1)"/><rect x="20" y="26" width="10" height="3.5" fill="var(--ink-1)"/><rect x="33" y="17" width="14" height="14" fill="var(--fb)"/>',
-  geometrija: '<polygon points="24,5 45,41 3,41" fill="var(--fy)"/><circle cx="24" cy="31" r="9" fill="var(--fb)"/>',
-  funkcijas: '<path d="M8 4V42H46" fill="none" stroke="var(--ink-1)" stroke-width="3" stroke-linecap="square"/><path d="M12 38Q28 -6 44 30" fill="none" stroke="var(--fr)" stroke-width="4" stroke-linecap="round"/><circle cx="28" cy="14" r="5" fill="var(--fb)"/>',
-  trigonometrija: '<polygon points="5,42 43,42 43,12" fill="var(--fr)"/><path d="M5 42H21A16 16 0 0 0 17.6 32.1Z" fill="var(--fy)"/><path d="M43 35H36V42" fill="none" stroke="var(--paper)" stroke-width="1.5"/>',
-  stereometrija: '<polygon points="24,5 42,15 24,25 6,15" fill="var(--fy)"/><polygon points="6,15 24,25 24,45 6,35" fill="var(--fb)"/><polygon points="24,25 42,15 42,35 24,45" fill="var(--fr)"/>',
-  statistika: '<rect x="5" y="26" width="10" height="16" fill="var(--fb)"/><rect x="19" y="10" width="10" height="32" fill="var(--fr)"/><rect x="33" y="19" width="10" height="23" fill="var(--fy)"/><rect x="2" y="43" width="44" height="2.5" fill="var(--ink-1)"/>',
-  'matematiskais-analizs': '<path d="M6 42V28C14 8 26 8 32 22S42 34 44 16V42Z" fill="var(--fy)"/><path d="M6 28C14 8 26 8 32 22S42 34 44 16" fill="none" stroke="var(--fb)" stroke-width="4" stroke-linecap="round"/><rect x="2" y="42" width="46" height="3" fill="var(--ink-1)"/>'
-};
-SUBJECT_FIGURES.planimetrija = SUBJECT_FIGURES.geometrija;
-SUBJECT_FIGURES.geometry = SUBJECT_FIGURES.geometrija;
-SUBJECT_FIGURES['kombinatorika-un-varbutibas'] = SUBJECT_FIGURES.statistika;
-SUBJECT_FIGURES.statistics = SUBJECT_FIGURES.statistika;
-
-function subjectFigure(subject, size = 72) {
-  const inner = SUBJECT_FIGURES[subject?.slug] || SUBJECT_FIGURES.algebra;
-  return `<svg class="nb-subject-figure" width="${size}" height="${size}" viewBox="0 0 48 48" aria-hidden="true">${inner}</svg>`;
-}
-
-/* Темы класса на главной — по разделам: слева значок и название раздела,
-   справа строки тем. Порядок разделов — как в каталоге. */
-function homeTopicGroups(topics) {
-  const tr = window.MathTasks.t || (k => k);
-  const bySubject = new Map();
-  topics.forEach(topic => {
-    const key = topic.subject_id ?? 'none';
-    if (!bySubject.has(key)) bySubject.set(key, []);
-    bySubject.get(key).push(topic);
-  });
-  const order = subject => subjects.findIndex(item => item.id === subject?.id);
-  return [...bySubject.entries()]
-    .map(([id, list]) => ({ subject: subjectById(id), list }))
-    .sort((a, b) => order(a.subject) - order(b.subject))
-    .map(({ subject, list }, index) => {
-      const title = loc(subject, 'title') || '';
-      const headId = `nb-group-${index}`;
-      return `<section class="nb-group" aria-labelledby="${headId}">
-        <div class="nb-group-head">
-          ${subjectFigure(subject)}
-          <h3 id="${headId}">${escapeHtml(title)}</h3>
-          <p>${escapeHtml(countLabel('topic_topics', list.length))}</p>
-          ${subject?.slug ? `<a href="/subject/${encodeURIComponent(subject.slug)}">${escapeHtml(tr('subject_all_topics_arrow'))}</a>` : ''}
-        </div>
-        <div class="topic-grid nb-group-list">${list.map((topic, i) => topicCard(topic, i, false)).join('')}</div>
-      </section>`;
-    }).join('');
-}
-
 /* ── Главная ──────────────────────────────────────────────────────── */
 
 /* Заголовки разделов главной считает этот код, а не data-i18n: к названию
@@ -2561,7 +2511,7 @@ function homeStreakCard() {
       .filter(Boolean).join(' ');
     const title = `${date.toLocaleDateString(progressLocale(), { weekday: 'long', day: 'numeric', month: 'long' })}: ${tr('progress_day_count', { count: day.count })}`;
     const mark = day.future ? '' : String(day.count || '·');
-    return `<span class="${cls}" title="${escapeHtml(title)}"><i>${escapeHtml(mark)}</i><small>${escapeHtml(date.toLocaleDateString(progressLocale(), { weekday: 'short' }))}</small></span>`;
+    return `<span class="${cls}" title="${escapeHtml(title)}"><i>${escapeHtml(mark)}</i><small>${escapeHtml(shortWeekday(date))}</small></span>`;
   }).join('');
 
   const sub = [
@@ -2701,13 +2651,35 @@ document.addEventListener('click', event => {
   renderHomeToday();
 });
 
+/* Темы класса — одним списком по номеру темы (9.1, 9.2 … 9.10), как в
+   программе, а не кучками по разделам: раздел виден в самой карточке.
+   Тема без номера — в конце, в порядке каталога. */
+function topicNumberKey(topic) {
+  // «9.10. Тема» или «3 Тема», но не «3D фигуры»: после номера — точка или пробел.
+  const match = topicTitleOf(topic).match(/^(\d+(?:\.\d+)*)\.?\s/);
+  return match ? match[1].split('.').map(Number) : null;
+}
+function sortTopicsByNumber(topics) {
+  const keyed = topics.map((topic, index) => ({ topic, index, key: topicNumberKey(topic) }));
+  keyed.sort((a, b) => {
+    if (!a.key || !b.key) return (a.key ? -1 : b.key ? 1 : 0) || a.index - b.index;
+    for (let i = 0; i < Math.max(a.key.length, b.key.length); i++) {
+      const diff = (a.key[i] ?? -1) - (b.key[i] ?? -1);
+      if (diff) return diff;
+    }
+    return a.index - b.index;
+  });
+  return keyed.map(item => item.topic);
+}
+
 async function loadHome() {
   renderGradeActions();
   renderHomeToday();
   const topics = topicsForGrade(allTopics);
-  topicsElement.classList.toggle('nb-groups', Boolean(selectedGrade && topics.length));
   topicsElement.innerHTML = topics.length
-    ? (selectedGrade ? homeTopicGroups(topics) : popularTopics(topics).map((topic, index) => topicCard(topic, index, true)).join(''))
+    ? (selectedGrade
+      ? sortTopicsByNumber(topics).map((topic, index) => topicCard(topic, index, false)).join('')
+      : popularTopics(topics).map((topic, index) => topicCard(topic, index, true)).join(''))
     : `<p class="empty-state">${escapeHtml(selectedGrade
       ? (window.MathTasks.t || (k => k))('empty_topics_grade', { grade: gradeLabel(selectedGrade) })
       : (window.MathTasks.t || (k => k))('empty_topics'))}</p>`;
@@ -4013,7 +3985,7 @@ async function showDailySet() {
   viewList.dataset.nbPage = 'topic';
   viewList.dataset.nbSet = '1';
   if (!document.querySelector('#nb-set-strip')) {
-    listTasks.insertAdjacentHTML('beforebegin', `<div class="nb-set-strip" id="nb-set-strip" role="group" aria-label="${escapeHtml(tr('nb_set_title'))}"></div><p class="nb-set-done" id="nb-set-done" hidden>${escapeHtml(tr('nb_set_done'))}</p>`);
+    listTasks.insertAdjacentHTML('beforebegin', `<div class="nb-set-strip" id="nb-set-strip" role="group" aria-label="${escapeHtml(tr('nb_set_title'))}"></div><p class="nb-set-done" id="nb-set-done" hidden><span>${escapeHtml(tr('nb_set_done'))}</span> <a href="/duel?play=daily">${escapeHtml(tr('nb_set_duel'))}</a></p>`);
   }
   renderSetStrip();
 }
@@ -4087,6 +4059,13 @@ async function showFavorites() {
 
 function progressLocale() {
   return getLang() === 'lv' ? 'lv-LV' : 'ru-RU';
+}
+
+/* Короткий день недели для ячеек серии: латышское «short» от Intl —
+   «Ceturtd.», шире ячейки; берём школьные двухбуквенные Pr…Sv. */
+const LV_WEEKDAYS = ['Sv', 'Pr', 'Ot', 'Tr', 'Ce', 'Pk', 'Se'];
+function shortWeekday(date) {
+  return getLang() === 'lv' ? LV_WEEKDAYS[date.getDay()] : date.toLocaleDateString(progressLocale(), { weekday: 'short' });
 }
 
 function progressBar(percent) {
@@ -4417,7 +4396,7 @@ function renderSpiralBlock() {
     </figure>`);
   }
 
-  const dayNames = week.map(day => day.date.toLocaleDateString(progressLocale(), { weekday: 'short' }));
+  const dayNames = week.map(day => shortWeekday(day.date));
   const dayLong = week.map(day => day.date.toLocaleDateString(progressLocale(), { weekday: 'long' }));
   const days = week.map((day, d) => {
     const cls = ['nb-spiral-day', !day.count ? 'is-empty' : '', d === spiralDay ? 'is-on' : ''].filter(Boolean).join(' ');
@@ -7410,7 +7389,7 @@ if (location.hash.startsWith('#/')) {
 }
 
 /* Язык выбран до загрузки (initLang в i18n.js): выбор посетителя, иначе
-   /ru/ в адресе, иначе язык браузера. Если он не совпал с адресом —
+   /ru/ в адресе, иначе латышский. Если он не совпал с адресом —
    русский читатель на латышском адресе или наоборот, — переводим на тот
    же адрес нужной версии до первого разбора маршрута. */
 {
@@ -7565,7 +7544,12 @@ function initStartPicker() {
   const renderGo = () => {
     go.hidden = !picked;
     hint.hidden = Boolean(picked);
-    if (picked) go.textContent = `${tr('nb_start_go', { grade: gradeLabel(parseGradeValue(picked)) })} →`;
+    if (!picked) return;
+    /* Уровень средней школы называем так же, как на его карточке («Matemātika I»),
+       а не «Optimālais līmenis» — иначе кажется, что открывается что-то другое. */
+    const card = box.querySelector(`[data-start-grade="${picked}"] b`);
+    const name = /^\d$/.test(picked) || !card ? gradeLabel(parseGradeValue(picked)) : card.textContent.trim();
+    go.textContent = `${tr('nb_start_go', { grade: name })} →`;
   };
   const onKey = event => { if (event.key === 'Escape') close(); };
 

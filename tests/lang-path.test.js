@@ -105,24 +105,27 @@ describe('словарь: заголовки страниц на обоих яз
 });
 
 /* Язык при загрузке: выбор посетителя главнее всего; без выбора /ru/ в
-   адресе — русский, иначе язык браузера. Загрузка сама ничего не запоминает. */
+   адресе — русский, иначе латышский при любом браузере. Загрузка сама
+   ничего не запоминает. */
 describe('язык при загрузке: браузер и запомненный выбор', () => {
   const code = readFileSync(new URL('../public/i18n.js', import.meta.url), 'utf8');
-  const load = ({ path = '/', saved = null, browser = 'en-US', catalogue = true }) => {
+  const load = ({ path = '/', saved = null, browser = 'en-US', catalogue = true, tab = new Map() }) => {
     const store = new Map(saved ? [['math-tasks:lang', saved]] : []);
     const root = { hasAttribute: name => catalogue && name === 'data-url-lang', setAttribute() {}, classList: { add() {}, remove() {} } };
     const document = { documentElement: root, readyState: 'complete', addEventListener() {}, querySelectorAll: () => [], querySelector: () => null };
     const context = {
       document, location: { pathname: path }, navigator: { language: browser, languages: [browser] },
       localStorage: { getItem: key => store.get(key) ?? null, setItem: (key, value) => store.set(key, value) },
+      sessionStorage: { getItem: key => tab.get(key) ?? null, setItem: (key, value) => tab.set(key, value) },
       MutationObserver: class { observe() {} disconnect() {} }, CustomEvent: class {}, window: { dispatchEvent() {} }
     };
     vm.runInNewContext(code, context);
     return { api: context.MathTasksI18n, store };
   };
 
-  it('без выбора — по языку браузера: русский — русский, остальные — латышский', () => {
-    expect(load({ path: '/topic/x', browser: 'ru-RU' }).api.getLang()).toBe('ru');
+  it('без выбора — латышский, даже в русском браузере', () => {
+    expect(load({ path: '/topic/x', browser: 'ru-RU' }).api.getLang()).toBe('lv');
+    expect(load({ path: '/', browser: 'ru' }).api.getLang()).toBe('lv');
     expect(load({ path: '/topic/x', browser: 'lv-LV' }).api.getLang()).toBe('lv');
     // Поисковик: английский браузер, ничего не сохранено — латышская версия.
     expect(load({ path: '/' }).api.getLang()).toBe('lv');
@@ -137,10 +140,22 @@ describe('язык при загрузке: браузер и запомненн
     expect(load({ path: '/', saved: 'ru', browser: 'lv' }).api.getLang()).toBe('ru');
   });
 
-  it('отдельные страницы: выбор, иначе браузер', () => {
-    expect(load({ catalogue: false, browser: 'ru' }).api.getLang()).toBe('ru');
+  it('отдельные страницы: выбор, иначе латышский', () => {
+    expect(load({ catalogue: false, browser: 'ru' }).api.getLang()).toBe('lv');
     expect(load({ catalogue: false }).api.getLang()).toBe('lv');
     expect(load({ catalogue: false, saved: 'ru' }).api.getLang()).toBe('ru');
+  });
+
+  // Пришёл из поиска на /ru/…, ничего не выбирал, нажал «Тренажёр» — остаётся русский.
+  it('отдельная страница берёт язык каталога из этой вкладки', () => {
+    const tab = new Map();
+    load({ path: '/ru/topic/x', tab });
+    expect(tab.get('math-tasks:tab-lang')).toBe('ru');
+    expect(load({ catalogue: false, tab }).api.getLang()).toBe('ru');
+    load({ path: '/topic/x', tab });
+    expect(load({ catalogue: false, tab }).api.getLang()).toBe('lv');
+    // Выбор переключателем главнее вкладки.
+    expect(load({ catalogue: false, saved: 'lv', tab: new Map([['math-tasks:tab-lang', 'ru']]) }).api.getLang()).toBe('lv');
   });
 
   it('загрузка и «назад» не запоминают язык, переключатель — запоминает', () => {

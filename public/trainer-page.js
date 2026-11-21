@@ -608,6 +608,11 @@
         equations: ['trainer_title_equations', 'trainer_sub_equations'],
         expressions: ['trainer_title_expressions', 'trainer_sub_expressions']
       };
+      const SECTION_PAGE_TITLE = {
+        count: 'trainer_page_title',
+        equations: 'trainer_page_title_equations',
+        expressions: 'trainer_page_title_expressions'
+      };
       const isChipVisible = chip => !chip.closest('[hidden]');
 
       // Кнопки чужого раздела и темы средней школы в основной — скрыты
@@ -644,6 +649,11 @@
           sub.dataset.i18n = subKey;
           sub.textContent = t(subKey);
         }
+        // Вкладка браузера — по разделу: в уравнениях не «Тренажёр быстрого устного счёта».
+        const pageKey = SECTION_PAGE_TITLE[state.section];
+        const titleTag = document.querySelector('title');
+        if (titleTag) titleTag.dataset.i18n = pageKey;
+        document.title = t(pageKey);
         // Шапка: ссылки на все тренажёры, текущий подсвечен.
         document.querySelectorAll('[data-section-link]').forEach(link => {
           const current = link.dataset.sectionLink === state.section;

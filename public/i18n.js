@@ -327,7 +327,7 @@
       menu_label: 'Izvēlne',
 
       // Pašpārbaude
-      self_check_placeholder: 'Ievadiet savu atbildi...',
+      self_check_placeholder: 'Atbilde',
       self_check_btn: 'Pārbaudīt',
       self_check_success: '🎉 Lieliski! Pareiza atbilde!',
       self_check_error: '🤔 Pagaidām nesakrīt. Pārbaudiet aprēķinus vai izmantojiet norādi zemāk.',
@@ -452,6 +452,7 @@
       nb_set_empty: 'Šajā klasē komplektam vēl nav uzdevumu.',
       nb_set_link: 'Dienas komplekts: 5 uzdevumi',
       nb_set_done: 'Komplekts atrisināts! Rīt būs jauns.',
+      nb_set_duel: 'Vēl minūte? Dienas duelis →',
       nb_spiral_eyebrow: 'Šī nedēļa',
       nb_spiral_week: '{word} šonedēļ',
       nb_spiral_current: '{n}. vijums · {k} no 16',
@@ -488,6 +489,8 @@
       login_timeout: 'Pieteikšanās serviss neatbildēja 12 sekundēs. Pārbaudiet interneta savienojumu vai Supabase iestatījumus.',
       login_network: 'Neizdevās sazināties ar pieteikšanās servisu. Pārbaudiet interneta savienojumu.',
       trainer_page_title: 'Ātrās galvasrēķināšanas trenažieris — MathTasks',
+      trainer_page_title_equations: 'Vienādojumu trenažieris — MathTasks',
+      trainer_page_title_expressions: 'Izteiksmju trenažieris — MathTasks',
       duel_page_title: 'Duelis ātrrēķināšanā — MathTasks',
       progress_counter: 'Atrisināti: {count}',
       progress_counter_empty: 'Vēl nekas nav atrisināts',
@@ -577,9 +580,6 @@
       topic_tasks_zero: 'uzdevumu',
       topic_tasks_one: 'uzdevums',
       topic_tasks_other: 'uzdevumi',
-      topic_topics_zero: 'tēmu',
-      topic_topics_one: 'tēma',
-      topic_topics_other: 'tēmas',
       topic_subtopics_zero: 'apakštēmu',
       topic_subtopics_one: 'apakštēma',
       topic_subtopics_other: 'apakštēmas',
@@ -867,6 +867,7 @@
       duel_board_loading: 'Ielādējam…',
       duel_board_error: 'Tabulu šobrīd neizdevās ielādēt — mēģini vēlāk.',
       duel_board_empty: 'Šeit vēl tukšs — uzspēlē un kļūsti pirmais!',
+      duel_board_note_fallback: 'Šonedēļ šajā kategorijā vēl neviens nav spēlējis — rādām visu laiku rezultātus.',
       duel_board_you: 'tas esi tu',
       duel_nick_replaced: 'Šāds segvārds neder — izvēlējāmies citu.',
       duel_cat_label: 'Ko rēķinām',
@@ -1623,7 +1624,7 @@
       menu_label: 'Меню',
 
       // Самопроверка
-      self_check_placeholder: 'Введите ваш ответ...',
+      self_check_placeholder: 'Ответ',
       self_check_btn: 'Проверить',
       self_check_success: '🎉 Отлично! Ответ верный!',
       self_check_error: '🤔 Пока не сошлось. Проверьте вычисления или воспользуйтесь подсказкой ниже.',
@@ -1748,6 +1749,7 @@
       nb_set_empty: 'В этом классе пока нет задач для сета.',
       nb_set_link: 'Сет дня: 5 задач',
       nb_set_done: 'Сет решён! Завтра будет новый.',
+      nb_set_duel: 'Ещё минутка? Дуэль дня →',
       nb_spiral_eyebrow: 'Эта неделя',
       nb_spiral_week: '{word} за неделю',
       nb_spiral_current: 'Виток {n} · {k} из 16',
@@ -1784,6 +1786,8 @@
       login_timeout: 'Сервис входа не ответил за 12 секунд. Проверьте подключение к интернету или настройки Supabase.',
       login_network: 'Не удалось связаться с сервисом входа. Проверьте подключение к интернету.',
       trainer_page_title: 'Тренажёр быстрого устного счёта — MathTasks',
+      trainer_page_title_equations: 'Тренажёр уравнений — MathTasks',
+      trainer_page_title_expressions: 'Тренажёр выражений — MathTasks',
       duel_page_title: 'Дуэль на устный счёт — MathTasks',
       progress_counter: 'Решено: {count}',
       progress_counter_empty: 'Пока ничего не решено',
@@ -1874,10 +1878,6 @@
       topic_tasks_few: 'задачи',
       topic_tasks_many: 'задач',
       topic_tasks_other: 'задачи',
-      topic_topics_one: 'тема',
-      topic_topics_few: 'темы',
-      topic_topics_many: 'тем',
-      topic_topics_other: 'темы',
       topic_subtopics_one: 'подтема',
       topic_subtopics_few: 'подтемы',
       topic_subtopics_many: 'подтем',
@@ -2168,6 +2168,7 @@
       duel_board_loading: 'Загружаем…',
       duel_board_error: 'Таблица сейчас не загрузилась — попробуй позже.',
       duel_board_empty: 'Здесь пока пусто — сыграй и стань первым!',
+      duel_board_note_fallback: 'На этой неделе в этой категории ещё никто не играл — показываем результаты за всё время.',
       duel_board_you: 'это ты',
       duel_nick_replaced: 'Такой ник не подходит — взяли другой.',
       duel_cat_label: 'Что считаем',
@@ -2605,22 +2606,23 @@
 
   let currentLang = DEFAULT_LANG;
 
-  // Язык браузера: русский — русский, любой другой — латышский.
-  function browserLang() {
-    if (typeof navigator === 'undefined') return DEFAULT_LANG;
-    const first = (navigator.languages && navigator.languages[0]) || navigator.language || '';
-    return /^ru\b/i.test(first) ? 'ru' : 'lv';
-  }
-
   /* Язык при загрузке. Главнее всего — выбор, который посетитель сделал
      сам переключателем (сохранён в localStorage). Без выбора:
      — на странице каталога (index.html, data-url-lang) адрес /ru/… — это
-       русская версия, её не трогаем; адрес без префикса — по языку
-       браузера, и приложение само переведёт русского на /ru/…;
-     — на отдельных страницах (тренажёр, экзамены, дуэль) — по браузеру.
-     Поисковик без сохранённого выбора и с английским браузером видит
-     латышскую версию без префикса и русскую на /ru/… — как отдаёт сервер.
+       русская версия, её не трогаем; адрес без префикса — латышский;
+     — на отдельных страницах (тренажёр, экзамены, дуэль) — язык, на
+       котором посетитель смотрел каталог в этой вкладке (sessionStorage,
+       TAB_LANG_KEY), иначе латышский. Так пришедший из поиска на /ru/…
+       и нажавший «Тренажёр» остаётся на русском, хотя выбора не делал.
+     Язык браузера не смотрим: сайт по умолчанию латышский, и русский
+     браузер тоже сначала видит латышскую версию (так решил владелец,
+     20.11.2026). Поисковик видит латышскую версию без префикса и русскую
+     на /ru/… — как отдаёт сервер.
      Тот же порядок — в theme-init.js, до первой отрисовки. */
+  const TAB_LANG_KEY = 'math-tasks:tab-lang';
+  const rememberTabLang = lang => {
+    try { if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(TAB_LANG_KEY, lang); } catch {}
+  };
   function initLang() {
     let saved = null;
     try {
@@ -2633,10 +2635,13 @@
     if (typeof document !== 'undefined' && typeof location !== 'undefined'
       && document.documentElement && document.documentElement.hasAttribute('data-url-lang')) {
       const onRu = location.pathname === '/ru' || location.pathname.startsWith('/ru/');
-      currentLang = onRu ? 'ru' : browserLang();
+      currentLang = onRu ? 'ru' : DEFAULT_LANG;
+      rememberTabLang(currentLang);
       return;
     }
-    currentLang = browserLang();
+    let tabLang = null;
+    try { if (typeof sessionStorage !== 'undefined') tabLang = sessionStorage.getItem(TAB_LANG_KEY); } catch {}
+    currentLang = SUPPORTED_LANGS.includes(tabLang) ? tabLang : DEFAULT_LANG;
   }
 
   initLang();
@@ -2653,6 +2658,7 @@
     try {
       if (remember && typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY, lang);
     } catch {}
+    rememberTabLang(lang);
     if (typeof document !== 'undefined') {
       document.documentElement.lang = lang;
       document.documentElement.setAttribute('data-lang', lang);
