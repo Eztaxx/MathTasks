@@ -275,6 +275,8 @@
   const remember = entry => {
     const list = duelHistory().filter(item => !(item.seed === entry.seed && item.role === entry.role));
     writeJson(HISTORY_KEY, [entry, ...list].slice(0, HISTORY_MAX));
+    // Сыгранная дуэль — день занятий: напоминание позаниматься сегодня уже не нужно.
+    if (entry.me) window.MathTasksTrainer?.markPracticeDay?.();
   };
   const ownEntry = seed => duelHistory().find(item => item.seed === seed && item.role === 'a');
 

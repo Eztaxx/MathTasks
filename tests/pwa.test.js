@@ -207,3 +207,63 @@ describe('отдельные страницы: превью ссылки', () =>
     expect(html).toContain(`<meta property="og:description" content="${description}" />`);
   });
 });
+
+describe('service worker: напоминание позаниматься', () => {
+  // Воркер с уведомлениями и вкладками — то, чего нет у песочницы для кэша выше.
+  function loadPushWorker(openUrls = []) {
+    const listeners = {};
+    const shown = [];
+    const opened = [];
+    const windows = openUrls.map(url => ({ url: new URL(url, ORIGIN).href, focused: false, focus() { this.focused = true; return this; } }));
+    const sandbox = {
+      self: {
+        location: new URL('/sw.js', ORIGIN),
+        addEventListener: (type, fn) => { listeners[type] = fn; },
+        registration: { showNotification: async (title, options) => { shown.push({ title, options }); } },
+        clients: { matchAll: async () => windows, openWindow: async url => { opened.push(url); } }
+      },
+      URL, Request, Response, Headers, atob, console
+    };
+    vm.runInNewContext(SW_SOURCE.replace("'__BUILD__'", "'test'"), sandbox);
+    return { listeners, shown, opened, windows };
+  }
+
+  const fire = async (listener, event) => {
+    let done = null;
+    listener({ ...event, waitUntil: promise => { done = promise; } });
+    await done;
+  };
+
+  it('показывает текст из сообщения с иконкой и значком', async () => {
+    const { listeners, shown } = loadPushWorker();
+    const data = { json: () => ({ title: 'MathTasks', body: 'Pieci minūtes?', lang: 'lv', url: '/trainer.html', tag: 'mt-remind' }) };
+    await fire(listeners.push, { data });
+    expect(shown).toHaveLength(1);
+    expect(shown[0].title).toBe('MathTasks');
+    expect(shown[0].options).toMatchObject({ body: 'Pieci minūtes?', icon: '/icons/icon-192.png', badge: '/icons/badge-96.png', tag: 'mt-remind' });
+    expect(shown[0].options.data.url).toBe('/trainer.html');
+  });
+
+  it('без текста всё равно показывает уведомление', async () => {
+    const { listeners, shown } = loadPushWorker();
+    await fire(listeners.push, { data: null });
+    expect(shown[0].title).toBe('MathTasks');
+  });
+
+  it('нажатие выводит вперёд открытый тренажёр, а без него открывает новый', async () => {
+    const open = loadPushWorker(['/trainer']);
+    const notification = { data: { url: '/trainer.html' }, close() {} };
+    await fire(open.listeners.notificationclick, { notification });
+    expect(open.windows[0].focused).toBe(true);
+    expect(open.opened).toEqual([]);
+
+    const none = loadPushWorker(['/']);
+    await fire(none.listeners.notificationclick, { notification });
+    expect(none.opened).toEqual([`${ORIGIN}/trainer.html`]);
+  });
+
+  it('/.well-known/ не перехватывает: приложение Google Play проверяет подлинник', () => {
+    const { sw } = loadWorker();
+    expect(sw.strategyOf(req('/.well-known/assetlinks.json'))).toBeNull();
+  });
+});

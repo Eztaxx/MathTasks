@@ -21,8 +21,13 @@ const ICONS = [
   // Android сам вырезает из неё круг или «капсулу»: эмблема держится в центральном круге 80%.
   { file: 'icon-maskable-512.png', size: 512, logo: 0.56, radius: 0 },
   // iPhone скругляет углы сам, а прозрачность заливает чёрным.
-  { file: 'apple-touch-icon.png', size: 180, logo: 0.7, radius: 0 }
+  { file: 'apple-touch-icon.png', size: 180, logo: 0.7, radius: 0 },
+  // Значок в строке уведомлений Android: белый силуэт на прозрачном фоне, цвет Android ставит сам.
+  { file: 'badge-96.png', size: 96, logo: 0.84, radius: 0, mono: true }
 ];
+
+// Можно пересоздать только некоторые: node scripts/make-icons.mjs badge-96.png
+const only = process.argv.slice(2);
 
 const BROWSERS = [
   process.env.CHROME,
@@ -41,12 +46,12 @@ if (!browser) {
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mt-icons-'));
 fs.mkdirSync(outDir, { recursive: true });
 
-for (const { file, size, logo, radius } of ICONS) {
+for (const { file, size, logo, radius, mono } of ICONS.filter(icon => !only.length || only.includes(icon.file))) {
   const page = path.join(tmp, `${file}.html`);
   fs.writeFileSync(page, `<!doctype html><style>
 html,body{margin:0;width:${size}px;height:${size}px;overflow:hidden;background:transparent}
-div{width:${size}px;height:${size}px;display:grid;place-items:center;background:#fff;border-radius:${radius * 100}%}
-svg{width:${Math.round(size * logo)}px;height:${Math.round(size * logo)}px}
+div{width:${size}px;height:${size}px;display:grid;place-items:center;background:${mono ? 'transparent' : '#fff'};border-radius:${radius * 100}%}
+svg{width:${Math.round(size * logo)}px;height:${Math.round(size * logo)}px${mono ? ';filter:brightness(0) invert(1)' : ''}}
 </style><div>${svg}</div>`);
   execFileSync(browser, [
     '--headless=new', '--disable-gpu', '--hide-scrollbars', '--force-device-scale-factor=1',

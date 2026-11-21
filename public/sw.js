@@ -89,7 +89,8 @@ function strategyOf(request) {
   if (request.method !== 'GET') return null;
   const url = new URL(request.url);
   if (url.origin === self.location.origin) {
-    if (url.pathname.startsWith('/api/') || url.pathname === '/sitemap.xml' || url.pathname === '/sw.js') return null;
+    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/.well-known/')
+      || url.pathname === '/sitemap.xml' || url.pathname === '/sw.js') return null;
     if (request.mode === 'navigate') return 'page';
     // Файлы сборки с хешем в имени не меняются никогда.
     return url.pathname.startsWith('/assets/') ? 'immutable' : 'static';
@@ -217,4 +218,33 @@ self.addEventListener('fetch', event => {
   if (DEV) return;
   const strategy = strategyOf(event.request);
   if (strategy) event.respondWith(HANDLERS[strategy](event));
+});
+
+/* Напоминание позаниматься (worker/push.js). Текст приходит в сообщении —
+   на языке, который был на сайте при включении напоминания. */
+const REMIND_URL = '/trainer.html';
+
+self.addEventListener('push', event => {
+  let message = {};
+  try { message = event.data ? event.data.json() : {}; } catch {}
+  event.waitUntil(self.registration.showNotification(message.title || 'MathTasks', {
+    body: message.body || '',
+    icon: '/icons/icon-192.png',
+    // Значок в строке состояния Android — белый силуэт на прозрачном фоне.
+    badge: '/icons/badge-96.png',
+    tag: message.tag || 'mt-remind',
+    lang: message.lang || '',
+    data: { url: message.url || REMIND_URL }
+  }));
+});
+
+// Нажали на напоминание: открытая страница с тем же адресом выходит вперёд, иначе открываем новую.
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || REMIND_URL, self.location.origin).href;
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const open = windows.find(client => pageKey(client.url) === pageKey(url));
+    return open ? open.focus() : self.clients.openWindow(url);
+  })());
 });

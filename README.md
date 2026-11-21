@@ -20,7 +20,11 @@
 | `trainer.html` | Тренажёр устного счёта |
 | `exams.html` | Государственные экзамены и сборники официальных формул |
 | `mock-exams.html` | Пробные экзаменационные варианты |
-| `worker/index.js` | Cloudflare Worker: `/sitemap.xml`, превью для ботов, прокси к Gemini |
+| `worker/index.js` | Cloudflare Worker: `/sitemap.xml`, превью для ботов, прокси к Gemini, `assetlinks.json` для приложения |
+| `worker/push.js` | Напоминания позаниматься: раз в час веб-пуш тем, кто сегодня ещё не занимался |
+| `public/progress-sync.js` | Перенос прогресса ученика между устройствами — на главной, в тренажёре и дуэли (карточка профиля — `profile.js`) |
+| `public/sw.js`, `public/manifest.webmanifest` | Сайт как приложение: установка, работа без сети, показ напоминаний |
+| `docs/android.md` | Как выпустить приложение в Google Play |
 | `wrangler.jsonc` | Конфигурация Cloudflare Workers и раздачи статических ассетов (SPA) |
 | `public/lib.js` | Чистые функции без DOM: транслитерация слагов, разделители KaTeX, очистка поиска PostgREST, парсинг и сравнение математических ответов |
 | `public/client.js` | Клиент Supabase, переключение темы, рендер формул через KaTeX |
@@ -82,6 +86,8 @@ npm run dev
 | `supabase/migrations/029_task_reports_identity_by_default.sql` | `task_reports.id` как `BY DEFAULT AS IDENTITY`, чтобы `restore.mjs` возвращал сообщения под прежним номером |
 | `supabase/migrations/030_duel_ladder.sql` | Дуэль-лесенка: сложность растёт по ходу минуты, одна таблица лидеров на категорию |
 | `supabase/migrations/031_profile_nick_avatar.sql` | Смена ника не чаще раза в 3 месяца (`rename_profile`), зверь в профиле и в попытках дуэли (`avatar`), индекс для «дуэли дня» |
+| `supabase/migrations/032_progress_version.sql` | Версия снимка прогресса (`version`) и запись через `save_progress`: два устройства не затирают друг друга |
+| `supabase/migrations/033_push_reminders.sql` | Напоминание позаниматься: подписки (`push_subscriptions`) и выборка «кому напомнить сейчас» для воркера |
 
 Базовый язык — русский, он лежит в основных колонках; латышский — в парных с суффиксом `_lv`. Английского на сайте нет.
 

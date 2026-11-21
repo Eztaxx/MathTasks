@@ -1682,6 +1682,15 @@ input.trainer-input {
 .profile-nick input, .profile-card input[type="text"] { height: 52px; padding: 0 14px; font-size: 18px; }
 .profile-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 12px; }
 .profile-note, .progress-note { font-size: 15px; color: var(--ink-2); }
+/* Напоминание позаниматься (profile.js): переключатель, час и подпись о данных */
+.profile-remind { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin: 16px 0 4px; padding-top: 16px; border-top: 1px solid var(--rule); }
+.profile-remind .profile-consent { display: flex; align-items: flex-start; gap: 10px; margin: 0; font-size: 15px; color: var(--ink-1); }
+.profile-remind .profile-consent input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--nb-blue); flex: none; }
+.profile-remind .profile-nick { display: flex; flex-direction: column; gap: 6px; }
+.profile-remind select { height: 48px; width: min(180px, 100%); padding: 0 40px 0 14px; font-size: 17px; }
+.profile-remind .profile-note { margin: 0; }
+/* После правил с display: flex — иначе спрятанный флажок на iPhone остаётся виден */
+.profile-remind[hidden], .profile-remind [hidden] { display: none; }
 .progress-note { margin-top: 8px; padding-top: 18px; border-top: 1px solid var(--rule); }
 .progress-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px; }
 .progress-stat {

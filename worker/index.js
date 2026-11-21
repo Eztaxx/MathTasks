@@ -20,6 +20,7 @@ import { isLocalizablePath, latexToPlainText, makeSlug, toLangPath,
 import { CANONICAL_ORIGIN, renderPage } from './seo.js';
 import { duelApi } from './duel-api.js';
 import { BACKUP_CRON, MIRROR_CRON, listBackups, mirrorStep, notifyReady, notifyReports, runBackup, sendTelegram } from './backup.js';
+import { REMIND_CRON, pushKey, remindDue } from './push.js';
 
 // Адрес по названию — та же функция, что на сайте: одна таблица букв, с латышскими.
 const slugify = makeSlug;
@@ -465,6 +466,28 @@ async function serveAsset(request, env) {
   return new Response(fresh.body, { status: fresh.status, headers });
 }
 
+/* ── Приложение в Google Play ────────────────────────────────────── */
+
+/* Приложение из Google Play (TWA, пакет lv.mathtasks.app) открывает сайт
+   без адресной строки, только если сайт подтверждает, что приложение —
+   его. Подтверждение — отпечатки ключей подписи в секрете
+   ANDROID_CERT_SHA256, через запятую: ключ из PWABuilder и ключ подписи
+   Google Play (docs/android.md). Без секрета — 404, как до приложения. */
+const ANDROID_PACKAGE = 'lv.mathtasks.app';
+const CERT_FINGERPRINT = /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/;
+
+function assetLinks(env) {
+  const fingerprints = String(env.ANDROID_CERT_SHA256 || '')
+    .split(/[\s,]+/)
+    .map(value => value.trim().toUpperCase())
+    .filter(value => CERT_FINGERPRINT.test(value));
+  if (fingerprints.length === 0) return new Response('Not found', { status: 404 });
+  return json([{
+    relation: ['delegate_permission/common.handle_all_urls'],
+    target: { namespace: 'android_app', package_name: ANDROID_PACKAGE, sha256_cert_fingerprints: fingerprints }
+  }], 200, { 'Cache-Control': 'public, max-age=3600' });
+}
+
 export {
   CROSS_TAG_SLUGS,
   BASE_SITEMAP_PATHS,
@@ -480,7 +503,8 @@ export {
   sitemap,
   taskPreview,
   geminiProxy,
-  serveAsset
+  serveAsset,
+  assetLinks
 };
 
 export default {
@@ -488,6 +512,8 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === '/sitemap.xml') return sitemap(request, env);
+    if (url.pathname === '/.well-known/assetlinks.json') return assetLinks(env);
+    if (url.pathname === '/api/push/key') return pushKey(env);
     if (url.pathname === '/api/gemini') return geminiProxy(request, env);
     if (url.pathname.startsWith('/api/duel/')) return duelApi(request, env);
     if (url.pathname.startsWith('/api/backup/')) return backupApi(request, env, url);
@@ -528,11 +554,13 @@ export default {
 
   /* По расписанию (wrangler.jsonc, triggers.crons): ночью — резервная
      копия, каждые 10 минут — уведомления о новых сообщениях об ошибках,
-     а со сдвигом в 5 минут — копирование новых чертежей в бакет копий.
+     со сдвигом в 5 минут — копирование новых чертежей в бакет копий, а раз
+     в час — напоминания позаниматься (worker/push.js).
      Итог пишется в журнал воркера: wrangler tail или панель Cloudflare. */
   async scheduled(event, env, ctx) {
     const job = event.cron === BACKUP_CRON ? runBackup(env)
       : event.cron === MIRROR_CRON ? mirrorStep(env)
+      : event.cron === REMIND_CRON ? remindDue(env, event.scheduledTime)
       : notifyReports(env, event.scheduledTime);
     ctx.waitUntil(job
       .then(result => console.log(`[${event.cron}]`, JSON.stringify(result)))

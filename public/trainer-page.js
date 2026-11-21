@@ -108,14 +108,21 @@
          переживает перезагрузку. Пример уходит из списка, когда в работе
          над ошибками его решили верно с первой попытки. */
       const MISTAKES_KEY = 'math-tasks:trainer-mistakes';
-      let mistakes = (() => {
+      let mistakes = [];
+      // localStorage недоступен (запрет данных сайта) — остаёмся на списке в памяти.
+      const readMistakes = () => {
         try {
           const list = JSON.parse(localStorage.getItem(MISTAKES_KEY) || '[]');
           return Array.isArray(list) ? list.filter(q => q && q.latex && q.answer !== undefined) : [];
         } catch (_) {
-          return [];
+          return mistakes;
         }
-      })();
+      };
+      mistakes = readMistakes();
+      /* Синхронизация (progress-sync.js) переписала список в localStorage —
+         ошибки с другого устройства. Перечитываем, иначе следующий setMistakes
+         затрёт их старой копией, а синхронизация разошлёт это как удаление. */
+      window.addEventListener('math-tasks:progress-synced', () => refreshMistakes());
 
       function setMistakes(list) {
         if (list === mistakes) return;
@@ -125,8 +132,18 @@
         } catch (_) {}
         updateReviewButtons();
       }
-      const addMistake = q => setMistakes(window.MathTasksTrainer.rememberMistake(mistakes, q));
-      const removeMistake = q => setMistakes(window.MathTasksTrainer.forgetMistake(mistakes, q));
+      /* Список берём из localStorage, а не из памяти страницы: его могла
+         обновить синхронизация в другой вкладке (каталог), и событие сюда не
+         придёт. Старая копия затёрла бы ошибки с другого устройства. */
+      const addMistake = q => setMistakes(window.MathTasksTrainer.rememberMistake(readMistakes(), q));
+      const removeMistake = q => setMistakes(window.MathTasksTrainer.forgetMistake(readMistakes(), q));
+      // Другая вкладка поменяла список, или страницу вернули кнопкой «назад» — обновить счётчики.
+      const refreshMistakes = () => {
+        mistakes = readMistakes();
+        updateReviewButtons();
+      };
+      window.addEventListener('storage', event => { if (event.key === MISTAKES_KEY) refreshMistakes(); });
+      window.addEventListener('pageshow', event => { if (event.persisted) refreshMistakes(); });
 
       // В режиме карточек работа над ошибками — только из итогов, не по ходу
       function updateReviewButtons() {
@@ -356,6 +373,7 @@
       function onSheetCompleted() {
         sheetWatch.pause();
         sheetState.done = true;
+        window.MathTasksTrainer.markPracticeDay();
         if (state.soundEnabled) {
           window.MathTasksTrainer.playSound('correct');
           setTimeout(() => window.MathTasksTrainer.playSound('correct'), 180);
@@ -838,6 +856,7 @@
         stopTimer();
         state.timerArmed = false;
         cardWatch.pause();
+        window.MathTasksTrainer.markPracticeDay();
 
         // Рекорд — только у спринта и свой для каждого уровня и школы
         let prevBest = 0;

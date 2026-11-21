@@ -3752,7 +3752,9 @@
     'math-tasks:solved', 'math-tasks:favorites', 'math-tasks:activity', 'math-tasks:journal',
     'math-tasks:wrong-attempts', 'math-tasks:last-place', 'math-tasks:control-works',
     'math-tasks:exam-results', 'math-tasks:lessons', 'math-tasks:duel-history',
-    'math-tasks:duel-stats', 'math-tasks:achievements'
+    'math-tasks:duel-stats', 'math-tasks:achievements',
+    'math-tasks:trainer-mistakes', 'math-tasks:trainer-days',
+    'math-tasks:favorites-changes', 'math-tasks:trainer-mistakes-changes'
   ];
   const PROGRESS_PREFIXES = ['math-tasks:trainer-record:'];
   const isProgressKey = key => PROGRESS_KEYS.includes(key) || PROGRESS_PREFIXES.some(prefix => String(key).startsWith(prefix));
@@ -3796,6 +3798,80 @@
     return out;
   };
 
+  /* Списки, из которых убирают, — избранное и работа над ошибками
+     тренажёра. Одно объединение вернуло бы убранное с другого устройства,
+     поэтому у такого списка есть журнал: { ключ элемента: ±время }, плюс —
+     добавлен, минус — убран; побеждает более поздняя запись. Журнал ведут не
+     страницы, а синхронизация (noteListChanges): она сравнивает список с
+     тем, каким он был после её прошлого слияния на этом устройстве. */
+  const LIST_JOURNALS = [
+    { list: 'math-tasks:favorites', changes: 'math-tasks:favorites-changes', keyOf: item => item },
+    { list: 'math-tasks:trainer-mistakes', changes: 'math-tasks:trainer-mistakes-changes', keyOf: item => item?.latex, max: 60 }
+  ];
+  const JOURNAL_MAX = 400;
+
+  const listKeys = (list, keyOf) => (Array.isArray(list)
+    ? list.map(keyOf).filter(key => key !== undefined && key !== null && key !== '').map(String)
+    : []);
+
+  // Самые давние записи журнала отпадают: их исход давно разошёлся по устройствам.
+  const trimJournal = journal => {
+    const entries = Object.entries(journal);
+    if (entries.length <= JOURNAL_MAX) return journal;
+    return Object.fromEntries(entries.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, JOURNAL_MAX));
+  };
+
+  const mergeJournals = (a, b) => {
+    const out = { ...a };
+    for (const [key, value] of Object.entries(b)) {
+      const at = Number(value) || 0;
+      if (!(key in out) || Math.abs(at) > Math.abs(Number(out[key]) || 0)) out[key] = at;
+    }
+    return trimJournal(out);
+  };
+
+  /* Что изменилось в списках с прошлой синхронизации: пропавшее — убрано,
+     новое — добавлено. base — ключи списков после прошлого слияния
+     (syncBaseOf). Без него (первая синхронизация устройства) сравнивать не
+     с чем, и журнал не трогаем. */
+  const noteListChanges = (local = {}, base = null, at = Date.now()) => {
+    const out = { ...local };
+    for (const { list, changes, keyOf } of LIST_JOURNALS) {
+      if (!Array.isArray(base?.[list])) continue;
+      const before = new Set(base[list].map(String));
+      const now = new Set(listKeys(local[list], keyOf));
+      const journal = isPlainObject(local[changes]) ? { ...local[changes] } : {};
+      let changed = false;
+      for (const key of before) if (!now.has(key)) { journal[key] = -at; changed = true; }
+      for (const key of now) if (!before.has(key)) { journal[key] = at; changed = true; }
+      if (changed) out[changes] = trimJournal(journal);
+    }
+    return out;
+  };
+
+  const syncBaseOf = data => Object.fromEntries(LIST_JOURNALS.map(({ list, keyOf }) => [list, listKeys(data?.[list], keyOf)]));
+
+  /* Убранное по журналу выпадает из списка. Элемент без записи в журнале
+     (со старого устройства) считается добавленным в момент 0 — любое
+     удаление его перебивает. Очередь ошибок идёт по времени добавления и не
+     длиннее своего предела, как в trainer.js (rememberMistake). */
+  const applyJournals = data => {
+    for (const { list, changes, keyOf, max } of LIST_JOURNALS) {
+      if (!Array.isArray(data[list]) || !isPlainObject(data[changes])) continue;
+      const journal = data[changes];
+      const stamp = item => Number(journal[String(keyOf(item))]) || 0;
+      let items = data[list].filter(item => stamp(item) >= 0);
+      if (max) {
+        items = items.map((item, index) => [item, index])
+          .sort((x, y) => stamp(x[0]) - stamp(y[0]) || x[1] - y[1])
+          .map(([item]) => item)
+          .slice(-max);
+      }
+      data[list] = items;
+    }
+    return data;
+  };
+
   const mergeProgressValue = (key, local, remote) => {
     if (remote === undefined || remote === null) return local;
     if (local === undefined || local === null) return remote;
@@ -3804,9 +3880,15 @@
       case 'math-tasks:favorites':
         return Array.isArray(local) && Array.isArray(remote) ? unionBy(local, remote, item => String(item)) : local;
       case 'math-tasks:activity':
+      case 'math-tasks:trainer-days':
       case 'math-tasks:wrong-attempts':
       case 'math-tasks:duel-stats':
         return isPlainObject(local) && isPlainObject(remote) ? maxPerKey(local, remote) : local;
+      case 'math-tasks:favorites-changes':
+      case 'math-tasks:trainer-mistakes-changes':
+        return isPlainObject(local) && isPlainObject(remote) ? mergeJournals(local, remote) : local;
+      case 'math-tasks:trainer-mistakes':
+        return Array.isArray(local) && Array.isArray(remote) ? unionBy(local, remote, item => String(item?.latex)) : local;
       // Значок получен — навсегда; дата — самая ранняя из двух устройств.
       case 'math-tasks:achievements': {
         if (!isPlainObject(local) || !isPlainObject(remote)) return local;
@@ -3860,7 +3942,7 @@
       if (!isProgressKey(key)) continue;
       out[key] = mergeProgressValue(key, local?.[key], remote?.[key]);
     }
-    return out;
+    return applyJournals(out);
   };
 
   /* Когда ник профиля можно сменить снова (миграция 031: не чаще раза в
@@ -4034,6 +4116,8 @@
     collectProgress,
     applyProgress,
     mergeProgress,
+    noteListChanges,
+    syncBaseOf,
     progressSignature,
     gradeNumber,
     importDupKey,

@@ -1902,6 +1902,26 @@
     return list.some(m => m.latex === q.latex) ? list.filter(m => m.latex !== q.latex) : list;
   }
 
+  /* День занятий в тренажёре и дуэли — для напоминания позаниматься: кто
+     сегодня уже решал, тому не напоминаем. Серию дней на «Моём прогрессе»
+     он не трогает — её считает каталог (math-tasks:activity). Дата — по
+     местному времени, как localDateKey в lib.js. */
+  const PRACTICE_DAYS_KEY = 'math-tasks:trainer-days';
+  const PRACTICE_DAYS_KEEP = 30;
+
+  function markPracticeDay(storage = typeof localStorage !== 'undefined' ? localStorage : null, date = new Date()) {
+    if (!storage) return;
+    const today = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    try {
+      const days = JSON.parse(storage.getItem(PRACTICE_DAYS_KEY) || '{}') || {};
+      const next = {};
+      Object.keys(days).filter(key => key !== today).sort().slice(-(PRACTICE_DAYS_KEEP - 1))
+        .forEach(key => { next[key] = days[key]; });
+      next[today] = (Number(days[today]) || 0) + 1;
+      storage.setItem(PRACTICE_DAYS_KEY, JSON.stringify(next));
+    } catch (_) {}
+  }
+
   function shuffle(arr) {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
@@ -1933,6 +1953,7 @@
     register,
     rememberMistake,
     forgetMistake,
+    markPracticeDay,
     shuffle,
     formatTime,
     playSound,

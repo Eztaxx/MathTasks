@@ -13,15 +13,14 @@
 (() => {
   const db = window.MathTasks?.db;
   const lib = window.MathTasksLib;
-  if (!db || !lib) return;
+  // Перенос прогресса — в progress-sync.js; здесь профиль и его карточка.
+  const S = window.MathTasksSync;
+  if (!db || !lib || !S) return;
 
   const tr = (key, params) => (window.MathTasks?.t ? window.MathTasks.t(key, params) : key);
   const lang = () => (window.MathTasks?.getLang ? window.MathTasks.getLang() : 'ru');
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
   const nicks = window.MathTasksDuel;
-
-  const SYNC_EVERY_MS = 30 * 1000;
-  const TOUCH_KEY = 'math-tasks:profile-touched';
 
   let ready = null;        // есть ли таблицы: null — ещё не проверяли
   let profile = null;      // { id, nick, nick_changed_at?, avatar? }
@@ -29,30 +28,8 @@
      (не чаще раза в 3 месяца), а зверь хранится в профиле. До неё в
      карточке нет ни смены ника, ни выбора зверя. */
   const features = { rename: false };
-  let lastSignature = null;
-  let lastSyncAt = 0;
-  let syncing = false;
-  let timer = null;
-  let started = false;
 
-  // Сессия supabase-js лежит в localStorage: читаем её сами, без запросов.
-  const storedUser = () => {
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (!key || !key.startsWith('sb-') || !key.endsWith('-auth-token')) continue;
-        const session = JSON.parse(localStorage.getItem(key));
-        if (session?.user) return session.user;
-      }
-    } catch {}
-    return null;
-  };
-  const hasStudentSession = () => Boolean(storedUser()?.is_anonymous);
-  // Вход администратора анонимный вход бы заменил — и выкинул его из админки.
-  const hasAdminSession = () => {
-    const user = storedUser();
-    return Boolean(user && !user.is_anonymous);
-  };
+  const { hasStudentSession, hasAdminSession } = S;
 
   async function detect() {
     if (ready !== null) return ready;
@@ -76,6 +53,7 @@
       profile = null;
     }
     rememberProfile();
+    if (profile) S.attach(db, profile.id);
     return profile;
   }
 
@@ -94,68 +72,12 @@
     } catch {}
   }
 
-  /* Прочитать снимок с сервера, слить с местным, записать и то и другое.
-     Снимок на сервере пишем, только если после слияния он отличается. */
-  async function sync() {
-    if (!profile || syncing) return;
-    syncing = true;
-    try {
-      const { data, error } = await db.from('student_progress').select('data').eq('profile_id', profile.id).maybeSingle();
-      if (error) return;
-      const remote = data?.data || {};
-      const local = lib.collectProgress(localStorage);
-      const merged = lib.mergeProgress(local, remote);
-      const mergedSignature = lib.progressSignature(merged);
-      if (mergedSignature !== lib.progressSignature(local)) {
-        lib.applyProgress(localStorage, merged);
-        window.dispatchEvent(new CustomEvent('math-tasks:progress-synced'));
-      }
-      if (mergedSignature !== lib.progressSignature(remote)) {
-        const { error: writeError } = await db.from('student_progress')
-          .upsert({ profile_id: profile.id, data: merged, updated_at: new Date().toISOString() });
-        if (writeError) return;
-      }
-      lastSignature = mergedSignature;
-      lastSyncAt = Date.now();
-      renderStatus();
-    } catch {
-      // Сеть пропала — попробуем в следующий раз, прогресс в браузере цел.
-    } finally {
-      syncing = false;
-    }
-  }
-
-  // Раз в полминуты — только если прогресс поменялся с прошлой синхронизации.
-  const syncIfChanged = () => {
-    if (!profile) return;
-    if (lib.progressSignature(lib.collectProgress(localStorage)) !== lastSignature) sync();
-  };
-
-  function startSyncing() {
-    if (started) return;
-    started = true;
-    clearInterval(timer);
-    timer = setInterval(syncIfChanged, SYNC_EVERY_MS);
-    document.addEventListener('visibilitychange', () => {
-      // Ушёл со вкладки — отправляем; вернулся — забираем с других устройств.
-      if (document.visibilityState === 'hidden') syncIfChanged();
-      else sync();
-    });
-    // Отметка активности раз в день: по ней чистятся заброшенные профили.
-    const today = new Date().toISOString().slice(0, 10);
-    try {
-      if (localStorage.getItem(TOUCH_KEY) !== today) {
-        db.rpc('touch_profile').then(() => localStorage.setItem(TOUCH_KEY, today)).catch(() => {});
-      }
-    } catch {}
-  }
-
   async function boot() {
     if (!hasStudentSession()) return;
     if (!(await detect())) return;
     if (!(await loadProfile())) return;
-    await sync();
-    startSyncing();
+    await S.sync();
+    S.start();
   }
 
   // ── Действия ────────────────────────────────────────────────────────
@@ -205,9 +127,8 @@
         rememberProfile();
       }
     }
-    lastSignature = null;
-    await sync();
-    startSyncing();
+    await S.sync();
+    S.start();
   }
 
   async function joinProfile(code) {
@@ -218,29 +139,161 @@
     const { error } = await db.rpc(rpc, { p_code: clean });
     if (error) throw error;
     await loadProfile();
-    lastSignature = null;
-    await sync();
-    startSyncing();
+    await S.sync();
+    S.start();
   }
 
   async function deleteProfile() {
+    // Подписку в базе удалит сам профиль (каскад), а браузер пусть тоже забудет её.
+    await disableRemind().catch(() => {});
     const { error } = await db.rpc('delete_my_profile');
     if (error) throw error;
     profile = null;
     rememberProfile();
-    lastSignature = null;
-    started = false;
-    clearInterval(timer);
+    S.attach(db, null);
     await db.auth.signOut().catch(() => {});
   }
+
+  // ── Напоминание позаниматься (миграция 033, worker/push.js) ────────
+  /* Пуш раз в день в выбранный час — только если сегодня ещё ничего не
+     решено. Подписка браузера хранится в базе при профиле; разрешение на
+     уведомления спрашиваем только по нажатию. В приложении из Google Play
+     разрешение и уведомления — от имени приложения (делегирование TWA). */
+  const REMIND_HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
+  const DEFAULT_HOUR = 18;
+
+  const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  // На iPhone пуши есть только у сайта, добавленного на экран «Домой».
+  // iPadOS притворяется Mac-ом: узнаём его по сенсорному экрану.
+  const iosDevice = () => /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  const iosBrowserTab = () => iosDevice()
+    && !(window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone);
+
+  function remindControls() {
+    const options = REMIND_HOURS.map(hour => `<option value="${hour}">${String(hour).padStart(2, '0')}:00</option>`).join('');
+    return `
+      <div class="profile-remind" data-profile-remind hidden>
+        <label class="profile-consent" data-remind-toggle><input type="checkbox" id="profile-remind-on" /> <span>${escapeHtml(tr('profile_remind'))}</span></label>
+        <label class="profile-nick" data-remind-hour><span>${escapeHtml(tr('profile_remind_hour'))}</span><select id="profile-remind-hour">${options}</select></label>
+        <p class="profile-note" data-remind-privacy>${escapeHtml(tr('profile_remind_privacy'))}</p>
+        <p class="profile-note" data-profile-remind-note hidden></p>
+      </div>`;
+  }
+
+  async function pushSubscription() {
+    const registration = await navigator.serviceWorker.getRegistration();
+    return registration ? registration.pushManager.getSubscription() : null;
+  }
+
+  /* Напоминания включены на сервере, только когда есть и функции миграции
+     033, и ключ VAPID в секретах воркера. Пока чего-то нет, блока не видно
+     совсем — ни переключателя, ни подсказки для iPhone, ни просьбы разрешить
+     уведомления. Ответ один на загрузку страницы. Результат — ключ или null. */
+  let remindReadyPromise = null;
+  const remindReady = () => (remindReadyPromise ||= (async () => {
+    const response = await fetch('/api/push/key');
+    const { key } = response.ok ? await response.json() : {};
+    if (!key) return null;
+    const { error } = await db.rpc('my_push_reminder', { p_endpoint: '' });
+    return error ? null : key;
+  })().catch(() => null));
+
+  async function renderRemind(box) {
+    const block = box.querySelector('[data-profile-remind]');
+    if (!block) return;
+    const note = block.querySelector('[data-profile-remind-note]');
+    const setNote = text => { note.textContent = text || ''; note.hidden = !text; };
+    if (!(await remindReady())) return;
+    if (!pushSupported()) {
+      if (!iosBrowserTab()) return;
+      block.querySelector('[data-remind-toggle]').hidden = true;
+      block.querySelector('[data-remind-hour]').hidden = true;
+      block.querySelector('[data-remind-privacy]').hidden = true;
+      block.hidden = false;
+      setNote(tr('profile_remind_ios'));
+      return;
+    }
+    try {
+      const subscription = await pushSubscription();
+      const { data, error } = await db.rpc('my_push_reminder', { p_endpoint: subscription?.endpoint || '' });
+      if (error) return;
+      const on = Boolean(subscription) && data !== null && data !== undefined;
+      block.querySelector('#profile-remind-on').checked = on;
+      block.querySelector('#profile-remind-hour').value = String(on ? data : DEFAULT_HOUR);
+      block.hidden = false;
+      if (Notification.permission === 'denied') setNote(tr('profile_remind_denied'));
+    } catch {}
+  }
+
+  const base64UrlBytes = value => {
+    const base64 = value.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(value.length / 4) * 4, '=');
+    return Uint8Array.from(atob(base64), char => char.charCodeAt(0));
+  };
+
+  async function enableRemind(hour) {
+    // Разрешение спрашиваем первым делом, пока нажатие ещё «свежее» для браузера.
+    if (Notification.permission !== 'granted' && (await Notification.requestPermission()) !== 'granted') {
+      throw new Error('remind_denied');
+    }
+    // При первом заходе service worker может ещё ставиться — ждём его, но не дольше 5 секунд.
+    const registration = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise(resolve => setTimeout(() => resolve(null), 5000))
+    ]);
+    if (!registration) throw new Error('remind_unavailable');
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      const key = await remindReady();
+      if (!key) throw new Error('remind_unavailable');
+      subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64UrlBytes(key) });
+    }
+    const { endpoint, keys } = subscription.toJSON();
+    const { error } = await db.rpc('save_push_subscription', {
+      p_endpoint: endpoint,
+      p_p256dh: keys.p256dh,
+      p_auth: keys.auth,
+      p_lang: lang(),
+      p_hour: hour,
+      p_tz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Riga'
+    });
+    if (error) throw error;
+  }
+
+  async function disableRemind() {
+    if (!pushSupported()) return;
+    const subscription = await pushSubscription();
+    if (!subscription) return;
+    const { error } = await db.rpc('delete_push_subscription', { p_endpoint: subscription.endpoint });
+    if (error) throw error;
+    await subscription.unsubscribe().catch(() => {});
+  }
+
+  // Сменили язык сайта — напоминание приходит на новом.
+  async function resaveRemindLang() {
+    if (!profile || !pushSupported() || Notification.permission !== 'granted') return;
+    try {
+      const subscription = await pushSubscription();
+      if (!subscription) return;
+      const { data, error } = await db.rpc('my_push_reminder', { p_endpoint: subscription.endpoint });
+      if (!error && data !== null && data !== undefined) await enableRemind(data);
+    } catch {}
+  }
+
+  const remindErrorText = error => {
+    const message = String(error?.message || error || '');
+    if (message === 'remind_denied') return tr('profile_remind_denied');
+    if (message === 'remind_unavailable') return tr('profile_err_unavailable');
+    return errorText(error);
+  };
 
   // ── Карточка на странице «Мой прогресс» ─────────────────────────────
   const card = () => document.querySelector('#profile-card');
 
   function renderStatus() {
     const status = card()?.querySelector('[data-profile-status]');
-    if (!status || !lastSyncAt) return;
-    const time = new Date(lastSyncAt).toLocaleTimeString(lang() === 'lv' ? 'lv-LV' : 'ru-RU', { hour: '2-digit', minute: '2-digit' });
+    if (!status || !S.lastSyncAt) return;
+    const time = new Date(S.lastSyncAt).toLocaleTimeString(lang() === 'lv' ? 'lv-LV' : 'ru-RU', { hour: '2-digit', minute: '2-digit' });
     status.textContent = tr('profile_synced', { time });
   }
 
@@ -318,10 +371,11 @@
         <button type="button" class="secondary-button" data-profile-recovery>${escapeHtml(tr('profile_recovery'))}</button>
         <button type="button" class="text-button danger" data-profile-delete>${escapeHtml(tr('profile_delete'))}</button>
       </div>
-      <div class="profile-code-box" data-profile-code-box hidden></div>
+      <div class="profile-code-box" data-profile-code-box hidden></div>${remindControls()}
       <p class="profile-note">${escapeHtml(tr('profile_privacy'))}</p>
       <p class="profile-error" data-profile-error hidden></p>`;
     renderStatus();
+    renderRemind(box);
   }
 
   async function renderCard() {
@@ -336,7 +390,7 @@
     if (hasStudentSession() && !profile) await loadProfile();
     if (profile) {
       renderWithProfile(box);
-      startSyncing();
+      S.start();
     } else {
       renderNoProfile(box);
     }
@@ -352,6 +406,30 @@
     if (event.target.id === 'profile-consent') {
       const create = card()?.querySelector('[data-profile-create]');
       if (create) create.disabled = !event.target.checked;
+    }
+  });
+
+  document.addEventListener('change', async event => {
+    const target = event.target;
+    if (target.id !== 'profile-remind-on' && target.id !== 'profile-remind-hour') return;
+    const box = card();
+    const toggle = box?.querySelector('#profile-remind-on');
+    if (!toggle) return;
+    // Час при выключенном напоминании просто запоминается в списке — сохранится при включении.
+    if (target.id === 'profile-remind-hour' && !toggle.checked) return;
+    const hour = Number(box.querySelector('#profile-remind-hour')?.value) || DEFAULT_HOUR;
+    const note = box.querySelector('[data-profile-remind-note]');
+    showError('');
+    toggle.disabled = true;
+    try {
+      if (toggle.checked) await enableRemind(hour);
+      else await disableRemind();
+      if (note) note.hidden = true;
+    } catch (error) {
+      if (target === toggle) toggle.checked = !toggle.checked;
+      showError(remindErrorText(error));
+    } finally {
+      toggle.disabled = false;
     }
   });
 
@@ -504,8 +582,11 @@
 
   window.addEventListener('languagechange', () => {
     if (card() && !card().hidden) renderCard();
+    resaveRemindLang();
   });
 
-  window.MathTasksProfile = { renderCard, sync };
+  window.addEventListener('math-tasks:sync-done', renderStatus);
+
+  window.MathTasksProfile = { renderCard, sync: S.sync };
   boot();
 })();

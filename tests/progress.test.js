@@ -6,14 +6,96 @@ import {
   buildSubjectBreakdown,
   buildWeakSpots,
   markEarned,
+  mergeProgress,
   newlyEarned,
   normalizeDuelStats,
+  noteListChanges,
   computeStreak,
   latestPerTask,
   localDateKey,
   normalizeJournal,
-  summarizeSolveTime
+  summarizeSolveTime,
+  syncBaseOf
 } from '../public/lib.js';
+
+/* Синхронизация между устройствами (progress-sync.js): устройство сравнивает
+   списки с тем, какими они были после его прошлого слияния, записывает
+   изменения в журнал и сливает свой снимок с серверным. */
+describe('синхронизация: списки, из которых убирают', () => {
+  const FAV = 'math-tasks:favorites';
+  const FAV_LOG = 'math-tasks:favorites-changes';
+  const MISTAKES = 'math-tasks:trainer-mistakes';
+  const MISTAKES_LOG = 'math-tasks:trainer-mistakes-changes';
+  // Одна синхронизация устройства: отметить свои изменения и слить с сервером.
+  const syncDevice = (local, base, remote, at) => mergeProgress(noteListChanges(local, base, at), remote);
+
+  it('убранное из избранного на телефоне не возвращается с ноутбука', () => {
+    const server = { [FAV]: [1, 2, 3] };
+    // Телефон убрал задачу 2 и синхронизируется.
+    const afterPhone = syncDevice({ [FAV]: [1, 3] }, syncBaseOf(server), server, 1000);
+    expect(afterPhone[FAV]).toEqual([1, 3]);
+    expect(afterPhone[FAV_LOG]).toEqual({ 2: -1000 });
+    // Ноутбук ещё помнит 2, но после синхронизации её нет и у него.
+    const afterLaptop = syncDevice({ [FAV]: [1, 2, 3] }, syncBaseOf(server), afterPhone, 2000);
+    expect(afterLaptop[FAV]).toEqual([1, 3]);
+  });
+
+  it('добавленное заново после удаления остаётся', () => {
+    const server = { [FAV]: [1, 3], [FAV_LOG]: { 2: -1000 } };
+    const merged = syncDevice({ [FAV]: [1, 3, 2], [FAV_LOG]: { 2: -1000 } }, syncBaseOf(server), server, 5000);
+    expect(merged[FAV]).toEqual([1, 3, 2]);
+    expect(merged[FAV_LOG][2]).toBe(5000);
+  });
+
+  it('первая синхронизация устройства — просто объединение', () => {
+    expect(noteListChanges({ [FAV]: [1] }, null, 1000)).toEqual({ [FAV]: [1] });
+    expect(syncDevice({ [FAV]: [1] }, null, { [FAV]: [2] }, 1000)[FAV]).toEqual([1, 2]);
+  });
+
+  it('снимок старого устройства без журнала не отменяет удаление', () => {
+    const merged = mergeProgress({ [FAV]: [1], [FAV_LOG]: { 5: -100 } }, { [FAV]: [1, 5] });
+    expect(merged[FAV]).toEqual([1]);
+  });
+
+  it('работа над ошибками: решённый пример уходит, порядок — по времени добавления', () => {
+    const q = latex => ({ latex, answer: 1 });
+    const base = syncBaseOf({ [MISTAKES]: [q('a'), q('b'), q('c')] });
+    // Здесь «c» решили верно, на другом устройстве добавили «d».
+    const merged = syncDevice(
+      { [MISTAKES]: [q('a'), q('b')] },
+      base,
+      { [MISTAKES]: [q('d'), q('c')], [MISTAKES_LOG]: { d: 500 } },
+      900
+    );
+    expect(merged[MISTAKES].map(m => m.latex)).toEqual(['a', 'b', 'd']);
+    expect(merged[MISTAKES_LOG]).toEqual({ c: -900, d: 500 });
+  });
+
+  it('очередь ошибок не длиннее 60, уходят самые давние', () => {
+    const many = Array.from({ length: 70 }, (_, i) => ({ latex: `x${i}`, answer: i }));
+    const log = Object.fromEntries(many.map((m, i) => [m.latex, i + 1]));
+    const merged = mergeProgress({ [MISTAKES]: many.slice(0, 35), [MISTAKES_LOG]: log }, { [MISTAKES]: many.slice(35) });
+    expect(merged[MISTAKES]).toHaveLength(60);
+    expect(merged[MISTAKES][0].latex).toBe('x10');
+    expect(merged[MISTAKES][59].latex).toBe('x69');
+  });
+
+  it('журнал хранит последние 400 записей', () => {
+    const big = Object.fromEntries(Array.from({ length: 450 }, (_, i) => [String(i), -(i + 1)]));
+    const merged = mergeProgress({ [FAV]: [], [FAV_LOG]: big }, { [FAV]: [], [FAV_LOG]: { 1000: 5000 } });
+    expect(Object.keys(merged[FAV_LOG])).toHaveLength(400);
+    expect(merged[FAV_LOG][1000]).toBe(5000);
+    expect(merged[FAV_LOG][0]).toBeUndefined();
+  });
+
+  it('дни в тренажёре сливаются по максимуму, как активность', () => {
+    const merged = mergeProgress(
+      { 'math-tasks:trainer-days': { '2026-09-28': 2 } },
+      { 'math-tasks:trainer-days': { '2026-09-28': 1, '2026-09-29': 3 } }
+    );
+    expect(merged['math-tasks:trainer-days']).toEqual({ '2026-09-28': 2, '2026-09-29': 3 });
+  });
+});
 
 describe('computeStreak', () => {
   it('серия идёт от сегодня, а без решений сегодня — от вчера', () => {

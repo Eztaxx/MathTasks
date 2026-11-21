@@ -525,3 +525,25 @@ describe('Mental Math Trainer Engine', () => {
   });
 });
 
+
+describe('день занятий для напоминаний', () => {
+  const memory = () => {
+    const map = new Map();
+    return { map, getItem: key => (map.has(key) ? map.get(key) : null), setItem: (key, value) => map.set(key, value) };
+  };
+
+  it('считает занятия за сегодняшний местный день', () => {
+    const storage = memory();
+    trainer.markPracticeDay(storage, new Date(2026, 8, 29, 10));
+    trainer.markPracticeDay(storage, new Date(2026, 8, 29, 23, 50));
+    expect(JSON.parse(storage.map.get('math-tasks:trainer-days'))).toEqual({ '2026-09-29': 2 });
+  });
+
+  it('хранит последние 30 дней', () => {
+    const storage = memory();
+    for (let day = 1; day <= 40; day++) trainer.markPracticeDay(storage, new Date(2026, 6, day));
+    const days = Object.keys(JSON.parse(storage.map.get('math-tasks:trainer-days'))).sort();
+    expect(days).toHaveLength(30);
+    expect(days[29]).toBe('2026-08-09');
+  });
+});
