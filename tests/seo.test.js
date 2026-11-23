@@ -75,6 +75,7 @@ describe('seo: адрес → вид страницы', () => {
     expect(legacyTarget('/subtopic/paralelograms-8-5-3')).toBeNull();
     expect(legacyTarget('/ru/subject/geometry')).toMatchObject({ kind: 'subject', table: 'subject', to: 'geometrija', path: '/subject/geometrija' });
     expect(legacyTarget('/subject/statistics')).toMatchObject({ table: 'subject', to: 'statistika' });
+    expect(legacyTarget('/ru/subject/kombinatorika-un-varbutibas')).toMatchObject({ table: 'subject', to: 'statistika', path: '/subject/statistika' });
     expect(legacyTarget('/subject/algebra')).toBeNull();
     expect(legacyTarget('/task/12-x')).toBeNull();
     expect(legacyTarget('/topic/toString')).toBeNull();

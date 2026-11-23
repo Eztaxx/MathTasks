@@ -2464,6 +2464,13 @@
     const clean = normalizeTextKey(raw);
     if (!clean) return null;
 
+    // 0. Снятый раздел «Kombinatorika un varbūtības» (пустой): его темы живут в statistika,
+    //    даже пока сам раздел ещё не удалён из базы.
+    if (clean === 'kombinatorikaunvarbutibas' || clean === 'комбинаторикаивероятности') {
+      const target = subjectsList.find(s => s.slug === 'statistika');
+      if (target) return target;
+    }
+
     // 1. Прямое совпадение по slug
     const directSlug = subjectsList.find(s => s.slug?.toLowerCase() === raw);
     if (directSlug) return directSlug;
@@ -2492,7 +2499,7 @@
       { keys: ['trigonometr', 'тригонометр'], slug: 'trigonometrija' },
       { keys: ['funkcij', 'function', 'функци'], slug: 'funkcijas' },
       { keys: ['statist', 'статист'], slug: 'statistika' },
-      { keys: ['kombinatorik', 'varbutib', 'комбинаторик', 'вероятност'], slug: 'kombinatorika-un-varbutibas' },
+      { keys: ['kombinatorik', 'varbutib', 'комбинаторик', 'вероятност'], slug: 'statistika' },
       { keys: ['analiz', 'calculus', 'анализ'], slug: 'matematiskais-analizs' }
     ];
 
