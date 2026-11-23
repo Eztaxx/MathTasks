@@ -6648,8 +6648,171 @@ ${JSON.stringify(texts)}`;
       scheduleOverview();
     } else if (currentView === 'papers') {
       loadPapers();
+    } else if (currentView === 'results') {
+      loadResults();
     }
   }
+
+  /* ── Результаты учеников (миграция 036, worker/cw.js) ───────────────
+     Строку пишет воркер, когда ученик сдаёт контрольную с ником. Здесь —
+     только чтение и удаление (по просьбе ученика или родителя). */
+  let results = [];
+  let resultsOpen = new Set();
+  let resultsDeleteArmed = null;
+  let resultsCapped = false;
+  const resultsTaskTitles = new Map();
+
+  async function loadResults() {
+    const list = byId('results-list');
+    if (!list) return;
+    const days = Number(byId('results-f-period')?.value) || 30;
+    // С начала суток: тот же адрес запроса весь день — без лишних копий в кэше.
+    const start = new Date(Date.now() - days * 86400000);
+    start.setHours(0, 0, 0, 0);
+    const since = start.toISOString();
+    // Обещание политики: старше 12 месяцев не храним, даже если сдач давно не было.
+    db.from('cw_submissions').delete().lt('created_at', new Date(Date.now() - 365 * 86400000).toISOString()).then(() => {}, () => {});
+    const { data, error } = await db.from('cw_submissions')
+      .select('id,nick,kind,paper_id,topic_id,slug,title,score,total,percent,grade,time_sec,violations,lang,answers,created_at,updated_at')
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(1000);
+    if (error) {
+      results = [];
+      list.innerHTML = '<p class="adm-empty">Результаты пока недоступны: примените миграцию <code>supabase/migrations/036_cw_submissions.sql</code> в SQL Editor Supabase.</p>';
+      return;
+    }
+    results = data || [];
+    resultsCapped = results.length >= 1000;
+    const select = byId('results-f-paper');
+    if (select) {
+      const chosen = select.value;
+      const works = [...new Map(results.map(r => [r.slug, r.title || r.slug])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
+      select.innerHTML = '<option value="">все работы</option>'
+        + works.map(([slug, title]) => `<option value="${escapeHtml(slug)}">${escapeHtml(title)}</option>`).join('');
+      if (works.some(([slug]) => slug === chosen)) select.value = chosen;
+    }
+    renderResults();
+  }
+
+  const resultTime = sec => (Number.isFinite(sec) ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}` : '—');
+
+  function renderResults() {
+    const list = byId('results-list');
+    if (!list) return;
+    const paper = byId('results-f-paper')?.value || '';
+    const nick = (byId('results-f-nick')?.value || '').trim().toLowerCase();
+    const shown = results.filter(r => (!paper || r.slug === paper) && (!nick || String(r.nick).toLowerCase().includes(nick)));
+    const note = byId('results-note');
+    if (note) {
+      const avg = shown.length ? Math.round(shown.reduce((sum, r) => sum + r.percent, 0) / shown.length) : 0;
+      note.textContent = shown.length
+        ? `сдач: ${shown.length} · средний результат ${avg}%${resultsCapped ? ' · показаны последние 1000, сузьте период' : ''}`
+        : '';
+    }
+    const bulk = byId('results-delete-shown');
+    if (bulk) {
+      bulk.hidden = !shown.length;
+      bulk.textContent = `Удалить показанные: ${shown.length}`;
+    }
+    if (!shown.length) {
+      list.innerHTML = results.length
+        ? '<p class="adm-empty">Под фильтр ничего не подходит.</p>'
+        : '<p class="adm-empty">За этот период никто не сдал контрольную с ником. Ученик вписывает ник в поле «Ник для учителя» в начале работы.</p>';
+      return;
+    }
+    list.innerHTML = shown.map(r => {
+      const open = resultsOpen.has(r.id);
+      const when = new Date(r.created_at).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      const answers = Array.isArray(r.answers) ? r.answers : [];
+      const detail = open ? `<ol class="adm-result-answers">${answers.map(a => {
+        const title = resultsTaskTitles.get(a.task_id);
+        return `<li class="${a.ok ? 'is-ok' : 'is-bad'}"><span>${a.ok ? (a.accepted ? '🙋' : '✓') : '✗'}</span> <code>${escapeHtml(a.answer || '—')}</code>${title ? ` <small>${escapeHtml(title)}</small>` : ''} <a href="#task-${Number(a.task_id)}">#${Number(a.task_id)}</a></li>`;
+      }).join('')}</ol>` : '';
+      const armed = resultsDeleteArmed === r.id;
+      return `
+      <div class="adm-paper-row adm-result-row">
+        <div class="adm-paper-main">
+          <strong>${escapeHtml(r.nick)} · ${r.score} из ${r.total} (${r.percent}%)${r.grade !== null && r.grade !== undefined ? ` · оценка ${r.grade}` : ''}</strong>
+          <span>${escapeHtml(r.title || r.slug)} · ${escapeHtml(when)} · время ${resultTime(r.time_sec)}${r.violations ? ` · уходов со страницы: ${r.violations}` : ''}${answers.some(a => a.accepted) ? ' · есть «ответ всё же совпал»' : ''}</span>
+          ${detail}
+        </div>
+        <div class="adm-paper-actions">
+          <button type="button" class="adm-btn soft" data-result-open="${r.id}">${open ? 'Свернуть' : 'Ответы'}</button>
+          <button type="button" class="adm-btn soft" data-result-delete="${r.id}">${armed ? 'Точно удалить?' : 'Удалить'}</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Названия задач для разбора — одним запросом на раскрытую строку.
+  async function loadResultTitles(row) {
+    const ids = (row.answers || []).map(a => Number(a.task_id)).filter(id => id && !resultsTaskTitles.has(id));
+    if (!ids.length) return;
+    const { data } = await db.from('tasks').select('id,title,title_lv,position').in('id', ids);
+    (data || []).forEach(t => resultsTaskTitles.set(t.id, t.title_lv || t.title || (t.position ? '№' + t.position : '')));
+  }
+
+  byId('results-list')?.addEventListener('click', async event => {
+    const openBtn = event.target.closest('[data-result-open]');
+    if (openBtn) {
+      const id = Number(openBtn.dataset.resultOpen);
+      if (resultsOpen.has(id)) resultsOpen.delete(id);
+      else {
+        resultsOpen.add(id);
+        const row = results.find(r => r.id === id);
+        if (row) await loadResultTitles(row);
+      }
+      renderResults();
+      return;
+    }
+    const delBtn = event.target.closest('[data-result-delete]');
+    if (delBtn) {
+      const id = Number(delBtn.dataset.resultDelete);
+      if (resultsDeleteArmed !== id) {
+        resultsDeleteArmed = id;
+        renderResults();
+        return;
+      }
+      resultsDeleteArmed = null;
+      const { error } = await db.from('cw_submissions').delete().eq('id', id);
+      if (error) {
+        delBtn.textContent = 'Не удалилось';
+        return;
+      }
+      results = results.filter(r => r.id !== id);
+      renderResults();
+    }
+  });
+  // Удалить всё, что под фильтром (например, мусор под одним ником), — после подтверждения.
+  byId('results-delete-shown')?.addEventListener('click', async event => {
+    const btn = event.currentTarget;
+    const paper = byId('results-f-paper')?.value || '';
+    const nick = (byId('results-f-nick')?.value || '').trim().toLowerCase();
+    const ids = results.filter(r => (!paper || r.slug === paper) && (!nick || String(r.nick).toLowerCase().includes(nick))).map(r => r.id);
+    if (!ids.length) return;
+    if (!confirm(`Удалить результаты: ${ids.length}? Вернуть их нельзя — в резервные копии они не входят.`)) return;
+    btn.disabled = true;
+    const gone = new Set();
+    for (let i = 0; i < ids.length; i += 200) {
+      const chunk = ids.slice(i, i + 200);
+      const { error } = await db.from('cw_submissions').delete().in('id', chunk);
+      if (error) break;
+      chunk.forEach(id => gone.add(id));
+    }
+    btn.disabled = false;
+    if (gone.size < ids.length) {
+      results = results.filter(r => !gone.has(r.id));
+      renderResults();
+      btn.textContent = `Не удалилось: ${ids.length - gone.size}`;
+      return;
+    }
+    await loadResults();
+  });
+  byId('results-f-paper')?.addEventListener('change', renderResults);
+  byId('results-f-nick')?.addEventListener('input', renderResults);
+  byId('results-f-period')?.addEventListener('change', loadResults);
+  byId('results-reload')?.addEventListener('click', loadResults);
 
   /* ── Работы: контрольные и экзамены ────────────────────────────────
      Собранная вручную работа: какие задания, в каком порядке, сколько
@@ -8018,7 +8181,21 @@ ${JSON.stringify(texts)}`;
         if (progressEl) progressEl.textContent = 'Ошибка загрузки';
         return;
       }
-      reviewAll = data || [];
+      /* Черновики внутри работ (свои задания работы, kontroldarbs из
+         scripts/add-paper.mjs) в решебник не идут: им не место в очереди,
+         иначе «Опубликовать без замечаний» выложит их в каталог. */
+      const drafts = data || [];
+      const inPapers = new Set();
+      for (let i = 0; i < drafts.length; i += 200) {
+        const ids = drafts.slice(i, i + 200).map(task => task.id);
+        const { data: items, error: itemsError } = await db.from('exam_paper_items').select('task_id').in('task_id', ids);
+        if (itemsError) {
+          if (progressEl) progressEl.textContent = 'Ошибка загрузки';
+          return;
+        }
+        (items || []).forEach(item => inPapers.add(item.task_id));
+      }
+      reviewAll = drafts.filter(task => !inPapers.has(task.id));
       applyReviewFilter(preserveIndex);
       await renderReviewCard();
     } finally {

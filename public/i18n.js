@@ -300,6 +300,16 @@
       cw_catalog_title: 'Tematiskie pārbaudes darbi',
       cw_catalog_desc: 'Gatavojieties skolas ieskaitēm un kontroldarbiem ar 40 minūšu laika kontroli.',
       cw_guard_note: '🔒 Neaizejiet no lapas: cita cilne, cita lietotne vai taustiņš Print Screen bloķē risināšanu uz 1 minūti — darba laiks turpina iet.',
+      cw_nick_label: 'Segvārds skolotājam',
+      cw_nick_placeholder: 'piemēram, pūce17',
+      cw_nick_hint: 'Ar segvārdu rezultātu un atbildes redzēs skolotājs. Neraksti vārdu un uzvārdu: izmanto segvārdu, par kuru vienojāties ar skolotāju. Bez segvārda rezultāts paliek tikai šajā ierīcē.',
+      cw_sent_sending: 'Sūtām rezultātu skolotājam…',
+      cw_sent_ok: 'Rezultāts nosūtīts skolotājam.',
+      cw_sent_waiting: 'Serveris pašlaik ir aizņemts. Rezultātu nosūtīsim vēlreiz pēc brīža, neaizveriet lapu.',
+      cw_sent_fail: 'Rezultātu skolotājam nosūtīt neizdevās. Mēģināsim vēlreiz, kad nākamreiz atvērsiet vietni. Līdz tam parādiet skolotājam šo ekrānu.',
+      cw_sent_rejected: 'Serveris šo rezultātu nepieņēma (piemēram, labojums pēc vairāk nekā 2 stundām). Parādiet skolotājam šo ekrānu.',
+      cw_sent_retry: 'Sūtīt vēlreiz',
+      cw_sent_no_nick: 'Segvārds nav ierakstīts, tāpēc rezultāts skolotājam netika nosūtīts.',
       cw_lock_title: 'Risināšana bloķēta',
       cw_lock_text: 'Jūs aizgājāt no lapas — uz citu cilni vai lietotni — vai nospiedāt Print Screen. Kontroldarba un eksāmena laikā tas nav atļauts. Darba laiks turpina iet.',
       cw_submit_short: 'Iesniegt',
@@ -419,12 +429,12 @@
       contact_err_human: 'Neizdevās pārbaudīt, ka esat cilvēks. Mēģiniet vēlreiz.',
       contact_err_unavailable: 'Forma pagaidām nedarbojas. Mēģiniet vēlāk.',
       contact_err_send: 'Neizdevās nosūtīt. Pārbaudiet savienojumu un mēģiniet vēlreiz.',
-      privacy_body: '<p class="privacy-updated">Pēdējais atjauninājums: 2026. gada 21. novembris.</p>'
+      privacy_body: '<p class="privacy-updated">Pēdējais atjauninājums: 2026. gada 23. novembris.</p>'
         + '<p>MathTasks (mathtasks.lv) ir skolas matemātikas uzdevumu krājums. Mēs vācam pēc iespējas mazāk datu: vārds, tālrunis un dzimšanas datums mums nav vajadzīgi un netiek prasīti. E-pasts nav vajadzīgs ne profilam, ne dueļiem; to var norādīt tikai saziņas veidlapā, ja vēlaties saņemt atbildi.</p>'
         + '<h2>Kas atbild par datiem</h2>'
         + '<p>Boriss Gogoļevs. Sazināties var ar veidlapu <a href="#contact">«Rakstiet mums»</a> šīs lapas beigās.</p>'
         + '<h2>Kas paliek tikai jūsu pārlūkā</h2>'
-        + '<p>Atrisinātie uzdevumi, favorīti, trenažiera kļūdas un rekordi, nodarbību dienas, pārbaudes darbu rezultāti, izvēlētā klase, valoda un noformējuma tēma, skaņa. Tas glabājas pārlūka atmiņā (localStorage) un netiek sūtīts uz mūsu serveri, kamēr neizveidojat profilu. Notīrot vietnes datus pārlūkā, tas viss pazūd. Reklāmas un izsekošanas sīkdatņu vietnē nav. Dueļi ir izņēmums: to rezultāti nonāk serverī arī bez profila (skat. «Dueļi»).</p>'
+        + '<p>Atrisinātie uzdevumi, favorīti, trenažiera kļūdas un rekordi, nodarbību dienas, pārbaudes darbu rezultāti, izvēlētā klase, valoda un noformējuma tēma, skaņa. Tas glabājas pārlūka atmiņā (localStorage) un netiek sūtīts uz mūsu serveri, kamēr neizveidojat profilu. Notīrot vietnes datus pārlūkā, tas viss pazūd. Reklāmas un izsekošanas sīkdatņu vietnē nav. Izņēmumi ir dueļi un pārbaudes darbi, kuriem ierakstāt segvārdu skolotājam: to rezultāti nonāk serverī arī bez profila (skat. «Dueļi» un «Pārbaudes darbu rezultāti skolotājam»).</p>'
         + '<h2>Profils (pēc izvēles)</h2>'
         + '<p>Profils vajadzīgs, lai progress pārietu starp ierīcēm. Ja to izveidojat, mēs glabājam:</p>'
         + '<ul><li>jūsu izvēlēto segvārdu (lūdzu, nelietojiet īsto vārdu), dzīvnieka avatāru un pēdējās segvārda maiņas datumu;</li>'
@@ -436,6 +446,8 @@
         + '<p>Ja profilā ieslēdzat atgādinājumu, mēs glabājam pārlūka paziņojumu abonementa adresi un tā šifrēšanas atslēgas, valodu, izvēlēto stundu, laika joslu, pēdējā atgādinājuma datumu un neveiksmīgo sūtījumu skaitu. Atgādinājums tiek nosūtīts caur jūsu pārlūka paziņojumu pakalpojumu (Google, Apple, Mozilla vai Microsoft); tā teksts visiem ir vienāds un neko par jums neatklāj. Atgādinājuma dati tiek dzēsti, kad to izslēdzat, dzēšat profilu vai kad paziņojumu pakalpojums ziņo, ka abonementa vairs nav.</p>'
         + '<h2>Dueļi</h2>'
         + '<p>Duelim un līderu tabulai mēs glabājam segvārdu, dzīvnieku, nejaušu spēlētāja numuru no pārlūka, jūsu atbildes, katras atbildes laiku, rezultātu un datumu — ar profilu un bez tā. Līderu tabulā redzams segvārds, dzīvnieks, rezultāts un datums. Jūsu mēģinājums var tikt rādīts citiem spēlētājiem kā «pretinieks-ieraksts» — ar atbildēm un to laiku. Dzīvam pretiniekam redzams jūsu segvārds un dzīvnieks. Mēģinājums līderu tabulai iziet Cloudflare Turnstile pārbaudi («vai neesat robots»). Mēģinājumi tiek automātiski dzēsti pēc 60 dienām, izņemot 20 labākos rezultātus katrā kategorijā un grūtības līmenī — tie tiek glabāti bez termiņa. Dzēšot profilu, šajā ierīcē spēlēto dueļu rezultāti tiek dzēsti uzreiz; rezultātus no citām ierīcēm agrāk var dzēst pēc lūguma veidlapā šīs lapas beigās.</p>'
+        + '<h2>Pārbaudes darbu rezultāti skolotājam</h2>'
+        + '<p>Ja pārbaudes darba sākumā ierakstāt segvārdu laukā «Segvārds skolotājam», pēc iesniegšanas mēs saglabājam šo segvārdu, darba nosaukumu, pareizo atbilžu skaitu, atzīmi, laiku, aiziešanas reizes no lapas un jūsu atbildes (līdz 80 zīmēm katrā) — ar profilu un bez tā. Rezultātus redz tikai vietnes administrators (skolotājs). Bez segvārda nekas netiek sūtīts; segvārds netiek ņemts no profila vai dueļiem, to ierakstāt paši. Lūdzu, neierakstiet vārdu un uzvārdu, bet segvārdu, par kuru vienojāties ar skolotāju. Ja nosūtīt neizdodas (nav interneta, aizvērta lapa), rezultāts līdz 24 stundām glabājas pārlūkā un tiek nosūtīts nākamajā apmeklējumā. Ieraksti, kas vecāki par 12 mēnešiem, tiek dzēsti automātiski; agrāk tos var dzēst pēc lūguma veidlapā šīs lapas beigās. Datubāzes rezerves kopijās šie ieraksti neietilpst.</p>'
         + '<h2>Ziņojumi par kļūdām uzdevumos</h2>'
         + '<p>Poga «Atradāt kļūdu?» nosūta uzdevuma numuru, kļūdas veidu, jūsu tekstu (līdz 1000 rakstzīmēm), ievadīto atbildi, nepareizo mēģinājumu skaitu un valodu. Personas datu veidlapā nav — nerakstiet tos tekstā. Ziņojumu redz vietnes administrators, kopija pienāk arī Telegram.</p>'
         + '<h2>Ziņas caur veidlapu «Rakstiet mums»</h2>'
@@ -453,7 +465,7 @@
         + '<h2>Jūsu tiesības</h2>'
         + '<p>Jūs varat pieprasīt piekļuvi saviem datiem, to labošanu vai dzēšanu, apstrādes ierobežošanu, iebilst pret apstrādi un atsaukt piekrišanu. Rakstiet mums ar veidlapu šīs lapas beigās. Ja uzskatāt, ka mēs pārkāpjam likumu, varat vērsties Datu valsts inspekcijā (<a href="https://www.dvi.gov.lv" rel="noopener">dvi.gov.lv</a>).</p>'
         + '<h2>Bērni</h2>'
-        + '<p>Vietne paredzēta skolēniem. Profilu var izveidot, ja jums ir vismaz 13 gadi vai ja to atļāvis pieaugušais (vecāks vai skolotājs). Mēs neko nezinām par lietotāja vecumu — mums nav ne dzimšanas datuma, ne vārda.</p>'
+        + '<p>Vietne paredzēta skolēniem. Profilu var izveidot, ja jums ir vismaz 13 gadi vai ja to atļāvis pieaugušais (vecāks vai skolotājs). Segvārdu skolotājam pārbaudes darbā ierakstiet, ja darbu uzdevis skolotājs; ja jums nav 13 gadu — ar pieaugušā atļauju. Mēs neko nezinām par lietotāja vecumu: dzimšanas datuma mums nav, un vārdu mēs neprasām.</p>'
         + '<h2>Izmaiņas</h2>'
         + '<p>Ja datu apstrādē kaut kas mainīsies, mēs atjaunosim šo lapu un datumu augšā.</p>',
       meta_favorites_title: 'Mani favorīti',
@@ -1690,6 +1702,16 @@
       cw_catalog_title: 'Тематические контрольные работы',
       cw_catalog_desc: 'Подготовка к школьным проверочным работам с контролем времени (40 минут).',
       cw_guard_note: '🔒 Не уходите со страницы: другая вкладка, другое приложение или клавиша Print Screen блокируют решение на 1 минуту — время работы при этом идёт.',
+      cw_nick_label: 'Ник для учителя',
+      cw_nick_placeholder: 'например, сова17',
+      cw_nick_hint: 'С ником результат и ответы увидит учитель. Не пиши имя и фамилию: возьми ник, о котором вы договорились с учителем. Без ника результат останется только на этом устройстве.',
+      cw_sent_sending: 'Отправляем результат учителю…',
+      cw_sent_ok: 'Результат отправлен учителю.',
+      cw_sent_waiting: 'Сервер сейчас занят. Отправим результат ещё раз через минуту, не закрывайте страницу.',
+      cw_sent_fail: 'Отправить результат учителю не удалось. Попробуем снова, когда вы в следующий раз откроете сайт. А пока покажите учителю этот экран.',
+      cw_sent_rejected: 'Сервер не принял этот результат (например, исправление позже чем через 2 часа). Покажите учителю этот экран.',
+      cw_sent_retry: 'Отправить ещё раз',
+      cw_sent_no_nick: 'Ник не вписан, поэтому результат учителю не отправлен.',
       cw_lock_title: 'Решение заблокировано',
       cw_lock_text: 'Вы уходили со страницы — на другую вкладку или в другое приложение — или нажимали Print Screen. Во время контрольной и экзамена это запрещено. Время работы при этом идёт.',
       cw_submit_short: 'Сдать',
@@ -1809,12 +1831,12 @@
       contact_err_human: 'Не удалось проверить, что вы человек. Попробуйте ещё раз.',
       contact_err_unavailable: 'Форма пока не работает. Попробуйте позже.',
       contact_err_send: 'Не удалось отправить. Проверьте подключение и попробуйте ещё раз.',
-      privacy_body: '<p class="privacy-updated">Последнее обновление: 21 ноября 2026 г.</p>'
+      privacy_body: '<p class="privacy-updated">Последнее обновление: 23 ноября 2026 г.</p>'
         + '<p>MathTasks (mathtasks.lv) — сборник школьных задач по математике. Мы собираем как можно меньше данных: имя, телефон и дата рождения нам не нужны и не запрашиваются. Почта не нужна ни для профиля, ни для дуэлей; оставить её можно только в форме обращения, если вам нужен ответ.</p>'
         + '<h2>Кто отвечает за данные</h2>'
         + '<p>Boriss Gogoļevs. Связаться можно через форму <a href="#contact">«Написать нам»</a> в конце этой страницы.</p>'
         + '<h2>Что остаётся только в вашем браузере</h2>'
-        + '<p>Решённые задачи, закладки, ошибки и рекорды тренажёра, дни занятий, результаты контрольных, выбранные класс, язык и тема оформления, звук. Это хранится в памяти браузера (localStorage) и на наш сервер не отправляется, пока вы не создадите профиль. Если очистить данные сайта в браузере, всё это исчезнет. Рекламных и отслеживающих cookie на сайте нет. Дуэли — исключение: их результаты уходят на сервер и без профиля (см. «Дуэли»).</p>'
+        + '<p>Решённые задачи, закладки, ошибки и рекорды тренажёра, дни занятий, результаты контрольных, выбранные класс, язык и тема оформления, звук. Это хранится в памяти браузера (localStorage) и на наш сервер не отправляется, пока вы не создадите профиль. Если очистить данные сайта в браузере, всё это исчезнет. Рекламных и отслеживающих cookie на сайте нет. Исключения — дуэли и контрольные, для которых вы вписали ник для учителя: их результаты уходят на сервер и без профиля (см. «Дуэли» и «Результаты контрольных для учителя»).</p>'
         + '<h2>Профиль (по желанию)</h2>'
         + '<p>Профиль нужен, чтобы прогресс переходил между устройствами. Если вы его создаёте, мы храним:</p>'
         + '<ul><li>ник, который вы выбрали (пожалуйста, не используйте настоящее имя), зверя-аватар и дату последней смены ника;</li>'
@@ -1826,6 +1848,8 @@
         + '<p>Если в профиле включить напоминание, мы храним адрес подписки браузера на уведомления и её ключи шифрования, язык, выбранный час, часовой пояс, дату последнего напоминания и число неудачных отправок. Напоминание отправляется через службу уведомлений вашего браузера (Google, Apple, Mozilla или Microsoft); его текст у всех одинаковый и ничего о вас не сообщает. Данные напоминания удаляются, когда вы его выключаете, удаляете профиль или когда служба уведомлений сообщает, что подписки больше нет.</p>'
         + '<h2>Дуэли</h2>'
         + '<p>Для дуэли и таблицы лидеров мы храним ник, зверя, случайный номер игрока из браузера, ваши ответы, время каждого ответа, результат и дату — с профилем и без него. В таблице лидеров видны ник, зверь, результат и дата. Ваша попытка может показываться другим игрокам как «соперник-запись» — с ответами и их временем. Живому сопернику видны ваш ник и зверь. Попытка в таблицу лидеров проходит проверку Cloudflare Turnstile («не робот ли»). Попытки удаляются автоматически через 60 дней, кроме 20 лучших результатов в каждой категории и уровне сложности — они хранятся без срока. При удалении профиля результаты дуэлей, сыгранных на этом устройстве, удаляются сразу; результаты с других устройств можно удалить раньше по просьбе через форму в конце страницы.</p>'
+        + '<h2>Результаты контрольных для учителя</h2>'
+        + '<p>Если в начале контрольной вы вписали ник в поле «Ник для учителя», после сдачи мы сохраняем этот ник, название работы, число верных ответов, оценку, время, число уходов со страницы и ваши ответы (до 80 знаков каждый) — с профилем и без него. Результаты видит только администратор сайта (учитель). Без ника ничего не отправляется; ник не берётся из профиля или дуэлей, его вписываете вы сами. Пожалуйста, пишите не имя и фамилию, а ник, о котором вы договорились с учителем. Если отправить не удалось (нет интернета, закрыли страницу), результат до 24 часов хранится в браузере и отправляется при следующем заходе. Записи старше 12 месяцев удаляются автоматически; раньше их можно удалить по просьбе через форму в конце этой страницы. В резервные копии базы эти записи не входят.</p>'
         + '<h2>Сообщения об ошибках в задачах</h2>'
         + '<p>Кнопка «Нашли ошибку?» отправляет номер задачи, тип ошибки, ваш текст (до 1000 знаков), введённый ответ, число неверных попыток и язык. Личных данных в форме нет — не пишите их в тексте. Сообщение видит администратор сайта, копия приходит и в Telegram.</p>'
         + '<h2>Сообщения через форму «Написать нам»</h2>'
@@ -1843,7 +1867,7 @@
         + '<h2>Ваши права</h2>'
         + '<p>Вы можете запросить доступ к своим данным, их исправление или удаление, ограничение обработки, возразить против обработки и отозвать согласие. Напишите нам через форму в конце страницы. Если считаете, что мы нарушаем закон, вы вправе обратиться в Datu valsts inspekcija (<a href="https://www.dvi.gov.lv" rel="noopener">dvi.gov.lv</a>).</p>'
         + '<h2>Дети</h2>'
-        + '<p>Сайт рассчитан на школьников. Профиль можно создать, если вам не меньше 13 лет или если взрослый (родитель или учитель) разрешил. Мы ничего не знаем о возрасте пользователя — у нас нет ни даты рождения, ни имени.</p>'
+        + '<p>Сайт рассчитан на школьников. Профиль можно создать, если вам не меньше 13 лет или если взрослый (родитель или учитель) разрешил. Ник для учителя в контрольной вписывайте, если работу задал учитель; если вам меньше 13 лет — с разрешения взрослого. Мы ничего не знаем о возрасте пользователя: даты рождения у нас нет, а имени мы не просим.</p>'
         + '<h2>Изменения</h2>'
         + '<p>Если что-то в обработке данных изменится, мы обновим эту страницу и дату вверху.</p>',
       meta_favorites_title: 'Мои закладки',

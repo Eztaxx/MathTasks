@@ -25,7 +25,7 @@
   <script src="/theme-init.js?v=20261120-1"></script>
   <script src="/nachala-clean.js" defer></script>
   <script src="/nb-scale.js?v=20261116-1" defer></script>
-  <script src="/i18n.js?v=20261121-22"></script>
+  <script src="/i18n.js?v=20261123-1"></script>
 </head>
 <body>
   <noscript>
@@ -313,6 +313,12 @@
           <h1 id="cw-title"></h1>
           <p id="cw-desc" data-i18n="cw_topic_card_desc">Проверьте свои знания в условиях реального школьного урока без подсказок. Рекомендуемое время: 40 минут.</p>
           <p class="cw-guard-note" data-i18n="cw_guard_note">🔒 Не уходите со страницы: другая вкладка, другое приложение или клавиша Print Screen блокируют решение на 1 минуту — время работы при этом идёт.</p>
+          <!-- Ник для учителя: с ним результат уходит в админку (worker/cw.js), без него — никуда. -->
+          <div class="cw-nick" id="cw-nick-wrap" hidden>
+            <label for="cw-nick" data-i18n="cw_nick_label">Ник для учителя</label>
+            <input type="text" id="cw-nick" maxlength="24" autocomplete="nickname" spellcheck="false" data-i18n-placeholder="cw_nick_placeholder" placeholder="например, сова17" />
+            <small data-i18n="cw_nick_hint">С ником результат и ответы увидит учитель. Не пиши имя и фамилию: возьми ник, о котором вы договорились с учителем. Без ника результат останется только на этом устройстве.</small>
+          </div>
         </div>
         <div class="cw-header-timer" id="cw-header-timer">
           <span class="cw-timer-label" data-i18n="cw_time_left">Осталось времени:</span>

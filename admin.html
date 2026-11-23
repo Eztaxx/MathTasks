@@ -58,6 +58,7 @@
             <a class="adm-nav-item" href="#ai" data-view-link="ai"><span>Генератор задач</span></a>
             <a class="adm-nav-item" href="#catalog" data-view-link="catalog"><span>Разделы, темы, подтемы</span></a>
             <a class="adm-nav-item" href="#papers" data-view-link="papers"><span>Работы</span></a>
+            <a class="adm-nav-item" href="#results" data-view-link="results"><span>Результаты учеников</span></a>
           </nav>
           <div class="adm-side-foot">
             <button class="adm-theme-btn" type="button" id="adm-theme-btn"><span id="adm-theme-label">Тема</span><small>сменить</small></button>
@@ -198,6 +199,30 @@
                   <button type="button" class="adm-btn text" id="adm-publish-cancel">Отмена</button>
                 </div>
               </dialog>
+            </section>
+
+            <!-- Результаты контрольных, которые ученики сдали с ником (миграция 036, worker/cw.js). -->
+            <section class="adm-view" data-view="results" hidden>
+              <div class="adm-view-head">
+                <div><h1>Результаты учеников</h1><p>Контрольные, сданные с ником «для учителя»: кто, какая работа, сколько верных, оценка и время. Нажмите «Ответы» — разбор по задачам. Записи старше 12 месяцев удаляются сами. Ник ученик вписывает сам, и строку можно подделать из консоли браузера: это отчёт, а не доказательство.</p></div>
+                <div class="adm-view-actions"><button class="adm-btn soft" type="button" id="results-reload">Обновить</button></div>
+              </div>
+              <div class="adm-view-body">
+                <section class="adm-panel">
+                  <div class="adm-panel-head adm-results-filters">
+                    <select id="results-f-paper" aria-label="Работа"><option value="">все работы</option></select>
+                    <input type="search" id="results-f-nick" placeholder="Ник" aria-label="Ник" />
+                    <select id="results-f-period" aria-label="Период">
+                      <option value="7">7 дней</option>
+                      <option value="30" selected>30 дней</option>
+                      <option value="365">год</option>
+                    </select>
+                    <span class="adm-panel-note" id="results-note"></span>
+                    <button type="button" class="adm-btn soft" id="results-delete-shown" hidden>Удалить показанные</button>
+                  </div>
+                  <div id="results-list"><p class="adm-empty">Загружаем…</p></div>
+                </section>
+              </div>
             </section>
 
             <!-- Варианты: собранные вручную экзамены и контрольные. -->
@@ -1295,6 +1320,6 @@
   <script src="/lib.js?v=20261121-8"></script>
   <script src="/client.js?v=20260929-2"></script>
   <script src="/ai-generator.js?v=20260913-8"></script>
-  <script src="/admin.js?v=20261121-22"></script>
+  <script src="/admin.js?v=20261123-2"></script>
 </body>
 </html>
