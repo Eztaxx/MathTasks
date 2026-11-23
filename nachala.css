@@ -534,6 +534,11 @@ main#home > [id^="view-"] {
   padding: 0 clamp(16px, 4vw, 40px);
 }
 main#home > [id^="view-"]:not(#view-home) { padding-top: 24px; }
+/* Подвал не должен стоять на первом экране, пока грузятся данные: иначе он уезжает вниз,
+   когда появляется содержимое, — сдвиг вёрстки (CLS 0.4–1.0 на телефоне, 23.11.2026).
+   Открытый раздел занимает экран целиком, а пока разделы спрятаны (boot-sub), подвал отодвинут на экран вниз. */
+main#home > [id^="view-"]:not([hidden]) { min-height: calc(100vh / var(--nb-zoom)); }
+html.boot-sub main#home > .nb-footer { margin-top: calc(100vh / var(--nb-zoom)); }
 /* Прямая ссылка на тему, задачу, прогресс: пока грузится каталог, главную не показываем (класс ставит theme-init.js). */
 html.boot-sub #view-home { display: none; }
 
@@ -611,6 +616,11 @@ main#home > .nb-footer { margin-top: 96px; }
 .home-today .home-streak-row { grid-area: streak; }
 @media (max-width: 900px) {
   .home-today:not([hidden]), .home-today.no-daily { grid-template-columns: 1fr; grid-template-areas: "daily" "side" "streak"; }
+  /* Пока грузится каталог, блок спрятан, и «Дуэль» стоит на первом экране, а потом уезжает вниз —
+     сдвиг вёрстки 0.35 на телефоне (23.11.2026). Держим место отступом у «Дуэли» (сам блок не показать:
+     [hidden] в style.css — с !important). 560px меньше самого короткого блока в одну колонку
+     (без задачи дня ≈ 660px), поэтому после отрисовки всё ниже сдвигается только вниз, за экран. */
+  #home-today[hidden] + .home-duel { margin-top: calc(24px + 560px); }
 }
 
 .home-daily {
@@ -1828,6 +1838,9 @@ input.cw-answer-input {
 }
 .cw-task-card .math-kb-toggle { border-color: var(--board-frame); }
 .cw-actions-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 28px; }
+/* «Сдать» не показываем, пока заданий нет (идёт загрузка или ошибка): кнопка стояла на первом экране
+   и уезжала вниз, когда приходили задания, — сдвиг вёрстки (23.11.2026). */
+#cw-task-list:not(:has(> :not(.empty-state))) + .cw-actions-bar { display: none; }
 .cw-lock-card { text-align: center; }
 .cw-lock-icon { display: none; }
 .cw-lock-time { font-family: var(--f-serif); font-size: 48px; color: var(--ink-1); }
