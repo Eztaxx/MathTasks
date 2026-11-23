@@ -1791,7 +1791,20 @@ html.dark .progress-day.l4, html.dark .progress-legend .l4 { background: var(--p
 .cw-cat-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: auto; padding-top: 8px; border: 0; }
 .cw-cat-count { font-size: 15px; color: var(--ink-3); }
 .cw-cat-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
-.print-set-icon { display: none; }
+/* «Распечатать работу» у контрольных и готовых работ. При редизайне кнопку спрятали вместе со смайликами,
+   и печать из каталога пропала (найдено 23.11.2026). Смайлик 🖨 убран (font-size: 0), значок — SVG. */
+.print-set-icon {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 44px; height: 44px; margin: 0; padding: 0; border: 2px solid var(--ink-1); border-radius: 0;
+  background: transparent; color: var(--ink-1); font-size: 0; line-height: 0; cursor: pointer;
+}
+.print-set-icon::before {
+  content: ""; width: 22px; height: 22px; background: currentColor;
+  -webkit-mask: var(--nb-print) center / contain no-repeat; mask: var(--nb-print) center / contain no-repeat;
+  --nb-print: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9V3h12v6'/%3E%3Cpath d='M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2'/%3E%3Cpath d='M6 14h12v7H6z'/%3E%3C/svg%3E");
+}
+.print-set-icon:hover { background: var(--yellow-tint); color: #000; }
+.print-set-icon:focus-visible { outline: 3px solid var(--nb-blue); outline-offset: 2px; }
 /* Сама работа: панель с таймером, задания на доске */
 .cw-header-card { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 32px; margin: 0 0 24px; }
 .cw-header-info { flex: 1 1 420px; min-width: 0; }
