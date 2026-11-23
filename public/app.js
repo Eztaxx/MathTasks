@@ -6620,6 +6620,15 @@ function openPlotterDialog() {
 
 function updateTopicHeaderProgress() {
   if (!currentActiveTopic) return;
+  /* Страница задачи: обновляем только полосу «Тема» над доской. Шапка темы
+     ставит data-nb-page="topic" — после верного ответа страница задачи
+     превращалась в страницу темы, а «Помощь» уезжала внутрь доски. */
+  const viewList = document.querySelector('#view-list');
+  if (viewList?.dataset.nbPage === 'task') {
+    const meta = document.querySelector('#list-meta');
+    if (meta) meta.innerHTML = nbTopicBar(currentActiveTopic);
+    return;
+  }
   renderTopicHeaderMeta(currentActiveTopic, currentTopicTasks);
 }
 

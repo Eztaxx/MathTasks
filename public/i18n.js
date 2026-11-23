@@ -24,7 +24,7 @@
       fav_added: '★ Favorītos',
       fav_counter: '{count} saglabāti',
       fav_empty_short: 'Pagaidām tukšs',
-      fav_empty_hint: 'Jums vēl nav saglabātu uzdevumu. Nospiediet «☆ Pievienot favorītiem» pie jebkura uzdevuma.',
+      fav_empty_hint: 'Jums vēl nav saglabātu uzdevumu. Nospiediet grāmatzīmes ikonu pie jebkura uzdevuma.',
       anchors_label: 'Uz uzdevumu:',
       nav_prev_task: '← Iepriekšējais',
       nav_next_task: 'Nākamais →',
@@ -807,7 +807,7 @@
       // Favorītu lapa
       favorites_title: 'Mani favorīti',
       topic_no_tasks: 'Pagaidām tukšs',
-      favorites_empty: 'Jums vēl nav saglabātu uzdevumu. Noklikšķiniet uz zvaigznītes pie jebkura uzdevuma, lai to pievienotu!',
+      favorites_empty: 'Jums vēl nav saglabātu uzdevumu. Nospiediet grāmatzīmes ikonu pie jebkura uzdevuma, lai to pievienotu!',
 
       // Tagu lapa
       tag_prefix: 'Birkas:',
@@ -1124,6 +1124,9 @@
       exams_page_title: 'Gatavošanās matemātikas eksāmeniem — Skola2030 | MathTasks',
       exams_badge: '🎯 Gatavošanās eksāmeniem',
       exams_hero_tag: 'Valsts pārbaudījumi • Skola2030',
+      exam_type_state: 'Valsts eksāmens',
+      exam_type_secondary: 'Vidusskola',
+      exam_type_advanced: 'Padziļinātais kurss',
       exams_hero_h1: 'Gatavošanās matemātikas valsts eksāmeniem',
       exams_hero_p: 'Viss nepieciešamais sekmīgai eksāmenu nokārtošanai Latvijā: oficiālās VISC formulu lapas, uzdevumu struktūra, vērtēšanas kritēriji un uzdevumu atlases pa tēmām.',
       exams_btn_choose_level: 'Izvēlēties savu līmeni',
@@ -1413,7 +1416,7 @@
       fav_added: '★ В закладках',
       fav_counter: '{count} сохранённых',
       fav_empty_short: 'Пока пусто',
-      fav_empty_hint: 'У вас пока нет сохранённых задач. Нажмите «☆ В закладки» у любой задачи.',
+      fav_empty_hint: 'У вас пока нет сохранённых задач. Нажмите значок закладки у любой задачи.',
       anchors_label: 'К задаче:',
       nav_prev_task: '← Предыдущая',
       nav_next_task: 'Следующая →',
@@ -2517,7 +2520,10 @@
       // Подготовка к экзаменам
       exams_page_title: 'Подготовка к экзаменам по математике — Skola2030 | MathTasks',
       exams_badge: '🎯 Подготовка к экзаменам',
-      exams_hero_tag: 'Valsts pārbaudījumi • Skola2030',
+      exams_hero_tag: 'Государственные экзамены • Skola2030',
+      exam_type_state: 'Государственный экзамен',
+      exam_type_secondary: 'Средняя школа',
+      exam_type_advanced: 'Углублённый курс',
       exams_hero_h1: 'Подготовка к экзаменам по математике',
       exams_hero_p: 'Всё необходимое для успешной сдачи экзаменов в Латвии: официальные формульные листы VISC, структура заданий, разбор критериев оценивания и подборки задач по темам.',
       exams_btn_choose_level: 'Выбрать свой уровень',
@@ -2547,7 +2553,7 @@
       // Пробные экзамены
       mock_page_title: 'Пробные экзамены по математике — Структура и формулы | MathTasks',
       mock_badge: 'Пробные экзамены',
-      mock_hero_tag: 'Eksāmenu paraugi • Skola2030',
+      mock_hero_tag: 'Образцы экзаменов • Skola2030',
       mock_hero_h1: 'Пробные государственные экзамены (Paraugi)',
       mock_hero_p: 'Официальная структура экзаменационных вариантов VISC: спецификация заданий, распределение баллов, правила работы с калькулятором и руководство по формульным листам.',
       mock_btn_formula_guide: '📖 Руководство по формульным листам',
