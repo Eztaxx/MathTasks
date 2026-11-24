@@ -49,7 +49,9 @@ describe('страж проекта', () => {
     'npm run renumber:apply',
     'node scripts/renumber-tasks.mjs --apply',
     'curl -X DELETE https://rjtirahpwxlsrzoblesi.supabase.co/rest/v1/tasks?id=eq.1',
-    'curl --data @x.json https://rjtirahpwxlsrzoblesi.supabase.co/rest/v1/tasks'
+    'curl --data @x.json https://rjtirahpwxlsrzoblesi.supabase.co/rest/v1/tasks',
+    'node .claude/skills/add-papers/scripts/finish.mjs 20261125-0800-pall --rollback --apply',
+    'node scripts/add-paper.mjs scripts/papers/kd-visp-kopas-statistika --apply'
   ])('спрашивает владельца: %s', command => {
     const r = bash(command);
     expect(r.code).toBe(0);
@@ -66,6 +68,9 @@ describe('страж проекта', () => {
     'wrangler tail',
     'node .claude/skills/add-tasks/scripts/pick.mjs --dry',
     'node .claude/skills/add-tasks/scripts/publish.mjs 20261119-1200',
+    'node .claude/skills/add-papers/scripts/pick.mjs --dry',
+    'node .claude/skills/add-papers/scripts/check.mjs 20261125-0800-pall C:/tmp/x --insert',
+    'node .claude/skills/add-papers/scripts/publish.mjs 20261125-0800-pall',
     'curl -s https://mathtasks.lv/plotter',
     'curl -s "https://rjtirahpwxlsrzoblesi.supabase.co/rest/v1/tasks?select=id&limit=1"',
     'git add wrangler.jsonc scripts/restore.mjs',
