@@ -268,6 +268,32 @@ describe('seo: страницы из каталога', () => {
     expect(html).toContain('<meta name="robots" content="noindex, follow" />');
     expect(html).toContain('<a href="/topic/skola2030-g6-1-x">');
   });
+
+  it('составленная контрольная из exam_papers — 200, своё название, ссылка на каталог', async () => {
+    const PAPER = { slug: 'kd-x-a', title: 'Контрольная: X (вариант A)', title_lv: 'Kontroldarbs: X (A variants)', minutes: 50, parts: [], exam_paper_items: [{ task_id: 1 }, { task_id: 2 }] };
+    const fetchMock = supabase([['topics?slug=eq.', []], ['exam_papers?slug=eq.kd-x-a', [PAPER]]]);
+    vi.stubGlobal('fetch', fetchMock);
+    const response = await page('/control-work/kd-x-a', makeEnv());
+    const html = await response.text();
+    expect(response.status).toBe(200);
+    expect(html).toContain('Kontroldarbs: X (A variants)');
+    expect(html).toContain('50 minūtes');
+    expect(html).toContain('<meta name="robots" content="noindex, follow" />');
+    expect(html).toContain('<a href="/control-works">');
+    const paperUrl = fetchMock.mock.calls.map(([url]) => String(url)).find(url => url.includes('exam_papers?'));
+    expect(paperUrl).toContain('kind=eq.cw');
+    expect(paperUrl).toContain('is_published=eq.true');
+
+    const ru = await (await page('/ru/control-work/kd-x-a', makeEnv())).text();
+    expect(ru).toContain('Контрольная: X (вариант A)');
+    expect(ru).toContain('<a href="/ru/control-works">');
+  });
+
+  it('неизвестная контрольная — 404', async () => {
+    vi.stubGlobal('fetch', supabase([]));
+    const response = await page('/control-work/net-takoj', makeEnv());
+    expect(response.status).toBe(404);
+  });
 });
 
 describe('seo: латышская версия без префикса, русская — на /ru/…', () => {

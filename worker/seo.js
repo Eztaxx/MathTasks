@@ -253,6 +253,27 @@ export async function buildPage(route, env, lang = 'lv') {
     case 'controlWork': {
       const [topic] = await query(env,
         `topics?slug=eq.${eq(route.slug)}&select=id,title,title_lv,slug,grade,position,description,description_lv,subjects(title,title_lv,slug)&limit=1`);
+      if (!topic && route.kind === 'controlWork') {
+        // Составленная контрольная (exam_papers, kind cw) — у неё свой слаг, без темы.
+        const [paper] = await query(env,
+          `exam_papers?slug=eq.${eq(route.slug)}&kind=eq.cw&is_published=eq.true&select=slug,title,title_lv,minutes,parts,exam_paper_items(task_id)&limit=1`);
+        if (!paper) return notFound('meta_not_found_topic');
+        const paperTitle = text(paper, 'title') || paper.title_lv || paper.title || '';
+        // Те же минуты и описание, что ставит клиент (lib.paperMinutes, cw_paper_desc).
+        const parts = Array.isArray(paper.parts) ? paper.parts : [];
+        const partMinutes = parts.reduce((sum, part) => sum + Math.max(0, Number(part?.minutes) || 0), 0);
+        const minutes = partMinutes > 0 ? partMinutes : Math.max(1, Number(paper.minutes) || 40);
+        const description = tr('cw_paper_desc', { count: (paper.exam_paper_items || []).length, minutes });
+        return {
+          title: paperTitle,
+          description,
+          canonicalPath: `/control-work/${paper.slug}`,
+          robots: 'noindex, follow',
+          heading: paperTitle,
+          intro: description,
+          crumbs: [home(), [tr('nav_control_works'), '/control-works']]
+        };
+      }
       if (!topic) return notFound('meta_not_found_topic');
       const topicTitle = topicTitleOf(topic);
       const crumbs = [home()];
