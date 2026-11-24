@@ -59,7 +59,7 @@
      "title": "KV A: skaitļu kopas",
      "c": "Cik no skaitļiem $-3;\\; 0{,}5;\\; \\sqrt{2};\\; 7;\\; -\\dfrac{4}{2};\\; \\pi$ pieder kopai $\\mathbb{Z}$?",
      "a": "$\\text{Skaits} = 3$",
-     "s": "1) $-3$ un $7$ ir veseli skaitļi, $-\\dfrac{4}{2} = -2$ arī; $0{,}5$ nav vesels, $\\sqrt{2}$ un $\\pi$ ir iracionāli.\n2) Kopai ℤ pieder $3$ skaitļi.\nAtbilde: $3$.",
+     "s": "1) $-3$ un $7$ ir veseli skaitļi, $-\\dfrac{4}{2} = -2$ arī; $0{,}5$ nav vesels, $\\sqrt{2}$ un $\\pi$ ir iracionāli.\n2) Kopai $\\mathbb{Z}$ pieder $3$ skaitļi.\nAtbilde: $3$.",
      "d": "Средний",
      "fig": null
     },
@@ -203,7 +203,7 @@
      "title": "KV A: cik vēl vajag veiksmīgu mēģinājumu",
      "c": "Treniņā Jānis no $24$ soda metieniem trāpīja $18$ reizes, bet Pēteris no $30$ soda metieniem trāpīja $21$ reizi. Pēteris izpildīs vēl $10$ soda metienus. Cik no tiem jātrāpa, lai Pētera trāpījumu relatīvais biežums kopumā būtu vismaz tāds pats kā Jāņa? Atbildē uzrakstiet mazāko iespējamo skaitu.",
      "a": "$\\text{Skaits} = 9$",
-     "s": "1) Kopā būs $40$ mēģinājumu, vajag vismaz $75\\%$ no tiem.\n2) $0{,}75 \\cdot 40 = 30$, tātad kopā vajag vismaz $30$.\n3) Jau ir $21$, tāpēc vēl vajag $9$.\nAtbilde: $9$.",
+     "s": "1) Kopā būs $40$ mēģinājumi, vajag vismaz $75\\%$ no tiem.\n2) $0{,}75 \\cdot 40 = 30$, tātad kopā vajag vismaz $30$.\n3) Jau ir $21$, tāpēc vēl vajag $9$.\nAtbilde: $9$.",
      "d": "Сложный",
      "fig": null
     }
@@ -247,7 +247,7 @@
     {
      "topic": "visp-kopas-un-varbutiba",
      "title": "KV B: Eilera–Venna diagramma: neviens",
-     "c": "Klasē ir $30$ skolēnu. $18$ no viņiem dzied korī, $11$ dejo tautas deju kolektīvā, bet $6$ skolēni gan dzied korī, gan dejo. Cik skolēnu ne dzied korī, ne dejo tautas deju kolektīvā?",
+     "c": "Klasē ir $30$ skolēni. $18$ no viņiem dzied korī, $11$ dejo tautas deju kolektīvā, bet $6$ skolēni gan dzied korī, gan dejo. Cik skolēnu ne dzied korī, ne dejo tautas deju kolektīvā?",
      "a": "$\\text{Skolēni} = 7$",
      "s": "1) Vismaz vienā grupā: $18 + 11 - 6 = 23$ (abās grupās esošie citādi būtu skaitīti divreiz).\n2) Nevienā grupā: $30 - 23 = 7$.\nAtbilde: $7$.",
      "d": "Средний",
@@ -256,7 +256,7 @@
     {
      "topic": "visp-kopas-un-varbutiba",
      "title": "KV B: Eilera–Venna diagramma: tikai viens",
-     "c": "Klasē ir $30$ skolēnu. $18$ no viņiem dzied korī, $11$ dejo tautas deju kolektīvā, bet $6$ skolēni gan dzied korī, gan dejo. Cik skolēnu tikai dejo, bet nedzied korī?",
+     "c": "Klasē ir $30$ skolēni. $18$ no viņiem dzied korī, $11$ dejo tautas deju kolektīvā, bet $6$ skolēni gan dzied korī, gan dejo. Cik skolēnu tikai dejo, bet nedzied korī?",
      "a": "$\\text{Skolēni} = 5$",
      "s": "1) No visiem, kas dejo, atņemam tos, kas ir abās grupās: $11 - 6 = 5$.\nAtbilde: $5$.",
      "d": "Лёгкий",
@@ -267,7 +267,7 @@
      "title": "KV B: skaitļu kopas",
      "c": "Cik no skaitļiem $1{,}5;\\; -2;\\; \\sqrt{9};\\; \\sqrt{5};\\; \\dfrac{3}{7};\\; \\pi$ pieder kopai $\\mathbb{Q}$?",
      "a": "$\\text{Skaits} = 4$",
-     "s": "1) $1{,}5$, $-2$, $\\sqrt{9} = 3$ un $\\dfrac{3}{7}$ var uzrakstīt daļas veidā; $\\sqrt{5}$ un $\\pi$ ir iracionāli.\n2) Kopai ℚ pieder $4$ skaitļi.\nAtbilde: $4$.",
+     "s": "1) $1{,}5$, $-2$, $\\sqrt{9} = 3$ un $\\dfrac{3}{7}$ var uzrakstīt daļas veidā; $\\sqrt{5}$ un $\\pi$ ir iracionāli.\n2) Kopai $\\mathbb{Q}$ pieder $4$ skaitļi.\nAtbilde: $4$.",
      "d": "Средний",
      "fig": null
     },
@@ -411,7 +411,7 @@
      "title": "KV B: cik vēl vajag veiksmīgu mēģinājumu",
      "c": "Volejbola treniņā Anna no $20$ servēm precīzi izpildīja $17$, bet Līga no $40$ servēm precīzi izpildīja $32$. Līga izpildīs vēl $20$ serves. Cik no tām jāizpilda precīzi, lai Līgas precīzo servju relatīvais biežums kopumā būtu vismaz tāds pats kā Annas? Atbildē uzrakstiet mazāko iespējamo skaitu.",
      "a": "$\\text{Skaits} = 19$",
-     "s": "1) Kopā būs $60$ mēģinājumu, vajag vismaz $85\\%$ no tiem.\n2) $0{,}85 \\cdot 60 = 51$, tātad kopā vajag vismaz $51$.\n3) Jau ir $32$, tāpēc vēl vajag $19$.\nAtbilde: $19$.",
+     "s": "1) Kopā būs $60$ mēģinājumi, vajag vismaz $85\\%$ no tiem.\n2) $0{,}85 \\cdot 60 = 51$, tātad kopā vajag vismaz $51$.\n3) Jau ir $32$, tāpēc vēl vajag $19$.\nAtbilde: $19$.",
      "d": "Сложный",
      "fig": null
     }
@@ -619,7 +619,7 @@
      "title": "KV C: cik vēl vajag veiksmīgu mēģinājumu",
      "c": "Šaušanas treniņā Kārlis no $35$ šāvieniem mērķī trāpīja $28$ reizes, bet Mārtiņš no $48$ šāvieniem trāpīja $36$ reizes. Mārtiņš izpildīs vēl $20$ šāvienus. Cik no tiem jātrāpa, lai Mārtiņa trāpījumu relatīvais biežums kopumā būtu vismaz tāds pats kā Kārļa? Atbildē uzrakstiet mazāko iespējamo skaitu.",
      "a": "$\\text{Skaits} = 19$",
-     "s": "1) Kopā būs $68$ mēģinājumu, vajag vismaz $80\\%$ no tiem.\n2) $0{,}8 \\cdot 68 = 54{,}4$, tātad kopā vajag vismaz $55$.\n3) Jau ir $36$, tāpēc vēl vajag $19$.\nAtbilde: $19$.",
+     "s": "1) Kopā būs $68$ mēģinājumi, vajag vismaz $80\\%$ no tiem.\n2) $0{,}8 \\cdot 68 = 54{,}4$, tātad kopā vajag vismaz $55$.\n3) Jau ir $36$, tāpēc vēl vajag $19$.\nAtbilde: $19$.",
      "d": "Сложный",
      "fig": null
     }
@@ -654,7 +654,7 @@
     {
      "topic": "visp-statistikas-elementi",
      "title": "KS A: novērtējums pēc izlases",
-     "c": "Skolā mācās $600$ skolēnu. Aptaujāja $50$ nejauši izvēlētus skolēnus; $18$ no viņiem uz skolu brauc ar autobusu. Novērtējiet, cik skolas skolēnu uz skolu brauc ar autobusu.",
+     "c": "Skolā mācās $600$ skolēni. Aptaujāja $50$ nejauši izvēlētus skolēnus; $18$ no viņiem uz skolu brauc ar autobusu. Novērtējiet, cik skolas skolēnu uz skolu brauc ar autobusu.",
      "a": "$\\text{Skolēni} = 216$",
      "s": "1) Izlasē daļa ir $\\dfrac{18}{50}$.\n2) Pieņemam, ka ģenerālkopā (visā skolā) daļa ir tāda pati: $600 \\cdot \\dfrac{18}{50} = 216$.\nAtbilde: $216$.",
      "d": "Средний",
@@ -862,7 +862,7 @@
     {
      "topic": "visp-statistikas-elementi",
      "title": "KS B: novērtējums pēc izlases",
-     "c": "Skolā mācās $800$ skolēnu. Aptaujāja $40$ nejauši izvēlētus skolēnus; $15$ no viņiem apmeklē kādu sporta pulciņu. Novērtējiet, cik skolas skolēnu apmeklē kādu sporta pulciņu.",
+     "c": "Skolā mācās $800$ skolēni. Aptaujāja $40$ nejauši izvēlētus skolēnus; $15$ no viņiem apmeklē kādu sporta pulciņu. Novērtējiet, cik skolas skolēnu apmeklē kādu sporta pulciņu.",
      "a": "$\\text{Skolēni} = 300$",
      "s": "1) Izlasē daļa ir $\\dfrac{15}{40}$.\n2) Pieņemam, ka ģenerālkopā (visā skolā) daļa ir tāda pati: $800 \\cdot \\dfrac{15}{40} = 300$.\nAtbilde: $300$.",
      "d": "Средний",
@@ -1070,7 +1070,7 @@
     {
      "topic": "visp-statistikas-elementi",
      "title": "KS C: novērtējums pēc izlases",
-     "c": "Skolā mācās $450$ skolēnu. Aptaujāja $60$ nejauši izvēlētus skolēnus; $22$ no viņiem katru dienu brokasto skolas ēdnīcā. Novērtējiet, cik skolas skolēnu katru dienu brokasto skolas ēdnīcā.",
+     "c": "Skolā mācās $450$ skolēni. Aptaujāja $60$ nejauši izvēlētus skolēnus; $22$ no viņiem katru dienu brokasto skolas ēdnīcā. Novērtējiet, cik skolas skolēnu katru dienu brokasto skolas ēdnīcā.",
      "a": "$\\text{Skolēni} = 165$",
      "s": "1) Izlasē daļa ir $\\dfrac{22}{60}$.\n2) Pieņemam, ka ģenerālkopā (visā skolā) daļa ir tāda pati: $450 \\cdot \\dfrac{22}{60} = 165$.\nAtbilde: $165$.",
      "d": "Средний",
@@ -1142,7 +1142,7 @@
     {
      "topic": "visp-statistikas-elementi",
      "title": "KS C: jaunā vidējā vērtība",
-     "c": "Klases skolēniem jautāja, cik cilvēku ir viņu ģimenē (kopā ar pašu skolēnu). Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — cilvēku skaits ģimenē, uz vertikālās — skolēnu skaits. Klasei pievienojās jauns skolēns, kura ģimenē ir $10$ cilvēku. Aprēķiniet jauno vidējo vērtību.",
+     "c": "Klases skolēniem jautāja, cik cilvēku ir viņu ģimenē (kopā ar pašu skolēnu). Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — cilvēku skaits ģimenē, uz vertikālās — skolēnu skaits. Klasei pievienojās jauns skolēns, kura ģimenē ir $10$ cilvēki. Aprēķiniet jauno vidējo vērtību.",
      "a": "$\\text{Vidējais} = 4$",
      "s": "1) Līdzšinējā summa $94$, jaunā $94 + 10 = 104$.\n2) Datu skaits $26$.\n3) $\\dfrac{104}{26} = 4$.\nAtbilde: $4$.",
      "d": "Сложный",

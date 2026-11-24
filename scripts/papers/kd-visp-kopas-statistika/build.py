@@ -110,7 +110,7 @@ V = {
   sets=dict(A=[2, 4, 6, 8, 10, 12], B=[3, 6, 9, 12, 15]),
   venn=dict(text='Klasē ir $28$ skolēni. $15$ no viņiem apmeklē basketbola pulciņu, $12$ — volejbola pulciņu, bet $5$ skolēni apmeklē abus pulciņus.',
             n=28, a=15, b=12, ab=5, only='apmeklē tikai basketbola pulciņu', who='apmeklē basketbola pulciņu', only_of='a', none='neapmeklē nevienu no šiem pulciņiem'),
-  nums=dict(res='Kopai ℤ pieder ${}$ skaitļi', kind='Z', ask=r'pieder kopai $\mathbb{Z}$', items=[('-3', True), ('0{,}5', False), (r'\sqrt{2}', False), ('7', True), (r'-\dfrac{4}{2}', True), (r'\pi', False)],
+  nums=dict(res=r'Kopai $\mathbb{Z}$ pieder $#$ skaitļi', kind='Z', ask=r'pieder kopai $\mathbb{Z}$', items=[('-3', True), ('0{,}5', False), (r'\sqrt{2}', False), ('7', True), (r'-\dfrac{4}{2}', True), (r'\pi', False)],
             why=r'$-3$ un $7$ ir veseli skaitļi, $-\dfrac{4}{2} = -2$ arī; $0{,}5$ nav vesels, $\sqrt{2}$ un $\pi$ ir iracionāli'),
   subs=dict(elems=['a', 'b', 'c'], size=None),
   mult=dict(text='Skolas ēdnīcā pusdienām var izvēlēties vienu no $4$ zupām, vienu no $5$ pamatēdieniem un vienu no $3$ desertiem.',
@@ -144,13 +144,13 @@ V = {
   types=dict(q='Kuri no šiem datiem ir kategoriāli?', opts=['skolēna augums centimetros', 'skolēna mīļākā krāsa', 'brāļu un māsu skaits ģimenē'], ans=2,
              expl=['augums — nepārtraukts kvantitatīvs lielums', 'krāsa — kategorija, tātad kategoriāli dati', 'brāļu un māsu skaits — diskrēts kvantitatīvs lielums']),
   group=dict(text='Piecpadsmit skolēnu augums centimetros:', data=[158, 172, 165, 161, 177, 169, 155, 163, 170, 166, 174, 160, 168, 159, 171], lo=160, hi=170),
-  sample=dict(text='Skolā mācās $600$ skolēnu. Aptaujāja $50$ nejauši izvēlētus skolēnus; $18$ no viņiem uz skolu brauc ar autobusu.',
+  sample=dict(text='Skolā mācās $600$ skolēni. Aptaujāja $50$ nejauši izvēlētus skolēnus; $18$ no viņiem uz skolu brauc ar autobusu.',
               q='Novērtējiet, cik skolas skolēnu uz skolu brauc ar autobusu.', N=600, n=50, k=18)),
  'B': dict(
   sets=dict(A=[1, 3, 5, 7, 9, 11, 13, 15], B=[3, 6, 9, 12, 15]),
-  venn=dict(text='Klasē ir $30$ skolēnu. $18$ no viņiem dzied korī, $11$ dejo tautas deju kolektīvā, bet $6$ skolēni gan dzied korī, gan dejo.',
+  venn=dict(text='Klasē ir $30$ skolēni. $18$ no viņiem dzied korī, $11$ dejo tautas deju kolektīvā, bet $6$ skolēni gan dzied korī, gan dejo.',
             n=30, a=18, b=11, ab=6, only='tikai dejo, bet nedzied korī', who='dejo', only_of='b', none='ne dzied korī, ne dejo tautas deju kolektīvā'),
-  nums=dict(res='Kopai ℚ pieder ${}$ skaitļi', kind='Q', ask=r'pieder kopai $\mathbb{Q}$', items=[('1{,}5', True), ('-2', True), (r'\sqrt{9}', True), (r'\sqrt{5}', False), (r'\dfrac{3}{7}', True), (r'\pi', False)],
+  nums=dict(res=r'Kopai $\mathbb{Q}$ pieder $#$ skaitļi', kind='Q', ask=r'pieder kopai $\mathbb{Q}$', items=[('1{,}5', True), ('-2', True), (r'\sqrt{9}', True), (r'\sqrt{5}', False), (r'\dfrac{3}{7}', True), (r'\pi', False)],
             why=r'$1{,}5$, $-2$, $\sqrt{9} = 3$ un $\dfrac{3}{7}$ var uzrakstīt daļas veidā; $\sqrt{5}$ un $\pi$ ir iracionāli'),
   subs=dict(elems=['p', 'q', 'r', 's'], size=None),
   mult=dict(text='Skapī ir $6$ krekli, $4$ bikses un $3$ kurpju pāri.',
@@ -184,13 +184,13 @@ V = {
   types=dict(q='Kuri no šiem datiem ir nepārtraukti kvantitatīvi?', opts=['skolēnu skaits klasē', 'skolēna ķermeņa masa kilogramos', 'skolēna dzimšanas mēnesis'], ans=2,
              expl=['skolēnu skaits — diskrēts kvantitatīvs lielums (to skaita)', 'masa — nepārtraukts kvantitatīvs lielums (to mēra, vērtība var būt jebkura)', 'mēnesis — kategorija, nevis mērījums']),
   group=dict(text='Piecpadsmit skolēni pierakstīja, cik minūtes viņi pavadīja sporta treniņā:', data=[42, 55, 60, 38, 47, 66, 50, 58, 44, 63, 52, 49, 70, 57, 45], lo=50, hi=60),
-  sample=dict(text='Skolā mācās $800$ skolēnu. Aptaujāja $40$ nejauši izvēlētus skolēnus; $15$ no viņiem apmeklē kādu sporta pulciņu.',
+  sample=dict(text='Skolā mācās $800$ skolēni. Aptaujāja $40$ nejauši izvēlētus skolēnus; $15$ no viņiem apmeklē kādu sporta pulciņu.',
               q='Novērtējiet, cik skolas skolēnu apmeklē kādu sporta pulciņu.', N=800, n=40, k=15)),
  'C': dict(
   sets=dict(A=[4, 8, 12, 16, 20, 24], B=[5, 10, 15, 20, 25, 30]),
   venn=dict(text='Klasē ir $32$ skolēni. $20$ no viņiem apmeklē matemātikas pulciņu, $14$ — programmēšanas pulciņu, bet $7$ skolēni apmeklē abus pulciņus.',
             n=32, a=20, b=14, ab=7, only='apmeklē tikai programmēšanas pulciņu', who='apmeklē programmēšanas pulciņu', only_of='b', none='neapmeklē nevienu no šiem pulciņiem'),
-  nums=dict(res='Iracionāli ir ${}$ skaitļi', kind='I', ask=r'pieder kopai $\mathbb{R}$, bet nepieder kopai $\mathbb{Q}$', items=[('2{,}5', False), (r'\sqrt{7}', True), ('-1', False), (r'\pi', True), (r'\sqrt{16}', False), (r'\dfrac{1}{3}', False)],
+  nums=dict(res='Iracionāli ir $#$ skaitļi', kind='I', ask=r'pieder kopai $\mathbb{R}$, bet nepieder kopai $\mathbb{Q}$', items=[('2{,}5', False), (r'\sqrt{7}', True), ('-1', False), (r'\pi', True), (r'\sqrt{16}', False), (r'\dfrac{1}{3}', False)],
             why=r'iracionāli ir tikai $\sqrt{7}$ un $\pi$; $2{,}5$, $-1$, $\sqrt{16} = 4$ un $\dfrac{1}{3}$ ir racionāli'),
   subs=dict(elems=['k', 'l', 'm'], size=None),
   mult=dict(text='Kafejnīcā var izvēlēties vienu no $7$ tējām, vienu no $3$ kūkām un vienu no $2$ tases izmēriem.',
@@ -208,7 +208,7 @@ V = {
             p1=('Kārlis', 28, 35, 'Kārļa'), p2=('Mārtiņš', 36, 48, 'Mārtiņa', 'Mārtiņam'), more=20, unit='šāvienus', pron='tiem', verb='jātrāpa', what='trāpījumu'),
   bars=dict(text='Klases skolēniem jautāja, cik cilvēku ir viņu ģimenē (kopā ar pašu skolēnu). Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — cilvēku skaits ģimenē, uz vertikālās — skolēnu skaits.',
             vals=[2, 3, 4, 5, 6], fq=[3, 7, 9, 5, 1], exact=4, exact_q='ģimenē ir tieši $4$ cilvēki', atleast=5, atleast_q='ģimenē ir vismaz $5$ cilvēki',
-            newval=10, mean_q='Aprēķiniet vidējo cilvēku skaitu vienā ģimenē.', newtext='Klasei pievienojās jauns skolēns, kura ģimenē ir $10$ cilvēku.'),
+            newval=10, mean_q='Aprēķiniet vidējo cilvēku skaitu vienā ģimenē.', newtext='Klasei pievienojās jauns skolēns, kura ģimenē ir $10$ cilvēki.'),
   raw=dict(text='Divpadsmit skolēni pierakstīja, cik stundu pagājušajā nedēļā viņi spēlēja datorspēles:', data=[3, 12, 7, 5, 9, 14, 6, 10, 8, 4, 18, 11],
            fix='Izrādījās, ka viens skolēns kļūdījās: viņš spēlēja nevis $18$, bet $28$ stundas.', old=18, new=28),
   boxes=dict(text='Divās skolās aptaujāja skolēnus, cik minūtes dienā viņi pilda mājasdarbus. Rezultāti attēloti kastu diagrammās; augšā — 1. skola, apakšā — 2. skola.',
@@ -224,7 +224,7 @@ V = {
   types=dict(q='Kuri no šiem datiem ir diskrēti kvantitatīvi?', opts=['gaisa temperatūra pusdienlaikā', 'skolēna acu krāsa', 'mājdzīvnieku skaits ģimenē'], ans=3,
              expl=['temperatūra — nepārtraukts kvantitatīvs lielums (to mēra)', 'acu krāsa — kategorija', 'mājdzīvnieku skaits — diskrēts kvantitatīvs lielums (to skaita)']),
   group=dict(text='Piecpadsmit skolēni pierakstīja savu rezultātu $60$ metru skrējienā sekundēs:', data=[9.4, 8.7, 10.2, 9.8, 8.9, 9.1, 10.6, 9.5, 8.6, 9.9, 9.2, 10.0, 9.0, 9.6, 8.8], lo=9, hi=10),
-  sample=dict(text='Skolā mācās $450$ skolēnu. Aptaujāja $60$ nejauši izvēlētus skolēnus; $22$ no viņiem katru dienu brokasto skolas ēdnīcā.',
+  sample=dict(text='Skolā mācās $450$ skolēni. Aptaujāja $60$ nejauši izvēlētus skolēnus; $22$ no viņiem katru dienu brokasto skolas ēdnīcā.',
               q='Novērtējiet, cik skolas skolēnu katru dienu brokasto skolas ēdnīcā.', N=450, n=60, k=22)),
 }
 
@@ -264,7 +264,7 @@ def build_kopas(v, d, T):
       f"1) No visiem, kas {vn['who']}, atņemam tos, kas ir abās grupās: ${(vn['a'] if vn['only_of'] == 'a' else vn['b'])} - {vn['ab']} = {only}$.\nAtbilde: ${only}$.", 'Лёгкий')
     nm = d['nums']; cnt = sum(1 for _, ok in nm['items'] if ok)
     T(T_VARB, 'skaitļu kopas', f"Cik no skaitļiem ${';\\; '.join(x for x, _ in nm['items'])}$ {nm['ask']}?", 'Skaits', str(cnt),
-      f"1) {nm['why'][0].upper() + nm['why'][1:]}.\n2) {nm['res'].format(cnt)}.\nAtbilde: ${cnt}$.", 'Средний')
+      f"1) {nm['why'][0].upper() + nm['why'][1:]}.\n2) {nm['res'].replace('#', str(cnt))}.\nAtbilde: ${cnt}$.", 'Средний')
     sb = d['subs']; k = len(sb['elems'])
     if sb['size'] is None:
         ns = 2 ** k
@@ -343,7 +343,7 @@ def build_kopas(v, d, T):
     assert k <= fr['more']
     need = r1 / 100 * (fr['p2'][2] + fr['more'])
     T(T_VARB, 'cik vēl vajag veiksmīgu mēģinājumu', f"{fr['text']} {fr['p2'][0]} izpildīs vēl ${fr['more']}$ {fr['unit']}. Cik no {fr['pron']} {fr['verb']}, lai {fr['p2'][3]} {fr['what']} relatīvais biežums kopumā būtu vismaz tāds pats kā {fr['p1'][3]}? Atbildē uzrakstiet mazāko iespējamo skaitu.",
-      'Skaits', str(k), f"1) Kopā būs ${fr['p2'][2] + fr['more']}$ mēģinājumu, vajag vismaz ${lvnum(r1)}\\%$ no tiem.\n2) ${lvnum(r1 / 100)} \\cdot {fr['p2'][2] + fr['more']} = {lvnum(need)}$, tātad kopā vajag vismaz ${-(-need // 1)}$.\n3) Jau ir ${fr['p2'][1]}$, tāpēc vēl vajag ${k}$.\nAtbilde: ${k}$.", 'Сложный')
+      'Skaits', str(k), f"1) Kopā būs ${fr['p2'][2] + fr['more']}$ mēģinājumi, vajag vismaz ${lvnum(r1)}\\%$ no tiem.\n2) ${lvnum(r1 / 100)} \\cdot {fr['p2'][2] + fr['more']} = {lvnum(need)}$, tātad kopā vajag vismaz ${-(-need // 1)}$.\n3) Jau ir ${fr['p2'][1]}$, tāpēc vēl vajag ${k}$.\nAtbilde: ${k}$.", 'Сложный')
 
 
 def build_stat(v, d, T):
