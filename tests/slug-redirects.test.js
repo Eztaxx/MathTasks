@@ -24,7 +24,10 @@ describe('public/data/slug-redirects.json', () => {
     for (const name of tables) {
       const olds = new Set(Object.keys(redirects[name]));
       const news = Object.values(redirects[name]);
-      expect(new Set(news).size).toBe(news.length);
+      /* Темы и подтемы только переименовывали — один к одному. Разделы ещё и
+         сливали: снятый kombinatorika-un-varbutibas ведёт в тот же statistika,
+         что и старый statistics. */
+      if (name !== 'subject') expect(new Set(news).size).toBe(news.length);
       for (const to of news) expect(olds.has(to), to).toBe(false);
     }
   });

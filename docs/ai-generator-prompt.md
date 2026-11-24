@@ -111,7 +111,7 @@
 | :--- | :--- |
 | `algebra` | Algebra un skaitļi |
 | `geometrija` | Ģeometrija |
-| `kombinatorika-un-varbutibas` | Kombinatorika un varbūtības |
+| `statistika` | Kombinatorika, varbūtības un statistika |
 
 **10–12 класс** — семь:
 
@@ -125,7 +125,7 @@
 | `statistika` | Kombinatorika, varbūtības un statistika |
 | `matematiskais-analizs` | Matemātiskā analīze (только 12 класс) |
 
-Слаги — латиницей и ровно в таком написании (все латышские; старые `geometry` и `statistics` переименованы 30.09.2026, админка их ещё узнаёт). Слаг не из списка — и тема уедет в «Алгебру».
+Слаги — латиницей и ровно в таком написании (все латышские; старые `geometry` и `statistics` переименованы 30.09.2026, админка их ещё узнаёт; бывший раздел `kombinatorika-un-varbutibas` пуст, админка кладёт такие темы в `statistika`). Слаг не из списка — и тема уедет в «Алгебру».
 
 ## Подтемы
 

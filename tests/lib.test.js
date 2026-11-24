@@ -478,6 +478,27 @@ describe('resolveSubject (Умное распознавание разделов
     expect(resolveSubject('statistics', renamed)?.id).toBe(3);
   });
 
+  it('без пустого раздела 27 комбинаторика и вероятность ложатся в statistika', () => {
+    const withoutEmpty = sampleSubjects
+      .filter(s => s.id !== 27)
+      .map(s => ({ ...s, slug: { geometry: 'geometrija', statistics: 'statistika' }[s.slug] || s.slug }));
+    expect(resolveSubject('kombinatorika-un-varbutibas', withoutEmpty)?.id).toBe(3);
+    expect(resolveSubject('Комбинаторика и вероятности', withoutEmpty)?.id).toBe(3);
+    expect(resolveSubject('Kombinatorika un varbūtības', withoutEmpty)?.id).toBe(3);
+  });
+
+  it('пока пустой раздел 27 ещё в базе, его слаг и названия всё равно ведут в statistika', () => {
+    const withEmpty = sampleSubjects
+      .map(s => ({ ...s, slug: { geometry: 'geometrija', statistics: 'statistika' }[s.slug] || s.slug }));
+    expect(resolveSubject('kombinatorika-un-varbutibas', withEmpty)?.id).toBe(3);
+    expect(resolveSubject('kombinatorika_un_varbutibas', withEmpty)?.id).toBe(3);
+    expect(resolveSubject('Комбинаторика и вероятности', withEmpty)?.id).toBe(3);
+    expect(resolveSubject('Kombinatorika un varbūtības', withEmpty)?.id).toBe(3);
+    expect(resolveSubject('kombinatorika', withEmpty)?.id).toBe(3);
+    expect(resolveSubject('вероятность', withEmpty)?.id).toBe(3);
+    expect(resolveSubject('statistika', withEmpty)?.id).toBe(3);
+  });
+
   it('возвращает null для несуществующего раздела', () => {
     expect(resolveSubject('astronomy', sampleSubjects)).toBeNull();
     expect(resolveSubject('', sampleSubjects)).toBeNull();

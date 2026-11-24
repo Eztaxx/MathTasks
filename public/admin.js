@@ -4287,6 +4287,11 @@ ${JSON.stringify(texts)}`;
     const clean = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9а-яё]/gi, '');
     if (!clean) return null;
 
+    if (clean === 'kombinatorikaunvarbutibas' || clean === 'комбинаторикаивероятности') {
+      const target = subjectsList.find(s => s.slug === 'statistika');
+      if (target) return target;
+    }
+
     const directSlug = subjectsList.find(s => s.slug?.toLowerCase() === raw);
     if (directSlug) return directSlug;
 
@@ -4305,7 +4310,7 @@ ${JSON.stringify(texts)}`;
       { keys: ['trigonometr', 'тригонометр'], slug: 'trigonometrija' },
       { keys: ['funkcij', 'function', 'функци'], slug: 'funkcijas' },
       { keys: ['statist', 'статист'], slug: 'statistika' },
-      { keys: ['kombinatorik', 'varbutib', 'комбинаторик', 'вероятност'], slug: 'kombinatorika-un-varbutibas' },
+      { keys: ['kombinatorik', 'varbutib', 'комбинаторик', 'вероятност'], slug: 'statistika' },
       { keys: ['analiz', 'calculus', 'анализ'], slug: 'matematiskais-analizs' }
     ];
     for (const rule of ALIAS_RULES) {

@@ -22,7 +22,7 @@ describe('Skola2030 Topics Catalog (JSON & Database integrity)', () => {
   it('каждая тема имеет корректный класс, уникальный слаг, раздел, оба перевода и подтемы', () => {
     const content = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
     const validSubjects = ['algebra', 'geometrija', 'statistika', 'funkcijas', 'trigonometrija',
-      'planimetrija', 'stereometrija', 'matematiskais-analizs', 'kombinatorika-un-varbutibas'];
+      'planimetrija', 'stereometrija', 'matematiskais-analizs'];
     const slugs = new Set();
 
     content.forEach(topic => {
