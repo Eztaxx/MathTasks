@@ -4667,6 +4667,13 @@ let currentExamAllTasks = [];
 let currentExamParts = null;
 let currentExamPointsById = new Map();
 let currentCwPaperSlug = null;
+/* Результат для учителя (worker/cw.js): какая работа и номер попытки.
+   Номер создаётся при сдаче; пересчёт после «Ответ всё же совпал» шлёт тот же
+   номер, и строка у учителя обновляется, а не дублируется. */
+let currentCwPaper = null;
+let currentCwAttempt = null;
+let currentCwNick = '';
+const CW_NICK_KEY = 'math-tasks:cw-nick';
 
 /* ── Честный режим контрольной и экзамена ──────────────────────────
    Пока идёт работа, уход со страницы — другая вкладка, другое приложение,
@@ -4880,6 +4887,8 @@ function setCwMode(mode, kind = null) {
   currentCwMode = mode;
   currentExamKind = kind;
   currentCwPaperSlug = null;
+  currentCwPaper = null;
+  currentCwAttempt = null;
   if (mode !== 'exam') currentExamSession = null;
   currentExamAllTasks = [];
   currentExamParts = null;
@@ -4891,6 +4900,9 @@ function setCwMode(mode, kind = null) {
   currentCwSubmitted = false;
   currentCwAccepted = new Set();
   showCwWorkBars(false);
+  const nickWrap = document.querySelector('#cw-nick-wrap');
+  if (nickWrap) nickWrap.hidden = mode !== 'cw';
+  if (mode === 'cw') fillCwNick();
   const tr = window.MathTasks.t || (k => k);
   const badge = document.querySelector('.cw-badge');
   const badgeKey = mode === 'exam' ? 'exam_badge' : 'cw_badge';
@@ -5426,6 +5438,7 @@ async function startControlWork(slug) {
     : (window.MathTasksLib?.selectControlWorkTasks ? window.MathTasksLib.selectControlWorkTasks(data) : data.slice(0, 5));
   const cwMinutes = paperTasks.length ? window.MathTasksLib.paperMinutes(paper) : 40;
   if (paperTasks.length && titleEl) titleEl.textContent = paperTitle(paper);
+  currentCwPaper = paperTasks.length ? paper : null;
   currentCwTopic = topic;
   currentCwTasks = cwTasks;
   currentCwUserAnswers = {};
@@ -5447,6 +5460,7 @@ async function runCwPaper(paper) {
   const list = document.querySelector('#cw-task-list');
   currentCwTopic = null;
   currentCwPaperSlug = paper.slug;
+  currentCwPaper = paper;
   const title = paperTitle(paper);
   const crumbs = document.querySelector('#cw-breadcrumb');
   if (crumbs) {
@@ -5568,6 +5582,12 @@ function submitControlWork(isTimeout = false) {
   }
   currentCwViolations = cwGuard().violations;
   currentCwElapsedSec = elapsedSec;
+  if (currentCwMode === 'cw') {
+    currentCwAttempt = newAttemptId();
+    currentCwNick = readCwNick();
+    const nickInput = document.querySelector('#cw-nick');
+    if (nickInput) nickInput.disabled = true;
+  }
   endCwGuard();
   showCwWorkBars(false);
 
@@ -5597,6 +5617,207 @@ function submitControlWork(isTimeout = false) {
   renderCwOutcome(true);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+/* ── Результат контрольной — учителю ──
+   Ник ученик вписывает в шапке работы (поле #cw-nick); пустой ник —
+   ничего не отправляем. Сбой сети работу не ломает: результат на экране
+   остаётся, а строка под итогом честно говорит, ушёл ли он учителю. */
+const newAttemptId = () => {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+  const b = window.crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+};
+function readCwNick() {
+  const input = document.querySelector('#cw-nick');
+  const nick = String(input?.value || '').trim().slice(0, 24);
+  try {
+    // Стёртое поле стирает и запомненный ник: следующая работа не уйдёт сама.
+    if (nick) localStorage.setItem(CW_NICK_KEY, nick);
+    else localStorage.removeItem(CW_NICK_KEY);
+  } catch { /* приватный режим — ник просто не запомнится */ }
+  return nick;
+}
+function fillCwNick() {
+  const input = document.querySelector('#cw-nick');
+  if (!input) return;
+  input.disabled = false;
+  /* Только ник, вписанный в это поле раньше. Ник дуэли или профиля сюда не
+     подставляем: результат уходит учителю, только если ученик сам решил. */
+  let saved = '';
+  try {
+    saved = localStorage.getItem(CW_NICK_KEY) || '';
+  } catch { saved = ''; }
+  if (!input.value) input.value = saved.slice(0, 24);
+}
+function showCwSentNote(key, attempt) {
+  // Надпись — только про работу, которая сейчас на экране.
+  if (attempt && attempt !== currentCwAttempt) return;
+  const note = document.querySelector('#cw-sent-note');
+  if (!note) return;
+  const tr = window.MathTasks.t || (k => k);
+  note.hidden = !key;
+  if (key) note.dataset.i18n = key;
+  else delete note.dataset.i18n;
+  note.textContent = key ? tr(key) : '';
+  const retry = document.querySelector('#cw-sent-retry');
+  if (retry) retry.hidden = key !== 'cw_sent_fail';
+}
+
+/* Отправка учителю. Неотправленный результат лежит в «почтовом ящике»
+   localStorage: закрытая вкладка дошлёт его при следующем заходе на сайт.
+   Запрос всегда один: следующий уходит после ответа на предыдущий, поэтому
+   поздний «Ответ всё же совпал» не перезапишется ранним. Первая отправка —
+   со случайной паузой до 8 с, чтобы класс, сдавший по звонку, не упёрся
+   разом в счётчик частоты по школьному адресу. */
+const CW_OUTBOX_KEY = 'math-tasks:cw-outbox';
+const CW_OUTBOX_TTL = 24 * 3600 * 1000;
+let cwOutboxMemory = {};
+let cwSending = false;
+let cwFlushTimer = null;
+let cwRetryCount = 0;
+function readCwOutbox() {
+  let box = cwOutboxMemory;
+  try {
+    const raw = localStorage.getItem(CW_OUTBOX_KEY);
+    if (raw !== null) box = JSON.parse(raw) || {};
+  } catch { box = cwOutboxMemory; }
+  const now = Date.now();
+  const fresh = {};
+  Object.entries(box && typeof box === 'object' ? box : {})
+    .filter(([, item]) => item && item.body && now - Number(item.at || 0) < CW_OUTBOX_TTL)
+    .sort((a, b) => b[1].at - a[1].at)
+    .slice(0, 5)
+    .forEach(([key, item]) => { fresh[key] = item; });
+  return fresh;
+}
+function writeCwOutbox(box) {
+  cwOutboxMemory = box;
+  try {
+    if (Object.keys(box).length) localStorage.setItem(CW_OUTBOX_KEY, JSON.stringify(box));
+    else localStorage.removeItem(CW_OUTBOX_KEY);
+  } catch {
+    // Нет места или приватный режим — ящик живёт во вкладке; старую копию
+    // убираем, чтобы чтение не взяло её вместо свежей.
+    try { localStorage.removeItem(CW_OUTBOX_KEY); } catch { /* ничего */ }
+  }
+}
+function scheduleCwFlush(delayMs) {
+  clearTimeout(cwFlushTimer);
+  cwFlushTimer = setTimeout(flushCwOutbox, Math.max(0, delayMs));
+}
+async function flushCwOutbox() {
+  if (cwSending) return;
+  const box = readCwOutbox();
+  const entry = Object.entries(box).sort((a, b) => a[1].at - b[1].at)[0];
+  if (!entry) return;
+  const [attempt, item] = entry;
+  cwSending = true;
+  let outcome = 'retry';
+  try {
+    const response = await fetch('/api/cw/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item.body)
+    });
+    if (response.ok) {
+      const data = await response.json().catch(() => null);
+      outcome = data?.ok === true ? 'ok' : 'rejected';
+    } else if (response.status !== 429 && response.status < 500) {
+      outcome = 'rejected';
+    }
+  } catch {
+    outcome = 'retry';
+  }
+  cwSending = false;
+  if (outcome !== 'retry') {
+    // Пока шёл запрос, ученик мог отметить ещё задачу — тогда в ящике уже
+    // новая версия, и её надо отправить, а не выбросить.
+    const now = readCwOutbox();
+    if (now[attempt]?.version === item.version) {
+      delete now[attempt];
+      writeCwOutbox(now);
+      showCwSentNote(outcome === 'ok' ? 'cw_sent_ok' : 'cw_sent_rejected', attempt);
+    }
+    cwRetryCount = 0;
+    if (Object.keys(readCwOutbox()).length) scheduleCwFlush(1000);
+    return;
+  }
+  cwRetryCount += 1;
+  if (cwRetryCount > 6) {
+    // Сдаёмся до следующего захода или кнопки «Отправить ещё раз»; ящик цел.
+    cwRetryCount = 0;
+    showCwSentNote('cw_sent_fail', attempt);
+    return;
+  }
+  showCwSentNote('cw_sent_waiting', attempt);
+  const pause = Math.min(300000, 15000 * 2 ** (cwRetryCount - 1));
+  scheduleCwFlush(pause + Math.random() * pause * 0.5);
+}
+function retryCwSend() {
+  cwRetryCount = 0;
+  showCwSentNote('cw_sent_sending');
+  scheduleCwFlush(0);
+}
+function sendCwResult(gradedResults, gradeInfo, elapsedSec, violations, firstRun) {
+  if (!currentCwAttempt || Array.from(currentCwNick).length < 2) {
+    showCwSentNote(currentCwAttempt && firstRun ? 'cw_sent_no_nick' : '');
+    return;
+  }
+  const paper = currentCwPaper;
+  const body = {
+    attempt: currentCwAttempt,
+    nick: currentCwNick,
+    kind: paper ? 'paper' : 'topic',
+    paperId: paper ? paper.id : null,
+    topicId: currentCwTopic ? currentCwTopic.id : (paper?.topic_id ?? null),
+    slug: paper ? paper.slug : (currentCwTopic?.slug || ''),
+    title: paper ? paperTitle(paper) : (currentCwTopic ? topicTitleOf(currentCwTopic) : ''),
+    score: gradeInfo.score,
+    total: gradeInfo.total,
+    grade: Number.isInteger(gradeInfo.grade) ? gradeInfo.grade : null,
+    timeSec: Math.max(0, Math.round(elapsedSec || 0)),
+    violations: violations || 0,
+    lang: window.MathTasksI18n?.getLang?.() === 'ru' ? 'ru' : 'lv',
+    answers: gradedResults.map(item => ({
+      taskId: item.task.id, ok: Boolean(item.isCorrect), accepted: Boolean(item.accepted),
+      answer: Array.from(String(item.userAns || '')).slice(0, 80).join('')
+    }))
+  };
+  const box = readCwOutbox();
+  const previous = box[currentCwAttempt];
+  box[currentCwAttempt] = { body, at: previous?.at || Date.now(), version: (previous?.version || 0) + 1 };
+  writeCwOutbox(box);
+  showCwSentNote('cw_sent_sending');
+  cwRetryCount = 0;
+  // Несколько «совпал» подряд склеиваются в одну отправку.
+  if (!cwSending) scheduleCwFlush(firstRun ? Math.random() * 8000 : 3000);
+}
+// Результат, не ушедший в прошлый раз (закрыли вкладку, не было сети), — дослать;
+// просроченное (старше суток) — стереть, как обещает политика.
+setTimeout(() => {
+  const box = readCwOutbox();
+  writeCwOutbox(box);
+  if (Object.keys(box).length) flushCwOutbox();
+}, 4000 + Math.random() * 6000);
+// Закрывают вкладку до первой отправки (она ждёт до 8 с) — отправляем сразу.
+window.addEventListener('pagehide', () => {
+  if (cwSending) return;
+  const entry = Object.entries(readCwOutbox()).find(([attempt]) => attempt === currentCwAttempt);
+  if (!entry) return;
+  try {
+    fetch('/api/cw/submit', {
+      method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry[1].body)
+    }).catch(() => {});
+  } catch { /* ящик дошлёт при следующем заходе */ }
+});
+document.addEventListener('click', event => {
+  if (!event.target.closest('#cw-sent-retry')) return;
+  event.preventDefault();
+  retryCwSend();
+});
 
 /* Итог работы: сколько верных, оценка, разбор каждой задачи. Считаем заново
    и после сдачи — ученик мог отметить «Ответ всё же совпал», и тогда всё,
@@ -5710,6 +5931,7 @@ function renderCwOutcome(firstRun) {
             ${violations ? `<div class="cw-result-stat cw-result-violations"><span>${escapeHtml(tr('cw_violations_line', { count: violations }))}</span></div>` : ''}
           </div>
           <p class="cw-result-notice">💡 ${escapeHtml(tr('cw_solutions_unlocked'))}</p>
+          ${currentCwMode === 'cw' ? `<p class="cw-result-notice cw-sent-note" id="cw-sent-note" hidden></p><button type="button" class="secondary-button cw-sent-retry" id="cw-sent-retry" hidden>${escapeHtml(tr('cw_sent_retry'))}</button>` : ''}
           ${examScore ? `<p class="cw-result-notice exam-answer-note">${escapeHtml(tr('exam_answer_only_note'))}</p>` : ''}
         </div>
       </div>
@@ -5724,6 +5946,9 @@ function renderCwOutcome(firstRun) {
       </div>
     `;
   }
+
+  // Учителю — после того как итог на экране: строка о доставке живёт в карточке итога.
+  if (currentCwMode === 'cw') sendCwResult(gradedResults, gradeInfo, elapsedSec, violations, firstRun);
 
   gradedResults.forEach(({ task, userAns, correctAns, isCorrect, accepted }) => {
     const card = document.querySelector(`#cw-task-${task.id}`);

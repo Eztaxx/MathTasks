@@ -1813,6 +1813,15 @@ html.dark .progress-day.l4, html.dark .progress-legend .l4 { background: var(--p
   background: var(--blue-tint); color: var(--ink-1); font-size: 15px; font-weight: 600;
 }
 .cw-guard-note { margin: 12px 0 0; padding: 12px 16px; border: 0; background: var(--red-tint); color: var(--red-ink); font-size: 15px; }
+.cw-nick { display: grid; gap: 6px; margin: 12px 0 0; max-width: 420px; }
+.cw-nick[hidden] { display: none; }
+.cw-nick label { font-size: 15px; font-weight: 700; color: var(--ink-1); }
+.cw-nick input { min-height: 44px; padding: 8px 12px; border: 2px solid var(--rule-2); border-radius: 0; background: var(--sheet); color: var(--ink-1); font: inherit; font-size: 16px; }
+.cw-nick input:focus-visible { outline: 3px solid var(--nb-blue); outline-offset: 2px; }
+.cw-nick input:disabled { opacity: .7; }
+.cw-nick small { font-size: 14px; color: var(--ink-2); }
+.cw-sent-note { margin-top: 8px; font-weight: 600; }
+.cw-sent-retry { margin-top: 8px; }
 .cw-header-timer {
   display: flex; flex-direction: column; gap: 2px; padding: 16px 20px; border: 0;
   background: var(--bar); color: var(--bar-ink);
@@ -2342,6 +2351,12 @@ html.dark :is(.adm-seg-btn, .adm-lang-btn, .adm-diff-btn, .adm-preview-lang-btn)
   border-top: 1px solid var(--rule); background: none;
 }
 .adm-queue-row:hover, .adm-trow:hover, .adm-cat3-row:hover { background: var(--yellow-tint); }
+.adm-results-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.adm-results-filters select, .adm-results-filters input { min-height: 36px; padding: 4px 8px; border: 2px solid var(--rule-2); background: var(--sheet); color: var(--ink-1); font: inherit; font-size: 14px; }
+.adm-result-answers { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 16px; margin: 10px 0 0; padding-left: 28px; font-size: 14px; }
+.adm-result-answers li.is-ok > span { color: var(--ok, #1e7a3c); font-weight: 700; }
+.adm-result-answers li.is-bad > span { color: var(--red-ink); font-weight: 700; }
+.adm-result-answers small { color: var(--ink-3); }
 .adm-queue-id, .adm-review-id, .adm-publish-id, .adm-tnum, .adm-report-id, .adm-cat3-code, .adm-crumb-code, .adm-pop-code {
   font-family: var(--f-ui); font-weight: 700; color: var(--ink-3);
 }

@@ -120,7 +120,8 @@ async function checkVisitor(who, token, userId) {
     ['task_reports', 'сообщения об ошибках'],
     ['exam_papers?is_published=eq.false', 'черновики работ'],
     ['duel_runs', 'записи дуэлей напрямую'],
-    ['profile_transfer_codes', 'коды переноса профилей']
+    ['profile_transfer_codes', 'коды переноса профилей'],
+    ['cw_submissions', 'результаты контрольных учеников']
   ]) {
     const result = await rest('GET', `${table}${table.includes('?') ? '&' : '?'}select=*&limit=5`, H);
     rows(result).length ? fail(who, `читает ${what}`, `${rows(result).length} строк`) : pass(who, `${what} не читаются`);
@@ -148,7 +149,8 @@ async function checkVisitor(who, token, userId) {
     profiles: { id: '00000000-0000-4000-8000-000000000000', role: 'admin' },
     duel_runs: { cat: 'mix', diff: 'normal', gen: 1, seed: 1, nick: TAG, correct: 80, attempted: 80, verified: true, ranked: true },
     student_profiles: { nick: TAG },
-    profile_transfer_codes: { code_hash: TAG, profile_id: '00000000-0000-4000-8000-000000000000', expires_at: '2099-01-01T00:00:00Z' }
+    profile_transfer_codes: { code_hash: TAG, profile_id: '00000000-0000-4000-8000-000000000000', expires_at: '2099-01-01T00:00:00Z' },
+    cw_submissions: { attempt: '00000000-0000-4000-8000-000000000000', nick: TAG.slice(0, 24), kind: 'topic', slug: 'x', score: 0, total: 1, percent: 0 }
   };
   for (const [table, body] of Object.entries(inserts)) {
     const result = await rest('POST', table, H, body);

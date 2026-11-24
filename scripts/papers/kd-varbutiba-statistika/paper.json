@@ -1,0 +1,883 @@
+{
+ "grade": 10,
+ "papers": [
+  {
+   "slug": "kd-varbutiba-statistika-a",
+   "title": "Kontroldarbs: Varbūtība un statistika (A variants)",
+   "minutes": 50,
+   "topics": [
+    "visp-kopas-un-varbutiba",
+    "visp-statistikas-elementi"
+   ],
+   "tasks": [
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD A: varbūtība, ka zila",
+     "c": "Kastē ir $6$ sarkanas, $9$ zilas un $5$ zaļas bumbiņas. No kastes uz labu laimi izvelk vienu bumbiņu. Aprēķiniet varbūtību, ka tā ir zila. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{9}{20}$",
+     "s": "1) Visu iznākumu skaits: $n = 20$.\n2) Labvēlīgo iznākumu skaits: $m = 9$.\n3) $P = \\dfrac{9}{20}$.\nAtbilde: $\\dfrac{9}{20}$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD A: varbūtība, ka nav zaļa",
+     "c": "Kastē ir $6$ sarkanas, $9$ zilas un $5$ zaļas bumbiņas. No kastes uz labu laimi izvelk vienu bumbiņu. Aprēķiniet varbūtību, ka tā nav zaļa. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{3}{4}$",
+     "s": "1) Pretējā notikuma labvēlīgo iznākumu skaits: $5$ no $20$: $P = \\dfrac{5}{20}$.\n2) $P = 1 - \\dfrac{5}{20} = \\dfrac{15}{20} = \\dfrac{3}{4}$.\nAtbilde: $\\dfrac{3}{4}$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD A: neiespējama notikuma varbūtība",
+     "c": "Kastē ir $6$ sarkanas, $9$ zilas un $5$ zaļas bumbiņas. No kastes uz labu laimi izvelk vienu bumbiņu. Kāda ir varbūtība, ka tā ir dzeltena?",
+     "a": "$\\text{Varbūtība} = 0$",
+     "s": "1) Labvēlīgo iznākumu nav: $m = 0$.\n2) Tas ir neiespējams notikums, $P = \\dfrac{0}{20} = 0$.\nAtbilde: $0$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD A: cik pielika, lai mainītos varbūtība",
+     "c": "Kastē ir $6$ sarkanas, $9$ zilas un $5$ zaļas bumbiņas. Kastē ielika vēl dažas zaļas bumbiņas. Tagad varbūtība uz labu laimi izvilkt zaļu bumbiņu ir $\\dfrac{2}{5}$. Cik zaļo bumbiņu ielika?",
+     "a": "$\\text{Skaits} = 5$",
+     "s": "1) Pieliek $x$; tagad labvēlīgo ir $5 + x$, visu $20 + x$.\n2) $\\dfrac{5 + x}{20 + x} = \\dfrac{2}{5}$.\n3) $5(5 + x) = 2(20 + x)$, tātad $x = 5$.\n4) Pārbaude: $\\dfrac{10}{25} = \\dfrac{2}{5}$.\nAtbilde: $5$.",
+     "d": "Сложный",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD A: kauliņi: iznākumi, kad summa ir 7",
+     "c": "Vienlaikus met divus metamos kauliņus — baltu un melnu — un saskaita uzmesto punktu skaitu. Cik ir tādu iznākumu, kuros summa ir $7$?",
+     "a": "$\\text{Iznākumi} = 6$",
+     "s": "1) Iznākumu tabulā ir $6 \\cdot 6 = 36$ iznākumi.\n2) Saskaitām rūtiņas, kur summa ir $7$: to ir $6$.\nAtbilde: $6$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD A: kauliņi: summa ir pāra skaitlis",
+     "c": "Vienlaikus met divus metamos kauliņus — baltu un melnu — un saskaita uzmesto punktu skaitu. Aprēķiniet varbūtību, ka summa ir pāra skaitlis. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{1}{2}$",
+     "s": "1) Visu iznākumu skaits: $36$.\n2) Labvēlīgo iznākumu skaits tabulā: $18$.\n3) $P = \\dfrac{18}{36} = \\dfrac{1}{2}$.\nAtbilde: $\\dfrac{1}{2}$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD A: kauliņi: summa ir vismaz 10",
+     "c": "Vienlaikus met divus metamos kauliņus — baltu un melnu — un saskaita uzmesto punktu skaitu. Aprēķiniet varbūtību, ka summa ir vismaz $10$. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{1}{6}$",
+     "s": "1) Visu iznākumu skaits: $36$.\n2) Labvēlīgo iznākumu skaits tabulā: $6$.\n3) $P = \\dfrac{6}{36} = \\dfrac{1}{6}$.\nAtbilde: $\\dfrac{1}{6}$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD A: kauliņi: vismaz uz viena kauliņa uzkrīt 6 punkti",
+     "c": "Vienlaikus met divus metamos kauliņus — baltu un melnu — un saskaita uzmesto punktu skaitu. Aprēķiniet varbūtību, ka vismaz uz viena kauliņa uzkrīt $6$ punkti. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{11}{36}$",
+     "s": "1) Visu iznākumu skaits: $36$.\n2) Rinda un kolonna kopā: $6 + 6 - 1 = 11$ (kopīgā rūtiņa skaitīta vienreiz).\n3) $P = \\dfrac{11}{36} = \\dfrac{11}{36}$.\nAtbilde: $\\dfrac{11}{36}$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD A: Jāņa relatīvais biežums",
+     "c": "Treniņā Jānis no $24$ soda metieniem trāpīja $18$ reizes, bet Pēteris no $30$ soda metieniem trāpīja $21$ reizi. Aprēķiniet Jāņa relatīvo biežumu procentos.",
+     "a": "$\\text{Biežums} = 75\\%$",
+     "s": "1) $\\dfrac{18}{24} = 0{,}75$.\n2) $0{,}75 \\cdot 100\\% = 75\\%$.\nAtbilde: $75\\%$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD A: Pētera relatīvais biežums",
+     "c": "Treniņā Jānis no $24$ soda metieniem trāpīja $18$ reizes, bet Pēteris no $30$ soda metieniem trāpīja $21$ reizi. Aprēķiniet Pētera relatīvo biežumu procentos.",
+     "a": "$\\text{Biežums} = 70\\%$",
+     "s": "1) $\\dfrac{21}{30} = 0{,}7$.\n2) $0{,}7 \\cdot 100\\% = 70\\%$.\nAtbilde: $70\\%$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD A: relatīvo biežumu salīdzinājums",
+     "c": "Treniņā Jānis no $24$ soda metieniem trāpīja $18$ reizes, bet Pēteris no $30$ soda metieniem trāpīja $21$ reizi. Par cik procentpunktiem Jāņa relatīvais biežums ir lielāks nekā Pētera?",
+     "a": "$\\text{Starpība} = 5$",
+     "s": "1) Jāņa biežums: $75\\%$, Pētera: $70\\%$.\n2) $75 - 70 = 5$.\n3) Lai gan Pēterim veiksmīgo mēģinājumu skaits ir lielāks, salīdzina relatīvos biežumus.\nAtbilde: $5$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD A: cik vēl jātrāpa",
+     "c": "Treniņā Jānis no $24$ soda metieniem trāpīja $18$ reizes, bet Pēteris no $30$ soda metieniem trāpīja $21$ reizi. Pēteris izpildīs vēl $10$ soda metienus. Cik no tiem jātrāpa, lai Pētera relatīvais biežums kopā būtu vismaz tāds pats kā Jāņa? Atbildē uzrakstiet mazāko iespējamo skaitu.",
+     "a": "$\\text{Skaits} = 9$",
+     "s": "1) Kopā būs $40$ mēģinājumi, vajag vismaz $75\\%$ no tiem.\n2) $0{,}75 \\cdot 40 = 30$, tātad kopā vajag vismaz $30$.\n3) Jau ir $21$, tāpēc vēl vajag $9$.\nAtbilde: $9$.",
+     "d": "Сложный",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: aptaujāto skolēnu skaits",
+     "c": "Klases skolēniem jautāja, cik grāmatu viņi izlasīja oktobrī. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — izlasīto grāmatu skaits, uz vertikālās — skolēnu skaits. Cik skolēnu piedalījās aptaujā?",
+     "a": "$\\text{Skolēni} = 25$",
+     "s": "1) Saskaitām stabiņu augstumus: $2 + 5 + 8 + 6 + 3 + 1 = 25$.\nAtbilde: $25$.",
+     "d": "Лёгкий",
+     "fig": "A-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: relatīvais biežums procentos",
+     "c": "Klases skolēniem jautāja, cik grāmatu viņi izlasīja oktobrī. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — izlasīto grāmatu skaits, uz vertikālās — skolēnu skaits. Cik procentu skolēnu atbildēja «$2$»?",
+     "a": "$\\text{Biežums} = 32\\%$",
+     "s": "1) Atbildi «$2$» deva $8$ skolēni no $25$.\n2) $\\dfrac{8}{25} \\cdot 100\\% = 32\\%$.\nAtbilde: $32\\%$.",
+     "d": "Лёгкий",
+     "fig": "A-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: datu moda",
+     "c": "Klases skolēniem jautāja, cik grāmatu viņi izlasīja oktobrī. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — izlasīto grāmatu skaits, uz vertikālās — skolēnu skaits. Nosakiet datu modu.",
+     "a": "$\\text{Moda} = 2$",
+     "s": "1) Augstākais stabiņš ir pie vērtības $2$ ($8$ skolēni).\n2) Moda ir vērtība, nevis tās biežums.\nAtbilde: $2$.",
+     "d": "Лёгкий",
+     "fig": "A-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: datu amplitūda",
+     "c": "Klases skolēniem jautāja, cik grāmatu viņi izlasīja oktobrī. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — izlasīto grāmatu skaits, uz vertikālās — skolēnu skaits. Nosakiet datu amplitūdu.",
+     "a": "$\\text{Amplitūda} = 5$",
+     "s": "1) Lielākā vērtība $5$, mazākā $0$.\n2) $5 - 0 = 5$.\nAtbilde: $5$.",
+     "d": "Лёгкий",
+     "fig": "A-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: mediāna pēc diagrammas",
+     "c": "Klases skolēniem jautāja, cik grāmatu viņi izlasīja oktobrī. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — izlasīto grāmatu skaits, uz vertikālās — skolēnu skaits. Nosakiet datu mediānu.",
+     "a": "$\\text{Mediāna} = 2$",
+     "s": "1) Datu skaits $25$, mediāna ir $13.$ vērtība sakārtotajā rindā.\n2) Uzkrātie biežumi: $2; 7; 15; 21; 24; 25$.\n3) Mediāna: $2$.\nAtbilde: $2$.",
+     "d": "Средний",
+     "fig": "A-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: vidējā vērtība pēc diagrammas",
+     "c": "Klases skolēniem jautāja, cik grāmatu viņi izlasīja oktobrī. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — izlasīto grāmatu skaits, uz vertikālās — skolēnu skaits. Aprēķiniet, cik grāmatu vidēji izlasīja viens skolēns.",
+     "a": "$\\text{Vidējais} = 2{,}24$",
+     "s": "1) Reizinājumu summa: $0 \\cdot 2 + 1 \\cdot 5 + 2 \\cdot 8 + 3 \\cdot 6 + 4 \\cdot 3 + 5 \\cdot 1 = 56$.\n2) $\\bar x = \\dfrac{56}{25} = 2{,}24$.\nAtbilde: $2{,}24$.",
+     "d": "Средний",
+     "fig": "A-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: daļa procentos ar nosacījumu",
+     "c": "Klases skolēniem jautāja, cik grāmatu viņi izlasīja oktobrī. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — izlasīto grāmatu skaits, uz vertikālās — skolēnu skaits. Cik procentu skolēnu atbildēja vismaz «$3$»?",
+     "a": "$\\text{Daļa} = 40\\%$",
+     "s": "1) Vismaz $3$: $6 + 3 + 1 = 10$ skolēni.\n2) $\\dfrac{10}{25} \\cdot 100\\% = 40\\%$.\nAtbilde: $40\\%$.",
+     "d": "Средний",
+     "fig": "A-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: jaunā vidējā vērtība",
+     "c": "Klases skolēniem jautāja, cik grāmatu viņi izlasīja oktobrī. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — izlasīto grāmatu skaits, uz vertikālās — skolēnu skaits. Klasē ienāca jauns skolēns, kurš oktobrī izlasīja $9$ grāmatas. Kāda tagad ir vidējā vērtība?",
+     "a": "$\\text{Vidējais} = 2{,}5$",
+     "s": "1) Līdzšinējā summa $56$, jaunā $56 + 9 = 65$.\n2) Datu skaits $26$.\n3) $\\dfrac{65}{26} = 2{,}5$.\nAtbilde: $2{,}5$.",
+     "d": "Сложный",
+     "fig": "A-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: amplitūda no datu rindas",
+     "c": "$12$ skolēni pierakstīja, cik minūtes viņi pavada ceļā uz skolu: $5$; $8$; $12$; $7$; $15$; $20$; $10$; $9$; $25$; $14$; $6$; $11$. Nosakiet datu amplitūdu.",
+     "a": "$\\text{Amplitūda} = 20$",
+     "s": "1) Sakārtojam: $5; 6; 7; 8; 9; 10; 11; 12; 14; 15; 20; 25$.\n2) $25 - 5 = 20$.\nAtbilde: $20$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: mediāna no datu rindas",
+     "c": "$12$ skolēni pierakstīja, cik minūtes viņi pavada ceļā uz skolu: $5$; $8$; $12$; $7$; $15$; $20$; $10$; $9$; $25$; $14$; $6$; $11$. Nosakiet datu mediānu.",
+     "a": "$\\text{Mediāna} = 10{,}5$",
+     "s": "1) Sakārtojam: $5; 6; 7; 8; 9; 10; 11; 12; 14; 15; 20; 25$.\n2) Datu skaits pāra, mediāna ir $6.$ un $7.$ vērtības vidējais: $\\dfrac{10 + 11}{2} = 10{,}5$.\nAtbilde: $10{,}5$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: pirmā kvartile",
+     "c": "$12$ skolēni pierakstīja, cik minūtes viņi pavada ceļā uz skolu: $5$; $8$; $12$; $7$; $15$; $20$; $10$; $9$; $25$; $14$; $6$; $11$. Nosakiet pirmo kvartili $Q_1$.",
+     "a": "$\\text{Kvartile} = 7{,}5$",
+     "s": "1) Apakšējā puse: $5; 6; 7; 8; 9; 10$.\n2) Tās mediāna: $\\dfrac{7 + 8}{2} = 7{,}5$.\nAtbilde: $7{,}5$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: trešā kvartile",
+     "c": "$12$ skolēni pierakstīja, cik minūtes viņi pavada ceļā uz skolu: $5$; $8$; $12$; $7$; $15$; $20$; $10$; $9$; $25$; $14$; $6$; $11$. Nosakiet trešo kvartili $Q_3$.",
+     "a": "$\\text{Kvartile} = 14{,}5$",
+     "s": "1) Augšējā puse: $11; 12; 14; 15; 20; 25$.\n2) Tās mediāna: $\\dfrac{14 + 15}{2} = 14{,}5$.\nAtbilde: $14{,}5$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: starpkvartiļu izkliede",
+     "c": "$12$ skolēni pierakstīja, cik minūtes viņi pavada ceļā uz skolu: $5$; $8$; $12$; $7$; $15$; $20$; $10$; $9$; $25$; $14$; $6$; $11$. Aprēķiniet starpkvartiļu izkliedi $Q_3 - Q_1$.",
+     "a": "$\\text{Izkliede} = 7$",
+     "s": "1) $Q_1 = 7{,}5$, $Q_3 = 14{,}5$.\n2) $14{,}5 - 7{,}5 = 7$.\nAtbilde: $7$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: amplitūda pēc kļūdas labojuma",
+     "c": "$12$ skolēni pierakstīja, cik minūtes viņi pavada ceļā uz skolu: $5$; $8$; $12$; $7$; $15$; $20$; $10$; $9$; $25$; $14$; $6$; $11$. Izrādījās, ka viens skolēns kļūdījās: viņš ceļā pavada nevis $25$, bet $35$ minūtes. Kāda ir datu amplitūda pēc labojuma?",
+     "a": "$\\text{Amplitūda} = 30$",
+     "s": "1) Lielākā vērtība tagad $35$, mazākā $5$.\n2) $35 - 5 = 30$.\n3) Mediāna nemainās ($10{,}5$): lielākās vērtības maiņa vidējos datus neietekmē.\nAtbilde: $30$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: mediānu salīdzinājums",
+     "c": "Divas klases rakstīja vienu un to pašu ieskaiti (maksimāli $40$ punkti). Rezultāti attēloti kastu diagrammās; augšā — 10.a klase, apakšā — 10.b klase. Par cik 10.a klases mediāna atšķiras no 10.b klases mediānas? Atbildē uzrakstiet pozitīvu skaitli.",
+     "a": "$\\text{Starpība} = 2$",
+     "s": "1) Mediāna ir treknā līnija kastē: $24$ un $22$.\n2) $|24 - 22| = 2$.\nAtbilde: $2$.",
+     "d": "Лёгкий",
+     "fig": "A-boxes"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: starpkvartiļu izkliede: 10.a klases",
+     "c": "Divas klases rakstīja vienu un to pašu ieskaiti (maksimāli $40$ punkti). Rezultāti attēloti kastu diagrammās; augšā — 10.a klase, apakšā — 10.b klase. Aprēķiniet 10.a klases starpkvartiļu izkliedi $Q_3 - Q_1$.",
+     "a": "$\\text{Izkliede} = 12$",
+     "s": "1) Kastes malas: $Q_1 = 18$, $Q_3 = 30$.\n2) $30 - 18 = 12$.\nAtbilde: $12$.",
+     "d": "Средний",
+     "fig": "A-boxes"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: starpkvartiļu izkliede: 10.b klases",
+     "c": "Divas klases rakstīja vienu un to pašu ieskaiti (maksimāli $40$ punkti). Rezultāti attēloti kastu diagrammās; augšā — 10.a klase, apakšā — 10.b klase. Aprēķiniet 10.b klases starpkvartiļu izkliedi $Q_3 - Q_1$.",
+     "a": "$\\text{Izkliede} = 5$",
+     "s": "1) Kastes malas: $Q_1 = 20$, $Q_3 = 25$.\n2) $25 - 20 = 5$.\nAtbilde: $5$.",
+     "d": "Средний",
+     "fig": "A-boxes"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: skolēnu skaits virs Q3",
+     "c": "Divas klases rakstīja vienu un to pašu ieskaiti (maksimāli $40$ punkti). Rezultāti attēloti kastu diagrammās; augšā — 10.a klase, apakšā — 10.b klase. 10.b klasē ir $24$ skolēni. Aptuveni cik no viņiem ieguva vismaz $25$ punktus?",
+     "a": "$\\text{Skolēni} = 6$",
+     "s": "1) Robeža sakrīt ar $Q_3 = 25$.\n2) Virs $Q_3$ ir aptuveni ceturtā daļa datu: $24 : 4 = 6$.\nAtbilde: $6$.",
+     "d": "Средний",
+     "fig": "A-boxes"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD A: patiesais apgalvojums par diagrammām",
+     "c": "Divas klases rakstīja vienu un to pašu ieskaiti (maksimāli $40$ punkti). Rezultāti attēloti kastu diagrammās; augšā — 10.a klase, apakšā — 10.b klase. Kurš no apgalvojumiem ir patiess? 1) 10.a klasē vismaz puse skolēnu ieguva vairāk punktu nekā 10.b klases mediāna. 2) 10.a klases vājākais rezultāts ir labāks nekā 10.b klases vājākais rezultāts. 3) 10.b klases rezultātu amplitūda ir lielāka nekā 10.a klasei. Atbildē uzrakstiet apgalvojuma numuru.",
+     "a": "$\\text{Numurs} = 1$",
+     "s": "Pārbaudām katru apgalvojumu pēc diagrammu rādītājiem (minimums, $Q_1$, mediāna, $Q_3$, maksimums: 10.a — $8; 18; 24; 30; 38$, 10.b — $12; 20; 22; 25; 34$).\nPatiess ir tikai $1.$ apgalvojums.\nAtbilde: $1$.",
+     "d": "Сложный",
+     "fig": "A-boxes"
+    }
+   ]
+  },
+  {
+   "slug": "kd-varbutiba-statistika-b",
+   "title": "Kontroldarbs: Varbūtība un statistika (B variants)",
+   "minutes": 50,
+   "topics": [
+    "visp-kopas-un-varbutiba",
+    "visp-statistikas-elementi"
+   ],
+   "tasks": [
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD B: varbūtība, ka karamele",
+     "c": "Maisiņā ir $8$ šokolādes konfektes, $5$ karameles un $7$ marmelādes konfektes. No maisiņa uz labu laimi izņem vienu konfekti. Aprēķiniet varbūtību, ka tā ir karamele. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{1}{4}$",
+     "s": "1) Visu iznākumu skaits: $n = 20$.\n2) Labvēlīgo iznākumu skaits: $m = 5$.\n3) $P = \\dfrac{5}{20} = \\dfrac{1}{4}$.\nAtbilde: $\\dfrac{1}{4}$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD B: varbūtība, ka nav šokolādes konfekte",
+     "c": "Maisiņā ir $8$ šokolādes konfektes, $5$ karameles un $7$ marmelādes konfektes. No maisiņa uz labu laimi izņem vienu konfekti. Aprēķiniet varbūtību, ka tā nav šokolādes konfekte. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{3}{5}$",
+     "s": "1) Pretējā notikuma labvēlīgo iznākumu skaits: $8$ no $20$: $P = \\dfrac{8}{20}$.\n2) $P = 1 - \\dfrac{8}{20} = \\dfrac{12}{20} = \\dfrac{3}{5}$.\nAtbilde: $\\dfrac{3}{5}$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD B: neiespējama notikuma varbūtība",
+     "c": "Maisiņā ir $8$ šokolādes konfektes, $5$ karameles un $7$ marmelādes konfektes. No maisiņa uz labu laimi izņem vienu konfekti. Kāda ir varbūtība, ka tā ir košļājamā gumija?",
+     "a": "$\\text{Varbūtība} = 0$",
+     "s": "1) Labvēlīgo iznākumu nav: $m = 0$.\n2) Tas ir neiespējams notikums, $P = \\dfrac{0}{20} = 0$.\nAtbilde: $0$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD B: cik pielika, lai mainītos varbūtība",
+     "c": "Maisiņā ir $8$ šokolādes konfektes, $5$ karameles un $7$ marmelādes konfektes. Maisiņā ielika vēl dažas karameles. Tagad varbūtība uz labu laimi izņemt karameli ir $\\dfrac{3}{8}$. Cik karameļu ielika?",
+     "a": "$\\text{Skaits} = 4$",
+     "s": "1) Pieliek $x$; tagad labvēlīgo ir $5 + x$, visu $20 + x$.\n2) $\\dfrac{5 + x}{20 + x} = \\dfrac{3}{8}$.\n3) $8(5 + x) = 3(20 + x)$, tātad $x = 4$.\n4) Pārbaude: $\\dfrac{9}{24} = \\dfrac{3}{8}$.\nAtbilde: $4$.",
+     "d": "Сложный",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD B: kauliņi: iznākumi, kad summa ir 8",
+     "c": "Vienlaikus met divus metamos kauliņus — baltu un melnu — un saskaita uzmesto punktu skaitu. Cik ir tādu iznākumu, kuros summa ir $8$?",
+     "a": "$\\text{Iznākumi} = 5$",
+     "s": "1) Iznākumu tabulā ir $6 \\cdot 6 = 36$ iznākumi.\n2) Saskaitām rūtiņas, kur summa ir $8$: to ir $5$.\nAtbilde: $5$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD B: kauliņi: summa ir nepāra skaitlis",
+     "c": "Vienlaikus met divus metamos kauliņus — baltu un melnu — un saskaita uzmesto punktu skaitu. Aprēķiniet varbūtību, ka summa ir nepāra skaitlis. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{1}{2}$",
+     "s": "1) Visu iznākumu skaits: $36$.\n2) Labvēlīgo iznākumu skaits tabulā: $18$.\n3) $P = \\dfrac{18}{36} = \\dfrac{1}{2}$.\nAtbilde: $\\dfrac{1}{2}$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD B: kauliņi: summa nav lielāka par 4",
+     "c": "Vienlaikus met divus metamos kauliņus — baltu un melnu — un saskaita uzmesto punktu skaitu. Aprēķiniet varbūtību, ka summa nav lielāka par $4$. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{1}{6}$",
+     "s": "1) Visu iznākumu skaits: $36$.\n2) Labvēlīgo iznākumu skaits tabulā: $6$.\n3) $P = \\dfrac{6}{36} = \\dfrac{1}{6}$.\nAtbilde: $\\dfrac{1}{6}$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD B: kauliņi: vismaz uz viena kauliņa uzkrīt 1 punkts",
+     "c": "Vienlaikus met divus metamos kauliņus — baltu un melnu — un saskaita uzmesto punktu skaitu. Aprēķiniet varbūtību, ka vismaz uz viena kauliņa uzkrīt $1$ punkts. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{11}{36}$",
+     "s": "1) Visu iznākumu skaits: $36$.\n2) Rinda un kolonna kopā: $6 + 6 - 1 = 11$ (kopīgā rūtiņa skaitīta vienreiz).\n3) $P = \\dfrac{11}{36} = \\dfrac{11}{36}$.\nAtbilde: $\\dfrac{11}{36}$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD B: Annas relatīvais biežums",
+     "c": "Volejbola treniņā Anna no $20$ servēm precīzi izpildīja $17$, bet Līga no $40$ servēm precīzi izpildīja $32$. Aprēķiniet Annas relatīvo biežumu procentos.",
+     "a": "$\\text{Biežums} = 85\\%$",
+     "s": "1) $\\dfrac{17}{20} = 0{,}85$.\n2) $0{,}85 \\cdot 100\\% = 85\\%$.\nAtbilde: $85\\%$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD B: Līgas relatīvais biežums",
+     "c": "Volejbola treniņā Anna no $20$ servēm precīzi izpildīja $17$, bet Līga no $40$ servēm precīzi izpildīja $32$. Aprēķiniet Līgas relatīvo biežumu procentos.",
+     "a": "$\\text{Biežums} = 80\\%$",
+     "s": "1) $\\dfrac{32}{40} = 0{,}8$.\n2) $0{,}8 \\cdot 100\\% = 80\\%$.\nAtbilde: $80\\%$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD B: relatīvo biežumu salīdzinājums",
+     "c": "Volejbola treniņā Anna no $20$ servēm precīzi izpildīja $17$, bet Līga no $40$ servēm precīzi izpildīja $32$. Par cik procentpunktiem Annas relatīvais biežums ir lielāks nekā Līgas?",
+     "a": "$\\text{Starpība} = 5$",
+     "s": "1) Annas biežums: $85\\%$, Līgas: $80\\%$.\n2) $85 - 80 = 5$.\n3) Lai gan Līgai veiksmīgo mēģinājumu skaits ir lielāks, salīdzina relatīvos biežumus.\nAtbilde: $5$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD B: cik vēl jātrāpa",
+     "c": "Volejbola treniņā Anna no $20$ servēm precīzi izpildīja $17$, bet Līga no $40$ servēm precīzi izpildīja $32$. Līga izpildīs vēl $20$ serves. Cik no tiem jāizpilda precīzi, lai Līgas relatīvais biežums kopā būtu vismaz tāds pats kā Annas? Atbildē uzrakstiet mazāko iespējamo skaitu.",
+     "a": "$\\text{Skaits} = 19$",
+     "s": "1) Kopā būs $60$ mēģinājumi, vajag vismaz $85\\%$ no tiem.\n2) $0{,}85 \\cdot 60 = 51$, tātad kopā vajag vismaz $51$.\n3) Jau ir $32$, tāpēc vēl vajag $19$.\nAtbilde: $19$.",
+     "d": "Сложный",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: aptaujāto skolēnu skaits",
+     "c": "Klases skolēniem jautāja, cik reizes pagājušajā nedēļā viņi sportoja ārpus sporta stundām. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — reižu skaits, uz vertikālās — skolēnu skaits. Cik skolēnu piedalījās aptaujā?",
+     "a": "$\\text{Skolēni} = 20$",
+     "s": "1) Saskaitām stabiņu augstumus: $1 + 4 + 5 + 6 + 3 + 1 = 20$.\nAtbilde: $20$.",
+     "d": "Лёгкий",
+     "fig": "B-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: relatīvais biežums procentos",
+     "c": "Klases skolēniem jautāja, cik reizes pagājušajā nedēļā viņi sportoja ārpus sporta stundām. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — reižu skaits, uz vertikālās — skolēnu skaits. Cik procentu skolēnu atbildēja «$3$»?",
+     "a": "$\\text{Biežums} = 30\\%$",
+     "s": "1) Atbildi «$3$» deva $6$ skolēni no $20$.\n2) $\\dfrac{6}{20} \\cdot 100\\% = 30\\%$.\nAtbilde: $30\\%$.",
+     "d": "Лёгкий",
+     "fig": "B-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: datu moda",
+     "c": "Klases skolēniem jautāja, cik reizes pagājušajā nedēļā viņi sportoja ārpus sporta stundām. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — reižu skaits, uz vertikālās — skolēnu skaits. Nosakiet datu modu.",
+     "a": "$\\text{Moda} = 3$",
+     "s": "1) Augstākais stabiņš ir pie vērtības $3$ ($6$ skolēni).\n2) Moda ir vērtība, nevis tās biežums.\nAtbilde: $3$.",
+     "d": "Лёгкий",
+     "fig": "B-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: datu amplitūda",
+     "c": "Klases skolēniem jautāja, cik reizes pagājušajā nedēļā viņi sportoja ārpus sporta stundām. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — reižu skaits, uz vertikālās — skolēnu skaits. Nosakiet datu amplitūdu.",
+     "a": "$\\text{Amplitūda} = 5$",
+     "s": "1) Lielākā vērtība $5$, mazākā $0$.\n2) $5 - 0 = 5$.\nAtbilde: $5$.",
+     "d": "Лёгкий",
+     "fig": "B-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: mediāna pēc diagrammas",
+     "c": "Klases skolēniem jautāja, cik reizes pagājušajā nedēļā viņi sportoja ārpus sporta stundām. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — reižu skaits, uz vertikālās — skolēnu skaits. Nosakiet datu mediānu.",
+     "a": "$\\text{Mediāna} = 2{,}5$",
+     "s": "1) Datu skaits $20$, mediāna ir $10.$ un $11.$ vērtības vidējais sakārtotajā rindā.\n2) Uzkrātie biežumi: $1; 5; 10; 16; 19; 20$.\n3) Mediāna: $2{,}5$.\nAtbilde: $2{,}5$.",
+     "d": "Средний",
+     "fig": "B-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: vidējā vērtība pēc diagrammas",
+     "c": "Klases skolēniem jautāja, cik reizes pagājušajā nedēļā viņi sportoja ārpus sporta stundām. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — reižu skaits, uz vertikālās — skolēnu skaits. Aprēķiniet, cik reizes nedēļā vidēji sportoja viens skolēns.",
+     "a": "$\\text{Vidējais} = 2{,}45$",
+     "s": "1) Reizinājumu summa: $0 \\cdot 1 + 1 \\cdot 4 + 2 \\cdot 5 + 3 \\cdot 6 + 4 \\cdot 3 + 5 \\cdot 1 = 49$.\n2) $\\bar x = \\dfrac{49}{20} = 2{,}45$.\nAtbilde: $2{,}45$.",
+     "d": "Средний",
+     "fig": "B-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: daļa procentos ar nosacījumu",
+     "c": "Klases skolēniem jautāja, cik reizes pagājušajā nedēļā viņi sportoja ārpus sporta stundām. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — reižu skaits, uz vertikālās — skolēnu skaits. Cik procentu skolēnu atbildēja vismaz «$3$»?",
+     "a": "$\\text{Daļa} = 50\\%$",
+     "s": "1) Vismaz $3$: $6 + 3 + 1 = 10$ skolēni.\n2) $\\dfrac{10}{20} \\cdot 100\\% = 50\\%$.\nAtbilde: $50\\%$.",
+     "d": "Средний",
+     "fig": "B-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: jaunā vidējā vērtība",
+     "c": "Klases skolēniem jautāja, cik reizes pagājušajā nedēļā viņi sportoja ārpus sporta stundām. Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — reižu skaits, uz vertikālās — skolēnu skaits. Klasē ienāca jauns skolēns, kurš pagājušajā nedēļā sportoja $14$ reizes. Kāda tagad ir vidējā vērtība?",
+     "a": "$\\text{Vidējais} = 3$",
+     "s": "1) Līdzšinējā summa $49$, jaunā $49 + 14 = 63$.\n2) Datu skaits $21$.\n3) $\\dfrac{63}{21} = 3$.\nAtbilde: $3$.",
+     "d": "Сложный",
+     "fig": "B-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: amplitūda no datu rindas",
+     "c": "$12$ skolēni pierakstīja, cik minūtes viņi vakar lasīja grāmatu: $14$; $22$; $9$; $30$; $18$; $12$; $25$; $16$; $20$; $11$; $35$; $15$. Nosakiet datu amplitūdu.",
+     "a": "$\\text{Amplitūda} = 26$",
+     "s": "1) Sakārtojam: $9; 11; 12; 14; 15; 16; 18; 20; 22; 25; 30; 35$.\n2) $35 - 9 = 26$.\nAtbilde: $26$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: mediāna no datu rindas",
+     "c": "$12$ skolēni pierakstīja, cik minūtes viņi vakar lasīja grāmatu: $14$; $22$; $9$; $30$; $18$; $12$; $25$; $16$; $20$; $11$; $35$; $15$. Nosakiet datu mediānu.",
+     "a": "$\\text{Mediāna} = 17$",
+     "s": "1) Sakārtojam: $9; 11; 12; 14; 15; 16; 18; 20; 22; 25; 30; 35$.\n2) Datu skaits pāra, mediāna ir $6.$ un $7.$ vērtības vidējais: $\\dfrac{16 + 18}{2} = 17$.\nAtbilde: $17$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: pirmā kvartile",
+     "c": "$12$ skolēni pierakstīja, cik minūtes viņi vakar lasīja grāmatu: $14$; $22$; $9$; $30$; $18$; $12$; $25$; $16$; $20$; $11$; $35$; $15$. Nosakiet pirmo kvartili $Q_1$.",
+     "a": "$\\text{Kvartile} = 13$",
+     "s": "1) Apakšējā puse: $9; 11; 12; 14; 15; 16$.\n2) Tās mediāna: $\\dfrac{12 + 14}{2} = 13$.\nAtbilde: $13$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: trešā kvartile",
+     "c": "$12$ skolēni pierakstīja, cik minūtes viņi vakar lasīja grāmatu: $14$; $22$; $9$; $30$; $18$; $12$; $25$; $16$; $20$; $11$; $35$; $15$. Nosakiet trešo kvartili $Q_3$.",
+     "a": "$\\text{Kvartile} = 23{,}5$",
+     "s": "1) Augšējā puse: $18; 20; 22; 25; 30; 35$.\n2) Tās mediāna: $\\dfrac{22 + 25}{2} = 23{,}5$.\nAtbilde: $23{,}5$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: starpkvartiļu izkliede",
+     "c": "$12$ skolēni pierakstīja, cik minūtes viņi vakar lasīja grāmatu: $14$; $22$; $9$; $30$; $18$; $12$; $25$; $16$; $20$; $11$; $35$; $15$. Aprēķiniet starpkvartiļu izkliedi $Q_3 - Q_1$.",
+     "a": "$\\text{Izkliede} = 10{,}5$",
+     "s": "1) $Q_1 = 13$, $Q_3 = 23{,}5$.\n2) $23{,}5 - 13 = 10{,}5$.\nAtbilde: $10{,}5$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: amplitūda pēc kļūdas labojuma",
+     "c": "$12$ skolēni pierakstīja, cik minūtes viņi vakar lasīja grāmatu: $14$; $22$; $9$; $30$; $18$; $12$; $25$; $16$; $20$; $11$; $35$; $15$. Izrādījās, ka viens skolēns kļūdījās: viņš lasīja nevis $35$, bet $45$ minūtes. Kāda ir datu amplitūda pēc labojuma?",
+     "a": "$\\text{Amplitūda} = 36$",
+     "s": "1) Lielākā vērtība tagad $45$, mazākā $9$.\n2) $45 - 9 = 36$.\n3) Mediāna nemainās ($17$): lielākās vērtības maiņa vidējos datus neietekmē.\nAtbilde: $36$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: mediānu salīdzinājums",
+     "c": "Divas klases rakstīja vienu un to pašu ieskaiti (maksimāli $50$ punkti). Rezultāti attēloti kastu diagrammās; augšā — 10.c klase, apakšā — 10.d klase. Par cik 10.c klases mediāna atšķiras no 10.d klases mediānas? Atbildē uzrakstiet pozitīvu skaitli.",
+     "a": "$\\text{Starpība} = 2$",
+     "s": "1) Mediāna ir treknā līnija kastē: $32$ un $30$.\n2) $|32 - 30| = 2$.\nAtbilde: $2$.",
+     "d": "Лёгкий",
+     "fig": "B-boxes"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: starpkvartiļu izkliede: 10.c klases",
+     "c": "Divas klases rakstīja vienu un to pašu ieskaiti (maksimāli $50$ punkti). Rezultāti attēloti kastu diagrammās; augšā — 10.c klase, apakšā — 10.d klase. Aprēķiniet 10.c klases starpkvartiļu izkliedi $Q_3 - Q_1$.",
+     "a": "$\\text{Izkliede} = 13$",
+     "s": "1) Kastes malas: $Q_1 = 25$, $Q_3 = 38$.\n2) $38 - 25 = 13$.\nAtbilde: $13$.",
+     "d": "Средний",
+     "fig": "B-boxes"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: starpkvartiļu izkliede: 10.d klases",
+     "c": "Divas klases rakstīja vienu un to pašu ieskaiti (maksimāli $50$ punkti). Rezultāti attēloti kastu diagrammās; augšā — 10.c klase, apakšā — 10.d klase. Aprēķiniet 10.d klases starpkvartiļu izkliedi $Q_3 - Q_1$.",
+     "a": "$\\text{Izkliede} = 5$",
+     "s": "1) Kastes malas: $Q_1 = 28$, $Q_3 = 33$.\n2) $33 - 28 = 5$.\nAtbilde: $5$.",
+     "d": "Средний",
+     "fig": "B-boxes"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: skolēnu skaits virs Q3",
+     "c": "Divas klases rakstīja vienu un to pašu ieskaiti (maksimāli $50$ punkti). Rezultāti attēloti kastu diagrammās; augšā — 10.c klase, apakšā — 10.d klase. 10.d klasē ir $20$ skolēni. Aptuveni cik no viņiem ieguva vismaz $33$ punktus?",
+     "a": "$\\text{Skolēni} = 5$",
+     "s": "1) Robeža sakrīt ar $Q_3 = 33$.\n2) Virs $Q_3$ ir aptuveni ceturtā daļa datu: $20 : 4 = 5$.\nAtbilde: $5$.",
+     "d": "Средний",
+     "fig": "B-boxes"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD B: patiesais apgalvojums par diagrammām",
+     "c": "Divas klases rakstīja vienu un to pašu ieskaiti (maksimāli $50$ punkti). Rezultāti attēloti kastu diagrammās; augšā — 10.c klase, apakšā — 10.d klase. Kurš no apgalvojumiem ir patiess? 1) 10.d klasē vismaz puse skolēnu ieguva vairāk nekā $32$ punktus. 2) 10.d klases vājākais rezultāts ir labāks nekā 10.c klases vājākais rezultāts. 3) 10.d klases rezultātu amplitūda ir lielāka nekā 10.c klasei. Atbildē uzrakstiet apgalvojuma numuru.",
+     "a": "$\\text{Numurs} = 2$",
+     "s": "Pārbaudām katru apgalvojumu pēc diagrammu rādītājiem (minimums, $Q_1$, mediāna, $Q_3$, maksimums: 10.c — $15; 25; 32; 38; 46$, 10.d — $20; 28; 30; 33; 42$).\nPatiess ir tikai $2.$ apgalvojums.\nAtbilde: $2$.",
+     "d": "Сложный",
+     "fig": "B-boxes"
+    }
+   ]
+  },
+  {
+   "slug": "kd-varbutiba-statistika-c",
+   "title": "Kontroldarbs: Varbūtība un statistika (C variants)",
+   "minutes": 50,
+   "topics": [
+    "visp-kopas-un-varbutiba",
+    "visp-statistikas-elementi"
+   ],
+   "tasks": [
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD C: varbūtība, ka jautājums angļu valodā",
+     "c": "Uz galda ir $25$ kartītes ar jautājumiem: $7$ matemātikā, $10$ latviešu valodā un $8$ angļu valodā. Skolēns uz labu laimi izvelk vienu kartīti. Aprēķiniet varbūtību, ka tajā ir jautājums angļu valodā. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{8}{25}$",
+     "s": "1) Visu iznākumu skaits: $n = 25$.\n2) Labvēlīgo iznākumu skaits: $m = 8$.\n3) $P = \\dfrac{8}{25}$.\nAtbilde: $\\dfrac{8}{25}$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD C: varbūtība, ka nav jautājuma matemātikā",
+     "c": "Uz galda ir $25$ kartītes ar jautājumiem: $7$ matemātikā, $10$ latviešu valodā un $8$ angļu valodā. Skolēns uz labu laimi izvelk vienu kartīti. Aprēķiniet varbūtību, ka tajā nav jautājuma matemātikā. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{18}{25}$",
+     "s": "1) Pretējā notikuma labvēlīgo iznākumu skaits: $7$ no $25$: $P = \\dfrac{7}{25}$.\n2) $P = 1 - \\dfrac{7}{25} = \\dfrac{18}{25} = \\dfrac{18}{25}$.\nAtbilde: $\\dfrac{18}{25}$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD C: neiespējama notikuma varbūtība",
+     "c": "Uz galda ir $25$ kartītes ar jautājumiem: $7$ matemātikā, $10$ latviešu valodā un $8$ angļu valodā. Skolēns uz labu laimi izvelk vienu kartīti. Kāda ir varbūtība, ka tajā ir jautājums ķīmijā?",
+     "a": "$\\text{Varbūtība} = 0$",
+     "s": "1) Labvēlīgo iznākumu nav: $m = 0$.\n2) Tas ir neiespējams notikums, $P = \\dfrac{0}{25} = 0$.\nAtbilde: $0$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD C: cik pielika, lai mainītos varbūtība",
+     "c": "Uz galda ir $25$ kartītes ar jautājumiem: $7$ matemātikā, $10$ latviešu valodā un $8$ angļu valodā. Skolotāja pielika vēl dažas kartītes ar jautājumiem matemātikā. Tagad varbūtība uz labu laimi izvilkt kartīti matemātikā ir $\\dfrac{1}{2}$. Cik kartīšu pielika?",
+     "a": "$\\text{Skaits} = 11$",
+     "s": "1) Pieliek $x$; tagad labvēlīgo ir $7 + x$, visu $25 + x$.\n2) $\\dfrac{7 + x}{25 + x} = \\dfrac{1}{2}$.\n3) $2(7 + x) = 1(25 + x)$, tātad $x = 11$.\n4) Pārbaude: $\\dfrac{18}{36} = \\dfrac{1}{2}$.\nAtbilde: $11$.",
+     "d": "Сложный",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD C: kauliņi: iznākumi, kad summa ir 9",
+     "c": "Vienlaikus met divus metamos kauliņus — baltu un melnu — un saskaita uzmesto punktu skaitu. Cik ir tādu iznākumu, kuros summa ir $9$?",
+     "a": "$\\text{Iznākumi} = 4$",
+     "s": "1) Iznākumu tabulā ir $6 \\cdot 6 = 36$ iznākumi.\n2) Saskaitām rūtiņas, kur summa ir $9$: to ir $4$.\nAtbilde: $4$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD C: kauliņi: summa dalās ar 3",
+     "c": "Vienlaikus met divus metamos kauliņus — baltu un melnu — un saskaita uzmesto punktu skaitu. Aprēķiniet varbūtību, ka summa dalās ar $3$. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{1}{3}$",
+     "s": "1) Visu iznākumu skaits: $36$.\n2) Labvēlīgo iznākumu skaits tabulā: $12$.\n3) $P = \\dfrac{12}{36} = \\dfrac{1}{3}$.\nAtbilde: $\\dfrac{1}{3}$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD C: kauliņi: summa ir 7",
+     "c": "Vienlaikus met divus metamos kauliņus — baltu un melnu — un saskaita uzmesto punktu skaitu. Aprēķiniet varbūtību, ka summa ir $7$. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{1}{6}$",
+     "s": "1) Visu iznākumu skaits: $36$.\n2) Labvēlīgo iznākumu skaits tabulā: $6$.\n3) $P = \\dfrac{6}{36} = \\dfrac{1}{6}$.\nAtbilde: $\\dfrac{1}{6}$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD C: kauliņi: vismaz uz viena kauliņa uzkrīt 5 punkti",
+     "c": "Vienlaikus met divus metamos kauliņus — baltu un melnu — un saskaita uzmesto punktu skaitu. Aprēķiniet varbūtību, ka vismaz uz viena kauliņa uzkrīt $5$ punkti. Atbildi uzrakstiet nesaīsināmas daļas veidā.",
+     "a": "$\\text{Varbūtība} = \\dfrac{11}{36}$",
+     "s": "1) Visu iznākumu skaits: $36$.\n2) Rinda un kolonna kopā: $6 + 6 - 1 = 11$ (kopīgā rūtiņa skaitīta vienreiz).\n3) $P = \\dfrac{11}{36} = \\dfrac{11}{36}$.\nAtbilde: $\\dfrac{11}{36}$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD C: Kārļa relatīvais biežums",
+     "c": "Šaušanas treniņā Kārlis no $35$ šāvieniem mērķī trāpīja $28$ reizes, bet Mārtiņš no $48$ šāvieniem trāpīja $36$ reizes. Aprēķiniet Kārļa relatīvo biežumu procentos.",
+     "a": "$\\text{Biežums} = 80\\%$",
+     "s": "1) $\\dfrac{28}{35} = 0{,}8$.\n2) $0{,}8 \\cdot 100\\% = 80\\%$.\nAtbilde: $80\\%$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD C: Mārtiņa relatīvais biežums",
+     "c": "Šaušanas treniņā Kārlis no $35$ šāvieniem mērķī trāpīja $28$ reizes, bet Mārtiņš no $48$ šāvieniem trāpīja $36$ reizes. Aprēķiniet Mārtiņa relatīvo biežumu procentos.",
+     "a": "$\\text{Biežums} = 75\\%$",
+     "s": "1) $\\dfrac{36}{48} = 0{,}75$.\n2) $0{,}75 \\cdot 100\\% = 75\\%$.\nAtbilde: $75\\%$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD C: relatīvo biežumu salīdzinājums",
+     "c": "Šaušanas treniņā Kārlis no $35$ šāvieniem mērķī trāpīja $28$ reizes, bet Mārtiņš no $48$ šāvieniem trāpīja $36$ reizes. Par cik procentpunktiem Kārļa relatīvais biežums ir lielāks nekā Mārtiņa?",
+     "a": "$\\text{Starpība} = 5$",
+     "s": "1) Kārļa biežums: $80\\%$, Mārtiņa: $75\\%$.\n2) $80 - 75 = 5$.\n3) Lai gan Mārtiņam veiksmīgo mēģinājumu skaits ir lielāks, salīdzina relatīvos biežumus.\nAtbilde: $5$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-kopas-un-varbutiba",
+     "title": "KD C: cik vēl jātrāpa",
+     "c": "Šaušanas treniņā Kārlis no $35$ šāvieniem mērķī trāpīja $28$ reizes, bet Mārtiņš no $48$ šāvieniem trāpīja $36$ reizes. Mārtiņš izpildīs vēl $20$ šāvienus. Cik no tiem jātrāpa, lai Mārtiņa relatīvais biežums kopā būtu vismaz tāds pats kā Kārļa? Atbildē uzrakstiet mazāko iespējamo skaitu.",
+     "a": "$\\text{Skaits} = 19$",
+     "s": "1) Kopā būs $68$ mēģinājumi, vajag vismaz $80\\%$ no tiem.\n2) $0{,}8 \\cdot 68 = 54{,}4$, tātad kopā vajag vismaz $55$.\n3) Jau ir $36$, tāpēc vēl vajag $19$.\nAtbilde: $19$.",
+     "d": "Сложный",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: aptaujāto skolēnu skaits",
+     "c": "Klases skolēniem jautāja, cik cilvēku ir viņu ģimenē (kopā ar pašu skolēnu). Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — cilvēku skaits ģimenē, uz vertikālās — skolēnu skaits. Cik skolēnu piedalījās aptaujā?",
+     "a": "$\\text{Skolēni} = 25$",
+     "s": "1) Saskaitām stabiņu augstumus: $3 + 7 + 9 + 5 + 1 = 25$.\nAtbilde: $25$.",
+     "d": "Лёгкий",
+     "fig": "C-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: relatīvais biežums procentos",
+     "c": "Klases skolēniem jautāja, cik cilvēku ir viņu ģimenē (kopā ar pašu skolēnu). Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — cilvēku skaits ģimenē, uz vertikālās — skolēnu skaits. Cik procentu skolēnu atbildēja «$4$»?",
+     "a": "$\\text{Biežums} = 36\\%$",
+     "s": "1) Atbildi «$4$» deva $9$ skolēni no $25$.\n2) $\\dfrac{9}{25} \\cdot 100\\% = 36\\%$.\nAtbilde: $36\\%$.",
+     "d": "Лёгкий",
+     "fig": "C-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: datu moda",
+     "c": "Klases skolēniem jautāja, cik cilvēku ir viņu ģimenē (kopā ar pašu skolēnu). Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — cilvēku skaits ģimenē, uz vertikālās — skolēnu skaits. Nosakiet datu modu.",
+     "a": "$\\text{Moda} = 4$",
+     "s": "1) Augstākais stabiņš ir pie vērtības $4$ ($9$ skolēni).\n2) Moda ir vērtība, nevis tās biežums.\nAtbilde: $4$.",
+     "d": "Лёгкий",
+     "fig": "C-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: datu amplitūda",
+     "c": "Klases skolēniem jautāja, cik cilvēku ir viņu ģimenē (kopā ar pašu skolēnu). Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — cilvēku skaits ģimenē, uz vertikālās — skolēnu skaits. Nosakiet datu amplitūdu.",
+     "a": "$\\text{Amplitūda} = 4$",
+     "s": "1) Lielākā vērtība $6$, mazākā $2$.\n2) $6 - 2 = 4$.\nAtbilde: $4$.",
+     "d": "Лёгкий",
+     "fig": "C-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: mediāna pēc diagrammas",
+     "c": "Klases skolēniem jautāja, cik cilvēku ir viņu ģimenē (kopā ar pašu skolēnu). Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — cilvēku skaits ģimenē, uz vertikālās — skolēnu skaits. Nosakiet datu mediānu.",
+     "a": "$\\text{Mediāna} = 4$",
+     "s": "1) Datu skaits $25$, mediāna ir $13.$ vērtība sakārtotajā rindā.\n2) Uzkrātie biežumi: $3; 10; 19; 24; 25$.\n3) Mediāna: $4$.\nAtbilde: $4$.",
+     "d": "Средний",
+     "fig": "C-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: vidējā vērtība pēc diagrammas",
+     "c": "Klases skolēniem jautāja, cik cilvēku ir viņu ģimenē (kopā ar pašu skolēnu). Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — cilvēku skaits ģimenē, uz vertikālās — skolēnu skaits. Aprēķiniet vidējo cilvēku skaitu vienā ģimenē.",
+     "a": "$\\text{Vidējais} = 3{,}76$",
+     "s": "1) Reizinājumu summa: $2 \\cdot 3 + 3 \\cdot 7 + 4 \\cdot 9 + 5 \\cdot 5 + 6 \\cdot 1 = 94$.\n2) $\\bar x = \\dfrac{94}{25} = 3{,}76$.\nAtbilde: $3{,}76$.",
+     "d": "Средний",
+     "fig": "C-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: daļa procentos ar nosacījumu",
+     "c": "Klases skolēniem jautāja, cik cilvēku ir viņu ģimenē (kopā ar pašu skolēnu). Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — cilvēku skaits ģimenē, uz vertikālās — skolēnu skaits. Cik procentu skolēnu atbildēja vismaz «$5$»?",
+     "a": "$\\text{Daļa} = 24\\%$",
+     "s": "1) Vismaz $5$: $5 + 1 = 6$ skolēni.\n2) $\\dfrac{6}{25} \\cdot 100\\% = 24\\%$.\nAtbilde: $24\\%$.",
+     "d": "Средний",
+     "fig": "C-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: jaunā vidējā vērtība",
+     "c": "Klases skolēniem jautāja, cik cilvēku ir viņu ģimenē (kopā ar pašu skolēnu). Atbildes attēlotas stabiņu diagrammā: uz horizontālās ass — cilvēku skaits ģimenē, uz vertikālās — skolēnu skaits. Klasē ienāca jauns skolēns, kura ģimenē ir $10$ cilvēku. Kāda tagad ir vidējā vērtība?",
+     "a": "$\\text{Vidējais} = 4$",
+     "s": "1) Līdzšinējā summa $94$, jaunā $94 + 10 = 104$.\n2) Datu skaits $26$.\n3) $\\dfrac{104}{26} = 4$.\nAtbilde: $4$.",
+     "d": "Сложный",
+     "fig": "C-bars"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: amplitūda no datu rindas",
+     "c": "$12$ skolēni pierakstīja, cik stundu pagājušajā nedēļā viņi spēlēja datorspēles: $3$; $12$; $7$; $5$; $9$; $14$; $6$; $10$; $8$; $4$; $18$; $11$. Nosakiet datu amplitūdu.",
+     "a": "$\\text{Amplitūda} = 15$",
+     "s": "1) Sakārtojam: $3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 14; 18$.\n2) $18 - 3 = 15$.\nAtbilde: $15$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: mediāna no datu rindas",
+     "c": "$12$ skolēni pierakstīja, cik stundu pagājušajā nedēļā viņi spēlēja datorspēles: $3$; $12$; $7$; $5$; $9$; $14$; $6$; $10$; $8$; $4$; $18$; $11$. Nosakiet datu mediānu.",
+     "a": "$\\text{Mediāna} = 8{,}5$",
+     "s": "1) Sakārtojam: $3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 14; 18$.\n2) Datu skaits pāra, mediāna ir $6.$ un $7.$ vērtības vidējais: $\\dfrac{8 + 9}{2} = 8{,}5$.\nAtbilde: $8{,}5$.",
+     "d": "Лёгкий",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: pirmā kvartile",
+     "c": "$12$ skolēni pierakstīja, cik stundu pagājušajā nedēļā viņi spēlēja datorspēles: $3$; $12$; $7$; $5$; $9$; $14$; $6$; $10$; $8$; $4$; $18$; $11$. Nosakiet pirmo kvartili $Q_1$.",
+     "a": "$\\text{Kvartile} = 5{,}5$",
+     "s": "1) Apakšējā puse: $3; 4; 5; 6; 7; 8$.\n2) Tās mediāna: $\\dfrac{5 + 6}{2} = 5{,}5$.\nAtbilde: $5{,}5$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: trešā kvartile",
+     "c": "$12$ skolēni pierakstīja, cik stundu pagājušajā nedēļā viņi spēlēja datorspēles: $3$; $12$; $7$; $5$; $9$; $14$; $6$; $10$; $8$; $4$; $18$; $11$. Nosakiet trešo kvartili $Q_3$.",
+     "a": "$\\text{Kvartile} = 11{,}5$",
+     "s": "1) Augšējā puse: $9; 10; 11; 12; 14; 18$.\n2) Tās mediāna: $\\dfrac{11 + 12}{2} = 11{,}5$.\nAtbilde: $11{,}5$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: starpkvartiļu izkliede",
+     "c": "$12$ skolēni pierakstīja, cik stundu pagājušajā nedēļā viņi spēlēja datorspēles: $3$; $12$; $7$; $5$; $9$; $14$; $6$; $10$; $8$; $4$; $18$; $11$. Aprēķiniet starpkvartiļu izkliedi $Q_3 - Q_1$.",
+     "a": "$\\text{Izkliede} = 6$",
+     "s": "1) $Q_1 = 5{,}5$, $Q_3 = 11{,}5$.\n2) $11{,}5 - 5{,}5 = 6$.\nAtbilde: $6$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: amplitūda pēc kļūdas labojuma",
+     "c": "$12$ skolēni pierakstīja, cik stundu pagājušajā nedēļā viņi spēlēja datorspēles: $3$; $12$; $7$; $5$; $9$; $14$; $6$; $10$; $8$; $4$; $18$; $11$. Izrādījās, ka viens skolēns kļūdījās: viņš spēlēja nevis $18$, bet $28$ stundas. Kāda ir datu amplitūda pēc labojuma?",
+     "a": "$\\text{Amplitūda} = 25$",
+     "s": "1) Lielākā vērtība tagad $28$, mazākā $3$.\n2) $28 - 3 = 25$.\n3) Mediāna nemainās ($8{,}5$): lielākās vērtības maiņa vidējos datus neietekmē.\nAtbilde: $25$.",
+     "d": "Средний",
+     "fig": null
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: mediānu salīdzinājums",
+     "c": "Divās skolās aptaujāja skolēnus, cik minūtes dienā viņi pilda mājasdarbus. Rezultāti attēloti kastu diagrammās; augšā — A skola, apakšā — B skola. Par cik A skolas mediāna atšķiras no B skolas mediānas? Atbildē uzrakstiet pozitīvu skaitli.",
+     "a": "$\\text{Starpība} = 5$",
+     "s": "1) Mediāna ir treknā līnija kastē: $40$ un $45$.\n2) $|40 - 45| = 5$.\nAtbilde: $5$.",
+     "d": "Лёгкий",
+     "fig": "C-boxes"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: starpkvartiļu izkliede: A skolas",
+     "c": "Divās skolās aptaujāja skolēnus, cik minūtes dienā viņi pilda mājasdarbus. Rezultāti attēloti kastu diagrammās; augšā — A skola, apakšā — B skola. Aprēķiniet A skolas starpkvartiļu izkliedi $Q_3 - Q_1$.",
+     "a": "$\\text{Izkliede} = 30$",
+     "s": "1) Kastes malas: $Q_1 = 25$, $Q_3 = 55$.\n2) $55 - 25 = 30$.\nAtbilde: $30$.",
+     "d": "Средний",
+     "fig": "C-boxes"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: starpkvartiļu izkliede: B skolas",
+     "c": "Divās skolās aptaujāja skolēnus, cik minūtes dienā viņi pilda mājasdarbus. Rezultāti attēloti kastu diagrammās; augšā — A skola, apakšā — B skola. Aprēķiniet B skolas starpkvartiļu izkliedi $Q_3 - Q_1$.",
+     "a": "$\\text{Izkliede} = 15$",
+     "s": "1) Kastes malas: $Q_1 = 35$, $Q_3 = 50$.\n2) $50 - 35 = 15$.\nAtbilde: $15$.",
+     "d": "Средний",
+     "fig": "C-boxes"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: skolēnu skaits virs Q3",
+     "c": "Divās skolās aptaujāja skolēnus, cik minūtes dienā viņi pilda mājasdarbus. Rezultāti attēloti kastu diagrammās; augšā — A skola, apakšā — B skola. B skolā aptaujāja $32$ skolēnus. Aptuveni cik no viņiem mājasdarbiem velta vismaz $50$ minūtes?",
+     "a": "$\\text{Skolēni} = 8$",
+     "s": "1) Robeža sakrīt ar $Q_3 = 50$.\n2) Virs $Q_3$ ir aptuveni ceturtā daļa datu: $32 : 4 = 8$.\nAtbilde: $8$.",
+     "d": "Средний",
+     "fig": "C-boxes"
+    },
+    {
+     "topic": "visp-statistikas-elementi",
+     "title": "KD C: patiesais apgalvojums par diagrammām",
+     "c": "Divās skolās aptaujāja skolēnus, cik minūtes dienā viņi pilda mājasdarbus. Rezultāti attēloti kastu diagrammās; augšā — A skola, apakšā — B skola. Kurš no apgalvojumiem ir patiess? 1) A skolā mediāna ir augstāka nekā B skolā. 2) B skolā vismaz ceturtā daļa skolēnu mājasdarbiem velta vairāk nekā $55$ minūtes. 3) A skolā rezultātu amplitūda ir lielāka nekā B skolā. Atbildē uzrakstiet apgalvojuma numuru.",
+     "a": "$\\text{Numurs} = 3$",
+     "s": "Pārbaudām katru apgalvojumu pēc diagrammu rādītājiem (minimums, $Q_1$, mediāna, $Q_3$, maksimums: A — $10; 25; 40; 55; 80$, B — $20; 35; 45; 50; 70$).\nPatiess ir tikai $3.$ apgalvojums.\nAtbilde: $3$.",
+     "d": "Сложный",
+     "fig": "C-boxes"
+    }
+   ]
+  }
+ ],
+ "figures": {
+  "A-bars": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 290' width='420' height='290'><rect width='420' height='290' fill='#ffffff'/><line x1='50' y1='224.4' x2='405' y2='224.4' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='198.9' x2='405' y2='198.9' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='173.3' x2='405' y2='173.3' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='147.8' x2='405' y2='147.8' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='122.2' x2='405' y2='122.2' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='96.7' x2='405' y2='96.7' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='71.1' x2='405' y2='71.1' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='45.6' x2='405' y2='45.6' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='20.0' x2='405' y2='20.0' stroke='#d5d9de' stroke-width='1'/><rect x='60.5' y='198.9' width='37.3' height='51.1' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='118.8' y='122.2' width='37.3' height='127.8' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='177.2' y='45.6' width='37.3' height='204.4' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='235.5' y='96.7' width='37.3' height='153.3' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='293.8' y='173.3' width='37.3' height='76.7' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='352.2' y='224.4' width='37.3' height='25.6' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><line x1='50' y1='250' x2='405' y2='250' stroke='#1d1d1f' stroke-width='1.6'/><line x1='50' y1='250' x2='50' y2='12' stroke='#1d1d1f' stroke-width='1.6'/><text x='42' y='255.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>0</text><text x='42' y='229.4' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>1</text><text x='42' y='203.9' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>2</text><text x='42' y='178.3' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>3</text><text x='42' y='152.8' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>4</text><text x='42' y='127.2' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>5</text><text x='42' y='101.7' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>6</text><text x='42' y='76.1' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>7</text><text x='42' y='50.6' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>8</text><text x='42' y='25.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>9</text><text x='79.2' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>0</text><text x='137.5' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>1</text><text x='195.8' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>2</text><text x='254.2' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>3</text><text x='312.5' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>4</text><text x='370.8' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>5</text></svg>",
+  "A-boxes": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 200' width='420' height='200'><rect width='420' height='200' fill='#ffffff'/><g stroke='#e6e9ed' stroke-width='1'><line x1='72.0' y1='14' x2='72.0' y2='159' stroke='#c4cad1'/><line x1='80.2' y1='14' x2='80.2' y2='159'/><line x1='88.4' y1='14' x2='88.4' y2='159'/><line x1='96.6' y1='14' x2='96.6' y2='159'/><line x1='104.8' y1='14' x2='104.8' y2='159'/><line x1='113.0' y1='14' x2='113.0' y2='159' stroke='#c4cad1'/><line x1='121.2' y1='14' x2='121.2' y2='159'/><line x1='129.4' y1='14' x2='129.4' y2='159'/><line x1='137.6' y1='14' x2='137.6' y2='159'/><line x1='145.8' y1='14' x2='145.8' y2='159'/><line x1='154.0' y1='14' x2='154.0' y2='159' stroke='#c4cad1'/><line x1='162.2' y1='14' x2='162.2' y2='159'/><line x1='170.4' y1='14' x2='170.4' y2='159'/><line x1='178.6' y1='14' x2='178.6' y2='159'/><line x1='186.8' y1='14' x2='186.8' y2='159'/><line x1='195.0' y1='14' x2='195.0' y2='159' stroke='#c4cad1'/><line x1='203.2' y1='14' x2='203.2' y2='159'/><line x1='211.4' y1='14' x2='211.4' y2='159'/><line x1='219.6' y1='14' x2='219.6' y2='159'/><line x1='227.8' y1='14' x2='227.8' y2='159'/><line x1='236.0' y1='14' x2='236.0' y2='159' stroke='#c4cad1'/><line x1='244.2' y1='14' x2='244.2' y2='159'/><line x1='252.4' y1='14' x2='252.4' y2='159'/><line x1='260.6' y1='14' x2='260.6' y2='159'/><line x1='268.8' y1='14' x2='268.8' y2='159'/><line x1='277.0' y1='14' x2='277.0' y2='159' stroke='#c4cad1'/><line x1='285.2' y1='14' x2='285.2' y2='159'/><line x1='293.4' y1='14' x2='293.4' y2='159'/><line x1='301.6' y1='14' x2='301.6' y2='159'/><line x1='309.8' y1='14' x2='309.8' y2='159'/><line x1='318.0' y1='14' x2='318.0' y2='159' stroke='#c4cad1'/><line x1='326.2' y1='14' x2='326.2' y2='159'/><line x1='334.4' y1='14' x2='334.4' y2='159'/><line x1='342.6' y1='14' x2='342.6' y2='159'/><line x1='350.8' y1='14' x2='350.8' y2='159'/><line x1='359.0' y1='14' x2='359.0' y2='159' stroke='#c4cad1'/><line x1='367.2' y1='14' x2='367.2' y2='159'/><line x1='375.4' y1='14' x2='375.4' y2='159'/><line x1='383.6' y1='14' x2='383.6' y2='159'/><line x1='391.8' y1='14' x2='391.8' y2='159'/><line x1='400.0' y1='14' x2='400.0' y2='159' stroke='#c4cad1'/></g><text x='8' y='55' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>10.a</text><g stroke='#1d1d1f' stroke-width='1.8'><line x1='137.6' y1='50' x2='219.6' y2='50'/><line x1='318.0' y1='50' x2='383.6' y2='50'/><line x1='137.6' y1='39' x2='137.6' y2='61'/><line x1='383.6' y1='39' x2='383.6' y2='61'/><rect x='219.6' y='30' width='98.4' height='40' fill='#dbe6f6'/><line x1='268.8' y1='30' x2='268.8' y2='70' stroke-width='3'/></g><text x='8' y='120' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>10.b</text><g stroke='#1d1d1f' stroke-width='1.8'><line x1='170.4' y1='115' x2='236.0' y2='115'/><line x1='277.0' y1='115' x2='350.8' y2='115'/><line x1='170.4' y1='104' x2='170.4' y2='126'/><line x1='350.8' y1='104' x2='350.8' y2='126'/><rect x='236.0' y='95' width='41.0' height='40' fill='#f6e3d4'/><line x1='252.4' y1='95' x2='252.4' y2='135' stroke-width='3'/></g><line x1='72' y1='165' x2='400' y2='165' stroke='#1d1d1f' stroke-width='1.6'/><g stroke='#1d1d1f' stroke-width='1.2'><line x1='72.0' y1='159' x2='72.0' y2='171'/><line x1='80.2' y1='162' x2='80.2' y2='168'/><line x1='88.4' y1='162' x2='88.4' y2='168'/><line x1='96.6' y1='162' x2='96.6' y2='168'/><line x1='104.8' y1='162' x2='104.8' y2='168'/><line x1='113.0' y1='159' x2='113.0' y2='171'/><line x1='121.2' y1='162' x2='121.2' y2='168'/><line x1='129.4' y1='162' x2='129.4' y2='168'/><line x1='137.6' y1='162' x2='137.6' y2='168'/><line x1='145.8' y1='162' x2='145.8' y2='168'/><line x1='154.0' y1='159' x2='154.0' y2='171'/><line x1='162.2' y1='162' x2='162.2' y2='168'/><line x1='170.4' y1='162' x2='170.4' y2='168'/><line x1='178.6' y1='162' x2='178.6' y2='168'/><line x1='186.8' y1='162' x2='186.8' y2='168'/><line x1='195.0' y1='159' x2='195.0' y2='171'/><line x1='203.2' y1='162' x2='203.2' y2='168'/><line x1='211.4' y1='162' x2='211.4' y2='168'/><line x1='219.6' y1='162' x2='219.6' y2='168'/><line x1='227.8' y1='162' x2='227.8' y2='168'/><line x1='236.0' y1='159' x2='236.0' y2='171'/><line x1='244.2' y1='162' x2='244.2' y2='168'/><line x1='252.4' y1='162' x2='252.4' y2='168'/><line x1='260.6' y1='162' x2='260.6' y2='168'/><line x1='268.8' y1='162' x2='268.8' y2='168'/><line x1='277.0' y1='159' x2='277.0' y2='171'/><line x1='285.2' y1='162' x2='285.2' y2='168'/><line x1='293.4' y1='162' x2='293.4' y2='168'/><line x1='301.6' y1='162' x2='301.6' y2='168'/><line x1='309.8' y1='162' x2='309.8' y2='168'/><line x1='318.0' y1='159' x2='318.0' y2='171'/><line x1='326.2' y1='162' x2='326.2' y2='168'/><line x1='334.4' y1='162' x2='334.4' y2='168'/><line x1='342.6' y1='162' x2='342.6' y2='168'/><line x1='350.8' y1='162' x2='350.8' y2='168'/><line x1='359.0' y1='159' x2='359.0' y2='171'/><line x1='367.2' y1='162' x2='367.2' y2='168'/><line x1='375.4' y1='162' x2='375.4' y2='168'/><line x1='383.6' y1='162' x2='383.6' y2='168'/><line x1='391.8' y1='162' x2='391.8' y2='168'/><line x1='400.0' y1='159' x2='400.0' y2='171'/></g><g text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'><text x='72.0' y='189'>0</text><text x='113.0' y='189'>5</text><text x='154.0' y='189'>10</text><text x='195.0' y='189'>15</text><text x='236.0' y='189'>20</text><text x='277.0' y='189'>25</text><text x='318.0' y='189'>30</text><text x='359.0' y='189'>35</text><text x='400.0' y='189'>40</text></g></svg>",
+  "B-bars": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 290' width='420' height='290'><rect width='420' height='290' fill='#ffffff'/><line x1='50' y1='217.1' x2='405' y2='217.1' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='184.3' x2='405' y2='184.3' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='151.4' x2='405' y2='151.4' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='118.6' x2='405' y2='118.6' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='85.7' x2='405' y2='85.7' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='52.9' x2='405' y2='52.9' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='20.0' x2='405' y2='20.0' stroke='#d5d9de' stroke-width='1'/><rect x='60.5' y='217.1' width='37.3' height='32.9' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='118.8' y='118.6' width='37.3' height='131.4' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='177.2' y='85.7' width='37.3' height='164.3' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='235.5' y='52.9' width='37.3' height='197.1' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='293.8' y='151.4' width='37.3' height='98.6' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='352.2' y='217.1' width='37.3' height='32.9' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><line x1='50' y1='250' x2='405' y2='250' stroke='#1d1d1f' stroke-width='1.6'/><line x1='50' y1='250' x2='50' y2='12' stroke='#1d1d1f' stroke-width='1.6'/><text x='42' y='255.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>0</text><text x='42' y='222.1' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>1</text><text x='42' y='189.3' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>2</text><text x='42' y='156.4' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>3</text><text x='42' y='123.6' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>4</text><text x='42' y='90.7' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>5</text><text x='42' y='57.9' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>6</text><text x='42' y='25.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>7</text><text x='79.2' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>0</text><text x='137.5' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>1</text><text x='195.8' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>2</text><text x='254.2' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>3</text><text x='312.5' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>4</text><text x='370.8' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>5</text></svg>",
+  "B-boxes": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 200' width='420' height='200'><rect width='420' height='200' fill='#ffffff'/><g stroke='#e6e9ed' stroke-width='1'><line x1='72.0' y1='14' x2='72.0' y2='159' stroke='#c4cad1'/><line x1='78.6' y1='14' x2='78.6' y2='159'/><line x1='85.1' y1='14' x2='85.1' y2='159'/><line x1='91.7' y1='14' x2='91.7' y2='159'/><line x1='98.2' y1='14' x2='98.2' y2='159'/><line x1='104.8' y1='14' x2='104.8' y2='159' stroke='#c4cad1'/><line x1='111.4' y1='14' x2='111.4' y2='159'/><line x1='117.9' y1='14' x2='117.9' y2='159'/><line x1='124.5' y1='14' x2='124.5' y2='159'/><line x1='131.0' y1='14' x2='131.0' y2='159'/><line x1='137.6' y1='14' x2='137.6' y2='159' stroke='#c4cad1'/><line x1='144.2' y1='14' x2='144.2' y2='159'/><line x1='150.7' y1='14' x2='150.7' y2='159'/><line x1='157.3' y1='14' x2='157.3' y2='159'/><line x1='163.8' y1='14' x2='163.8' y2='159'/><line x1='170.4' y1='14' x2='170.4' y2='159' stroke='#c4cad1'/><line x1='177.0' y1='14' x2='177.0' y2='159'/><line x1='183.5' y1='14' x2='183.5' y2='159'/><line x1='190.1' y1='14' x2='190.1' y2='159'/><line x1='196.6' y1='14' x2='196.6' y2='159'/><line x1='203.2' y1='14' x2='203.2' y2='159' stroke='#c4cad1'/><line x1='209.8' y1='14' x2='209.8' y2='159'/><line x1='216.3' y1='14' x2='216.3' y2='159'/><line x1='222.9' y1='14' x2='222.9' y2='159'/><line x1='229.4' y1='14' x2='229.4' y2='159'/><line x1='236.0' y1='14' x2='236.0' y2='159' stroke='#c4cad1'/><line x1='242.6' y1='14' x2='242.6' y2='159'/><line x1='249.1' y1='14' x2='249.1' y2='159'/><line x1='255.7' y1='14' x2='255.7' y2='159'/><line x1='262.2' y1='14' x2='262.2' y2='159'/><line x1='268.8' y1='14' x2='268.8' y2='159' stroke='#c4cad1'/><line x1='275.4' y1='14' x2='275.4' y2='159'/><line x1='281.9' y1='14' x2='281.9' y2='159'/><line x1='288.5' y1='14' x2='288.5' y2='159'/><line x1='295.0' y1='14' x2='295.0' y2='159'/><line x1='301.6' y1='14' x2='301.6' y2='159' stroke='#c4cad1'/><line x1='308.2' y1='14' x2='308.2' y2='159'/><line x1='314.7' y1='14' x2='314.7' y2='159'/><line x1='321.3' y1='14' x2='321.3' y2='159'/><line x1='327.8' y1='14' x2='327.8' y2='159'/><line x1='334.4' y1='14' x2='334.4' y2='159' stroke='#c4cad1'/><line x1='341.0' y1='14' x2='341.0' y2='159'/><line x1='347.5' y1='14' x2='347.5' y2='159'/><line x1='354.1' y1='14' x2='354.1' y2='159'/><line x1='360.6' y1='14' x2='360.6' y2='159'/><line x1='367.2' y1='14' x2='367.2' y2='159' stroke='#c4cad1'/><line x1='373.8' y1='14' x2='373.8' y2='159'/><line x1='380.3' y1='14' x2='380.3' y2='159'/><line x1='386.9' y1='14' x2='386.9' y2='159'/><line x1='393.4' y1='14' x2='393.4' y2='159'/><line x1='400.0' y1='14' x2='400.0' y2='159' stroke='#c4cad1'/></g><text x='8' y='55' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>10.c</text><g stroke='#1d1d1f' stroke-width='1.8'><line x1='170.4' y1='50' x2='236.0' y2='50'/><line x1='321.3' y1='50' x2='373.8' y2='50'/><line x1='170.4' y1='39' x2='170.4' y2='61'/><line x1='373.8' y1='39' x2='373.8' y2='61'/><rect x='236.0' y='30' width='85.3' height='40' fill='#dbe6f6'/><line x1='281.9' y1='30' x2='281.9' y2='70' stroke-width='3'/></g><text x='8' y='120' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>10.d</text><g stroke='#1d1d1f' stroke-width='1.8'><line x1='203.2' y1='115' x2='255.7' y2='115'/><line x1='288.5' y1='115' x2='347.5' y2='115'/><line x1='203.2' y1='104' x2='203.2' y2='126'/><line x1='347.5' y1='104' x2='347.5' y2='126'/><rect x='255.7' y='95' width='32.8' height='40' fill='#f6e3d4'/><line x1='268.8' y1='95' x2='268.8' y2='135' stroke-width='3'/></g><line x1='72' y1='165' x2='400' y2='165' stroke='#1d1d1f' stroke-width='1.6'/><g stroke='#1d1d1f' stroke-width='1.2'><line x1='72.0' y1='159' x2='72.0' y2='171'/><line x1='78.6' y1='162' x2='78.6' y2='168'/><line x1='85.1' y1='162' x2='85.1' y2='168'/><line x1='91.7' y1='162' x2='91.7' y2='168'/><line x1='98.2' y1='162' x2='98.2' y2='168'/><line x1='104.8' y1='159' x2='104.8' y2='171'/><line x1='111.4' y1='162' x2='111.4' y2='168'/><line x1='117.9' y1='162' x2='117.9' y2='168'/><line x1='124.5' y1='162' x2='124.5' y2='168'/><line x1='131.0' y1='162' x2='131.0' y2='168'/><line x1='137.6' y1='159' x2='137.6' y2='171'/><line x1='144.2' y1='162' x2='144.2' y2='168'/><line x1='150.7' y1='162' x2='150.7' y2='168'/><line x1='157.3' y1='162' x2='157.3' y2='168'/><line x1='163.8' y1='162' x2='163.8' y2='168'/><line x1='170.4' y1='159' x2='170.4' y2='171'/><line x1='177.0' y1='162' x2='177.0' y2='168'/><line x1='183.5' y1='162' x2='183.5' y2='168'/><line x1='190.1' y1='162' x2='190.1' y2='168'/><line x1='196.6' y1='162' x2='196.6' y2='168'/><line x1='203.2' y1='159' x2='203.2' y2='171'/><line x1='209.8' y1='162' x2='209.8' y2='168'/><line x1='216.3' y1='162' x2='216.3' y2='168'/><line x1='222.9' y1='162' x2='222.9' y2='168'/><line x1='229.4' y1='162' x2='229.4' y2='168'/><line x1='236.0' y1='159' x2='236.0' y2='171'/><line x1='242.6' y1='162' x2='242.6' y2='168'/><line x1='249.1' y1='162' x2='249.1' y2='168'/><line x1='255.7' y1='162' x2='255.7' y2='168'/><line x1='262.2' y1='162' x2='262.2' y2='168'/><line x1='268.8' y1='159' x2='268.8' y2='171'/><line x1='275.4' y1='162' x2='275.4' y2='168'/><line x1='281.9' y1='162' x2='281.9' y2='168'/><line x1='288.5' y1='162' x2='288.5' y2='168'/><line x1='295.0' y1='162' x2='295.0' y2='168'/><line x1='301.6' y1='159' x2='301.6' y2='171'/><line x1='308.2' y1='162' x2='308.2' y2='168'/><line x1='314.7' y1='162' x2='314.7' y2='168'/><line x1='321.3' y1='162' x2='321.3' y2='168'/><line x1='327.8' y1='162' x2='327.8' y2='168'/><line x1='334.4' y1='159' x2='334.4' y2='171'/><line x1='341.0' y1='162' x2='341.0' y2='168'/><line x1='347.5' y1='162' x2='347.5' y2='168'/><line x1='354.1' y1='162' x2='354.1' y2='168'/><line x1='360.6' y1='162' x2='360.6' y2='168'/><line x1='367.2' y1='159' x2='367.2' y2='171'/><line x1='373.8' y1='162' x2='373.8' y2='168'/><line x1='380.3' y1='162' x2='380.3' y2='168'/><line x1='386.9' y1='162' x2='386.9' y2='168'/><line x1='393.4' y1='162' x2='393.4' y2='168'/><line x1='400.0' y1='159' x2='400.0' y2='171'/></g><g text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'><text x='72.0' y='189'>0</text><text x='104.8' y='189'>5</text><text x='137.6' y='189'>10</text><text x='170.4' y='189'>15</text><text x='203.2' y='189'>20</text><text x='236.0' y='189'>25</text><text x='268.8' y='189'>30</text><text x='301.6' y='189'>35</text><text x='334.4' y='189'>40</text><text x='367.2' y='189'>45</text><text x='400.0' y='189'>50</text></g></svg>",
+  "C-bars": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 290' width='420' height='290'><rect width='420' height='290' fill='#ffffff'/><line x1='50' y1='227.0' x2='405' y2='227.0' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='204.0' x2='405' y2='204.0' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='181.0' x2='405' y2='181.0' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='158.0' x2='405' y2='158.0' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='135.0' x2='405' y2='135.0' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='112.0' x2='405' y2='112.0' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='89.0' x2='405' y2='89.0' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='66.0' x2='405' y2='66.0' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='43.0' x2='405' y2='43.0' stroke='#d5d9de' stroke-width='1'/><line x1='50' y1='20.0' x2='405' y2='20.0' stroke='#d5d9de' stroke-width='1'/><rect x='62.6' y='181.0' width='44.8' height='69.0' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='132.6' y='89.0' width='44.8' height='161.0' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='202.6' y='43.0' width='44.8' height='207.0' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='272.6' y='135.0' width='44.8' height='115.0' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><rect x='342.6' y='227.0' width='44.8' height='23.0' fill='#9bb6dd' stroke='#2b5fab' stroke-width='1.5'/><line x1='50' y1='250' x2='405' y2='250' stroke='#1d1d1f' stroke-width='1.6'/><line x1='50' y1='250' x2='50' y2='12' stroke='#1d1d1f' stroke-width='1.6'/><text x='42' y='255.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>0</text><text x='42' y='232.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>1</text><text x='42' y='209.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>2</text><text x='42' y='186.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>3</text><text x='42' y='163.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>4</text><text x='42' y='140.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>5</text><text x='42' y='117.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>6</text><text x='42' y='94.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>7</text><text x='42' y='71.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>8</text><text x='42' y='48.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>9</text><text x='42' y='25.0' text-anchor='end' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>10</text><text x='85.0' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>2</text><text x='155.0' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>3</text><text x='225.0' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>4</text><text x='295.0' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>5</text><text x='365.0' y='272' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>6</text></svg>",
+  "C-boxes": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 200' width='420' height='200'><rect width='420' height='200' fill='#ffffff'/><g stroke='#e6e9ed' stroke-width='1'><line x1='72.0' y1='14' x2='72.0' y2='159' stroke='#c4cad1'/><line x1='90.2' y1='14' x2='90.2' y2='159'/><line x1='108.4' y1='14' x2='108.4' y2='159' stroke='#c4cad1'/><line x1='126.7' y1='14' x2='126.7' y2='159'/><line x1='144.9' y1='14' x2='144.9' y2='159' stroke='#c4cad1'/><line x1='163.1' y1='14' x2='163.1' y2='159'/><line x1='181.3' y1='14' x2='181.3' y2='159' stroke='#c4cad1'/><line x1='199.6' y1='14' x2='199.6' y2='159'/><line x1='217.8' y1='14' x2='217.8' y2='159' stroke='#c4cad1'/><line x1='236.0' y1='14' x2='236.0' y2='159'/><line x1='254.2' y1='14' x2='254.2' y2='159' stroke='#c4cad1'/><line x1='272.4' y1='14' x2='272.4' y2='159'/><line x1='290.7' y1='14' x2='290.7' y2='159' stroke='#c4cad1'/><line x1='308.9' y1='14' x2='308.9' y2='159'/><line x1='327.1' y1='14' x2='327.1' y2='159' stroke='#c4cad1'/><line x1='345.3' y1='14' x2='345.3' y2='159'/><line x1='363.6' y1='14' x2='363.6' y2='159' stroke='#c4cad1'/><line x1='381.8' y1='14' x2='381.8' y2='159'/><line x1='400.0' y1='14' x2='400.0' y2='159' stroke='#c4cad1'/></g><text x='8' y='55' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>A</text><g stroke='#1d1d1f' stroke-width='1.8'><line x1='108.4' y1='50' x2='163.1' y2='50'/><line x1='272.4' y1='50' x2='363.6' y2='50'/><line x1='108.4' y1='39' x2='108.4' y2='61'/><line x1='363.6' y1='39' x2='363.6' y2='61'/><rect x='163.1' y='30' width='109.3' height='40' fill='#dbe6f6'/><line x1='217.8' y1='30' x2='217.8' y2='70' stroke-width='3'/></g><text x='8' y='120' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'>B</text><g stroke='#1d1d1f' stroke-width='1.8'><line x1='144.9' y1='115' x2='199.6' y2='115'/><line x1='254.2' y1='115' x2='327.1' y2='115'/><line x1='144.9' y1='104' x2='144.9' y2='126'/><line x1='327.1' y1='104' x2='327.1' y2='126'/><rect x='199.6' y='95' width='54.6' height='40' fill='#f6e3d4'/><line x1='236.0' y1='95' x2='236.0' y2='135' stroke-width='3'/></g><line x1='72' y1='165' x2='400' y2='165' stroke='#1d1d1f' stroke-width='1.6'/><g stroke='#1d1d1f' stroke-width='1.2'><line x1='72.0' y1='159' x2='72.0' y2='171'/><line x1='90.2' y1='162' x2='90.2' y2='168'/><line x1='108.4' y1='159' x2='108.4' y2='171'/><line x1='126.7' y1='162' x2='126.7' y2='168'/><line x1='144.9' y1='159' x2='144.9' y2='171'/><line x1='163.1' y1='162' x2='163.1' y2='168'/><line x1='181.3' y1='159' x2='181.3' y2='171'/><line x1='199.6' y1='162' x2='199.6' y2='168'/><line x1='217.8' y1='159' x2='217.8' y2='171'/><line x1='236.0' y1='162' x2='236.0' y2='168'/><line x1='254.2' y1='159' x2='254.2' y2='171'/><line x1='272.4' y1='162' x2='272.4' y2='168'/><line x1='290.7' y1='159' x2='290.7' y2='171'/><line x1='308.9' y1='162' x2='308.9' y2='168'/><line x1='327.1' y1='159' x2='327.1' y2='171'/><line x1='345.3' y1='162' x2='345.3' y2='168'/><line x1='363.6' y1='159' x2='363.6' y2='171'/><line x1='381.8' y1='162' x2='381.8' y2='168'/><line x1='400.0' y1='159' x2='400.0' y2='171'/></g><g text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#1d1d1f'><text x='72.0' y='189'>0</text><text x='108.4' y='189'>10</text><text x='144.9' y='189'>20</text><text x='181.3' y='189'>30</text><text x='217.8' y='189'>40</text><text x='254.2' y='189'>50</text><text x='290.7' y='189'>60</text><text x='327.1' y='189'>70</text><text x='363.6' y='189'>80</text><text x='400.0' y='189'>90</text></g></svg>"
+ }
+}

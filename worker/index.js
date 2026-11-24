@@ -4,6 +4,7 @@
      /api/gemini       — прокси к Google Gemini для админки, только администратору
      /api/duel/*       — попытки дуэлей и таблица лидеров (worker/duel-api.js)
      /api/contact      — форма «Написать нам» со страницы /privacy (worker/contact.js)
+     /api/cw/submit    — результат контрольной для учителя (worker/cw.js)
 
    Раньше это лежало в папке functions/ — соглашение Cloudflare Pages.
    Проект живёт на Workers, где эта папка не выполняется вовсе, поэтому
@@ -21,6 +22,7 @@ import { isLocalizablePath, latexToPlainText, makeSlug, toLangPath,
 import { CANONICAL_ORIGIN, renderPage } from './seo.js';
 import { duelApi } from './duel-api.js';
 import { contactApi } from './contact.js';
+import { cwApi } from './cw.js';
 import { BACKUP_CRON, MIRROR_CRON, listBackups, mirrorStep, notifyReady, notifyReports, runBackup, sendTelegram } from './backup.js';
 import { SUBREQUEST_LIMIT, isRemindTime, pushKey, remindDue } from './push.js';
 
@@ -549,6 +551,7 @@ export default {
     if (url.pathname === '/api/gemini') return geminiProxy(request, env);
     if (url.pathname.startsWith('/api/duel/')) return duelApi(request, env);
     if (url.pathname === '/api/contact') return contactApi(request, env);
+    if (url.pathname.startsWith('/api/cw/')) return cwApi(request, env);
     if (url.pathname.startsWith('/api/backup/')) return backupApi(request, env, url);
     if (url.pathname.startsWith('/assets/')) return serveAsset(request, env);
 
