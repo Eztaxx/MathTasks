@@ -2272,6 +2272,16 @@
         "num": "9.5.3",
         "ru": "Решение квадратных неравенств",
         "lv": "Kvadrātnevienādību risināšana"
+      },
+      {
+        "num": "9.5.4",
+        "ru": "Неполные квадратные уравнения",
+        "lv": "Nepilnie kvadrātvienādojumi"
+      },
+      {
+        "num": "9.5.5",
+        "ru": "Теорема Виета",
+        "lv": "Vjeta teorēma"
       }
     ]
   },

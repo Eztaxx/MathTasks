@@ -636,6 +636,8 @@
 | `9.5.1` | Решение квадратного уравнения по формуле корней | Kvadrātvienādojuma atrisināšana, izmantojot sakņu formulu |
 | `9.5.2` | Построение графика квадратичной функции по формуле вершины | Kvadrātfunkcijas grafika uzzīmēšana, izmantojot virsotnes formulu |
 | `9.5.3` | Решение квадратных неравенств | Kvadrātnevienādību risināšana |
+| `9.5.4` | Неполные квадратные уравнения | Nepilnie kvadrātvienādojumi |
+| `9.5.5` | Теорема Виета | Vjeta teorēma |
 
 ### 9.6. Как описывают ситуации с двумя неизвестными величинами
 
