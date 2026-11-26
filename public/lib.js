@@ -3507,6 +3507,41 @@
      Вариант, составленный в админке: задачи идут в заданном порядке —
      сперва по частям, внутри части по позиции. Снятая с публикации или
      удалённая задача вариант не ломает: её просто нет в выдаче. */
+  /* Варианты одной контрольной: составленные работы «…-a», «…-b», «…-c»
+     с «(A variants)» / «(вариант A)» в названии — это одна работа в трёх
+     вариантах. Группа: общий slug без буквы, название без варианта и без
+     «Kontroldarbs:» в начале, варианты по букве. titleOf — название на
+     языке страницы. Порядок групп — как у первой работы группы. */
+  const PAPER_VARIANT_SLUG = /-([a-z])$/;
+  const PAPER_VARIANT_TITLE = /\s*\((?:([A-ZĀ-Ž])\s+variants|вариант\s+([A-ZА-Я]))\)\s*$/i;
+  const PAPER_KIND_PREFIX = /^\s*(?:kontroldarbs|контрольная(?:\s+работа)?)\s*:\s*/i;
+  // «(вариант А)» в русской раскладке — кириллица; в slug буква латинская.
+  const CYRILLIC_TO_LATIN = { А: 'A', В: 'B', С: 'C', Е: 'E', К: 'K', М: 'M', Н: 'H', О: 'O', Р: 'P', Т: 'T', Х: 'X' };
+  const paperVariantLetter = (title = '') => {
+    const byTitle = PAPER_VARIANT_TITLE.exec(String(title || ''));
+    if (!byTitle) return '';
+    const letter = String(byTitle[1] || byTitle[2]).toUpperCase();
+    return CYRILLIC_TO_LATIN[letter] || letter;
+  };
+  const groupPaperVariants = (papers = [], titleOf = paper => paper?.title || '') => {
+    const groups = new Map();
+    (papers || []).forEach(paper => {
+      if (!paper || !paper.slug) return;
+      const title = String(titleOf(paper) || '');
+      const letter = paperVariantLetter(title);
+      const slugMatch = PAPER_VARIANT_SLUG.exec(paper.slug);
+      // Вариант — только когда и название, и slug говорят одну букву: «…-a» без «(A variants)» — просто slug.
+      const variant = letter && slugMatch && slugMatch[1].toUpperCase() === letter ? letter : '';
+      const key = variant ? paper.slug.replace(PAPER_VARIANT_SLUG, '') : paper.slug;
+      // Букву из названия убираем, только если вариант распознан: иначе три карточки вышли бы одинаковыми.
+      const base = (variant ? title.replace(PAPER_VARIANT_TITLE, '') : title).replace(PAPER_KIND_PREFIX, '').trim() || title;
+      if (!groups.has(key)) groups.set(key, { key, title: base, variants: [] });
+      groups.get(key).variants.push({ paper, variant });
+    });
+    groups.forEach(group => group.variants.sort((a, b) => a.variant.localeCompare(b.variant)));
+    return [...groups.values()];
+  };
+
   const orderPaperTasks = (items = [], tasks = []) => {
     const byId = new Map((Array.isArray(tasks) ? tasks : []).map(task => [Number(task.id), task]));
     return (Array.isArray(items) ? items : [])
@@ -4365,6 +4400,7 @@
     initExamTimerUi,
     EXAM_KINDS,
     orderPaperTasks,
+    groupPaperVariants,
     paperMinutes,
     selectExamTasks,
     buildExamVariant,

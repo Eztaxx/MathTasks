@@ -43,8 +43,8 @@
     #list-tasks .nb-help .solution-toggle:not(.is-locked):hover { background: var(--yellow-tint) !important; }
     #list-tasks .nb-help .solution-toggle.active { background: var(--yellow) !important; color: var(--on-yellow) !important; }
     #list-tasks .nb-help .solution-toggle.is-locked { border-style: solid !important; border-color: var(--rule) !important; color: var(--ink-3) !important; }
-    /* Текущая задача на доске в списке темы: кнопки помощи — рамкой доски */
-    #list-tasks > .task.nb-current .solution-toggle:not(.active):not(.is-locked) { border-color: var(--board-frame) !important; }
+    /* Текущая задача на доске в списке темы (или все задачи в режиме «Список» — .nb-boards): кнопки помощи — рамкой доски */
+    :is(#list-tasks > .task.nb-current, #view-list[data-nb-page="topic"] #list-tasks.nb-boards > .task) .solution-toggle:not(.active):not(.is-locked) { border-color: var(--board-frame) !important; }
     /* Подпись под формой профиля: в старой теме 12.5px !important — при масштабе 0,8 это 10 px */
     .profile-note { font-size: 15px !important; }
   }
@@ -985,6 +985,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
    (.nb-current); в режиме «по одной» — вся карточка. */
 #view-list[data-nb-page="task"] .nb-board,
 #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current,
+#view-list[data-nb-page="topic"] #list-tasks.nb-boards > article.task,
 .sv-card article.task {
   --sheet: var(--board); --paper: var(--board-deep);
   --ink-1: var(--chalk); --ink-2: var(--chalk-2); --ink-3: var(--chalk-3);
@@ -998,18 +999,18 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
   border: 6px solid var(--board-edge); border-radius: 12px 12px 0 0;
   padding: 20px clamp(20px, 4vw, 48px) 44px;
 }
-:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current, .sv-card article.task) input.self-check-input {
+:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current, #view-list[data-nb-page="topic"] #list-tasks.nb-boards > article.task, .sv-card article.task) input.self-check-input {
   background: var(--board-deep); border-color: var(--board-frame); height: 64px; font-size: 26px;
 }
-:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current, .sv-card article.task) :is(.math-kb-toggle, .task-number, .self-check-reset, .self-check-accept, .task-tag-chip) {
+:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current, #view-list[data-nb-page="topic"] #list-tasks.nb-boards > article.task, .sv-card article.task) :is(.math-kb-toggle, .task-number, .self-check-reset, .self-check-accept, .task-tag-chip) {
   border-color: var(--board-frame);
 }
-:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current, .sv-card article.task) .self-check-btn { border-color: var(--chalk); }
-:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current) .task-figure { border: 6px solid #fff; }
+:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current, #view-list[data-nb-page="topic"] #list-tasks.nb-boards > article.task, .sv-card article.task) .self-check-btn { border-color: var(--chalk); }
+:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current, #view-list[data-nb-page="topic"] #list-tasks.nb-boards > article.task) .task-figure { border: 6px solid #fff; }
 #view-list[data-nb-page="task"] .nb-board .task-condition { font-size: 26px; }
 #view-list[data-nb-page="task"] .nb-board .task-condition .katex { font-size: 1.35em; }
 /* Полочка с мелками под доской */
-:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current)::after {
+:is(#view-list[data-nb-page="task"] .nb-board, #view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current, #view-list[data-nb-page="topic"] #list-tasks.nb-boards > article.task)::after {
   content: ""; position: absolute; left: -6px; right: -6px; bottom: -34px; height: 22px;
   background:
     linear-gradient(var(--chalk), var(--chalk)) 20px 50% / 34px 8px no-repeat,
@@ -1018,7 +1019,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
     var(--board-edge);
   border-radius: 0 0 12px 12px;
 }
-#view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current { margin: 12px 0 56px; }
+:is(#view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current, #view-list[data-nb-page="topic"] #list-tasks.nb-boards > article.task) { margin: 12px 0 56px; }
 
 /* Страница задачи: доска слева, «Помощь» справа */
 #view-list[data-nb-page="task"] article.task {
@@ -1069,33 +1070,33 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 /* Список темы: все задачи, кроме текущей (на доске), — строки: номер,
    сложность и условие; у решённой — «Решено», у нерешённой — «Решать →»,
    кнопка ставит её на доску прямо здесь. Открыть отдельно — по номеру. */
-#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) {
+#view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task:not(.nb-current) {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 24px;
   margin: 0; padding: 22px 0; border: 0; border-top: 1px solid var(--rule); background: none;
 }
-#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) > :not(.nb-solve-btn) { grid-column: 1; }
-#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) :is(.task-self-check, .task-self-assess, .task-actions-bar, .task-reveals-wrap, .task-tags-row, .task-figure, .task-actions) { display: none; }
-#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) .task-condition-wrap { margin-top: 10px; }
-#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) .task-condition { font-size: 20px; line-height: 1.45; }
-#view-list[data-nb-page="topic"] #list-tasks > article.task:has(.task-solved-badge):not(.nb-current) .task-condition { color: var(--ink-2); }
-#view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current + article.task { border-top: 0; }
+#view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task:not(.nb-current) > :not(.nb-solve-btn) { grid-column: 1; }
+#view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task:not(.nb-current) :is(.task-self-check, .task-self-assess, .task-actions-bar, .task-reveals-wrap, .task-tags-row, .task-figure, .task-actions) { display: none; }
+#view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task:not(.nb-current) .task-condition-wrap { margin-top: 10px; }
+#view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task:not(.nb-current) .task-condition { font-size: 20px; line-height: 1.45; }
+#view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task:has(.task-solved-badge):not(.nb-current) .task-condition { color: var(--ink-2); }
+#view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task.nb-current + article.task { border-top: 0; }
 .nb-solve-btn, .nb-next-btn { display: none; }
 /* Только что решённая задача на доске: «Следующая задача» */
-#view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current:has(.task-solved-badge) > .nb-next-btn {
+#view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task.nb-current:has(.task-solved-badge) > .nb-next-btn {
   display: inline-flex; align-items: center; gap: 8px; margin-top: 24px; min-height: 52px; padding: 0 24px;
   border: 2px solid var(--chalk); background: var(--chalk); color: #14213D;
   font-size: 17px; font-weight: 600; cursor: pointer;
 }
-#view-list[data-nb-page="topic"] #list-tasks > article.task.nb-current:has(.task-solved-badge) > .nb-next-btn:hover { background: transparent; color: var(--chalk); }
-#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current):not(:has(.task-solved-badge)) > .nb-solve-btn {
+#view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task.nb-current:has(.task-solved-badge) > .nb-next-btn:hover { background: transparent; color: var(--chalk); }
+#view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task:not(.nb-current):not(:has(.task-solved-badge)) > .nb-solve-btn {
   display: inline-flex; align-items: center; gap: 8px; grid-column: 2; grid-row: 1 / span 2;
   min-height: 44px; padding: 0 18px; border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1);
   font-size: 16px; font-weight: 600; white-space: nowrap; cursor: pointer;
 }
-#view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) > .nb-solve-btn:hover { background: var(--ink-1); color: var(--paper); }
+#view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task:not(.nb-current) > .nb-solve-btn:hover { background: var(--ink-1); color: var(--paper); }
 @media (max-width: 720px) {
-  #view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current) { grid-template-columns: minmax(0, 1fr); row-gap: 12px; }
-  #view-list[data-nb-page="topic"] #list-tasks > article.task:not(.nb-current):not(:has(.task-solved-badge)) > .nb-solve-btn { grid-column: 1; grid-row: auto; justify-self: start; }
+  #view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task:not(.nb-current) { grid-template-columns: minmax(0, 1fr); row-gap: 12px; }
+  #view-list[data-nb-page="topic"] #list-tasks:not(.nb-boards) > article.task:not(.nb-current):not(:has(.task-solved-badge)) > .nb-solve-btn { grid-column: 1; grid-row: auto; justify-self: start; }
 }
 
 /* ── 16 Страница темы и задачи: шапка, крошки, инструменты списка ─────── */
@@ -1798,6 +1799,27 @@ html.dark .progress-day.l4, html.dark .progress-legend .l4 { background: var(--p
 .cw-stage-heading { margin: 0 0 16px; font-size: 28px; line-height: 1.15; font-weight: 700; color: var(--ink-1); }
 .cw-catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 16px; }
 .cw-catalog-card { display: flex; flex-direction: column; gap: 8px; }
+/* Составленные контрольные с вариантами (app.js → paperWorkCard) */
+.cw-stage-mine { display: inline-block; margin-left: 10px; padding: 2px 10px; vertical-align: middle; background: var(--yellow); color: var(--on-yellow); font-size: 14px; font-weight: 700; }
+.cw-catalog-stage.is-mine .cw-stage-heading { scroll-margin-top: 80px; }
+.cw-stage-sub { margin: 18px 0 10px; font-size: 15px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); }
+.cw-stage-papers .cw-stage-sub:first-child { margin-top: 0; }
+.cw-works-grid { margin-bottom: 8px; }
+.cw-work-card { display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; border: 2px solid var(--ink-1); background: var(--sheet); }
+.cw-work-card .cw-cat-title { margin: 0; }
+.cw-work-facts { margin: 0; font-size: 15px; color: var(--ink-2); }
+.cw-variant-row, .cw-variant-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cw-variant-switch { margin: 10px 0 4px; }
+.cw-variant-label { font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.cw-variant-pair { display: inline-flex; align-items: center; gap: 4px; }
+.cw-variant-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 40px; padding: 0 14px; border: 2px solid var(--ink-1); background: transparent; color: var(--ink-1); font-size: 15px; font-weight: 700; text-decoration: none; }
+.cw-variant-btn:hover { background: var(--ink-1); color: var(--paper); }
+.cw-variant-btn.is-current { background: var(--ink-1); color: var(--paper); }
+.cw-work-card .cw-variant-label { flex-basis: 100%; }
+/* Длинное название раздела («Kombinatorika, varbūtības un statistika») на карточке темы переносится, а не вылезает за край */
+.cw-cat-top .tag { white-space: normal; max-width: 100%; }
+.cw-work-inline { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cw-work-inline-title { font-weight: 600; color: var(--ink-1); }
 .cw-cat-top { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; }
 .cw-cat-top .tag, .cw-cat-top .grade-badge {
   padding: 0; background: none; border: 0; color: var(--ink-2);

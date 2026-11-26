@@ -2184,6 +2184,9 @@ function renderTaskList(container, tasks, emptyText, options = {}) {
     fillTaskMath(container, shown);
     nbMarkCurrentTask(container);
   }
+  /* Режим «Список»: каждая задача на своей доске (nachala.css, .nb-boards).
+     В «Задачах дня» доска одна — её переставляет полоса номеров. */
+  container.classList.toggle('nb-boards', taskViewMode === 'list' && document.querySelector('#view-list')?.dataset.nbSet !== '1');
 }
 
 /* Позиция прокрутки запоминается до открытия и возвращается после закрытия:
@@ -3987,6 +3990,7 @@ async function showDailySet() {
   });
   viewList.dataset.nbPage = 'topic';
   viewList.dataset.nbSet = '1';
+  listTasks.classList.remove('nb-boards');
   if (!document.querySelector('#nb-set-strip')) {
     listTasks.insertAdjacentHTML('beforebegin', `<div class="nb-set-strip" id="nb-set-strip" role="group" aria-label="${escapeHtml(tr('nb_set_title'))}"></div><p class="nb-set-done" id="nb-set-done" hidden><span>${escapeHtml(tr('nb_set_done'))}</span> <a href="/duel?play=daily">${escapeHtml(tr('nb_set_duel'))}</a></p>`);
   }
@@ -4572,8 +4576,46 @@ async function appendTopicPapers(topicId, slot) {
   slot.insertAdjacentHTML('beforeend', `
     <div class="cw-paper-links">
       <span class="cw-paper-links-label">${escapeHtml(tr('cw_papers_title'))}</span>
-      ${papers.map(paper => `<span class="print-set-pair"><a class="exam-paper-link" href="/control-work/${encodeURIComponent(paper.slug)}">${escapeHtml(paperTitle(paper))} · ${escapeHtml(countLabel('topic_tasks', (paper.exam_paper_items || []).length))}</a>${printSetButton(`paper:${paper.slug}`, true)}</span>`).join('')}
+      ${window.MathTasksLib.groupPaperVariants(papers, paperTitle).map(group => paperWorkCard(group, { compact: true })).join('')}
     </div>`);
+}
+
+/* Одна составленная контрольная со всеми вариантами: название, сколько
+   заданий и минут, кнопки вариантов «A», «B», «C» (у каждого — печать).
+   Работа без вариантов — одной кнопкой «Начать». */
+function paperWorkCard(group, { compact = false } = {}) {
+  const tr = window.MathTasks.t || (k => k);
+  const first = group.variants[0]?.paper;
+  if (!first) return '';
+  const count = (first.exam_paper_items || []).length;
+  const minutes = window.MathTasksLib.paperMinutes ? window.MathTasksLib.paperMinutes(first) : first.minutes;
+  const facts = [count ? countLabel('topic_tasks', count) : '', minutes ? `${minutes} ${tr('cw_minutes_short')}` : ''].filter(Boolean).join(' · ');
+  const buttons = group.variants.map(({ paper, variant }) => `<span class="print-set-pair cw-variant-pair">`
+    + `<a class="cw-variant-btn" href="/control-work/${encodeURIComponent(paper.slug)}"${variant ? ` aria-label="${escapeHtml(tr('cw_variant_aria', { title: group.title, v: variant })).replace(/"/g, '&quot;')}"` : ''}>${escapeHtml(variant ? (compact ? tr('cw_variant_short', { v: variant }) : variant) : tr('cw_start_short'))}</a>`
+    + `${printSetButton(`paper:${paper.slug}`, true)}</span>`).join('');
+  if (compact) {
+    return `<span class="cw-work-inline"><span class="cw-work-inline-title">${escapeHtml(group.title)}${facts ? ` · ${escapeHtml(facts)}` : ''}</span>${buttons}</span>`;
+  }
+  return `
+    <div class="cw-work-card">
+      <h3 class="cw-cat-title"><a href="/control-work/${encodeURIComponent(first.slug)}">${escapeHtml(group.title)}</a></h3>
+      ${facts ? `<p class="cw-work-facts">${escapeHtml(facts)}</p>` : ''}
+      <div class="cw-variant-row">
+        ${group.variants.some(item => item.variant) ? `<span class="cw-variant-label">${escapeHtml(tr('cw_variants_label'))}</span>` : ''}
+        ${buttons}
+      </div>
+    </div>`;
+}
+
+/* Ступень каталога, к которой относится работа: по первой теме работы,
+   которую знает сайт. Неизвестная — null (такие идут в общий блок сверху). */
+function paperStageBucket(paper) {
+  const ids = [paper.topic_id, ...(paper.exam_paper_topics || []).map(item => item.topic_id)].filter(Boolean).map(Number);
+  for (const id of ids) {
+    const topic = allTopics.find(item => Number(item.id) === id);
+    if (topic) return getTopicGradeBucket(topic);
+  }
+  return null;
 }
 
 // Составленные контрольные в начале раздела «Контрольные работы».
@@ -4581,18 +4623,40 @@ async function renderCatalogPapers() {
   const block = document.querySelector('#cw-papers-block');
   if (!block) return;
   const papers = await listCwPapers();
-  if (!papers.length) {
+  const tr = window.MathTasks.t || (k => k);
+  const groups = window.MathTasksLib.groupPaperVariants(papers, paperTitle);
+  /* Работа — в ступени своего класса (места под неё рисует
+     showControlWorksCatalog); если ступени на странице нет — в общий блок. */
+  const slots = new Map([...document.querySelectorAll('[data-stage-papers]')].map(el => [el.dataset.stagePapers, el]));
+  const byStage = new Map();
+  const loose = [];
+  groups.forEach(group => {
+    const bucket = paperStageBucket(group.variants[0].paper);
+    const stage = bucket === null ? null : CW_STAGES.find(item => item.match(bucket));
+    if (stage && slots.has(stage.id)) {
+      if (!byStage.has(stage.id)) byStage.set(stage.id, []);
+      byStage.get(stage.id).push(group);
+    } else {
+      loose.push(group);
+    }
+  });
+  slots.forEach((slot, id) => {
+    const list = byStage.get(id) || [];
+    slot.hidden = !list.length;
+    slot.innerHTML = list.length ? `
+      <h3 class="cw-stage-sub">${escapeHtml(tr('cw_papers_catalog_title'))}</h3>
+      <div class="cw-catalog-grid cw-works-grid">${list.map(group => paperWorkCard(group)).join('')}</div>
+      <h3 class="cw-stage-sub">${escapeHtml(tr('cw_auto_title'))}</h3>` : '';
+  });
+  if (!loose.length) {
     block.hidden = true;
     block.innerHTML = '';
     return;
   }
-  const tr = window.MathTasks.t || (k => k);
   block.hidden = false;
   block.innerHTML = `
     <h2 class="cw-papers-title">${escapeHtml(tr('cw_papers_catalog_title'))}</h2>
-    <div class="cw-paper-links">
-      ${papers.map(paper => `<span class="print-set-pair"><a class="exam-paper-link" href="/control-work/${encodeURIComponent(paper.slug)}">${escapeHtml(paperTitle(paper))} · ${escapeHtml(countLabel('topic_tasks', (paper.exam_paper_items || []).length))} · ${paper.minutes} ${escapeHtml(tr('cw_minutes_short'))}</a>${printSetButton(`paper:${paper.slug}`, true)}</span>`).join('')}
-    </div>`;
+    <div class="cw-catalog-grid cw-works-grid">${loose.map(group => paperWorkCard(group)).join('')}</div>`;
 }
 
 function renderTopicControlWorkCard(topic, tasks) {
@@ -4882,6 +4946,7 @@ function requestCwSubmit(button) {
 /* Один экран на контрольную и экзамен: режим меняет плашку и описание
    в шапке и сбрасывает прошлую работу. */
 function setCwMode(mode, kind = null) {
+  renderCwVariantSwitch(null);
   endCwGuard();
   if (currentCwTimer) currentCwTimer.stop();
   currentCwMode = mode;
@@ -5025,7 +5090,7 @@ async function listCwPapers() {
   if (!db) return [];
   try {
     const { data, error } = await db.from('exam_papers')
-      .select('slug,title,title_lv,minutes,exam_paper_items(task_id),exam_paper_topics(topic_id)')
+      .select('slug,title,title_lv,minutes,parts,topic_id,exam_paper_items(task_id),exam_paper_topics(topic_id)')
       .eq('is_published', true).eq('kind', 'cw')
       .order('id');
     return error ? [] : (data || []);
@@ -5452,6 +5517,44 @@ async function startControlWork(slug) {
   beginCwGuard();
 }
 
+/* Под названием составленной работы — другие варианты той же работы.
+   Переход начинает новую попытку, и ответы текущей пропадают: если ученик
+   уже что-то вписал и не сдал, сначала спрашиваем (обработчик ниже).
+   null — спрятать (работа по теме, работа без вариантов, экзамен). */
+function renderCwVariantSwitch(state) {
+  let box = document.querySelector('#cw-variant-switch');
+  if (!box) {
+    const desc = document.querySelector('#cw-desc');
+    if (!desc || !state) return;
+    desc.insertAdjacentHTML('afterend', '<nav class="cw-variant-switch" id="cw-variant-switch" hidden></nav>');
+    box = document.querySelector('#cw-variant-switch');
+  }
+  if (!state) {
+    box.hidden = true;
+    box.innerHTML = '';
+    return;
+  }
+  const tr = window.MathTasks.t || (k => k);
+  box.setAttribute('aria-label', tr('cw_variants_label'));
+  box.innerHTML = `<span class="cw-variant-label">${escapeHtml(tr('cw_variants_label'))}</span>`
+    + state.group.variants.map(({ paper, variant }) => (paper.slug === state.current
+      ? `<span class="cw-variant-btn is-current" aria-current="page">${escapeHtml(tr('cw_variant_short', { v: variant || '—' }))}</span>`
+      : `<a class="cw-variant-btn" href="/control-work/${encodeURIComponent(paper.slug)}">${escapeHtml(tr('cw_variant_short', { v: variant || '—' }))}</a>`)).join('');
+  box.hidden = false;
+}
+
+document.addEventListener('click', event => {
+  const link = event.target.closest?.('#cw-variant-switch a[href]');
+  if (!link) return;
+  const started = !currentCwSubmitted && Object.values(currentCwUserAnswers || {}).some(value => String(value ?? '').trim());
+  if (!started) return;
+  const tr = window.MathTasks.t || (k => k);
+  if (!window.confirm(tr('cw_variant_leave_confirm'))) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }
+}, true);
+
 /* Контрольная по нескольким темам: задачи берём из работы, тема как
    контекст не годится — прогресс темы такой работой не меряется. */
 async function runCwPaper(paper) {
@@ -5480,6 +5583,12 @@ async function runCwPaper(paper) {
   const submitBtn = document.querySelector('#cw-submit-btn');
   if (submitBtn) submitBtn.hidden = false;
   if (list) list.innerHTML = `<p class="empty-state">${escapeHtml(tr('state_loading_tasks'))}</p>`;
+  void listCwPapers().then(papers => {
+    if (currentCwPaperSlug !== paper.slug) return;
+    const group = window.MathTasksLib.groupPaperVariants(papers, paperTitle)
+      .find(item => item.variants.some(entry => entry.paper.slug === paper.slug));
+    renderCwVariantSwitch(group && group.variants.length > 1 ? { group, current: paper.slug } : null);
+  });
 
   const tasks = await fetchPaperTasks(paper);
   if (!tasks.length) {
@@ -6014,63 +6123,29 @@ async function showControlWorksCatalog() {
   setMeta(tr('cw_catalog_title'), tr('cw_catalog_desc'));
   renderSidebar();
 
-  void renderCatalogPapers();
-
   const container = document.querySelector('#cw-catalog-list');
-  if (!container) return;
+  if (!container) {
+    void renderCatalogPapers();
+    return;
+  }
 
   const topicsWithTasks = allTopics.filter(topic => (taskCounts.get(topic.id) || 0) >= MIN_CONTROL_WORK_TASKS);
 
   if (!topicsWithTasks.length) {
     container.innerHTML = `<p class="empty-state">${escapeHtml(tr('state_loading_tasks'))}</p>`;
+    void renderCatalogPapers();
     return;
   }
 
-  const stages = [
-    {
-      id: 'sakumskola',
-      title: tr('stage_sakumskola') || '1–4 классы (Начальная школа)',
-      filter: t => {
-        const g = getTopicGradeBucket(t);
-        return g >= 1 && g <= 4;
-      }
-    },
-    {
-      id: 'pamatskola1',
-      title: tr('stage_pamatskola1') || '5–6 классы',
-      filter: t => {
-        const g = getTopicGradeBucket(t);
-        return g >= 5 && g <= 6;
-      }
-    },
-    {
-      id: 'pamatskola2',
-      title: tr('stage_pamatskola2') || '7–9 классы (Основная школа)',
-      filter: t => {
-        const g = getTopicGradeBucket(t);
-        return g >= 7 && g <= 9;
-      }
-    },
-    /* Три уровня старшей школы разведены по секциям: нумерация тем в
-       каждом своя, с единицы, и в общем списке «1. Иррациональные
-       уравнения» стояло рядом с «1. Числовые расчёты» из другого курса —
-       различить их было нечем. */
-    {
-      id: 'visparigais',
-      title: tr('grade_visparigais') || 'Vispārīgais līmenis',
-      filter: t => getTopicGradeBucket(t) === 10
-    },
-    {
-      id: 'optimalais',
-      title: tr('grade_matematika_1') || 'Matemātika I (Optimālais)',
-      filter: t => getTopicGradeBucket(t) === 11
-    },
-    {
-      id: 'augstakais',
-      title: tr('grade_matematika_2') || 'Matemātika II (Augstākais)',
-      filter: t => getTopicGradeBucket(t) === 12
-    }
-  ];
+  /* Ступень выбранного класса — первой и с пометкой «Ваш класс»: ученику
+     не нужно листать мимо чужих классов. Остальные — ниже, как были. */
+  const myBucket = selectedGrade ? getTopicGradeBucket({ grade: selectedGrade }) : null;
+  const stages = CW_STAGES.map(stage => ({
+    ...stage,
+    title: tr(stage.titleKey) || stage.fallback,
+    filter: t => stage.match(getTopicGradeBucket(t)),
+    mine: myBucket !== null && stage.match(myBucket)
+  })).sort((a, b) => Number(b.mine) - Number(a.mine));
 
   const html = stages.map(stage => {
     const stageTopics = topicsWithTasks.filter(stage.filter);
@@ -6111,8 +6186,9 @@ async function showControlWorksCatalog() {
     }).join('');
 
     return `
-      <section class="cw-catalog-stage">
-        <h2 class="cw-stage-heading">${escapeHtml(stage.title)}</h2>
+      <section class="cw-catalog-stage${stage.mine ? ' is-mine' : ''}" id="cw-stage-${stage.id}">
+        <h2 class="cw-stage-heading">${escapeHtml(stage.title)}${stage.mine ? ` <span class="cw-stage-mine">${escapeHtml(tr('cw_your_grade'))}</span>` : ''}</h2>
+        <div class="cw-stage-papers" data-stage-papers="${stage.id}" hidden></div>
         <div class="cw-catalog-grid">
           ${cardsHtml}
         </div>
@@ -6121,7 +6197,20 @@ async function showControlWorksCatalog() {
   }).filter(Boolean).join('');
 
   container.innerHTML = html || `<p class="empty-state">${escapeHtml(tr('empty_topics'))}</p>`;
+  void renderCatalogPapers();
 }
+
+/* Ступени раздела «Контрольные работы». Три уровня старшей школы разведены:
+   нумерация тем в каждом своя, с единицы, и в общем списке «1. Иррациональные
+   уравнения» стояло рядом с «1. Числовые расчёты» из другого курса. */
+const CW_STAGES = [
+  { id: 'sakumskola', titleKey: 'stage_sakumskola', fallback: '1–4 классы (Начальная школа)', match: g => g >= 1 && g <= 4 },
+  { id: 'pamatskola1', titleKey: 'stage_pamatskola1', fallback: '5–6 классы', match: g => g >= 5 && g <= 6 },
+  { id: 'pamatskola2', titleKey: 'stage_pamatskola2', fallback: '7–9 классы (Основная школа)', match: g => g >= 7 && g <= 9 },
+  { id: 'visparigais', titleKey: 'grade_visparigais', fallback: 'Vispārīgais līmenis', match: g => g === 10 },
+  { id: 'optimalais', titleKey: 'grade_matematika_1', fallback: 'Matemātika I (Optimālais)', match: g => g === 11 },
+  { id: 'augstakais', titleKey: 'grade_matematika_2', fallback: 'Matemātika II (Augstākais)', match: g => g === 12 }
+];
 
 /* ── Поиск ────────────────────────────────────────────────────────── */
 
