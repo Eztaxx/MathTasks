@@ -218,12 +218,18 @@ async function checkVisitor(who, token, userId) {
     ['duel_run_start', { p_cat: 'mix', p_diff: 'normal', p_gen: 1, p_seed: 1 }],
     ['duel_run_save', { p_run: 0, p_nick: TAG, p_player: null, p_answers: [], p_times: [], p_correct: 80, p_attempted: 80, p_verified: true, p_ranked: true }],
     ['duel_run_load', { p_run: 0 }],
-    ['duel_hide', { p_run: 0, p_hidden: true }]
+    ['duel_hide', { p_run: 0, p_hidden: true }],
+    ['cw_submission_review', { p_id: 0, p_action: 'reset' }]
   ]) {
     const result = await rest('POST', `rpc/${fn}`, H, args, null);
-    // duel_hide посетителю доступна, но сама отказывает не-администратору: admin_only.
-    const ok = denied(result) || (fn === 'duel_hide' && /admin_only/.test(JSON.stringify(result.data)));
-    ok ? pass(who, `${fn} запрещена (${result.status})`) : fail(who, `вызов ${fn} не отклонён по правам`, `${result.status} ${JSON.stringify(result.data).slice(0, 120)}`);
+    // duel_hide и cw_submission_review вошедшему доступны, но сами отказывают не-администратору: admin_only.
+    const selfGuarded = fn === 'duel_hide' || fn === 'cw_submission_review';
+    // cw_submission_review появляется миграцией 037: до неё функции нет (404) — вызвать нечего.
+    const missing = fn === 'cw_submission_review' && result.status === 404;
+    const ok = denied(result) || missing || (selfGuarded && /admin_only/.test(JSON.stringify(result.data)));
+    if (missing) pass(who, `${fn}: функции нет (404) — миграция 037 не применена или у функции сменились параметры; права не проверены`);
+    else if (ok) pass(who, `${fn} запрещена (${result.status})`);
+    else fail(who, `вызов ${fn} не отклонён по правам`, `${result.status} ${JSON.stringify(result.data).slice(0, 120)}`);
   }
 
   // Воркер: генерация — только администратору.

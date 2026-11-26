@@ -6662,14 +6662,31 @@ ${JSON.stringify(texts)}`;
     }
   }
 
-  /* ── Результаты учеников (миграция 036, worker/cw.js) ───────────────
-     Строку пишет воркер, когда ученик сдаёт контрольную с ником. Здесь —
-     только чтение и удаление (по просьбе ученика или родителя). */
+  /* ── Результаты учеников (миграции 036 и 037, worker/cw.js, cw-review.js) ──
+     Строку пишет воркер, когда ученик сдаёт контрольную с ником. Здесь
+     учитель проверяет работу как тетрадь: условие, ответ ученика, верный
+     ответ и решение, — и сам ставит за задание 0, ½ или 1 балл (функция
+     cw_submission_review). Без отметки действует автопроверка. Ученик
+     проверку учителя не видит. Удаление — по просьбе ученика или родителя. */
+  const cwReview = window.MathTasksCwReview;
   let results = [];
-  let resultsOpen = new Set();
+  const resultsOpen = new Set();
   let resultsDeleteArmed = null;
   let resultsCapped = false;
-  const resultsTaskTitles = new Map();
+  let resultsReviewReady = true;
+  let resultsMode = 'list';
+  const resultsTasks = new Map();
+  const CW_SVG = (body, extra = '') => `<svg class="adm-cw-ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"${extra}>${body}</svg>`;
+  const CW_ICON = {
+    ok: CW_SVG('<path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
+    bad: CW_SVG('<path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
+    half: CW_SVG('<circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/>'),
+    self: CW_SVG('<path d="M4 14.5V2.5h7.5L10 5.5l1.5 3H4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>')
+  };
+  const cwGradeFn = (score, total) => window.MathTasksLib.calculateControlWorkGrade(score, total);
+  const cwPoints = value => cwReview.formatPoints(value);
+  const cwLang = row => (row && row.lang === 'ru' ? 'ru' : 'lv');
+  const cwLoc = (task, field, lang) => window.MathTasksLib.getLocalizedText(task, field, lang);
 
   async function loadResults() {
     const list = byId('results-list');
@@ -6681,14 +6698,23 @@ ${JSON.stringify(texts)}`;
     const since = start.toISOString();
     // Обещание политики: старше 12 месяцев не храним, даже если сдач давно не было.
     db.from('cw_submissions').delete().lt('created_at', new Date(Date.now() - 365 * 86400000).toISOString()).then(() => {}, () => {});
-    const { data, error } = await db.from('cw_submissions')
-      .select('id,nick,kind,paper_id,topic_id,slug,title,score,total,percent,grade,time_sec,violations,lang,answers,created_at,updated_at')
+    const base = 'id,nick,kind,paper_id,topic_id,slug,title,score,total,percent,grade,time_sec,violations,lang,answers,created_at,updated_at';
+    const query = cols => db.from('cw_submissions').select(cols)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(1000);
+    // Колонки проверки учителя появляются миграцией 037; до неё раздел работает без отметок.
+    // Задачи могли исправить, пока раздел был открыт: «Обновить» берёт их заново.
+    resultsTasks.clear();
+    let { data, error } = await query(base + ',review,reviewed_at');
+    // 42703 — нет колонки: миграция 037 ещё не применена. Другая ошибка — сбой, а не отсутствие миграции.
+    resultsReviewReady = !error;
+    if (error && error.code === '42703') ({ data, error } = await query(base));
     if (error) {
       results = [];
-      list.innerHTML = '<p class="adm-empty">Результаты пока недоступны: примените миграцию <code>supabase/migrations/036_cw_submissions.sql</code> в SQL Editor Supabase.</p>';
+      list.innerHTML = error.code === '42P01'
+        ? '<p class="adm-empty">Результаты пока недоступны: примените миграцию <code>supabase/migrations/036_cw_submissions.sql</code> в SQL Editor Supabase.</p>'
+        : `<p class="adm-empty">Не удалось загрузить результаты: ${escapeHtml(error.message || 'ошибка сети')}. Нажмите «Обновить».</p>`;
       return;
     }
     results = data || [];
@@ -6706,81 +6732,400 @@ ${JSON.stringify(texts)}`;
 
   const resultTime = sec => (Number.isFinite(sec) ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}` : '—');
 
+  function resultsFiltered() {
+    const paper = byId('results-f-paper')?.value || '';
+    const nick = (byId('results-f-nick')?.value || '').trim().toLowerCase();
+    const state = byId('results-f-state')?.value || '';
+    return results.filter(r => {
+      if (paper && r.slug !== paper) return false;
+      if (nick && !String(r.nick).toLowerCase().includes(nick)) return false;
+      if (state === 'unchecked') return !r.reviewed_at;
+      if (state === 'self') return (r.answers || []).some(a => cwReview.needsLook(r, a));
+      if (state === 'changed') return cwReview.changedAfterReview(r);
+      return true;
+    });
+  }
+
+  // Заголовок строки: итог с учётом баллов учителя и состояние проверки.
+  function resultHead(r) {
+    const t = cwReview.reviewTotals(r, cwGradeFn);
+    const grade = t.grade !== null ? ` · оценка ${t.grade}` : '';
+    let chip = '';
+    if (resultsReviewReady) {
+      if (cwReview.changedAfterReview(r)) chip = '<span class="adm-chip adm-cw-chip is-changed">изменена после проверки</span>';
+      else if (r.reviewed_at) chip = '<span class="adm-chip adm-cw-chip is-done">проверено</span>';
+      else chip = '<span class="adm-chip adm-cw-chip">не проверено</span>';
+    }
+    return `${escapeHtml(r.nick)} · ${cwPoints(t.score)} из ${t.total} (${t.percent}%)${grade} ${chip}`;
+  }
+
+  function resultMeta(r) {
+    const t = cwReview.reviewTotals(r, cwGradeFn);
+    const answers = Array.isArray(r.answers) ? r.answers : [];
+    const when = new Date(r.created_at).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const selfCount = answers.filter(a => a.accepted).length;
+    const parts = [escapeHtml(r.title || r.slug), escapeHtml(when), `время ${resultTime(r.time_sec)}`];
+    if (r.violations) parts.push(`уходов со страницы: ${r.violations}`);
+    if (selfCount) parts.push(`самозачёт: ${selfCount}`);
+    if (t.marks) parts.push(`автопроверка: ${r.score} из ${r.total}${r.grade !== null && r.grade !== undefined ? `, оценка ${r.grade}` : ''}`);
+    return parts.join(' · ');
+  }
+
+  function resultRowHtml(r) {
+    const open = resultsOpen.has(r.id);
+    const armed = resultsDeleteArmed === r.id;
+    return `
+      <div class="adm-paper-row adm-result-row" data-result-row="${r.id}">
+        <div class="adm-paper-main">
+          <strong data-result-head>${resultHead(r)}</strong>
+          <span data-result-meta>${resultMeta(r)}</span>
+        </div>
+        <div class="adm-paper-actions">
+          <button type="button" class="adm-btn soft" data-result-open="${r.id}" aria-expanded="${open}">${open ? 'Свернуть' : 'Проверить'}</button>
+          <button type="button" class="adm-btn soft" data-result-delete="${r.id}">${armed ? 'Точно удалить?' : 'Удалить'}</button>
+        </div>
+        <div class="adm-cw-detail" data-result-detail${open ? '' : ' hidden'}></div>
+      </div>`;
+  }
+
+  // Сводка над списком: сколько сдач, средний итог (с баллами учителя), сколько не проверено.
+  function renderResultsNote(shown) {
+    const note = byId('results-note');
+    if (!note) return;
+    if (!shown.length) { note.textContent = ''; return; }
+    const avg = Math.round(shown.reduce((sum, r) => sum + cwReview.reviewTotals(r, cwGradeFn).percent, 0) / shown.length);
+    const unchecked = resultsReviewReady ? shown.filter(r => !r.reviewed_at).length : 0;
+    note.textContent = `сдач: ${shown.length} · средний результат ${avg}%${unchecked ? ` · не проверено: ${unchecked}` : ''}${resultsCapped ? ' · показаны последние 1000, сузьте период' : ''}`;
+  }
+
   function renderResults() {
     const list = byId('results-list');
     if (!list) return;
     const paper = byId('results-f-paper')?.value || '';
-    const nick = (byId('results-f-nick')?.value || '').trim().toLowerCase();
-    const shown = results.filter(r => (!paper || r.slug === paper) && (!nick || String(r.nick).toLowerCase().includes(nick)));
-    const note = byId('results-note');
-    if (note) {
-      const avg = shown.length ? Math.round(shown.reduce((sum, r) => sum + r.percent, 0) / shown.length) : 0;
-      note.textContent = shown.length
-        ? `сдач: ${shown.length} · средний результат ${avg}%${resultsCapped ? ' · показаны последние 1000, сузьте период' : ''}`
-        : '';
-    }
+    if (!paper) resultsMode = 'list';
+    const shown = resultsFiltered();
+    renderResultsNote(shown);
     const bulk = byId('results-delete-shown');
     if (bulk) {
       bulk.hidden = !shown.length;
       bulk.textContent = `Удалить показанные: ${shown.length}`;
     }
+    const modeBtn = byId('results-mode');
+    if (modeBtn) {
+      modeBtn.hidden = !paper || !shown.length;
+      modeBtn.textContent = resultsMode === 'matrix' ? 'Список сдач' : 'Сводка по заданиям';
+    }
+    const csvBtn = byId('results-csv');
+    if (csvBtn) csvBtn.hidden = !paper || !shown.length;
+    const migrate = byId('results-review-note');
+    if (migrate) migrate.hidden = resultsReviewReady || !results.length;
     if (!shown.length) {
       list.innerHTML = results.length
         ? '<p class="adm-empty">Под фильтр ничего не подходит.</p>'
         : '<p class="adm-empty">За этот период никто не сдал контрольную с ником. Ученик вписывает ник в поле «Ник для учителя» в начале работы.</p>';
       return;
     }
-    list.innerHTML = shown.map(r => {
-      const open = resultsOpen.has(r.id);
-      const when = new Date(r.created_at).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-      const answers = Array.isArray(r.answers) ? r.answers : [];
-      const detail = open ? `<ol class="adm-result-answers">${answers.map(a => {
-        const title = resultsTaskTitles.get(a.task_id);
-        return `<li class="${a.ok ? 'is-ok' : 'is-bad'}"><span>${a.ok ? (a.accepted ? '🙋' : '✓') : '✗'}</span> <code>${escapeHtml(a.answer || '—')}</code>${title ? ` <small>${escapeHtml(title)}</small>` : ''} <a href="#task-${Number(a.task_id)}">#${Number(a.task_id)}</a></li>`;
-      }).join('')}</ol>` : '';
-      const armed = resultsDeleteArmed === r.id;
-      return `
-      <div class="adm-paper-row adm-result-row">
-        <div class="adm-paper-main">
-          <strong>${escapeHtml(r.nick)} · ${r.score} из ${r.total} (${r.percent}%)${r.grade !== null && r.grade !== undefined ? ` · оценка ${r.grade}` : ''}</strong>
-          <span>${escapeHtml(r.title || r.slug)} · ${escapeHtml(when)} · время ${resultTime(r.time_sec)}${r.violations ? ` · уходов со страницы: ${r.violations}` : ''}${answers.some(a => a.accepted) ? ' · есть «ответ всё же совпал»' : ''}</span>
-          ${detail}
-        </div>
-        <div class="adm-paper-actions">
-          <button type="button" class="adm-btn soft" data-result-open="${r.id}">${open ? 'Свернуть' : 'Ответы'}</button>
-          <button type="button" class="adm-btn soft" data-result-delete="${r.id}">${armed ? 'Точно удалить?' : 'Удалить'}</button>
-        </div>
-      </div>`;
-    }).join('');
+    if (resultsMode === 'matrix') {
+      renderResultsMatrix(list, shown);
+      return;
+    }
+    list.innerHTML = shown.map(resultRowHtml).join('');
+    shown.filter(r => resultsOpen.has(r.id)).forEach(r => {
+      const rowEl = list.querySelector(`[data-result-row="${r.id}"]`);
+      if (rowEl) fillResultDetail(rowEl, r);
+    });
   }
 
-  // Названия задач для разбора — одним запросом на раскрытую строку.
-  async function loadResultTitles(row) {
-    const ids = (row.answers || []).map(a => Number(a.task_id)).filter(id => id && !resultsTaskTitles.has(id));
+  // Полные задачи для разбора: условие, ответ, решение, рисунки — на обоих языках.
+  async function loadResultTasks(rows) {
+    const ids = [...new Set(rows.flatMap(r => (r.answers || []).map(a => Number(a.task_id))))]
+      .filter(id => id && !resultsTasks.has(id));
     if (!ids.length) return;
-    const { data } = await db.from('tasks').select('id,title,title_lv,position').in('id', ids);
-    (data || []).forEach(t => resultsTaskTitles.set(t.id, t.title_lv || t.title || (t.position ? '№' + t.position : '')));
+    const cols = ['id', 'title', 'position', 'is_published', 'condition_latex', 'answer_latex', 'solution_latex', 'condition_image', 'solution_image'];
+    if (answerCheckReady) cols.push('answer_check');
+    if (multilingualReady) cols.push('title_lv', 'condition_latex_lv', 'answer_latex_lv', 'solution_latex_lv');
+    if (multilingualReady && answerCheckReady) cols.push('answer_check_lv');
+    const { data, error } = await window.MathTasksLib.fetchByIdChunks(ids,
+      chunk => db.from('tasks').select(cols.join(',')).in('id', chunk));
+    if (error) return false;
+    (data || []).forEach(task => resultsTasks.set(task.id, task));
+    // Удалённые задачи запоминаем пустыми, чтобы не спрашивать базу снова.
+    ids.forEach(id => { if (!resultsTasks.has(id)) resultsTasks.set(id, null); });
+    return true;
+  }
+
+  function resultTaskHtml(r, a, index) {
+    const lib = window.MathTasksLib;
+    const id = Number(a.task_id);
+    const task = resultsTasks.get(id) || null;
+    const lang = cwLang(r);
+    const points = cwReview.taskPoints(r, a);
+    const mark = cwReview.teacherMark(r, id);
+    const autoPoints = a.ok ? 1 : 0;
+    const state = points === 1 ? 'is-ok' : (points === 0 ? 'is-bad' : 'is-half');
+    const icon = points === 1 ? CW_ICON.ok : (points === 0 ? CW_ICON.bad : CW_ICON.half);
+    const answerText = String(a.answer || '');
+    const autoText = a.accepted ? 'засчитано по самозачёту ученика' : (a.ok ? 'верно' : (answerText ? 'неверно' : 'нет ответа'));
+    const verdict = mark !== null
+      ? `${cwPoints(mark)} из 1 — балл учителя (автопроверка: ${autoText})`
+      : `${autoPoints} из 1 — автопроверка: ${autoText}`;
+    // Ключ ответа могли исправить после сдачи. Ответ ровно в 80 знаков мог быть обрезан — его не перепроверяем.
+    const recheck = task && !a.accepted && Array.from(answerText).length < 80
+      ? lib.checkTaskAnswer(answerText, cwLoc(task, 'answer_latex', lang), cwLoc(task, 'answer_check', lang))
+      : null;
+    const differs = recheck !== null && recheck !== Boolean(a.ok);
+    const condImg = task && getTaskImageUrl(task.condition_image);
+    const solImg = task && getTaskImageUrl(task.solution_image);
+    const hasSolution = task && (String(cwLoc(task, 'solution_latex', lang) || '').trim() || solImg);
+    const buttons = resultsReviewReady ? `
+          <div class="adm-cw-points" role="group" aria-label="Балл за задание №${index + 1}">
+            <span class="adm-cw-label">Балл</span>
+            ${cwReview.POINTS.map(v => `<button type="button" class="adm-cw-pt${mark === null && v === autoPoints ? ' is-auto' : ''}" data-cw-mark="${v}" aria-pressed="${mark === v}"${mark === null && v === autoPoints ? ' title="Так считает автопроверка"' : ''}>${v === 0.5 ? '½' : v}</button>`).join('')}
+            <button type="button" class="adm-link-btn adm-cw-linkbtn" data-cw-mark="auto"${mark === null ? ' hidden' : ''}>как у автопроверки</button>
+          </div>` : '';
+    return `
+        <li class="adm-cw-task ${state}" data-cw-task="${id}" data-cw-index="${index}">
+          <div class="adm-cw-task-head">
+            <span class="adm-cw-num">№${index + 1}</span>
+            <span class="adm-cw-verdict">${icon}<span>${escapeHtml(verdict)}</span></span>
+            ${a.accepted ? `<span class="adm-cw-self">${CW_ICON.self}<span>ученик отметил «Ответ всё же совпал»</span></span>` : ''}
+            <a class="adm-cw-link" href="#task-${id}">задача #${id}</a>
+          </div>
+          ${task ? `<div class="adm-cw-cond multiline" data-cw-math="condition_latex"></div>${condImg ? `<img class="adm-cw-img" src="${escapeHtml(condImg)}" alt="Рисунок к заданию №${index + 1}" loading="lazy" />` : ''}` : '<p class="adm-empty">Задание удалено из базы — видны только ответ ученика и отметка.</p>'}
+          <div class="adm-cw-answers">
+            <div class="adm-cw-answer is-student"><span class="adm-cw-label">Ответ ученика</span><code>${answerText ? escapeHtml(answerText) : '—'}</code></div>
+            ${task ? '<div class="adm-cw-answer is-key"><span class="adm-cw-label">Правильный ответ</span><span class="multiline" data-cw-math="answer_latex"></span></div>' : ''}
+          </div>
+          ${differs ? `<p class="adm-cw-warn">Автопроверка сейчас решила бы «${recheck ? 'верно' : 'неверно'}»: похоже, ответ задачи исправляли после сдачи.</p>` : ''}
+          ${hasSolution ? `<details class="adm-cw-sol"><summary>Решение</summary><div class="multiline" data-cw-math="solution_latex"></div>${solImg ? `<img class="adm-cw-img" src="${escapeHtml(solImg)}" alt="Рисунок к решению №${index + 1}" loading="lazy" />` : ''}</details>` : ''}
+          ${buttons}
+        </li>`;
+  }
+
+  // Формулы — после вставки разметки: текст задачи идёт в renderMath, а не в HTML.
+  function fillResultTaskMath(li, r) {
+    const task = resultsTasks.get(Number(li.dataset.cwTask));
+    if (!task) return;
+    li.querySelectorAll('[data-cw-math]').forEach(el => renderMath(el, String(cwLoc(task, el.dataset.cwMath, cwLang(r)) || '')));
+  }
+
+  function resultToolbarHtml(r) {
+    if (!resultsReviewReady) {
+      return '<p class="adm-cw-hint">Чтобы ставить баллы самому, примените миграцию <code>supabase/migrations/037_cw_review.sql</code> в SQL Editor Supabase.</p>';
+    }
+    const changed = cwReview.changedAfterReview(r);
+    return `
+      <div class="adm-cw-toolbar">
+        <p class="adm-cw-hint">Поставьте 0, ½ или 1, если не согласны с автопроверкой, — итог и оценка пересчитаются. Без отметки задание считается, как решила автопроверка.${changed ? ' Ученик изменил работу после вашей проверки — посмотрите задания с самозачётом.' : ''}</p>
+        <span class="adm-cw-status" data-cw-status role="status"></span>
+        <button type="button" class="adm-btn soft" data-cw-checked${r.reviewed_at && !changed ? ' hidden' : ''}>Отметить проверенной</button>
+        <button type="button" class="adm-btn soft" data-cw-reset${r.reviewed_at ? '' : ' hidden'}>Вернуть автопроверку</button>
+      </div>`;
+  }
+
+  async function fillResultDetail(rowEl, r) {
+    const box = rowEl.querySelector('[data-result-detail]');
+    if (!box) return;
+    box.hidden = false;
+    box.innerHTML = '<p class="adm-empty">Загружаем задания…</p>';
+    const loaded = await loadResultTasks([r]);
+    if (!rowEl.isConnected || !resultsOpen.has(r.id)) return;
+    if (loaded === false) {
+      box.innerHTML = '<p class="adm-empty">Не удалось загрузить задания. Нажмите «Свернуть» и «Проверить» ещё раз.</p>';
+      return;
+    }
+    const answers = Array.isArray(r.answers) ? r.answers : [];
+    box.innerHTML = `${resultToolbarHtml(r)}<ol class="adm-cw-tasks">${answers.map((a, i) => resultTaskHtml(r, a, i)).join('')}</ol>`;
+    box.querySelectorAll('[data-cw-task]').forEach(li => fillResultTaskMath(li, r));
+  }
+
+  // После отметки — перерисовать одно задание, заголовок и кнопки строки, а не весь список.
+  function repaintResultRow(rowEl, r, taskId) {
+    const head = rowEl.querySelector('[data-result-head]');
+    if (head) head.innerHTML = resultHead(r);
+    const meta = rowEl.querySelector('[data-result-meta]');
+    if (meta) meta.innerHTML = resultMeta(r);
+    const changed = cwReview.changedAfterReview(r);
+    const checkedBtn = rowEl.querySelector('[data-cw-checked]');
+    if (checkedBtn) checkedBtn.hidden = Boolean(r.reviewed_at) && !changed;
+    const resetBtn = rowEl.querySelector('[data-cw-reset]');
+    if (resetBtn) resetBtn.hidden = !r.reviewed_at;
+    const answers = Array.isArray(r.answers) ? r.answers : [];
+    rowEl.querySelectorAll('[data-cw-task]').forEach(li => {
+      if (taskId !== null && Number(li.dataset.cwTask) !== taskId) return;
+      const index = Number(li.dataset.cwIndex);
+      const a = answers[index];
+      if (!a) return;
+      const open = li.querySelector('details')?.open;
+      const holder = document.createElement('ol');
+      holder.innerHTML = resultTaskHtml(r, a, index);
+      const fresh = holder.firstElementChild;
+      if (open && fresh.querySelector('details')) fresh.querySelector('details').open = true;
+      li.replaceWith(fresh);
+      fillResultTaskMath(fresh, r);
+    });
+    renderResultsNote(resultsFiltered());
+  }
+
+  /* Одно действие учителя (mark / checked / reset). Сервер сливает балл с
+     уже стоящими и отказывает (stale), если ученик изменил работу после того,
+     как админка её загрузила. Ответ — свежая строка: её и показываем.
+     Итог: 'ok' | 'stale' | 'error'. */
+  async function saveResultReview(r, action, taskId = null, value = null) {
+    const { data, error } = await db.rpc('cw_submission_review', {
+      p_id: r.id, p_action: action, p_task: taskId, p_value: value, p_seen: r.updated_at || null
+    });
+    if (error || !data || typeof data !== 'object') return 'error';
+    ['review', 'reviewed_at', 'updated_at', 'answers', 'score', 'percent', 'grade'].forEach(key => {
+      if (key in data) r[key] = data[key];
+    });
+    if (!r.review || typeof r.review !== 'object') r.review = {};
+    return data.stale ? 'stale' : 'ok';
+  }
+
+  // Строка могла перерисоваться (фильтр, «Обновить»), пока шёл запрос: берём ту, что на экране сейчас.
+  const liveResultRow = id => ({
+    row: results.find(item => item.id === id) || null,
+    el: byId('results-list')?.querySelector(`[data-result-row="${id}"]`) || null
+  });
+  const resultsSaving = new Set();
+
+  async function runResultAction(rowEl, row, action, taskId = null, value = null) {
+    if (resultsSaving.has(row.id)) return;
+    resultsSaving.add(row.id);
+    // Пока идёт запрос, в этой работе ничего не нажимается: действия идут по одному.
+    rowEl.querySelectorAll('[data-cw-mark], [data-cw-checked], [data-cw-reset]').forEach(btn => { btn.disabled = true; });
+    const statusEl = rowEl.querySelector('[data-cw-status]');
+    if (statusEl) statusEl.textContent = 'Сохраняем…';
+    const outcome = await saveResultReview(row, action, taskId, value);
+    resultsSaving.delete(row.id);
+    const live = liveResultRow(row.id);
+    const current = live.row || row;
+    if (current !== row && outcome !== 'error') {
+      ['review', 'reviewed_at', 'updated_at', 'answers', 'score', 'percent', 'grade'].forEach(key => { current[key] = row[key]; });
+    }
+    const target = live.el;
+    if (!target) return;
+    const text = {
+      ok: { mark: 'Сохранено', checked: 'Отмечено проверенной', reset: 'Вернули автопроверку' }[action],
+      stale: 'Ученик только что изменил работу — показаны свежие ответы, посмотрите ещё раз',
+      error: 'Не сохранилось — проверьте вход и попробуйте ещё раз'
+    }[outcome];
+    if (outcome === 'stale') {
+      // Работу могли свернуть, пока шёл запрос: тогда разбор не раскрываем.
+      if (resultsOpen.has(row.id)) await fillResultDetail(target, current);
+      repaintResultRow(target, current, -1);
+    } else if (outcome === 'ok') {
+      repaintResultRow(target, current, action === 'mark' ? taskId : null);
+    }
+    // Запрос закончен — кнопки работы снова нажимаются (перерисованные и так новые).
+    target.querySelectorAll('[data-cw-mark], [data-cw-checked], [data-cw-reset]').forEach(btn => { btn.disabled = false; });
+    const statusNow = target.querySelector('[data-cw-status]');
+    if (statusNow) statusNow.textContent = text;
+  }
+
+  /* Сводка по одной работе: строки — ученики, столбцы — задания в порядке
+     последней сдачи (порядок ответов = порядок на экране ученика). */
+  function renderResultsMatrix(list, shown) {
+    const order = (shown[0]?.answers || []).map(a => a.task_id);
+    const m = cwReview.buildMatrix(shown, order, cwGradeFn);
+    const cell = c => {
+      if (!c) return '<td class="is-empty" title="Этого задания у ученика не было"></td>';
+      const state = c.points === 1 ? 'is-ok' : (c.points === 0 ? 'is-bad' : 'is-half');
+      const title = [c.mark ? 'балл учителя' : 'автопроверка', c.accepted ? 'самозачёт ученика' : ''].filter(Boolean).join(', ');
+      return `<td class="${state}${c.mark ? ' is-mark' : ''}${c.accepted ? ' is-self' : ''}" title="${escapeHtml(title)}">${cwPoints(c.points)}</td>`;
+    };
+    list.innerHTML = `
+      <p class="adm-cw-hint">1, ½, 0 — балл за задание. Рамка — балл поставил учитель, точка — ученик сам засчитал ответ. Нижняя строка — сколько процентов баллов набрали все ученики. Нажмите ник, чтобы проверить работу.</p>
+      <div class="adm-cw-matrix-wrap">
+        <table class="adm-cw-matrix">
+          <thead><tr><th scope="col">Ученик</th>${m.columns.map((id, i) => `<th scope="col"><a href="#task-${id}" title="задача #${id}">№${i + 1}</a></th>`).join('')}<th scope="col">Итог</th><th scope="col">Оценка</th></tr></thead>
+          <tbody>${m.lines.map(({ row, cells, totals }) => `
+            <tr${row.reviewed_at ? ' class="is-reviewed"' : ''}>
+              <th scope="row"><button type="button" class="adm-link-btn adm-cw-linkbtn" data-result-goto="${row.id}">${escapeHtml(row.nick)}</button></th>
+              ${cells.map(cell).join('')}
+              <td class="adm-cw-total">${cwPoints(totals.score)} / ${totals.total} (${totals.percent}%)</td>
+              <td class="adm-cw-total">${totals.grade === null ? '—' : totals.grade}</td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot><tr><th scope="row">Решили, %</th>${m.solved.map(p => `<td class="${p === null ? '' : (p < 50 ? 'is-weak' : '')}">${p === null ? '' : p}</td>`).join('')}<td></td><td></td></tr></tfoot>
+        </table>
+      </div>`;
+  }
+
+  function downloadResultsCsv() {
+    const shown = resultsFiltered();
+    const paper = byId('results-f-paper')?.value || '';
+    if (!paper || !shown.length) return;
+    const order = (shown[0]?.answers || []).map(a => a.task_id);
+    const csv = cwReview.matrixCsv(cwReview.buildMatrix(shown, order, cwGradeFn));
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `rezultati-${paper}.csv`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   byId('results-list')?.addEventListener('click', async event => {
-    const openBtn = event.target.closest('[data-result-open]');
-    if (openBtn) {
-      const id = Number(openBtn.dataset.resultOpen);
-      if (resultsOpen.has(id)) resultsOpen.delete(id);
-      else {
-        resultsOpen.add(id);
-        const row = results.find(r => r.id === id);
-        if (row) await loadResultTitles(row);
-      }
+    const gotoBtn = event.target.closest('[data-result-goto]');
+    if (gotoBtn) {
+      const id = Number(gotoBtn.dataset.resultGoto);
+      resultsMode = 'list';
+      resultsOpen.add(id);
       renderResults();
+      byId('results-list')?.querySelector(`[data-result-row="${id}"]`)?.scrollIntoView({ block: 'start' });
+      return;
+    }
+    const rowEl = event.target.closest('[data-result-row]');
+    const row = rowEl ? results.find(r => r.id === Number(rowEl.dataset.resultRow)) : null;
+
+    const markBtn = event.target.closest('[data-cw-mark]');
+    if (markBtn && row && resultsReviewReady) {
+      const taskId = Number(markBtn.closest('[data-cw-task]')?.dataset.cwTask);
+      if (!taskId) return;
+      const raw = markBtn.dataset.cwMark;
+      const value = raw === 'auto' ? null : Number(raw);
+      if (value === cwReview.teacherMark(row, taskId)) return;
+      await runResultAction(rowEl, row, 'mark', taskId, value);
+      return;
+    }
+    if (event.target.closest('[data-cw-checked]') && row && resultsReviewReady) {
+      await runResultAction(rowEl, row, 'checked');
+      return;
+    }
+    if (event.target.closest('[data-cw-reset]') && row && resultsReviewReady) {
+      if (cwReview.reviewTotals(row, cwGradeFn).marks && !confirm('Убрать все ваши баллы в этой работе и вернуть автопроверку?')) return;
+      await runResultAction(rowEl, row, 'reset');
+      return;
+    }
+
+    const openBtn = event.target.closest('[data-result-open]');
+    if (openBtn && row) {
+      const box = rowEl.querySelector('[data-result-detail]');
+      if (resultsOpen.has(row.id)) {
+        resultsOpen.delete(row.id);
+        if (box) { box.hidden = true; box.innerHTML = ''; }
+        openBtn.textContent = 'Проверить';
+        openBtn.setAttribute('aria-expanded', 'false');
+      } else {
+        resultsOpen.add(row.id);
+        openBtn.textContent = 'Свернуть';
+        openBtn.setAttribute('aria-expanded', 'true');
+        await fillResultDetail(rowEl, row);
+      }
       return;
     }
     const delBtn = event.target.closest('[data-result-delete]');
     if (delBtn) {
       const id = Number(delBtn.dataset.resultDelete);
       if (resultsDeleteArmed !== id) {
+        const previous = byId('results-list')?.querySelector(`[data-result-delete="${resultsDeleteArmed}"]`);
+        if (previous) previous.textContent = 'Удалить';
         resultsDeleteArmed = id;
-        renderResults();
+        delBtn.textContent = 'Точно удалить?';
         return;
       }
       resultsDeleteArmed = null;
@@ -6790,15 +7135,14 @@ ${JSON.stringify(texts)}`;
         return;
       }
       results = results.filter(r => r.id !== id);
+      resultsOpen.delete(id);
       renderResults();
     }
   });
   // Удалить всё, что под фильтром (например, мусор под одним ником), — после подтверждения.
   byId('results-delete-shown')?.addEventListener('click', async event => {
     const btn = event.currentTarget;
-    const paper = byId('results-f-paper')?.value || '';
-    const nick = (byId('results-f-nick')?.value || '').trim().toLowerCase();
-    const ids = results.filter(r => (!paper || r.slug === paper) && (!nick || String(r.nick).toLowerCase().includes(nick))).map(r => r.id);
+    const ids = resultsFiltered().map(r => r.id);
     if (!ids.length) return;
     if (!confirm(`Удалить результаты: ${ids.length}? Вернуть их нельзя — в резервные копии они не входят.`)) return;
     btn.disabled = true;
@@ -6820,8 +7164,14 @@ ${JSON.stringify(texts)}`;
   });
   byId('results-f-paper')?.addEventListener('change', renderResults);
   byId('results-f-nick')?.addEventListener('input', renderResults);
+  byId('results-f-state')?.addEventListener('change', renderResults);
   byId('results-f-period')?.addEventListener('change', loadResults);
   byId('results-reload')?.addEventListener('click', loadResults);
+  byId('results-mode')?.addEventListener('click', () => {
+    resultsMode = resultsMode === 'matrix' ? 'list' : 'matrix';
+    renderResults();
+  });
+  byId('results-csv')?.addEventListener('click', downloadResultsCsv);
 
   /* ── Работы: контрольные и экзамены ────────────────────────────────
      Собранная вручную работа: какие задания, в каком порядке, сколько
