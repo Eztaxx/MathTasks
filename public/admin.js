@@ -240,24 +240,25 @@
     content.hidden = true;
     gate.hidden = false;
     if (showLogin) {
+      // Оформление — nachala.css, раздел «Админка: вход».
       gate.innerHTML = `
-        <div class="admin-login-card" style="max-width:380px;margin:30px auto;padding:24px;border-radius:12px;background:var(--card-bg,#fff);border:1px solid var(--border,#e2e8f0);box-shadow:0 4px 20px rgba(0,0,0,0.06);text-align:left;">
-          <h3 style="margin:0 0 8px;font-size:18px;">Вход для администратора</h3>
-          <p style="margin:0 0 16px;color:var(--muted,#64748b);font-size:13px;">${escapeHtml(message || 'Войдите с учётной записью администратора:')}</p>
-          <form id="admin-gate-login-form">
-            <label style="display:block;margin-bottom:12px;">
-              <span style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Email</span>
-              <input type="email" id="admin-gate-email" required autofocus style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border,#cbd5e1);border-radius:8px;font-size:14px;" autocomplete="username" />
+        <div class="admin-login-card">
+          <h1 class="admin-login-title">Вход для администратора</h1>
+          <p class="admin-login-lead">${escapeHtml(message || 'Войдите с учётной записью администратора.')}</p>
+          <form id="admin-gate-login-form" class="admin-login-form">
+            <label class="admin-login-field">
+              <span>Email</span>
+              <input type="email" id="admin-gate-email" required autofocus autocomplete="username" />
             </label>
-            <label style="display:block;margin-bottom:14px;">
-              <span style="display:block;font-size:13px;font-weight:600;margin-bottom:4px;">Пароль</span>
-              <input type="password" id="admin-gate-password" required style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border,#cbd5e1);border-radius:8px;font-size:14px;" autocomplete="current-password" />
+            <label class="admin-login-field">
+              <span>Пароль</span>
+              <input type="password" id="admin-gate-password" required autocomplete="current-password" />
             </label>
-            <div id="admin-gate-login-error" style="color:#e53e3e;font-size:13px;margin-bottom:12px;" hidden></div>
-            <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;">
-              <button type="submit" class="primary-button" id="admin-gate-submit-btn">Войти</button>
-              <button type="button" class="text-button" id="admin-gate-signout-btn" style="font-size:13px;" title="Очистить сохранённую сессию и кэш">Сбросить сессию</button>
-              <a href="/" style="font-size:13px;color:#1764ff;text-decoration:none;">На главную</a>
+            <div id="admin-gate-login-error" class="admin-login-error" role="alert" hidden></div>
+            <button type="submit" class="primary-button admin-login-submit" id="admin-gate-submit-btn">Войти</button>
+            <div class="admin-login-links">
+              <button type="button" class="text-button" id="admin-gate-signout-btn" title="Очистить сохранённую сессию и кэш">Сбросить сессию</button>
+              <a class="text-button" href="/">На главную</a>
             </div>
           </form>
         </div>
@@ -360,15 +361,18 @@
       });
     } else {
       gate.innerHTML = `
-        <div style="max-width:440px;margin:40px auto;padding:20px;text-align:center;">
-          <p style="margin-bottom:16px;">${escapeHtml(message)}</p>
-          <button type="button" class="primary-button" id="admin-retry-btn">Повторить</button>
-          <button type="button" class="text-button" id="admin-signout-retry-btn" style="margin-left:8px;">Сбросить сессию</button>
-          <a href="/" style="margin-left:12px;font-size:14px;">На главную</a>
+        <div class="admin-login-card">
+          <h1 class="admin-login-title">Админка недоступна</h1>
+          <p class="admin-login-lead">${escapeHtml(message)}</p>
+          <button type="button" class="primary-button admin-login-submit" id="admin-retry-btn">Повторить</button>
+          <div class="admin-login-links">
+            <button type="button" class="text-button" id="admin-signout-retry-btn">Сбросить сессию</button>
+            <a class="text-button" href="/">На главную</a>
+          </div>
         </div>
       `;
       document.querySelector('#admin-retry-btn')?.addEventListener('click', () => {
-        gate.innerHTML = '<p class="admin-gate" style="margin:40px auto;text-align:center;">Проверяем доступ…</p>';
+        gate.innerHTML = '<p>Проверяем доступ…</p>';
         initAdminApp();
       });
       document.querySelector('#admin-signout-retry-btn')?.addEventListener('click', async () => {

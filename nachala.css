@@ -45,14 +45,6 @@
     #list-tasks .nb-help .solution-toggle.is-locked { border-style: solid !important; border-color: var(--rule) !important; color: var(--ink-3) !important; }
     /* Текущая задача на доске в списке темы: кнопки помощи — рамкой доски */
     #list-tasks > .task.nb-current .solution-toggle:not(.active):not(.is-locked) { border-color: var(--board-frame) !important; }
-    /* Окно входа в админку рисует admin.js со стилями прямо в разметке */
-    .admin-login-card {
-      border: 2px solid var(--ink-1) !important; border-radius: 0 !important; box-shadow: none !important;
-      background: var(--sheet) !important; color: var(--ink-1) !important;
-    }
-    .admin-login-card * { border-radius: 0 !important; box-shadow: none !important; }
-    .admin-login-card input { border: 2px solid var(--rule-2) !important; min-height: 44px; background: var(--sheet) !important; color: var(--ink-1) !important; }
-    .admin-login-card h3 { font-size: 22px !important; }
     /* Подпись под формой профиля: в старой теме 12.5px !important — при масштабе 0,8 это 10 px */
     .profile-note { font-size: 15px !important; }
   }
@@ -1699,8 +1691,37 @@ input.trainer-input {
 .profile-remind .profile-nick { display: flex; flex-direction: column; gap: 6px; }
 .profile-remind select { height: 48px; width: min(180px, 100%); padding: 0 40px 0 14px; font-size: 17px; }
 .profile-remind .profile-note { margin: 0; }
+/* Карточка «Сохрани прогресс» до создания профиля (profile.js renderNoProfile):
+   поле ника, согласие, «У меня уже есть профиль» с полем кода. Старые подписи
+   12,5 px при масштабе 0,8 выходили 10 px — здесь всё не мельче 15 px. */
+.profile-card > h2 { margin: 0 0 8px; }
+.profile-card > h2 + p { margin: 0 0 18px; max-width: 70ch; }
+.profile-row { margin: 0 0 14px; }
+.profile-row .profile-nick, .profile-join label {
+  display: flex; flex-direction: column; gap: 6px; flex: 1 1 260px; max-width: 420px;
+  font-size: 15px; font-weight: 600; color: var(--ink-1);
+}
+.profile-nick > span, .profile-join label > span { font-size: 15px; }
+.profile-row .profile-nick input, .profile-join input { box-sizing: border-box; width: 100%; }
+.profile-card > .profile-consent { display: flex; align-items: flex-start; gap: 10px; margin: 0; font-size: 15px; color: var(--ink-1); cursor: pointer; }
+.profile-card > .profile-consent input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--nb-blue); flex: none; cursor: pointer; }
+.profile-card > .profile-actions { margin-top: 16px; }
+.profile-join { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin: 18px 0 0; padding-top: 18px; border-top: 1px solid var(--rule); }
+.profile-join .secondary-button { min-height: 52px; }
+.profile-card > .profile-note:has(a[href="/privacy"]) { margin: 20px 0 0; }
+.profile-card .profile-note a { color: var(--ink-1); text-decoration: underline; text-underline-offset: 3px; }
+.profile-card .profile-error { margin: 12px 0 0; color: var(--red-ink); font-weight: 600; }
+/* Профиль есть: имя и код переноса — фиолетовым старой темы, переводим на токены */
+.profile-card .profile-name { color: var(--ink-1); }
+.profile-code-box { margin-top: 14px; padding: 14px 16px; border: 2px dashed var(--rule-2); border-radius: 8px; background: var(--paper); }
+.profile-code-box p { margin: 0 0 6px; }
+.profile-code { color: var(--ink-1); }
+@media (max-width: 600px) {
+  .profile-row .profile-nick, .profile-join label { max-width: none; }
+  .profile-join .secondary-button { flex: 1 1 100%; }
+}
 /* После правил с display: flex — иначе спрятанный флажок на iPhone остаётся виден */
-.profile-remind[hidden], .profile-remind [hidden] { display: none; }
+.profile-remind[hidden], .profile-remind [hidden], .profile-join[hidden], .profile-error[hidden] { display: none; }
 .progress-note { margin-top: 8px; padding-top: 18px; border-top: 1px solid var(--rule); }
 .progress-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px; }
 .progress-stat {
@@ -2217,6 +2238,39 @@ body.dark.admin-page {
 /* Шапка с логотипом — только до входа; в самой админке её заменяет боковое меню */
 body.admin-page:has(#admin-content:not([hidden])) .admin-topbar { display: none; }
 body.admin-page:has(#admin-content:not([hidden])) .admin-main { max-width: none; margin: 0; padding: 0; }
+/* До входа выходить не из чего: «Выйти» в шапке прячем (сброс сессии — в карточке входа).
+   Тема — справа, как в шапке сайта. */
+body.admin-page:has(#admin-content[hidden]) .admin-topbar [data-sign-out] { display: none; }
+body.admin-page .admin-topbar #theme-toggle { margin-left: auto; }
+
+/* Админка: вход. Карточку рисует admin.js (deny): форма входа или «Повторить». */
+.admin-gate { padding: clamp(24px, 8vh, 72px) 0 48px; text-align: left; color: var(--ink-1); }
+#admin-gate > p { margin: 0; text-align: center; font-size: 17px; color: var(--ink-2); }
+.admin-login-card {
+  box-sizing: border-box; width: 100%; max-width: 440px; margin: 0 auto; padding: 32px;
+  border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
+}
+.admin-login-title { margin: 0 0 8px; font-size: 28px; font-weight: 800; line-height: 1.2; color: var(--ink-1); }
+.admin-login-lead { margin: 0 0 24px; font-size: 16px; line-height: 1.5; color: var(--ink-2); overflow-wrap: anywhere; }
+.admin-login-form { display: flex; flex-direction: column; gap: 16px; margin: 0; }
+.admin-login-field { display: flex; flex-direction: column; gap: 6px; margin: 0; font-size: 15px; font-weight: 600; color: var(--ink-1); }
+.admin-login-field input { box-sizing: border-box; width: 100%; height: 48px; padding: 0 14px; border-color: var(--rule-2); font-size: 17px; }
+.admin-login-field input:focus { border-color: var(--ink-1); }
+.admin-login-error { margin: 0; padding: 10px 12px; border-left: 4px solid var(--red); background: var(--red-tint); color: var(--red-ink); font-size: 15px; font-weight: 600; }
+.admin-login-error[hidden] { display: none; }
+.admin-login-submit { width: 100%; min-height: 52px; font-size: 17px; }
+.admin-login-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; }
+.admin-login-card > .admin-login-links { margin-top: 16px; }
+.admin-login-links .text-button {
+  padding: 0; border: 0; background: none; color: var(--ink-2); cursor: pointer;
+  font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px;
+}
+.admin-login-links .text-button:hover { color: var(--ink-1); }
+@media (max-width: 480px) {
+  .admin-gate { padding-top: 24px; }
+  .admin-login-card { padding: 24px 20px; }
+  .admin-login-title { font-size: 24px; }
+}
 .adm-shell a { color: var(--ink-1); }
 /* Поля с LaTeX и номера — моноширинным, как было */
 body.admin-page textarea, .adm-meta-field input, .imp-text, .json-sample-pre, .adm-view-head code, .adm-cheat code {
