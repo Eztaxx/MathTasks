@@ -2873,7 +2873,7 @@ ${JSON.stringify(texts)}`;
     const date = value => (value ? new Date(value).toLocaleDateString('ru-RU') : '—');
     const rows = [
       ['id в базе', task ? '#' + task.id : 'появится после сохранения'],
-      ['Номер в теме', taskForm.elements.position?.value || '0'],
+      ['Номер в теме', task && isPaperTask(task) ? 'нет: задание контрольной' : (taskForm.elements.position?.value || '0')],
       ['Статус', task ? (task.is_published ? 'опубликована' : 'черновик, на проверке') : 'новая, ещё не сохранена'],
       ['Ввод ответа', !answer ? 'ответа нет' : (!checkable ? 'самопроверка: автоматом не сверить' : (fields.length ? fields.length + ' поля' : (lib?.answerLabelMarkup?.(answer) ? 'одно поле с подписью' : 'одно поле, ответ строкой')))],
       ['Латышская версия', (conditionInputLv?.value || '').trim() ? 'есть' : 'нет'],
@@ -3408,12 +3408,18 @@ ${JSON.stringify(texts)}`;
   function setTaskMode(task) {
     if (task) ensureSectionExpanded('section-task-form');
     editingTaskId = task?.id ?? null;
-    document.querySelector('#task-form-title').textContent = task ? `Редактировать задачу №${task.position ?? task.id}` : 'Создание и редактирование задачи';
+    document.querySelector('#task-form-title').textContent = task
+      ? (isPaperTask(task) ? `Редактировать задание контрольной #${task.id}` : `Редактировать задачу №${task.position ?? task.id}`)
+      : 'Создание и редактирование задачи';
     document.querySelector('#task-submit').textContent = task ? 'Сохранить задачу' : 'Добавить задачу';
     document.querySelector('#task-cancel').hidden = !task;
     if (admBtnCancelEdit) admBtnCancelEdit.hidden = !task;
     if (admBtnPublish) admBtnPublish.textContent = task ? (task.is_published ? 'Сохранить (опубликовано)' : 'Опубликовать') : 'Опубликовать';
     if (admBtnSaveDraft) admBtnSaveDraft.textContent = task ? (task.is_published ? 'Снять с публикации (в черновик)' : 'Сохранить черновик') : 'Сохранить черновик';
+    // Задание контрольной живёт только внутри работы: «Опубликовать» выложило бы его в решебник.
+    const paperDraft = Boolean(task) && isPaperTask(task);
+    if (admBtnPublish) admBtnPublish.hidden = paperDraft;
+    if (paperDraft && admBtnSaveDraft) admBtnSaveDraft.textContent = 'Сохранить задание';
     if (taskForm.elements.title) taskForm.elements.title.value = task?.title || '';
     if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = task?.title_lv || '';
     taskForm.elements.grade.value = toAdminGradeVal(task?.grade);
@@ -3457,7 +3463,25 @@ ${JSON.stringify(texts)}`;
 
   /* Порядок задаётся внутри темы: соседи по списку — только задачи той же темы,
      иначе стрелка перекинула бы задачу через границу раздела. */
-  const siblingsOf = topicId => taskIndex.filter(task => (task.topic_id ?? null) === (topicId ?? null));
+  /* Задания контрольных — черновики из exam_paper_items — не задачи
+     решебника: в списке «Задачи» их нет (кроме отбора «Задания контрольных»
+     и поиска по #id), номер в теме у них не показывается, нумерация темы их
+     пропускает (их позиции не трогаем). Задача каталога, взятая в работу,
+     остаётся обычной задачей, даже снятая с публикации: у неё есть подтема,
+     у заданий работ подтемы нет. Пока список работ не загрузился,
+     перенумерация темы в админке не запускается (paperTaskIdsReady). */
+  const paperTaskIds = new Set();
+  let paperTaskIdsReady = false;
+  const isPaperTask = task => Boolean(task) && task.is_published === false && !task.subtopic_id && paperTaskIds.has(Number(task.id));
+  async function loadPaperTaskIds() {
+    const { data, error } = await window.MathTasksLib.fetchAllRows(() => db.from('exam_paper_items').select('task_id').order('id'));
+    if (error) return;
+    paperTaskIds.clear();
+    (data || []).forEach(item => paperTaskIds.add(Number(item.task_id)));
+    paperTaskIdsReady = true;
+  }
+
+  const siblingsOf = topicId => taskIndex.filter(task => (task.topic_id ?? null) === (topicId ?? null) && !isPaperTask(task));
 
   // Новая задача без явно указанного номера встаёт в конец своей темы:
   // набивать номера руками при добавлении двадцати задач невыносимо.
@@ -3622,9 +3646,13 @@ ${JSON.stringify(texts)}`;
     };
 
     return tasks.filter(task => {
-      if (query) {
-        const idMatch = /^\d+$/.test(idQuery) && String(task.id) === idQuery;
-        if (!idMatch && !searchText(task).includes(plainQuery)) return false;
+      const idMatch = Boolean(query) && /^\d+$/.test(idQuery) && String(task.id) === idQuery;
+      if (query && !idMatch && !searchText(task).includes(plainQuery)) return false;
+      // Задания контрольных — только в своём отборе (или по точному номеру #id).
+      if (statusVal === 'paper') {
+        if (!isPaperTask(task)) return false;
+      } else if (isPaperTask(task) && !idMatch) {
+        return false;
       }
       if (gradeVal !== null) {
         const taskGrade = parseFormGrade(task.grade ?? topics.find(t => t.id === task.topic_id)?.grade);
@@ -3690,9 +3718,10 @@ ${JSON.stringify(texts)}`;
     const isFiltered = Boolean((taskSearchInput?.value || '').trim() || taskFilterGrade?.value || taskFilterTopic?.value || taskFilterSubtopic?.value || taskFilterStatus?.value);
 
     if (taskFilterCount) {
+      const catalogue = tasks.filter(task => !isPaperTask(task)).length;
       taskFilterCount.textContent = isFiltered
-        ? `Найдено: ${filtered.length} из ${tasks.length}`
-        : `Всего задач: ${tasks.length}`;
+        ? `Найдено: ${filtered.length} из ${catalogue}`
+        : `Всего задач: ${catalogue}`;
     }
     if (taskFilterReset) taskFilterReset.hidden = !isFiltered;
 
@@ -3714,7 +3743,7 @@ ${JSON.stringify(texts)}`;
       const sub = task.subtopic_id ? subtopics.find(s => s.id === task.subtopic_id) : null;
       const siblings = siblingsOf(task.topic_id);
       const index = siblings.findIndex(item => item.id === task.id);
-      const arrows = siblings.length > 1
+      const arrows = siblings.length > 1 && index >= 0
         ? `<span class="adm-tmove">
             <button class="adm-rowbtn icon" type="button" data-move="${task.id}" data-dir="up" ${index === 0 ? 'disabled' : ''} title="Выше в теме" aria-label="Выше в теме">↑</button>
             <button class="adm-rowbtn icon" type="button" data-move="${task.id}" data-dir="down" ${index === siblings.length - 1 ? 'disabled' : ''} title="Ниже в теме" aria-label="Ниже в теме">↓</button>
@@ -3734,7 +3763,7 @@ ${JSON.stringify(texts)}`;
       const topicText = topic ? topicOptionText(topic, codes) : 'Без темы';
       const subText = sub ? `${sub.code ? sub.code + ' ' : ''}${sub.title}` : '';
       return `<div class="adm-trow${task.is_published ? '' : ' is-draft'}">
-        <div class="adm-tnum"><b>№${task.position ?? 0}</b><span>#${task.id}</span>${arrows}</div>
+        <div class="adm-tnum">${isPaperTask(task) ? '<b title="Задание контрольной: номера в теме нет">К/Р</b>' : `<b>№${task.position ?? 0}</b>`}<span>#${task.id}</span>${arrows}</div>
         <div class="adm-tmain">
           <button class="adm-ttitle" type="button" data-edit-task="${task.id}" title="Открыть в редакторе">${escapeHtml(title)}</button>
           <div class="adm-tcond" title="${escapeHtml(snippet)}">${escapeHtml(snippet) || '—'}</div>
@@ -3744,9 +3773,9 @@ ${JSON.stringify(texts)}`;
         <div class="adm-tgrade">${grade ? `${grade}. klase` : '—'}</div>
         <div class="adm-tlang ${hasLv ? 'ok' : 'warn'}">${hasLv ? 'RU LV' : 'RU —'}</div>
         <div class="adm-tact">
-          <span class="adm-chip ${task.is_published ? 'ok' : 'warn'}">${task.is_published ? 'опубликована' : 'на проверке'}</span>
+          <span class="adm-chip ${task.is_published ? 'ok' : (isPaperTask(task) ? '' : 'warn')}">${task.is_published ? 'опубликована' : (isPaperTask(task) ? 'в контрольной' : 'на проверке')}</span>
           <button class="adm-rowbtn edit" type="button" data-edit-task="${task.id}">Правка</button>
-          ${task.is_published
+          ${isPaperTask(task) ? '' : task.is_published
             ? `<button class="adm-rowbtn icon" type="button" data-unpublish-task="${task.id}" title="Вернуть на проверку — задача пропадёт с сайта" aria-label="Вернуть на проверку">↩</button>`
             : `<button class="adm-rowbtn icon ok" type="button" data-publish-task="${task.id}" title="Опубликовать на сайте" aria-label="Опубликовать">✓</button>`}
           <button class="adm-rowbtn icon" type="button" data-clone-task="${task.id}" title="Клонировать в редактор" aria-label="Клонировать">⧉</button>
@@ -3774,8 +3803,10 @@ ${JSON.stringify(texts)}`;
     /* До загрузки списка числа берём из указателя задач — в нём нет
        латышского условия, поэтому «Без LV» показываем только после загрузки. */
     const source = tasksLoaded ? tasks : taskIndex;
-    const counts = { all: source.length, draft: 0, published: 0, no_lv: tasksLoaded ? 0 : '', no_label: tasksLoaded ? 0 : '' };
+    const counts = { all: 0, draft: 0, published: 0, no_lv: tasksLoaded ? 0 : '', no_label: tasksLoaded ? 0 : '', paper: 0 };
     for (const task of source) {
+      if (isPaperTask(task)) { counts.paper++; continue; }
+      counts.all++;
       if (task.is_published) counts.published++;
       else counts.draft++;
       if (tasksLoaded && !(task.condition_latex_lv || '').trim()) counts.no_lv++;
@@ -3790,8 +3821,9 @@ ${JSON.stringify(texts)}`;
   /* Ребалансировка задач темы 1..N: автосдвиг при вставке в середину или удалении */
   async function rebalanceTaskPositions(topicId, targetTaskId = null, desiredPosition = null) {
     if (!topicId) return;
-    let siblings = taskIndex
-      .filter(task => (task.topic_id ?? null) === (topicId ?? null))
+    // Без списка работ задания контрольных не отличить от задач — номера темы не трогаем.
+    if (!paperTaskIdsReady) return;
+    let siblings = siblingsOf(topicId)
       .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
 
     if (targetTaskId != null && desiredPosition != null) {
@@ -3828,6 +3860,7 @@ ${JSON.stringify(texts)}`;
   async function moveTask(taskId, direction) {
     const task = taskIndex.find(item => String(item.id) === String(taskId));
     if (!task) return;
+    if (!paperTaskIdsReady) { taskSuccess.textContent = 'Список работ не загрузился — порядок не меняем. Обновите страницу.'; return; }
     const siblings = [...siblingsOf(task.topic_id)];
     const from = siblings.findIndex(item => item.id === task.id);
     const to = direction === 'up' ? from - 1 : from + 1;
@@ -3914,8 +3947,8 @@ ${JSON.stringify(texts)}`;
       }
     }
 
-    // Автосдвиг задач внутри темы при вставке в середину
-    if (savedTaskId && topicId) {
+    // Автосдвиг задач внутри темы при вставке в середину. Задание контрольной в нумерацию не входит.
+    if (savedTaskId && topicId && !isPaperTask(taskIndex.find(t => String(t.id) === String(savedTaskId)) || { id: savedTaskId, is_published: payload.is_published })) {
       await rebalanceTaskPositions(topicId, savedTaskId, taskPos);
     }
 
@@ -4024,6 +4057,9 @@ ${JSON.stringify(texts)}`;
       const source = await fetchFullRow('tasks', cloneId);
       if (!source) { taskSuccess.textContent = 'Не удалось загрузить задачу для копирования.'; return; }
       editingTaskId = null; // Гарантирует создание новой задачи при отправке
+      // Копия — новая задача решебника: кнопки как у новой, даже если до этого было открыто задание контрольной.
+      if (admBtnPublish) { admBtnPublish.hidden = false; admBtnPublish.textContent = 'Опубликовать'; }
+      if (admBtnSaveDraft) admBtnSaveDraft.textContent = 'Сохранить черновик';
       if (taskForm.elements.title) taskForm.elements.title.value = source.title ? `[Копия] ${source.title}` : '';
       if (taskForm.elements.title_lv) taskForm.elements.title_lv.value = source.title_lv ? `[Kopija] ${source.title_lv}` : '';
       taskForm.elements.grade.value = toAdminGradeVal(source.grade);
@@ -4540,7 +4576,7 @@ ${JSON.stringify(texts)}`;
 
     const itemsToUpdate = [];
     for (const tId of targetTopicIds) {
-      const topicTasks = tasks.filter(t => t.topic_id === tId);
+      const topicTasks = tasks.filter(t => t.topic_id === tId && !isPaperTask(t));
       const plan = computeFn(topicTasks, subtopics);
       for (const item of plan) {
         if (item.changed) itemsToUpdate.push(item);
@@ -6420,7 +6456,7 @@ ${JSON.stringify(texts)}`;
   function updateReviewChip() {
     updateShellCounts();
     if (!taskReviewChip) return;
-    const drafts = taskIndex.filter(t => t.is_published === false).length;
+    const drafts = taskIndex.filter(t => t.is_published === false && !isPaperTask(t)).length;
     taskReviewChip.hidden = !drafts;
     taskReviewChip.textContent = `🟡 На проверке: ${drafts}`;
   }
@@ -6433,6 +6469,7 @@ ${JSON.stringify(texts)}`;
     /* Страницами: одним запросом указатель обрезался бы на тысяче задач, и
        новые задачи получали бы уже занятые номера. */
     const pages = cols => window.MathTasksLib.fetchAllRows(() => db.from('tasks').select(cols).order('id'));
+    await loadPaperTaskIds();
     const { data, error } = await pages(TASK_INDEX_COLS);
     if (!error) {
       taskIndex = data || [];
@@ -7231,7 +7268,9 @@ ${JSON.stringify(texts)}`;
     const topic = topics.find(item => item.id === task.topic_id);
     const where = topic ? (topic.title || '') : '';
     const text = String(task.condition_latex || task.title || '').replace(/\s+/g, ' ').slice(0, 80);
-    return (task.position ? '№' + task.position + ' · ' : '') + (where ? where + ' · ' : '') + text;
+    // Номер в теме — только у задач решебника; у заданий работы (черновиков без подтемы) его нет.
+    const numbered = task.position && (task.is_published !== false || task.subtopic_id);
+    return (numbered ? '№' + task.position + ' · ' : '') + (where ? where + ' · ' : '') + text;
   };
   /* Задача без автопроверки в работе всегда считалась бы ошибкой, а
      черновик виден только внутри работы — про то и другое честно пишем. */
@@ -7245,7 +7284,7 @@ ${JSON.stringify(texts)}`;
   };
   // Латышские колонки и варианты ответа появляются миграциями 007 и 024.
   const paperTaskCols = () => {
-    const cols = ['id', 'title', 'position', 'topic_id', 'grade', 'difficulty', 'is_published', 'condition_latex', 'answer_latex', 'solution_latex'];
+    const cols = ['id', 'title', 'position', 'topic_id', 'subtopic_id', 'grade', 'difficulty', 'is_published', 'condition_latex', 'answer_latex', 'solution_latex'];
     if (answerCheckReady) cols.push('answer_check');
     if (multilingualReady) cols.push('condition_latex_lv', 'answer_latex_lv');
     return cols.join(',');
@@ -7916,13 +7955,15 @@ ${JSON.stringify(texts)}`;
 
   function updateShellCounts() {
     if (!shell) return;
-    const drafts = taskIndex.filter(t => t.is_published === false).length;
+    const drafts = taskIndex.filter(t => t.is_published === false && !isPaperTask(t)).length;
     setShellBadge('#adm-count-review', drafts);
     setShellBadge('#adm-count-reports', reports.length);
-    setShellText('#adm-count-tasks', taskIndex.length || '');
+    // Задания контрольных — не задачи решебника: в счётчиках их нет.
+    const catalogue = taskIndex.filter(t => !isPaperTask(t)).length;
+    setShellText('#adm-count-tasks', catalogue || '');
     setShellText('#adm-stat-drafts', drafts);
     setShellText('#adm-stat-reports', reports.length);
-    setShellText('#adm-stat-published', taskIndex.length - drafts);
+    setShellText('#adm-stat-published', catalogue - drafts);
     paintStatusSegments();
     scheduleOverview();
   }
@@ -8005,8 +8046,8 @@ ${JSON.stringify(texts)}`;
     loadBackupStatus();
     const [noLv, drafts] = await Promise.all([
       db.from('tasks').select('id', { count: 'exact', head: true }).or('condition_latex_lv.is.null,condition_latex_lv.eq.'),
-      db.from('tasks').select('id,title,topic_id,subtopic_id,grade,condition_latex_lv')
-        .eq('is_published', false).order('created_at', { ascending: false }).limit(4)
+      db.from('tasks').select('id,title,topic_id,subtopic_id,grade,condition_latex_lv,is_published')
+        .eq('is_published', false).order('created_at', { ascending: false }).limit(40)
     ]);
     setShellText('#adm-stat-nolv', noLv.error ? '—' : (noLv.count ?? '—'));
     const peek = byId('adm-queue-peek');
@@ -8015,7 +8056,8 @@ ${JSON.stringify(texts)}`;
       peek.innerHTML = `<p class="adm-empty">Очередь не загрузилась: ${escapeHtml(drafts.error.message)}</p>`;
       return;
     }
-    const rows = drafts.data || [];
+    // Задания контрольных не ждут проверки — в очереди только задачи решебника.
+    const rows = (drafts.data || []).filter(row => !isPaperTask(row)).slice(0, 4);
     peek.innerHTML = rows.length ? rows.map(row => {
       const topic = topics.find(t => t.id === row.topic_id);
       const sub = row.subtopic_id ? subtopics.find(s => s.id === row.subtopic_id) : null;

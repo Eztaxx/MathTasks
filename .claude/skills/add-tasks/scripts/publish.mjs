@@ -68,9 +68,12 @@ async function main() {
   for (const h of held) console.log(`  #${h.id} оставлен черновиком: ${h.why.join('; ')}`);
 
   // Нумерация темы 1..N: порядок подтем → позиция → дата создания → id (как renumber-tasks.mjs).
+  // Задания контрольных (черновики из exam_paper_items) в нумерацию не входят, их позиции не трогаем.
   const subs = await fetchAll(`subtopics?select=id,position&topic_id=eq.${meta.topic_id}&order=id`);
   const subPos = new Map(subs.map(s => [s.id, s.position ?? 999]));
-  const list = await fetchAll(`tasks?select=id,subtopic_id,position,created_at&topic_id=eq.${meta.topic_id}&order=id`);
+  const topicTasks = await fetchAll(`tasks?select=id,subtopic_id,position,created_at,is_published&topic_id=eq.${meta.topic_id}&order=id`);
+  const inPapers = new Set((await fetchAll('exam_paper_items?select=task_id&order=id')).map(i => Number(i.task_id)));
+  const list = topicTasks.filter(t => !(inPapers.has(Number(t.id)) && t.is_published === false && !t.subtopic_id));
   list.sort((a, b) => (subPos.get(a.subtopic_id) ?? 999) - (subPos.get(b.subtopic_id) ?? 999)
     || (a.position ?? 9999) - (b.position ?? 9999)
     || String(a.created_at || '').localeCompare(String(b.created_at || '')) || a.id - b.id);

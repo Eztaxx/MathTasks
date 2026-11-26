@@ -10,6 +10,11 @@
  * выстраивается строго относительно порядка задач этой темы,
  * а все последующие сдвигаются.
  *
+ * Задания контрольных — черновики из exam_paper_items — не задачи решебника:
+ * в нумерацию темы не входят, их позиции скрипт не трогает (номер нигде не
+ * показывается). Задача каталога, взятая в работу, — обычная задача
+ * решебника (у неё есть подтема, у заданий работ нет) и нумеруется как все.
+ *
  * Сухой прогон по умолчанию. Запись: --apply
  */
 import { readFileSync } from 'node:fs';
@@ -32,11 +37,14 @@ const H = { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'applic
 const getAll = path => fetchAll(env.SUPABASE_URL + '/rest/v1/' + path, H);
 
 console.log('Загрузка данных из Supabase...');
-const [topics, tasks, subs] = await Promise.all([
+const [topics, tasks, subs, paperItems] = await Promise.all([
   getAll('topics?select=id,title,grade,position&order=grade,position,id'),
-  getAll('tasks?select=id,topic_id,subtopic_id,grade,position,created_at&order=id'),
+  getAll('tasks?select=id,topic_id,subtopic_id,grade,position,created_at,is_published&order=id'),
   getAll('subtopics?select=id,topic_id,position,code&order=id'),
+  getAll('exam_paper_items?select=task_id&order=id'),
 ]);
+const paperTaskIds = new Set(paperItems.map(item => Number(item.task_id)));
+const isPaperDraft = t => paperTaskIds.has(Number(t.id)) && t.is_published === false && !t.subtopic_id;
 
 const topicMap = new Map(topics.map(t => [t.id, t]));
 const subMap = new Map(subs.map(s => [s.id, s]));
@@ -46,6 +54,7 @@ const tasksByTopic = new Map();
 let unassigned = 0;
 
 for (const t of tasks) {
+  if (isPaperDraft(t)) continue;
   if (!t.topic_id) {
     unassigned++;
     continue;
@@ -118,6 +127,7 @@ console.log(`Тем с задачами: ${tasksByTopic.size}`);
 console.log(`Тем с дублями/нарушенным порядком: ${topicsWithDups}`);
 console.log(`Всего задач: ${tasks.length}`);
 if (unassigned > 0) console.log(`Задач без темы: ${unassigned}`);
+console.log(`Заданий контрольных (вне нумерации, не трогаем): ${tasks.filter(isPaperDraft).length}`);
 console.log(`Задач, требующих обновления номера: ${allChanges.length}`);
 
 if (!APPLY) {
