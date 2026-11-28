@@ -645,7 +645,21 @@ main#home > .nb-footer { margin-top: 96px; }
     grid-area: today; grid-template-columns: minmax(0, 1fr); grid-template-areas: "daily" "side" "streak";
     padding: 0; margin-top: 40px; border-top: 0;
   }
-  #view-home > .home-today .home-daily { padding: 24px; }
+  /* Задача дня в колонке — компактно (28.11.2026): мельче условие, меньше отступов, без строк-подсказок
+     про клавиатуру и Enter (кнопка клавиатуры остаётся в строке ответа). */
+  #view-home > .home-today .home-daily { padding: 20px 24px; }
+  #view-home > .home-today .home-daily-badge { height: 26px; padding: 0 10px; font-size: 13px; }
+  #view-home > .home-today .home-daily-meta { font-size: 14px; line-height: 1.35; }
+  #view-home > .home-today .home-daily-other { height: 34px; font-size: 15px; }
+  #view-home > .home-today .home-daily article.task { margin-top: 12px; }
+  #view-home > .home-today .home-daily .task-condition-wrap { margin-top: 0; }
+  #view-home > .home-today .home-daily .task-condition { font-size: 20px; line-height: 1.4; }
+  #view-home > .home-today .home-daily .task-self-check { margin-top: 14px; }
+  #view-home > .home-today .home-daily .self-check-tips { display: none; }
+  #view-home > .home-today .home-daily .self-check-lock { margin-top: 8px; font-size: 14px; }
+  #view-home > .home-today .home-daily .task-actions-bar { margin-top: 10px; }
+  #view-home > .home-today .home-daily-foot { margin-top: 12px; padding-top: 10px; font-size: 14px; }
+  #view-home > .home-today .home-daily-foot > span:first-child:not(:has(a)) { display: none; }
 }
 
 .home-daily {
