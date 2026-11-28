@@ -2874,7 +2874,7 @@ ${JSON.stringify(texts)}`;
     const rows = [
       ['id в базе', task ? '#' + task.id : 'появится после сохранения'],
       ['Номер в теме', task && isPaperTask(task) ? 'нет: задание контрольной' : (taskForm.elements.position?.value || '0')],
-      ['Статус', task ? (task.is_published ? 'опубликована' : 'черновик, на проверке') : 'новая, ещё не сохранена'],
+      ['Статус', task ? (task.is_published ? 'опубликована' : (isPaperTask(task) ? 'задание контрольной: в решебнике его нет, видно только внутри работы' : 'черновик, на проверке')) : 'новая, ещё не сохранена'],
       ['Ввод ответа', !answer ? 'ответа нет' : (!checkable ? 'самопроверка: автоматом не сверить' : (fields.length ? fields.length + ' поля' : (lib?.answerLabelMarkup?.(answer) ? 'одно поле с подписью' : 'одно поле, ответ строкой')))],
       ['Латышская версия', (conditionInputLv?.value || '').trim() ? 'есть' : 'нет'],
       ['Чертёж', images.condition.current || images.solution.current ? 'есть' : 'нет'],
@@ -3475,7 +3475,8 @@ ${JSON.stringify(texts)}`;
   const isPaperTask = task => Boolean(task) && task.is_published === false && !task.subtopic_id && paperTaskIds.has(Number(task.id));
   async function loadPaperTaskIds() {
     const { data, error } = await window.MathTasksLib.fetchAllRows(() => db.from('exam_paper_items').select('task_id').order('id'));
-    if (error) return;
+    // Не загрузился — старому набору не верим: нумерация темы откажется работать, пока список не прочитается.
+    if (error) { paperTaskIdsReady = false; return; }
     paperTaskIds.clear();
     (data || []).forEach(item => paperTaskIds.add(Number(item.task_id)));
     paperTaskIdsReady = true;
@@ -3822,7 +3823,7 @@ ${JSON.stringify(texts)}`;
   async function rebalanceTaskPositions(topicId, targetTaskId = null, desiredPosition = null) {
     if (!topicId) return;
     // Без списка работ задания контрольных не отличить от задач — номера темы не трогаем.
-    if (!paperTaskIdsReady) return;
+    if (!paperTaskIdsReady) return false;
     let siblings = siblingsOf(topicId)
       .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
 
@@ -3948,8 +3949,11 @@ ${JSON.stringify(texts)}`;
     }
 
     // Автосдвиг задач внутри темы при вставке в середину. Задание контрольной в нумерацию не входит.
+    let rebalanceNote = '';
     if (savedTaskId && topicId && !isPaperTask(taskIndex.find(t => String(t.id) === String(savedTaskId)) || { id: savedTaskId, is_published: payload.is_published })) {
-      await rebalanceTaskPositions(topicId, savedTaskId, taskPos);
+      if (await rebalanceTaskPositions(topicId, savedTaskId, taskPos) === false) {
+        rebalanceNote = ' Номера в теме не сдвинуты: список контрольных не загрузился — обновите страницу и нажмите «Перенумеровать задачи».';
+      }
     }
 
     // Синхронизируем кросс-теги в task_tags
@@ -3975,9 +3979,13 @@ ${JSON.stringify(texts)}`;
       images[kind].saved = current;
     }
     const isPub = payload.is_published;
+    // По тому, что сохранили: задание контрольной — черновик без подтемы из exam_paper_items.
+    const savedPaper = !isPub && !payload.subtopic_id && paperTaskIds.has(Number(savedTaskId));
     taskSuccess.textContent = isPub
       ? (editingTaskId ? 'Задача обновлена и опубликована.' : 'Задача добавлена и опубликована.')
+      : savedPaper ? 'Задание контрольной сохранено.'
       : (editingTaskId ? 'Черновик обновлён.' : 'Черновик сохранён в очередь на проверку.');
+    taskSuccess.textContent += rebalanceNote;
     const back = takeEditorReturnView(savedTaskId);
     taskForm.reset();
     setTaskMode(null);
@@ -4550,24 +4558,39 @@ ${JSON.stringify(texts)}`;
   async function handleRenumberTasks() {
     const computeFn = window.MathTasksLib?.computeTaskRenumbering;
     if (!computeFn) return;
+    if (btnRenumberTasks?.disabled) return;
 
-    if (!tasksLoaded) {
+    /* Список задач и список работ читаем заново: пока вкладка открыта,
+       автопотоки add-tasks и add-papers могли добавить задачи и контрольные.
+       Кнопка заблокирована на время загрузки — второй клик не даст второго плана. */
+    if (btnRenumberTasks) {
+      btnRenumberTasks.disabled = true;
+      btnRenumberTasks.textContent = '⏳ Загрузка задач...';
+    }
+    let fresh = false;
+    try {
+      // Указатель сам перечитывает список работ (loadPaperTaskIds) — до того, как каталог перерисуется.
+      await loadTaskIndex();
+      fresh = await loadTasks();
+    } finally {
       if (btnRenumberTasks) {
-        btnRenumberTasks.disabled = true;
-        btnRenumberTasks.textContent = '⏳ Загрузка задач...';
-      }
-      try {
-        await loadTasks();
-      } finally {
-        if (btnRenumberTasks) {
-          btnRenumberTasks.disabled = false;
-          btnRenumberTasks.textContent = '🔢 Перенумеровать задачи';
-        }
+        btnRenumberTasks.disabled = false;
+        btnRenumberTasks.textContent = '🔢 Перенумеровать задачи';
       }
     }
 
+    if (!fresh) {
+      alert('Список задач не загрузился — перенумерация отменена. Обновите страницу.');
+      return;
+    }
     if (!tasks || !tasks.length) {
       alert('Список задач пуст.');
+      return;
+    }
+    /* Без списка работ задания контрольных не отличить от задач решебника:
+       они получили бы номера в теме. */
+    if (!paperTaskIdsReady) {
+      alert('Список контрольных не загрузился — перенумерация отменена. Обновите страницу.');
       return;
     }
 
@@ -4603,10 +4626,14 @@ ${JSON.stringify(texts)}`;
     }
 
     try {
+      let failed = 0;
       for (const item of itemsToUpdate) {
-        const { error } = await db.from('tasks').update({ position: item.newPosition }).eq('id', item.id);
-        if (error) {
-          console.warn('Ошибка обновления задачи:', item.id, error.message);
+        /* .select('id'): при истёкшей сессии RLS не даёт ошибки, а просто
+           ничего не меняет — считаем сохранённым, только если вернулась строка. */
+        const { data: changed, error } = await db.from('tasks').update({ position: item.newPosition }).eq('id', item.id).select('id');
+        if (error || !Array.isArray(changed) || changed.length !== 1) {
+          failed++;
+          console.warn('Ошибка обновления задачи:', item.id, error?.message || 'нет прав или сессия истекла');
         } else {
           item.task.position = item.newPosition;
           const inTasks = tasks.find(t => t.id === item.id);
@@ -4615,7 +4642,9 @@ ${JSON.stringify(texts)}`;
           if (inIndex) inIndex.position = item.newPosition;
         }
       }
-      taskSuccess.textContent = `Успешно перенумеровано задач: ${itemsToUpdate.length}.`;
+      taskSuccess.textContent = failed
+        ? `Перенумеровано задач: ${itemsToUpdate.length - failed} из ${itemsToUpdate.length}; не сохранилось: ${failed} — повторите перенумерацию.`
+        : `Успешно перенумеровано задач: ${itemsToUpdate.length}.`;
       renderTaskList();
     } catch (err) {
       taskSuccess.textContent = 'Ошибка перенумерации задач: ' + err.message;
@@ -6391,7 +6420,7 @@ ${JSON.stringify(texts)}`;
       const meta = [
         timeAgo(r.created_at),
         r.lang ? `страница ${r.lang.toUpperCase()}` : '',
-        task && !task.is_published ? 'задача сейчас в черновиках' : ''
+        task && !task.is_published ? (isPaperTask({ ...task, id: r.task_id }) ? 'это задание контрольной' : 'задача сейчас в черновиках') : ''
       ].filter(Boolean).join(' · ');
       const exact = new Date(r.created_at).toLocaleString('ru-RU', { dateStyle: 'long', timeStyle: 'short' });
       return `<article class="adm-report">
@@ -6503,7 +6532,7 @@ ${JSON.stringify(texts)}`;
          с одинаковыми темой, номером и временем. */
       const { data, error } = await window.MathTasksLib.fetchAllRows(() => db.from('tasks').select(selectCols)
         .order('topic_id').order('position').order('created_at', { ascending: true }).order('id'));
-      if (error) { taskList.innerHTML = `<p class="admin-empty">Не удалось загрузить задачи: ${escapeHtml(error.message)}</p>`; return; }
+      if (error) { taskList.innerHTML = `<p class="admin-empty">Не удалось загрузить задачи: ${escapeHtml(error.message)}</p>`; return false; }
       tasks = data || [];
       tasksLoaded = true;
       setTasksShown(true);
@@ -6512,6 +6541,7 @@ ${JSON.stringify(texts)}`;
       }
       renderTaskList();
       renderTopicList();
+      return true;
     })().finally(() => {
       tasksLoadingPromise = null;
     });
@@ -7277,7 +7307,8 @@ ${JSON.stringify(texts)}`;
   const taskFlags = task => {
     const lib = window.MathTasksLib;
     const flags = [];
-    if (task && task.is_published === false) flags.push('черновик');
+    // Своё задание работы — задание контрольной, а не черновик решебника: его не помечаем.
+    if (task && task.is_published === false && !isPaperTask(task)) flags.push('черновик');
     if (task && !lib.isTaskAutoCheckable(task.answer_latex, task.answer_check)) flags.push('без автопроверки');
     if (task && task.difficulty) flags.push(String(task.difficulty).toLowerCase());
     return flags;
@@ -7678,10 +7709,11 @@ ${JSON.stringify(texts)}`;
     paperTaskNote('Сохраняем…');
     const { data, error } = await db.from('tasks').insert(payload).select(paperTaskCols()).single();
     if (error) { paperTaskNote('Не сохранилось: ' + error.message); return; }
+    paperTaskIds.add(Number(data.id));
     addTaskToPaper(data);
     paperFound.set(data.id, data);
     closePaperTaskEditor();
-    paperPickerNote('Задание добавлено в работу черновиком.');
+    paperPickerNote('Задание добавлено в работу.');
   }
 
   async function savePaper() {

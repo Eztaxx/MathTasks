@@ -63,7 +63,7 @@
           <div class="adm-side-foot">
             <button class="adm-theme-btn" type="button" id="adm-theme-btn"><span id="adm-theme-label">Тема</span><small>сменить</small></button>
             <div class="adm-user"><span class="adm-avatar" id="adm-avatar" aria-hidden="true">·</span><strong id="admin-email"></strong></div>
-            <div class="adm-side-links"><button class="adm-link-btn" type="button" data-sign-out>Выйти</button></div>
+            <div class="adm-side-links"><a class="adm-link-btn" href="/">На главную</a><button class="adm-link-btn" type="button" data-sign-out>Выйти</button></div>
           </div>
         </aside>
 
@@ -237,7 +237,7 @@
             <!-- Варианты: собранные вручную экзамены и контрольные. -->
             <section class="adm-view" data-view="papers" hidden>
               <div class="adm-view-head">
-                <div><h1>Работы</h1><p>Контрольная или экзамен, собранные вручную: какие задания, в каком порядке, сколько времени и на сколько частей. Задания берутся из решебника, клонируются с правкой или пишутся прямо здесь — своё задание остаётся черновиком и живёт только внутри работы. Пока опубликованной работы нет, сайт собирает её сам.</p></div>
+                <div><h1>Работы</h1><p>Контрольная или экзамен, собранные вручную: какие задания, в каком порядке, сколько времени и на сколько частей. Задания берутся из решебника, клонируются с правкой или пишутся прямо здесь. Своё задание — это задание контрольной: в решебник не попадает и живёт только внутри работы. Пока опубликованной работы нет, сайт собирает её сам.</p></div>
                 <div class="adm-view-actions"><button class="adm-btn primary" type="button" id="paper-new">+ Новая работа</button></div>
               </div>
               <div class="adm-view-body">
@@ -292,7 +292,7 @@
 
                   <div class="adm-paper-task-editor" id="paper-task-editor" hidden>
                     <div class="adm-panel-head"><h3 id="paper-task-editor-title">Своё задание</h3><button type="button" class="adm-link-btn" id="paper-task-cancel">Отменить</button></div>
-                    <p class="adm-panel-note">Сохраняется черновиком: в решебнике его не будет, ученик увидит его только внутри этой работы.</p>
+                    <p class="adm-panel-note">Сохраняется заданием контрольной: в решебнике его не будет, ученик увидит его только внутри этой работы.</p>
                     <div class="adm-paper-task-form">
                       <label>Тема<select id="paper-task-topic"></select></label>
                       <label>Сложность<select id="paper-task-diff"><option>Лёгкий</option><option selected>Средний</option><option>Сложный</option></select></label>
@@ -1205,7 +1205,7 @@
               <button type="button" class="adm-seg-btn" data-seg-status="published">Опубликованы <span class="adm-seg-n" data-seg-count="published"></span></button>
               <button type="button" class="adm-seg-btn" data-seg-status="no_lv">Без LV <span class="adm-seg-n" data-seg-count="no_lv"></span></button>
               <button type="button" class="adm-seg-btn" data-seg-status="no_label" title="Ответ — голое значение: ученик не видит, что вписывать">Без подписи ответа <span class="adm-seg-n" data-seg-count="no_label"></span></button>
-              <button type="button" class="adm-seg-btn" data-seg-status="paper" title="Задания контрольных и экзаменов: в решебнике их нет, номера в теме у них нет">Задания контрольных <span class="adm-seg-n" data-seg-count="paper"></span></button>
+              <button type="button" class="adm-seg-btn adm-seg-apart" data-seg-status="paper" title="Задания контрольных и экзаменов — отдельно от задач решебника: не черновики, в решебнике их нет, номера в теме нет; ученик видит их только внутри работы">Задания контрольных <span class="adm-seg-n" data-seg-count="paper"></span></button>
             </div>
             <label class="admin-filter-field">
               <span>Класс / курс</span>
@@ -1332,6 +1332,6 @@
   <script src="/client.js?v=20260929-2"></script>
   <script src="/ai-generator.js?v=20260913-8"></script>
   <script src="/cw-review.js?v=20261126-1"></script>
-  <script src="/admin.js?v=20261126-3"></script>
+  <script src="/admin.js?v=20261128-1"></script>
 </body>
 </html>

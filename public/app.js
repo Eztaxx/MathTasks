@@ -1606,9 +1606,96 @@ document.addEventListener('focusin', event => {
   bar.hidden = false;
 });
 
+/* Кнопки администратора на карточке: «Изменить» (редактор админки в новой
+   вкладке) и «Снять с сайта». Разметку создаём только после того, как роль
+   подтверждена базой (refreshSession), — скрытой в странице её нет. Это лишь
+   удобство: менять задачи база разрешает только админу (политика RLS). */
+const adminIcon = paths => `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+function adminToolsHtml(taskId) {
+  if (!isCurrentUserAdmin) return '';
+  const id = Number(taskId);
+  if (!Number.isInteger(id) || id <= 0) return '';
+  const tr = window.MathTasks.t || (k => k);
+  const editLabel = tr('admin_task_edit');
+  const unpublishLabel = tr('admin_task_unpublish');
+  return `<span class="task-admin-tools" data-admin-tools>`
+    + `<a class="task-action-btn task-icon-btn task-admin-btn" href="/admin.html#task-${id}" target="_blank" rel="noopener" title="${escapeHtml(editLabel)} · #${id}">${adminIcon('<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>')}<span class="visually-hidden">${escapeHtml(editLabel)}</span></a>`
+    + `<button class="task-action-btn task-icon-btn task-admin-btn" type="button" data-admin-unpublish="${id}" title="${escapeHtml(unpublishLabel)}">${adminIcon('<path d="M3 3l18 18"/><path d="M10.6 5.1A9.8 9.8 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-2.6 3.5"/><path d="M6.6 6.6C3.7 8.4 2 12 2 12s3.5 7 10 7a9.5 9.5 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>')}<span class="visually-hidden">${escapeHtml(unpublishLabel)}</span></button>`
+    + `</span>`;
+}
+
+/* Роль выясняется после первой отрисовки, а выход — без перерисовки списка:
+   кнопки на уже показанных карточках добавляем и убираем на месте, чтобы не
+   стереть то, что ученик вписал в поля. Карточки с data-no-admin-tools
+   (задача дня) пропускаем. */
+function syncAdminTools(root = document) {
+  root.querySelectorAll('article.task[data-task-id]:not([data-no-admin-tools]) .task-actions').forEach(actions => {
+    const existing = actions.querySelector('[data-admin-tools]');
+    if (!isCurrentUserAdmin) { existing?.remove(); return; }
+    if (!existing) actions.insertAdjacentHTML('beforeend', adminToolsHtml(actions.closest('article.task').dataset.taskId));
+  });
+}
+
+// Одно снятие за раз: перерисовка после первого оторвала бы карточку второго.
+let adminUnpublishBusy = false;
+async function unpublishTaskFromSite(taskId, button) {
+  const tr = window.MathTasks.t || (k => k);
+  if (!db || !isCurrentUserAdmin || adminUnpublishBusy) return;
+  if (!window.confirm(tr('admin_task_unpublish_confirm', { id: taskId }))) return;
+  adminUnpublishBusy = true;
+  button.disabled = true;
+  try {
+    /* .select('id'): если сессия истекла или прав нет, RLS не даёт ошибки, а
+       просто ничего не меняет — проверяем, что изменилась ровно одна строка. */
+    const { data, error, status } = await db.from('tasks').update({ is_published: false }).eq('id', taskId).select('id');
+    const deniedError = error && (['42501', 'PGRST301', 'PGRST302'].includes(error.code) || [401, 403].includes(status));
+    if (error && !deniedError) {
+      // Сбой сети или базы — права тут ни при чём, кнопки не убираем.
+      button.disabled = false;
+      showToast(tr('admin_task_error'), '!');
+      return;
+    }
+    if (deniedError || !Array.isArray(data) || data.length !== 1) {
+      button.disabled = false;
+      showToast(tr('admin_task_failed'), '!');
+      await refreshSession();
+      return;
+    }
+    const task = currentTasksMap.get(taskId);
+    const drop = list => (Array.isArray(list) ? list.filter(item => Number(item.id) !== taskId) : list);
+    currentTopicTasks = drop(currentTopicTasks);
+    shuffledTopicTasks = drop(shuffledTopicTasks);
+    publishedTaskRows = drop(publishedTaskRows);
+    if (task?.topic_id && topicTasksMap.has(task.topic_id)) {
+      topicTasksMap.set(task.topic_id, topicTasksMap.get(task.topic_id).filter(id => Number(id) !== taskId));
+    }
+    if (task?.topic_id && taskCounts.has(task.topic_id)) taskCounts.set(task.topic_id, Math.max(0, taskCounts.get(task.topic_id) - 1));
+    if (task?.subtopic_id && subtopicCounts.has(task.subtopic_id)) subtopicCounts.set(task.subtopic_id, Math.max(0, subtopicCounts.get(task.subtopic_id) - 1));
+    renderSidebar();
+    /* Перерисовываем то, что на экране, — как при смене языка: тему на месте
+       (сортировка и фильтр сохраняются), страницу задачи — без карточки,
+       остальные списки (поиск, тег, закладки, сет дня) — маршрутом заново. */
+    const onTopicPage = currentView === 'list' && currentActiveTopic && /^\/(topic|subtopic)\//.test(appPath());
+    const restoreScroll = rememberScrollAnchor();
+    if (onTopicPage) {
+      if (!currentSubtopic) renderTopicHeaderMeta(currentActiveTopic, currentTopicTasks);
+      renderCurrentTopicTasks();
+    } else if (currentView === 'list' && !/^\/task\//.test(appPath())) {
+      await route({ force: true });
+    } else {
+      button.closest('article.task')?.remove();
+    }
+    restoreScroll();
+    showToast(tr('admin_task_unpublished', { id: taskId }));
+  } finally {
+    adminUnpublishBusy = false;
+  }
+}
+
 /* inlineFigure: false — чертёж в карточку не вставляется и не грузится;
-   так в задаче дня, где он открывается только по кнопке. */
-function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number, inlineFigure = true } = {}) {
+   так в задаче дня, где он открывается только по кнопке.
+   adminTools: false — без кнопок администратора (задача дня). */
+function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, number, inlineFigure = true, adminTools = true } = {}) {
   const tr = window.MathTasks.t || (k => k);
   currentTasksMap.set(task.id, task);
   const subject = subjectOf(task);
@@ -1649,7 +1736,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
     topicLink,
     difficultyBadge(task.difficulty),
     solvedBadge,
-    `<div class="task-actions">${shareBtn}${favBtn}${reportBtn}</div>`
+    `<div class="task-actions">${shareBtn}${favBtn}${reportBtn}${adminTools ? adminToolsHtml(task.id) : ''}</div>`
   ].filter(Boolean).join('');
   const unit = answerUnit(task);
   /* Заготовка ответа: «AC =» перед полем и единица после него. Ученику
@@ -1765,7 +1852,7 @@ function taskCard(task, { showTopicLink, showGrade, linkTitle, highlightQuery, n
       }).join('')}
     </div>` : '';
 
-  return `<article class="task" id="task-${task.id}" data-task="${task.id}" data-task-id="${task.id}">
+  return `<article class="task" id="task-${task.id}" data-task="${task.id}" data-task-id="${task.id}"${adminTools ? '' : ' data-no-admin-tools'}>
     <div class="task-meta">${meta}</div>
     <div class="task-condition-wrap">
       <div class="math task-condition multiline" data-condition></div>
@@ -2462,7 +2549,7 @@ function dailyCard(task) {
       ${figureBtn}
       <button type="button" class="home-daily-other" data-daily-other>↻ ${escapeHtml(tr('home_daily_other'))}</button>
     </div>
-    ${taskCard(task, { linkTitle: false, inlineFigure: false })}
+    ${taskCard(task, { linkTitle: false, inlineFigure: false, adminTools: false })}
     <div class="home-daily-foot">${enterHint}${topicLink}</div>`;
 }
 
@@ -7478,6 +7565,14 @@ document.addEventListener('click', event => {
     return;
   }
 
+  // Администратор: снять задачу с сайта
+  const unpublishBtn = event.target.closest('[data-admin-unpublish]');
+  if (unpublishBtn) {
+    event.preventDefault();
+    unpublishTaskFromSite(Number(unpublishBtn.dataset.adminUnpublish), unpublishBtn);
+    return;
+  }
+
   // Сообщить об ошибке в задаче
   const reportTaskBtn = event.target.closest('[data-report-task]');
   if (reportTaskBtn) {
@@ -7966,6 +8061,8 @@ async function refreshSession() {
       adminPanelSlot.append(link);
     }
   }
+
+  syncAdminTools();
 
   if (currentActiveTopic && currentTopicTasks.length > 0) {
     renderPrintActions(currentTopicTasks);

@@ -852,6 +852,13 @@ article.task:has(.task-solved-badge) .task-number, article.task.is-solved .task-
 .task-icon-btn svg { width: 18px; height: 18px; }
 .task-icon-btn.active, .task-icon-btn[aria-pressed="true"] { color: var(--ink-1); }
 .task-icon-btn.active svg, .task-icon-btn[aria-pressed="true"] svg { fill: currentColor; }
+/* Кнопки администратора (app.js, adminToolsHtml): отделены чертой, чтобы не
+   спутать с действиями ученика; «Изменить» — ссылка, выглядит как кнопка. */
+.task-admin-tools { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; padding-left: 8px; border-left: 2px solid var(--rule-2); }
+a.task-admin-btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.task-action-btn.task-admin-btn { color: var(--red); }
+.task-action-btn.task-admin-btn:hover { color: var(--red); border-color: var(--red); }
+@media print { .task-admin-tools { display: none; } }
 
 /* Условие — шрифт с засечками, формулы KaTeX крупно */
 .task-condition-wrap { margin-top: 24px; }
@@ -2394,6 +2401,8 @@ html.dark .adm-btn.ok { color: #0F1626; }
 .adm-preview-lang-btn.is-active, .adm-preview-lang-btn.active { background: #14213D; color: #FFFFFF; }
 html.dark :is(.adm-seg-btn, .adm-lang-btn, .adm-diff-btn, .adm-preview-lang-btn):is(.is-active, .active, [aria-pressed="true"]) { background: var(--ink-1); color: var(--paper); }
 .adm-seg-n { font-family: var(--f-ui); font-weight: 700; opacity: .8; }
+/* «Задания контрольных» — отдельная каста, не статус задачи решебника: отодвинуты от остальных отборов. */
+.adm-seg .adm-seg-btn.adm-seg-apart { margin-left: 16px; border-style: dashed; }
 
 /* Счётчики «Обзора»: первый — жёлтый, сообщения — красная цифра */
 .adm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)); gap: 12px; }
