@@ -182,7 +182,7 @@ body *, body *::before, body *::after { border-radius: 0; box-shadow: none; }
   font-size: 14px; font-weight: 600; letter-spacing: .14em;
   text-transform: uppercase; color: var(--ink-2);
 }
-.nb-wrap { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); }
+.nb-wrap { width: 100%; max-width: 1600px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); }
 .nb-serif { font-family: var(--f-serif); }
 .visually-hidden, .nb-vh {
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
@@ -296,7 +296,7 @@ body main#home { margin: 0; padding: 0; max-width: none; min-height: calc(100vh 
   position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px;
   min-height: 80px; margin: 0;
-  padding: 0 max(clamp(16px, 4vw, 40px), calc((100% - 1200px) / 2));
+  padding: 0 max(clamp(16px, 4vw, 40px), calc((100% - 1520px) / 2));
   border-bottom: 2px solid var(--bar);
 }
 .nb-logo {
@@ -378,7 +378,7 @@ body.nb-search-open .nb-searchbar,
   position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px;
   min-height: 80px; margin: 0; border: 0; border-radius: 0;
-  padding: 8px max(clamp(16px, 4vw, 40px), calc((100% - 1200px) / 2));
+  padding: 8px max(clamp(16px, 4vw, 40px), calc((100% - 1520px) / 2));
 }
 .admin-topbar .topbar-brand-wrap { display: flex; align-items: center; gap: 16px; }
 .admin-topbar .brand.nb-logo { height: auto; margin: 0; color: var(--bar-ink); }
@@ -522,7 +522,7 @@ body.sidebar-open .sidebar-scrim { display: block; }
 
 /* ── 09 Страница: колонка по центру ───────────────────────────────────── */
 main#home > [id^="view-"] {
-  width: 100%; max-width: 1280px; margin: 0 auto;
+  width: 100%; max-width: 1600px; margin: 0 auto;
   padding: 0 clamp(16px, 4vw, 40px);
 }
 main#home > [id^="view-"]:not(#view-home) { padding-top: 24px; }
@@ -742,6 +742,17 @@ html.dark :is(.formulas-drawer-cat, .formulas-drawer-foot, .home-daily-foot, .ta
 /* ── 13 Темы: строки вместо плиток ────────────────────────────────────── */
 .topics { margin: 0; padding-top: 88px; }
 .topics .section-heading { display: block; margin: 0 0 40px; }
+/* На главной темы стоят сразу под выбором класса: первая строка списка должна попасть на первый
+   экран ноутбука (1820×790 видимой области) — поэтому отступы между ними меньше (28.11.2026). */
+@media (min-width: 721px) {
+  .nb-hero:has(+ .topics) { padding: 40px 0 32px; }
+  .nb-hero + .topics { padding-top: 40px; }
+  .nb-hero + .topics .section-heading { margin-bottom: 24px; }
+  .nb-hero:has(+ .topics) h1 { font-size: clamp(44px, 6vw, 80px); }
+  .nb-hero:has(+ .topics) .nb-hero-lead { max-width: 44ch; }
+  .nb-hero:has(+ .topics) .nb-grade { margin-top: 28px; }
+  .nb-hero:has(+ .topics) .grade-actions { margin-top: 24px; }
+}
 #topics-heading, .topics h2 {
   margin: 0; font-size: clamp(36px, 4.4vw, 56px); line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; color: var(--ink-1);
 }
@@ -1304,7 +1315,7 @@ input.self-check-input.is-wrong, input.self-check-input.error { border-color: va
 /* ── 17 Отдельные страницы: колонка и заголовок ───────────────────────── */
 body.trainer-page, body.exams-page { background: var(--paper); }
 .trainer-container, .exams-main {
-  width: 100%; max-width: 1280px; margin: 0 auto;
+  width: 100%; max-width: 1600px; margin: 0 auto;
   padding: 0 clamp(16px, 4vw, 40px) 0;
 }
 .trainer-header, .exams-hero {
@@ -2112,7 +2123,7 @@ input.cw-answer-input {
 @media (max-width: 720px) { .duel-modes { grid-template-columns: 1fr; } }
 
 /* ── 26 Графопостроитель (страница и окно) ────────────────────────────── */
-.plot-main { width: 100%; max-width: 1280px; margin: 0 auto; padding: 40px clamp(16px, 4vw, 40px) 0; }
+.plot-main { width: 100%; max-width: 1600px; margin: 0 auto; padding: 40px clamp(16px, 4vw, 40px) 0; }
 .plot-bar {
   display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 0; margin: 0 0 16px;
   border: 0; background: none; box-shadow: none;
@@ -2575,12 +2586,12 @@ body.nb-start-open { overflow: hidden; }
 .nb-start-head {
   --ink-1: var(--bar-ink); --ink-2: var(--bar-ink-2); --paper: var(--bar); --sheet: var(--bar-sheet);
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 32px;
-  min-height: 80px; padding: 0 max(clamp(16px, 4vw, 40px), calc((100% - 1200px) / 2));
+  min-height: 80px; padding: 0 max(clamp(16px, 4vw, 40px), calc((100% - 1520px) / 2));
   background: var(--bar); color: var(--bar-ink);
 }
 .nb-start-lang { display: inline-flex; }
 .nb-start-body {
-  width: 100%; max-width: 1280px; margin: 0 auto;
+  width: 100%; max-width: 1600px; margin: 0 auto;
   padding: 64px clamp(16px, 4vw, 40px) 64px;
 }
 .nb-start-body h1 {
