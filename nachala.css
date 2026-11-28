@@ -610,6 +610,11 @@ main#home > .nb-footer { margin-top: 96px; }
 .home-today .home-daily { grid-area: daily; }
 .home-today .home-side { grid-area: side; display: flex; flex-direction: column; gap: 24px; }
 .home-today .home-streak-row { grid-area: streak; }
+/* Пока грузится каталог, блок спрятан, и «Дуэль» с темами стоят сразу под шапкой, а потом уезжают
+   вниз — сдвиг вёрстки 0.08–0.16 на 1280 px (28.11.2026). Держим место отступом у «Дуэли». 420px —
+   чуть меньше самого короткого блока с задачей дня в две колонки (≈ 445–525px), поэтому после
+   отрисовки всё ниже сдвигается только немного вниз и обычно уже за краем экрана. */
+#home-today[hidden] + .home-duel { margin-top: calc(24px + 420px); }
 @media (max-width: 900px) {
   .home-today:not([hidden]), .home-today.no-daily { grid-template-columns: 1fr; grid-template-areas: "daily" "side" "streak"; }
   /* Пока грузится каталог, блок спрятан, и «Дуэль» стоит на первом экране, а потом уезжает вниз —

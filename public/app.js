@@ -2495,21 +2495,40 @@ function renderHeadings() {
 
 /* Полоса «решать весь класс»: без неё до задач класса можно было добраться
    только через тему, а прогнать всю параллель подряд — никак. */
-function renderGradeActions() {
-  const box = document.querySelector('#grade-actions');
-  if (!box) return;
+/* Кнопки класса в шапке главной появлялись только после загрузки каталога и
+   сдвигали вниз картинку и всё под шапкой (28.11.2026). Поэтому числа последнего
+   показа запоминаем и при следующем заходе рисуем кнопки сразу, до каталога. */
+const GRADE_ACTIONS_KEY = 'math-tasks:grade-actions';
+
+function fillGradeActions(box, total, topicsCount) {
   const tr = window.MathTasks.t || (k => k);
-  if (!selectedGrade) { box.hidden = true; box.innerHTML = ''; return; }
-  const topics = topicsForGrade(allTopics);
-  const total = topics.reduce((sum, t) => sum + (taskCounts.get(t.id) || 0), 0);
-  /* Пустому классу предлагать «решать всё» незачем — вести некуда. */
-  if (!total) { box.hidden = true; box.innerHTML = ''; return; }
   box.innerHTML = `<a class="grade-action" href="${gradeHref(selectedGrade)}/tasks"
-      title="${escapeHtml(tr('grade_solve_all_hint', { count: total, topics: topics.length }))}">
+      title="${escapeHtml(tr('grade_solve_all_hint', { count: total, topics: topicsCount }))}">
       ${escapeHtml(tr('grade_solve_all_short', { count: total }))} →
     </a>
     <a class="grade-action nb-set-link" href="/set">${escapeHtml(tr('nb_set_link'))} →</a>`;
   box.hidden = false;
+}
+
+function renderGradeActions() {
+  const box = document.querySelector('#grade-actions');
+  if (!box) return;
+  const topics = topicsForGrade(allTopics);
+  const total = selectedGrade ? topics.reduce((sum, t) => sum + (taskCounts.get(t.id) || 0), 0) : 0;
+  if (selectedGrade) {
+    try { localStorage.setItem(GRADE_ACTIONS_KEY, JSON.stringify({ grade: selectedGrade, total, topics: topics.length })); } catch {}
+  }
+  /* Пустому классу предлагать «решать всё» незачем — вести некуда. */
+  if (!total) { box.hidden = true; box.innerHTML = ''; return; }
+  fillGradeActions(box, total, topics.length);
+}
+
+function renderGradeActionsEarly() {
+  const box = document.querySelector('#grade-actions');
+  if (!box || !selectedGrade) return;
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(GRADE_ACTIONS_KEY) || 'null'); } catch {}
+  if (saved?.grade === selectedGrade && saved.total > 0) fillGradeActions(box, saved.total, saved.topics);
 }
 
 /* «Популярные темы» без выбранного класса — самые наполненные темы, а не
@@ -8337,6 +8356,7 @@ function initStartPicker() {
 
 renderGradeControls();
 renderHeadings();
+renderGradeActionsEarly();
 initStartPicker();
 (async () => {
   try {
