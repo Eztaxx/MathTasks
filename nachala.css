@@ -610,11 +610,13 @@ main#home > .nb-footer { margin-top: 96px; }
 .home-today .home-daily { grid-area: daily; }
 .home-today .home-side { grid-area: side; display: flex; flex-direction: column; gap: 24px; }
 .home-today .home-streak-row { grid-area: streak; }
-/* Пока грузится каталог, блок спрятан, и «Дуэль» с темами стоят сразу под шапкой, а потом уезжают
-   вниз — сдвиг вёрстки 0.08–0.16 на 1280 px (28.11.2026). Держим место отступом у «Дуэли». 420px —
-   чуть меньше самого короткого блока с задачей дня в две колонки (≈ 445–525px), поэтому после
-   отрисовки всё ниже сдвигается только немного вниз и обычно уже за краем экрана. */
-#home-today[hidden] + .home-duel { margin-top: calc(24px + 420px); }
+/* Пока грузится каталог, блок спрятан, и «Дуэль» стоит сразу под темами, а потом уезжает вниз
+   (28.11.2026). Держим место отступом у «Дуэли». 420px — чуть меньше самого короткого блока с задачей
+   дня в две колонки (≈ 445–525px), поэтому после отрисовки «Дуэль» сдвигается только немного вниз.
+   От 1100 px блок стоит колонкой справа от тем (ниже), и отступ там не нужен. */
+@media (min-width: 901px) and (max-width: 1099.98px) {
+  #home-today[hidden] + .home-duel { margin-top: calc(24px + 420px); }
+}
 @media (max-width: 900px) {
   .home-today:not([hidden]), .home-today.no-daily { grid-template-columns: 1fr; grid-template-areas: "daily" "side" "streak"; }
   /* Пока грузится каталог, блок спрятан, и «Дуэль» стоит на первом экране, а потом уезжает вниз —
@@ -628,8 +630,10 @@ main#home > .nb-footer { margin-top: 96px; }
 /* Широкий экран: задача дня, «Продолжить» и серия — колонкой справа от списка тем (28.11.2026).
    Колонки заданы заранее, поэтому, когда блок появляется после загрузки, список тем не сужается. */
 @media (min-width: 1100px) {
+  /* align-content: start — у раздела min-height на экран, и пока тем нет, свободное место растягивало
+     строку шапки: темы стояли на 34 px ниже и после загрузки прыгали вверх (28.11.2026). */
   #view-home {
-    display: grid; column-gap: 40px; align-items: start;
+    display: grid; column-gap: 40px; align-items: start; align-content: start;
     grid-template-columns: minmax(0, 1fr) clamp(420px, 38%, 820px);
     grid-template-areas: "hero hero" "topics today" "duel duel" "insights insights";
   }
@@ -786,6 +790,9 @@ html.dark :is(.formulas-drawer-cat, .formulas-drawer-foot, .home-daily-foot, .ta
   margin: 0; font-size: clamp(36px, 4.4vw, 56px); line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; color: var(--ink-1);
 }
 .topic-grid { display: block; border-bottom: 1px solid var(--rule); }
+/* Список тем главной заполняется после загрузки каталога. Пустому держим место (8 популярных тем —
+   около 800px), иначе «Дуэль» под ним сначала видна на первом экране, а потом уезжает вниз (28.11.2026). */
+#topics:empty { min-height: 640px; }
 .topic-card, .topic-card.tc {
   display: grid; align-items: center; gap: 4px 24px; min-height: 0;
   grid-template-columns: 56px minmax(0, 1fr) 120px 96px 140px;
