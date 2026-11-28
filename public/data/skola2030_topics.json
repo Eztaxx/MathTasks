@@ -2980,6 +2980,11 @@
         "num": "11.1.6",
         "ru": "Графический способ решения уравнений",
         "lv": "Vienādojumu risināšana ar grafisko paņēmienu"
+      },
+      {
+        "num": "11.1.7",
+        "ru": "Способ группировки, сумма и разность кубов",
+        "lv": "Grupēšanas paņēmiens, kubu summa un starpība"
       }
     ]
   },
@@ -3068,6 +3073,21 @@
         "num": "11.3.6",
         "ru": "Подстановка в дробных уравнениях",
         "lv": "Substitūcija daļveida vienādojumos"
+      },
+      {
+        "num": "11.3.7",
+        "ru": "Задачи на движение (дробные уравнения)",
+        "lv": "Kustības uzdevumi ar daļveida vienādojumiem"
+      },
+      {
+        "num": "11.3.8",
+        "ru": "Задачи на совместную работу",
+        "lv": "Kopīgā darba uzdevumi"
+      },
+      {
+        "num": "11.3.9",
+        "ru": "Задачи на планируемое и фактическое",
+        "lv": "Plānotā un faktiskā uzdevumi"
       }
     ]
   },
@@ -3112,6 +3132,16 @@
         "num": "11.4.6",
         "ru": "Системы с дробными уравнениями",
         "lv": "Sistēmas ar daļveida vienādojumiem"
+      },
+      {
+        "num": "11.4.7",
+        "ru": "Графическое решение систем уравнений",
+        "lv": "Vienādojumu sistēmas grafiska atrisināšana"
+      },
+      {
+        "num": "11.4.8",
+        "ru": "Метод замены переменных в системах уравнений",
+        "lv": "Jauna mainīgā ieviešana vienādojumu sistēmās"
       }
     ]
   },
@@ -3200,6 +3230,16 @@
         "num": "11.6.6",
         "ru": "Теорема косинусов",
         "lv": "Kosinusa teorēma"
+      },
+      {
+        "num": "11.6.7",
+        "ru": "Радиусы вписанной и описанной окружностей треугольника",
+        "lv": "Trijstūrī ievilktās un apvilktās riņķa līnijas rādiuss"
+      },
+      {
+        "num": "11.6.8",
+        "ru": "Применения теоремы косинусов: диагонали параллелограмма, медиана, равнодействующая сил",
+        "lv": "Kosinusu teorēmas lietojumi: paralelograma diagonāles, mediāna, spēku summa"
       }
     ]
   },
@@ -3244,6 +3284,21 @@
         "num": "11.7.6",
         "ru": "Сложная функция",
         "lv": "Salikta funkcija"
+      },
+      {
+        "num": "11.7.7",
+        "ru": "Приращение аргумента и функции",
+        "lv": "Argumenta un funkcijas pieaugums"
+      },
+      {
+        "num": "11.7.8",
+        "ru": "Графики и свойства основных функций",
+        "lv": "Pamatfunkciju grafiki un īpašības"
+      },
+      {
+        "num": "11.7.9",
+        "ru": "График квадратичной функции: преобразования и выделение полного квадрата",
+        "lv": "Kvadrātfunkcijas grafika pārveidojumi, binoma kvadrāta atdalīšana"
       }
     ]
   },
@@ -3288,6 +3343,11 @@
         "num": "11.8.6",
         "ru": "Преобразования графиков тригонометрических функций",
         "lv": "Trigonometrisko funkciju grafiku transformācijas"
+      },
+      {
+        "num": "11.8.7",
+        "ru": "Тригонометрические функции как модель физических процессов",
+        "lv": "Trigonometriskās funkcijas kā fizikālu procesu modelis"
       }
     ]
   },
@@ -3376,6 +3436,16 @@
         "num": "11.10.6",
         "ru": "Подстановка в тригонометрических уравнениях",
         "lv": "Substitūcija trigonometriskajos vienādojumos"
+      },
+      {
+        "num": "11.10.7",
+        "ru": "Тригонометрическое уравнение как модель ситуации",
+        "lv": "Trigonometrisks vienādojums kā situācijas modelis"
+      },
+      {
+        "num": "11.10.8",
+        "ru": "Уравнения с формулами сложения и двойного угла",
+        "lv": "Vienādojumi ar argumentu summas un divkāršā argumenta formulām"
       }
     ]
   },
@@ -3420,6 +3490,11 @@
         "num": "11.11.6",
         "ru": "Расстояние между точками и середина отрезка",
         "lv": "Attālums starp punktiem un viduspunkts"
+      },
+      {
+        "num": "11.11.7",
+        "ru": "Векторы и точки в пространстве",
+        "lv": "Vektori un punkti telpā"
       }
     ]
   },
@@ -3464,6 +3539,21 @@
         "num": "11.12.6",
         "ru": "Параллельные и перпендикулярные прямые",
         "lv": "Paralēlas un perpendikulāras taisnes"
+      },
+      {
+        "num": "11.12.7",
+        "ru": "Нормальный вектор прямой",
+        "lv": "Taisnes normālvektors"
+      },
+      {
+        "num": "11.12.8",
+        "ru": "Уравнение Ax + By = C в натуральных числах",
+        "lv": "Vienādojums Ax + By = C naturālo skaitļu kopā"
+      },
+      {
+        "num": "11.12.9",
+        "ru": "Вид четырёхугольника по уравнениям сторон",
+        "lv": "Četrstūra veida noteikšana pēc malu vienādojumiem"
       }
     ]
   },
@@ -3508,6 +3598,21 @@
         "num": "11.13.6",
         "ru": "Сумма членов геометрической прогрессии",
         "lv": "Ģeometriskās progresijas locekļu summa"
+      },
+      {
+        "num": "11.13.7",
+        "ru": "Бесконечно убывающая геометрическая прогрессия",
+        "lv": "Bezgalīgi dilstoša ģeometriskā progresija"
+      },
+      {
+        "num": "11.13.8",
+        "ru": "Геометрическая прогрессия в геометрических задачах",
+        "lv": "Ģeometriskā progresija ģeometrijas uzdevumos"
+      },
+      {
+        "num": "11.13.9",
+        "ru": "Сравнение корней, вынос и внос множителя",
+        "lv": "Sakņu salīdzināšana, reizinātāja iznešana un ienešana zem saknes zīmes"
       }
     ]
   },
@@ -3552,6 +3657,11 @@
         "num": "11.14.6",
         "ru": "Замена основания, десятичный и натуральный логарифмы",
         "lv": "Bāzes maiņa, decimāllogaritms un naturāllogaritms"
+      },
+      {
+        "num": "11.14.7",
+        "ru": "Применение логарифма в практических задачах",
+        "lv": "Logaritma lietojumi praktiskos uzdevumos"
       }
     ]
   },
@@ -3596,6 +3706,16 @@
         "num": "11.15.6",
         "ru": "Подстановка в показательных уравнениях",
         "lv": "Substitūcija eksponentvienādojumos"
+      },
+      {
+        "num": "11.15.7",
+        "ru": "Графическое решение показательных уравнений",
+        "lv": "Eksponentvienādojumu grafiskā atrisināšana"
+      },
+      {
+        "num": "11.15.8",
+        "ru": "Системы уравнений с показательным уравнением",
+        "lv": "Vienādojumu sistēmas ar eksponentvienādojumu"
       }
     ]
   },
@@ -3640,6 +3760,21 @@
         "num": "11.16.6",
         "ru": "Теорема о трёх перпендикулярах",
         "lv": "Triju perpendikulu teorēma"
+      },
+      {
+        "num": "11.16.7",
+        "ru": "Угол между прямой и плоскостью",
+        "lv": "Leņķis starp taisni un plakni"
+      },
+      {
+        "num": "11.16.8",
+        "ru": "Двугранный угол",
+        "lv": "Divplakņu kakta leņķis"
+      },
+      {
+        "num": "11.16.9",
+        "ru": "Изображение пространственных тел на плоскости",
+        "lv": "Telpisku ķermeņu attēlošana plaknē"
       }
     ]
   },
@@ -3684,6 +3819,21 @@
         "num": "11.17.6",
         "ru": "Пирамида с равными боковыми рёбрами или двугранными углами",
         "lv": "Piramīda ar vienādām sānu šķautnēm vai divplakņu kakta leņķiem"
+      },
+      {
+        "num": "11.17.7",
+        "ru": "Диагонали призмы и диагональное сечение",
+        "lv": "Prizmas diagonāles un diagonālšķēlums"
+      },
+      {
+        "num": "11.17.8",
+        "ru": "Пирамида, у которой высота — боковое ребро",
+        "lv": "Piramīda, kuras augstums ir sānu šķautne"
+      },
+      {
+        "num": "11.17.9",
+        "ru": "Прямой параллелепипед",
+        "lv": "Taisns paralēlskaldnis"
       }
     ]
   },
@@ -3723,6 +3873,16 @@
         "num": "11.18.5",
         "ru": "Комбинации геометрических тел",
         "lv": "Ģeometrisko ķermeņu kombinācijas"
+      },
+      {
+        "num": "11.18.6",
+        "ru": "Шаровой сегмент и шаровой сектор",
+        "lv": "Lodes segments un lodes sektors"
+      },
+      {
+        "num": "11.18.7",
+        "ru": "Сечения шара, цилиндра и конуса плоскостью",
+        "lv": "Lodes, cilindra un konusa šķēlumi ar plakni"
       }
     ]
   },
@@ -3767,6 +3927,11 @@
         "num": "11.19.6",
         "ru": "Сочетания",
         "lv": "Kombinācijas"
+      },
+      {
+        "num": "11.19.7",
+        "ru": "Числовые множества и промежутки",
+        "lv": "Skaitļu kopas un intervāli"
       }
     ]
   },
@@ -3811,6 +3976,21 @@
         "num": "11.20.6",
         "ru": "Независимые события и умножение вероятностей",
         "lv": "Neatkarīgi notikumi un varbūtību reizināšana"
+      },
+      {
+        "num": "11.20.7",
+        "ru": "Дерево вероятностей",
+        "lv": "Varbūtību koka diagramma"
+      },
+      {
+        "num": "11.20.8",
+        "ru": "Вероятность суммы несовместных событий",
+        "lv": "Nesavienojamu notikumu summas varbūtība"
+      },
+      {
+        "num": "11.20.9",
+        "ru": "Зависимые события: теорема умножения вероятностей",
+        "lv": "Atkarīgi notikumi: varbūtību reizināšanas teorēma"
       }
     ]
   },
@@ -3850,6 +4030,26 @@
         "num": "11.21.5",
         "ru": "Самостоятельное исследование",
         "lv": "Patstāvīgs pētījums"
+      },
+      {
+        "num": "11.21.6",
+        "ru": "Средние величины, в том числе для сгруппированных данных",
+        "lv": "Vidējie lielumi, arī grupētiem datiem"
+      },
+      {
+        "num": "11.21.7",
+        "ru": "Квартили, межквартильный размах, ящичная диаграмма",
+        "lv": "Kvartiles, starpkvartiļu amplitūda un kastu diagramma"
+      },
+      {
+        "num": "11.21.8",
+        "ru": "Стандартное и среднее абсолютное отклонение",
+        "lv": "Standartnovirze un vidējā absolūtā novirze"
+      },
+      {
+        "num": "11.21.9",
+        "ru": "Сравнение выборок по средним и разбросу",
+        "lv": "Izlašu salīdzināšana pēc vidējiem lielumiem un izkliedes"
       }
     ]
   },
@@ -3918,6 +4118,11 @@
         "num": "12.1.2",
         "ru": "Принцип математической индукции",
         "lv": "Matemātiskās indukcijas princips"
+      },
+      {
+        "num": "12.1.3",
+        "ru": "Доказательство от противного; необходимое и достаточное условие",
+        "lv": "Pierādījums no pretējā; nepieciešams un pietiekams nosacījums"
       }
     ]
   },
@@ -3952,6 +4157,16 @@
         "num": "12.2.4",
         "ru": "Комплексные приемы решения уравнений",
         "lv": "Kompleksi vienādojumu risināšanas paņēmieni"
+      },
+      {
+        "num": "12.2.5",
+        "ru": "Преобразования алгебраических дробей и разложение на множители",
+        "lv": "Algebrisko daļu pārveidojumi un sadalīšana reizinātājos"
+      },
+      {
+        "num": "12.2.6",
+        "ru": "Уравнения высших степеней",
+        "lv": "Augstāku pakāpju vienādojumi"
       }
     ]
   },
@@ -3976,6 +4191,16 @@
         "num": "12.3.2",
         "ru": "Исследование дробно-рациональной функции",
         "lv": "Daļveida racionālas funkcijas pētīšana"
+      },
+      {
+        "num": "12.3.3",
+        "ru": "Степенная функция с рациональным показателем",
+        "lv": "Pakāpes funkcija ar racionālu kāpinātāju"
+      },
+      {
+        "num": "12.3.4",
+        "ru": "Показательная и логарифмическая функции, свойства логарифмов",
+        "lv": "Eksponentfunkcija un logaritmiskā funkcija, logaritmu īpašības"
       }
     ]
   },
@@ -3995,6 +4220,16 @@
         "num": "12.4.1",
         "ru": "Иррациональные уравнения",
         "lv": "Iracionālie vienādojumi"
+      },
+      {
+        "num": "12.4.2",
+        "ru": "Уравнения и неравенства с модулем",
+        "lv": "Vienādojumi un nevienādības ar moduli"
+      },
+      {
+        "num": "12.4.3",
+        "ru": "Дробно-рациональные неравенства",
+        "lv": "Daļveida racionālas nevienādības"
       }
     ]
   },
@@ -4014,6 +4249,11 @@
         "num": "12.5.1",
         "ru": "Логарифмические уравнения, неравенства и системы",
         "lv": "Logaritmiskie vienādojumi, nevienādības un sistēmas"
+      },
+      {
+        "num": "12.5.2",
+        "ru": "Смешанные системы уравнений, показательные уравнения",
+        "lv": "Jauktas vienādojumu sistēmas, eksponentvienādojumi"
       }
     ]
   },
@@ -4053,6 +4293,16 @@
         "num": "12.6.5",
         "ru": "Гармонические колебания и тригонометрические модели",
         "lv": "Harmoniskās svārstības un trigonometriskie modeļi"
+      },
+      {
+        "num": "12.6.6",
+        "ru": "Преобразование тригонометрических выражений: формулы суммы, двойного угла, приведения",
+        "lv": "Trigonometrisko izteiksmju pārveidošana: summas, divkāršā argumenta un reducēšanas formulas"
+      },
+      {
+        "num": "12.6.7",
+        "ru": "Тригонометрические уравнения в общем виде",
+        "lv": "Trigonometriskie vienādojumi vispārīgā veidā"
       }
     ]
   },
@@ -4082,6 +4332,21 @@
         "num": "12.7.3",
         "ru": "Число e и экспоненциальные процессы",
         "lv": "Skaitlis e un eksponenciāli procesi"
+      },
+      {
+        "num": "12.7.4",
+        "ru": "Вычисление предела последовательности",
+        "lv": "Virknes robežas aprēķināšana"
+      },
+      {
+        "num": "12.7.5",
+        "ru": "Монотонность и ограниченность последовательности",
+        "lv": "Virknes monotonitāte un ierobežotība"
+      },
+      {
+        "num": "12.7.6",
+        "ru": "Формула общего члена рекуррентной последовательности",
+        "lv": "Rekurentas virknes vispārīgā locekļa formula"
       }
     ]
   },
@@ -4106,6 +4371,36 @@
         "num": "12.8.2",
         "ru": "Предел функции",
         "lv": "Funkcijas robeža"
+      },
+      {
+        "num": "12.8.3",
+        "ru": "Односторонние пределы",
+        "lv": "Vienpusējās robežas"
+      },
+      {
+        "num": "12.8.4",
+        "ru": "Предел на бесконечности и бесконечные пределы",
+        "lv": "Robeža bezgalībā un bezgalīgas robežas"
+      },
+      {
+        "num": "12.8.5",
+        "ru": "Раскрытие неопределённостей 0/0 и ∞/∞",
+        "lv": "Nenoteiktību 0/0 un ∞/∞ novēršana"
+      },
+      {
+        "num": "12.8.6",
+        "ru": "Теоремы о пределах",
+        "lv": "Teorēmas par robežām"
+      },
+      {
+        "num": "12.8.7",
+        "ru": "Точки разрыва и их виды",
+        "lv": "Pārtraukuma punkti un to veidi"
+      },
+      {
+        "num": "12.8.8",
+        "ru": "Асимптоты и эскиз графика по пределам",
+        "lv": "Asimptotas un grafika skice ar robežām"
       }
     ]
   },
@@ -4130,6 +4425,26 @@
         "num": "12.9.2",
         "ru": "Правила и формулы дифференцирования",
         "lv": "Diferencēšanas likumi un formulas"
+      },
+      {
+        "num": "12.9.3",
+        "ru": "Физический смысл производной: скорость и ускорение",
+        "lv": "Atvasinājuma fizikālā nozīme: ātrums un paātrinājums"
+      },
+      {
+        "num": "12.9.4",
+        "ru": "Существование производной и непрерывность",
+        "lv": "Atvasinājuma eksistence un nepārtrauktība"
+      },
+      {
+        "num": "12.9.5",
+        "ru": "Производная сложной функции",
+        "lv": "Saliktas funkcijas atvasināšana"
+      },
+      {
+        "num": "12.9.6",
+        "ru": "Производные тригонометрических, показательных и логарифмических функций",
+        "lv": "Trigonometrisko, eksponentfunkciju un logaritmisko funkciju atvasināšana"
       }
     ]
   },
@@ -4159,6 +4474,26 @@
         "num": "12.10.3",
         "ru": "Прикладные задачи на оптимизацию",
         "lv": "Lietišķi optimizācijas uzdevumi"
+      },
+      {
+        "num": "12.10.4",
+        "ru": "Выпуклость, вогнутость, точки перегиба",
+        "lv": "Grafika izliekums, ieliekums un pārliekuma punkti"
+      },
+      {
+        "num": "12.10.5",
+        "ru": "Наибольшее и наименьшее значения на отрезке",
+        "lv": "Vislielākā un vismazākā vērtība slēgtā intervālā"
+      },
+      {
+        "num": "12.10.6",
+        "ru": "Полное исследование функции и построение графика",
+        "lv": "Pilna funkcijas izpēte un grafika zīmēšana"
+      },
+      {
+        "num": "12.10.7",
+        "ru": "Производная в задачах на движение и в прикладных задачах",
+        "lv": "Atvasinājums kustības un citos lietojuma uzdevumos"
       }
     ]
   },
@@ -4183,6 +4518,16 @@
         "num": "12.11.2",
         "ru": "Определенный интеграл и формула Ньютона–Лейбница",
         "lv": "Noteiktais integrālis un Ņūtona–Leibnica formula"
+      },
+      {
+        "num": "12.11.3",
+        "ru": "Интегрирование с линейным аргументом, подведение под дифференциал",
+        "lv": "Integrēšana ar lineāru argumentu, pāreja uz diferenciāli"
+      },
+      {
+        "num": "12.11.4",
+        "ru": "Интегрирование дробно-рациональных функций",
+        "lv": "Daļveida racionālu funkciju integrēšana"
       }
     ]
   },
@@ -4207,6 +4552,16 @@
         "num": "12.12.2",
         "ru": "Применение интеграла в физике",
         "lv": "Integrāļa lietojums fizikā"
+      },
+      {
+        "num": "12.12.3",
+        "ru": "Площадь фигуры между двумя кривыми",
+        "lv": "Laukums starp divām līknēm"
+      },
+      {
+        "num": "12.12.4",
+        "ru": "Объём тела вращения",
+        "lv": "Rotācijas ķermeņa tilpums"
       }
     ]
   },
@@ -4246,6 +4601,21 @@
         "num": "12.13.5",
         "ru": "Статистика II: Выводы о генеральной совокупности",
         "lv": "Statistika II: secinājumi par populāciju"
+      },
+      {
+        "num": "12.13.6",
+        "ru": "Уравнения и неравенства в комбинаторике",
+        "lv": "Kombinatorikas vienādojumi un nevienādības"
+      },
+      {
+        "num": "12.13.7",
+        "ru": "Нормальное распределение и правило трёх сигм",
+        "lv": "Normālsadalījums un trīs sigmu likums"
+      },
+      {
+        "num": "12.13.8",
+        "ru": "Линейная регрессия",
+        "lv": "Lineārā regresija"
       }
     ]
   },
@@ -4315,6 +4685,26 @@
         "num": "12.14.11",
         "ru": "Комбинации призмы, пирамиды и сферы",
         "lv": "Prizmas un lodes, piramīdas un lodes kombinācijas"
+      },
+      {
+        "num": "12.14.12",
+        "ru": "Векторы: коллинеарность, компланарность, разложение",
+        "lv": "Vektori: kolinearitāte, komplanaritāte, sadalīšana"
+      },
+      {
+        "num": "12.14.13",
+        "ru": "Геометрическое место точек",
+        "lv": "Punktu ģeometriskā vieta"
+      },
+      {
+        "num": "12.14.14",
+        "ru": "Аксиомы стереометрии, взаимное расположение прямых и плоскостей",
+        "lv": "Stereometrijas aksiomas, taišņu un plakņu savstarpējais novietojums"
+      },
+      {
+        "num": "12.14.15",
+        "ru": "Наклонная призма и параллелепипед",
+        "lv": "Slīpa prizma un paralēlskaldnis"
       }
     ]
   },
