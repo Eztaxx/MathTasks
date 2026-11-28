@@ -625,7 +625,7 @@ main#home > .nb-footer { margin-top: 96px; }
 @media (min-width: 1100px) {
   #view-home {
     display: grid; column-gap: 40px; align-items: start;
-    grid-template-columns: minmax(0, 1fr) clamp(360px, 27%, 560px);
+    grid-template-columns: minmax(0, 1fr) clamp(420px, 38%, 820px);
     grid-template-areas: "hero hero" "topics today" "duel duel" "insights insights";
   }
   #view-home > .nb-hero { grid-area: hero; }
