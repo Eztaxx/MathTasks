@@ -615,6 +615,26 @@ main#home > .nb-footer { margin-top: 96px; }
   #home-today[hidden] + .home-duel { margin-top: calc(24px + 560px); }
 }
 
+
+/* Широкий экран: задача дня, «Продолжить» и серия — колонкой справа от списка тем (28.11.2026).
+   Колонки заданы заранее, поэтому, когда блок появляется после загрузки, список тем не сужается. */
+@media (min-width: 1100px) {
+  #view-home {
+    display: grid; column-gap: 40px; align-items: start;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
+    grid-template-areas: "hero hero" "topics today" "duel duel" "insights insights";
+  }
+  #view-home > .nb-hero { grid-area: hero; }
+  #view-home > .topics { grid-area: topics; }
+  #view-home > .home-duel { grid-area: duel; margin-top: 40px; }
+  #view-home > .home-insights { grid-area: insights; }
+  #view-home > .home-today:not([hidden]), #view-home > .home-today.no-daily {
+    grid-area: today; grid-template-columns: minmax(0, 1fr); grid-template-areas: "daily" "side" "streak";
+    padding: 0; margin-top: 40px; border-top: 0;
+  }
+  #view-home > .home-today .home-daily { padding: 24px; }
+}
+
 .home-daily {
   padding: 32px; border: 2px solid var(--ink-1); background: var(--sheet); color: var(--ink-1);
 }
