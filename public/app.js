@@ -2822,7 +2822,9 @@ function fillTopicHeader(topic, sub = null) {
   fillListHeader({
     crumbs,
     title,
-    description: '',
+    // У тем общего уровня официальные названия прикладные («Skaitliskie aprēķini dzīves darbībā»),
+    // поэтому под заголовком показываем математическое содержание темы. У остальных курсов — скрыто (be2cda5).
+    description: !sub && isTopicInGrade(topic, 'visparigais') ? (loc(topic, 'description') || '') : '',
     meta: topic.grade ? `<span class="grade-badge">${gradeLabel(topic.grade)}</span>` : ''
   });
   const description = sub
