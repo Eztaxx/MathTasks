@@ -200,10 +200,9 @@ async function main() {
     return;
   }
 
-  // Вставка черновиками. Позиция — максимум по теме + 1 (publish.mjs потом перенумерует тему).
-  const posRows = await fetchAll(`tasks?select=id,position&topic_id=eq.${meta.topic_id}&order=id`);
-  let pos = posRows.reduce((m, t) => Math.max(m, t.position || 0), 0);
-  const payload = rows.map(r => ({ ...r, position: ++pos, is_published: false }));
+  // Вставка черновиками. У черновика номера в теме нет — позиция 0; publish.mjs
+  // при публикации ставит задачи в конец их подтем (по дате создания и id).
+  const payload = rows.map(r => ({ ...r, position: 0, is_published: false }));
   const got = await rest('tasks', { method: 'POST', body: payload, prefer: 'return=representation' });
   const inserted = got.map((t, i) => ({ i, id: t.id, sub: items[i].sub, self: items[i].self === true }));
   writeJson(join(dir, 'inserted.json'), inserted);

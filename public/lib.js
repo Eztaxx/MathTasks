@@ -2950,8 +2950,16 @@
 
   /* Расчет нового непрерывного порядка задач (1..N) внутри темы:
      порядок: подтема (subtopic.position) -> текущая позиция (task.position) -> дата создания (created_at) -> id */
+  /* Номер в теме получают только опубликованные задачи: подряд 1..N, без
+     пропусков. Черновик (is_published === false) номера не занимает —
+     у него 0. Задачи без поля is_published считаются опубликованными. */
+  const isDraftTask = task => task?.is_published === false;
+  const validTaskPosition = value => Number.isFinite(Number(value)) && Number(value) > 0;
+
   const computeTaskRenumbering = (tasks = [], subtopics = []) => {
     if (!Array.isArray(tasks) || !tasks.length) return [];
+    const drafts = tasks.filter(isDraftTask);
+    tasks = tasks.filter(task => !isDraftTask(task));
     const subMap = new Map();
     if (Array.isArray(subtopics)) {
       subtopics.forEach((s, idx) => {
@@ -2981,8 +2989,7 @@
       return (a.id || 0) - (b.id || 0);
     });
 
-    return copy.map((task, idx) => {
-      const newPosition = idx + 1;
+    const entry = (task, newPosition) => {
       const oldPosition = Number(task.position);
       return {
         id: task.id,
@@ -2991,7 +2998,67 @@
         changed: oldPosition !== newPosition,
         task
       };
-    });
+    };
+    return [...copy.map((task, idx) => entry(task, idx + 1)), ...drafts.map(task => entry(task, 0))];
+  };
+
+  /* Номера одной темы после правки: сохранили, опубликовали, сняли, удалили.
+     В отличие от computeTaskRenumbering порядок опубликованных не
+     пересобирается по подтемам — сохраняется тот, что есть (по position),
+     пропуски закрываются. Опубликованная задача без номера (только что
+     вышла) встаёт в конец своей подтемы; если в подтеме ещё нет
+     опубликованных — перед первой задачей следующей подтемы, иначе в конец
+     темы. targetId + desiredPosition — ручной номер из редактора: задача
+     встаёт ровно на это место. Черновики получают 0.
+     Возвращает [{ id, oldPosition, newPosition, changed, task }]. */
+  const planTaskNumbers = (tasks = [], subtopics = [], { targetId = null, desiredPosition = null } = {}) => {
+    if (!Array.isArray(tasks) || !tasks.length) return [];
+    const subOrder = new Map();
+    if (Array.isArray(subtopics)) {
+      subtopics.forEach((s, idx) => subOrder.set(s.id, validTaskPosition(s.position) ? Number(s.position) : idx + 1));
+    }
+    const orderOf = task => (task.subtopic_id != null && subOrder.has(task.subtopic_id) ? subOrder.get(task.subtopic_id) : 9999);
+    const byAge = (a, b) => String(a.created_at || '').localeCompare(String(b.created_at || '')) || (Number(a.id) || 0) - (Number(b.id) || 0);
+    const isTarget = task => targetId != null && String(task.id) === String(targetId);
+    const manual = validTaskPosition(desiredPosition) ? Number(desiredPosition) : null;
+
+    const published = tasks.filter(task => !isDraftTask(task));
+    const pinned = published.find(task => manual && isTarget(task)) || null;
+    const placed = published
+      .filter(task => task !== pinned && validTaskPosition(task.position))
+      .sort((a, b) => Number(a.position) - Number(b.position) || byAge(a, b));
+    const fresh = published
+      .filter(task => task !== pinned && !validTaskPosition(task.position))
+      .sort(byAge);
+
+    for (const task of fresh) {
+      const order = orderOf(task);
+      let at = -1;
+      for (let i = placed.length - 1; i >= 0; i--) {
+        if (orderOf(placed[i]) === order) { at = i + 1; break; }
+      }
+      if (at < 0) {
+        const next = placed.findIndex(item => orderOf(item) > order);
+        at = next < 0 ? placed.length : next;
+      }
+      placed.splice(at, 0, task);
+    }
+    if (pinned) placed.splice(Math.min(manual - 1, placed.length), 0, pinned);
+
+    const entry = (task, newPosition) => {
+      const oldPosition = Number(task.position);
+      return {
+        id: task.id,
+        oldPosition: Number.isFinite(oldPosition) ? oldPosition : null,
+        newPosition,
+        changed: oldPosition !== newPosition,
+        task
+      };
+    };
+    return [
+      ...placed.map((task, idx) => entry(task, idx + 1)),
+      ...tasks.filter(isDraftTask).map(task => entry(task, 0))
+    ];
   };
 
   /* Расчет нового непрерывного порядка тем (1..N) внутри каждого класса */
@@ -4421,6 +4488,7 @@
     buildTaskPrompt,
     TASK_PROMPT_COLUMNS,
     computeTaskRenumbering,
+    planTaskNumbers,
     computeTopicRenumbering,
     computeSubtopicRenumbering
   };

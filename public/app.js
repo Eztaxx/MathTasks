@@ -1636,6 +1636,37 @@ function syncAdminTools(root = document) {
   });
 }
 
+/* Номер в теме — только у опубликованных задач, подряд 1..N. После снятия
+   закрываем пропуск: тему читаем из базы целиком (на странице может быть
+   одна подтема), пересчёт — lib.planTaskNumbers, как в админке. */
+async function closeTopicNumberGap(topicId) {
+  if (!topicId) return true; // задача без темы — номера у неё нет, пересчитывать нечего
+  const planFn = window.MathTasksLib?.planTaskNumbers;
+  if (!db || !planFn) return false;
+  const { data, error } = await db.from('tasks').select('id,position,subtopic_id,created_at')
+    .eq('topic_id', topicId).eq('is_published', true).order('id').limit(2000);
+  if (error || !Array.isArray(data)) return false;
+  let ok = true;
+  const moved = new Map();
+  // По 8 запросов разом: снятие из начала большой темы иначе шло бы минуту.
+  const changes = planFn(data, allSubtopics).filter(item => item.changed);
+  for (let i = 0; i < changes.length; i += 8) {
+    const results = await Promise.all(changes.slice(i, i + 8).map(item =>
+      db.from('tasks').update({ position: item.newPosition }).eq('id', item.id).select('id')
+        .then(({ data: rows, error: writeError }) => ({ item, ok: !writeError && Array.isArray(rows) && rows.length === 1 }))
+        .catch(() => ({ item, ok: false }))));
+    for (const { item, ok: written } of results) {
+      if (written) moved.set(Number(item.id), item.newPosition);
+      else ok = false;
+    }
+  }
+  // Номера на экране — из тех же объектов задач, что и списки.
+  for (const task of [...currentTopicTasks, ...(shuffledTopicTasks || []), ...currentTasksMap.values()]) {
+    if (moved.has(Number(task.id))) task.position = moved.get(Number(task.id));
+  }
+  return ok;
+}
+
 // Одно снятие за раз: перерисовка после первого оторвала бы карточку второго.
 let adminUnpublishBusy = false;
 async function unpublishTaskFromSite(taskId, button) {
@@ -1647,7 +1678,7 @@ async function unpublishTaskFromSite(taskId, button) {
   try {
     /* .select('id'): если сессия истекла или прав нет, RLS не даёт ошибки, а
        просто ничего не меняет — проверяем, что изменилась ровно одна строка. */
-    const { data, error, status } = await db.from('tasks').update({ is_published: false }).eq('id', taskId).select('id');
+    const { data, error, status } = await db.from('tasks').update({ is_published: false, position: 0 }).eq('id', taskId).select('id');
     const deniedError = error && (['42501', 'PGRST301', 'PGRST302'].includes(error.code) || [401, 403].includes(status));
     if (error && !deniedError) {
       // Сбой сети или базы — права тут ни при чём, кнопки не убираем.
@@ -1662,6 +1693,7 @@ async function unpublishTaskFromSite(taskId, button) {
       return;
     }
     const task = currentTasksMap.get(taskId);
+    const numbersOk = await closeTopicNumberGap(task?.topic_id);
     const drop = list => (Array.isArray(list) ? list.filter(item => Number(item.id) !== taskId) : list);
     currentTopicTasks = drop(currentTopicTasks);
     shuffledTopicTasks = drop(shuffledTopicTasks);
@@ -1679,14 +1711,16 @@ async function unpublishTaskFromSite(taskId, button) {
     const restoreScroll = rememberScrollAnchor();
     if (onTopicPage) {
       if (!currentSubtopic) renderTopicHeaderMeta(currentActiveTopic, currentTopicTasks);
+      keepVisiblePageOnce = true;
       renderCurrentTopicTasks();
+      keepVisiblePageOnce = false;
     } else if (currentView === 'list' && !/^\/task\//.test(appPath())) {
       await route({ force: true });
     } else {
       button.closest('article.task')?.remove();
     }
     restoreScroll();
-    showToast(tr('admin_task_unpublished', { id: taskId }));
+    showToast(tr(numbersOk ? 'admin_task_unpublished' : 'admin_task_renumber_failed', { id: taskId }), numbersOk ? '✓' : '!');
   } finally {
     adminUnpublishBusy = false;
   }
@@ -1962,10 +1996,17 @@ let pageStart = 0;
    и последнему номеру: пересоздание того же списка (смена языка, отметка
    решённой) не должно сбрасывать то, что человек уже раскрыл. */
 let visibleKey = '';
+/* Админ снял задачу с сайта — список стал короче, но это тот же список:
+   остаёмся на той же странице (на последней, если эта опустела). */
+let keepVisiblePageOnce = false;
 function resetVisibleFor(tasks) {
   const key = `${tasks.length}:${tasks[0]?.id ?? ''}:${tasks[tasks.length - 1]?.id ?? ''}`;
-  if (key !== visibleKey) { visibleKey = key; pageStart = 0; }
-  if (pageStart >= tasks.length) pageStart = 0;
+  const keep = keepVisiblePageOnce;
+  keepVisiblePageOnce = false;
+  if (key !== visibleKey) { visibleKey = key; if (!keep) pageStart = 0; }
+  if (pageStart >= tasks.length) {
+    pageStart = keep && tasks.length ? Math.floor((tasks.length - 1) / TASKS_CHUNK) * TASKS_CHUNK : 0;
+  }
 }
 
 /* Перевести окно на страницу с этой задачей. Возвращает true, если

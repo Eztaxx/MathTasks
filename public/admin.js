@@ -2873,7 +2873,7 @@ ${JSON.stringify(texts)}`;
     const date = value => (value ? new Date(value).toLocaleDateString('ru-RU') : '—');
     const rows = [
       ['id в базе', task ? '#' + task.id : 'появится после сохранения'],
-      ['Номер в теме', task && isPaperTask(task) ? 'нет: задание контрольной' : (taskForm.elements.position?.value || '0')],
+      ['Номер в теме', task && isPaperTask(task) ? 'нет: задание контрольной' : (task && !task.is_published ? 'нет: у черновика номера нет, он появится при публикации' : (Number(taskForm.elements.position?.value) > 0 ? taskForm.elements.position.value : 'в конец своей подтемы'))],
       ['Статус', task ? (task.is_published ? 'опубликована' : (isPaperTask(task) ? 'задание контрольной: в решебнике его нет, видно только внутри работы' : 'черновик, на проверке')) : 'новая, ещё не сохранена'],
       ['Ввод ответа', !answer ? 'ответа нет' : (!checkable ? 'самопроверка: автоматом не сверить' : (fields.length ? fields.length + ' поля' : (lib?.answerLabelMarkup?.(answer) ? 'одно поле с подписью' : 'одно поле, ответ строкой')))],
       ['Латышская версия', (conditionInputLv?.value || '').trim() ? 'есть' : 'нет'],
@@ -3409,7 +3409,7 @@ ${JSON.stringify(texts)}`;
     if (task) ensureSectionExpanded('section-task-form');
     editingTaskId = task?.id ?? null;
     document.querySelector('#task-form-title').textContent = task
-      ? (isPaperTask(task) ? `Редактировать задание контрольной #${task.id}` : `Редактировать задачу №${task.position ?? task.id}`)
+      ? (isPaperTask(task) ? `Редактировать задание контрольной #${task.id}` : `Редактировать задачу ${taskNo(task)}`)
       : 'Создание и редактирование задачи';
     document.querySelector('#task-submit').textContent = task ? 'Сохранить задачу' : 'Добавить задачу';
     document.querySelector('#task-cancel').hidden = !task;
@@ -3428,6 +3428,12 @@ ${JSON.stringify(texts)}`;
     updateSubtopicDropdown(task?.subtopic_id ?? '');
     taskForm.elements.difficulty.value = task?.difficulty || 'Средний';
     taskForm.elements.position.value = task?.position ?? 0;
+    /* С чем задача открылась: номер из поля считается ручным, только если его
+       поменяли, — иначе сохранение опечатки переставляло бы задачу. */
+    taskForm.elements.position.dataset.loaded = String(task?.position ?? 0);
+    taskForm.elements.position.dataset.loadedTopic = String(task?.topic_id ?? '');
+    taskForm.elements.position.dataset.loadedSubtopic = String(task?.subtopic_id ?? '');
+    taskForm.elements.position.dataset.loadedPublished = task ? String(task.is_published !== false) : '';
     conditionInput.value = task?.condition_latex || '';
     if (conditionInputLv) conditionInputLv.value = task?.condition_latex_lv || '';
     answerInput.value = task?.answer_latex || '';
@@ -3484,14 +3490,17 @@ ${JSON.stringify(texts)}`;
 
   const siblingsOf = topicId => taskIndex.filter(task => (task.topic_id ?? null) === (topicId ?? null) && !isPaperTask(task));
 
-  // Новая задача без явно указанного номера встаёт в конец своей темы:
-  // набивать номера руками при добавлении двадцати задач невыносимо.
+  /* Номер в теме — только у опубликованных задач, подряд 1..N; у черновика 0.
+     Номер руками набирают только для вставки в середину: 0 — опубликованная
+     задача встанет в конец своей подтемы (lib.planTaskNumbers). */
   function nextPosition(topicId, rawValue) {
     const typed = Number(rawValue) || 0;
-    if (editingTaskId || typed) return typed;
-    const siblings = siblingsOf(topicId);
-    return siblings.length ? Math.max(...siblings.map(task => task.position ?? 0)) + 1 : 1;
+    return typed > 0 ? Math.floor(typed) : 0;
   }
+  const publishedSiblingsOf = topicId => siblingsOf(topicId)
+    .filter(task => task.is_published !== false)
+    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+  const taskNo = task => (task && task.is_published !== false && Number(task.position) > 0 ? `№${task.position}` : `#${task?.id ?? ''}`);
 
   function difficultyBadge(diff) {
     if (!diff) return '';
@@ -3738,11 +3747,17 @@ ${JSON.stringify(texts)}`;
        Кнопки несут те же data-атрибуты, что и раньше, — обработчики
        списка не менялись. */
     const codes = topicCodeMap();
+    // Стрелки — только у опубликованных: у черновика номера в теме нет.
+    const siblingCache = new Map();
+    const publishedSiblings = topicId => {
+      if (!siblingCache.has(topicId)) siblingCache.set(topicId, publishedSiblingsOf(topicId));
+      return siblingCache.get(topicId);
+    };
     const rows = filtered.map(task => {
       const topic = topics.find(item => item.id === task.topic_id);
       const grade = parseFormGrade(task.grade ?? topic?.grade);
       const sub = task.subtopic_id ? subtopics.find(s => s.id === task.subtopic_id) : null;
-      const siblings = siblingsOf(task.topic_id);
+      const siblings = task.is_published === false ? [] : publishedSiblings(task.topic_id);
       const index = siblings.findIndex(item => item.id === task.id);
       const arrows = siblings.length > 1 && index >= 0
         ? `<span class="adm-tmove">
@@ -3764,7 +3779,7 @@ ${JSON.stringify(texts)}`;
       const topicText = topic ? topicOptionText(topic, codes) : 'Без темы';
       const subText = sub ? `${sub.code ? sub.code + ' ' : ''}${sub.title}` : '';
       return `<div class="adm-trow${task.is_published ? '' : ' is-draft'}">
-        <div class="adm-tnum">${isPaperTask(task) ? '<b title="Задание контрольной: номера в теме нет">К/Р</b>' : `<b>№${task.position ?? 0}</b>`}<span>#${task.id}</span>${arrows}</div>
+        <div class="adm-tnum">${isPaperTask(task) ? '<b title="Задание контрольной: номера в теме нет">К/Р</b>' : (task.is_published === false ? '<b title="Черновик: номера в теме нет, он появится при публикации">—</b>' : `<b>№${task.position ?? 0}</b>`)}<span>#${task.id}</span>${arrows}</div>
         <div class="adm-tmain">
           <button class="adm-ttitle" type="button" data-edit-task="${task.id}" title="Открыть в редакторе">${escapeHtml(title)}</button>
           <div class="adm-tcond" title="${escapeHtml(snippet)}">${escapeHtml(snippet) || '—'}</div>
@@ -3819,39 +3834,68 @@ ${JSON.stringify(texts)}`;
     });
   }
 
-  /* Ребалансировка задач темы 1..N: автосдвиг при вставке в середину или удалении */
-  async function rebalanceTaskPositions(topicId, targetTaskId = null, desiredPosition = null) {
-    if (!topicId) return;
-    // Без списка работ задания контрольных не отличить от задач — номера темы не трогаем.
-    if (!paperTaskIdsReady) return false;
-    let siblings = siblingsOf(topicId)
-      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+  /* Пересчёты номеров идут строго по одному: два плана по наполовину
+     записанной теме дали бы дубли номеров. */
+  let renumberChain = Promise.resolve();
+  function queueRenumber(job) {
+    const run = renumberChain.then(job, job);
+    renumberChain = run.catch(() => {});
+    return run;
+  }
 
-    if (targetTaskId != null && desiredPosition != null) {
-      const existingIdx = siblings.findIndex(t => String(t.id) === String(targetTaskId));
-      let targetItem;
-      if (existingIdx >= 0) {
-        targetItem = siblings.splice(existingIdx, 1)[0];
-      } else {
-        targetItem = { id: targetTaskId, topic_id: topicId, position: desiredPosition };
+  /* Тему читаем из базы, а не из указателя в памяти: он не знает задач,
+     которые автопоток добавил или опубликовал после загрузки вкладки.
+     Список работ перечитываем тем же ходом — задания контрольных в
+     нумерацию не входят. null — не прочиталось. */
+  async function fetchTopicRows(topicId) {
+    await loadPaperTaskIds();
+    if (!paperTaskIdsReady) return null;
+    const { data, error } = await window.MathTasksLib.fetchAllRows(() => db.from('tasks')
+      .select('id,position,subtopic_id,is_published,created_at').eq('topic_id', topicId).order('id'));
+    if (error || !Array.isArray(data)) return null;
+    return data.filter(row => !isPaperTask(row));
+  }
+
+  // Запись номеров по 8 запросов разом: тема в двести задач иначе пересчитывалась бы минуту.
+  async function writePositions(changes) {
+    let failed = 0;
+    for (let i = 0; i < changes.length; i += 8) {
+      const results = await Promise.all(changes.slice(i, i + 8).map(item =>
+        db.from('tasks').update({ position: item.newPosition }).eq('id', item.id).select('id')
+          .then(({ data, error }) => ({ item, ok: !error && Array.isArray(data) && data.length === 1 }))
+          .catch(() => ({ item, ok: false }))));
+      for (const { item, ok } of results) {
+        if (ok) patchIndexRow(item.id, { position: item.newPosition });
+        else failed++;
       }
-      const insertIdx = Math.max(0, Math.min(desiredPosition - 1, siblings.length));
-      siblings.splice(insertIdx, 0, targetItem);
     }
+    return failed;
+  }
 
-    const updates = siblings
-      .map((item, index) => ({ item, position: index + 1 }))
-      .filter(({ item, position }) => item.position !== position);
+  /* Пересчёт номеров одной темы после правки: опубликованные — подряд 1..N,
+     черновики — 0, только что опубликованная — в конец своей подтемы,
+     desiredPosition — ручной номер из редактора (lib.planTaskNumbers).
+     targetTaskId обязан быть в теме: нет его — пересчёт не верен, false.
+     false — номера не пересчитаны или часть не сохранилась. */
+  function rebalanceTaskPositions(topicId, targetTaskId = null, desiredPosition = null) {
+    if (!topicId) return Promise.resolve(true);
+    return queueRenumber(async () => {
+      const planFn = window.MathTasksLib?.planTaskNumbers;
+      if (!planFn) return false;
+      const rows = await fetchTopicRows(topicId);
+      if (!rows) return false;
+      if (targetTaskId != null && !rows.some(row => String(row.id) === String(targetTaskId))) return false;
+      const plan = planFn(rows, subtopics, { targetId: targetTaskId, desiredPosition });
+      return (await writePositions(plan.filter(item => item.changed))) === 0;
+    });
+  }
+  const RENUMBER_FAILED_NOTE = ' Номера в теме не пересчитаны — обновите страницу и нажмите «Перенумеровать задачи».';
 
-    for (const { item, position } of updates) {
-      const { error } = await db.from('tasks').update({ position }).eq('id', item.id);
-      if (!error) {
-        item.position = position;
-        const inIdx = taskIndex.find(t => String(t.id) === String(item.id));
-        if (inIdx) inIdx.position = position;
-        const inTasks = tasks.find(t => String(t.id) === String(item.id));
-        if (inTasks) inTasks.position = position;
-      }
+  // Задача в указателе знает своё новое состояние до пересчёта номеров.
+  function patchIndexRow(id, patch) {
+    for (const list of [taskIndex, tasks]) {
+      const row = list.find(item => String(item.id) === String(id));
+      if (row) Object.assign(row, patch);
     }
   }
 
@@ -3860,22 +3904,24 @@ ${JSON.stringify(texts)}`;
      ничего бы не изменил. */
   async function moveTask(taskId, direction) {
     const task = taskIndex.find(item => String(item.id) === String(taskId));
-    if (!task) return;
-    if (!paperTaskIdsReady) { taskSuccess.textContent = 'Список работ не загрузился — порядок не меняем. Обновите страницу.'; return; }
-    const siblings = [...siblingsOf(task.topic_id)];
-    const from = siblings.findIndex(item => item.id === task.id);
-    const to = direction === 'up' ? from - 1 : from + 1;
-    if (to < 0 || to >= siblings.length) return;
-    siblings.splice(to, 0, siblings.splice(from, 1)[0]);
-
-    const updates = siblings
-      .map((item, index) => ({ item, position: index + 1 }))
-      .filter(({ item, position }) => item.position !== position);
-    for (const { item, position } of updates) {
-      const { error } = await db.from('tasks').update({ position }).eq('id', item.id);
-      if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
-    }
-    taskSuccess.textContent = 'Порядок изменён.';
+    if (!task || task.is_published === false || !task.topic_id) return;
+    const result = await queueRenumber(async () => {
+      const rows = await fetchTopicRows(task.topic_id);
+      if (!rows) return 'Список задач или работ не загрузился — порядок не меняем. Обновите страницу.';
+      // По номерам опубликованных, а не в порядке указателя (он по id).
+      const siblings = rows.filter(row => row.is_published !== false)
+        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+      const from = siblings.findIndex(item => String(item.id) === String(task.id));
+      const to = direction === 'up' ? from - 1 : from + 1;
+      if (from < 0 || to < 0 || to >= siblings.length) return '';
+      siblings.splice(to, 0, siblings.splice(from, 1)[0]);
+      const changes = siblings
+        .map((item, index) => ({ id: item.id, newPosition: index + 1, oldPosition: item.position }))
+        .filter(item => item.oldPosition !== item.newPosition);
+      const failed = await writePositions(changes);
+      return failed ? `Не сохранилось номеров: ${failed}.` + RENUMBER_FAILED_NOTE : 'Порядок изменён.';
+    });
+    if (result) taskSuccess.textContent = result;
     await refreshTasks();
   }
 
@@ -3912,6 +3958,23 @@ ${JSON.stringify(texts)}`;
       return;
     }
     const taskPos = nextPosition(topicId, form.get('position'));
+    const willPublish = form.get('is_published') === 'on';
+    const prevRow = editingTaskId ? taskIndex.find(t => String(t.id) === String(editingTaskId)) : null;
+    // Задание контрольной в нумерацию не входит: его позицию не трогаем.
+    const editingPaper = Boolean(prevRow) && isPaperTask(prevRow);
+    /* Номер ручной, только если его набрали: у новой задачи — любой больше 0,
+       у открытой — отличный от прежнего в той же теме. Опубликованная без
+       ручного номера в той же теме остаётся на своём месте; черновик,
+       только что опубликованная и задача из другой темы — 0, то есть в
+       конец своей подтемы. */
+    const posField = taskForm.elements.position;
+    const prevTopicId = editingTaskId ? (Number(posField.dataset.loadedTopic) || null) : null;
+    const sameTopic = Boolean(editingTaskId) && prevTopicId === topicId;
+    const manualPos = taskPos > 0 && (!editingTaskId || (sameTopic && String(taskPos) !== String(posField.dataset.loaded || '0')));
+    // Сменили подтему — задача уходит в конец новой подтемы, а не остаётся среди прежних соседей.
+    const sameSubtopic = String(form.get('subtopic_id') || '') === String(posField.dataset.loadedSubtopic || '');
+    const keepPos = sameTopic && sameSubtopic && posField.dataset.loadedPublished === 'true' && !manualPos;
+    const savedPosition = !willPublish ? 0 : (manualPos || keepPos ? taskPos : 0);
     const payload = sanitizeTaskPayload({
       title,
       title_lv: form.get('title_lv')?.trim() || null,
@@ -3929,31 +3992,43 @@ ${JSON.stringify(texts)}`;
       condition_image: images.condition.current,
       solution_image: images.solution.current,
       difficulty: form.get('difficulty'),
-      position: taskPos,
+      position: editingPaper ? (prevRow.position ?? 0) : savedPosition,
       grade: parseFormGrade(form.get('grade')),
       topic_id: topicId,
       subtopic_id: form.get('subtopic_id') ? Number(form.get('subtopic_id')) : null,
-      is_published: form.get('is_published') === 'on'
+      is_published: willPublish
     });
+    /* Номер, с которым форма открылась, мог устареть (тему за это время
+       перенумеровали) — если его не меняли, в базу его не пишем. */
+    if (editingPaper || keepPos) delete payload.position;
     let savedTaskId = editingTaskId;
     if (editingTaskId) {
-      const { error } = await db.from('tasks').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', editingTaskId);
+      const { data: updatedRows, error } = await db.from('tasks').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', editingTaskId).select('id');
       if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
+      if (!updatedRows?.length) { taskSuccess.textContent = 'Не сохранилось: нет прав администратора или сессия истекла — войдите заново.'; return; }
     } else {
       const { data: inserted, error } = await db.from('tasks').insert(payload).select('id').maybeSingle();
       if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
       savedTaskId = inserted?.id;
       if (savedTaskId) {
-        taskIndex.push({ id: savedTaskId, topic_id: payload.topic_id ?? null, position: payload.position });
+        taskIndex.push({ id: savedTaskId, topic_id: payload.topic_id ?? null, subtopic_id: payload.subtopic_id ?? null, position: payload.position, is_published: payload.is_published });
       }
     }
+    if (editingTaskId) {
+      patchIndexRow(editingTaskId, {
+        topic_id: payload.topic_id ?? null, subtopic_id: payload.subtopic_id ?? null, is_published: payload.is_published,
+        ...('position' in payload ? { position: payload.position } : {})
+      });
+    }
 
-    // Автосдвиг задач внутри темы при вставке в середину. Задание контрольной в нумерацию не входит.
+    /* Номера темы: опубликованная встаёт на набранный номер или в конец своей
+       подтемы, черновик номер освобождает. Задача ушла в другую тему — в
+       прежней закрываем пропуск. Задание контрольной в нумерацию не входит. */
     let rebalanceNote = '';
-    if (savedTaskId && topicId && !isPaperTask(taskIndex.find(t => String(t.id) === String(savedTaskId)) || { id: savedTaskId, is_published: payload.is_published })) {
-      if (await rebalanceTaskPositions(topicId, savedTaskId, taskPos) === false) {
-        rebalanceNote = ' Номера в теме не сдвинуты: список контрольных не загрузился — обновите страницу и нажмите «Перенумеровать задачи».';
-      }
+    if (savedTaskId && !editingPaper) {
+      let ok = await rebalanceTaskPositions(topicId, willPublish ? savedTaskId : null, willPublish && manualPos ? taskPos : null);
+      if (prevTopicId && prevTopicId !== topicId) ok = (await rebalanceTaskPositions(prevTopicId)) && ok;
+      if (!ok) rebalanceNote = RENUMBER_FAILED_NOTE;
     }
 
     // Синхронизируем кросс-теги в task_tags
@@ -4027,26 +4102,24 @@ ${JSON.stringify(texts)}`;
     /* Отметить как проверенную (опубликовать) или вернуть на проверку */
     const publishId = event.target.closest('[data-publish-task]')?.dataset.publishTask;
     if (publishId) {
-      const { error } = await db.from('tasks').update({ is_published: true }).eq('id', publishId);
-      if (error) { taskSuccess.textContent = 'Не удалось отметить: ' + error.message; return; }
-      for (const list of [tasks, taskIndex]) {
-        const row = list.find(item => String(item.id) === String(publishId));
-        if (row) row.is_published = true;
-      }
-      taskSuccess.textContent = `Задача #${publishId} отмечена как проверенная.`;
+      // position 0 — пересчёт поставит её в конец своей подтемы.
+      const { data: published, error } = await db.from('tasks').update({ is_published: true, position: 0 }).eq('id', publishId).select('id,topic_id');
+      if (error || !published?.length) { taskSuccess.textContent = 'Не удалось отметить: ' + (error?.message || 'нет прав администратора или сессия истекла'); return; }
+      patchIndexRow(publishId, { is_published: true, position: 0 });
+      const publishOk = await rebalanceTaskPositions(published[0].topic_id, publishId);
+      taskSuccess.textContent = `Задача #${publishId} отмечена как проверенная.` + (publishOk ? '' : RENUMBER_FAILED_NOTE);
       renderTaskList();
       updateReviewChip();
       return;
     }
     const unpublishId = event.target.closest('[data-unpublish-task]')?.dataset.unpublishTask;
     if (unpublishId) {
-      const { error } = await db.from('tasks').update({ is_published: false }).eq('id', unpublishId);
-      if (error) { taskSuccess.textContent = 'Не удалось вернуть на проверку: ' + error.message; return; }
-      for (const list of [tasks, taskIndex]) {
-        const row = list.find(item => String(item.id) === String(unpublishId));
-        if (row) row.is_published = false;
-      }
-      taskSuccess.textContent = `Задача #${unpublishId} возвращена на проверку.`;
+      const { data: unpublished, error } = await db.from('tasks').update({ is_published: false, position: 0 }).eq('id', unpublishId).select('id,topic_id');
+      if (error || !unpublished?.length) { taskSuccess.textContent = 'Не удалось вернуть на проверку: ' + (error?.message || 'нет прав администратора или сессия истекла'); return; }
+      patchIndexRow(unpublishId, { is_published: false, position: 0 });
+      // Без цели: снятая задача без подтемы из контрольной выпадает из нумерации совсем.
+      const unpublishOk = await rebalanceTaskPositions(unpublished[0].topic_id);
+      taskSuccess.textContent = `Задача #${unpublishId} возвращена на проверку.` + (unpublishOk ? '' : RENUMBER_FAILED_NOTE);
       renderTaskList();
       updateReviewChip();
       return;
@@ -4098,7 +4171,7 @@ ${JSON.stringify(texts)}`;
       } else {
         setSelectedTagSlugs([]);
       }
-      document.querySelector('#task-form-title').textContent = `Клонирование: задача №${source.position ?? source.id}`;
+      document.querySelector('#task-form-title').textContent = `Клонирование: задача ${taskNo(source)}`;
       document.querySelector('#task-submit').textContent = 'Добавить задачу (сохранить копию)';
       document.querySelector('#task-cancel').hidden = false;
       taskSuccess.textContent = '✨ Копия открыта в редакторе. Измените её и нажмите «Сохранить черновик» или «Опубликовать».';
@@ -4108,20 +4181,22 @@ ${JSON.stringify(texts)}`;
 
     const deleteId = event.target.closest('[data-delete-task]')?.dataset.deleteTask;
     if (!deleteId) return;
-    const task = tasks.find(item => String(item.id) === deleteId);
-    const label = task ? (task.title ? `«${task.title}»` : `задачу №${task.position ?? task.id}`) : 'выбранную задачу';
+    /* Задачи может не быть в загруженном списке (список устарел) — тогда
+       берём её из базы: без неё чертежи остались бы в бакете, а номера
+       темы не пересчитались бы. */
+    const task = tasks.find(item => String(item.id) === deleteId) || await fetchFullRow('tasks', deleteId);
+    const label = task ? (task.title ? `«${task.title}»` : `задачу ${taskNo(task)}`) : 'выбранную задачу';
     if (!confirm(`Удалить ${label}? Это действие необратимо.`)) return;
     const { error } = await db.from('tasks').delete().eq('id', deleteId);
     if (error) { taskSuccess.textContent = 'Ошибка: ' + error.message; return; }
     // Задачи нет — её чертежам в бакете делать нечего.
-    await removeFile(task.condition_image);
-    await removeFile(task.solution_image);
-    if (task?.topic_id) {
-      taskIndex = taskIndex.filter(t => String(t.id) !== deleteId);
-      await rebalanceTaskPositions(task.topic_id);
-    }
+    await removeFile(task?.condition_image);
+    await removeFile(task?.solution_image);
+    let deleteNote = '';
+    taskIndex = taskIndex.filter(t => String(t.id) !== deleteId);
+    if (task?.topic_id && task.is_published !== false && !(await rebalanceTaskPositions(task.topic_id))) deleteNote = RENUMBER_FAILED_NOTE;
     if (String(editingTaskId) === deleteId) { taskForm.reset(); setTaskMode(null); }
-    taskSuccess.textContent = 'Задача удалена.';
+    taskSuccess.textContent = 'Задача удалена.' + deleteNote;
     await refreshTasks();
   });
 
@@ -4656,7 +4731,8 @@ ${JSON.stringify(texts)}`;
     }
   }
 
-  btnRenumberTasks?.addEventListener('click', handleRenumberTasks);
+  // Через ту же очередь, что и пересчёты после правок: два плана не пишут одну тему разом.
+  btnRenumberTasks?.addEventListener('click', () => queueRenumber(handleRenumberTasks));
   bulkDialogClose?.addEventListener('click', () => bulkDialog?.close());
   bulkDialogCancel?.addEventListener('click', () => bulkDialog?.close());
 
@@ -5144,6 +5220,8 @@ ${JSON.stringify(texts)}`;
     /* Предупреждения разбора — например, сдвиг столбцов из-за запятой
        в формуле без кавычек — показываем вместе с остальными. */
     warnings.push(...parseWarnings);
+    // Опубликованные сразу задачи приходят с номером 0 — после импорта ставим их в конец своих подтем.
+    const importPublishedTopics = new Set();
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       onProgress?.(i + 1, items.length);
@@ -5235,11 +5313,10 @@ ${JSON.stringify(texts)}`;
         successCount++;
         uploadedFigures += Object.keys(figurePaths).length;
         const newTaskId = insertedTask?.id;
-        /* Указатель пополняем сразу, не дожидаясь конца импорта: следующая
-           задача считает свой номер по нему, и без этой строки все задачи
-           одной темы получили бы одну и ту же позицию — ровно то, из-за чего
-           пришлось перенумеровывать весь каталог. */
-        taskIndex.push({ id: newTaskId, topic_id: payload.topic_id ?? null, position: payload.position, is_published: payload.is_published });
+        /* Указатель пополняем сразу: по нему видно, что задача уже есть.
+           Номер у неё 0 — опубликованным его раздаёт пересчёт после импорта. */
+        taskIndex.push({ id: newTaskId, topic_id: payload.topic_id ?? null, subtopic_id: payload.subtopic_id ?? null, position: payload.position, is_published: payload.is_published });
+        if (payload.is_published && payload.topic_id) importPublishedTopics.add(payload.topic_id);
         // Привязываем кросс-теги Skola2030 если они переданы в массиве tags
         if (newTaskId && Array.isArray(item.tags) && item.tags.length) {
           if (!tagsReady) {
@@ -5269,6 +5346,12 @@ ${JSON.stringify(texts)}`;
             warnings.push(`${labelOf(i)}: ошибка сохранения тегов — ${tErr.message}`);
           }
         }
+      }
+    }
+
+    for (const topicId of importPublishedTopics) {
+      if (!(await rebalanceTaskPositions(topicId))) {
+        warnings.push(`Номера в теме #${topicId} не пересчитаны — нажмите «Перенумеровать задачи».`);
       }
     }
 
@@ -6416,7 +6499,7 @@ ${JSON.stringify(texts)}`;
       const sub = task?.subtopic_id ? subtopics.find(s => s.id === task.subtopic_id) : null;
       const grade = parseFormGrade(task?.grade ?? topic?.grade);
       const path = [grade ? `${grade}. klase` : '', topic ? topicOptionText(topic, codes) : '', sub?.code || ''].filter(Boolean).join(' · ');
-      const title = task ? (task.title || `Задача №${task.position ?? r.task_id}`) : 'Задача удалена';
+      const title = task ? (task.title || `Задача ${taskNo({ ...task, id: r.task_id })}`) : 'Задача удалена';
       const meta = [
         timeAgo(r.created_at),
         r.lang ? `страница ${r.lang.toUpperCase()}` : '',
@@ -7298,8 +7381,8 @@ ${JSON.stringify(texts)}`;
     const topic = topics.find(item => item.id === task.topic_id);
     const where = topic ? (topic.title || '') : '';
     const text = String(task.condition_latex || task.title || '').replace(/\s+/g, ' ').slice(0, 80);
-    // Номер в теме — только у задач решебника; у заданий работы (черновиков без подтемы) его нет.
-    const numbered = task.position && (task.is_published !== false || task.subtopic_id);
+    // Номер в теме — только у опубликованных задач решебника.
+    const numbered = Number(task.position) > 0 && task.is_published !== false;
     return (numbered ? '№' + task.position + ' · ' : '') + (where ? where + ' · ' : '') + text;
   };
   /* Задача без автопроверки в работе всегда считалась бы ошибкой, а
@@ -8534,12 +8617,22 @@ ${JSON.stringify(texts)}`;
     setPublishStatus(`Публикуем ${ids.length} ${tasksAcc(ids.length)}…`);
     const done = [];
     let failure = '';
+    let renumberFailed = false;
+    const doneTopics = new Set();
     try {
       // Кусками по сотне: список номеров уходит в адрес запроса.
       for (let i = 0; i < ids.length; i += 100) {
-        const { data, error } = await db.from('tasks').update({ is_published: true }).in('id', ids.slice(i, i + 100)).select('id');
+        // position 0 — пересчёт ниже поставит их в конец своих подтем.
+        const { data, error } = await db.from('tasks').update({ is_published: true, position: 0 }).in('id', ids.slice(i, i + 100)).select('id,topic_id');
         if (error) { failure = error.message; break; }
-        done.push(...(data || []).map(row => String(row.id)));
+        for (const row of data || []) {
+          done.push(String(row.id));
+          if (row.topic_id) doneTopics.add(row.topic_id);
+        }
+      }
+      // Пока номера не пересчитаны, окно занято: второе действие не начнётся.
+      for (const topicId of doneTopics) {
+        if (!(await rebalanceTaskPositions(topicId))) renumberFailed = true;
       }
     } catch (err) {
       failure = err?.message || String(err);
@@ -8551,7 +8644,7 @@ ${JSON.stringify(texts)}`;
       for (const row of list) if (doneSet.has(String(row.id))) row.is_published = true;
     }
     reviewAll = reviewAll.filter(task => !doneSet.has(String(task.id)));
-    reviewNotice = done.length ? `Опубликовано ${done.length} ${tasksAcc(done.length)}` : '';
+    reviewNotice = done.length ? `Опубликовано ${done.length} ${tasksAcc(done.length)}${renumberFailed ? '.' + RENUMBER_FAILED_NOTE : ''}` : '';
     updateReviewChip();
     applyReviewFilter(true);
     await renderReviewCard();
@@ -8895,16 +8988,16 @@ ${JSON.stringify(texts)}`;
     reviewBusy = true;
     if (admReviewApprove) admReviewApprove.disabled = true;
     try {
-      const { error } = await db.from('tasks').update({ is_published: true }).eq('id', task.id);
-      if (error) {
-        alert('Ошибка при публикации: ' + error.message);
+      // position 0 — пересчёт поставит её в конец своей подтемы.
+      const { data: approved, error } = await db.from('tasks').update({ is_published: true, position: 0 }).eq('id', task.id).select('id,topic_id');
+      if (error || !approved?.length) {
+        alert('Ошибка при публикации: ' + (error?.message || 'нет прав администратора или сессия истекла'));
         return;
       }
       task.is_published = true;
-      for (const list of [tasks, taskIndex]) {
-        const row = list.find(item => String(item.id) === String(task.id));
-        if (row) row.is_published = true;
-      }
+      task.position = 0;
+      patchIndexRow(task.id, { is_published: true, position: 0 });
+      if (!(await rebalanceTaskPositions(approved[0].topic_id, task.id))) reviewNotice = 'Опубликовано.' + RENUMBER_FAILED_NOTE;
       updateReviewChip();
       dropFromReviewQueue(task.id);
       await renderReviewCard();

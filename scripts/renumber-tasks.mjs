@@ -10,6 +10,9 @@
  * выстраивается строго относительно порядка задач этой темы,
  * а все последующие сдвигаются.
  *
+ * Номер получают только ОПУБЛИКОВАННЫЕ задачи: черновик каталога номера
+ * не занимает, ему пишется 0 — на сайте номера идут без пропусков.
+ *
  * Задания контрольных — черновики из exam_paper_items — не задачи решебника:
  * в нумерацию темы не входят, их позиции скрипт не трогает (номер нигде не
  * показывается). Задача каталога, взятая в работу, — обычная задача
@@ -53,8 +56,11 @@ const subMap = new Map(subs.map(s => [s.id, s]));
 const tasksByTopic = new Map();
 let unassigned = 0;
 
+// Черновики каталога: номер 0, в нумерацию темы не входят.
+const catalogDrafts = tasks.filter(t => !isPaperDraft(t) && t.is_published === false);
 for (const t of tasks) {
   if (isPaperDraft(t)) continue;
+  if (t.is_published === false) continue;
   if (!t.topic_id) {
     unassigned++;
     continue;
@@ -92,8 +98,9 @@ for (const topicId of sortedTopicIds) {
     const subB = subMap.get(b.subtopic_id)?.position ?? 999;
     if (subA !== subB) return subA - subB;
 
-    const posA = a.position ?? 9999;
-    const posB = b.position ?? 9999;
+    // 0 и пусто — номера нет (только что опубликована): в конец своей подтемы.
+    const posA = a.position > 0 ? a.position : 9999;
+    const posB = b.position > 0 ? b.position : 9999;
     if (posA !== posB) return posA - posB;
 
     return String(a.created_at || '').localeCompare(String(b.created_at || '')) || a.id - b.id;
@@ -122,12 +129,16 @@ for (const topicId of sortedTopicIds) {
   }
 }
 
+const draftResets = catalogDrafts.filter(t => t.position !== 0);
+for (const t of draftResets) allChanges.push({ id: t.id, topicId: t.topic_id, was: t.position, now: 0 });
+
 console.log(`\n────────────────────────────────────────`);
 console.log(`Тем с задачами: ${tasksByTopic.size}`);
 console.log(`Тем с дублями/нарушенным порядком: ${topicsWithDups}`);
 console.log(`Всего задач: ${tasks.length}`);
 if (unassigned > 0) console.log(`Задач без темы: ${unassigned}`);
 console.log(`Заданий контрольных (вне нумерации, не трогаем): ${tasks.filter(isPaperDraft).length}`);
+console.log(`Черновиков каталога (без номера): ${catalogDrafts.length}, номер обнуляется у ${draftResets.length}`);
 console.log(`Задач, требующих обновления номера: ${allChanges.length}`);
 
 if (!APPLY) {

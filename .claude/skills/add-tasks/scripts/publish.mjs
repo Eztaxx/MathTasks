@@ -67,20 +67,27 @@ async function main() {
   }
   for (const h of held) console.log(`  #${h.id} оставлен черновиком: ${h.why.join('; ')}`);
 
-  // Нумерация темы 1..N: порядок подтем → позиция → дата создания → id (как renumber-tasks.mjs).
+  // Нумерация темы 1..N — только опубликованные: порядок подтем → позиция → дата создания → id
+  // (как renumber-tasks.mjs). Черновик каталога номера не занимает — у него 0.
   // Задания контрольных (черновики из exam_paper_items) в нумерацию не входят, их позиции не трогаем.
   const subs = await fetchAll(`subtopics?select=id,position&topic_id=eq.${meta.topic_id}&order=id`);
   const subPos = new Map(subs.map(s => [s.id, s.position ?? 999]));
   const topicTasks = await fetchAll(`tasks?select=id,subtopic_id,position,created_at,is_published&topic_id=eq.${meta.topic_id}&order=id`);
   const inPapers = new Set((await fetchAll('exam_paper_items?select=task_id&order=id')).map(i => Number(i.task_id)));
-  const list = topicTasks.filter(t => !(inPapers.has(Number(t.id)) && t.is_published === false && !t.subtopic_id));
+  const catalog = topicTasks.filter(t => !(inPapers.has(Number(t.id)) && t.is_published === false && !t.subtopic_id));
+  const list = catalog.filter(t => t.is_published !== false);
+  const posKey = t => (t.position > 0 ? t.position : 9999);
   list.sort((a, b) => (subPos.get(a.subtopic_id) ?? 999) - (subPos.get(b.subtopic_id) ?? 999)
-    || (a.position ?? 9999) - (b.position ?? 9999)
+    || posKey(a) - posKey(b)
     || String(a.created_at || '').localeCompare(String(b.created_at || '')) || a.id - b.id);
   let moved = 0;
   for (const [index, t] of list.entries()) {
     if (t.position === index + 1) continue;
     await rest(`tasks?id=eq.${t.id}`, { method: 'PATCH', body: { position: index + 1 } });
+    moved++;
+  }
+  for (const t of catalog.filter(t => t.is_published === false && t.position !== 0)) {
+    await rest(`tasks?id=eq.${t.id}`, { method: 'PATCH', body: { position: 0 } });
     moved++;
   }
   console.log(`нумерация темы ${meta.topic_id}: задач ${list.length}, сдвинуто ${moved}`);

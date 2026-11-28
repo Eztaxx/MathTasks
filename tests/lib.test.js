@@ -49,6 +49,7 @@ import {
   parseTasksImport,
   exportTasksToCsv,
   computeTaskRenumbering,
+  planTaskNumbers,
   computeTopicRenumbering,
   computeSubtopicRenumbering
 } from '../public/lib.js';
@@ -1604,6 +1605,87 @@ describe('computeTaskRenumbering', () => {
     ];
     const res = computeTaskRenumbering(tasks);
     expect(res.map(r => r.id)).toEqual([1, 4, 5]);
+  });
+
+  it('черновик номера не занимает: у него 0, опубликованные идут подряд', () => {
+    const tasks = [
+      { id: 1, position: 1, is_published: true },
+      { id: 2, position: 2, is_published: false },
+      { id: 3, position: 3, is_published: true }
+    ];
+    const res = computeTaskRenumbering(tasks);
+    const byId = Object.fromEntries(res.map(r => [r.id, r]));
+    expect(byId[1].newPosition).toBe(1);
+    expect(byId[3]).toMatchObject({ newPosition: 2, changed: true });
+    expect(byId[2]).toMatchObject({ newPosition: 0, changed: true });
+  });
+});
+
+describe('planTaskNumbers', () => {
+  const subtopics = [{ id: 101, position: 1 }, { id: 102, position: 2 }, { id: 103, position: 3 }];
+  const numbers = res => Object.fromEntries(res.map(r => [r.id, r.newPosition]));
+
+  it('пустой ввод — пустой план', () => {
+    expect(planTaskNumbers([])).toEqual([]);
+    expect(planTaskNumbers(null)).toEqual([]);
+  });
+
+  it('снятую задачу убирает из нумерации и закрывает пропуск, порядок остальных не меняет', () => {
+    const tasks = [
+      { id: 1, subtopic_id: 102, position: 1, is_published: true },
+      { id: 2, subtopic_id: 101, position: 2, is_published: false },
+      { id: 3, subtopic_id: 101, position: 3, is_published: true }
+    ];
+    expect(numbers(planTaskNumbers(tasks, subtopics))).toEqual({ 1: 1, 3: 2, 2: 0 });
+  });
+
+  it('только что опубликованная встаёт в конец своей подтемы', () => {
+    const tasks = [
+      { id: 1, subtopic_id: 101, position: 1, is_published: true },
+      { id: 2, subtopic_id: 101, position: 2, is_published: true },
+      { id: 3, subtopic_id: 102, position: 3, is_published: true },
+      { id: 9, subtopic_id: 101, position: 0, is_published: true }
+    ];
+    expect(numbers(planTaskNumbers(tasks, subtopics))).toEqual({ 1: 1, 2: 2, 9: 3, 3: 4 });
+  });
+
+  it('подтема без опубликованных — перед первой задачей следующей подтемы, иначе в конец темы', () => {
+    const tasks = [
+      { id: 1, subtopic_id: 101, position: 1, is_published: true },
+      { id: 3, subtopic_id: 103, position: 2, is_published: true },
+      { id: 8, subtopic_id: 102, position: 0, is_published: true },
+      { id: 9, subtopic_id: null, position: 0, is_published: true }
+    ];
+    expect(numbers(planTaskNumbers(tasks, subtopics))).toEqual({ 1: 1, 8: 2, 3: 3, 9: 4 });
+  });
+
+  it('ручной номер ставит задачу ровно на это место', () => {
+    const tasks = [
+      { id: 1, position: 1, is_published: true },
+      { id: 2, position: 2, is_published: true },
+      { id: 3, position: 3, is_published: true }
+    ];
+    expect(numbers(planTaskNumbers(tasks, [], { targetId: 3, desiredPosition: 1 }))).toEqual({ 3: 1, 1: 2, 2: 3 });
+    expect(numbers(planTaskNumbers(tasks, [], { targetId: '1', desiredPosition: 99 }))).toEqual({ 2: 1, 3: 2, 1: 3 });
+  });
+
+  it('ручной номер у черновика не действует: черновик остаётся без номера', () => {
+    const tasks = [
+      { id: 1, position: 1, is_published: true },
+      { id: 2, position: 5, is_published: false }
+    ];
+    const res = planTaskNumbers(tasks, [], { targetId: 2, desiredPosition: 1 });
+    expect(numbers(res)).toEqual({ 1: 1, 2: 0 });
+    expect(res.find(r => r.id === 1).changed).toBe(false);
+  });
+
+  it('уже правильные номера — ни одного изменения', () => {
+    const tasks = [
+      { id: 1, position: 1, is_published: true },
+      { id: 2, position: 2 },
+      { id: 3, position: 0, is_published: false }
+    ];
+    expect(planTaskNumbers(tasks).every(r => !r.changed)).toBe(true);
   });
 });
 

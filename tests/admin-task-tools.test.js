@@ -16,7 +16,7 @@ describe('кнопки администратора на карточке зад
     const src = read('../public/i18n.js');
     const ruStart = src.indexOf('\n    ru: {');
     expect(ruStart).toBeGreaterThan(0);
-    const keys = ['admin_task_edit', 'admin_task_unpublish', 'admin_task_unpublish_confirm', 'admin_task_unpublished', 'admin_task_failed', 'admin_task_error'];
+    const keys = ['admin_task_edit', 'admin_task_unpublish', 'admin_task_unpublish_confirm', 'admin_task_unpublished', 'admin_task_failed', 'admin_task_error', 'admin_task_renumber_failed'];
     for (const key of keys) {
       const re = new RegExp(`^\\s+${key}: '`, 'gm');
       const at = [...src.matchAll(re)].map(m => m.index);
@@ -33,7 +33,7 @@ describe('кнопки администратора на карточке зад
   });
 
   it('снятие проверяет, что изменилась ровно одна строка, и не удаляет задачу', () => {
-    expect(app).toContain("const { data, error, status } = await db.from('tasks').update({ is_published: false }).eq('id', taskId).select('id');");
+    expect(app).toContain("const { data, error, status } = await db.from('tasks').update({ is_published: false, position: 0 }).eq('id', taskId).select('id');");
     expect(app).toMatch(/data\.length !== 1/);
     expect(app).not.toMatch(/from\('tasks'\)\.delete\(/);
   });
@@ -66,6 +66,28 @@ describe('админка: задания контрольных и перену�
     expect(admin).toMatch(/async function handleRenumberTasks[\s\S]*?await loadTaskIndex\(\);\s*fresh = await loadTasks\(\);[\s\S]*?if \(!fresh\)[\s\S]*?if \(!paperTaskIdsReady\)/);
     expect(admin).toContain(".update({ position: item.newPosition }).eq('id', item.id).select('id')");
     expect(admin).toMatch(/if \(error\) \{ paperTaskIdsReady = false; return; \}/);
+  });
+
+  it('номер в теме — только у опубликованных: снятие и публикация обнуляют позицию и пересчитывают тему', () => {
+    expect(admin).toContain("update({ is_published: false, position: 0 }).eq('id', unpublishId).select('id,topic_id')");
+    expect(admin).toContain("update({ is_published: true, position: 0 }).eq('id', publishId).select('id,topic_id')");
+    expect(admin).toContain("update({ is_published: true, position: 0 }).in('id', ids.slice(i, i + 100)).select('id,topic_id')");
+    expect(admin).toContain("update({ is_published: true, position: 0 }).eq('id', task.id).select('id,topic_id')");
+    expect(admin).toMatch(/function rebalanceTaskPositions[\s\S]*?planTaskNumbers/);
+    expect(app).toMatch(/async function closeTopicNumberGap[\s\S]*?planTaskNumbers/);
+    // Стрелки — по номерам опубликованных из базы, а не в порядке указателя (по id).
+    expect(admin).toMatch(/async function moveTask[\s\S]*?fetchTopicRows\(task\.topic_id\)[\s\S]*?\.sort\(\(a, b\) => \(a\.position \?\? 0\) - \(b\.position \?\? 0\)/);
+    // Пересчёт: по одному за раз, тема из базы, цель обязана быть в теме.
+    expect(admin).toMatch(/function rebalanceTaskPositions[\s\S]*?queueRenumber\(async \(\) => \{[\s\S]*?fetchTopicRows\(topicId\)[\s\S]*?return false;/);
+    expect(read('../.claude/skills/add-tasks/scripts/check.mjs')).toContain('position: 0, is_published: false');
+  });
+
+  it('скрипты нумерации считают только опубликованные', () => {
+    const renumber = read('../scripts/renumber-tasks.mjs');
+    expect(renumber).toMatch(/if \(t\.is_published === false\) continue;/);
+    expect(renumber).toMatch(/now: 0/);
+    const publish = read('../.claude/skills/add-tasks/scripts/publish.mjs');
+    expect(publish).toMatch(/const list = catalog\.filter\(t => t\.is_published !== false\);/);
   });
 
   it('в меню админки есть ссылка на главную', () => {
